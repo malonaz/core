@@ -760,6 +760,296 @@ func (b0 BatchGetNotesResponse_builder) Build() *BatchGetNotesResponse {
 	return m0
 }
 
+// Request message for LibraryService.ImportNotes.
+//
+// See: https://google.aip.dev/153 (Import and export).
+type ImportNotesRequest struct {
+	state                   protoimpl.MessageState      `protogen:"opaque.v1"`
+	xxx_hidden_Parent       string                      `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Source       isImportNotesRequest_Source `protobuf_oneof:"source"`
+	xxx_hidden_ValidateOnly bool                        `protobuf:"varint,3,opt,name=validate_only,json=validateOnly,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *ImportNotesRequest) Reset() {
+	*x = ImportNotesRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportNotesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportNotesRequest) ProtoMessage() {}
+
+func (x *ImportNotesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportNotesRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *ImportNotesRequest) GetInlineSource() *ImportNotesRequest_InlineSource {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*importNotesRequest_InlineSource_); ok {
+			return x.InlineSource
+		}
+	}
+	return nil
+}
+
+func (x *ImportNotesRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.xxx_hidden_ValidateOnly
+	}
+	return false
+}
+
+func (x *ImportNotesRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *ImportNotesRequest) SetInlineSource(v *ImportNotesRequest_InlineSource) {
+	if v == nil {
+		x.xxx_hidden_Source = nil
+		return
+	}
+	x.xxx_hidden_Source = &importNotesRequest_InlineSource_{v}
+}
+
+func (x *ImportNotesRequest) SetValidateOnly(v bool) {
+	x.xxx_hidden_ValidateOnly = v
+}
+
+func (x *ImportNotesRequest) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Source != nil
+}
+
+func (x *ImportNotesRequest) HasInlineSource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*importNotesRequest_InlineSource_)
+	return ok
+}
+
+func (x *ImportNotesRequest) ClearSource() {
+	x.xxx_hidden_Source = nil
+}
+
+func (x *ImportNotesRequest) ClearInlineSource() {
+	if _, ok := x.xxx_hidden_Source.(*importNotesRequest_InlineSource_); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+const ImportNotesRequest_Source_not_set_case case_ImportNotesRequest_Source = 0
+const ImportNotesRequest_InlineSource_case case_ImportNotesRequest_Source = 2
+
+func (x *ImportNotesRequest) WhichSource() case_ImportNotesRequest_Source {
+	if x == nil {
+		return ImportNotesRequest_Source_not_set_case
+	}
+	switch x.xxx_hidden_Source.(type) {
+	case *importNotesRequest_InlineSource_:
+		return ImportNotesRequest_InlineSource_case
+	default:
+		return ImportNotesRequest_Source_not_set_case
+	}
+}
+
+type ImportNotesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent resource. Either an organization, an author or a shelf.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/authors/{author}
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string
+	// The source of the notes to import.
+
+	// Fields of oneof xxx_hidden_Source:
+	// The notes to import, provided inline.
+	InlineSource *ImportNotesRequest_InlineSource
+	// -- end of xxx_hidden_Source
+	// If set, validate the request and preview the response, but do not actually import the notes.
+	ValidateOnly bool
+}
+
+func (b0 ImportNotesRequest_builder) Build() *ImportNotesRequest {
+	m0 := &ImportNotesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	if b.InlineSource != nil {
+		x.xxx_hidden_Source = &importNotesRequest_InlineSource_{b.InlineSource}
+	}
+	x.xxx_hidden_ValidateOnly = b.ValidateOnly
+	return m0
+}
+
+type case_ImportNotesRequest_Source protoreflect.FieldNumber
+
+func (x case_ImportNotesRequest_Source) String() string {
+	md := file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isImportNotesRequest_Source interface {
+	isImportNotesRequest_Source()
+}
+
+type importNotesRequest_InlineSource_ struct {
+	// The notes to import, provided inline.
+	InlineSource *ImportNotesRequest_InlineSource `protobuf:"bytes,2,opt,name=inline_source,json=inlineSource,proto3,oneof"`
+}
+
+func (*importNotesRequest_InlineSource_) isImportNotesRequest_Source() {}
+
+// Response message for LibraryService.ImportNotes.
+type ImportNotesResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Notes *[]*v1.Note            `protobuf:"bytes,1,rep,name=notes,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ImportNotesResponse) Reset() {
+	*x = ImportNotesResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportNotesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportNotesResponse) ProtoMessage() {}
+
+func (x *ImportNotesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportNotesResponse) GetNotes() []*v1.Note {
+	if x != nil {
+		if x.xxx_hidden_Notes != nil {
+			return *x.xxx_hidden_Notes
+		}
+	}
+	return nil
+}
+
+func (x *ImportNotesResponse) SetNotes(v []*v1.Note) {
+	x.xxx_hidden_Notes = &v
+}
+
+type ImportNotesResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The imported notes, in request order.
+	Notes []*v1.Note
+}
+
+func (b0 ImportNotesResponse_builder) Build() *ImportNotesResponse {
+	m0 := &ImportNotesResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Notes = &b.Notes
+	return m0
+}
+
+// Notes carried in the request itself.
+type ImportNotesRequest_InlineSource struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Notes *[]*v1.Note            `protobuf:"bytes,1,rep,name=notes,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ImportNotesRequest_InlineSource) Reset() {
+	*x = ImportNotesRequest_InlineSource{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportNotesRequest_InlineSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportNotesRequest_InlineSource) ProtoMessage() {}
+
+func (x *ImportNotesRequest_InlineSource) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportNotesRequest_InlineSource) GetNotes() []*v1.Note {
+	if x != nil {
+		if x.xxx_hidden_Notes != nil {
+			return *x.xxx_hidden_Notes
+		}
+	}
+	return nil
+}
+
+func (x *ImportNotesRequest_InlineSource) SetNotes(v []*v1.Note) {
+	x.xxx_hidden_Notes = &v
+}
+
+type ImportNotesRequest_InlineSource_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The notes to import. A note without a name is assigned a system
+	// generated identifier; a note with a name keeps its own.
+	Notes []*v1.Note
+}
+
+func (b0 ImportNotesRequest_InlineSource_builder) Build() *ImportNotesRequest_InlineSource {
+	m0 := &ImportNotesRequest_InlineSource{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Notes = &b.Notes
+	return m0
+}
+
 var File_malonaz_test_library_library_service_v1_note_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
@@ -809,32 +1099,47 @@ const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB5\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Note\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"L\n" +
 	"\x15BatchGetNotesResponse\x123\n" +
+	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notes\"\xd2\x02\n" +
+	"\x12ImportNotesRequest\x12C\n" +
+	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/Note\xbaH\x03\xc8\x01\x01R\x06parent\x12o\n" +
+	"\rinline_source\x18\x02 \x01(\v2H.malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSourceH\x00R\finlineSource\x12#\n" +
+	"\rvalidate_only\x18\x03 \x01(\bR\fvalidateOnly\x1aP\n" +
+	"\fInlineSource\x12@\n" +
+	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteB\v\xbaH\b\x92\x01\x05\b\x01\x10\xe8\aR\x05notesB\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01\"J\n" +
+	"\x13ImportNotesResponse\x123\n" +
 	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notesBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_test_library_library_service_v1_note_proto_goTypes = []any{
-	(*CreateNoteRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateNoteRequest
-	(*GetNoteRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetNoteRequest
-	(*UpdateNoteRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest
-	(*DeleteNoteRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteNoteRequest
-	(*ListNotesRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListNotesRequest
-	(*ListNotesResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListNotesResponse
-	(*BatchGetNotesRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetNotesRequest
-	(*BatchGetNotesResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetNotesResponse
-	(*v1.Note)(nil),               // 8: malonaz.test.library.v1.Note
-	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
+	(*CreateNoteRequest)(nil),               // 0: malonaz.test.library.library_service.v1.CreateNoteRequest
+	(*GetNoteRequest)(nil),                  // 1: malonaz.test.library.library_service.v1.GetNoteRequest
+	(*UpdateNoteRequest)(nil),               // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest
+	(*DeleteNoteRequest)(nil),               // 3: malonaz.test.library.library_service.v1.DeleteNoteRequest
+	(*ListNotesRequest)(nil),                // 4: malonaz.test.library.library_service.v1.ListNotesRequest
+	(*ListNotesResponse)(nil),               // 5: malonaz.test.library.library_service.v1.ListNotesResponse
+	(*BatchGetNotesRequest)(nil),            // 6: malonaz.test.library.library_service.v1.BatchGetNotesRequest
+	(*BatchGetNotesResponse)(nil),           // 7: malonaz.test.library.library_service.v1.BatchGetNotesResponse
+	(*ImportNotesRequest)(nil),              // 8: malonaz.test.library.library_service.v1.ImportNotesRequest
+	(*ImportNotesResponse)(nil),             // 9: malonaz.test.library.library_service.v1.ImportNotesResponse
+	(*ImportNotesRequest_InlineSource)(nil), // 10: malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource
+	(*v1.Note)(nil),                         // 11: malonaz.test.library.v1.Note
+	(*fieldmaskpb.FieldMask)(nil),           // 12: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_note_proto_depIdxs = []int32{
-	8, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	8, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	9, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
-	8, // 4: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	11, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	11, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	12, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	11, // 4: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	10, // 5: malonaz.test.library.library_service.v1.ImportNotesRequest.inline_source:type_name -> malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource
+	11, // 6: malonaz.test.library.library_service.v1.ImportNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	11, // 7: malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource.notes:type_name -> malonaz.test.library.v1.Note
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_note_proto_init() }
@@ -842,13 +1147,16 @@ func file_malonaz_test_library_library_service_v1_note_proto_init() {
 	if File_malonaz_test_library_library_service_v1_note_proto != nil {
 		return
 	}
+	file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8].OneofWrappers = []any{
+		(*importNotesRequest_InlineSource_)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_note_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_note_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

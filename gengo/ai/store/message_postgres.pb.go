@@ -95,6 +95,61 @@ func (s *Store) InsertMessageIdempotently(ctx context.Context, requestID string,
 	return inserted, nil
 }
 
+func (s *Store) ImportMessages(ctx context.Context, messages []*model.Message) (int64, error) {
+	if len(messages) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"message"},
+		MessagePostgresColumns,
+		v5.CopyFromSlice(len(messages), func(i int) ([]any, error) {
+			return postgres.GetParams(messages[i], MessagePostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrMessageAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportMessagesWithRequestIDs(ctx context.Context, requestIDs []string, messages []*model.Message) (int64, error) {
+	if len(messages) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(messages) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*MessageWithRequestID, len(messages))
+	for i, _message := range messages {
+		rows[i] = &MessageWithRequestID{
+			RequestID: requestIDs[i],
+			Message:   *_message,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"message"},
+		MessageWithRequestIDPostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], MessageWithRequestIDPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrMessageAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateMessagePostgresQuery = `UPDATE message SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", MessagePostgresColumns)
 

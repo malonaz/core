@@ -123,6 +123,109 @@ func (s *Store) InsertAuthorIdempotently(ctx context.Context, requestID string, 
 	return inserted, nil
 }
 
+func (s *Store) ImportAuthors(ctx context.Context, authors []*model.Author, authorProfiles []*model.AuthorProfile) (int64, error) {
+	if len(authors) == 0 {
+		return 0, nil
+	}
+	if len(authorProfiles) != len(authors) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	var copied int64
+	transactionFN := func(tx postgres.Tx) error {
+		copied = 0
+		n, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"library", "author"},
+			AuthorPostgresColumns,
+			v5.CopyFromSlice(len(authors), func(i int) ([]any, error) {
+				return postgres.GetParams(authors[i], AuthorPostgresColumns...), nil
+			}),
+		)
+		if err != nil {
+			return err
+		}
+		copied = n
+
+		if _, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"library", "author_profile"},
+			AuthorProfileWritePostgresColumns,
+			v5.CopyFromSlice(len(authorProfiles), func(i int) ([]any, error) {
+				return postgres.GetParams(authorProfiles[i], AuthorProfileWritePostgresColumns...), nil
+			}),
+		); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrAuthorAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportAuthorsWithRequestIDs(ctx context.Context, requestIDs []string, authors []*model.Author, authorProfiles []*model.AuthorProfile) (int64, error) {
+	if len(authors) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(authors) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(authorProfiles) != len(authors) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*AuthorWithRequestID, len(authors))
+	for i, _author := range authors {
+		rows[i] = &AuthorWithRequestID{
+			RequestID: requestIDs[i],
+			Author:    *_author,
+		}
+	}
+
+	var copied int64
+	transactionFN := func(tx postgres.Tx) error {
+		copied = 0
+		n, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"library", "author"},
+			AuthorWithRequestIDPostgresColumns,
+			v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+				return postgres.GetParams(rows[i], AuthorWithRequestIDPostgresColumns...), nil
+			}),
+		)
+		if err != nil {
+			return err
+		}
+		copied = n
+
+		if _, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"library", "author_profile"},
+			AuthorProfileWritePostgresColumns,
+			v5.CopyFromSlice(len(authorProfiles), func(i int) ([]any, error) {
+				return postgres.GetParams(authorProfiles[i], AuthorProfileWritePostgresColumns...), nil
+			}),
+		); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrAuthorAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateAuthorPostgresQuery = `UPDATE library.author SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", AuthorPostgresColumns)
 

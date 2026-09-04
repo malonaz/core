@@ -5,6 +5,7 @@ go_library(
         "create.go",
         "delete.go",
         "get.go",
+        "import.go",
         "list.go",
         "rpc.go",
         "search.go",

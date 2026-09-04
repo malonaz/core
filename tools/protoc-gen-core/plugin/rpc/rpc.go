@@ -269,21 +269,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	serverName := fmt.Sprintf("%s_%sServer", svcName, resourceGoName)
 	goTypeQgi := gen.modelIdent(mi.rpc.Message.GoIdent.GoName)
 
-	// Determine hasRequestID by scanning all create methods for this resource.
-	hasRequestID := false
-	for _, method := range si.service.Methods {
-		rpc, err := resource.ParseRPC(method)
-		if err != nil {
-			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
-		}
-		if rpc == nil {
-			continue
-		}
-		if rpc.Create && rpc.ParsedResource.Desc.Singular == pr.Desc.Singular {
-			hasRequestID = method.Input.Desc.Fields().ByName("request_id") != nil
-			break
-		}
-	}
+	hasRequestID := mc.createHasRequestID()
 
 	// Store interface.
 	g.P(fmt.Sprintf("type %s interface {", storeIface))
@@ -357,17 +343,29 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	listSig += fmt.Sprintf("whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*%s, error)", goTypeQgi)
 	g.P(listSig)
 
+	// Import (only when the service declares an Import RPC for this resource).
+	hasImport, err := mc.serviceDeclares(func(rpc *resource.RPC) bool { return rpc.Import })
+	if err != nil {
+		return err
+	}
+	if hasImport {
+		importSig := fmt.Sprintf("  %s(ctx %s, ", mc.importStoreMethod(), gen.ident(contextPkg, "Context"))
+		if hasRequestID {
+			importSig += "requestIDs []string, "
+		}
+		importSig += fmt.Sprintf("%s []*%s", xstrings.ToCamelCase(pr.PluralGoName()), goTypeQgi)
+		for _, child := range mc.singletonChildren {
+			importSig += fmt.Sprintf(", %ss []*%s",
+				xstrings.ToCamelCase(child.Resource.SingularGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
+		}
+		importSig += ") (int64, error)"
+		g.P(importSig)
+	}
+
 	// Search (only when the service declares a Search RPC for this resource).
-	hasSearch := false
-	for _, method := range si.service.Methods {
-		rpc, err := resource.ParseRPC(method)
-		if err != nil {
-			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
-		}
-		if rpc != nil && rpc.Search && rpc.ParsedResource.Desc.Singular == pr.Desc.Singular {
-			hasSearch = true
-			break
-		}
+	hasSearch, err := mc.serviceDeclares(func(rpc *resource.RPC) bool { return rpc.Search })
+	if err != nil {
+		return err
 	}
 	if hasSearch {
 		searchDoc, err := schema.SearchDocument(mi.rpc.Message)
@@ -445,6 +443,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		mc.generateList()
 	case mi.rpc.Search:
 		return mc.generateSearch()
+	case mi.rpc.Import:
+		return mc.generateImport()
 	}
 	return nil
 }
@@ -629,6 +629,36 @@ func (mc *methodCtx) uniqueParentPatterns() []*resource.ParsedPattern {
 }
 
 // --- helpers ---
+
+// serviceDeclares reports whether the service declares a standard method
+// matching the predicate for this method's resource.
+func (mc *methodCtx) serviceDeclares(predicate func(*resource.RPC) bool) (bool, error) {
+	for _, method := range mc.si.service.Methods {
+		rpc, err := resource.ParseRPC(method)
+		if err != nil {
+			return false, fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
+		}
+		if rpc != nil && rpc.ParsedResource.Desc.Singular == mc.pr.Desc.Singular && predicate(rpc) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// createHasRequestID reports whether this resource's Create RPC carries a
+// request_id, which is what makes its rows carry one.
+func (mc *methodCtx) createHasRequestID() bool {
+	for _, method := range mc.si.service.Methods {
+		rpc, err := resource.ParseRPC(method)
+		if err != nil || rpc == nil {
+			continue
+		}
+		if rpc.Create && rpc.ParsedResource.Desc.Singular == mc.pr.Desc.Singular {
+			return method.Input.Desc.Fields().ByName("request_id") != nil
+		}
+	}
+	return false
+}
 
 func (mc *methodCtx) statusErrorf() string     { return mc.gen.ident(statusPkg, "Errorf") }
 func (mc *methodCtx) statusFromError() string  { return mc.gen.ident(statusPkg, "FromError") }

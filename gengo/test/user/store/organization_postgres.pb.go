@@ -105,6 +105,61 @@ func (s *Store) InsertOrganizationIdempotently(ctx context.Context, requestID st
 	return inserted, nil
 }
 
+func (s *Store) ImportOrganizations(ctx context.Context, organizations []*model.Organization) (int64, error) {
+	if len(organizations) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"organization"},
+		OrganizationPostgresColumns,
+		v5.CopyFromSlice(len(organizations), func(i int) ([]any, error) {
+			return postgres.GetParams(organizations[i], OrganizationPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrOrganizationAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportOrganizationsWithRequestIDs(ctx context.Context, requestIDs []string, organizations []*model.Organization) (int64, error) {
+	if len(organizations) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(organizations) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*OrganizationWithRequestID, len(organizations))
+	for i, _organization := range organizations {
+		rows[i] = &OrganizationWithRequestID{
+			RequestID:    requestIDs[i],
+			Organization: *_organization,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"organization"},
+		OrganizationWithRequestIDPostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], OrganizationWithRequestIDPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrOrganizationAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateOrganizationPostgresQuery = `UPDATE organization SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", OrganizationPostgresColumns)
 

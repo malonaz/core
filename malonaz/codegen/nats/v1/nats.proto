@@ -18,7 +18,7 @@ extend google.protobuf.ServiceOptions {
 
 // Extension to annotate a protobuf resource message with NATS event generation options.
 // When set, the code generator emits typed NATS JetStream event messages
-// for the specified standard AIP methods (create, update, delete).
+// for the specified standard AIP methods (create, update, delete, import).
 extend google.protobuf.MessageOptions {
   // Event generation options for this resource.
   EventOptions event = 74001;
@@ -26,7 +26,7 @@ extend google.protobuf.MessageOptions {
 
 // Extension to annotate a protobuf resource message with NATS event generation options.
 // When set, the code generator emits typed NATS JetStream event messages
-// for the specified standard AIP methods (create, update, delete).
+// for the specified standard AIP methods (create, update, delete, import).
 message EventOptions {
   // The stream on which events will be published.
   string stream = 1 [(buf.validate.field).required = true];
@@ -49,6 +49,13 @@ message EventOptions {
   // Options for deleted events, published when a resource is deleted via its Delete method.
   // If unset, no deleted event is generated.
   repeated EventMethodOptions deleted = 5;
+
+  // Options for imported events, published once per resource imported via the
+  // resource's Import method. Separate from `created` because a bulk import
+  // can fan out an event per row, which a service may not want even when it
+  // publishes created events for interactive creates.
+  // If unset, no imported event is generated.
+  repeated EventMethodOptions imported = 6;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.

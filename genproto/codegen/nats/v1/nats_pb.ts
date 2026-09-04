@@ -15,12 +15,12 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/nats/v1/nats.proto.
  */
 export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSL7AQoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zIlIKEkV2ZW50TWV0aG9kT3B0aW9ucxIXCgdzdWJqZWN0GAEgASgJQga6SAPIAQESFgoOc3ViamVjdF9maWVsZHMYAiADKAkSCwoDY2VsGAMgASgJOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSK6AgoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEj0KCGltcG9ydGVkGAYgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zIlIKEkV2ZW50TWV0aG9kT3B0aW9ucxIXCgdzdWJqZWN0GAEgASgJQga6SAPIAQESFgoOc3ViamVjdF9maWVsZHMYAiADKAkSCwoDY2VsGAMgASgJOlkKBnN0cmVhbRIfLmdvb2dsZS5wcm90b2J1Zi5TZXJ2aWNlT3B0aW9ucxiQwgQgAygLMh4ubWFsb25hei5uYXRzLnYxLlN0cmVhbU9wdGlvbnNSBnN0cmVhbTpeCgVldmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiRwgQgASgLMiUubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRPcHRpb25zUgVldmVudEIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL25hdHMvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
 
 /**
  * Extension to annotate a protobuf resource message with NATS event generation options.
  * When set, the code generator emits typed NATS JetStream event messages
- * for the specified standard AIP methods (create, update, delete).
+ * for the specified standard AIP methods (create, update, delete, import).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
@@ -66,12 +66,23 @@ export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 5;
    */
   deleted: EventMethodOptions[];
+
+  /**
+   * Options for imported events, published once per resource imported via the
+   * resource's Import method. Separate from `created` because a bulk import
+   * can fan out an event per row, which a service may not want even when it
+   * publishes created events for interactive creates.
+   * If unset, no imported event is generated.
+   *
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 6;
+   */
+  imported: EventMethodOptions[];
 };
 
 /**
  * Extension to annotate a protobuf resource message with NATS event generation options.
  * When set, the code generator emits typed NATS JetStream event messages
- * for the specified standard AIP methods (create, update, delete).
+ * for the specified standard AIP methods (create, update, delete, import).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
@@ -117,6 +128,17 @@ export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> 
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions deleted = 5;
    */
   deleted: EventMethodOptionsValid[];
+
+  /**
+   * Options for imported events, published once per resource imported via the
+   * resource's Import method. Separate from `created` because a bulk import
+   * can fan out an event per row, which a service may not want even when it
+   * publishes created events for interactive creates.
+   * If unset, no imported event is generated.
+   *
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 6;
+   */
+  imported: EventMethodOptionsValid[];
 };
 
 /**
