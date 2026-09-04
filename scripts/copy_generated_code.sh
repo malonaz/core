@@ -5,6 +5,22 @@ SRC_DIR="plz-out/gen"
 
 declare -A ACTIVE_FILES
 declare -A DEST_DIRS
+declare -A TOTAL_COUNT
+declare -A UPDATED_COUNT
+declare -A REMOVED_COUNT
+
+# Copy src -> dest, skipping identical files so only real changes are reported.
+copy_file() {
+  local src="$1" dest="$2" dest_dir="$3"
+  ACTIVE_FILES["$dest"]=1
+  TOTAL_COUNT["$dest_dir"]=$((${TOTAL_COUNT["$dest_dir"]:-0} + 1))
+  if cmp -s "$src" "$dest"; then
+    return
+  fi
+  mkdir -p "$(dirname "$dest")"
+  cp -f "$src" "$dest"
+  UPDATED_COUNT["$dest_dir"]=$((${UPDATED_COUNT["$dest_dir"]:-0} + 1))
+}
 
 targets=$(plz query alltargets --hidden --include copy_generated_code*,codegen 2>/dev/null)
 
@@ -59,24 +75,13 @@ for target in "${sorted_targets[@]}"; do
     if [[ -d "$file" ]]; then
       target_dir="$dest_dir${rel_path:+/$rel_path}"
       mkdir -p "$target_dir"
-      cp -rf "$file/." "$target_dir/"
-      # register every file inside so stale-cleanup doesn't delete them
       while read -r copied; do
-        dest_file="$target_dir/${copied#$file/}"
-        ACTIVE_FILES["$dest_file"]=1
+        copy_file "$copied" "$target_dir/${copied#$file/}" "$dest_dir"
       done < <(find "$file" -type f)
-      echo "✓ Copied ${rel_path:-.}/ -> $target_dir/"
       continue
     fi
 
-    dir=$(dirname "$rel_path")
-    filename=$(basename "$file")
-    dest_file="$dest_dir/$dir/$filename"
-
-    mkdir -p "$dest_dir/$dir"
-    cp -f "$file" "$dest_file"
-    echo "✓ Copied $rel_path -> $dest_file"
-    ACTIVE_FILES["$dest_file"]=1
+    copy_file "$file" "$dest_dir/$(dirname "$rel_path")/$(basename "$file")" "$dest_dir"
   done
 done
 
@@ -88,14 +93,16 @@ for dest_dir in "${!DEST_DIRS[@]}"; do
   [[ ! -d "$dest_dir" || "$dest_dir" == "." ]] && continue
 
   while read -r f; do
-    [[ ! -v ACTIVE_FILES["$f"] ]] && rm -f "$f" && echo "🗑 Removed stale $f"
+    [[ ! -v ACTIVE_FILES["$f"] ]] && rm -f "$f" && REMOVED_COUNT["$dest_dir"]=$((${REMOVED_COUNT["$dest_dir"]:-0} + 1))
   done < <(find "$dest_dir" -type f ! -name "BUILD.plz")
 
   while read -r build_file; do
-    [[ ! -v ACTIVE_DIRS["${build_file%/*}"] ]] && rm -f "$build_file" && echo "🗑 Removed unused $build_file"
+    [[ ! -v ACTIVE_DIRS["${build_file%/*}"] ]] && rm -f "$build_file" && REMOVED_COUNT["$dest_dir"]=$((${REMOVED_COUNT["$dest_dir"]:-0} + 1))
   done < <(find "$dest_dir" -type f -name "BUILD.plz")
 
   find "$dest_dir" -type d -empty -delete 2>/dev/null || true
 done
 
-echo "✅ Regenerated all files!"
+for dest_dir in $(printf '%s\n' "${!TOTAL_COUNT[@]}" | sort); do
+  echo "✅ $dest_dir: ${TOTAL_COUNT["$dest_dir"]} files, ${UPDATED_COUNT["$dest_dir"]:-0} updated, ${REMOVED_COUNT["$dest_dir"]:-0} removed"
+done
