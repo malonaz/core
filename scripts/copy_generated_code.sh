@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Associative arrays and [[ -v ]] need bash 4.2+; macOS ships 3.2 as /bin/bash,
+# so this relies on a newer bash (homebrew) being first on PATH. Has to stay
+# above the declare -A below, or 3.2 dies there before we can say why.
+if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 2))); then
+  echo "copy_generated_code.sh needs bash 4.2+, found $BASH_VERSION" >&2
+  exit 1
+fi
+
 SRC_DIR="plz-out/gen"
 
 declare -A ACTIVE_FILES
@@ -8,13 +16,6 @@ declare -A DEST_DIRS
 declare -A TOTAL_COUNT
 declare -A UPDATED_COUNT
 declare -A REMOVED_COUNT
-
-# Associative arrays and [[ -v ]] need bash 4.2+; macOS ships 3.2 as /bin/bash,
-# so this relies on a newer bash (homebrew) being first on PATH.
-if ((BASH_VERSINFO[0] < 4)); then
-  echo "copy_generated_code.sh needs bash 4.2+, found $BASH_VERSION" >&2
-  exit 1
-fi
 
 JOBS=$( { command -v nproc >/dev/null && nproc; } 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4 )
 # BSD mktemp wants an explicit template.
