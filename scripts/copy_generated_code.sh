@@ -9,8 +9,16 @@ declare -A TOTAL_COUNT
 declare -A UPDATED_COUNT
 declare -A REMOVED_COUNT
 
+# Associative arrays and [[ -v ]] need bash 4.2+; macOS ships 3.2 as /bin/bash,
+# so this relies on a newer bash (homebrew) being first on PATH.
+if ((BASH_VERSINFO[0] < 4)); then
+  echo "copy_generated_code.sh needs bash 4.2+, found $BASH_VERSION" >&2
+  exit 1
+fi
+
 JOBS=$( { command -v nproc >/dev/null && nproc; } 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4 )
-WORK_DIR=$(mktemp -d)
+# BSD mktemp wants an explicit template.
+WORK_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t copy_generated_code)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 targets=$(plz query alltargets --hidden --include copy_generated_code*,codegen 2>/dev/null)
