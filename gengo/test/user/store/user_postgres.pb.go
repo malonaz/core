@@ -113,6 +113,109 @@ func (s *Store) InsertUserIdempotently(ctx context.Context, requestID string, ra
 	return inserted, nil
 }
 
+func (s *Store) ImportUsers(ctx context.Context, users []*model.User, userProfiles []*model.UserProfile) (int64, error) {
+	if len(users) == 0 {
+		return 0, nil
+	}
+	if len(userProfiles) != len(users) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	var copied int64
+	transactionFN := func(tx postgres.Tx) error {
+		copied = 0
+		n, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"user_"},
+			UserPostgresColumns,
+			v5.CopyFromSlice(len(users), func(i int) ([]any, error) {
+				return postgres.GetParams(users[i], UserPostgresColumns...), nil
+			}),
+		)
+		if err != nil {
+			return err
+		}
+		copied = n
+
+		if _, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"user_profile"},
+			UserProfileWritePostgresColumns,
+			v5.CopyFromSlice(len(userProfiles), func(i int) ([]any, error) {
+				return postgres.GetParams(userProfiles[i], UserProfileWritePostgresColumns...), nil
+			}),
+		); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrUserAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportUsersWithRequestIDs(ctx context.Context, requestIDs []string, users []*model.User, userProfiles []*model.UserProfile) (int64, error) {
+	if len(users) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(users) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(userProfiles) != len(users) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*UserWithRequestID, len(users))
+	for i, _user := range users {
+		rows[i] = &UserWithRequestID{
+			RequestID: requestIDs[i],
+			User:      *_user,
+		}
+	}
+
+	var copied int64
+	transactionFN := func(tx postgres.Tx) error {
+		copied = 0
+		n, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"user_"},
+			UserWithRequestIDPostgresColumns,
+			v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+				return postgres.GetParams(rows[i], UserWithRequestIDPostgresColumns...), nil
+			}),
+		)
+		if err != nil {
+			return err
+		}
+		copied = n
+
+		if _, err := tx.CopyFrom(
+			ctx,
+			v5.Identifier{"user_profile"},
+			UserProfileWritePostgresColumns,
+			v5.CopyFromSlice(len(userProfiles), func(i int) ([]any, error) {
+				return postgres.GetParams(userProfiles[i], UserProfileWritePostgresColumns...), nil
+			}),
+		); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrUserAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateUserPostgresQuery = `UPDATE user_ SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", UserPostgresColumns)
 

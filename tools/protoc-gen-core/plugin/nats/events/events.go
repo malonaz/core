@@ -146,6 +146,9 @@ func collectEventTypes(eventOpts *natspb.EventOptions) []eventTypeEntry {
 	if opts := eventOpts.GetDeleted(); len(opts) > 0 {
 		result = append(result, eventTypeEntry{eventType: "Deleted", opts: opts})
 	}
+	if opts := eventOpts.GetImported(); len(opts) > 0 {
+		result = append(result, eventTypeEntry{eventType: "Imported", opts: opts})
+	}
 	return result
 }
 
@@ -257,11 +260,14 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	g.P("  if err != nil {")
 	g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"getting subject: %w\", err)")
 	g.P("  }")
-	if eventType == "Updated" {
+	switch eventType {
+	case "Updated":
 		g.P("  event, err := ", gen.ident(aipPkg, "NewResourceUpdatedEvent"), "(resource, previousResource, updateMask)")
-	} else if eventType == "Created" {
+	case "Created":
 		g.P("  event, err := ", gen.ident(aipPkg, "NewResourceCreatedEvent"), "(resource)")
-	} else {
+	case "Imported":
+		g.P("  event, err := ", gen.ident(aipPkg, "NewResourceImportedEvent"), "(resource)")
+	default:
 		g.P("  event, err := ", gen.ident(aipPkg, "NewResourceDeletedEvent"), "(resource)")
 	}
 	g.P("  if err != nil {")

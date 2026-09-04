@@ -92,6 +92,61 @@ func (s *Store) InsertShelfIdempotently(ctx context.Context, requestID string, r
 	return inserted, nil
 }
 
+func (s *Store) ImportShelves(ctx context.Context, shelves []*model.Shelf) (int64, error) {
+	if len(shelves) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "shelf"},
+		ShelfWritePostgresColumns,
+		v5.CopyFromSlice(len(shelves), func(i int) ([]any, error) {
+			return postgres.GetParams(shelves[i], ShelfWritePostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrShelfAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportShelvesWithRequestIDs(ctx context.Context, requestIDs []string, shelves []*model.Shelf) (int64, error) {
+	if len(shelves) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(shelves) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*ShelfWithRequestID, len(shelves))
+	for i, _shelf := range shelves {
+		rows[i] = &ShelfWithRequestID{
+			RequestID: requestIDs[i],
+			Shelf:     *_shelf,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "shelf"},
+		ShelfWithRequestIDWritePostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], ShelfWithRequestIDWritePostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrShelfAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateShelfPostgresQuery = `UPDATE library.shelf SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
 
