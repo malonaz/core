@@ -48,6 +48,11 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+sh_binary(
+    name = "quiet_symlink_warnings",
+    main = "quiet_symlink_warnings.sh",
+)
+
 def echo_message(message):
     return f'echo "###### {message} ######"'
 
@@ -85,14 +90,15 @@ sh_cmd(
     name = "tidy",
     cmd = [
         echo_message("Running 'go mod tidy'"),
-        "$(out_exe //tools/go:toolchain|go) mod tidy",
+        "$(out_exe :quiet_symlink_warnings) $(out_exe //tools/go:toolchain|go) mod tidy",
         echo_message("Running 'go deps'"),
-        "$(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
+        "$(out_exe :quiet_symlink_warnings) $(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
     ] + _lint_cmds,
     deps = [
         ":buf",
         ":buf.yaml",
         ":godeps",
+        ":quiet_symlink_warnings",
         ":wollemi",
         "//tools/go:toolchain",
     ],
