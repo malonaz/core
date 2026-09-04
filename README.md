@@ -1,100 +1,86 @@
 # Core
 
-A collection of common build rules, tools, and Go libraries for monorepo development using [Please Build](https://please.build).
-
-## Overview
-
-This repository provides:
-
-1. **Build Rules**: Reusable build definitions for Docker, Kubernetes, Protocol Buffers, templates, and services
-2. **Code Generation**: Advanced protobuf code generation with custom templates for Go services
-3. **Go Libraries**: Common utilities and abstractions for building Go services
-4. **Tooling**: Development and build tools including linting, formatting, and schema validation
+A collection of reusable build rules, Go libraries, protocol buffer definitions, and tools for monorepo development with [Please Build](https://please.build).
 
 ## Structure
 
 ### Build Rules (`build_defs/`)
 
-- **Docker** (`docker.build_defs`): Rules for building and managing Docker images
-- **Kubernetes** (`k8s.build_defs`): Configuration templating and deployment rules
-- **Protocol Buffers** (`proto/`): Go protobuf compilation with gRPC support
-- **Templates** (`template.build_defs`): Text templating and validation utilities
-- **Services** (`codegen/go_service/`): High-level service generation from manifests
+Reusable Please build definitions:
 
-### Code Generation (`build_defs/codegen/`)
+- **`docker.build_defs`** — Docker image building and management
+- **`grafana.build_defs`** — Grafana dashboard generation
+- **`k8s.build_defs`** — Kubernetes configuration templating and deployment
+- **`remote.build_defs`** — Remote file fetching (GitHub, etc.)
+- **`template.build_defs`** — Text templating and validation
+- **`utils.build_defs`** — General-purpose build utilities
+- **`proto/`** — Protobuf compilation rules for Go, JS, Python, and Ruby
 
-- **Proto Templates** (`protoc_gen_core/`): Custom protobuf code generation
-  - Model layer generation with database mapping
-  - Service layer with AIP (API Improvement Proposals) compliance
-  - Database access layer generation
-- **Service Generation** (`go_service/`): Complete service scaffolding
-  - Main function generation
-  - Service runtime and configuration
-  - Kubernetes deployment manifests
+#### Code Generation (`build_defs/codegen/`)
 
-### Protocol Definitions (`proto/`)
+- **`go_service/`** — Full Go service scaffolding (main, runtime, K8s manifests)
+- **`postgres/`** — Database migration and access layer generation
+- **`protoc_gen_core/`** — Custom protobuf code generation plugin rules
 
-Core protocol buffer schemas providing standardized functionality:
+### Protocol Definitions (`malonaz/`)
 
-- **Authentication** (`authentication.proto`): Authentication and authorization primitives
-  - **`Session`**: User session management with roles and permissions
-  - **`Role`**: Role-based access control with inheritance and scoping
-  - **`Requirements`**: Method-level authorization requirements (via `google.protobuf.MethodOptions`)
-  - **`RateLimit`**: Request rate limiting configuration (via `google.protobuf.MethodOptions`)
-  - **`SessionMetadata`**: Client tracking and session context
+Core protobuf schemas providing standardized functionality:
 
-- **gRPC Extensions** (`grpc.proto`): HTTP gateway and cookie support
-  - **`HttpCookie`**: Complete HTTP cookie specification with security flags
-  - **Gateway Options**: Custom MIME types and HTTP-specific configurations
-  - **Metadata Extensions**: Custom header, trailer, and metadata key mappings
-
-- **Code Generation Annotations** (`codegen/`): Fine-grained control over generated code
-  - **Model Generation** (`model.proto`): Database model configuration
-    - Table naming, soft deletion, JSON/protobuf serialization
-    - Field-level options for vectors, nullability, and embedding
-  - **AIP Compliance** (`aip.proto`): API Improvement Proposal implementations
-    - List operations with filtering, pagination, and ordering
-    - Update operations with field masks and authorization paths
-  - **RPC Generation** (`rpc.proto`): Service method generation control
-    - CRUD operations with pre/post hooks
-  - **Gateway Generation** (`gateway.proto`): HTTP gateway customization
-    - Custom handlers and service-level options
+- **`ai/`** — AI service definitions (chat, TTS, STT, models, GenUI components)
+- **`aip/`** — AIP (API Improvement Proposals) extensions and labels
+- **`audio/`** — Audio format definitions (PCM, μ-law)
+- **`authentication/`** — Session management, RBAC, rate limiting
+- **`canonicalize/`** — Data canonicalization annotations
+- **`codegen/`** — Code generation annotations (model, AIP, gateway, NATS)
+- **`grpc/`** — gRPC extensions (HTTP gateway, cookies, metadata)
+- **`json/`** — JSON schema definitions
+- **`nats/`** — NATS streaming definitions
 
 ### Go Libraries (`go/`)
 
-Core Go utilities for building production services:
+Production-ready Go packages:
 
-- **`authentication`**: JWT/Firebase auth with role-based access control
-- **`binary`**: Common binary utilities and main function helpers
-- **`certs`**: TLS certificate management
-- **`contexttag`**: Context-based request tagging and tracing
-- **`flags`**: Command-line flag parsing and configuration
-- **`grpc`**: gRPC server/client abstractions with middleware
-- **`health`**: Health check endpoints and monitoring
-- **`jsonnet`**: Jsonnet template processing
-- **`logging`**: Structured logging with multiple backends
-- **`pbutil`**: Protocol buffer utilities and helpers
-- **`postgres`**: PostgreSQL client with connection pooling
-- **`prometheus`**: Metrics collection and exposition
-- **`proxy`**: HTTP/gRPC proxy utilities
-- **`routine`**: Goroutine management and lifecycle
+| Package | Description |
+|---|---|
+| `ai` | AI/LLM client abstractions |
+| `aip` | AIP-compliant list/update helpers |
+| `audio` | PCM ↔ μ-law audio conversion |
+| `authentication` | JWT/Firebase auth with RBAC |
+| `binary` | Subprocess lifecycle management |
+| `canonicalize` | Data canonicalization utilities |
+| `certs` | TLS certificate management |
+| `flags` | Command-line flag parsing |
+| `grafana` | Grafana API client |
+| `grpc` | gRPC server/client with middleware |
+| `health` | Health check endpoints |
+| `http` | HTTP server utilities |
+| `jsonnet` | Jsonnet template processing |
+| `logging` | Structured logging |
+| `mock` | gRPC and HTTP mock servers |
+| `nats` | NATS client abstractions |
+| `pbutil` | Protobuf utilities |
+| `pgq` | PostgreSQL query builder |
+| `postgres` | PostgreSQL client with connection pooling |
+| `prometheus` | Metrics collection and exposition |
+| `proxy` | HTTP/gRPC proxy utilities |
+| `routine` | Goroutine lifecycle management |
+| `sat` | System Acceptance Test framework |
+| `test` | Test helpers |
+| `uuid` | UUID generation utilities |
+| `websocket` | WebSocket server utilities |
 
 ### Tools (`tools/`)
 
-Development and build tooling:
-
-- **Protocol Buffers** (`proto/`): Complete protobuf toolchain setup
-  - **`protoc`**: Protocol buffer compiler (version 32.1)
-  - **`protoc-gen-go`**: Official Go code generator for protobuf
-  - **`protoc-gen-go-grpc`**: Go gRPC service generator
-  - **`protoc-gen-grpc-gateway`**: HTTP/JSON to gRPC gateway generator
-  - **`protoc-gen-cobra`**: CLI command generator for protobuf services
-  - **`protoc-gen-validate-go-dep`**: Protocol buffer validation support
-- **`protoc-gen-api`**: Custom protobuf code generation engine
-- **`template`**: Generic template processing tool
-- **`tidy`**: Code formatting and dependency management
-- **`validate-schema`**: JSON/YAML schema validation
+- **`protoc-gen-core`** — Custom protobuf code generation engine
+- **`generate-logo`** — SVG/PNG logo and favicon generator
+- **`grafana-upload-dashboard`** — Grafana dashboard uploader
+- **`grafana-upload-alert-rules`** — Grafana alert rules uploader
+- **`template`** — Generic template processing
+- **`tidy`** — Code formatting and dependency management
+- **`validate-schema`** — JSON/YAML schema validation
+- **`proto/`** — Protobuf toolchain (protoc, protoc-gen-go, grpc-gateway, etc.)
+- **`go/`** — Go toolchain
 
 ## License
 
-This project is available under standard open source licenses. See individual files for specific licensing information.
+[MIT](LICENSE)
