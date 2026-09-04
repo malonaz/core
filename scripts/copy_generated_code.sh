@@ -6,7 +6,6 @@ set -euo pipefail
 # above the declare -A below, or 3.2 dies there before we can say why.
 if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 2))); then
   echo "copy_generated_code.sh needs bash 4.2+, found $BASH_VERSION" >&2
-  echo "macOS ships bash 3.2 - install a newer one with: brew install bash" >&2
   exit 1
 fi
 
