@@ -256,6 +256,11 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	if generationError == nil {
 		generationError = sender.Wait(ctx)
 	}
+	// An empty response would persist a blockless assistant message that
+	// providers reject on every subsequent replay, poisoning the chat.
+	if generationError == nil && len(accumulator.Message.GetBlocks()) == 0 {
+		generationError = grpcstatus.Errorf(codes.Internal, "%s: model returned an empty message", request.GetModel())
+	}
 	if generationError != nil {
 		s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, generationError)
 		return generationError

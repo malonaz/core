@@ -415,6 +415,10 @@ func (c *Client) buildContents(ctx context.Context, messages []*aipb.Message) ([
 			if err != nil {
 				return nil, "", fmt.Errorf("message [%d]: %w", i, err)
 			}
+			// Vertex rejects a Content with no parts; skip blockless legacy turns.
+			if len(parts) == 0 {
+				continue
+			}
 			contents = append(contents, &genai.Content{
 				Role:  genai.RoleModel,
 				Parts: parts,
