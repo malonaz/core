@@ -926,10 +926,8 @@ export type ActionRowAction = Message<"malonaz.ai.genui.v1.ActionRowAction"> & {
     case: "openUrl";
   } | {
     /**
-     * Navigate to an in-app path — a page or overlay that is not a single
-     * resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
-     * come from app-provided documentation (never invented); clients ignore
-     * paths they do not recognize.
+     * Navigate to an in-app path. Interpreted by the client; unrecognized
+     * paths are ignored.
      *
      * @generated from field: string open_path = 6;
      */
@@ -990,10 +988,8 @@ export type ActionRowActionValid = Message<"malonaz.ai.genui.v1.ActionRowAction"
     case: "openUrl";
   } | {
     /**
-     * Navigate to an in-app path — a page or overlay that is not a single
-     * resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
-     * come from app-provided documentation (never invented); clients ignore
-     * paths they do not recognize.
+     * Navigate to an in-app path. Interpreted by the client; unrecognized
+     * paths are ignored.
      *
      * @generated from field: string open_path = 6;
      */

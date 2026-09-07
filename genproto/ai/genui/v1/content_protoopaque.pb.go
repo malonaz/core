@@ -1727,10 +1727,8 @@ type ActionRowAction_builder struct {
 	CopyText *string
 	// Open this http(s) URL externally.
 	OpenUrl *string
-	// Navigate to an in-app path — a page or overlay that is not a single
-	// resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
-	// come from app-provided documentation (never invented); clients ignore
-	// paths they do not recognize.
+	// Navigate to an in-app path. Interpreted by the client; unrecognized
+	// paths are ignored.
 	OpenPath *string
 	// -- end of xxx_hidden_Action
 }
@@ -1786,10 +1784,8 @@ type actionRowAction_OpenUrl struct {
 }
 
 type actionRowAction_OpenPath struct {
-	// Navigate to an in-app path — a page or overlay that is not a single
-	// resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
-	// come from app-provided documentation (never invented); clients ignore
-	// paths they do not recognize.
+	// Navigate to an in-app path. Interpreted by the client; unrecognized
+	// paths are ignored.
 	OpenPath string `protobuf:"bytes,6,opt,name=open_path,json=openPath,proto3,oneof"`
 }
 

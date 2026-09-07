@@ -285,10 +285,8 @@ message ActionRowAction {
     // Open this http(s) URL externally.
     string open_url = 5 [(buf.validate.field).string.uri = true];
 
-    // Navigate to an in-app path — a page or overlay that is not a single
-    // resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
-    // come from app-provided documentation (never invented); clients ignore
-    // paths they do not recognize.
+    // Navigate to an in-app path. Interpreted by the client; unrecognized
+    // paths are ignored.
     string open_path = 6;
   }
 }
