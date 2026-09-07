@@ -1586,6 +1586,15 @@ func (x *ActionRowAction) GetOpenUrl() string {
 	return ""
 }
 
+func (x *ActionRowAction) GetOpenPath() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Action.(*actionRowAction_OpenPath); ok {
+			return x.OpenPath
+		}
+	}
+	return ""
+}
+
 func (x *ActionRowAction) SetLabel(v string) {
 	x.xxx_hidden_Label = v
 }
@@ -1604,6 +1613,10 @@ func (x *ActionRowAction) SetCopyText(v string) {
 
 func (x *ActionRowAction) SetOpenUrl(v string) {
 	x.xxx_hidden_Action = &actionRowAction_OpenUrl{v}
+}
+
+func (x *ActionRowAction) SetOpenPath(v string) {
+	x.xxx_hidden_Action = &actionRowAction_OpenPath{v}
 }
 
 func (x *ActionRowAction) HasAction() bool {
@@ -1637,6 +1650,14 @@ func (x *ActionRowAction) HasOpenUrl() bool {
 	return ok
 }
 
+func (x *ActionRowAction) HasOpenPath() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Action.(*actionRowAction_OpenPath)
+	return ok
+}
+
 func (x *ActionRowAction) ClearAction() {
 	x.xxx_hidden_Action = nil
 }
@@ -1659,10 +1680,17 @@ func (x *ActionRowAction) ClearOpenUrl() {
 	}
 }
 
+func (x *ActionRowAction) ClearOpenPath() {
+	if _, ok := x.xxx_hidden_Action.(*actionRowAction_OpenPath); ok {
+		x.xxx_hidden_Action = nil
+	}
+}
+
 const ActionRowAction_Action_not_set_case case_ActionRowAction_Action = 0
 const ActionRowAction_OpenResource_case case_ActionRowAction_Action = 3
 const ActionRowAction_CopyText_case case_ActionRowAction_Action = 4
 const ActionRowAction_OpenUrl_case case_ActionRowAction_Action = 5
+const ActionRowAction_OpenPath_case case_ActionRowAction_Action = 6
 
 func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
 	if x == nil {
@@ -1675,6 +1703,8 @@ func (x *ActionRowAction) WhichAction() case_ActionRowAction_Action {
 		return ActionRowAction_CopyText_case
 	case *actionRowAction_OpenUrl:
 		return ActionRowAction_OpenUrl_case
+	case *actionRowAction_OpenPath:
+		return ActionRowAction_OpenPath_case
 	default:
 		return ActionRowAction_Action_not_set_case
 	}
@@ -1697,6 +1727,11 @@ type ActionRowAction_builder struct {
 	CopyText *string
 	// Open this http(s) URL externally.
 	OpenUrl *string
+	// Navigate to an in-app path — a page or overlay that is not a single
+	// resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
+	// come from app-provided documentation (never invented); clients ignore
+	// paths they do not recognize.
+	OpenPath *string
 	// -- end of xxx_hidden_Action
 }
 
@@ -1714,6 +1749,9 @@ func (b0 ActionRowAction_builder) Build() *ActionRowAction {
 	}
 	if b.OpenUrl != nil {
 		x.xxx_hidden_Action = &actionRowAction_OpenUrl{*b.OpenUrl}
+	}
+	if b.OpenPath != nil {
+		x.xxx_hidden_Action = &actionRowAction_OpenPath{*b.OpenPath}
 	}
 	return m0
 }
@@ -1747,11 +1785,21 @@ type actionRowAction_OpenUrl struct {
 	OpenUrl string `protobuf:"bytes,5,opt,name=open_url,json=openUrl,proto3,oneof"`
 }
 
+type actionRowAction_OpenPath struct {
+	// Navigate to an in-app path — a page or overlay that is not a single
+	// resource (e.g. "settings/team", "contacts?new=contacts"). Paths must
+	// come from app-provided documentation (never invented); clients ignore
+	// paths they do not recognize.
+	OpenPath string `protobuf:"bytes,6,opt,name=open_path,json=openPath,proto3,oneof"`
+}
+
 func (*actionRowAction_OpenResource) isActionRowAction_Action() {}
 
 func (*actionRowAction_CopyText) isActionRowAction_Action() {}
 
 func (*actionRowAction_OpenUrl) isActionRowAction_Action() {}
+
+func (*actionRowAction_OpenPath) isActionRowAction_Action() {}
 
 var File_malonaz_ai_genui_v1_content_proto protoreflect.FileDescriptor
 
@@ -1819,14 +1867,15 @@ const file_malonaz_ai_genui_v1_content_proto_rawDesc = "" +
 	"\tActionRow\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12J\n" +
 	"\aactions\x18\x02 \x03(\v2$.malonaz.ai.genui.v1.ActionRowActionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\xf7\x01\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10\x05R\aactions\"\x96\x02\n" +
 	"\x0fActionRowAction\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12@\n" +
 	"\x05style\x18\x02 \x01(\x0e2 .malonaz.ai.genui.v1.ActionStyleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05style\x12-\n" +
 	"\ropen_resource\x18\x03 \x01(\tB\x06\xfaA\x03\n" +
 	"\x01*H\x00R\fopenResource\x12\x1d\n" +
 	"\tcopy_text\x18\x04 \x01(\tH\x00R\bcopyText\x12%\n" +
-	"\bopen_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrlB\x0f\n" +
+	"\bopen_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01H\x00R\aopenUrl\x12\x1d\n" +
+	"\topen_path\x18\x06 \x01(\tH\x00R\bopenPathB\x0f\n" +
 	"\x06action\x12\x05\xbaH\x02\b\x01*T\n" +
 	"\x04Tone\x12\x14\n" +
 	"\x10TONE_UNSPECIFIED\x10\x00\x12\x11\n" +
@@ -1909,6 +1958,7 @@ func file_malonaz_ai_genui_v1_content_proto_init() {
 		(*actionRowAction_OpenResource)(nil),
 		(*actionRowAction_CopyText)(nil),
 		(*actionRowAction_OpenUrl)(nil),
+		(*actionRowAction_OpenPath)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
