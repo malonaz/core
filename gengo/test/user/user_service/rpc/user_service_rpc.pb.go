@@ -32,8 +32,7 @@ type userServiceStore interface {
 }
 
 type UserServiceServer struct {
-	natsClient     *nats.Client
-	streamsCreated bool
+	natsClient *nats.Client
 	*userService_OrganizationServer
 	*userService_UserServer
 	*userService_UserProfileServer
@@ -50,12 +49,9 @@ func NewUserServiceServer(store userServiceStore, natsClient *nats.Client) *User
 
 // CreateStreams creates or updates the NATS streams this service owns. Start calls it,
 // and a binary hosting several services calls it for all of them before starting any,
-// so that a consumer is never created before the stream it reads. Doing the work twice
-// would be harmless, but the second call is a no-op.
+// so that a consumer is never created before the stream it reads. Creating a stream is
+// idempotent, so the second call does the same work to no effect.
 func (s *UserServiceServer) CreateStreams(ctx context.Context) error {
-	if s.streamsCreated {
-		return nil
-	}
 	streamOptionsList, err := pbutil.GetServiceOption[[]*v1.StreamOptions](v11.UserService_ServiceDesc.ServiceName, v12.E_Stream)
 	if err != nil {
 		return fmt.Errorf("getting stream options: %w", err)
@@ -65,7 +61,6 @@ func (s *UserServiceServer) CreateStreams(ctx context.Context) error {
 			return fmt.Errorf("creating stream %q: %w", streamOptions.GetName(), err)
 		}
 	}
-	s.streamsCreated = true
 	return nil
 }
 

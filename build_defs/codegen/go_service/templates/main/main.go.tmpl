@@ -70,8 +70,9 @@ func run(ctx {{ goImport "context" }}.Context) error {
     {{- /* GATHER SERVICE MANIFESTS. serviceGraph resolves every service the servers host and
            everything those services depend on into levels: a service in one level depends only
            on services in earlier levels, so each level can be started once the previous one is
-           up. $serviceManifests flattens the levels for the passes below that only care about a
-           service's non-service dependencies. */ -}}
+           up. Each service also carries the servers whose health checks cover it. $serviceManifests
+           flattens the levels for the passes below that only care about a service's non-service
+           dependencies. */ -}}
     {{- $serviceLevels := serviceGraph .servers -}}
     {{- $serviceManifests := list -}}
     {{- $hasConcurrentLevel := false -}}
@@ -82,38 +83,6 @@ func run(ctx {{ goImport "context" }}.Context) error {
         {{- end -}}
     {{- end -}}
 
-    {{- /* Map each hosted service to the servers hosting it, then hand those servers down to
-           the services it depends on, so that a dependency's health checks are reported by
-           every server that ultimately relies on it. */ -}}
-    {{- $rootNameToServerNames := dict -}}
-    {{- range $server := .servers -}}
-        {{- $rootTargets := list -}}
-        {{- range $service := $server.services -}}
-            {{- $rootTargets = append $rootTargets $service.manifest -}}
-        {{- end -}}
-        {{- if $server.manifest -}}
-            {{- $rootTargets = append $rootTargets $server.manifest -}}
-        {{- end -}}
-        {{- range $rootTarget := $rootTargets -}}
-            {{- $rootName := (parseYaml $rootTarget).name -}}
-            {{- $existingServers := index $rootNameToServerNames $rootName | default (list) -}}
-            {{- if not (has $server.name $existingServers) -}}
-                {{- $rootNameToServerNames = set $rootNameToServerNames $rootName (append $existingServers $server.name) -}}
-            {{- end -}}
-        {{- end -}}
-    {{- end -}}
-    {{- $serviceNameToServerNames := dict -}}
-    {{- range $serviceManifest := $serviceManifests -}}
-        {{- $serverNames := list -}}
-        {{- range $rootName := $serviceManifest.roots -}}
-            {{- range $serverName := index $rootNameToServerNames $rootName | default (list) -}}
-                {{- if not (has $serverName $serverNames) -}}
-                    {{- $serverNames = append $serverNames $serverName -}}
-                {{- end -}}
-            {{- end -}}
-        {{- end -}}
-        {{- $serviceNameToServerNames = set $serviceNameToServerNames $serviceManifest.name $serverNames -}}
-    {{- end -}}
 
     {{- $serverNameToServiceNameToServedProtos := dict -}}
     {{- range $server := .servers -}}
@@ -177,7 +146,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
                 {{ end }}
 
                 {{- /* Add health check function to all servers that use this service, unless self-referential */ -}}
-                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+                {{- $serverNames := $serviceManifest.servers -}}
                 {{- range $serverName := $serverNames -}}
                     {{- $serviceNameToServedProtos := index $serverNameToServiceNameToServedProtos $serverName | default (dict) -}}
                     {{- $servedProtos := index $serviceNameToServedProtos $serviceManifest.name | default (list) -}}
@@ -229,7 +198,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
                 {{- end }}
 
                 {{- /* Add health check function to all servers that use this service */ -}}
-                {{- $serverNames := index $serviceNameToServerNames $serviceManifest.name -}}
+                {{- $serverNames := $serviceManifest.servers -}}
                 {{- $healthCheckFn := printf "%sPsqlClient.Ping" ($database | camelcase | untitle) -}}
                 {{- range $serverName := $serverNames -}}
                     {{- $healthCheckKey := printf "postgres_health_%s_%s_%s" $serverName $serviceManifest.name $database -}}

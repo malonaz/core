@@ -64,6 +64,7 @@ func setup(t *testing.T) string {
 	t.Chdir(dir)
 	filepathToContent = map[string][]byte{}
 	targetToGRPC = map[string]*GRPC{}
+	targetToServiceManifest = map[string]*parsedManifest{}
 	return "svc"
 }
 
@@ -194,7 +195,7 @@ servers:
 		assert.Equal(t, "base-service", dependencies[1].(map[string]any)["name"])
 	})
 
-	t.Run("attributes a shared dependency to both services that reach it", func(t *testing.T) {
+	t.Run("attributes a shared dependency to every server that reaches it", func(t *testing.T) {
 		dir := setup(t)
 		require.NoError(t, os.MkdirAll(dir, 0o755))
 		proto := writeProto(t, dir, "api.proto", "OneService", "TwoService")
@@ -217,13 +218,20 @@ servers:
       - service: one-service
         proto: `+proto+`
         manifest: `+one+`
+  - type: grpc
+    name: external
+    services:
       - service: two-service
         proto: `+proto+`
         manifest: `+two+`
 `))
 		require.NoError(t, err)
 		assert.Equal(t, [][]string{{"base-service"}, {"one-service", "two-service"}}, levelNames(levels))
-		assert.Equal(t, []string{"one-service", "two-service"}, levels[0][0]["roots"])
+		// base-service is hosted by neither server, but both reach it through the service they
+		// do host, so both report its health.
+		assert.Equal(t, []string{"internal"}, levels[1][0]["servers"])
+		assert.Equal(t, []string{"external"}, levels[1][1]["servers"])
+		assert.Equal(t, []string{"internal", "external"}, levels[0][0]["servers"])
 
 		// Reached twice, named once: the dependency list is not duplicated by the second walk.
 		for _, rendered := range levels[1] {
