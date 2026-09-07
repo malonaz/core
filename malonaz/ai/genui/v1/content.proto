@@ -284,6 +284,10 @@ message ActionRowAction {
 
     // Open this http(s) URL externally.
     string open_url = 5 [(buf.validate.field).string.uri = true];
+
+    // Navigate to an in-app path. Interpreted by the client; unrecognized
+    // paths are ignored.
+    string open_path = 6;
   }
 }
 
