@@ -3,6 +3,7 @@ go_binary(
     srcs = [
         "functions.go",
         "main.go",
+        "service_graph.go",
         "types.go",
     ],
     visibility = ["//..."],
@@ -20,6 +21,7 @@ go_test(
     srcs = [
         "functions.go",
         "main.go",
+        "service_graph.go",
         "service_graph_test.go",
         "types.go",
     ],
