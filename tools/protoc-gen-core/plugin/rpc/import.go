@@ -16,18 +16,19 @@ import (
 // inline is the only source this codegen knows how to load.
 const inlineSourceFieldName = "inline_source"
 
-// importIO resolves the request and response wiring of an Import RPC.
-type importIO struct {
-	// resourcesGoName is the Go name of the repeated resource field carried by
+// importFields names the repeated resource field on each side of an Import
+// RPC: where the resources come from, and where they go back.
+type importFields struct {
+	// sourceGoName is the Go name of the repeated resource field carried by
 	// the request's inline source, e.g. "Books".
-	resourcesGoName string
+	sourceGoName string
 	// responseGoName is the Go name of the repeated resource field of the
 	// response message.
 	responseGoName string
 }
 
-// resolveImportIO locates the repeated resource field on both sides of the RPC.
-func (mc *methodCtx) resolveImportIO() (*importIO, error) {
+// resolveImportFields locates the repeated resource field on both sides of the RPC.
+func (mc *methodCtx) resolveImportFields() (*importFields, error) {
 	method := mc.mi.method
 	resourceIdent := mc.mi.rpc.Message.GoIdent
 
@@ -53,9 +54,9 @@ func (mc *methodCtx) resolveImportIO() (*importIO, error) {
 		return nil, fmt.Errorf("response %s must define a repeated %s field",
 			method.Output.GoIdent.GoName, resourceIdent.GoName)
 	}
-	return &importIO{
-		resourcesGoName: resourcesField.GoName,
-		responseGoName:  responseField.GoName,
+	return &importFields{
+		sourceGoName:   resourcesField.GoName,
+		responseGoName: responseField.GoName,
 	}, nil
 }
 
@@ -88,7 +89,7 @@ func (mc *methodCtx) generateImport() error {
 		return fmt.Errorf("resource %s is a singleton; Import is not supported", pr.Desc.Type)
 	}
 
-	io, err := mc.resolveImportIO()
+	fields, err := mc.resolveImportFields()
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func (mc *methodCtx) generateImport() error {
 		return err
 	}
 
-	g.P(fmt.Sprintf("  %s := request.GetInlineSource().Get%s()", resourcesVar, io.resourcesGoName))
+	g.P(fmt.Sprintf("  %s := request.GetInlineSource().Get%s()", resourcesVar, fields.sourceGoName))
 	g.P()
 
 	// STEP 2: Name, stamp and convert every resource.
@@ -251,7 +252,7 @@ func (mc *methodCtx) generateImport() error {
 
 	// The response carries the resources as written; join-backed output-only
 	// fields are not resolved, since COPY returns no rows.
-	response := fmt.Sprintf("&%s{%s: %s}", mc.gen.qgi(method.Output.GoIdent), io.responseGoName, resourcesVar)
+	response := fmt.Sprintf("&%s{%s: %s}", mc.gen.qgi(method.Output.GoIdent), fields.responseGoName, resourcesVar)
 
 	if method.Input.Desc.Fields().ByName("validate_only") != nil {
 		g.P("  if request.ValidateOnly {")
