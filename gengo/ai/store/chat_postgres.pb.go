@@ -105,6 +105,61 @@ func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, ra
 	return inserted, nil
 }
 
+func (s *Store) ImportChats(ctx context.Context, chats []*model.Chat) (int64, error) {
+	if len(chats) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"chat"},
+		ChatPostgresColumns,
+		v5.CopyFromSlice(len(chats), func(i int) ([]any, error) {
+			return postgres.GetParams(chats[i], ChatPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrChatAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportChatsWithRequestIDs(ctx context.Context, requestIDs []string, chats []*model.Chat) (int64, error) {
+	if len(chats) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(chats) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*ChatWithRequestID, len(chats))
+	for i, _chat := range chats {
+		rows[i] = &ChatWithRequestID{
+			RequestID: requestIDs[i],
+			Chat:      *_chat,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"chat"},
+		ChatWithRequestIDPostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], ChatWithRequestIDPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrChatAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateChatPostgresQuery = `UPDATE chat SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", ChatPostgresColumns)
 

@@ -19,6 +19,10 @@ enum ResourceEventType {
   RESOURCE_EVENT_TYPE_UPDATED = 2;
   // A resource was deleted.
   RESOURCE_EVENT_TYPE_DELETED = 3;
+  // A resource was created by a bulk import. Distinct from
+  // RESOURCE_EVENT_TYPE_CREATED so a subscriber can tell a backfill apart from
+  // an interactive create.
+  RESOURCE_EVENT_TYPE_IMPORTED = 4;
 }
 
 // A resource lifecycle event.

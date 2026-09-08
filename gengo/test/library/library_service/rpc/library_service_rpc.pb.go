@@ -1136,6 +1136,7 @@ type libraryService_BookStore interface {
 	GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error)
 	BatchGetBooks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.Book, error)
 	ListBooks(ctx context.Context, organizationId, shelfId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, error)
+	ImportBooksWithRequestIDs(ctx context.Context, requestIDs []string, books []*model.Book, bookReviews []*model.BookReview) (int64, error)
 	SearchBooks(ctx context.Context, organizationId, shelfId string, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, []map[string]string, error)
 }
 
@@ -1620,6 +1621,118 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 	}, nil
 }
 
+func (s *libraryService_BookServer) ImportBooks(ctx context.Context, request *v11.ImportBooksRequest) (*v11.ImportBooksResponse, error) {
+	// STEP 1: Resolve the parent into the pattern the imported resources are named under.
+	patternValue := "organizations/{organization}/shelves/{shelf}/books/{book}"
+	var organizationId, shelfId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+	parentIds := []string{organizationId, shelfId}
+
+	books := request.GetInlineSource().GetBooks()
+
+	// STEP 2: Name, stamp and convert every resource.
+	createTime := timestamppb.New(time.Now().UTC().Truncate(time.Microsecond))
+	migrationRequest := len(metadata.ValueFromIncomingContext(ctx, "x-migration-request")) > 0
+	requestIds := make([]string, len(books))
+	bookModels := make([]*model.Book, len(books))
+	bookReviewModels := make([]*model.BookReview, len(books))
+	for i, book := range books {
+		var bookId string
+		if book.Name != "" {
+			if resourcename.ContainsWildcard(book.Name) {
+				return nil, status.Errorf(codes.InvalidArgument, "books[%d]: name cannot contain wildcard", i).Err()
+			}
+			if !resourcename.Match(patternValue, book.Name) {
+				return nil, status.Errorf(codes.InvalidArgument, "books[%d]: name %q does not match the pattern of a book", i, book.Name).Err()
+			}
+			if !resourcename.HasParent(book.Name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "books[%d]: name %q does not have parent %q", i, book.Name, request.Parent).Err()
+			}
+			_, _, parsedId, err := model.ParseBookName(book.Name)
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "books[%d]: parsing name %q: %v", i, book.Name, err).Err()
+			}
+			bookId = parsedId
+		} else {
+			bookId = aip.NewSystemGeneratedBase32ResourceID()
+		}
+		nameVariables := make([]string, 0, len(parentIds)+1)
+		nameVariables = append(nameVariables, parentIds...)
+		nameVariables = append(nameVariables, bookId)
+		book.Name = resourcename.Sprint(patternValue, nameVariables...)
+
+		if migrationRequest {
+			if book.CreateTime == nil {
+				return nil, status.Errorf(codes.InvalidArgument, "books[%d]: x-migration-request used without setting a create_time", i).Err()
+			}
+		} else {
+			book.CreateTime = createTime
+		}
+		book.UpdateTime = book.CreateTime
+		{ // Capture the Etag.
+			var err error
+			book.Etag, err = aip.ComputeETag(book)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "books[%d]: computing etag: %v", i, err).Err()
+			}
+		}
+
+		bookModel, err := model.BookFromPb(book)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "books[%d]: converting book from pb to model: %v", i, err).Err()
+		}
+		bookModels[i] = bookModel
+		requestIds[i] = uuid.MustNewV7().String()
+
+		bookReview := &v13.BookReview{
+			Name:       resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}/review", organizationId, shelfId, bookId),
+			CreateTime: book.CreateTime,
+			UpdateTime: book.UpdateTime,
+		}
+		{
+			var err error
+			bookReview.Etag, err = aip.ComputeETag(bookReview)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "books[%d]: computing bookReview etag: %v", i, err).Err()
+			}
+		}
+		bookReviewModel, err := model.BookReviewFromPb(bookReview)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "books[%d]: converting bookReview from pb to model: %v", i, err).Err()
+		}
+		bookReviewModels[i] = bookReviewModel
+	}
+
+	if request.ValidateOnly {
+		return &v11.ImportBooksResponse{Books: books}, nil
+	}
+
+	// STEP 3: Bulk load the resources.
+	if _, err := s.store.ImportBooksWithRequestIDs(ctx, requestIds, bookModels, bookReviewModels); err != nil {
+		if errors.Is(err, model.ErrBookAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "book already exists").Err()
+		}
+		return nil, status.FromError(err, "importing books").Err()
+	}
+
+	// STEP 4: Publish events.
+	for _, book := range books {
+		{
+			subject := v13.GetBookStream().GetImportedSubject()
+			if err := subject.Publish(ctx, s.natsClient, book); err != nil {
+				return nil, status.Errorf(codes.Internal, "publishing imported event: %v", err).Err()
+			}
+		}
+	}
+
+	return &v11.ImportBooksResponse{Books: books}, nil
+}
+
 type libraryService_BookReviewStore interface {
 	InsertBookReview(ctx context.Context, bookReview *model.BookReview) (*model.BookReview, error)
 	UpdateBookReview(ctx context.Context, bookReview *model.BookReview, updateClause string, columns []string, etag string) (*model.BookReview, error)
@@ -1870,6 +1983,7 @@ type libraryService_NoteStore interface {
 	GetNote(ctx context.Context, organizationId, authorId, shelfId, noteId string) (*model.Note, error)
 	BatchGetNotes(ctx context.Context, organizationIds []string, authorIds []string, shelfIds []string, noteIds []string) ([]*model.Note, error)
 	ListNotes(ctx context.Context, organizationId, authorId, shelfId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Note, error)
+	ImportNotesWithRequestIDs(ctx context.Context, requestIDs []string, notes []*model.Note) (int64, error)
 }
 
 type libraryService_NoteServer struct {
@@ -2272,4 +2386,106 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 	return &v11.BatchGetNotesResponse{
 		Notes: notes,
 	}, nil
+}
+
+func (s *libraryService_NoteServer) ImportNotes(ctx context.Context, request *v11.ImportNotesRequest) (*v11.ImportNotesResponse, error) {
+	// STEP 1: Resolve the parent into the pattern the imported resources are named under.
+	var organizationId, authorId, shelfId string
+	var patternValue string
+	var parentIds []string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	switch {
+	case resourcename.Match("organizations/{organization}/authors/{author}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		patternValue = "organizations/{organization}/authors/{author}/notes/{note}"
+		parentIds = []string{organizationId, authorId}
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		patternValue = "organizations/{organization}/shelves/{shelf}/notes/{note}"
+		parentIds = []string{organizationId, shelfId}
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		patternValue = "organizations/{organization}/notes/{note}"
+		parentIds = []string{organizationId}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	notes := request.GetInlineSource().GetNotes()
+
+	// STEP 2: Name, stamp and convert every resource.
+	createTime := timestamppb.New(time.Now().UTC().Truncate(time.Microsecond))
+	migrationRequest := len(metadata.ValueFromIncomingContext(ctx, "x-migration-request")) > 0
+	requestIds := make([]string, len(notes))
+	noteModels := make([]*model.Note, len(notes))
+	for i, note := range notes {
+		var noteId string
+		if note.Name != "" {
+			if resourcename.ContainsWildcard(note.Name) {
+				return nil, status.Errorf(codes.InvalidArgument, "notes[%d]: name cannot contain wildcard", i).Err()
+			}
+			if !resourcename.Match(patternValue, note.Name) {
+				return nil, status.Errorf(codes.InvalidArgument, "notes[%d]: name %q does not match the pattern of a note", i, note.Name).Err()
+			}
+			if !resourcename.HasParent(note.Name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "notes[%d]: name %q does not have parent %q", i, note.Name, request.Parent).Err()
+			}
+			_, _, _, parsedId, err := model.ParseNoteName(note.Name)
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "notes[%d]: parsing name %q: %v", i, note.Name, err).Err()
+			}
+			noteId = parsedId
+		} else {
+			noteId = aip.NewSystemGeneratedBase32ResourceID()
+		}
+		nameVariables := make([]string, 0, len(parentIds)+1)
+		nameVariables = append(nameVariables, parentIds...)
+		nameVariables = append(nameVariables, noteId)
+		note.Name = resourcename.Sprint(patternValue, nameVariables...)
+
+		if migrationRequest {
+			if note.CreateTime == nil {
+				return nil, status.Errorf(codes.InvalidArgument, "notes[%d]: x-migration-request used without setting a create_time", i).Err()
+			}
+		} else {
+			note.CreateTime = createTime
+		}
+		note.UpdateTime = note.CreateTime
+		{ // Capture the Etag.
+			var err error
+			note.Etag, err = aip.ComputeETag(note)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "notes[%d]: computing etag: %v", i, err).Err()
+			}
+		}
+
+		noteModel, err := model.NoteFromPb(note)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "notes[%d]: converting note from pb to model: %v", i, err).Err()
+		}
+		noteModels[i] = noteModel
+		requestIds[i] = uuid.MustNewV7().String()
+	}
+
+	if request.ValidateOnly {
+		return &v11.ImportNotesResponse{Notes: notes}, nil
+	}
+
+	// STEP 3: Bulk load the resources.
+	if _, err := s.store.ImportNotesWithRequestIDs(ctx, requestIds, noteModels); err != nil {
+		if errors.Is(err, model.ErrNoteAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "note already exists").Err()
+		}
+		return nil, status.FromError(err, "importing notes").Err()
+	}
+
+	return &v11.ImportNotesResponse{Notes: notes}, nil
 }

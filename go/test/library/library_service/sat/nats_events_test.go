@@ -67,6 +67,10 @@ type bookDeletedEvent struct {
 	Book *librarypb.Book
 }
 
+type bookImportedEvent struct {
+	Book *librarypb.Book
+}
+
 func TestNatsEvents_Shelf(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
@@ -572,6 +576,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	bookNameToCreatedEvents := map[string][]*bookCreatedEvent{}
 	bookNameToUpdatedEvents := map[string][]*bookUpdatedEvent{}
 	bookNameToDeletedEvents := map[string][]*bookDeletedEvent{}
+	bookNameToImportedEvents := map[string][]*bookImportedEvent{}
 
 	natsClient, err := satEnvironment.GetNatsClient(ctx)
 	require.NoError(t, err)
@@ -633,8 +638,65 @@ func TestNatsEvents_Book(t *testing.T) {
 	})
 	require.NoError(t, deletedProcessor.Start(ctx))
 
+	importedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{bookStream.GetImportedSubject().MustGet()},
+		ConsumerName: "test-book-imported-" + consumerSuffix,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
+		mu.Lock()
+		defer mu.Unlock()
+		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		bookNameToImportedEvents[book.Name] = append(bookNameToImportedEvents[book.Name], &bookImportedEvent{
+			Book: book,
+		})
+		return nil
+	})
+	require.NoError(t, importedProcessor.Start(ctx))
+
 	author := createTestAuthor(t, organizationParent, "Nats Book Author")
 	shelf := createTestShelf(t, organizationParent, "Nats Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+
+	t.Run("ImportedEvent", func(t *testing.T) {
+		t.Parallel()
+		response := importBooks(t, shelf.Name,
+			importableBook(author.Name, "Nats Imported Book A"),
+			importableBook(author.Name, "Nats Imported Book B"),
+		)
+		require.Len(t, response.Books, 2)
+
+		for _, imported := range response.Books {
+			require.Eventually(t, func() bool {
+				mu.Lock()
+				defer mu.Unlock()
+				return len(bookNameToImportedEvents[imported.Name]) >= 1
+			}, natsEventCheckTimeout, natsEventCheckInterval)
+
+			mu.Lock()
+			event := bookNameToImportedEvents[imported.Name][0]
+			mu.Unlock()
+			require.Equal(t, imported.Title, event.Book.Title)
+		}
+
+		// An import publishes imported events, never created ones.
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(bookNameToCreatedEvents[response.Books[0].Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+
+	t.Run("ImportedEvent_NotEmittedOnCreate", func(t *testing.T) {
+		t.Parallel()
+		book := createTestBook(t, shelf.Name, author.Name, "Nats NoImported Book")
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(bookNameToImportedEvents[book.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
 
 	t.Run("CreatedEvent_NotEmitted", func(t *testing.T) {
 		t.Parallel()

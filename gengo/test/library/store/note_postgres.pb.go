@@ -113,6 +113,61 @@ func (s *Store) InsertNoteIdempotently(ctx context.Context, requestID string, ra
 	return inserted, nil
 }
 
+func (s *Store) ImportNotes(ctx context.Context, notes []*model.Note) (int64, error) {
+	if len(notes) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "note"},
+		NotePostgresColumns,
+		v5.CopyFromSlice(len(notes), func(i int) ([]any, error) {
+			return postgres.GetParams(notes[i], NotePostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrNoteAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportNotesWithRequestIDs(ctx context.Context, requestIDs []string, notes []*model.Note) (int64, error) {
+	if len(notes) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(notes) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*NoteWithRequestID, len(notes))
+	for i, _note := range notes {
+		rows[i] = &NoteWithRequestID{
+			RequestID: requestIDs[i],
+			Note:      *_note,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "note"},
+		NoteWithRequestIDPostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], NoteWithRequestIDPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrNoteAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateNotePostgresQuery = `UPDATE library.note SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", NotePostgresColumns)
 

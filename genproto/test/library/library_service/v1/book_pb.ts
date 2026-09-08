@@ -20,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/book.proto.
  */
 export const file_malonaz_test_library_library_service_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhInMKEURlbGV0ZUJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJItoBChJTZWFyY2hCb29rc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYBiABKAg6DYLzLQIIZJLzLQMKASoijQEKE1NlYXJjaEJvb2tzUmVzcG9uc2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rEi8KCHNuaXBwZXRzGAIgAygLMh0ubWFsb25hei5haXAudjEuU2VhcmNoU25pcHBldBIXCg9uZXh0X3BhZ2VfdG9rZW4YAyABKAki8QIKEExpc3RCb29rc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6yQGC8y0CCGSK8y1YCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKBXRpdGxlChBwdWJsaWNhdGlvbl95ZWFyChFzaGVsZl9leHRlcm5hbF9pZBIQY3JlYXRlX3RpbWUgZGVzY5LzLWMKBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCG1ldGFkYXRhCghkdXJhdGlvbgoGbGFiZWxzCgtzaGVsZl9nZW5yZQoRc2hlbGZfZXh0ZXJuYWxfaWQiWgoRTGlzdEJvb2tzUmVzcG9uc2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKRAQoUQmF0Y2hHZXRCb29rc1JlcXVlc3QSMwoGcGFyZW50GAEgASgJQiP6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhJECgVuYW1lcxgCIAMoCUI1+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIEJIBDQgBEOgHGAEiBHICEAEiRQoVQmF0Y2hHZXRCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9va0JCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhInMKEURlbGV0ZUJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJItoBChJTZWFyY2hCb29rc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYBiABKAg6DYLzLQIIZJLzLQMKASoijQEKE1NlYXJjaEJvb2tzUmVzcG9uc2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rEi8KCHNuaXBwZXRzGAIgAygLMh0ubWFsb25hei5haXAudjEuU2VhcmNoU25pcHBldBIXCg9uZXh0X3BhZ2VfdG9rZW4YAyABKAki8QIKEExpc3RCb29rc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6yQGC8y0CCGSK8y1YCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKBXRpdGxlChBwdWJsaWNhdGlvbl95ZWFyChFzaGVsZl9leHRlcm5hbF9pZBIQY3JlYXRlX3RpbWUgZGVzY5LzLWMKBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCG1ldGFkYXRhCghkdXJhdGlvbgoGbGFiZWxzCgtzaGVsZl9nZW5yZQoRc2hlbGZfZXh0ZXJuYWxfaWQiWgoRTGlzdEJvb2tzUmVzcG9uc2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKRAQoUQmF0Y2hHZXRCb29rc1JlcXVlc3QSMwoGcGFyZW50GAEgASgJQiP6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhJECgVuYW1lcxgCIAMoCUI1+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIEJIBDQgBEOgHGAEiBHICEAEiRQoVQmF0Y2hHZXRCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vayKoAgoSSW1wb3J0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESYQoNaW5saW5lX3NvdXJjZRgCIAEoCzJILm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5JbXBvcnRCb29rc1JlcXVlc3QuSW5saW5lU291cmNlSAASFQoNdmFsaWRhdGVfb25seRgDIAEoCBpJCgxJbmxpbmVTb3VyY2USOQoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQgu6SAiSAQUIARDoB0IPCgZzb3VyY2USBbpIAggBIkMKE0ltcG9ydEJvb2tzUmVzcG9uc2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
 
 /**
  * Request message for LibraryService.CreateBook.
@@ -663,4 +663,165 @@ export type BatchGetBooksResponseValid = Message<"malonaz.test.library.library_s
  */
 export const BatchGetBooksResponseSchema: GenMessage<BatchGetBooksResponse, {validType: BatchGetBooksResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_library_service_v1_book, 9);
+
+/**
+ * Request message for LibraryService.ImportBooks.
+ *
+ * See: https://google.aip.dev/153 (Import and export).
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksRequest
+ */
+export type ImportBooksRequest = Message<"malonaz.test.library.library_service.v1.ImportBooksRequest"> & {
+  /**
+   * The parent shelf to import books into.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The source of the books to import.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportBooksRequest.source
+   */
+  source: {
+    /**
+     * The books to import, provided inline.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource inline_source = 2;
+     */
+    value: ImportBooksRequest_InlineSource;
+    case: "inlineSource";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * If set, validate the request and preview the response, but do not actually import the books.
+   *
+   * @generated from field: bool validate_only = 3;
+   */
+  validateOnly: boolean;
+};
+
+/**
+ * Request message for LibraryService.ImportBooks.
+ *
+ * See: https://google.aip.dev/153 (Import and export).
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksRequest
+ */
+export type ImportBooksRequestValid = Message<"malonaz.test.library.library_service.v1.ImportBooksRequest"> & {
+  /**
+   * The parent shelf to import books into.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The source of the books to import.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportBooksRequest.source
+   */
+  source: {
+    /**
+     * The books to import, provided inline.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource inline_source = 2;
+     */
+    value: ImportBooksRequest_InlineSourceValid;
+    case: "inlineSource";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * If set, validate the request and preview the response, but do not actually import the books.
+   *
+   * @generated from field: bool validate_only = 3;
+   */
+  validateOnly: boolean;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportBooksRequest.
+ * Use `create(ImportBooksRequestSchema)` to create a new message.
+ */
+export const ImportBooksRequestSchema: GenMessage<ImportBooksRequest, {validType: ImportBooksRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 10);
+
+/**
+ * Books carried in the request itself.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
+ */
+export type ImportBooksRequest_InlineSource = Message<"malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource"> & {
+  /**
+   * The books to import. A book without a name is assigned a system
+   * generated identifier; a book with a name keeps its own, which lets an
+   * import preserve identifiers migrated from another system.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: Book[];
+};
+
+/**
+ * Books carried in the request itself.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
+ */
+export type ImportBooksRequest_InlineSourceValid = Message<"malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource"> & {
+  /**
+   * The books to import. A book without a name is assigned a system
+   * generated identifier; a book with a name keeps its own, which lets an
+   * import preserve identifiers migrated from another system.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: BookValid[];
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource.
+ * Use `create(ImportBooksRequest_InlineSourceSchema)` to create a new message.
+ */
+export const ImportBooksRequest_InlineSourceSchema: GenMessage<ImportBooksRequest_InlineSource, {validType: ImportBooksRequest_InlineSourceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 10, 0);
+
+/**
+ * Response message for LibraryService.ImportBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksResponse
+ */
+export type ImportBooksResponse = Message<"malonaz.test.library.library_service.v1.ImportBooksResponse"> & {
+  /**
+   * The imported books, in request order. Output-only fields resolved by a
+   * join are not populated: a bulk load returns no rows to read them from.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: Book[];
+};
+
+/**
+ * Response message for LibraryService.ImportBooks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksResponse
+ */
+export type ImportBooksResponseValid = Message<"malonaz.test.library.library_service.v1.ImportBooksResponse"> & {
+  /**
+   * The imported books, in request order. Output-only fields resolved by a
+   * join are not populated: a bulk load returns no rows to read them from.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
+   */
+  books: BookValid[];
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportBooksResponse.
+ * Use `create(ImportBooksResponseSchema)` to create a new message.
+ */
+export const ImportBooksResponseSchema: GenMessage<ImportBooksResponse, {validType: ImportBooksResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 11);
 

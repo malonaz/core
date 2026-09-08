@@ -313,7 +313,7 @@ func (mc *msgCtx) generateChildSoftDeleteExec(cc *childCtx) {
 	numParentVars := len(mc.columnBindings)
 
 	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `UPDATE %s SET delete_time = COALESCE(delete_time, $%d) WHERE %s`, %s, deleteTime); err != nil {",
-		cc.tableName, numParentVars+1, cc.placeholderDecls, mc.patternVarIDsGoTrue()))
+		cc.table.Qualified(), numParentVars+1, cc.placeholderDecls, mc.patternVarIDsGoTrue()))
 	g.P(fmt.Sprintf("      return %s(\"soft deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), cc.Resource.SingularGoName()))
 	g.P("    }")
 }
@@ -323,7 +323,7 @@ func (mc *msgCtx) generateChildHardDeleteExec(cc *childCtx) {
 	g := mc.g
 
 	g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, `DELETE FROM %s WHERE %s`, %s); err != nil {",
-		cc.tableName, cc.placeholderDecls, mc.patternVarIDsGoTrue()))
+		cc.table.Qualified(), cc.placeholderDecls, mc.patternVarIDsGoTrue()))
 	g.P(fmt.Sprintf("      return %s(\"deleting singleton child %s: %%w\", err)", mc.fmtI("Errorf"), cc.Resource.SingularGoName()))
 	g.P("    }")
 }

@@ -10,6 +10,7 @@ go_test(
         "etag_test.go",
         "filter_canonicalize_test.go",
         "filter_test.go",
+        "import_test.go",
         "join_test.go",
         "labels_test.go",
         "middleware_canonicalize_test.go",

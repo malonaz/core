@@ -129,6 +129,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def ImportBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest, malonaz.test.library.library_service.v1.book_pb2.ImportBooksResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def GetBookReview(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_review_pb2.GetBookReviewRequest, malonaz.test.library.v1.book_review_pb2.BookReview]') -> None:
         pass
 
@@ -166,6 +170,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ImportNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.ImportNotesRequest, malonaz.test.library.library_service.v1.note_pb2.ImportNotesResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -314,6 +322,12 @@ class LibraryServiceBase(abc.ABC):
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
             ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportBooks': grpclib.const.Handler(
+                self.ImportBooks,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+                malonaz.test.library.library_service.v1.book_pb2.ImportBooksResponse,
+            ),
             '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview': grpclib.const.Handler(
                 self.GetBookReview,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -373,6 +387,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportNotes': grpclib.const.Handler(
+                self.ImportNotes,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.ImportNotesRequest,
+                malonaz.test.library.library_service.v1.note_pb2.ImportNotesResponse,
             ),
         }
 
@@ -524,6 +544,12 @@ class LibraryServiceStub:
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
         )
+        self.ImportBooks = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportBooks',
+            malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+            malonaz.test.library.library_service.v1.book_pb2.ImportBooksResponse,
+        )
         self.GetBookReview = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview',
@@ -583,4 +609,10 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes',
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+        )
+        self.ImportNotes = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportNotes',
+            malonaz.test.library.library_service.v1.note_pb2.ImportNotesRequest,
+            malonaz.test.library.library_service.v1.note_pb2.ImportNotesResponse,
         )

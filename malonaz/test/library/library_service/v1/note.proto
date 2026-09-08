@@ -179,3 +179,45 @@ message BatchGetNotesResponse {
   // Notes requested.
   repeated malonaz.test.library.v1.Note notes = 1;
 }
+
+// Request message for LibraryService.ImportNotes.
+//
+// See: https://google.aip.dev/153 (Import and export).
+message ImportNotesRequest {
+  // Notes carried in the request itself.
+  message InlineSource {
+    // The notes to import. A note without a name is assigned a system
+    // generated identifier; a note with a name keeps its own.
+    repeated malonaz.test.library.v1.Note notes = 1 [(buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    }];
+  }
+
+  // The parent resource. Either an organization, an author or a shelf.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/authors/{author}
+  // Format: organizations/{organization}/shelves/{shelf}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Note"
+  ];
+
+  // The source of the notes to import.
+  oneof source {
+    option (buf.validate.oneof).required = true;
+
+    // The notes to import, provided inline.
+    InlineSource inline_source = 2;
+  }
+
+  // If set, validate the request and preview the response, but do not actually import the notes.
+  bool validate_only = 3;
+}
+
+// Response message for LibraryService.ImportNotes.
+message ImportNotesResponse {
+  // The imported notes, in request order.
+  repeated malonaz.test.library.v1.Note notes = 1;
+}

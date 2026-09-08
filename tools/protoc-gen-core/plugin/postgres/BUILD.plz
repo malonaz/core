@@ -4,6 +4,7 @@ go_library(
         "batch_get.go",
         "delete.go",
         "get.go",
+        "import.go",
         "insert.go",
         "list.go",
         "postgres.go",

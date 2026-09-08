@@ -6,6 +6,7 @@ import (
 
 	"github.com/huandu/xstrings"
 
+	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
@@ -245,7 +246,12 @@ func (mc *methodCtx) generateCreatedEvents(resourceVar string) {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")
-	for _, eventOpt := range mc.mi.natsEventOpts.GetCreated() {
+	mc.emitEvents(mc.mi.natsEventOpts.GetCreated(), resourceVar)
+}
+
+// emitEvents publishes one event per option for resourceVar.
+func (mc *methodCtx) emitEvents(eventOpts []*codegennatspb.EventMethodOptions, resourceVar string) {
+	for _, eventOpt := range eventOpts {
 		subject := eventOpt.GetSubject()
 		mc.g.P(fmt.Sprintf("  {"))
 		mc.g.P(fmt.Sprintf("    subject := %s().Get%sSubject()",

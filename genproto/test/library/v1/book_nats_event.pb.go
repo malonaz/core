@@ -155,6 +155,59 @@ func (s *BookStream) GetDeletedSubject() *BookDeletedSubject {
 	return &BookDeletedSubject{stream: s}
 }
 
+type BookImportedSubject struct {
+	stream *BookStream
+}
+
+func (s *BookImportedSubject) evaluate(resource *Book) (bool, error) {
+	return true, nil
+}
+
+func (s *BookImportedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Book) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
+	event, err := aip.NewResourceImportedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, subject, event)
+}
+
+func (s *BookImportedSubject) set(resource *Book) error {
+	return nil
+}
+
+func (s *BookImportedSubject) Get() (*nats.Subject, error) {
+	tokens := []string{
+		"imported",
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *BookImportedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
+}
+
+func (s *BookStream) GetImportedSubject() *BookImportedSubject {
+	return &BookImportedSubject{stream: s}
+}
+
 var (
 	bookUpdatedCELProgramOnce sync.Once
 	bookUpdatedCELProgramVal  cel.Program

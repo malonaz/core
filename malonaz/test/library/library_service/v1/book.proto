@@ -239,3 +239,45 @@ message BatchGetBooksResponse {
   // Books requested.
   repeated malonaz.test.library.v1.Book books = 1;
 }
+
+// Request message for LibraryService.ImportBooks.
+//
+// See: https://google.aip.dev/153 (Import and export).
+message ImportBooksRequest {
+  // Books carried in the request itself.
+  message InlineSource {
+    // The books to import. A book without a name is assigned a system
+    // generated identifier; a book with a name keeps its own, which lets an
+    // import preserve identifiers migrated from another system.
+    repeated malonaz.test.library.v1.Book books = 1 [(buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    }];
+  }
+
+  // The parent shelf to import books into.
+  // Format: organizations/{organization}/shelves/{shelf}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Shelf"
+  ];
+
+  // The source of the books to import.
+  oneof source {
+    option (buf.validate.oneof).required = true;
+
+    // The books to import, provided inline.
+    InlineSource inline_source = 2;
+  }
+
+  // If set, validate the request and preview the response, but do not actually import the books.
+  bool validate_only = 3;
+}
+
+// Response message for LibraryService.ImportBooks.
+message ImportBooksResponse {
+  // The imported books, in request order. Output-only fields resolved by a
+  // join are not populated: a bulk load returns no rows to read them from.
+  repeated malonaz.test.library.v1.Book books = 1;
+}

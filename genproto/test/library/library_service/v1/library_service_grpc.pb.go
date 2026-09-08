@@ -45,6 +45,7 @@ const (
 	LibraryService_SearchBooks_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/SearchBooks"
 	LibraryService_ListBooks_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListBooks"
 	LibraryService_BatchGetBooks_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetBooks"
+	LibraryService_ImportBooks_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ImportBooks"
 	LibraryService_GetBookReview_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/GetBookReview"
 	LibraryService_UpdateBookReview_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview"
 	LibraryService_ListBookReviews_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews"
@@ -55,6 +56,7 @@ const (
 	LibraryService_DeleteNote_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/DeleteNote"
 	LibraryService_ListNotes_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListNotes"
 	LibraryService_BatchGetNotes_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes"
+	LibraryService_ImportNotes_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ImportNotes"
 )
 
 // LibraryServiceClient is the client API for LibraryService service.
@@ -121,6 +123,10 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
+	// Imports books in bulk.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*ImportBooksResponse, error)
 	// Gets a book review.
 	GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error)
 	// Updates a book review.
@@ -143,6 +149,10 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error)
+	// Imports notes in bulk.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportNotes(ctx context.Context, in *ImportNotesRequest, opts ...grpc.CallOption) (*ImportNotesResponse, error)
 }
 
 type libraryServiceClient struct {
@@ -393,6 +403,16 @@ func (c *libraryServiceClient) BatchGetBooks(ctx context.Context, in *BatchGetBo
 	return out, nil
 }
 
+func (c *libraryServiceClient) ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*ImportBooksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportBooksResponse)
+	err := c.cc.Invoke(ctx, LibraryService_ImportBooks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.BookReview)
@@ -493,6 +513,16 @@ func (c *libraryServiceClient) BatchGetNotes(ctx context.Context, in *BatchGetNo
 	return out, nil
 }
 
+func (c *libraryServiceClient) ImportNotes(ctx context.Context, in *ImportNotesRequest, opts ...grpc.CallOption) (*ImportNotesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportNotesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_ImportNotes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility.
@@ -557,6 +587,10 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
+	// Imports books in bulk.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportBooks(context.Context, *ImportBooksRequest) (*ImportBooksResponse, error)
 	// Gets a book review.
 	GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error)
 	// Updates a book review.
@@ -579,6 +613,10 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error)
+	// Imports notes in bulk.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportNotes(context.Context, *ImportNotesRequest) (*ImportNotesResponse, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have
@@ -660,6 +698,9 @@ func (UnimplementedLibraryServiceServer) ListBooks(context.Context, *ListBooksRe
 func (UnimplementedLibraryServiceServer) BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetBooks not implemented")
 }
+func (UnimplementedLibraryServiceServer) ImportBooks(context.Context, *ImportBooksRequest) (*ImportBooksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportBooks not implemented")
+}
 func (UnimplementedLibraryServiceServer) GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBookReview not implemented")
 }
@@ -689,6 +730,9 @@ func (UnimplementedLibraryServiceServer) ListNotes(context.Context, *ListNotesRe
 }
 func (UnimplementedLibraryServiceServer) BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetNotes not implemented")
+}
+func (UnimplementedLibraryServiceServer) ImportNotes(context.Context, *ImportNotesRequest) (*ImportNotesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportNotes not implemented")
 }
 func (UnimplementedLibraryServiceServer) testEmbeddedByValue() {}
 
@@ -1142,6 +1186,24 @@ func _LibraryService_BatchGetBooks_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_ImportBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ImportBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_ImportBooks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ImportBooks(ctx, req.(*ImportBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_GetBookReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetBookReviewRequest)
 	if err := dec(in); err != nil {
@@ -1322,6 +1384,24 @@ func _LibraryService_BatchGetNotes_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_ImportNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportNotesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ImportNotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_ImportNotes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ImportNotes(ctx, req.(*ImportNotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1426,6 +1506,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibraryService_BatchGetBooks_Handler,
 		},
 		{
+			MethodName: "ImportBooks",
+			Handler:    _LibraryService_ImportBooks_Handler,
+		},
+		{
 			MethodName: "GetBookReview",
 			Handler:    _LibraryService_GetBookReview_Handler,
 		},
@@ -1464,6 +1548,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetNotes",
 			Handler:    _LibraryService_BatchGetNotes_Handler,
+		},
+		{
+			MethodName: "ImportNotes",
+			Handler:    _LibraryService_ImportNotes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

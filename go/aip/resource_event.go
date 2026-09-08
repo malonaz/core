@@ -63,6 +63,19 @@ func NewResourceDeletedEvent[R Resource](resource R) (*aippb.ResourceEvent, erro
 	}, nil
 }
 
+// NewResourceImportedEvent constructs a ResourceImportedEvent by marshaling the given resource into an Any.
+func NewResourceImportedEvent[R Resource](resource R) (*aippb.ResourceEvent, error) {
+	resourceAny, err := anypb.New(resource)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling %s to Any: %w", resource.ProtoReflect().Descriptor().FullName(), err)
+	}
+	return &aippb.ResourceEvent{
+		Name:     resource.GetName(),
+		Type:     aippb.ResourceEventType_RESOURCE_EVENT_TYPE_IMPORTED,
+		Resource: resourceAny,
+	}, nil
+}
+
 // ParseEventResource extracts and unmarshals the resource from a ResourceEvent.
 func ParseEventResource[R proto.Message](event *aippb.ResourceEvent) (R, error) {
 	return pbutil.ParseAny[R](event.GetResource())

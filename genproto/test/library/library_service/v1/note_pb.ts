@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/note.proto.
  */
 export const file_malonaz_test_library_library_service_v1_note: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKQAQoUQmF0Y2hHZXROb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEkQKBW5hbWVzGAIgAygJQjX6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlukgQkgENCAEQ6AcYASIEcgIQASJFChVCYXRjaEdldE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKQAQoUQmF0Y2hHZXROb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEkQKBW5hbWVzGAIgAygJQjX6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlukgQkgENCAEQ6AcYASIEcgIQASJFChVCYXRjaEdldE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlIqcCChJJbXBvcnROb3Rlc1JlcXVlc3QSOwoGcGFyZW50GAEgASgJQivgQQL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlukgDyAEBEmEKDWlubGluZV9zb3VyY2UYAiABKAsySC5tYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuSW1wb3J0Tm90ZXNSZXF1ZXN0LklubGluZVNvdXJjZUgAEhUKDXZhbGlkYXRlX29ubHkYAyABKAgaSQoMSW5saW5lU291cmNlEjkKBW5vdGVzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUILukgIkgEFCAEQ6AdCDwoGc291cmNlEgW6SAIIASJDChNJbXBvcnROb3Rlc1Jlc3BvbnNlEiwKBW5vdGVzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
 
 /**
  * Request message for LibraryService.CreateNote.
@@ -468,4 +468,140 @@ export type BatchGetNotesResponseValid = BatchGetNotesResponse;
  */
 export const BatchGetNotesResponseSchema: GenMessage<BatchGetNotesResponse, {validType: BatchGetNotesResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_library_service_v1_note, 7);
+
+/**
+ * Request message for LibraryService.ImportNotes.
+ *
+ * See: https://google.aip.dev/153 (Import and export).
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportNotesRequest
+ */
+export type ImportNotesRequest = Message<"malonaz.test.library.library_service.v1.ImportNotesRequest"> & {
+  /**
+   * The parent resource. Either an organization, an author or a shelf.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/authors/{author}
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The source of the notes to import.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportNotesRequest.source
+   */
+  source: {
+    /**
+     * The notes to import, provided inline.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource inline_source = 2;
+     */
+    value: ImportNotesRequest_InlineSource;
+    case: "inlineSource";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * If set, validate the request and preview the response, but do not actually import the notes.
+   *
+   * @generated from field: bool validate_only = 3;
+   */
+  validateOnly: boolean;
+};
+
+/**
+ * Request message for LibraryService.ImportNotes.
+ *
+ * See: https://google.aip.dev/153 (Import and export).
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportNotesRequest
+ */
+export type ImportNotesRequestValid = Message<"malonaz.test.library.library_service.v1.ImportNotesRequest"> & {
+  /**
+   * The parent resource. Either an organization, an author or a shelf.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/authors/{author}
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The source of the notes to import.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportNotesRequest.source
+   */
+  source: {
+    /**
+     * The notes to import, provided inline.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource inline_source = 2;
+     */
+    value: ImportNotesRequest_InlineSourceValid;
+    case: "inlineSource";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * If set, validate the request and preview the response, but do not actually import the notes.
+   *
+   * @generated from field: bool validate_only = 3;
+   */
+  validateOnly: boolean;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportNotesRequest.
+ * Use `create(ImportNotesRequestSchema)` to create a new message.
+ */
+export const ImportNotesRequestSchema: GenMessage<ImportNotesRequest, {validType: ImportNotesRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 8);
+
+/**
+ * Notes carried in the request itself.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource
+ */
+export type ImportNotesRequest_InlineSource = Message<"malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource"> & {
+  /**
+   * The notes to import. A note without a name is assigned a system
+   * generated identifier; a note with a name keeps its own.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Note notes = 1;
+   */
+  notes: Note[];
+};
+
+export type ImportNotesRequest_InlineSourceValid = ImportNotesRequest_InlineSource;
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportNotesRequest.InlineSource.
+ * Use `create(ImportNotesRequest_InlineSourceSchema)` to create a new message.
+ */
+export const ImportNotesRequest_InlineSourceSchema: GenMessage<ImportNotesRequest_InlineSource, {validType: ImportNotesRequest_InlineSourceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 8, 0);
+
+/**
+ * Response message for LibraryService.ImportNotes.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportNotesResponse
+ */
+export type ImportNotesResponse = Message<"malonaz.test.library.library_service.v1.ImportNotesResponse"> & {
+  /**
+   * The imported notes, in request order.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Note notes = 1;
+   */
+  notes: Note[];
+};
+
+export type ImportNotesResponseValid = ImportNotesResponse;
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ImportNotesResponse.
+ * Use `create(ImportNotesResponseSchema)` to create a new message.
+ */
+export const ImportNotesResponseSchema: GenMessage<ImportNotesResponse, {validType: ImportNotesResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 9);
 

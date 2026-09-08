@@ -110,6 +110,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateInsert()
 		mc.generateWithRequestIDStruct()
 		mc.generateInsertIdempotently()
+		mc.generateImport()
 		mc.generateUpdate()
 		mc.generateDelete()
 		mc.generateGet()
@@ -143,11 +144,11 @@ func (gen *generator) modelIdent(name string) string {
 // childCtx precomputes the codegen inputs for a persisted singleton child.
 type childCtx struct {
 	schema.SingletonChild
-	goType           string // Go type of the child model.
-	paramName        string // Go parameter name for the child model.
-	tableName        string // Qualified table name.
-	placeholderDecls string // WHERE conditions binding the child to its parent's identifiers.
-	writeColumnsVar  string // Columns var to use when the child has joined columns; empty otherwise.
+	goType           string       // Go type of the child model.
+	paramName        string       // Go parameter name for the child model.
+	table            schema.Table // The child's table.
+	placeholderDecls string       // WHERE conditions binding the child to its parent's identifiers.
+	writeColumnsVar  string       // Columns var to use when the child has joined columns; empty otherwise.
 }
 
 func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error) {
@@ -173,7 +174,7 @@ func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error
 		SingletonChild:   child,
 		goType:           child.Message.GoIdent.GoName,
 		paramName:        untitle(xstrings.ToCamelCase(child.Resource.Desc.Singular)),
-		tableName:        child.Table().Qualified(),
+		table:            child.Table(),
 		placeholderDecls: strings.Join(conditions, " AND "),
 		writeColumnsVar:  writeColumnsVar,
 	}, nil
@@ -202,6 +203,7 @@ type msgCtx struct {
 
 	columnBindings   []schema.ColumnBinding
 	parentBindings   []schema.ColumnBinding
+	table            schema.Table
 	tableName        string
 	bareTableName    string
 	whereClause      string
@@ -313,6 +315,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 
 		columnBindings:   bindings,
 		parentBindings:   parentBindings,
+		table:            table,
 		tableName:        table.Qualified(),
 		bareTableName:    table.Name,
 		whereClause:      strings.Join(whereConditions, " AND "),

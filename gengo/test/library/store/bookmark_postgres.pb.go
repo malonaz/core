@@ -95,6 +95,61 @@ func (s *Store) InsertBookmarkIdempotently(ctx context.Context, requestID string
 	return inserted, nil
 }
 
+func (s *Store) ImportBookmarks(ctx context.Context, bookmarks []*model.Bookmark) (int64, error) {
+	if len(bookmarks) == 0 {
+		return 0, nil
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "bookmark"},
+		BookmarkPostgresColumns,
+		v5.CopyFromSlice(len(bookmarks), func(i int) ([]any, error) {
+			return postgres.GetParams(bookmarks[i], BookmarkPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrBookmarkAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
+func (s *Store) ImportBookmarksWithRequestIDs(ctx context.Context, requestIDs []string, bookmarks []*model.Bookmark) (int64, error) {
+	if len(bookmarks) == 0 {
+		return 0, nil
+	}
+	if len(requestIDs) != len(bookmarks) {
+		return 0, fmt.Errorf("mismatched slice lengths")
+	}
+
+	rows := make([]*BookmarkWithRequestID, len(bookmarks))
+	for i, _bookmark := range bookmarks {
+		rows[i] = &BookmarkWithRequestID{
+			RequestID: requestIDs[i],
+			Bookmark:  *_bookmark,
+		}
+	}
+
+	copied, err := s.client.CopyFrom(
+		ctx,
+		v5.Identifier{"library", "bookmark"},
+		BookmarkWithRequestIDPostgresColumns,
+		v5.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return postgres.GetParams(rows[i], BookmarkWithRequestIDPostgresColumns...), nil
+		}),
+	)
+	if err != nil {
+		if postgres.IsUniqueViolation(err) {
+			return 0, model.ErrBookmarkAlreadyExists
+		}
+		return 0, err
+	}
+	return copied, nil
+}
+
 var updateBookmarkPostgresQuery = `UPDATE library.bookmark SET #update_clause# WHERE #where_clause# RETURNING ` +
 	postgres.SelectQuery("%s", BookmarkPostgresColumns)
 

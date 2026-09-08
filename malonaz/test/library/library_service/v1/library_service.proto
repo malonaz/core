@@ -247,6 +247,17 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
   }
 
+  // Imports books in bulk.
+  //
+  // See: https://google.aip.dev/153 (Import and export).
+  rpc ImportBooks(ImportBooksRequest) returns (ImportBooksResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*}/books:import"
+      body: "*"
+    };
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
   // ===================== BookReview (Singleton) =====================
 
   // Gets a book review.
@@ -361,6 +372,25 @@ service LibraryService {
       additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes:batchGet"}
     };
     option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Imports notes in bulk.
+  //
+  // See: https://google.aip.dev/153 (Import and export).
+  rpc ImportNotes(ImportNotesRequest) returns (ImportNotesResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/notes:import"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/authors/*}/notes:import"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/shelves/*}/notes:import"
+        body: "*"
+      }
+    };
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
   }
 }
