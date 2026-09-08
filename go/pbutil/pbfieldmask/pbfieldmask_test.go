@@ -339,6 +339,15 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"metadata.dummy",
 		"metadata.notes",
 		"metadata.author_to_note",
+		"metadata.open",
+		"metadata.theme",
+		"metadata.location.room",
+		"metadata.location.floor",
+		"secondary_genre",
+		"shelf_number",
+		"featured",
+		"extra.note",
+		"extra.rank",
 	}, paths)
 }
 

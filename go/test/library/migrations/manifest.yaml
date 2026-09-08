@@ -9,3 +9,5 @@ migrations:
     hash: bb4f6557c8425e2be227cf017afc8ed0
   - path: library/004_bookmark.sql
     hash: b29f8f1ac9e318333178c9f9068f5647
+  - path: library/005_null_semantics.sql
+    hash: 7fbf2d9a892ab35280a9caaf77121a6a

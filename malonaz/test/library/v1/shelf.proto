@@ -159,6 +159,21 @@ message Shelf {
       }
     }
   ];
+
+  // A secondary genre. Nullable and unvalidated so it can be left unset.
+  ShelfGenre secondary_genre = 16 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // The shelf's position number. Nullable.
+  int32 shelf_number = 17 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // Whether the shelf is featured. Nullable.
+  bool featured = 18 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // Optional extra data, stored as nullable JSONB.
+  ShelfExtra extra = 19 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
 }
 
 // Metadata for a shelf.
@@ -174,6 +189,33 @@ message ShelfMetadata {
 
   // Additional notes.
   map<string, ShelfNote> author_to_note = 4;
+
+  // Whether the shelf is open.
+  bool open = 5;
+
+  // The shelf's theme.
+  ShelfGenre theme = 6;
+
+  // Where the shelf is located.
+  ShelfLocation location = 7;
+}
+
+// The physical location of a shelf.
+message ShelfLocation {
+  // The room.
+  string room = 1;
+
+  // The floor.
+  int32 floor = 2;
+}
+
+// Optional extra data about a shelf.
+message ShelfExtra {
+  // A free-form note.
+  string note = 1;
+
+  // A rank.
+  int32 rank = 2;
 }
 
 // Genre categories for shelves.

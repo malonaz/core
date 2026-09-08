@@ -120,44 +120,106 @@ func (t *Transpiler) transpileCallExpr(e *expr.Expr) (boolExpr, error) {
 }
 
 func (t *Transpiler) transpileConstExpr(e *expr.Expr) (sqlExpr, error) {
-	switch kind := e.GetConstExpr().GetConstantKind().(type) {
-	case *expr.Constant_BoolValue:
-		return t.addParam(kind.BoolValue), nil
-	case *expr.Constant_DoubleValue:
-		return t.addParam(kind.DoubleValue), nil
-	case *expr.Constant_Int64Value:
-		return t.addParam(kind.Int64Value), nil
-	case *expr.Constant_StringValue:
-		return t.addParam(kind.StringValue), nil
-	case *expr.Constant_Uint64Value:
-		return t.addParam(int64(kind.Uint64Value)), nil
-	default:
-		return nil, fmt.Errorf("unsupported const expr: %v", kind)
+	l, err := t.constLiteral(e)
+	if err != nil {
+		return nil, err
 	}
+	return l.expr, nil
 }
 
 func (t *Transpiler) transpileIdentExpr(e *expr.Expr) (sqlExpr, error) {
-	identExpr := e.GetIdentExpr()
-	identType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
-	if !ok {
-		return nil, fmt.Errorf("unknown type of ident expr %d", e.GetId())
+	if l, ok, err := t.identLiteral(e, false); err != nil || ok {
+		return l.expr, err
 	}
-	if enumValue, ok := t.resolveEnumValue(identType, identExpr.GetName()); ok {
-		return t.addParam(int64(enumValue)), nil
-	}
-	return ident(identExpr.GetName()), nil
+	return ident(e.GetIdentExpr().GetName()), nil
 }
 
-func (t *Transpiler) transpileIdentExprForJSONB(e *expr.Expr) (sqlExpr, error) {
+// identValue resolves an ident that denotes a value rather than a column: an
+// enum value name (as its number) or a bool keyword.
+func (t *Transpiler) identValue(e *expr.Expr) (any, bool, error) {
 	identExpr := e.GetIdentExpr()
 	identType, ok := t.filter.CheckedExpr.GetTypeMap()[e.GetId()]
 	if !ok {
-		return nil, fmt.Errorf("unknown type of ident expr %d", e.GetId())
+		return nil, false, fmt.Errorf("unknown type of ident expr %d", e.GetId())
 	}
-	if _, ok := t.resolveEnumValue(identType, identExpr.GetName()); ok {
-		return t.addParam(identExpr.GetName()), nil
+	if enumValue, ok := t.resolveEnumValue(identType, identExpr.GetName()); ok {
+		return int64(enumValue), true, nil
 	}
-	return ident(identExpr.GetName()), nil
+	if identType.GetPrimitive() == expr.Type_BOOL {
+		switch identExpr.GetName() {
+		case "true":
+			return true, true, nil
+		case "false":
+			return false, true, nil
+		}
+	}
+	return nil, false, nil
+}
+
+// identLiteral transpiles a value ident. jsonb renders enums by name, as
+// protojson stores them, instead of by number, as columns do.
+func (t *Transpiler) identLiteral(e *expr.Expr, jsonb bool) (literal, bool, error) {
+	value, ok, err := t.identValue(e)
+	if err != nil || !ok {
+		return literal{}, false, err
+	}
+	if _, isEnum := value.(int64); isEnum && jsonb {
+		return literal{expr: t.addParam(e.GetIdentExpr().GetName()), value: value}, true, nil
+	}
+	return literal{expr: t.addParam(value), value: value}, true, nil
+}
+
+// constLiteral transpiles a constant into a literal.
+func (t *Transpiler) constLiteral(e *expr.Expr) (literal, error) {
+	switch kind := e.GetConstExpr().GetConstantKind().(type) {
+	case *expr.Constant_BoolValue:
+		return literal{expr: t.addParam(kind.BoolValue), value: kind.BoolValue}, nil
+	case *expr.Constant_DoubleValue:
+		return literal{expr: t.addParam(kind.DoubleValue), value: kind.DoubleValue}, nil
+	case *expr.Constant_Int64Value:
+		return literal{expr: t.addParam(kind.Int64Value), value: kind.Int64Value}, nil
+	case *expr.Constant_StringValue:
+		return literal{expr: t.addParam(kind.StringValue), value: kind.StringValue}, nil
+	case *expr.Constant_Uint64Value:
+		return literal{expr: t.addParam(int64(kind.Uint64Value)), value: int64(kind.Uint64Value)}, nil
+	default:
+		return literal{}, fmt.Errorf("unsupported const expr: %v", kind)
+	}
+}
+
+// operandLiteral transpiles the right-hand side of a comparison whose left-hand
+// side is a column: a constant, an enum value, a bool keyword, or a
+// timestamp()/duration() call. ok is false when it is another column.
+func (t *Transpiler) operandLiteral(rhs *expr.Expr, jsonbColumn bool) (literal, bool, error) {
+	switch {
+	case rhs.GetConstExpr() != nil:
+		l, err := t.constLiteral(rhs)
+		return l, err == nil, err
+	case rhs.GetIdentExpr() != nil:
+		return t.identLiteral(rhs, jsonbColumn)
+	case rhs.GetCallExpr() != nil:
+		switch rhs.GetCallExpr().GetFunction() {
+		case filtering.FunctionTimestamp:
+			l, err := t.transpileTimestampCallExpr(rhs)
+			return l, err == nil, err
+		case filtering.FunctionDuration:
+			l, err := t.transpileDurationCallExpr(rhs, jsonbColumn)
+			return l, err == nil, err
+		}
+	}
+	return literal{}, false, nil
+}
+
+// isColumn reports whether an expression references a stored field.
+func (t *Transpiler) isColumn(e *expr.Expr) (bool, error) {
+	if e.GetSelectExpr() != nil {
+		return true, nil
+	}
+	if e.GetIdentExpr() == nil {
+		return false, nil
+	}
+	_, isValue, err := t.identValue(e)
+	return !isValue, err
 }
 
 func (t *Transpiler) resolveEnumValue(identType *expr.Type, name string) (protoreflect.EnumNumber, bool) {
@@ -210,36 +272,31 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 		return nil, err
 	}
 
-	if op == opNe && t.isJSONBPath(lhs) {
-		op = opIsDistinctFrom
-	}
-
-	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionTimestamp {
-		rhsExpr, err := t.transpileTimestampCallExpr(rhs)
-		if err != nil {
-			return nil, err
-		}
-		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
-	}
-
-	if rhs.GetCallExpr() != nil && rhs.GetCallExpr().GetFunction() == filtering.FunctionDuration {
-		rhsExpr, err := t.transpileDurationCallExpr(rhs, t.isJSONBPath(lhs))
-		if err != nil {
-			return nil, err
-		}
-		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
-	}
-
-	var rhsExpr sqlExpr
-	if lhs.GetSelectExpr() != nil && rhs.GetIdentExpr() != nil {
-		rhsExpr, err = t.transpileIdentExprForJSONB(rhs)
-	} else {
-		rhsExpr, err = t.transpileExpr(rhs)
-	}
+	// NULL semantics apply to `column op literal`; anything else (a literal on
+	// the left, column against column) is rendered as written.
+	lhsIsColumn, err := t.isColumn(lhs)
 	if err != nil {
 		return nil, err
 	}
-	return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
+	var l literal
+	rhsIsLiteral := false
+	if lhsIsColumn {
+		if l, rhsIsLiteral, err = t.operandLiteral(rhs, t.isJSONBPath(lhs)); err != nil {
+			return nil, err
+		}
+	}
+	if !rhsIsLiteral {
+		rhsExpr, err := t.transpileExpr(rhs)
+		if err != nil {
+			return nil, err
+		}
+		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
+	}
+	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhs.GetId()]
+	if !ok {
+		return nil, fmt.Errorf("unknown type of lhs expr %d", lhs.GetId())
+	}
+	return nullAware(lhsExpr, lhsType, op, l, t.traversalParent(lhs)), nil
 }
 
 func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
@@ -298,7 +355,7 @@ func (t *Transpiler) transpileNotCallExpr(e *expr.Expr) (boolExpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("unexpected argument to `%s`: not a bool expr", filtering.FunctionNot)
 	}
-	return logicalOp{op: opNot, rhs: rhsBoolExpr}, nil
+	return notExpr{operand: rhsBoolExpr}, nil
 }
 
 func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op string) (boolExpr, error) {
@@ -325,47 +382,49 @@ func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op string) (bo
 	return logicalOp{op: op, lhs: lhsBoolExpr, rhs: rhsBoolExpr}, nil
 }
 
-func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (sqlExpr, error) {
+func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (literal, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 1 {
-		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
+		return literal{}, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
 	}
 	constArg, ok := callExpr.GetArgs()[0].GetExprKind().(*expr.Expr_ConstExpr)
 	if !ok {
-		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
 	}
 	stringArg, ok := constArg.ConstExpr.GetConstantKind().(*expr.Constant_StringValue)
 	if !ok {
-		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
 	}
 	timeArg, err := time.Parse(time.RFC3339, stringArg.StringValue)
 	if err != nil {
-		return nil, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
+		return literal{}, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
 	}
-	return t.addParam(timeArg), nil
+	return literal{expr: t.addParam(timeArg), value: timeArg}, nil
 }
 
-func (t *Transpiler) transpileDurationCallExpr(e *expr.Expr, asSeconds bool) (sqlExpr, error) {
+// transpileDurationCallExpr renders a duration() call; asSeconds selects the
+// JSONB representation (protojson's "1.5s" is stored stripped to a double).
+func (t *Transpiler) transpileDurationCallExpr(e *expr.Expr, asSeconds bool) (literal, error) {
 	callExpr := e.GetCallExpr()
 	if len(callExpr.GetArgs()) != 1 {
-		return nil, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
+		return literal{}, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
 	}
 	constArg, ok := callExpr.GetArgs()[0].GetExprKind().(*expr.Expr_ConstExpr)
 	if !ok {
-		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
 	}
 	stringArg, ok := constArg.ConstExpr.GetConstantKind().(*expr.Constant_StringValue)
 	if !ok {
-		return nil, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
+		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
 	}
 	durationArg, err := time.ParseDuration(stringArg.StringValue)
 	if err != nil {
-		return nil, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
+		return literal{}, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
 	}
 	if asSeconds {
-		return t.addParam(durationArg.Seconds()), nil
+		return literal{expr: t.addParam(durationArg.Seconds()), value: durationArg}, nil
 	}
-	return t.addParam(durationArg), nil
+	return literal{expr: t.addParam(durationArg), value: durationArg}, nil
 }
 
 func (t *Transpiler) addParam(value any) sqlParam {

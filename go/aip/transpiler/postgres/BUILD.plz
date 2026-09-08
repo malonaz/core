@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "has.go",
         "jsonb.go",
+        "null.go",
         "order_by.go",
         "postgres.go",
         "types.go",
@@ -14,6 +15,17 @@ go_library(
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/proto:google__api__expr__v1alpha1",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["null_test.go"],
+    deps = [
+        ":postgres",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/proto:google__api__expr__v1alpha1",
     ],
 )

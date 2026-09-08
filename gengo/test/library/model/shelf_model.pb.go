@@ -35,6 +35,10 @@ type Shelf struct {
 	BestBookPageCount *int32         `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
 	LatestBook        *string        `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
 	LatestBookTitle   *string        `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
+	SecondaryGenre    *int16         `db:"secondary_genre" schema:"library" table:"shelf"`
+	ShelfNumber       *int32         `db:"shelf_number" schema:"library" table:"shelf"`
+	Featured          *bool          `db:"featured" schema:"library" table:"shelf"`
+	Extra             []byte         `db:"extra" schema:"library" table:"shelf"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -100,6 +104,27 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 	if m.LatestBookTitle != "" {
 		LatestBookTitle = &m.LatestBookTitle
 	}
+	var SecondaryGenre *int16
+	if m.SecondaryGenre != 0 {
+		SecondaryGenreInt := int16(m.SecondaryGenre)
+		SecondaryGenre = &SecondaryGenreInt
+	}
+	var ShelfNumber *int32
+	if m.ShelfNumber != 0 {
+		ShelfNumber = &m.ShelfNumber
+	}
+	var Featured *bool
+	if m.Featured != false {
+		Featured = &m.Featured
+	}
+	var ExtraBytes []byte
+	if m.Extra != nil {
+		var err error
+		ExtraBytes, err = pbutil.JSONMarshal(m.Extra)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Extra: %w", err)
+		}
+	}
 	return &Shelf{
 		OrganizationID:    OrganizationID,
 		ShelfID:           ShelfID,
@@ -117,6 +142,10 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		BestBookPageCount: BestBookPageCount,
 		LatestBook:        LatestBook,
 		LatestBookTitle:   LatestBookTitle,
+		SecondaryGenre:    SecondaryGenre,
+		ShelfNumber:       ShelfNumber,
+		Featured:          Featured,
+		Extra:             ExtraBytes,
 	}, nil
 }
 
@@ -172,6 +201,25 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 	if m.LatestBookTitle != nil {
 		LatestBookTitle = *m.LatestBookTitle
 	}
+	var SecondaryGenre int16
+	if m.SecondaryGenre != nil {
+		SecondaryGenre = *m.SecondaryGenre
+	}
+	var ShelfNumber int32
+	if m.ShelfNumber != nil {
+		ShelfNumber = *m.ShelfNumber
+	}
+	var Featured bool
+	if m.Featured != nil {
+		Featured = *m.Featured
+	}
+	var Extra *v1.ShelfExtra
+	if m.Extra != nil {
+		Extra = &v1.ShelfExtra{}
+		if err := pbutil.JSONUnmarshal(m.Extra, Extra); err != nil {
+			return nil, fmt.Errorf("unmarshaling Extra: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -192,6 +240,10 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 		BestBookPageCount: BestBookPageCount,
 		LatestBook:        LatestBook,
 		LatestBookTitle:   LatestBookTitle,
+		SecondaryGenre:    v1.ShelfGenre(SecondaryGenre),
+		ShelfNumber:       ShelfNumber,
+		Featured:          Featured,
+		Extra:             Extra,
 	}, nil
 }
 

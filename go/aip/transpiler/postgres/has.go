@@ -41,40 +41,36 @@ func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (boolExpr, error) {
 	return nil, fmt.Errorf("unsupported type for `:` operator")
 }
 
+// transpilePresenceCheck renders `field:*`. Presence is proto3 presence: a
+// scalar is present when it holds a non-zero value, and a NULL column stands
+// for zero (see null.go) — so strings, numbers, bools and enums all test
+// `IS NOT NULL AND != zero`. Timestamps, durations, messages and collections
+// are present when non-NULL (and, for collections, non-empty).
 func (t *Transpiler) transpilePresenceCheck(lhsExpr *expr.Expr, lhsType *expr.Type) (boolExpr, error) {
-	if lhsType.GetPrimitive() == expr.Type_STRING {
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return logicalOp{
-			op:  opAnd,
-			lhs: isNullExpr{lhs: lhs, negate: true},
-			rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("''")},
-		}, nil
-	}
-
 	if lhsType.GetListType() != nil {
 		return t.transpileRepeatedPresenceCheck(lhsExpr)
-	}
-
-	if lhsType.GetMapType() != nil {
-		lhs, err := t.transpileExpr(lhsExpr)
-		if err != nil {
-			return nil, err
-		}
-		return logicalOp{
-			op:  opAnd,
-			lhs: isNullExpr{lhs: lhs, negate: true},
-			rhs: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("'{}'::jsonb")},
-		}, nil
 	}
 
 	lhs, err := t.transpileExpr(lhsExpr)
 	if err != nil {
 		return nil, err
 	}
-	return isNullExpr{lhs: lhs, negate: true}, nil
+
+	if lhsType.GetMapType() != nil {
+		return nullGuard{
+			column:     lhs,
+			comparison: comparisonOp{lhs: lhs, op: opNe, rhs: rawSQL("'{}'::jsonb")},
+		}, nil
+	}
+
+	zero, ok := t.zeroLiteral(lhsType, t.isJSONBPath(lhsExpr))
+	if !ok {
+		return isNullExpr{lhs: lhs, negate: true}, nil
+	}
+	return nullGuard{
+		column:     lhs,
+		comparison: comparisonOp{lhs: lhs, op: opNe, rhs: zero},
+	}, nil
 }
 
 func (t *Transpiler) transpileRepeatedPresenceCheck(lhsExpr *expr.Expr) (boolExpr, error) {
@@ -83,10 +79,9 @@ func (t *Transpiler) transpileRepeatedPresenceCheck(lhsExpr *expr.Expr) (boolExp
 		if err != nil {
 			return nil, err
 		}
-		return logicalOp{
-			op:  opAnd,
-			lhs: isNullExpr{lhs: lhs, negate: true},
-			rhs: comparisonOp{
+		return nullGuard{
+			column: lhs,
+			comparison: comparisonOp{
 				lhs: rawSQL(fmt.Sprintf("COALESCE(array_length(%s, 1), 0)", lhs.SQL())),
 				op:  opGt,
 				rhs: rawSQL("0"),
@@ -96,10 +91,9 @@ func (t *Transpiler) transpileRepeatedPresenceCheck(lhsExpr *expr.Expr) (boolExp
 
 	path, root := t.extractSelectPath(lhsExpr)
 	jsonbPath := buildJSONBObjectPath(root, path)
-	return logicalOp{
-		op:  opAnd,
-		lhs: isNullExpr{lhs: rawSQL(jsonbPath), negate: true},
-		rhs: comparisonOp{
+	return nullGuard{
+		column: rawSQL(jsonbPath),
+		comparison: comparisonOp{
 			lhs: rawSQL(fmt.Sprintf("jsonb_array_length(%s)", jsonbPath)),
 			op:  opGt,
 			rhs: rawSQL("0"),
@@ -119,21 +113,25 @@ func (t *Transpiler) transpileHasOnMap(lhsExpr, rhsExpr *expr.Expr) (boolExpr, e
 	return coalesceHasKey{field: lhs, key: rhs}, nil
 }
 
+// transpileHasOnSelect renders `path:value` on a singular JSONB field, which
+// is equality with the same NULL semantics as `=`.
 func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
 	lhs, err := t.transpileExpr(lhsExpr)
 	if err != nil {
 		return nil, err
 	}
-	var rhs sqlExpr
-	if rhsExpr.GetIdentExpr() != nil {
-		rhs, err = t.transpileIdentExprForJSONB(rhsExpr)
-	} else {
-		rhs, err = t.transpileExpr(rhsExpr)
-	}
+	l, ok, err := t.operandLiteral(rhsExpr, true)
 	if err != nil {
 		return nil, err
 	}
-	return comparisonOp{lhs: lhs, op: opEq, rhs: rhs}, nil
+	if !ok {
+		return nil, fmt.Errorf("unsupported argument to `:` operator: expected a literal")
+	}
+	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhsExpr.GetId()]
+	if !ok {
+		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
+	}
+	return nullAware(lhs, lhsType, opEq, l, t.traversalParent(lhsExpr)), nil
 }
 
 func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (boolExpr, error) {

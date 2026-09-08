@@ -124,8 +124,16 @@ type Shelf struct {
 	LatestBook string `protobuf:"bytes,14,opt,name=latest_book,json=latestBook,proto3" json:"latest_book,omitempty"`
 	// The title of the latest book, chained onto the latest_book query join.
 	LatestBookTitle string `protobuf:"bytes,15,opt,name=latest_book_title,json=latestBookTitle,proto3" json:"latest_book_title,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// A secondary genre. Nullable and unvalidated so it can be left unset.
+	SecondaryGenre ShelfGenre `protobuf:"varint,16,opt,name=secondary_genre,json=secondaryGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre" json:"secondary_genre,omitempty"`
+	// The shelf's position number. Nullable.
+	ShelfNumber int32 `protobuf:"varint,17,opt,name=shelf_number,json=shelfNumber,proto3" json:"shelf_number,omitempty"`
+	// Whether the shelf is featured. Nullable.
+	Featured bool `protobuf:"varint,18,opt,name=featured,proto3" json:"featured,omitempty"`
+	// Optional extra data, stored as nullable JSONB.
+	Extra         *ShelfExtra `protobuf:"bytes,19,opt,name=extra,proto3" json:"extra,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Shelf) Reset() {
@@ -258,6 +266,34 @@ func (x *Shelf) GetLatestBookTitle() string {
 	return ""
 }
 
+func (x *Shelf) GetSecondaryGenre() ShelfGenre {
+	if x != nil {
+		return x.SecondaryGenre
+	}
+	return ShelfGenre_SHELF_GENRE_UNSPECIFIED
+}
+
+func (x *Shelf) GetShelfNumber() int32 {
+	if x != nil {
+		return x.ShelfNumber
+	}
+	return 0
+}
+
+func (x *Shelf) GetFeatured() bool {
+	if x != nil {
+		return x.Featured
+	}
+	return false
+}
+
+func (x *Shelf) GetExtra() *ShelfExtra {
+	if x != nil {
+		return x.Extra
+	}
+	return nil
+}
+
 func (x *Shelf) SetName(v string) {
 	x.Name = v
 }
@@ -318,6 +354,22 @@ func (x *Shelf) SetLatestBookTitle(v string) {
 	x.LatestBookTitle = v
 }
 
+func (x *Shelf) SetSecondaryGenre(v ShelfGenre) {
+	x.SecondaryGenre = v
+}
+
+func (x *Shelf) SetShelfNumber(v int32) {
+	x.ShelfNumber = v
+}
+
+func (x *Shelf) SetFeatured(v bool) {
+	x.Featured = v
+}
+
+func (x *Shelf) SetExtra(v *ShelfExtra) {
+	x.Extra = v
+}
+
 func (x *Shelf) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -353,6 +405,13 @@ func (x *Shelf) HasMetadata() bool {
 	return x.Metadata != nil
 }
 
+func (x *Shelf) HasExtra() bool {
+	if x == nil {
+		return false
+	}
+	return x.Extra != nil
+}
+
 func (x *Shelf) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -371,6 +430,10 @@ func (x *Shelf) ClearDuration() {
 
 func (x *Shelf) ClearMetadata() {
 	x.Metadata = nil
+}
+
+func (x *Shelf) ClearExtra() {
+	x.Extra = nil
 }
 
 type Shelf_builder struct {
@@ -409,6 +472,14 @@ type Shelf_builder struct {
 	LatestBook string
 	// The title of the latest book, chained onto the latest_book query join.
 	LatestBookTitle string
+	// A secondary genre. Nullable and unvalidated so it can be left unset.
+	SecondaryGenre ShelfGenre
+	// The shelf's position number. Nullable.
+	ShelfNumber int32
+	// Whether the shelf is featured. Nullable.
+	Featured bool
+	// Optional extra data, stored as nullable JSONB.
+	Extra *ShelfExtra
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -430,6 +501,10 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.BestBookPageCount = b.BestBookPageCount
 	x.LatestBook = b.LatestBook
 	x.LatestBookTitle = b.LatestBookTitle
+	x.SecondaryGenre = b.SecondaryGenre
+	x.ShelfNumber = b.ShelfNumber
+	x.Featured = b.Featured
+	x.Extra = b.Extra
 	return m0
 }
 
@@ -443,7 +518,13 @@ type ShelfMetadata struct {
 	// Notes about this shelf.
 	Notes []*ShelfNote `protobuf:"bytes,3,rep,name=notes,proto3" json:"notes,omitempty"`
 	// Additional notes.
-	AuthorToNote  map[string]*ShelfNote `protobuf:"bytes,4,rep,name=author_to_note,json=authorToNote,proto3" json:"author_to_note,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	AuthorToNote map[string]*ShelfNote `protobuf:"bytes,4,rep,name=author_to_note,json=authorToNote,proto3" json:"author_to_note,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Whether the shelf is open.
+	Open bool `protobuf:"varint,5,opt,name=open,proto3" json:"open,omitempty"`
+	// The shelf's theme.
+	Theme ShelfGenre `protobuf:"varint,6,opt,name=theme,proto3,enum=malonaz.test.library.v1.ShelfGenre" json:"theme,omitempty"`
+	// Where the shelf is located.
+	Location      *ShelfLocation `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -501,6 +582,27 @@ func (x *ShelfMetadata) GetAuthorToNote() map[string]*ShelfNote {
 	return nil
 }
 
+func (x *ShelfMetadata) GetOpen() bool {
+	if x != nil {
+		return x.Open
+	}
+	return false
+}
+
+func (x *ShelfMetadata) GetTheme() ShelfGenre {
+	if x != nil {
+		return x.Theme
+	}
+	return ShelfGenre_SHELF_GENRE_UNSPECIFIED
+}
+
+func (x *ShelfMetadata) GetLocation() *ShelfLocation {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
 func (x *ShelfMetadata) SetCapacity(v int32) {
 	x.Capacity = v
 }
@@ -517,6 +619,29 @@ func (x *ShelfMetadata) SetAuthorToNote(v map[string]*ShelfNote) {
 	x.AuthorToNote = v
 }
 
+func (x *ShelfMetadata) SetOpen(v bool) {
+	x.Open = v
+}
+
+func (x *ShelfMetadata) SetTheme(v ShelfGenre) {
+	x.Theme = v
+}
+
+func (x *ShelfMetadata) SetLocation(v *ShelfLocation) {
+	x.Location = v
+}
+
+func (x *ShelfMetadata) HasLocation() bool {
+	if x == nil {
+		return false
+	}
+	return x.Location != nil
+}
+
+func (x *ShelfMetadata) ClearLocation() {
+	x.Location = nil
+}
+
 type ShelfMetadata_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -528,6 +653,12 @@ type ShelfMetadata_builder struct {
 	Notes []*ShelfNote
 	// Additional notes.
 	AuthorToNote map[string]*ShelfNote
+	// Whether the shelf is open.
+	Open bool
+	// The shelf's theme.
+	Theme ShelfGenre
+	// Where the shelf is located.
+	Location *ShelfLocation
 }
 
 func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
@@ -538,6 +669,161 @@ func (b0 ShelfMetadata_builder) Build() *ShelfMetadata {
 	x.Dummy = b.Dummy
 	x.Notes = b.Notes
 	x.AuthorToNote = b.AuthorToNote
+	x.Open = b.Open
+	x.Theme = b.Theme
+	x.Location = b.Location
+	return m0
+}
+
+// The physical location of a shelf.
+type ShelfLocation struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The room.
+	Room string `protobuf:"bytes,1,opt,name=room,proto3" json:"room,omitempty"`
+	// The floor.
+	Floor         int32 `protobuf:"varint,2,opt,name=floor,proto3" json:"floor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShelfLocation) Reset() {
+	*x = ShelfLocation{}
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShelfLocation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShelfLocation) ProtoMessage() {}
+
+func (x *ShelfLocation) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ShelfLocation) GetRoom() string {
+	if x != nil {
+		return x.Room
+	}
+	return ""
+}
+
+func (x *ShelfLocation) GetFloor() int32 {
+	if x != nil {
+		return x.Floor
+	}
+	return 0
+}
+
+func (x *ShelfLocation) SetRoom(v string) {
+	x.Room = v
+}
+
+func (x *ShelfLocation) SetFloor(v int32) {
+	x.Floor = v
+}
+
+type ShelfLocation_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The room.
+	Room string
+	// The floor.
+	Floor int32
+}
+
+func (b0 ShelfLocation_builder) Build() *ShelfLocation {
+	m0 := &ShelfLocation{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Room = b.Room
+	x.Floor = b.Floor
+	return m0
+}
+
+// Optional extra data about a shelf.
+type ShelfExtra struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// A free-form note.
+	Note string `protobuf:"bytes,1,opt,name=note,proto3" json:"note,omitempty"`
+	// A rank.
+	Rank          int32 `protobuf:"varint,2,opt,name=rank,proto3" json:"rank,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShelfExtra) Reset() {
+	*x = ShelfExtra{}
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShelfExtra) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShelfExtra) ProtoMessage() {}
+
+func (x *ShelfExtra) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ShelfExtra) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *ShelfExtra) GetRank() int32 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *ShelfExtra) SetNote(v string) {
+	x.Note = v
+}
+
+func (x *ShelfExtra) SetRank(v int32) {
+	x.Rank = v
+}
+
+type ShelfExtra_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// A free-form note.
+	Note string
+	// A rank.
+	Rank int32
+}
+
+func (b0 ShelfExtra_builder) Build() *ShelfExtra {
+	m0 := &ShelfExtra{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Note = b.Note
+	x.Rank = b.Rank
 	return m0
 }
 
@@ -552,7 +838,7 @@ type ShelfNote struct {
 
 func (x *ShelfNote) Reset() {
 	*x = ShelfNote{}
-	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[2]
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -564,7 +850,7 @@ func (x *ShelfNote) String() string {
 func (*ShelfNote) ProtoMessage() {}
 
 func (x *ShelfNote) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[2]
+	mi := &file_malonaz_test_library_v1_shelf_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +891,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x86\r\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xf0\x0e\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -640,7 +926,11 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x0epage_count > 0\x12\x10create_time descR\n" +
 	"latestBook\x12j\n" +
 	"\x11latest_book_title\x18\x0f \x01(\tB>\xe0A\x03\xba\xea\x0f7 \x01B3\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x12\x05title\x1a\vlatest_bookR\x0flatestBookTitle\x1a9\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x05title\x1a\vlatest_bookR\x0flatestBookTitle\x12T\n" +
+	"\x0fsecondary_genre\x18\x10 \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB\x06\xba\xea\x0f\x02 \x01R\x0esecondaryGenre\x12)\n" +
+	"\fshelf_number\x18\x11 \x01(\x05B\x06\xba\xea\x0f\x02 \x01R\vshelfNumber\x12\"\n" +
+	"\bfeatured\x18\x12 \x01(\bB\x06\xba\xea\x0f\x02 \x01R\bfeatured\x12C\n" +
+	"\x05extra\x18\x13 \x01(\v2#.malonaz.test.library.v1.ShelfExtraB\b\xba\xea\x0f\x04\x10\x01 \x01R\x05extra\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc1\x02\xeaA^\n" +
@@ -650,15 +940,25 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\acreated\x12\x05genre\"-\n" +
 	"\aupdated\x12\x10correlation_id_2\x1a\x10shelf.genre != 1\":\n" +
 	"\fgenre_change\x12\x05genre\x1a#shelf.genre != previous_shelf.genre*\"\n" +
-	"\adeleted\x12\x05genre\x12\x10correlation_id_2\"\xc0\x02\n" +
+	"\adeleted\x12\x05genre\x12\x10correlation_id_2\"\xd3\x03\n" +
 	"\rShelfMetadata\x12\x1a\n" +
 	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x14\n" +
 	"\x05dummy\x18\x02 \x01(\tR\x05dummy\x128\n" +
 	"\x05notes\x18\x03 \x03(\v2\".malonaz.test.library.v1.ShelfNoteR\x05notes\x12^\n" +
-	"\x0eauthor_to_note\x18\x04 \x03(\v28.malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntryR\fauthorToNote\x1ac\n" +
+	"\x0eauthor_to_note\x18\x04 \x03(\v28.malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntryR\fauthorToNote\x12\x12\n" +
+	"\x04open\x18\x05 \x01(\bR\x04open\x129\n" +
+	"\x05theme\x18\x06 \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreR\x05theme\x12B\n" +
+	"\blocation\x18\a \x01(\v2&.malonaz.test.library.v1.ShelfLocationR\blocation\x1ac\n" +
 	"\x11AuthorToNoteEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x128\n" +
-	"\x05value\x18\x02 \x01(\v2\".malonaz.test.library.v1.ShelfNoteR\x05value:\x028\x01\"%\n" +
+	"\x05value\x18\x02 \x01(\v2\".malonaz.test.library.v1.ShelfNoteR\x05value:\x028\x01\"9\n" +
+	"\rShelfLocation\x12\x12\n" +
+	"\x04room\x18\x01 \x01(\tR\x04room\x12\x14\n" +
+	"\x05floor\x18\x02 \x01(\x05R\x05floor\"4\n" +
+	"\n" +
+	"ShelfExtra\x12\x12\n" +
+	"\x04note\x18\x01 \x01(\tR\x04note\x12\x12\n" +
+	"\x04rank\x18\x02 \x01(\x05R\x04rank\"%\n" +
 	"\tShelfNote\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent*\xb4\x01\n" +
 	"\n" +
@@ -671,33 +971,39 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x15SHELF_GENRE_BIOGRAPHY\x10\x05B2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
 var file_malonaz_test_library_v1_shelf_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_test_library_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_malonaz_test_library_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_test_library_v1_shelf_proto_goTypes = []any{
 	(ShelfGenre)(0),               // 0: malonaz.test.library.v1.ShelfGenre
 	(*Shelf)(nil),                 // 1: malonaz.test.library.v1.Shelf
 	(*ShelfMetadata)(nil),         // 2: malonaz.test.library.v1.ShelfMetadata
-	(*ShelfNote)(nil),             // 3: malonaz.test.library.v1.ShelfNote
-	nil,                           // 4: malonaz.test.library.v1.Shelf.LabelsEntry
-	nil,                           // 5: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
+	(*ShelfLocation)(nil),         // 3: malonaz.test.library.v1.ShelfLocation
+	(*ShelfExtra)(nil),            // 4: malonaz.test.library.v1.ShelfExtra
+	(*ShelfNote)(nil),             // 5: malonaz.test.library.v1.ShelfNote
+	nil,                           // 6: malonaz.test.library.v1.Shelf.LabelsEntry
+	nil,                           // 7: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
 }
 var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
-	6,  // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
-	6,  // 1: malonaz.test.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
-	6,  // 2: malonaz.test.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
+	8,  // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
+	8,  // 1: malonaz.test.library.v1.Shelf.update_time:type_name -> google.protobuf.Timestamp
+	8,  // 2: malonaz.test.library.v1.Shelf.delete_time:type_name -> google.protobuf.Timestamp
 	0,  // 3: malonaz.test.library.v1.Shelf.genre:type_name -> malonaz.test.library.v1.ShelfGenre
-	7,  // 4: malonaz.test.library.v1.Shelf.duration:type_name -> google.protobuf.Duration
-	4,  // 5: malonaz.test.library.v1.Shelf.labels:type_name -> malonaz.test.library.v1.Shelf.LabelsEntry
+	9,  // 4: malonaz.test.library.v1.Shelf.duration:type_name -> google.protobuf.Duration
+	6,  // 5: malonaz.test.library.v1.Shelf.labels:type_name -> malonaz.test.library.v1.Shelf.LabelsEntry
 	2,  // 6: malonaz.test.library.v1.Shelf.metadata:type_name -> malonaz.test.library.v1.ShelfMetadata
-	3,  // 7: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
-	5,  // 8: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	3,  // 9: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	0,  // 7: malonaz.test.library.v1.Shelf.secondary_genre:type_name -> malonaz.test.library.v1.ShelfGenre
+	4,  // 8: malonaz.test.library.v1.Shelf.extra:type_name -> malonaz.test.library.v1.ShelfExtra
+	5,  // 9: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
+	7,  // 10: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	0,  // 11: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
+	3,  // 12: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
+	5,  // 13: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_shelf_proto_init() }
@@ -711,7 +1017,7 @@ func file_malonaz_test_library_v1_shelf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_v1_shelf_proto_rawDesc), len(file_malonaz_test_library_v1_shelf_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

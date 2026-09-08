@@ -121,7 +121,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 		{
 			name:           "string not equal",
 			filter:         `title != "Excluded"`,
-			expectedClause: "WHERE (book.title != $1)",
+			expectedClause: "WHERE (book.title IS NULL OR book.title != $1)",
 			expectedParams: []any{"Excluded"},
 		},
 		{
@@ -133,7 +133,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 		{
 			name:           "integer less than",
 			filter:         `publication_year < 2020`,
-			expectedClause: "WHERE (book.publication_year < $1)",
+			expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year < $1)",
 			expectedParams: []any{int64(2020)},
 		},
 		{
@@ -145,7 +145,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 		{
 			name:           "integer less than or equal",
 			filter:         `publication_year <= 2010`,
-			expectedClause: "WHERE (book.publication_year <= $1)",
+			expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year <= $1)",
 			expectedParams: []any{int64(2010)},
 		},
 		{
@@ -157,7 +157,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 		{
 			name:           "integer not equal",
 			filter:         `publication_year != 1999`,
-			expectedClause: "WHERE (book.publication_year != $1)",
+			expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year != $1)",
 			expectedParams: []any{int64(1999)},
 		},
 		{
@@ -169,7 +169,7 @@ func TestFilteringRequestParser_ComparisonOperators(t *testing.T) {
 		{
 			name:           "string less than (lexical)",
 			filter:         `title < "Z"`,
-			expectedClause: "WHERE (book.title < $1)",
+			expectedClause: "WHERE (book.title IS NULL OR book.title < $1)",
 			expectedParams: []any{"Z"},
 		},
 	}
@@ -227,25 +227,25 @@ func TestFilteringRequestParser_LogicalOperators(t *testing.T) {
 		{
 			name:           "NOT with comparison",
 			filter:         `NOT display_name = "Excluded"`,
-			expectedClause: "WHERE (NOT (author.display_name = $1))",
+			expectedClause: "WHERE (NOT COALESCE(author.display_name = $1, FALSE))",
 			expectedParams: []any{"Excluded"},
 		},
 		{
 			name:           "NOT with parentheses",
 			filter:         `NOT (display_name = "A" OR display_name = "B")`,
-			expectedClause: "WHERE (NOT ((author.display_name = $1) OR (author.display_name = $2)))",
+			expectedClause: "WHERE (NOT COALESCE((author.display_name = $1) OR (author.display_name = $2), FALSE))",
 			expectedParams: []any{"A", "B"},
 		},
 		{
 			name:           "minus operator with comparison",
 			filter:         `-display_name = "Excluded"`,
-			expectedClause: "WHERE (NOT (author.display_name = $1))",
+			expectedClause: "WHERE (NOT COALESCE(author.display_name = $1, FALSE))",
 			expectedParams: []any{"Excluded"},
 		},
 		{
 			name:           "AND and OR combined with parentheses",
 			filter:         `(display_name = "John" OR display_name = "Jane") AND NOT email_address = "spam@test.com"`,
-			expectedClause: "WHERE (((author.display_name = $1) OR (author.display_name = $2)) AND (NOT (author.email_address = $3)))",
+			expectedClause: "WHERE (((author.display_name = $1) OR (author.display_name = $2)) AND (NOT COALESCE(author.email_address = $3, FALSE)))",
 			expectedParams: []any{"John", "Jane", "spam@test.com"},
 		},
 	}
@@ -371,7 +371,7 @@ func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 			{
 				name:           "nested integer field less than or equal",
 				filter:         `metadata.capacity <= 200`,
-				expectedClause: "WHERE ((shelf.legacy_meta->>'capacity')::bigint <= $1)",
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint <= $1))",
 				expectedParams: []any{int64(200)},
 			},
 		}
@@ -468,7 +468,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 			{
 				name:           "repeated string contains value with NOT",
 				filter:         `NOT email_addresses:"spam@example.com"`,
-				expectedClause: "WHERE (NOT ($1 = ANY(author.email_addresses)))",
+				expectedClause: "WHERE (NOT COALESCE($1 = ANY(author.email_addresses), FALSE))",
 				expectedParams: []any{"spam@example.com"},
 			},
 			{
@@ -555,7 +555,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 			{
 				name:           "enum field is present",
 				filter:         `genre:*`,
-				expectedClause: "WHERE (shelf.genre IS NOT NULL)",
+				expectedClause: "WHERE (shelf.genre IS NOT NULL AND shelf.genre != 0)",
 				expectedParams: []any{},
 			},
 		}
@@ -584,7 +584,7 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 			{
 				name:           "integer field is present",
 				filter:         `publication_year:*`,
-				expectedClause: "WHERE (book.publication_year IS NOT NULL)",
+				expectedClause: "WHERE (book.publication_year IS NOT NULL AND book.publication_year != 0)",
 				expectedParams: []any{},
 			},
 		}
@@ -812,21 +812,21 @@ func TestFilteringRequestParser_Enums(t *testing.T) {
 			expectedParams: []any{int64(5)},
 		},
 		{
-			name:           "enum unspecified",
+			name:           "enum unspecified matches NULL",
 			filter:         `genre = SHELF_GENRE_UNSPECIFIED`,
-			expectedClause: "WHERE (shelf.genre = $1)",
+			expectedClause: "WHERE (shelf.genre IS NULL OR shelf.genre = $1)",
 			expectedParams: []any{int64(0)},
 		},
 		{
 			name:           "enum not equal",
 			filter:         `genre != SHELF_GENRE_FICTION`,
-			expectedClause: "WHERE (shelf.genre != $1)",
+			expectedClause: "WHERE (shelf.genre IS NULL OR shelf.genre != $1)",
 			expectedParams: []any{int64(1)},
 		},
 		{
 			name:           "enum presence check",
 			filter:         `genre:*`,
-			expectedClause: "WHERE (shelf.genre IS NOT NULL)",
+			expectedClause: "WHERE (shelf.genre IS NOT NULL AND shelf.genre != 0)",
 			expectedParams: []any{},
 		},
 		{
@@ -1101,7 +1101,7 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 			{
 				name:           "integer range with string",
 				filter:         `publication_year >= 2000 AND publication_year < 2020 AND title = "My Book*"`,
-				expectedClause: "WHERE (((book.publication_year >= $1) AND (book.publication_year < $2)) AND (book.title LIKE $3))",
+				expectedClause: "WHERE (((book.publication_year >= $1) AND (book.publication_year IS NULL OR book.publication_year < $2)) AND (book.title LIKE $3))",
 				expectedParams: []any{int64(2000), int64(2020), "My Book%"},
 			},
 			{
@@ -1509,7 +1509,7 @@ func TestFilteringRequestParser_Duration(t *testing.T) {
 			{
 				name:           "duration not equal",
 				filter:         `duration != duration("0s")`,
-				expectedClause: "WHERE (book.duration != $1)",
+				expectedClause: "WHERE (book.duration IS NULL OR book.duration != $1)",
 				expectedParams: []any{time.Duration(0)},
 			},
 			{
@@ -1629,7 +1629,7 @@ func TestFilteringRequestParser_Canonicalization(t *testing.T) {
 		{
 			name:           "email inequality is canonicalized",
 			filter:         `email_address != "USER@Example.COM"`,
-			expectedClause: "WHERE (author.email_address != $1)",
+			expectedClause: "WHERE (author.email_address IS NULL OR author.email_address != $1)",
 			expectedParams: []any{"user@example.com"},
 		},
 		{
@@ -1698,4 +1698,298 @@ func TestFilteringRequestParser_Canonicalization(t *testing.T) {
 			require.Equal(t, tc.expectedParams, whereParams)
 		})
 	}
+}
+
+// NULL semantics: the model stores a nullable scalar's zero value as NULL and
+// protojson omits zero scalars, so a NULL column stands for the zero value the
+// API renders (absent for timestamps/durations). Comparisons admit the NULL
+// row exactly when the zero value satisfies them; NOT negates a match.
+func TestFilteringRequestParser_NullSemantics(t *testing.T) {
+	t.Run("Shelf", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			// Enums: NULL is UNSPECIFIED.
+			{
+				name:           "enum equals unspecified admits NULL",
+				filter:         `genre = SHELF_GENRE_UNSPECIFIED`,
+				expectedClause: "WHERE (shelf.genre IS NULL OR shelf.genre = $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "enum equals value excludes NULL",
+				filter:         `genre = SHELF_GENRE_FICTION`,
+				expectedClause: "WHERE (shelf.genre = $1)",
+				expectedParams: []any{int64(1)},
+			},
+			{
+				name:           "enum not equals value admits NULL",
+				filter:         `genre != SHELF_GENRE_FICTION`,
+				expectedClause: "WHERE (shelf.genre IS NULL OR shelf.genre != $1)",
+				expectedParams: []any{int64(1)},
+			},
+			{
+				name:           "enum not equals unspecified excludes NULL",
+				filter:         `genre != SHELF_GENRE_UNSPECIFIED`,
+				expectedClause: "WHERE (shelf.genre != $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "enum presence is a non-zero value",
+				filter:         `genre:*`,
+				expectedClause: "WHERE (shelf.genre IS NOT NULL AND shelf.genre != 0)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "NOT of a NULL-admitting comparison is already strict",
+				filter:         `NOT genre != SHELF_GENRE_FICTION`,
+				expectedClause: "WHERE (NOT (shelf.genre IS NULL OR shelf.genre != $1))",
+				expectedParams: []any{int64(1)},
+			},
+			{
+				name:           "NOT of a NULL-excluding comparison is coalesced",
+				filter:         `NOT genre = SHELF_GENRE_FICTION`,
+				expectedClause: "WHERE (NOT COALESCE(shelf.genre = $1, FALSE))",
+				expectedParams: []any{int64(1)},
+			},
+			// Strings: NULL is "".
+			{
+				name:           "string equals empty admits NULL",
+				filter:         `display_name = ""`,
+				expectedClause: "WHERE (shelf.display_name IS NULL OR shelf.display_name = $1)",
+				expectedParams: []any{""},
+			},
+			{
+				name:           "string not equals empty excludes NULL",
+				filter:         `display_name != ""`,
+				expectedClause: "WHERE (shelf.display_name != $1)",
+				expectedParams: []any{""},
+			},
+			{
+				name:           "string not equals value admits NULL",
+				filter:         `external_id != "x"`,
+				expectedClause: "WHERE (shelf.ext_id IS NULL OR shelf.ext_id != $1)",
+				expectedParams: []any{"x"},
+			},
+			{
+				name:           "wildcard never matches NULL",
+				filter:         `display_name = "Fic*"`,
+				expectedClause: "WHERE (shelf.display_name LIKE $1)",
+				expectedParams: []any{"Fic%"},
+			},
+			{
+				name:           "NOT wildcard admits NULL",
+				filter:         `NOT display_name = "Fic*"`,
+				expectedClause: "WHERE (NOT COALESCE(shelf.display_name LIKE $1, FALSE))",
+				expectedParams: []any{"Fic%"},
+			},
+			// Durations: NULL is absent.
+			{
+				name:           "nullable duration equals zero excludes NULL",
+				filter:         `duration = duration("0s")`,
+				expectedClause: "WHERE (shelf.duration = $1)",
+				expectedParams: []any{time.Duration(0)},
+			},
+			{
+				name:           "nullable duration not equals admits NULL",
+				filter:         `duration != duration("1h")`,
+				expectedClause: "WHERE (shelf.duration IS NULL OR shelf.duration != $1)",
+				expectedParams: []any{time.Hour},
+			},
+			{
+				name:           "nullable duration less than excludes NULL",
+				filter:         `duration < duration("1h")`,
+				expectedClause: "WHERE (shelf.duration < $1)",
+				expectedParams: []any{time.Hour},
+			},
+			// Timestamps: NULL is absent.
+			{
+				name:           "timestamp not equals admits NULL",
+				filter:         `delete_time != timestamp("2024-01-01T00:00:00Z")`,
+				expectedClause: "WHERE (shelf.delete_time IS NULL OR shelf.delete_time != $1)",
+				expectedParams: []any{time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)},
+			},
+			{
+				name:           "timestamp against string literal excludes NULL",
+				filter:         `delete_time < "2024-01-01T00:00:00Z"`,
+				expectedClause: "WHERE (shelf.delete_time < $1)",
+				expectedParams: []any{"2024-01-01T00:00:00Z"},
+			},
+			{
+				name:           "timestamp against timestamp literal excludes NULL",
+				filter:         `create_time >= timestamp("2024-01-01T00:00:00Z")`,
+				expectedClause: "WHERE (shelf.create_time >= $1)",
+				expectedParams: []any{time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)},
+			},
+			// Column against column: nothing is known statically.
+			{
+				name:           "column against column is untouched",
+				filter:         `update_time > create_time`,
+				expectedClause: "WHERE (shelf.update_time > shelf.create_time)",
+				expectedParams: []any{},
+			},
+			// JSONB: a missing key is NULL and stands for zero, but AIP-160
+			// traversal skips entries whose enclosing message is unset.
+			{
+				name:           "jsonb integer equals zero admits missing",
+				filter:         `metadata.capacity = 0`,
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint = $1))",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "jsonb integer greater than zero excludes missing",
+				filter:         `metadata.capacity > 0`,
+				expectedClause: "WHERE ((shelf.legacy_meta->>'capacity')::bigint > $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "jsonb integer presence is a non-zero value",
+				filter:         `metadata.capacity:*`,
+				expectedClause: "WHERE ((shelf.legacy_meta->>'capacity')::bigint IS NOT NULL AND (shelf.legacy_meta->>'capacity')::bigint != 0)",
+				expectedParams: []any{},
+			},
+			{
+				name:           "jsonb string not equals admits missing",
+				filter:         `metadata.dummy != "x"`,
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' != $1))",
+				expectedParams: []any{"x"},
+			},
+			{
+				name:           "jsonb has on singular field is equality",
+				filter:         `metadata.dummy:""`,
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' = $1))",
+				expectedParams: []any{""},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
+
+	t.Run("Book", func(t *testing.T) {
+		parser := MustNewFilteringRequestParser[*libraryservicepb.ListBooksRequest, *librarypb.Book](WithFQN())
+
+		tests := []struct {
+			name           string
+			filter         string
+			expectedClause string
+			expectedParams []any
+		}{
+			// Integers: NULL is 0.
+			{
+				name:           "integer equals zero admits NULL",
+				filter:         `publication_year = 0`,
+				expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year = $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "integer not equals zero excludes NULL",
+				filter:         `publication_year != 0`,
+				expectedClause: "WHERE (book.publication_year != $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "integer greater than or equal zero admits NULL",
+				filter:         `publication_year >= 0`,
+				expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year >= $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "integer less than or equal zero admits NULL",
+				filter:         `publication_year <= 0`,
+				expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year <= $1)",
+				expectedParams: []any{int64(0)},
+			},
+			{
+				name:           "integer less than negative excludes NULL",
+				filter:         `publication_year < -1`,
+				expectedClause: "WHERE (book.publication_year < $1)",
+				expectedParams: []any{int64(-1)},
+			},
+			{
+				name:           "integer greater than negative admits NULL",
+				filter:         `publication_year > -1`,
+				expectedClause: "WHERE (book.publication_year IS NULL OR book.publication_year > $1)",
+				expectedParams: []any{int64(-1)},
+			},
+			// Joined enum column.
+			{
+				name:           "joined enum not equals admits NULL",
+				filter:         `shelf_genre != SHELF_GENRE_FICTION`,
+				expectedClause: "WHERE (shelf.genre IS NULL OR shelf.genre != $1)",
+				expectedParams: []any{int64(1)},
+			},
+			// Non-nullable duration column follows the type, not the schema.
+			{
+				name:           "duration not equals admits NULL",
+				filter:         `duration != duration("0s")`,
+				expectedClause: "WHERE (book.duration IS NULL OR book.duration != $1)",
+				expectedParams: []any{time.Duration(0)},
+			},
+			// JSONB duration is stored as seconds; the literal keeps duration semantics.
+			{
+				name:           "jsonb duration equals zero excludes missing",
+				filter:         `metadata.duration = duration("0s")`,
+				expectedClause: "WHERE ((REPLACE(book.metadata->>'duration', 's', ''))::double precision = $1)",
+				expectedParams: []any{float64(0)},
+			},
+			{
+				name:           "jsonb duration not equals admits missing",
+				filter:         `metadata.duration != duration("1.5s")`,
+				expectedClause: "WHERE (book.metadata IS NOT NULL AND ((REPLACE(book.metadata->>'duration', 's', ''))::double precision IS NULL OR (REPLACE(book.metadata->>'duration', 's', ''))::double precision != $1))",
+				expectedParams: []any{1.5},
+			},
+			// Maps: undefined keys are permitted and match like zero, with no
+			// enclosing-message guard — unlabelled resources satisfy `!=`.
+			{
+				name:           "map value not equals admits missing key and unset map",
+				filter:         `labels.env != "prod"`,
+				expectedClause: "WHERE (book.labels->>'env' IS NULL OR book.labels->>'env' != $1)",
+				expectedParams: []any{"prod"},
+			},
+			{
+				name:           "map value equals excludes missing key",
+				filter:         `labels.env = "prod"`,
+				expectedClause: "WHERE (book.labels->>'env' = $1)",
+				expectedParams: []any{"prod"},
+			},
+			// NOT over a compound operand.
+			{
+				name:           "NOT over AND is coalesced",
+				filter:         `NOT (title = "a" AND publication_year > 2000)`,
+				expectedClause: "WHERE (NOT COALESCE((book.title = $1) AND (book.publication_year > $2), FALSE))",
+				expectedParams: []any{"a", int64(2000)},
+			},
+			{
+				name:           "NOT over strict operands is not coalesced",
+				filter:         `NOT (title:* AND labels.env:*)`,
+				expectedClause: "WHERE (NOT ((book.title IS NOT NULL AND book.title != '') AND (book.labels->>'env' IS NOT NULL AND book.labels->>'env' != '')))",
+				expectedParams: []any{},
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				request := &libraryservicepb.ListBooksRequest{Filter: tc.filter}
+				parsedRequest, err := parser.Parse(request)
+				require.NoError(t, err)
+				whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+				require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+				require.Equal(t, tc.expectedParams, whereParams)
+			})
+		}
+	})
 }
