@@ -1,6 +1,6 @@
 ---
 title: Querying AIP-compliant APIs
-description: 'Querying AIP-compliant APIs: AIP-160 filter syntax, update masks, response read masks, Get/Batch over List.'
+description: 'Querying AIP-compliant APIs: AIP-160 filter syntax, unset-field (NULL) semantics of every operator, update masks, response read masks, Get/Batch over List.'
 labels:
     lang: go
     repo: core
@@ -32,6 +32,55 @@ All APIs are **Google AIP-compliant** (https://google.aip.dev). Key implications
     ```
 - Prefer a precise `filter` over fetching all results and filtering client-side.
 - Use `order_by` when available (e.g. `create_time desc`).
+
+### Unset fields (NULL semantics)
+
+A filter evaluates against the resource **as the API presents it**, never
+against how the row is stored. The storage detail that makes this matter:
+the model codegen stores a `nullable` scalar's proto zero value as `NULL`
+(`""`, `0`, `false`, `*_UNSPECIFIED` all become `NULL`), and protojson omits
+zero-valued scalars, so a missing JSONB key is `NULL` too. The API renders
+that `NULL` back as the zero value — so, exactly as AIP-160 requires, **an
+unset scalar is its zero value** and every operator treats it that way.
+
+| Field type | Unset means | `= zero` | `!= x` | `< x` / `> x` | `:*` (presence) |
+|---|---|---|---|---|---|
+| string, number, bool, enum | the zero value (`""`, `0`, `false`, `*_UNSPECIFIED`) | matches | matches | matches iff zero would (`count < 10` yes, `count > 0` no) | true iff **non-zero** (AIP-160: "present only if it has a non-default value") |
+| timestamp, duration | absent — no value at all | never | **matches** (absent differs from everything) | never (absent orders with nothing) | true iff set |
+| message | absent | — | see traversal below | — | true iff set |
+| repeated, map | absent ≡ empty | — | — | — | true iff non-empty |
+
+Consequences worth internalising:
+
+- `state != STATE_X` **includes** rows where `state` was never set. To
+  exclude them too: `state != STATE_X AND state:*`.
+- `state = STATE_UNSPECIFIED` is the way to ask "never classified"; so is
+  `NOT state:*`. Both match the same rows.
+- `NOT expr` means "rows where `expr` is not true" — it always admits the
+  rows a three-valued SQL comparison would drop. `NOT a = 1` ≡ `a != 1`.
+- `count:*` is *not* "count is set", it is "count is non-zero"; `flag:*`
+  ≡ `flag = true`. Use `>= 0` if you truly want every row.
+- Wildcards never match an unset string (`title = "*x*"` needs content).
+- Column-vs-column comparisons (`last_inbound_event_time >
+  last_outbound_event_time`) are plain SQL: a NULL on either side is a
+  non-match. Guard with `:*` if needed.
+
+**Traversal** (`a.b != x`, AIP-160): if any *message* in the chain is
+unset, the entry never matches — even on `!=`. `metadata.language != "en"`
+matches `metadata = {}` (leaf unset ≡ `""`) but not a resource whose
+`metadata` message is absent. **Maps are the documented exception**:
+undefined keys behave like an unset scalar, so `labels.archived != "true"`
+matches resources with no `archived` label *and* resources with no labels
+at all — this is what "not archived" relies on everywhere.
+
+Known leniencies (accepted, not wrong results): ordering operators are
+accepted on enums, and a literal is tolerated on the left-hand side.
+
+Implementation: `go/aip/transpiler/postgres/null.go`. The zero test is
+decided at transpile time from the column type and the literal's proto
+value, emitting `(col IS NULL OR col OP $n)` only when zero satisfies the
+comparison — the common non-zero equality stays a plain, index-friendly
+`col = $n`. `NOT` wraps three-valued operands in `COALESCE(…, FALSE)`.
 
 ## Update (AIP-134)
 - Use `update_mask` for partial updates.
