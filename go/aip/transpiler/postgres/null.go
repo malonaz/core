@@ -84,13 +84,40 @@ func nullMatches(columnType *expr.Type, op string, l literal) bool {
 	}
 }
 
-// nullAware renders `column op literal` with the NULL semantics above.
-func nullAware(column sqlExpr, columnType *expr.Type, op string, l literal) boolExpr {
+// nullAware renders `column op literal` with the NULL semantics above. parent,
+// when set, is the enclosing message of a traversed path (see traversalParent).
+func nullAware(column sqlExpr, columnType *expr.Type, op string, l literal, parent sqlExpr) boolExpr {
 	comparison := comparisonOp{lhs: column, op: op, rhs: l.expr}
 	if !nullMatches(columnType, op, l) {
 		return comparison
 	}
-	return nullGuard{column: column, matches: true, comparison: comparison}
+	matched := nullGuard{column: column, matches: true, comparison: comparison}
+	if parent == nil {
+		return matched
+	}
+	return logicalOp{op: opAnd, lhs: isNullExpr{lhs: parent, negate: true}, rhs: paren{expr: matched}}
+}
+
+// traversalParent returns the enclosing message of a traversed path, as a
+// JSONB object expression, or nil. AIP-160 traversal: an entry whose
+// non-primitive field in the chain is unset never matches, even on `!=` —
+// the NULL-matching rewrite must not admit it. Maps are exempt: AIP-160 leaves
+// undefined keys to the service, and `labels.k != "v"` matching unlabelled
+// resources is the documented behavior.
+func (t *Transpiler) traversalParent(e *expr.Expr) sqlExpr {
+	selectExpr := e.GetSelectExpr()
+	if selectExpr == nil {
+		return nil
+	}
+	operand := selectExpr.GetOperand()
+	if t.filter.CheckedExpr.GetTypeMap()[operand.GetId()].GetMapType() != nil {
+		return nil
+	}
+	if identExpr := operand.GetIdentExpr(); identExpr != nil {
+		return ident(identExpr.GetName())
+	}
+	path, root := t.extractSelectPath(operand)
+	return rawSQL(buildJSONBObjectPath(root, path))
 }
 
 // zeroLiteral renders the SQL literal a NULL column of the given type stands

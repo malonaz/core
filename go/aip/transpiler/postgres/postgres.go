@@ -296,7 +296,7 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 	if !ok {
 		return nil, fmt.Errorf("unknown type of lhs expr %d", lhs.GetId())
 	}
-	return nullAware(lhsExpr, lhsType, op, l), nil
+	return nullAware(lhsExpr, lhsType, op, l, t.traversalParent(lhs)), nil
 }
 
 func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {

@@ -371,7 +371,7 @@ func TestFilteringRequestParser_TraversalOperator(t *testing.T) {
 			{
 				name:           "nested integer field less than or equal",
 				filter:         `metadata.capacity <= 200`,
-				expectedClause: "WHERE ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint <= $1)",
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint <= $1))",
 				expectedParams: []any{int64(200)},
 			},
 		}
@@ -1833,11 +1833,12 @@ func TestFilteringRequestParser_NullSemantics(t *testing.T) {
 				expectedClause: "WHERE (shelf.update_time > shelf.create_time)",
 				expectedParams: []any{},
 			},
-			// JSONB: a missing key is NULL and stands for zero.
+			// JSONB: a missing key is NULL and stands for zero, but AIP-160
+			// traversal skips entries whose enclosing message is unset.
 			{
 				name:           "jsonb integer equals zero admits missing",
 				filter:         `metadata.capacity = 0`,
-				expectedClause: "WHERE ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint = $1)",
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND ((shelf.legacy_meta->>'capacity')::bigint IS NULL OR (shelf.legacy_meta->>'capacity')::bigint = $1))",
 				expectedParams: []any{int64(0)},
 			},
 			{
@@ -1855,13 +1856,13 @@ func TestFilteringRequestParser_NullSemantics(t *testing.T) {
 			{
 				name:           "jsonb string not equals admits missing",
 				filter:         `metadata.dummy != "x"`,
-				expectedClause: "WHERE (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' != $1)",
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' != $1))",
 				expectedParams: []any{"x"},
 			},
 			{
 				name:           "jsonb has on singular field is equality",
 				filter:         `metadata.dummy:""`,
-				expectedClause: "WHERE (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' = $1)",
+				expectedClause: "WHERE (shelf.legacy_meta IS NOT NULL AND (shelf.legacy_meta->>'dummy' IS NULL OR shelf.legacy_meta->>'dummy' = $1))",
 				expectedParams: []any{""},
 			},
 		}
@@ -1948,8 +1949,22 @@ func TestFilteringRequestParser_NullSemantics(t *testing.T) {
 			{
 				name:           "jsonb duration not equals admits missing",
 				filter:         `metadata.duration != duration("1.5s")`,
-				expectedClause: "WHERE ((REPLACE(book.metadata->>'duration', 's', ''))::double precision IS NULL OR (REPLACE(book.metadata->>'duration', 's', ''))::double precision != $1)",
+				expectedClause: "WHERE (book.metadata IS NOT NULL AND ((REPLACE(book.metadata->>'duration', 's', ''))::double precision IS NULL OR (REPLACE(book.metadata->>'duration', 's', ''))::double precision != $1))",
 				expectedParams: []any{1.5},
+			},
+			// Maps: undefined keys are permitted and match like zero, with no
+			// enclosing-message guard — unlabelled resources satisfy `!=`.
+			{
+				name:           "map value not equals admits missing key and unset map",
+				filter:         `labels.env != "prod"`,
+				expectedClause: "WHERE (book.labels->>'env' IS NULL OR book.labels->>'env' != $1)",
+				expectedParams: []any{"prod"},
+			},
+			{
+				name:           "map value equals excludes missing key",
+				filter:         `labels.env = "prod"`,
+				expectedClause: "WHERE (book.labels->>'env' = $1)",
+				expectedParams: []any{"prod"},
 			},
 			// NOT over a compound operand.
 			{

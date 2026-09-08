@@ -131,7 +131,7 @@ func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr
 	if !ok {
 		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
 	}
-	return nullAware(lhs, lhsType, opEq, l), nil
+	return nullAware(lhs, lhsType, opEq, l, t.traversalParent(lhsExpr)), nil
 }
 
 func (t *Transpiler) transpileHasOnRepeated(lhsExpr, rhsExpr *expr.Expr, listType *expr.Type_ListType) (boolExpr, error) {
