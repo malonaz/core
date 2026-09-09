@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package malonaz.scheduler.scheduler_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
+
+// Configuration of the scheduler service: the processors it can deliver jobs
+// to, and how each job type is routed and retried.
+message Configuration {
+  // The processors the scheduler can route jobs to.
+  repeated Processor processors = 1 [(buf.validate.field).repeated.min_items = 1];
+
+  // The routing and retry policy of each job type.
+  repeated JobTypeConfiguration job_type_configurations = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A processor is a gRPC server that executes jobs.
+message Processor {
+  // The identifier job type configurations refer to.
+  string id = 1 [(buf.validate.field).required = true];
+
+  // The gRPC endpoint: `https://host:port`, `http://host:port` (plaintext) or `unix:/path`.
+  string url = 2 [(buf.validate.field).required = true];
+
+  // Metadata attached to every call to this processor.
+  map<string, string> headers = 3;
+}
+
+// The routing and retry policy of one job type.
+message JobTypeConfiguration {
+  // The type URL of the job payload
+  // (e.g. "type.googleapis.com/engine.engine_service.v1.ProcessBookRequest").
+  string job_type_url = 1 [(buf.validate.field).required = true];
+
+  // The ID of the processor to route this job type to.
+  string processor_id = 2 [(buf.validate.field).required = true];
+
+  // The fully qualified gRPC method name
+  // (e.g. "/engine.engine_service.v1.EngineService/AnalyzeBook").
+  string method = 3 [(buf.validate.field).required = true];
+
+  // The deadline of a single attempt. An attempt exceeding it fails with
+  // DEADLINE_EXCEEDED and is retried like any other failure.
+  google.protobuf.Duration timeout = 4 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The type URL of the method's response. When set, the response is stored
+  // on the job; when empty the response is discarded.
+  string response_type_url = 5;
+
+  // The total number of attempts, including the first. 1 disables retries.
+  int32 max_attempts = 6 [(buf.validate.field).int32.gte = 1];
+
+  // The backoff between attempts. Defaults to 10s, doubling, capped at 10m.
+  RetryBackoff retry_backoff = 7;
+}
+
+// An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
+message RetryBackoff {
+  // The wait before the second attempt.
+  google.protobuf.Duration initial = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The longest wait between two attempts.
+  google.protobuf.Duration max = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The factor applied to the wait after each failed attempt.
+  double multiplier = 3 [(buf.validate.field).double.gte = 1];
+}
