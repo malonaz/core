@@ -58,6 +58,19 @@ github_proto_library(
     deps = [":google__rpc__status"],
 )
 
+github_grpc_library(
+    name = "google__longrunning__operations",
+    additional_context = {GO_IMPORT_PATH: "cloud.google.com/go/longrunning/autogen/longrunningpb"},
+    dir = "google/longrunning",
+    files = ["operations.proto"],
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
+    deps = [
+        ":google__api__annotations",
+        ":google__rpc__status",
+    ],
+)
+
 github_proto_library(
     name = "google__rpc__code",
     additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/rpc/code"},

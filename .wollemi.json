@@ -34,6 +34,7 @@
         "cloud.google.com/go/auth/internal/transport/cert": "//third_party/go:cloud.google.com__go__auth__internal__transport__cert",
         "cloud.google.com/go/civil": "//third_party/go:cloud.google.com__go__civil",
         "cloud.google.com/go/compute/metadata": "//third_party/go:cloud.google.com__go__compute__metadata",
+        "cloud.google.com/go/longrunning/autogen/longrunningpb": "//third_party/proto:google__longrunning__operations",
         "dario.cat/mergo": "//third_party/go:dario.cat__mergo",
         "github.com/AlexxIT/go2rtc/pkg/core": "//third_party/go:github.com__AlexxIT__go2rtc__pkg__core",
         "github.com/AlexxIT/go2rtc/pkg/pcm": "//third_party/go:github.com__AlexxIT__go2rtc__pkg__pcm",
@@ -722,6 +723,7 @@
     },
     "manual_known_dependency": {
         "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate": "//third_party/proto:validate",
+        "cloud.google.com/go/longrunning/autogen/longrunningpb": "//third_party/proto:google__longrunning__operations",
         "google.golang.org/genproto/googleapis/api": "//third_party/proto:google__api",
         "google.golang.org/genproto/googleapis/api/annotations": "//third_party/proto:google__api__annotations",
         "google.golang.org/genproto/googleapis/api/expr/v1alpha1": "//third_party/proto:google__api__expr__v1alpha1",
