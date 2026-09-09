@@ -825,9 +825,9 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\rUpdateOptions\x12\x14\n" +
 	"\x05paths\x18\x01 \x03(\tR\x05paths\"D\n" +
 	"\x12LongrunningOptions\x12.\n" +
-	"\x05queue\x18\x01 \x01(\tB\x18\xbaH\x15\xc8\x01\x01r\x102\x0e^queues/[^/]+$R\x05queue\"\x81\x01\n" +
-	"\x0eStandardMethod\x12P\n" +
-	"\bresource\x18\x01 \x01(\tB4\xbaH1\xc8\x01\x01r,2*^[a-z]+\\.[a-z]+\\.[a-z0-9]+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
+	"\x05queue\x18\x01 \x01(\tB\x18\xbaH\x15\xc8\x01\x01r\x102\x0e^queues/[^/]+$R\x05queue\"\x7f\n" +
+	"\x0eStandardMethod\x12N\n" +
+	"\bresource\x18\x01 \x01(\tB2\xbaH/\xc8\x01\x01r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
 	"\n" +
 	"emit_event\x18\x02 \x01(\bR\temitEvent:q\n" +
 	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:n\n" +
