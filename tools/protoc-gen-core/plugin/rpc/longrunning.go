@@ -162,9 +162,9 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 	g.P("  }")
 	g.P(fmt.Sprintf("  response, err := s.runner.Run%s(ctx, request)", method.GoName))
 	g.P("  if err != nil {")
-	g.P(fmt.Sprintf("    return %s(err), nil", gen.ident(longrunningPkg, "Failed")))
+	g.P(fmt.Sprintf("    return %s(ctx, request.Get%s(), err)", gen.ident(longrunningPkg, "Failed"), lro.resourceField.GoName))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s(response)", gen.ident(longrunningPkg, "Done")))
+	g.P(fmt.Sprintf("  return %s(ctx, request.Get%s(), response)", gen.ident(longrunningPkg, "Done"), lro.resourceField.GoName))
 	g.P("}")
 	g.P()
 	return nil

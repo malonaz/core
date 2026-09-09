@@ -10,6 +10,7 @@ go_library(
         "//go/aip",
         "//go/grpc/status",
         "//go/scheduler",
+        "//go/scheduler/model",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",

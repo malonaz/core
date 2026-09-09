@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
@@ -74,18 +75,41 @@ func ReportProgress(ctx context.Context, client schedulerservicepb.SchedulerServ
 	return nil
 }
 
-// Done wraps a runner's response as a finished operation. The name is left
-// empty: the scheduler records the outcome on the job, which names it.
-func Done(response proto.Message) (*longrunningpb.Operation, error) {
+// runningOperationName returns the name of the operation the call is running:
+// the resource it hangs off plus the ID of the job named by the scheduler's
+// metadata, which is the operation's ID.
+func runningOperationName(ctx context.Context, resource string) (string, error) {
+	jobName, ok := scheduler.JobFromIncomingContext(ctx)
+	if !ok {
+		return "", status.Errorf(codes.FailedPrecondition, "not running a job: no %s metadata", scheduler.JobMetadataKey).Err()
+	}
+	_, _, jobID, err := model.ParseJobName(jobName)
+	if err != nil {
+		return "", status.Errorf(codes.InvalidArgument, "parsing %s metadata: %v", scheduler.JobMetadataKey, err).Err()
+	}
+	return OperationName(resource, jobID), nil
+}
+
+// Done wraps a runner's response as the finished operation on the resource.
+func Done(ctx context.Context, resource string, response proto.Message) (*longrunningpb.Operation, error) {
+	name, err := runningOperationName(ctx, resource)
+	if err != nil {
+		return nil, err
+	}
 	packed, err := anypb.New(response)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "packing response: %v", err).Err()
 	}
-	return &longrunningpb.Operation{Done: true, Result: &longrunningpb.Operation_Response{Response: packed}}, nil
+	return &longrunningpb.Operation{Name: name, Done: true, Result: &longrunningpb.Operation_Response{Response: packed}}, nil
 }
 
-// Failed wraps a runner's error as a finished operation; the scheduler
-// applies its retry policy to the error's code as if the call had returned it.
-func Failed(err error) *longrunningpb.Operation {
-	return &longrunningpb.Operation{Done: true, Result: &longrunningpb.Operation_Error{Error: grpcstatus.Convert(err).Proto()}}
+// Failed wraps a runner's error as the finished operation on the resource; the
+// scheduler applies its retry policy to the error's code as if the call had
+// returned it.
+func Failed(ctx context.Context, resource string, err error) (*longrunningpb.Operation, error) {
+	name, nameErr := runningOperationName(ctx, resource)
+	if nameErr != nil {
+		return nil, nameErr
+	}
+	return &longrunningpb.Operation{Name: name, Done: true, Result: &longrunningpb.Operation_Error{Error: grpcstatus.Convert(err).Proto()}}, nil
 }
