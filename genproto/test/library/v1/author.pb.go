@@ -422,7 +422,7 @@ var File_malonaz_test_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb4\t\n" +
+	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xba\t\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -440,8 +440,8 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\rphone_numbers\x18\n" +
 	" \x03(\tB\x12\xbaH\x03\xd8\x01\x01\xba\xea\x0f\x02 \x01\x82\xb5\x18\x02\x10\x01R\fphoneNumbers\x12\xd9\x01\n" +
 	"\x06labels\x18\v \x03(\v2+.malonaz.test.library.v1.Author.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
-	"\x04etag\x18\f \x01(\tR\x04etag\x12K\n" +
-	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	"\x04etag\x18\f \x01(\tR\x04etag\x12Q\n" +
+	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x02\xeaAa\n" +

@@ -16,13 +16,18 @@ var (
 	UserPostgresColumns = postgres.GetDBColumns(model.User{})
 )
 
-func (s *Store) getUserETag(ctx context.Context, q querier, organizationId, userId string) (string, error) {
-	query := `SELECT etag FROM user_ WHERE organization_id = $1 AND id = $2`
-	rows, err := q.Query(ctx, query, organizationId, userId)
-	if err != nil {
-		return "", err
+func (s *Store) probeUser(ctx context.Context, q querier, organizationId, userId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM user_ WHERE organization_id = $1 AND id = $2`
+	params := []any{organizationId, userId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrUserNotExist
+		}
+		return false, "", fmt.Errorf("probing user: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type UserWithRequestID struct {
@@ -32,8 +37,9 @@ type UserWithRequestID struct {
 
 var (
 	UserWithRequestIDPostgresColumns = postgres.GetDBColumns(UserWithRequestID{})
-	userInsertPostgresQuery          = `INSERT INTO user_ %s VALUES %s ON CONFLICT(organization_id, id) DO UPDATE SET id = EXCLUDED.id RETURNING ` + postgres.SelectQuery("%s", UserWithRequestIDPostgresColumns)
-	userGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", UserWithRequestIDPostgresColumns) + ` FROM user_ WHERE request_id = ANY($1)`
+	userInsertPostgresQuery          = `INSERT INTO user_ %s VALUES %s ON CONFLICT(organization_id, id) DO UPDATE SET id = EXCLUDED.id`
+	userInsertReturningClause        = ` RETURNING ` + strings.Join(UserWithRequestIDPostgresColumns, ",")
+	userGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(UserWithRequestIDPostgresColumns, "user_") + " FROM user_" + ` WHERE user_.request_id = ANY($1)`
 )
 
 func orderUsersByRequestID(requestIDs []string, rows []*UserWithRequestID) ([]*model.User, error) {
@@ -74,7 +80,8 @@ func (s *Store) BatchInsertUsers(ctx context.Context, requestIDs []string, users
 	for i, _user := range users {
 		withRequestIDs[i] = &UserWithRequestID{RequestID: requestIDs[i], User: *_user}
 	}
-	query, params := postgres.BatchInsertQuery(userInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(userInsertPostgresQuery, withRequestIDs, UserWithRequestIDPostgresColumns...)
+	query += userInsertReturningClause
 	query2, params2 := postgres.BatchInsertQuery(UserProfileInsertSingletonPostgresQuery, userProfiles, UserProfileWritePostgresColumns...)
 
 	var inserted []*model.User
@@ -123,7 +130,7 @@ func (s *Store) BatchInsertUsers(ctx context.Context, requestIDs []string, users
 }
 
 var updateUserPostgresQuery = `UPDATE user_ SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", UserPostgresColumns)
+	strings.Join(UserPostgresColumns, ",")
 
 func (s *Store) UpdateUser(ctx context.Context, _user *model.User, updateClause string, updateColumns []string, etag string) (*model.User, error) {
 	updateParams := postgres.GetParams(_user, updateColumns...)
@@ -150,34 +157,25 @@ func (s *Store) UpdateUser(ctx context.Context, _user *model.User, updateClause 
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getUserETag(ctx, s.client, _user.OrganizationID, _user.UserID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrUserETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrUserNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeUser(ctx, s.client, _user.OrganizationID, _user.UserID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrUserNotExist
+			if !live {
+				return nil, model.ErrUserNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrUserETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but user exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteUserPostgresQuery = `UPDATE user_ SET delete_time = COALESCE(delete_time, $3), etag = $4 WHERE organization_id = $1 AND id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", UserPostgresColumns)
-
-type softDeleteUserResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.User
-}
+var softDeleteUserPostgresQuery = `UPDATE user_ SET delete_time = $3, etag = $4 WHERE organization_id = $1 AND id = $2 AND delete_time IS NULL RETURNING ` +
+	strings.Join(UserPostgresColumns, ",")
 
 func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string, deleteTime time.Time) (*model.User, error) {
 	query := softDeleteUserPostgresQuery
@@ -193,31 +191,23 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 		if err != nil {
 			return fmt.Errorf("soft deleting user: %w", err)
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteUserResult])
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				if etag != "" {
-					currentEtag, getEtagErr := s.getUserETag(ctx, tx, organizationId, userId)
-					switch getEtagErr {
-					case nil:
-						if currentEtag == etag {
-							return fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-						}
-						return model.ErrUserETagChanged
-					case v5.ErrNoRows:
-						return model.ErrUserNotExist
-					default:
-						return fmt.Errorf("getting etag: %v", getEtagErr)
-					}
+				live, currentEtag, probeErr := s.probeUser(ctx, tx, organizationId, userId)
+				if probeErr != nil {
+					return probeErr
 				}
-				return model.ErrUserNotExist
+				if !live {
+					return model.ErrUserAlreadyDeleted
+				}
+				if etag != "" && currentEtag != etag {
+					return model.ErrUserETagChanged
+				}
+				return fmt.Errorf("soft delete matched no rows but user is live")
 			}
 			return err
 		}
-		if row.WasAlreadyDeleted {
-			return model.ErrUserAlreadyDeleted
-		}
-		result = &row.User
 
 		if _, err := tx.Exec(ctx, `UPDATE user_profile SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND user_id = $2`, organizationId, userId, deleteTime); err != nil {
 			return fmt.Errorf("cascading user delete to user_profile: %w", err)
@@ -232,28 +222,8 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 	return result, nil
 }
 
-func (s *Store) undeleteUserNoRows(ctx context.Context, q querier, organizationId, userId string, etag string) error {
-	query := `SELECT delete_time IS NULL, etag FROM user_ WHERE organization_id = $1 AND id = $2`
-	params := []any{organizationId, userId}
-	var live bool
-	var currentEtag string
-	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrUserNotExist
-		}
-		return fmt.Errorf("probing user: %w", err)
-	}
-	if live {
-		return model.ErrUserNotDeleted
-	}
-	if etag != "" && currentEtag != etag {
-		return model.ErrUserETagChanged
-	}
-	return fmt.Errorf("undelete matched no rows but user is deleted")
-}
-
 var undeleteUserPostgresQuery = `UPDATE user_ SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND id = $2 AND delete_time IS NOT NULL RETURNING ` +
-	postgres.SelectQuery("%s", UserPostgresColumns)
+	strings.Join(UserPostgresColumns, ",")
 
 func (s *Store) UndeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string) (*model.User, error) {
 	query := undeleteUserPostgresQuery
@@ -272,7 +242,17 @@ func (s *Store) UndeleteUser(ctx context.Context, organizationId, userId string,
 		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				return s.undeleteUserNoRows(ctx, tx, organizationId, userId, etag)
+				live, currentEtag, probeErr := s.probeUser(ctx, tx, organizationId, userId)
+				if probeErr != nil {
+					return probeErr
+				}
+				if live {
+					return model.ErrUserNotDeleted
+				}
+				if etag != "" && currentEtag != etag {
+					return model.ErrUserETagChanged
+				}
+				return fmt.Errorf("undelete matched no rows but user is deleted")
 			}
 			return err
 		}
@@ -289,8 +269,7 @@ func (s *Store) UndeleteUser(ctx context.Context, organizationId, userId string,
 }
 
 func (s *Store) GetUser(ctx context.Context, organizationId, userId string) (*model.User, error) {
-	query := `SELECT %s FROM user_ WHERE organization_id = $1 AND id = $2`
-	query = postgres.SelectQuery(query, UserPostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(UserPostgresColumns, "user_") + " FROM user_" + ` WHERE user_.organization_id = $1 AND user_.id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("getting user: %w", err)
@@ -319,15 +298,15 @@ func (s *Store) BatchGetUsers(ctx context.Context, organizationIds []string, use
 	for i := 0; i < n; i++ {
 		base := i * 2
 		conditions := make([]string, 2)
-		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
-		conditions[1] = fmt.Sprintf("id = $%d", base+2)
+		conditions[0] = fmt.Sprintf("user_.organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("user_.id = $%d", base+2)
 		params = append(params, organizationIds[i])
 		params = append(params, userIds[i])
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM user_ %s", postgres.SelectQuery("%s", UserPostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(UserPostgresColumns, "user_") + " FROM user_" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -342,34 +321,18 @@ func (s *Store) ListUsers(ctx context.Context, organizationId string, showDelete
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("user_.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "user_.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM user_ #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var users []*model.User
-	transactionFN := func(tx postgres.Tx) error {
-		users = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting users: %w", err)
-		}
-		users, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.User])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "user_") + " FROM user_" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting users: %w", err)
 	}
-	return users, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.User])
 }

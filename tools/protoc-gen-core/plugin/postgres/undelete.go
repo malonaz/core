@@ -13,7 +13,6 @@ func (mc *msgCtx) generateUndelete() {
 	if !mc.hasDeleteTime || mc.singleton {
 		return
 	}
-	mc.generateUndeleteNoRows()
 	if mc.multiPattern {
 		mc.generateMultiPatternUndelete()
 		return
@@ -74,14 +73,6 @@ func (mc *msgCtx) generateMultiPatternUndelete() {
 	g.P()
 }
 
-// etagArg forwards the client's etag to the no-rows probe.
-func (mc *msgCtx) etagArg() string {
-	if mc.hasEtag {
-		return ", etag"
-	}
-	return ""
-}
-
 // hasLifecycleDescendants reports whether any singleton rides on this
 // resource's tombstone. Singletons of a soft-deletable resource are always
 // soft-deletable themselves (codegen enforces it), so Lifecycle alone decides.
@@ -103,7 +94,7 @@ func (mc *msgCtx) generateUndeleteDirect() {
 	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("      return nil, s.undelete%sNoRows(ctx, s.client, %s%s)", mc.goType, mc.patternVarIDsGoTrue(), mc.etagArg()))
+	mc.emitNoRowsProbe(mc.patternVarIDsGoTrue(), false, false, mc.errNotDeleted, mc.undeleteUnexpected())
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
@@ -124,7 +115,7 @@ func (mc *msgCtx) generateUndeleteWithTransaction() {
 	g.P(fmt.Sprintf("    result, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("        return s.undelete%sNoRows(ctx, tx, %s%s)", mc.goType, ids, mc.etagArg()))
+	mc.emitNoRowsProbe(ids, true, false, mc.errNotDeleted, mc.undeleteUnexpected())
 	g.P("      }")
 	g.P("      return err")
 	g.P("    }")
@@ -145,47 +136,9 @@ func (mc *msgCtx) generateUndeleteWithTransaction() {
 	g.P("  return result, nil")
 }
 
-// generateUndeleteNoRows emits the probe that explains an undelete matching
-// nothing: the row never existed, is live (AIP-164: ALREADY_EXISTS), or its
-// etag moved.
-func (mc *msgCtx) generateUndeleteNoRows() {
-	g := mc.g
-	etagSelect, etagScan := "", ""
-	if mc.hasEtag {
-		etagSelect, etagScan = ", etag", ", &currentEtag"
-	}
-
-	g.P(fmt.Sprintf("func (s *Store) undelete%sNoRows(ctx context.Context, q querier, %s string%s) error {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam()))
-	if mc.multiPattern {
-		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
-		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
-		mc.emitIDConditionAppends("  ", idParamName)
-		g.P(fmt.Sprintf("  query := %s(\"SELECT delete_time IS NULL%s FROM %s WHERE %%s\", %s(conditions, \" AND \"))",
-			mc.fmtI("Sprintf"), etagSelect, mc.tableName, mc.stringsI("Join")))
-	} else {
-		g.P(fmt.Sprintf("  query := `SELECT delete_time IS NULL%s FROM %s WHERE %s`", etagSelect, mc.tableName, mc.placeholderDecls))
-		g.P(fmt.Sprintf("  params := []any{ %s }", mc.patternVarIDsGoTrue()))
-	}
-	g.P("  var live bool")
-	if mc.hasEtag {
-		g.P("  var currentEtag string")
-	}
-	g.P(fmt.Sprintf("  if err := q.QueryRow(ctx, query, params...).Scan(&live%s); err != nil {", etagScan))
-	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("      return %s", mc.errNotExist))
-	g.P("    }")
-	g.P(fmt.Sprintf("    return %s(\"probing %s: %%w\", err)", mc.fmtI("Errorf"), mc.goName))
-	g.P("  }")
-	g.P("  if live {")
-	g.P(fmt.Sprintf("    return %s", mc.errNotDeleted))
-	g.P("  }")
-	if mc.hasEtag {
-		g.P("  if etag != \"\" && currentEtag != etag {")
-		g.P(fmt.Sprintf("    return %s", mc.errETagChanged))
-		g.P("  }")
-	}
-	g.P(fmt.Sprintf("  return %s(\"undelete matched no rows but %s is deleted\")", mc.fmtI("Errorf"), mc.goName))
-	g.P("}")
-	g.P()
+// undeleteUnexpected is the error for a tombstoned, etag-matching row the
+// undelete nonetheless missed: a concurrent writer moved it between the two
+// statements.
+func (mc *msgCtx) undeleteUnexpected() string {
+	return fmt.Sprintf("%s(\"undelete matched no rows but %s is deleted\")", mc.fmtI("Errorf"), mc.goName)
 }

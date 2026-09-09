@@ -9,7 +9,7 @@ import { file_google_api_field_behavior } from "../../../../../google/api/field_
 import { file_google_api_resource } from "../../../../../google/api/resource_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
-import type { SearchSnippet } from "../../../../aip/v1/aip_pb";
+import type { SearchSnippet, SearchSnippetValid } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_aip_v1_aip } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import type { Author, AuthorValid } from "../../v1/author_pb";
@@ -463,7 +463,26 @@ export type ListAuthorsResponse = Message<"malonaz.test.library.library_service.
   nextPageToken: string;
 };
 
-export type ListAuthorsResponseValid = ListAuthorsResponse;
+/**
+ * Response message for LibraryService.ListAuthors.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ListAuthorsResponse
+ */
+export type ListAuthorsResponseValid = Message<"malonaz.test.library.library_service.v1.ListAuthorsResponse"> & {
+  /**
+   * The list of authors.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Author authors = 1;
+   */
+  authors: AuthorValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.ListAuthorsResponse.
@@ -519,7 +538,19 @@ export type BatchGetAuthorsResponse = Message<"malonaz.test.library.library_serv
   authors: Author[];
 };
 
-export type BatchGetAuthorsResponseValid = BatchGetAuthorsResponse;
+/**
+ * Response message for LibraryService.BatchGetAuthors.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchGetAuthorsResponse
+ */
+export type BatchGetAuthorsResponseValid = Message<"malonaz.test.library.library_service.v1.BatchGetAuthorsResponse"> & {
+  /**
+   * Authors requested.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Author authors = 1;
+   */
+  authors: AuthorValid[];
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.BatchGetAuthorsResponse.
@@ -611,7 +642,19 @@ export type BatchCreateAuthorsResponse = Message<"malonaz.test.library.library_s
   authors: Author[];
 };
 
-export type BatchCreateAuthorsResponseValid = BatchCreateAuthorsResponse;
+/**
+ * Response message for LibraryService.BatchCreateAuthors.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchCreateAuthorsResponse
+ */
+export type BatchCreateAuthorsResponseValid = Message<"malonaz.test.library.library_service.v1.BatchCreateAuthorsResponse"> & {
+  /**
+   * Authors created, in request order.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Author authors = 1;
+   */
+  authors: AuthorValid[];
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.BatchCreateAuthorsResponse.
@@ -771,7 +814,33 @@ export type SearchAuthorsResponse = Message<"malonaz.test.library.library_servic
   nextPageToken: string;
 };
 
-export type SearchAuthorsResponseValid = SearchAuthorsResponse;
+/**
+ * Response message for LibraryService.SearchAuthors.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchAuthorsResponse
+ */
+export type SearchAuthorsResponseValid = Message<"malonaz.test.library.library_service.v1.SearchAuthorsResponse"> & {
+  /**
+   * The authors matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Author authors = 1;
+   */
+  authors: AuthorValid[];
+
+  /**
+   * Highlighted snippets, index-aligned with `authors`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippetValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
 
 /**
  * Describes the message malonaz.test.library.library_service.v1.SearchAuthorsResponse.

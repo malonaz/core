@@ -17,11 +17,18 @@ descendant resolution in `schema/descendants.go`). SATs:
 
 | | Soft (`delete_time` field) | Hard |
 |---|---|---|
-| Store call | `SoftDelete{R}` → `UPDATE … SET delete_time = COALESCE(delete_time, now)` | `Delete{R}` → `DELETE` |
+| Store call | `SoftDelete{R}` → `UPDATE … SET delete_time = now[, etag] WHERE ids AND delete_time IS NULL` | `Delete{R}` → `DELETE` |
 | Returns | the tombstoned resource | `Empty` |
-| Second delete | `NotFound` ("already deleted") | `NotFound` |
+| Second delete | `NotFound` ("already deleted"); the tombstone is **not touched** — its `delete_time` and etag survive any number of redundant deletes | `NotFound` |
 | `allow_missing` | swallows *already deleted* and returns the tombstone; a name that **never existed is still `NotFound`** | swallows both |
-| `etag` mismatch | `Aborted` (etag is recomputed over the tombstone) | `Aborted` |
+| `etag` mismatch | `Aborted` on a live row (etag is recomputed over the tombstone). On a tombstone the row's state wins: still `NotFound` | `Aborted` |
+
+A write that matches no rows is explained by the resource's `probe{R}`
+(`SELECT delete_time IS NULL[, etag] WHERE ids`), shared by Update, Delete and
+Undelete: never existed → `NotFound`; on the wrong side of its tombstone →
+`AlreadyDeleted`/`NotDeleted`; only then a stale etag → `Aborted`. State
+before etag, so a stale etag never masks a NotFound/AlreadyExists.
+SATs: `sat/tombstone_test.go`.
 
 ## Children: guard and cascade
 
@@ -59,7 +66,9 @@ Codegen consequences, all in one transaction:
 - `Undelete` reverses only the singleton part of the cascade; forced-away
   collection children stay tombstoned (see `lores/aip/codegen/undelete`).
 
-Multi-pattern resources cannot have descendants (codegen error).
+Multi-pattern resources cannot have descendants (codegen error). Singletons
+have no `Delete{R}`/`SoftDelete{R}` (nor `BatchInsert{R}s`) at all: they are
+inserted with their parent and deleted by its cascade.
 
 ## Error precedence
 

@@ -29,10 +29,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	pluralGoName := mc.pr.PluralGoName()
 	pluralUntitled := untitle(pluralGoName)
 
-	colPrefix := ""
-	if mc.hasJoins {
-		colPrefix = mc.bareTableName + "."
-	}
+	colPrefix := mc.bareTableName + "."
 
 	// The search document expression, for migrations to declare the generated column.
 	g.P(fmt.Sprintf("// %sSearchDocumentExpression is the SQL expression composing the resource's", mc.goType))
@@ -79,11 +76,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		pluralGoName, parentParam, showDeletedParam, includeSnippetsParam, returnTypes))
 
 	g.P("  if columns == nil {")
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("    columns = %s", mc.writeColumns()))
-	} else {
-		g.P(fmt.Sprintf("    columns = %sPostgresColumns", mc.goType))
-	}
+	g.P(fmt.Sprintf("    columns = %s", mc.writeColumns()))
 	g.P("  }")
 	g.P()
 
@@ -152,49 +145,24 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	g.P("  }")
 	g.P()
 
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s \" + %sJoinClause + \" #where# #orderby# #pagination#\", \"#where#\", whereClause)",
-			mc.stringsI("ReplaceAll"), mc.tableName, mc.goName))
-		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  selectColumns := %s(columns, %q) + %sJoinSelectExprs", mc.postgres("QualifyColumns"), mc.bareTableName, mc.goName))
-		if hasSnippets {
-			g.P("  for _, snippetColumn := range snippetColumns {")
-			g.P("    selectColumns += \",\" + snippetColumn")
-			g.P("  }")
-		}
-		g.P(fmt.Sprintf("  query = %s(query, selectColumns)", mc.fmtI("Sprintf")))
-	} else {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s #where# #orderby# #pagination#\", \"#where#\", whereClause)",
-			mc.stringsI("ReplaceAll"), mc.tableName))
-		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
-		if hasSnippets {
-			g.P("  columns = append(columns, snippetColumns...)")
-		}
-		g.P(fmt.Sprintf("  query = %s(query, columns)", mc.postgres("SelectQuery")))
+	g.P(fmt.Sprintf("  selectColumns := %s", mc.selectColumnsExpr("columns")))
+	if hasSnippets {
+		// Snippet expressions carry their own aliases and follow the columns verbatim.
+		g.P("  for _, snippetColumn := range snippetColumns {")
+		g.P("    selectColumns += \",\" + snippetColumn")
+		g.P("  }")
 	}
+	g.P(fmt.Sprintf("  query := \"SELECT \" + selectColumns + %s + \" \" + whereClause + \" \" + orderByClause + \" \" + paginationClause", mc.fromExpr()))
 	g.P()
 
 	if hasSnippets {
-		g.P(fmt.Sprintf("  var searchRows []*%s", rowType))
-		g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
-		g.P("    searchRows = nil")
-		g.P("    rows, err := tx.Query(ctx, query, params...)")
-		g.P("    if err != nil {")
-		g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-		g.P("        return nil")
-		g.P("      }")
-		g.P(fmt.Sprintf("      return %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
-		g.P("    }")
-		g.P(fmt.Sprintf("    searchRows, err = %s(rows, %s[%s])", mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), rowType))
-		g.P("    if err != nil {")
-		g.P(fmt.Sprintf("      return %s(\"collecting rows: %%w\", err)", mc.fmtI("Errorf")))
-		g.P("    }")
-		g.P("    return nil")
+		g.P("  rows, err := s.client.Query(ctx, query, params...)")
+		g.P("  if err != nil {")
+		g.P(fmt.Sprintf("    return nil, nil, %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
 		g.P("  }")
-		g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("RepeatableRead")))
-		g.P("    return nil, nil, err")
+		g.P(fmt.Sprintf("  searchRows, err := %s(rows, %s[%s])", mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), rowType))
+		g.P("  if err != nil {")
+		g.P(fmt.Sprintf("    return nil, nil, %s(\"collecting rows: %%w\", err)", mc.fmtI("Errorf")))
 		g.P("  }")
 		g.P(fmt.Sprintf("  %s := make([]*%s, 0, len(searchRows))", pluralUntitled, mc.goTypeFqi))
 		g.P("  var snippets []map[string]string")
@@ -221,23 +189,11 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		return
 	}
 
-	g.P(fmt.Sprintf("  var %s []*%s", pluralUntitled, mc.goTypeFqi))
-	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
-	g.P(fmt.Sprintf("    %s = nil", pluralUntitled))
-	g.P("    rows, err := tx.Query(ctx, query, params...)")
-	g.P("    if err != nil {")
-	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	g.P("        return nil")
-	g.P("      }")
-	g.P(fmt.Sprintf("      return %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
-	g.P("    }")
-	g.P(fmt.Sprintf("    %s, err = %s(rows, %s[%s])", pluralUntitled, mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
-	g.P("    if err != nil {")
-	g.P(fmt.Sprintf("      return %s(\"collecting rows: %%w\", err)", mc.fmtI("Errorf")))
-	g.P("    }")
-	g.P("    return nil")
+	g.P("  rows, err := s.client.Query(ctx, query, params...)")
+	g.P("  if err != nil {")
+	g.P(fmt.Sprintf("    return nil, %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s, s.client.ExecuteTransaction(ctx, %s, transactionFN)", pluralUntitled, mc.postgres("RepeatableRead")))
+	g.P(fmt.Sprintf("  return %s(rows, %s[%s])", mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("}")
 	g.P()
 }

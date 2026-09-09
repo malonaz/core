@@ -112,7 +112,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if mc.hasJoins {
 			mc.generateJoinVars()
 		}
-		mc.generateETagGetter()
+		mc.generateProbe()
 		mc.generateInsertVars()
 		mc.generateBatchInsert()
 		mc.generateUpdate()
@@ -386,7 +386,7 @@ func buildJoinSubqueryExpr(joins []schema.Join, childBareTable string) string {
 			if join.Query.Filter != "" {
 				suffix += " AND " + join.Query.Filter
 			}
-			suffix += fmt.Sprintf(" ORDER BY %s LIMIT 1", join.Query.OrderBy)
+			suffix += fmt.Sprintf(" ORDER BY %s LIMIT 1", join.Query.OrderByWithTieBreak())
 		}
 		var whereParts []string
 		for _, condition := range join.Conditions {
@@ -451,7 +451,7 @@ func buildLateralJoinClause(join schema.Join, childBareTable string) string {
 		whereClause += " AND " + join.Query.Filter
 	}
 	return fmt.Sprintf("LEFT JOIN LATERAL (SELECT %s.*, %s AS name FROM %s AS %s WHERE %s ORDER BY %s LIMIT 1) AS %s ON TRUE",
-		inner, join.Query.NameExpr, join.Table.Qualified(), inner, whereClause, join.Query.OrderBy, join.Alias)
+		inner, join.Query.NameExpr, join.Table.Qualified(), inner, whereClause, join.Query.OrderByWithTieBreak(), join.Alias)
 }
 
 func (mc *msgCtx) exceptColumnsArgs() string {
@@ -479,12 +479,41 @@ func (mc *msgCtx) writeColumns() string {
 	return mc.goType + "PostgresColumns"
 }
 
+// returningExpr is the Go expression of the RETURNING list: the resource's own
+// columns plus, for joined resources, one correlated subquery per joined field.
 func (mc *msgCtx) returningExpr(columnsVar string) string {
-	expr := fmt.Sprintf("%s(\"%%s\", %s)", mc.postgres("SelectQuery"), columnsVar)
+	expr := fmt.Sprintf("%s(%s, \",\")", mc.stringsI("Join"), columnsVar)
 	if mc.hasJoins {
 		expr += fmt.Sprintf(" + %sJoinSubqueryExpr", mc.goName)
 	}
 	return expr
+}
+
+// selectColumnsExpr is the Go expression of the SELECT list for the given
+// columns variable: qualified by the table so joined tables never make them
+// ambiguous, plus the joined fields.
+func (mc *msgCtx) selectColumnsExpr(columnsExpr string) string {
+	expr := fmt.Sprintf("%s(%s, %q)", mc.postgres("QualifyColumns"), columnsExpr, mc.bareTableName)
+	if mc.hasJoins {
+		expr += fmt.Sprintf(" + %sJoinSelectExprs", mc.goName)
+	}
+	return expr
+}
+
+// fromExpr is the Go expression of the FROM clause, joins included.
+func (mc *msgCtx) fromExpr() string {
+	if mc.hasJoins {
+		return fmt.Sprintf("\" FROM %s \" + %sJoinClause", mc.tableName, mc.goName)
+	}
+	return fmt.Sprintf("\" FROM %s\"", mc.tableName)
+}
+
+// selectExpr is the Go expression of "SELECT <columns> FROM <table> <joins>".
+// Every generated read is assembled from it by plain concatenation: nothing
+// user- or codegen-derived ever passes through fmt.Sprintf, so a `%` in a join
+// filter or a WHERE clause is just a `%`.
+func (mc *msgCtx) selectExpr(columnsExpr string) string {
+	return "\"SELECT \" + " + mc.selectColumnsExpr(columnsExpr) + " + " + mc.fromExpr()
 }
 
 func (mc *msgCtx) pgx(name string) string      { return mc.gen.ident(pgxPkg, name) }
@@ -513,14 +542,7 @@ func (mc *msgCtx) patternVarFieldAccess() string {
 	return strings.Join(parts, ", ")
 }
 
-func (mc *msgCtx) patternVarIDUntitled() string {
-	return mc.patternVarIDsGoTrue()
-}
-
 func (mc *msgCtx) qualifiedPlaceholderDecls() string {
-	if !mc.hasJoins {
-		return mc.placeholderDecls
-	}
 	conditions := make([]string, len(mc.columnBindings))
 	for i, binding := range mc.columnBindings {
 		conditions[i] = fmt.Sprintf("%s.%s = $%d", mc.bareTableName, binding.Column, i+1)
@@ -551,27 +573,49 @@ func (mc *msgCtx) emitIDConditionAppends(indent string, exprFor func(schema.Colu
 	}
 }
 
-func (mc *msgCtx) generateETagGetter() {
-	if !mc.hasEtag {
+// generateProbe emits probe{R}, which explains a write that matched no rows:
+// the row never existed (Err{R}NotExist), or it reports the row's liveness and
+// current etag for the caller to compare against what the write required.
+func (mc *msgCtx) generateProbe() {
+	if !mc.hasEtag && !mc.hasDeleteTime {
 		return
 	}
 	g := mc.g
-	g.P(fmt.Sprintf("func (s *Store) get%sETag(ctx context.Context, q querier, %s string) (string, error) {", mc.goType, mc.patternVarIDsGoTrue()))
+	liveExpr := "TRUE"
+	if mc.hasDeleteTime {
+		liveExpr = "delete_time IS NULL"
+	}
+	etagSelect, etagScan, etagReturn, etagZero := "", "", "", ""
+	if mc.hasEtag {
+		etagSelect, etagScan, etagReturn, etagZero = ", etag", ", &currentEtag", ", string", ", \"\""
+	}
+
+	g.P(fmt.Sprintf("func (s *Store) probe%s(ctx context.Context, q querier, %s string) (bool%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), etagReturn))
 	if mc.multiPattern {
 		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
 		mc.emitIDConditionAppends("  ", idParamName)
-		g.P(fmt.Sprintf("  query := %s(\"SELECT etag FROM %s WHERE %%s\", %s(conditions, \" AND \"))",
-			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join")))
-		g.P("  rows, err := q.Query(ctx, query, params...)")
+		g.P(fmt.Sprintf("  query := \"SELECT %s%s FROM %s WHERE \" + %s(conditions, \" AND \")", liveExpr, etagSelect, mc.tableName, mc.stringsI("Join")))
 	} else {
-		g.P(fmt.Sprintf("  query := `SELECT etag FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
-		g.P(fmt.Sprintf("  rows, err := q.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
+		g.P(fmt.Sprintf("  query := `SELECT %s%s FROM %s WHERE %s`", liveExpr, etagSelect, mc.tableName, mc.placeholderDecls))
+		g.P(fmt.Sprintf("  params := []any{ %s }", mc.patternVarIDsGoTrue()))
 	}
-	g.P("  if err != nil {")
-	g.P("    return \"\", err")
+	g.P("  var live bool")
+	if mc.hasEtag {
+		g.P("  var currentEtag string")
+	}
+	g.P(fmt.Sprintf("  if err := q.QueryRow(ctx, query, params...).Scan(&live%s); err != nil {", etagScan))
+	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
+	g.P(fmt.Sprintf("      return false%s, %s", etagZero, mc.errNotExist))
+	g.P("    }")
+	g.P(fmt.Sprintf("    return false%s, %s(\"probing %s: %%w\", err)", etagZero, mc.fmtI("Errorf"), mc.goName))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s(rows, %s[string])", mc.pgx("CollectOneRow"), mc.pgx("RowTo")))
+	if mc.hasEtag {
+		g.P("  return live, currentEtag, nil")
+	} else {
+		g.P("  return live, nil")
+	}
 	g.P("}")
 	g.P()
 }
@@ -617,26 +661,51 @@ func querierVar(inTransaction bool) string {
 	return "s.client"
 }
 
-func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string, inTransaction bool) {
+// emitNoRowsProbe emits the handling of a write that matched no rows, inside
+// an `if err == pgx.ErrNoRows` block. The row's state is explained first
+// (never existed, then on the wrong side of its tombstone — `wrongState` is
+// the Go expression returned for a row whose liveness is not `wantLive`), the
+// client's etag second, so a stale etag never masks a NotFound/AlreadyExists.
+// `unexpected` covers a row in the wanted state with a matching etag: a
+// concurrent writer moved it between the two statements.
+func (mc *msgCtx) emitNoRowsProbe(patternVarArgs string, inTransaction bool, wantLive bool, wrongState, unexpected string) {
 	g := mc.g
 	retPrefix := "return nil, "
 	if inTransaction {
 		retPrefix = "return "
 	}
-	g.P("      if etag != \"\" {")
-	g.P(fmt.Sprintf("        currentEtag, getEtagErr := s.get%sETag(ctx, %s, %s)", mc.goType, querierVar(inTransaction), patternVarArgs))
-	g.P("        switch getEtagErr {")
-	g.P("        case nil:")
-	g.P("          if currentEtag == etag {")
-	g.P("            ", retPrefix, mc.fmtI("Errorf"), "(\"", operation, " matched no rows but etag unchanged: expected etag mismatch\")")
-	g.P("          }")
-	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errETagChanged))
-	g.P(fmt.Sprintf("        case %s:", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("          %s%s", retPrefix, mc.errNotExist))
-	g.P("        default:")
-	g.P("          ", retPrefix, mc.fmtI("Errorf"), "(\"getting etag: %v\", getEtagErr)")
-	g.P("        }")
+	if !mc.hasEtag && !mc.hasDeleteTime {
+		g.P(fmt.Sprintf("      %s%s", retPrefix, mc.errNotExist))
+		return
+	}
+	// Without a tombstone the row is live by definition.
+	liveVar := "live"
+	if !mc.hasDeleteTime {
+		liveVar = "_"
+	}
+	if mc.hasEtag {
+		g.P(fmt.Sprintf("      %s, currentEtag, probeErr := s.probe%s(ctx, %s, %s)", liveVar, mc.goType, querierVar(inTransaction), patternVarArgs))
+	} else {
+		g.P(fmt.Sprintf("      %s, probeErr := s.probe%s(ctx, %s, %s)", liveVar, mc.goType, querierVar(inTransaction), patternVarArgs))
+	}
+	g.P("      if probeErr != nil {")
+	g.P(fmt.Sprintf("        %sprobeErr", retPrefix))
 	g.P("      }")
+	if mc.hasDeleteTime {
+		condition := "!live"
+		if !wantLive {
+			condition = "live"
+		}
+		g.P(fmt.Sprintf("      if %s {", condition))
+		g.P(fmt.Sprintf("        %s%s", retPrefix, wrongState))
+		g.P("      }")
+	}
+	if mc.hasEtag {
+		g.P("      if etag != \"\" && currentEtag != etag {")
+		g.P(fmt.Sprintf("        %s%s", retPrefix, mc.errETagChanged))
+		g.P("      }")
+	}
+	g.P(fmt.Sprintf("      %s%s", retPrefix, unexpected))
 }
 
 func untitle(s string) string {

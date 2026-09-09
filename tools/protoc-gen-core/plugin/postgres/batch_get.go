@@ -46,14 +46,9 @@ func (mc *msgCtx) generateBatchGet() {
 	g.P(fmt.Sprintf("    base := i*%d", len(bindings)))
 	g.P(fmt.Sprintf("    conditions := make([]string, %d)", len(bindings)))
 
-	colPrefix := ""
-	if mc.hasJoins {
-		colPrefix = mc.bareTableName + "."
-	}
-
 	for idx, binding := range bindings {
-		g.P(fmt.Sprintf("    conditions[%d] = %s(\"%s%s = $%%d\", base+%d)",
-			idx, mc.fmtI("Sprintf"), colPrefix, binding.Column, idx+1))
+		g.P(fmt.Sprintf("    conditions[%d] = %s(\"%s.%s = $%%d\", base+%d)",
+			idx, mc.fmtI("Sprintf"), mc.bareTableName, binding.Column, idx+1))
 	}
 
 	for _, binding := range bindings {
@@ -66,13 +61,7 @@ func (mc *msgCtx) generateBatchGet() {
 	g.P(fmt.Sprintf("  whereClause := \"WHERE \" + %s(orClauses, \" OR \")", mc.stringsI("Join")))
 	g.P()
 
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s \" + %sJoinClause + \" %%s\", %s(%s, %q) + %sJoinSelectExprs, whereClause)",
-			mc.fmtI("Sprintf"), mc.tableName, mc.goName, mc.postgres("QualifyColumns"), mc.writeColumns(), mc.bareTableName, mc.goName))
-	} else {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s %%s\", %s(\"%%s\", %sPostgresColumns), whereClause)",
-			mc.fmtI("Sprintf"), mc.tableName, mc.postgres("SelectQuery"), mc.goType))
-	}
+	g.P(fmt.Sprintf("  query := %s + \" \" + whereClause", mc.selectExpr(mc.writeColumns())))
 	g.P()
 
 	g.P("  rows, err := s.client.Query(ctx, query, params...)")
@@ -124,8 +113,7 @@ func (mc *msgCtx) generateMultiPatternBatchGet() {
 	g.P(fmt.Sprintf("  whereClause := \"WHERE \" + %s(orClauses, \" OR \")", mc.stringsI("Join")))
 	g.P()
 
-	g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s %%s\", %s(\"%%s\", %sPostgresColumns), whereClause)",
-		mc.fmtI("Sprintf"), mc.tableName, mc.postgres("SelectQuery"), mc.goType))
+	g.P(fmt.Sprintf("  query := %s + \" \" + whereClause", mc.selectExpr(mc.writeColumns())))
 	g.P()
 
 	g.P("  rows, err := s.client.Query(ctx, query, params...)")

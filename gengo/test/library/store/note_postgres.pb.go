@@ -16,7 +16,7 @@ var (
 	NotePostgresColumns = postgres.GetDBColumns(model.Note{})
 )
 
-func (s *Store) getNoteETag(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string) (string, error) {
+func (s *Store) probeNote(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string) (bool, string, error) {
 	conditions := make([]string, 0, 4)
 	params := make([]any, 0, 4)
 	params = append(params, organizationId)
@@ -35,12 +35,16 @@ func (s *Store) getNoteETag(ctx context.Context, q querier, organizationId, auth
 	}
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
-	query := fmt.Sprintf("SELECT etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
-	rows, err := q.Query(ctx, query, params...)
-	if err != nil {
-		return "", err
+	query := "SELECT delete_time IS NULL, etag FROM library.note WHERE " + strings.Join(conditions, " AND ")
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrNoteNotExist
+		}
+		return false, "", fmt.Errorf("probing note: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type NoteWithRequestID struct {
@@ -50,8 +54,9 @@ type NoteWithRequestID struct {
 
 var (
 	NoteWithRequestIDPostgresColumns = postgres.GetDBColumns(NoteWithRequestID{})
-	noteInsertPostgresQuery          = `INSERT INTO library.note %s VALUES %s ON CONFLICT(organization_id, author_id, shelf_id, note_id) DO UPDATE SET note_id = EXCLUDED.note_id RETURNING ` + postgres.SelectQuery("%s", NoteWithRequestIDPostgresColumns)
-	noteGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", NoteWithRequestIDPostgresColumns) + ` FROM library.note WHERE request_id = ANY($1)`
+	noteInsertPostgresQuery          = `INSERT INTO library.note %s VALUES %s ON CONFLICT(organization_id, author_id, shelf_id, note_id) DO UPDATE SET note_id = EXCLUDED.note_id`
+	noteInsertReturningClause        = ` RETURNING ` + strings.Join(NoteWithRequestIDPostgresColumns, ",")
+	noteGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(NoteWithRequestIDPostgresColumns, "note") + " FROM library.note" + ` WHERE note.request_id = ANY($1)`
 )
 
 func orderNotesByRequestID(requestIDs []string, rows []*NoteWithRequestID) ([]*model.Note, error) {
@@ -89,7 +94,8 @@ func (s *Store) BatchInsertNotes(ctx context.Context, requestIDs []string, notes
 	for i, _note := range notes {
 		withRequestIDs[i] = &NoteWithRequestID{RequestID: requestIDs[i], Note: *_note}
 	}
-	query, params := postgres.BatchInsertQuery(noteInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(noteInsertPostgresQuery, withRequestIDs, NoteWithRequestIDPostgresColumns...)
+	query += noteInsertReturningClause
 
 	var inserted []*model.Note
 	transactionFN := func(tx postgres.Tx) error {
@@ -134,7 +140,7 @@ func (s *Store) BatchInsertNotes(ctx context.Context, requestIDs []string, notes
 }
 
 var updateNotePostgresQuery = `UPDATE library.note SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", NotePostgresColumns)
+	strings.Join(NotePostgresColumns, ",")
 
 func (s *Store) UpdateNote(ctx context.Context, _note *model.Note, updateClause string, updateColumns []string, etag string) (*model.Note, error) {
 	organizationId := _note.OrganizationID
@@ -182,30 +188,21 @@ func (s *Store) UpdateNote(ctx context.Context, _note *model.Note, updateClause 
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrNoteETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrNoteNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeNote(ctx, s.client, organizationId, authorId, shelfId, noteId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrNoteNotExist
+			if !live {
+				return nil, model.ErrNoteNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrNoteETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but note exists")
 		}
 		return nil, err
 	}
 	return row, nil
-}
-
-type softDeleteNoteResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.Note
 }
 
 func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string, deleteTime time.Time) (*model.Note, error) {
@@ -227,11 +224,11 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 	}
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
-	deleteTimeIndex := len(params) + 1
 	params = append(params, deleteTime)
-	newEtagIndex := len(params) + 1
+	setClause := fmt.Sprintf("delete_time = $%d", len(params))
 	params = append(params, newEtag)
-	query := fmt.Sprintf("UPDATE library.note SET delete_time = COALESCE(delete_time, $%d), etag = $%d WHERE %s RETURNING (delete_time < $%d) AS was_already_deleted, ", deleteTimeIndex, newEtagIndex, strings.Join(conditions, " AND "), deleteTimeIndex) + postgres.SelectQuery("%s", NotePostgresColumns)
+	setClause += fmt.Sprintf(", etag = $%d", len(params))
+	query := "UPDATE library.note SET " + setClause + " WHERE " + strings.Join(conditions, " AND ") + " AND delete_time IS NULL RETURNING " + strings.Join(NotePostgresColumns, ",")
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
@@ -240,68 +237,24 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 	if err != nil {
 		return nil, fmt.Errorf("soft deleting note: %w", err)
 	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteNoteResult])
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrNoteETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrNoteNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeNote(ctx, s.client, organizationId, authorId, shelfId, noteId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrNoteNotExist
+			if !live {
+				return nil, model.ErrNoteAlreadyDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrNoteETagChanged
+			}
+			return nil, fmt.Errorf("soft delete matched no rows but note is live")
 		}
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrNoteAlreadyDeleted
-	}
-	return &row.Note, nil
-}
-
-func (s *Store) undeleteNoteNoRows(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string, etag string) error {
-	conditions := make([]string, 0, 4)
-	params := make([]any, 0, 4)
-	params = append(params, organizationId)
-	conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
-	if authorId != "" {
-		params = append(params, authorId)
-		conditions = append(conditions, fmt.Sprintf("author_id = $%d", len(params)))
-	} else {
-		conditions = append(conditions, "author_id IS NULL")
-	}
-	if shelfId != "" {
-		params = append(params, shelfId)
-		conditions = append(conditions, fmt.Sprintf("shelf_id = $%d", len(params)))
-	} else {
-		conditions = append(conditions, "shelf_id IS NULL")
-	}
-	params = append(params, noteId)
-	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
-	query := fmt.Sprintf("SELECT delete_time IS NULL, etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
-	var live bool
-	var currentEtag string
-	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrNoteNotExist
-		}
-		return fmt.Errorf("probing note: %w", err)
-	}
-	if live {
-		return model.ErrNoteNotDeleted
-	}
-	if etag != "" && currentEtag != etag {
-		return model.ErrNoteETagChanged
-	}
-	return fmt.Errorf("undelete matched no rows but note is deleted")
+	return row, nil
 }
 
 func (s *Store) UndeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string) (*model.Note, error) {
@@ -324,7 +277,7 @@ func (s *Store) UndeleteNote(ctx context.Context, organizationId, authorId, shel
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
 	params = append(params, newEtag)
-	query := fmt.Sprintf("UPDATE library.note SET delete_time = NULL, etag = $%d WHERE %s AND delete_time IS NOT NULL RETURNING ", len(params), strings.Join(conditions, " AND ")) + postgres.SelectQuery("%s", NotePostgresColumns)
+	query := fmt.Sprintf("UPDATE library.note SET delete_time = NULL, etag = $%d WHERE %s AND delete_time IS NOT NULL RETURNING ", len(params), strings.Join(conditions, " AND ")) + strings.Join(NotePostgresColumns, ",")
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
@@ -336,7 +289,17 @@ func (s *Store) UndeleteNote(ctx context.Context, organizationId, authorId, shel
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteNoteNoRows(ctx, s.client, organizationId, authorId, shelfId, noteId, etag)
+			live, currentEtag, probeErr := s.probeNote(ctx, s.client, organizationId, authorId, shelfId, noteId)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if live {
+				return nil, model.ErrNoteNotDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrNoteETagChanged
+			}
+			return nil, fmt.Errorf("undelete matched no rows but note is deleted")
 		}
 		return nil, err
 	}
@@ -362,8 +325,7 @@ func (s *Store) GetNote(ctx context.Context, organizationId, authorId, shelfId, 
 	}
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
-	query := fmt.Sprintf("SELECT %%s FROM library.note WHERE %s", strings.Join(conditions, " AND "))
-	query = postgres.SelectQuery(query, NotePostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(NotePostgresColumns, "note") + " FROM library.note" + " WHERE " + strings.Join(conditions, " AND ")
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("getting note: %w", err)
@@ -417,7 +379,7 @@ func (s *Store) BatchGetNotes(ctx context.Context, organizationIds []string, aut
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.note %s", postgres.SelectQuery("%s", NotePostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(NotePostgresColumns, "note") + " FROM library.note" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -432,50 +394,34 @@ func (s *Store) ListNotes(ctx context.Context, organizationId, authorId, shelfId
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("note.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 	if authorId == "-" {
-		whereClause = postgres.AddToWhereClause(whereClause, "author_id IS NOT NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "note.author_id IS NOT NULL")
 	} else if authorId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("note.author_id = $%d", len(params)+1))
 		params = append(params, authorId)
 	} else {
-		whereClause = postgres.AddToWhereClause(whereClause, "author_id IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "note.author_id IS NULL")
 	}
 	if shelfId == "-" {
-		whereClause = postgres.AddToWhereClause(whereClause, "shelf_id IS NOT NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "note.shelf_id IS NOT NULL")
 	} else if shelfId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("note.shelf_id = $%d", len(params)+1))
 		params = append(params, shelfId)
 	} else {
-		whereClause = postgres.AddToWhereClause(whereClause, "shelf_id IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "note.shelf_id IS NULL")
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "note.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.note #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var notes []*model.Note
-	transactionFN := func(tx postgres.Tx) error {
-		notes = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting notes: %w", err)
-		}
-		notes, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Note])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "note") + " FROM library.note" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting notes: %w", err)
 	}
-	return notes, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Note])
 }

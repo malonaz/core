@@ -9,7 +9,6 @@ import (
 	model "github.com/malonaz/core/gengo/test/user/model"
 	postgres "github.com/malonaz/core/go/postgres"
 	strings "strings"
-	time "time"
 )
 
 var (
@@ -21,110 +20,24 @@ var userProfileJoinSubqueryExpr = `,(SELECT user_.display_name FROM user_ AS use
 var userProfileJoinSelectExprs = `,user_.display_name AS user_display_name,user_.email_address AS user_email_address,organization.display_name AS organization_display_name`
 var userProfileJoinClause = `INNER JOIN user_ AS user_ ON user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id INNER JOIN organization AS organization ON organization.organization_id = user_profile.organization_id`
 
-func (s *Store) getUserProfileETag(ctx context.Context, q querier, organizationId, userId string) (string, error) {
-	query := `SELECT etag FROM user_profile WHERE organization_id = $1 AND user_id = $2`
-	rows, err := q.Query(ctx, query, organizationId, userId)
-	if err != nil {
-		return "", err
+func (s *Store) probeUserProfile(ctx context.Context, q querier, organizationId, userId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM user_profile WHERE organization_id = $1 AND user_id = $2`
+	params := []any{organizationId, userId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrUserProfileNotExist
+		}
+		return false, "", fmt.Errorf("probing userProfile: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 const UserProfileInsertSingletonPostgresQuery = `INSERT INTO user_profile %s VALUES %s ON CONFLICT(organization_id, user_id) DO NOTHING`
 
-type UserProfileWithRequestID struct {
-	RequestID string `db:"request_id"`
-	model.UserProfile
-}
-
-var (
-	UserProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(UserProfileWithRequestID{})
-	UserProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(UserProfileWithRequestID{}, postgres.ExceptColumns("user_display_name", "user_email_address", "organization_display_name"))
-	userProfileInsertPostgresQuery               = `INSERT INTO user_profile %s VALUES %s ON CONFLICT(organization_id, user_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", UserProfileWithRequestIDWritePostgresColumns) + userProfileJoinSubqueryExpr
-	userProfileGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM user_profile `+userProfileJoinClause+` WHERE user_profile.request_id = ANY($1)`, postgres.QualifyColumns(UserProfileWithRequestIDWritePostgresColumns, "user_profile")+userProfileJoinSelectExprs)
-)
-
-func orderUserProfilesByRequestID(requestIDs []string, rows []*UserProfileWithRequestID) ([]*model.UserProfile, error) {
-	indexByRequestID := make(map[string]int, len(requestIDs))
-	for i, requestID := range requestIDs {
-		indexByRequestID[requestID] = i
-	}
-	ordered := make([]*model.UserProfile, len(requestIDs))
-	for _, row := range rows {
-		// A returned request id outside this batch is a pre-existing row.
-		i, ok := indexByRequestID[row.RequestID]
-		if !ok {
-			return nil, model.ErrUserProfileAlreadyExists
-		}
-		ordered[i] = &row.UserProfile
-	}
-	for i, row := range ordered {
-		if row == nil {
-			return nil, fmt.Errorf("inserted userProfile with request id %q was not returned", requestIDs[i])
-		}
-	}
-	return ordered, nil
-}
-
-func (s *Store) BatchInsertUserProfiles(ctx context.Context, requestIDs []string, userProfiles []*model.UserProfile) ([]*model.UserProfile, error) {
-	n := len(userProfiles)
-	if len(requestIDs) != n {
-		return nil, fmt.Errorf("mismatched slice lengths")
-	}
-	if n == 0 {
-		return nil, nil
-	}
-
-	withRequestIDs := make([]*UserProfileWithRequestID, n)
-	for i, _userProfile := range userProfiles {
-		withRequestIDs[i] = &UserProfileWithRequestID{RequestID: requestIDs[i], UserProfile: *_userProfile}
-	}
-	query, params := postgres.BatchInsertQuery(userProfileInsertPostgresQuery, withRequestIDs, UserProfileWithRequestIDWritePostgresColumns...)
-
-	var inserted []*model.UserProfile
-	transactionFN := func(tx postgres.Tx) error {
-		inserted = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return err
-		}
-		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserProfileWithRequestID])
-		if err != nil {
-			return err
-		}
-		inserted, err = orderUserProfilesByRequestID(requestIDs, upserted)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-		// A replay with server-generated ids collides on request_id rather than
-		// on the primary key; return the committed batch if it is whole.
-		if postgres.IsUniqueViolation(err) {
-			rows, lookupErr := s.client.Query(ctx, userProfileGetByRequestIDsQuery, requestIDs)
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserProfileWithRequestID])
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			if len(existing) == n {
-				return orderUserProfilesByRequestID(requestIDs, existing)
-			}
-			// Not a whole replay: another unique constraint of the table fired.
-			return nil, model.ErrUserProfileAlreadyExists
-		}
-		return nil, err
-	}
-	return inserted, nil
-}
-
 var updateUserProfilePostgresQuery = `UPDATE user_profile SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", UserProfileWritePostgresColumns) + userProfileJoinSubqueryExpr
+	strings.Join(UserProfileWritePostgresColumns, ",") + userProfileJoinSubqueryExpr
 
 func (s *Store) UpdateUserProfile(ctx context.Context, _userProfile *model.UserProfile, updateClause string, updateColumns []string, etag string) (*model.UserProfile, error) {
 	updateParams := postgres.GetParams(_userProfile, updateColumns...)
@@ -151,76 +64,25 @@ func (s *Store) UpdateUserProfile(ctx context.Context, _userProfile *model.UserP
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.UserProfile])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getUserProfileETag(ctx, s.client, _userProfile.OrganizationID, _userProfile.UserID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrUserProfileETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrUserProfileNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeUserProfile(ctx, s.client, _userProfile.OrganizationID, _userProfile.UserID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrUserProfileNotExist
+			if !live {
+				return nil, model.ErrUserProfileNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrUserProfileETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but userProfile exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteUserProfilePostgresQuery = `UPDATE user_profile SET delete_time = COALESCE(delete_time, $3), etag = $4 WHERE organization_id = $1 AND user_id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", UserProfileWritePostgresColumns) + userProfileJoinSubqueryExpr
-
-type softDeleteUserProfileResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.UserProfile
-}
-
-func (s *Store) SoftDeleteUserProfile(ctx context.Context, organizationId, userId string, etag, newEtag string, deleteTime time.Time) (*model.UserProfile, error) {
-	query := softDeleteUserProfilePostgresQuery
-	params := []any{organizationId, userId, deleteTime, newEtag}
-	if etag != "" {
-		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
-		params = append(params, etag)
-	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting userProfile: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteUserProfileResult])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getUserProfileETag(ctx, s.client, organizationId, userId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrUserProfileETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrUserProfileNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
-			}
-			return nil, model.ErrUserProfileNotExist
-		}
-		return nil, err
-	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrUserProfileAlreadyDeleted
-	}
-	return &row.UserProfile, nil
-}
-
 func (s *Store) GetUserProfile(ctx context.Context, organizationId, userId string) (*model.UserProfile, error) {
-	query := `SELECT %s FROM user_profile ` + userProfileJoinClause + ` WHERE user_profile.organization_id = $1 AND user_profile.user_id = $2`
-	query = fmt.Sprintf(query, postgres.QualifyColumns(UserProfileWritePostgresColumns, "user_profile")+userProfileJoinSelectExprs)
+	query := "SELECT " + postgres.QualifyColumns(UserProfileWritePostgresColumns, "user_profile") + userProfileJoinSelectExprs + " FROM user_profile " + userProfileJoinClause + ` WHERE user_profile.organization_id = $1 AND user_profile.user_id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("getting userProfile: %w", err)
@@ -257,7 +119,7 @@ func (s *Store) BatchGetUserProfiles(ctx context.Context, organizationIds []stri
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM user_profile "+userProfileJoinClause+" %s", postgres.QualifyColumns(UserProfileWritePostgresColumns, "user_profile")+userProfileJoinSelectExprs, whereClause)
+	query := "SELECT " + postgres.QualifyColumns(UserProfileWritePostgresColumns, "user_profile") + userProfileJoinSelectExprs + " FROM user_profile " + userProfileJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -284,26 +146,10 @@ func (s *Store) ListUserProfiles(ctx context.Context, organizationId, userId str
 		whereClause = postgres.AddToWhereClause(whereClause, "user_profile.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM user_profile "+userProfileJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "user_profile")+userProfileJoinSelectExprs)
-
-	var userProfiles []*model.UserProfile
-	transactionFN := func(tx postgres.Tx) error {
-		userProfiles = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting userProfiles: %w", err)
-		}
-		userProfiles, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.UserProfile])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "user_profile") + userProfileJoinSelectExprs + " FROM user_profile " + userProfileJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting userProfiles: %w", err)
 	}
-	return userProfiles, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.UserProfile])
 }

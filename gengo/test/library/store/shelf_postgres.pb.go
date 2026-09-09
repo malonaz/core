@@ -14,12 +14,25 @@ import (
 
 var (
 	ShelfPostgresColumns      = postgres.GetDBColumns(model.Shelf{})
-	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
+	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title", "latest_draft_book"))
 )
 
-var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book,(SELECT book.title FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book_title`
-var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count,latest_book.name AS latest_book,latest_book.title AS latest_book_title`
-var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6) LEFT JOIN LATERAL (SELECT book.*, 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id AS name FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book ON TRUE`
+var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book,(SELECT book.title FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book_title,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.title LIKE 'Draft%') ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_draft_book`
+var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count,latest_book.name AS latest_book,latest_book.title AS latest_book_title,latest_draft_book.name AS latest_draft_book`
+var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6) LEFT JOIN LATERAL (SELECT book.*, 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id AS name FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book ON TRUE LEFT JOIN LATERAL (SELECT book.*, 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id AS name FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.title LIKE 'Draft%') ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_draft_book ON TRUE`
+
+func (s *Store) probeShelf(ctx context.Context, q querier, organizationId, shelfId string) (bool, error) {
+	query := `SELECT delete_time IS NULL FROM library.shelf WHERE organization_id = $1 AND shelf_id = $2`
+	params := []any{organizationId, shelfId}
+	var live bool
+	if err := q.QueryRow(ctx, query, params...).Scan(&live); err != nil {
+		if err == v5.ErrNoRows {
+			return false, model.ErrShelfNotExist
+		}
+		return false, fmt.Errorf("probing shelf: %w", err)
+	}
+	return live, nil
+}
 
 type ShelfWithRequestID struct {
 	RequestID string `db:"request_id"`
@@ -28,9 +41,10 @@ type ShelfWithRequestID struct {
 
 var (
 	ShelfWithRequestIDPostgresColumns      = postgres.GetDBColumns(ShelfWithRequestID{})
-	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
-	shelfInsertPostgresQuery               = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING ` + postgres.SelectQuery("%s", ShelfWithRequestIDWritePostgresColumns) + shelfJoinSubqueryExpr
-	shelfGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.shelf `+shelfJoinClause+` WHERE shelf.request_id = ANY($1)`, postgres.QualifyColumns(ShelfWithRequestIDWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
+	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title", "latest_draft_book"))
+	shelfInsertPostgresQuery               = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id`
+	shelfInsertReturningClause             = ` RETURNING ` + strings.Join(ShelfWithRequestIDWritePostgresColumns, ",") + shelfJoinSubqueryExpr
+	shelfGetByRequestIDsQuery              = "SELECT " + postgres.QualifyColumns(ShelfWithRequestIDWritePostgresColumns, "shelf") + shelfJoinSelectExprs + " FROM library.shelf " + shelfJoinClause + ` WHERE shelf.request_id = ANY($1)`
 )
 
 func orderShelvesByRequestID(requestIDs []string, rows []*ShelfWithRequestID) ([]*model.Shelf, error) {
@@ -69,6 +83,7 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 		withRequestIDs[i] = &ShelfWithRequestID{RequestID: requestIDs[i], Shelf: *_shelf}
 	}
 	query, params := postgres.BatchInsertQuery(shelfInsertPostgresQuery, withRequestIDs, ShelfWithRequestIDWritePostgresColumns...)
+	query += shelfInsertReturningClause
 
 	var inserted []*model.Shelf
 	transactionFN := func(tx postgres.Tx) error {
@@ -113,7 +128,7 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 }
 
 var updateShelfPostgresQuery = `UPDATE library.shelf SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
+	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
 func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClause string, updateColumns []string) (*model.Shelf, error) {
 	updateParams := postgres.GetParams(_shelf, updateColumns...)
@@ -135,20 +150,22 @@ func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClau
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, model.ErrShelfNotExist
+			live, probeErr := s.probeShelf(ctx, s.client, _shelf.OrganizationID, _shelf.ShelfID)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if !live {
+				return nil, model.ErrShelfNotExist
+			}
+			return nil, fmt.Errorf("update matched no rows but shelf exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND shelf_id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
-
-type softDeleteShelfResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.Shelf
-}
+var softDeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = $3 WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NULL RETURNING ` +
+	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
 func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error) {
 	query := softDeleteShelfPostgresQuery
@@ -160,17 +177,20 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 		if err != nil {
 			return fmt.Errorf("soft deleting shelf: %w", err)
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteShelfResult])
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				return model.ErrShelfNotExist
+				live, probeErr := s.probeShelf(ctx, tx, organizationId, shelfId)
+				if probeErr != nil {
+					return probeErr
+				}
+				if !live {
+					return model.ErrShelfAlreadyDeleted
+				}
+				return fmt.Errorf("soft delete matched no rows but shelf is live")
 			}
 			return err
 		}
-		if row.WasAlreadyDeleted {
-			return model.ErrShelfAlreadyDeleted
-		}
-		result = &row.Shelf
 
 		if !force {
 			var hasChildren bool
@@ -203,24 +223,8 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 	return result, nil
 }
 
-func (s *Store) undeleteShelfNoRows(ctx context.Context, q querier, organizationId, shelfId string) error {
-	query := `SELECT delete_time IS NULL FROM library.shelf WHERE organization_id = $1 AND shelf_id = $2`
-	params := []any{organizationId, shelfId}
-	var live bool
-	if err := q.QueryRow(ctx, query, params...).Scan(&live); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrShelfNotExist
-		}
-		return fmt.Errorf("probing shelf: %w", err)
-	}
-	if live {
-		return model.ErrShelfNotDeleted
-	}
-	return fmt.Errorf("undelete matched no rows but shelf is deleted")
-}
-
 var undeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = NULL WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NOT NULL RETURNING ` +
-	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
+	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
 func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
 	query := undeleteShelfPostgresQuery
@@ -232,7 +236,14 @@ func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId strin
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteShelfNoRows(ctx, s.client, organizationId, shelfId)
+			live, probeErr := s.probeShelf(ctx, s.client, organizationId, shelfId)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if live {
+				return nil, model.ErrShelfNotDeleted
+			}
+			return nil, fmt.Errorf("undelete matched no rows but shelf is deleted")
 		}
 		return nil, err
 	}
@@ -240,8 +251,7 @@ func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId strin
 }
 
 func (s *Store) GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
-	query := `SELECT %s FROM library.shelf ` + shelfJoinClause + ` WHERE shelf.organization_id = $1 AND shelf.shelf_id = $2`
-	query = fmt.Sprintf(query, postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
+	query := "SELECT " + postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf") + shelfJoinSelectExprs + " FROM library.shelf " + shelfJoinClause + ` WHERE shelf.organization_id = $1 AND shelf.shelf_id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, shelfId)
 	if err != nil {
 		return nil, fmt.Errorf("getting shelf: %w", err)
@@ -278,7 +288,7 @@ func (s *Store) BatchGetShelves(ctx context.Context, organizationIds []string, s
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.shelf "+shelfJoinClause+" %s", postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs, whereClause)
+	query := "SELECT " + postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf") + shelfJoinSelectExprs + " FROM library.shelf " + shelfJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -301,26 +311,10 @@ func (s *Store) ListShelves(ctx context.Context, organizationId string, showDele
 		whereClause = postgres.AddToWhereClause(whereClause, "shelf.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.shelf "+shelfJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "shelf")+shelfJoinSelectExprs)
-
-	var shelves []*model.Shelf
-	transactionFN := func(tx postgres.Tx) error {
-		shelves = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting shelves: %w", err)
-		}
-		shelves, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "shelf") + shelfJoinSelectExprs + " FROM library.shelf " + shelfJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting shelves: %w", err)
 	}
-	return shelves, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 }

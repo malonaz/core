@@ -34,6 +34,7 @@ labels:
 - **`schema_name`**: Set the Postgres schema housing the table (e.g., `{schema_name: "project"}`).
 - **`table_name`**: Only set when the table name differs from the snake_case message name.
 - **Nullable fields**: Use `(malonaz.codegen.model.v1.field_opts).nullable = true` for optional fields (especially `delete_time`).
+- **Non-nullable message fields are required**: a message-typed field (a `*Metadata` message, `google.protobuf.Duration`, `Timestamp`) that is neither `nullable` nor `OUTPUT_ONLY` must carry `(buf.validate.field).required = true`; codegen rejects the resource otherwise. Pick one: optional → `nullable = true`, mandatory → `required = true`. Scalars, `repeated`, `bytes` and maps are exempt (no proto3 presence; an omitted list/map is stored empty).
 - **JSON storage**: Use `(malonaz.codegen.model.v1.field_opts).as_json_bytes = true` for complex nested messages stored as JSON in the database.
 - **Joins**: Use `(malonaz.codegen.model.v1.field_opts).join = {parent: "...", field: "..."}` for OUTPUT_ONLY fields projected from a parent resource.
 
@@ -65,7 +66,7 @@ labels:
 ### Metadata Pattern
 - Top-level resources have a `<Resource>Metadata` message for non-indexed data.
 - Metadata is stored as JSON bytes: `(malonaz.codegen.model.v1.field_opts).as_json_bytes = true`.
-- Metadata is nullable: `(malonaz.codegen.model.v1.field_opts).nullable = true`.
+- Metadata is nullable: `(malonaz.codegen.model.v1.field_opts).nullable = true` — or, when every resource must carry it, `(buf.validate.field).required = true` instead (one of the two is mandatory, see Model Options).
 - OUTPUT_ONLY projections (e.g., settlement state) live inside metadata too, marked `(google.api.field_behavior) = OUTPUT_ONLY`.
 
 ### Service Methods

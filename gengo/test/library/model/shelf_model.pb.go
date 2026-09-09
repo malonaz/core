@@ -40,6 +40,7 @@ type Shelf struct {
 	SecondaryGenre    *int16         `db:"secondary_genre" schema:"library" table:"shelf"`
 	ShelfNumber       *int32         `db:"shelf_number" schema:"library" table:"shelf"`
 	Featured          *bool          `db:"featured" schema:"library" table:"shelf"`
+	LatestDraftBook   *string        `db:"latest_draft_book" external:"true" join_schema:"library" join_table:"latest_draft_book" join_column:"name"`
 	Extra             []byte         `db:"extra" schema:"library" table:"shelf"`
 }
 
@@ -119,6 +120,10 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 	if m.Featured != false {
 		Featured = &m.Featured
 	}
+	var LatestDraftBook *string
+	if m.LatestDraftBook != "" {
+		LatestDraftBook = &m.LatestDraftBook
+	}
 	var ExtraBytes []byte
 	if m.Extra != nil {
 		var err error
@@ -147,6 +152,7 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		SecondaryGenre:    SecondaryGenre,
 		ShelfNumber:       ShelfNumber,
 		Featured:          Featured,
+		LatestDraftBook:   LatestDraftBook,
 		Extra:             ExtraBytes,
 	}, nil
 }
@@ -215,6 +221,10 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 	if m.Featured != nil {
 		Featured = *m.Featured
 	}
+	var LatestDraftBook string
+	if m.LatestDraftBook != nil {
+		LatestDraftBook = *m.LatestDraftBook
+	}
 	var Extra *v1.ShelfExtra
 	if m.Extra != nil {
 		Extra = &v1.ShelfExtra{}
@@ -245,6 +255,7 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 		SecondaryGenre:    v1.ShelfGenre(SecondaryGenre),
 		ShelfNumber:       ShelfNumber,
 		Featured:          Featured,
+		LatestDraftBook:   LatestDraftBook,
 		Extra:             Extra,
 	}, nil
 }

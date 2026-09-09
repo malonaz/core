@@ -61,6 +61,10 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 		t := m.DeleteTime.AsTime()
 		DeleteTime = &t
 	}
+	EmailAddresses := m.EmailAddresses
+	if EmailAddresses == nil {
+		EmailAddresses = []string{}
+	}
 	var PhoneNumbers *[]string
 	if m.PhoneNumbers != nil {
 		PhoneNumbers = &m.PhoneNumbers
@@ -90,7 +94,7 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 		Biography:      m.Biography,
 		EmailAddress:   m.EmailAddress,
 		PhoneNumber:    m.PhoneNumber,
-		EmailAddresses: m.EmailAddresses,
+		EmailAddresses: EmailAddresses,
 		PhoneNumbers:   PhoneNumbers,
 		Labels:         LabelsBytes,
 		Etag:           m.Etag,

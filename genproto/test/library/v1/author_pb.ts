@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/author.proto.
  */
 export const file_malonaz_test_library_v1_author: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9hdXRob3IucHJvdG8SF21hbG9uYXoudGVzdC5saWJyYXJ5LnYxIpUICgZBdXRob3ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEiAKDGRpc3BsYXlfbmFtZRgFIAEoCUIKukgHcgUQARiAAhIbCgliaW9ncmFwaHkYBiABKAlCCLpIBXIDGIAgEiQKDWVtYWlsX2FkZHJlc3MYByABKAlCDbpIBHICYAGCtRgCCAESHAoMcGhvbmVfbnVtYmVyGAggASgJQgaCtRgCEAESKwoPZW1haWxfYWRkcmVzc2VzGAkgAygJQhK6SAmSAQYiBHICYAGCtRgCCAESKQoNcGhvbmVfbnVtYmVycxgKIAMoCUISukgD2AEBuuoPAiABgrUYAhABEtEBCgZsYWJlbHMYCyADKAsyKy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5BdXRob3IuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgMIAEoCRJBCghtZXRhZGF0YRgNIAEoCzInLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvck1ldGFkYXRhQga66g8CEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqgAupBYQofbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0F1dGhvchItb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9hdXRob3JzL3thdXRob3J9KgdhdXRob3JzMgZhdXRob3LSpgQJCgdsaWJyYXJ5mvMtqgEKEAoMZGlzcGxheV9uYW1lEAEKEwoNZW1haWxfYWRkcmVzcxACGAEKEgoMcGhvbmVfbnVtYmVyEAIYAgoVCg9lbWFpbF9hZGRyZXNzZXMQAxgBChMKDXBob25lX251bWJlcnMQAxgCChQKEG1ldGFkYXRhLmNvdW50cnkQAgoeChhtZXRhZGF0YS5lbWFpbF9hZGRyZXNzZXMQAxgBCgsKCWJpb2dyYXBoeSJwCg5BdXRob3JNZXRhZGF0YRIPCgdjb3VudHJ5GAEgASgJEi4KD2VtYWlsX2FkZHJlc3NlcxgCIAMoCUIVukgMkgEGIgRyAmAB2AEBgrUYAggBEh0KDXBob25lX251bWJlcnMYAyADKAlCBoK1GAIQAUL3AlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3Yx6kFiCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb26SlRU4ChVsaWJyYXJ5LmNvbS9teS1zdGF0dXMaC2R1bW15IGxhYmVsIghhcHByb3ZlZCIIcmVqZWN0ZWSSlRUsEh1saWJyYXJ5LmNvbS97Y2F0ZWdvcnl9Lnt0eXBlfRoLZHVtbXkgbGFiZWySlRU0EiNsaWJyYXJ5LmNvbS9oZWxsby17Y2F0ZWdvcnl9Lnt0eXBlfRoNZHVtbXkgbGFiZWwgMpKVFTgSJ2xpYnJhcnkuY29tL2hlbGxvLXtjYXRlZ29yeX0ue3R5cGV9LWJ5ZRoNZHVtbXkgbGFiZWwgM2IGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_aip_v1_label, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiRtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9hdXRob3IucHJvdG8SF21hbG9uYXoudGVzdC5saWJyYXJ5LnYxIpsICgZBdXRob3ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEiAKDGRpc3BsYXlfbmFtZRgFIAEoCUIKukgHcgUQARiAAhIbCgliaW9ncmFwaHkYBiABKAlCCLpIBXIDGIAgEiQKDWVtYWlsX2FkZHJlc3MYByABKAlCDbpIBHICYAGCtRgCCAESHAoMcGhvbmVfbnVtYmVyGAggASgJQgaCtRgCEAESKwoPZW1haWxfYWRkcmVzc2VzGAkgAygJQhK6SAmSAQYiBHICYAGCtRgCCAESKQoNcGhvbmVfbnVtYmVycxgKIAMoCUISukgD2AEBuuoPAiABgrUYAhABEtEBCgZsYWJlbHMYCyADKAsyKy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5BdXRob3IuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESDAoEZXRhZxgMIAEoCRJHCghtZXRhZGF0YRgNIAEoCzInLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvck1ldGFkYXRhQgy6SAPIAQG66g8CEAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqgAupBYQofbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0F1dGhvchItb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9hdXRob3JzL3thdXRob3J9KgdhdXRob3JzMgZhdXRob3LSpgQJCgdsaWJyYXJ5mvMtqgEKEAoMZGlzcGxheV9uYW1lEAEKEwoNZW1haWxfYWRkcmVzcxACGAEKEgoMcGhvbmVfbnVtYmVyEAIYAgoVCg9lbWFpbF9hZGRyZXNzZXMQAxgBChMKDXBob25lX251bWJlcnMQAxgCChQKEG1ldGFkYXRhLmNvdW50cnkQAgoeChhtZXRhZGF0YS5lbWFpbF9hZGRyZXNzZXMQAxgBCgsKCWJpb2dyYXBoeSJwCg5BdXRob3JNZXRhZGF0YRIPCgdjb3VudHJ5GAEgASgJEi4KD2VtYWlsX2FkZHJlc3NlcxgCIAMoCUIVukgMkgEGIgRyAmAB2AEBgrUYAggBEh0KDXBob25lX251bWJlcnMYAyADKAlCBoK1GAIQAUL3AlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L3Yx6kFiCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb26SlRU4ChVsaWJyYXJ5LmNvbS9teS1zdGF0dXMaC2R1bW15IGxhYmVsIghhcHByb3ZlZCIIcmVqZWN0ZWSSlRUsEh1saWJyYXJ5LmNvbS97Y2F0ZWdvcnl9Lnt0eXBlfRoLZHVtbXkgbGFiZWySlRU0EiNsaWJyYXJ5LmNvbS9oZWxsby17Y2F0ZWdvcnl9Lnt0eXBlfRoNZHVtbXkgbGFiZWwgMpKVFTgSJ2xpYnJhcnkuY29tL2hlbGxvLXtjYXRlZ29yeX0ue3R5cGV9LWJ5ZRoNZHVtbXkgbGFiZWwgM2IGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_canonicalize_v1_canonicalize, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_aip_v1_label, file_malonaz_codegen_model_v1_model]);
 
 /**
  * Author represents a book author.
@@ -120,7 +120,104 @@ export type Author = Message<"malonaz.test.library.v1.Author"> & {
   metadata?: AuthorMetadata;
 };
 
-export type AuthorValid = Author;
+/**
+ * Author represents a book author.
+ *
+ * @generated from message malonaz.test.library.v1.Author
+ */
+export type AuthorValid = Message<"malonaz.test.library.v1.Author"> & {
+  /**
+   * The resource name of the author.
+   * Format: organizations/{organization}/authors/{author}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The creation timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   */
+  createTime?: Timestamp;
+
+  /**
+   * The last update timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * The deletion timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp delete_time = 4;
+   */
+  deleteTime?: Timestamp;
+
+  /**
+   * The display name of the author.
+   *
+   * @generated from field: string display_name = 5;
+   */
+  displayName: string;
+
+  /**
+   * A biography of the author.
+   *
+   * @generated from field: string biography = 6;
+   */
+  biography: string;
+
+  /**
+   * Email address of this author.
+   *
+   * @generated from field: string email_address = 7;
+   */
+  emailAddress: string;
+
+  /**
+   * Phone number of this author.
+   *
+   * @generated from field: string phone_number = 8;
+   */
+  phoneNumber: string;
+
+  /**
+   * Email addresses of this author.
+   *
+   * @generated from field: repeated string email_addresses = 9;
+   */
+  emailAddresses: string[];
+
+  /**
+   * Phone numbers of this author.
+   *
+   * @generated from field: repeated string phone_numbers = 10;
+   */
+  phoneNumbers: string[];
+
+  /**
+   * The labels on this author.
+   *
+   * @generated from field: map<string, string> labels = 11;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * A checksum computed by the server based on the current value of the resource.
+   *
+   * @generated from field: string etag = 12;
+   */
+  etag: string;
+
+  /**
+   * Author metadata.
+   *
+   * @generated from field: malonaz.test.library.v1.AuthorMetadata metadata = 13;
+   */
+  metadata: AuthorMetadataValid;
+};
 
 /**
  * Describes the message malonaz.test.library.v1.Author.
