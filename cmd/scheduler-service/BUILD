@@ -19,7 +19,7 @@ go_binary(
     name = "scheduler-service",
     srcs = [":main.go"],
     test_only = True,
-    visibility = ["//go/test/scheduler/..."],
+    visibility = ["//go/test/..."],
     deps = [
         "//go/certs",
         "//go/flags",

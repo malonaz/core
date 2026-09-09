@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	codepb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -69,6 +70,7 @@ const (
 	deadlineQueue = "queues/deadline"
 	progressQueue = "queues/progress"
 	limitedQueue  = "queues/limited"
+	operateQueue  = "queues/operate"
 
 	flakyBackoffInitial = 300 * time.Millisecond
 	flakyMaxAttempts    = 3
@@ -76,6 +78,9 @@ const (
 	deadlineMaxAttempts = 2
 	sleepTimeout        = 10 * time.Second
 	limitedConcurrency  = 2
+	operateMaxAttempts  = 3
+	// Short enough for a sat to observe the cap on an absurd WaitJob timeout.
+	waitJobMaxTimeout = 2 * time.Second
 
 	// Generous ceiling for polling assertions.
 	waitTimeout = 30 * time.Second
@@ -121,6 +126,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int) sat.SUT {
 			"--scheduler-service.poll-interval", pollInterval.String(),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
 			"--scheduler-service.sweep-interval", "500ms",
+			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
 			"--scheduler-service.worker-id", name,
 		},
 	}
@@ -252,6 +258,13 @@ func newQueues() []*schedulerservicepb.CreateQueueRequest {
 		}),
 		newQueue(progressQueue, "Progress", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}),
 		newQueue(limitedQueue, "Sleep", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(sleepTimeout), MaxAttempts: 1, MaxConcurrency: limitedConcurrency}),
+		newQueue(operateQueue, "Operate", &schedulerpb.QueuePolicy{
+			AttemptTimeout: durationpb.New(5 * time.Second),
+			MaxAttempts:    operateMaxAttempts,
+			RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(100 * time.Millisecond), Max: durationpb.New(time.Second), Multiplier: 1},
+			// Proves an unfinished operation is not retried even when its code is retryable.
+			RetryableCodes: []codepb.Code{codepb.Code_FAILED_PRECONDITION, codepb.Code_INTERNAL},
+		}),
 	}
 }
 
@@ -288,6 +301,8 @@ func queueFor(message proto.Message) string {
 		return deadlineQueue
 	case *processorpb.ProgressRequest:
 		return progressQueue
+	case *processorpb.OperateRequest:
+		return operateQueue
 	}
 	panic(fmt.Sprintf("no shared queue for %T", message))
 }

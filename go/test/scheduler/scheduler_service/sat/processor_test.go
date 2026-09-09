@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -165,6 +166,21 @@ func (p *processor) Progress(ctx context.Context, request *processorpb.ProgressR
 		}
 	}
 	return &processorpb.ProgressResponse{}, nil
+}
+
+func (p *processor) Operate(ctx context.Context, request *processorpb.OperateRequest) (*longrunningpb.Operation, error) {
+	defer p.record(ctx, request.GetValue())()
+	if request.GetUnfinished() {
+		return &longrunningpb.Operation{}, nil
+	}
+	if request.GetCode() != 0 {
+		return &longrunningpb.Operation{Done: true, Result: &longrunningpb.Operation_Error{Error: status.New(codes.Code(request.GetCode()), "operate failure").Proto()}}, nil
+	}
+	response, err := anypb.New(&processorpb.EchoResponse{Value: request.GetValue()})
+	if err != nil {
+		return nil, err
+	}
+	return &longrunningpb.Operation{Done: true, Result: &longrunningpb.Operation_Response{Response: response}}, nil
 }
 
 func sleep(ctx context.Context, duration time.Duration) error {

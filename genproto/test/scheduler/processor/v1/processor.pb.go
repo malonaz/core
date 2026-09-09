@@ -9,6 +9,7 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -23,6 +24,98 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Request message for Processor.Operate.
+type OperateRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The value echoed in the operation's response.
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Return the operation not done.
+	Unfinished bool `protobuf:"varint,2,opt,name=unfinished,proto3" json:"unfinished,omitempty"`
+	// Return the operation done with this gRPC code as its error, when non-zero.
+	Code          int32 `protobuf:"varint,3,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperateRequest) Reset() {
+	*x = OperateRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperateRequest) ProtoMessage() {}
+
+func (x *OperateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *OperateRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *OperateRequest) GetUnfinished() bool {
+	if x != nil {
+		return x.Unfinished
+	}
+	return false
+}
+
+func (x *OperateRequest) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *OperateRequest) SetValue(v string) {
+	x.Value = v
+}
+
+func (x *OperateRequest) SetUnfinished(v bool) {
+	x.Unfinished = v
+}
+
+func (x *OperateRequest) SetCode(v int32) {
+	x.Code = v
+}
+
+type OperateRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value echoed in the operation's response.
+	Value string
+	// Return the operation not done.
+	Unfinished bool
+	// Return the operation done with this gRPC code as its error, when non-zero.
+	Code int32
+}
+
+func (b0 OperateRequest_builder) Build() *OperateRequest {
+	m0 := &OperateRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Value = b.Value
+	x.Unfinished = b.Unfinished
+	x.Code = b.Code
+	return m0
+}
+
 // Request message for Processor.Echo.
 type EchoRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -34,7 +127,7 @@ type EchoRequest struct {
 
 func (x *EchoRequest) Reset() {
 	*x = EchoRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[0]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +139,7 @@ func (x *EchoRequest) String() string {
 func (*EchoRequest) ProtoMessage() {}
 
 func (x *EchoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[0]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -94,7 +187,7 @@ type EchoResponse struct {
 
 func (x *EchoResponse) Reset() {
 	*x = EchoResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[1]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -106,7 +199,7 @@ func (x *EchoResponse) String() string {
 func (*EchoResponse) ProtoMessage() {}
 
 func (x *EchoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[1]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,7 +254,7 @@ type FlakyRequest struct {
 
 func (x *FlakyRequest) Reset() {
 	*x = FlakyRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[2]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +266,7 @@ func (x *FlakyRequest) String() string {
 func (*FlakyRequest) ProtoMessage() {}
 
 func (x *FlakyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[2]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -275,7 +368,7 @@ type FlakyResponse struct {
 
 func (x *FlakyResponse) Reset() {
 	*x = FlakyResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[3]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -287,7 +380,7 @@ func (x *FlakyResponse) String() string {
 func (*FlakyResponse) ProtoMessage() {}
 
 func (x *FlakyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[3]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -337,7 +430,7 @@ type SleepRequest struct {
 
 func (x *SleepRequest) Reset() {
 	*x = SleepRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[4]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +442,7 @@ func (x *SleepRequest) String() string {
 func (*SleepRequest) ProtoMessage() {}
 
 func (x *SleepRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[4]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,7 +513,7 @@ type SleepResponse struct {
 
 func (x *SleepResponse) Reset() {
 	*x = SleepResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[5]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -432,7 +525,7 @@ func (x *SleepResponse) String() string {
 func (*SleepResponse) ProtoMessage() {}
 
 func (x *SleepResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[5]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -468,7 +561,7 @@ type DeadlineRequest struct {
 
 func (x *DeadlineRequest) Reset() {
 	*x = DeadlineRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[6]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +573,7 @@ func (x *DeadlineRequest) String() string {
 func (*DeadlineRequest) ProtoMessage() {}
 
 func (x *DeadlineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[6]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +644,7 @@ type DeadlineResponse struct {
 
 func (x *DeadlineResponse) Reset() {
 	*x = DeadlineResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +656,7 @@ func (x *DeadlineResponse) String() string {
 func (*DeadlineResponse) ProtoMessage() {}
 
 func (x *DeadlineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +690,7 @@ type ProgressRequest struct {
 
 func (x *ProgressRequest) Reset() {
 	*x = ProgressRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -609,7 +702,7 @@ func (x *ProgressRequest) String() string {
 func (*ProgressRequest) ProtoMessage() {}
 
 func (x *ProgressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +748,7 @@ type ProgressResponse struct {
 
 func (x *ProgressResponse) Reset() {
 	*x = ProgressResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -667,7 +760,7 @@ func (x *ProgressResponse) String() string {
 func (*ProgressResponse) ProtoMessage() {}
 
 func (x *ProgressResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -701,7 +794,7 @@ type Step struct {
 
 func (x *Step) Reset() {
 	*x = Step{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +806,7 @@ func (x *Step) String() string {
 func (*Step) ProtoMessage() {}
 
 func (x *Step) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -759,7 +852,7 @@ type UnroutedRequest struct {
 
 func (x *UnroutedRequest) Reset() {
 	*x = UnroutedRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +864,7 @@ func (x *UnroutedRequest) String() string {
 func (*UnroutedRequest) ProtoMessage() {}
 
 func (x *UnroutedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -803,7 +896,7 @@ type UnroutedResponse struct {
 
 func (x *UnroutedResponse) Reset() {
 	*x = UnroutedResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -815,7 +908,7 @@ func (x *UnroutedResponse) String() string {
 func (*UnroutedResponse) ProtoMessage() {}
 
 func (x *UnroutedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -842,7 +935,13 @@ var File_malonaz_test_scheduler_processor_v1_processor_proto protoreflect.FileDe
 
 const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\n" +
-	"3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a\x1egoogle/protobuf/duration.proto\"#\n" +
+	"3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a#google/longrunning/operations.proto\x1a\x1egoogle/protobuf/duration.proto\"Z\n" +
+	"\x0eOperateRequest\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\x12\x1e\n" +
+	"\n" +
+	"unfinished\x18\x02 \x01(\bR\n" +
+	"unfinished\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\x05R\x04code\"#\n" +
 	"\vEchoRequest\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\"$\n" +
 	"\fEchoResponse\x12\x14\n" +
@@ -869,50 +968,55 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x04Step\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\"\x11\n" +
 	"\x0fUnroutedRequest\"\x12\n" +
-	"\x10UnroutedResponse2\xc3\x05\n" +
+	"\x10UnroutedResponse2\xa2\x06\n" +
 	"\tProcessor\x12k\n" +
 	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n" +
 	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n" +
 	"\x05Sleep\x121.malonaz.test.scheduler.processor.v1.SleepRequest\x1a2.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n" +
 	"\bDeadline\x124.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a5.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n" +
-	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\x12w\n" +
+	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\x12]\n" +
+	"\aOperate\x123.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\x12w\n" +
 	"\bUnrouted\x124.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a5.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3"
 
-var file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_malonaz_test_scheduler_processor_v1_processor_proto_goTypes = []any{
-	(*EchoRequest)(nil),         // 0: malonaz.test.scheduler.processor.v1.EchoRequest
-	(*EchoResponse)(nil),        // 1: malonaz.test.scheduler.processor.v1.EchoResponse
-	(*FlakyRequest)(nil),        // 2: malonaz.test.scheduler.processor.v1.FlakyRequest
-	(*FlakyResponse)(nil),       // 3: malonaz.test.scheduler.processor.v1.FlakyResponse
-	(*SleepRequest)(nil),        // 4: malonaz.test.scheduler.processor.v1.SleepRequest
-	(*SleepResponse)(nil),       // 5: malonaz.test.scheduler.processor.v1.SleepResponse
-	(*DeadlineRequest)(nil),     // 6: malonaz.test.scheduler.processor.v1.DeadlineRequest
-	(*DeadlineResponse)(nil),    // 7: malonaz.test.scheduler.processor.v1.DeadlineResponse
-	(*ProgressRequest)(nil),     // 8: malonaz.test.scheduler.processor.v1.ProgressRequest
-	(*ProgressResponse)(nil),    // 9: malonaz.test.scheduler.processor.v1.ProgressResponse
-	(*Step)(nil),                // 10: malonaz.test.scheduler.processor.v1.Step
-	(*UnroutedRequest)(nil),     // 11: malonaz.test.scheduler.processor.v1.UnroutedRequest
-	(*UnroutedResponse)(nil),    // 12: malonaz.test.scheduler.processor.v1.UnroutedResponse
-	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
+	(*OperateRequest)(nil),          // 0: malonaz.test.scheduler.processor.v1.OperateRequest
+	(*EchoRequest)(nil),             // 1: malonaz.test.scheduler.processor.v1.EchoRequest
+	(*EchoResponse)(nil),            // 2: malonaz.test.scheduler.processor.v1.EchoResponse
+	(*FlakyRequest)(nil),            // 3: malonaz.test.scheduler.processor.v1.FlakyRequest
+	(*FlakyResponse)(nil),           // 4: malonaz.test.scheduler.processor.v1.FlakyResponse
+	(*SleepRequest)(nil),            // 5: malonaz.test.scheduler.processor.v1.SleepRequest
+	(*SleepResponse)(nil),           // 6: malonaz.test.scheduler.processor.v1.SleepResponse
+	(*DeadlineRequest)(nil),         // 7: malonaz.test.scheduler.processor.v1.DeadlineRequest
+	(*DeadlineResponse)(nil),        // 8: malonaz.test.scheduler.processor.v1.DeadlineResponse
+	(*ProgressRequest)(nil),         // 9: malonaz.test.scheduler.processor.v1.ProgressRequest
+	(*ProgressResponse)(nil),        // 10: malonaz.test.scheduler.processor.v1.ProgressResponse
+	(*Step)(nil),                    // 11: malonaz.test.scheduler.processor.v1.Step
+	(*UnroutedRequest)(nil),         // 12: malonaz.test.scheduler.processor.v1.UnroutedRequest
+	(*UnroutedResponse)(nil),        // 13: malonaz.test.scheduler.processor.v1.UnroutedResponse
+	(*durationpb.Duration)(nil),     // 14: google.protobuf.Duration
+	(*longrunningpb.Operation)(nil), // 15: google.longrunning.Operation
 }
 var file_malonaz_test_scheduler_processor_v1_processor_proto_depIdxs = []int32{
-	13, // 0: malonaz.test.scheduler.processor.v1.FlakyRequest.retry_delay:type_name -> google.protobuf.Duration
-	13, // 1: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
-	13, // 2: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
-	0,  // 3: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
-	2,  // 4: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
-	4,  // 5: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
-	6,  // 6: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
-	8,  // 7: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
-	11, // 8: malonaz.test.scheduler.processor.v1.Processor.Unrouted:input_type -> malonaz.test.scheduler.processor.v1.UnroutedRequest
-	1,  // 9: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
-	3,  // 10: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
-	5,  // 11: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
-	7,  // 12: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
-	9,  // 13: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
-	12, // 14: malonaz.test.scheduler.processor.v1.Processor.Unrouted:output_type -> malonaz.test.scheduler.processor.v1.UnroutedResponse
-	9,  // [9:15] is the sub-list for method output_type
-	3,  // [3:9] is the sub-list for method input_type
+	14, // 0: malonaz.test.scheduler.processor.v1.FlakyRequest.retry_delay:type_name -> google.protobuf.Duration
+	14, // 1: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
+	14, // 2: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
+	1,  // 3: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
+	3,  // 4: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
+	5,  // 5: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
+	7,  // 6: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
+	9,  // 7: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
+	0,  // 8: malonaz.test.scheduler.processor.v1.Processor.Operate:input_type -> malonaz.test.scheduler.processor.v1.OperateRequest
+	12, // 9: malonaz.test.scheduler.processor.v1.Processor.Unrouted:input_type -> malonaz.test.scheduler.processor.v1.UnroutedRequest
+	2,  // 10: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
+	4,  // 11: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
+	6,  // 12: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
+	8,  // 13: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
+	10, // 14: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
+	15, // 15: malonaz.test.scheduler.processor.v1.Processor.Operate:output_type -> google.longrunning.Operation
+	13, // 16: malonaz.test.scheduler.processor.v1.Processor.Unrouted:output_type -> malonaz.test.scheduler.processor.v1.UnroutedResponse
+	10, // [10:17] is the sub-list for method output_type
+	3,  // [3:10] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
@@ -929,7 +1033,7 @@ func file_malonaz_test_scheduler_processor_v1_processor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc), len(file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

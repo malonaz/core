@@ -9,6 +9,7 @@ import grpclib.client
 if typing.TYPE_CHECKING:
     import grpclib.server
 
+import google.longrunning.operations_pb2
 import google.protobuf.duration_pb2
 import malonaz.test.scheduler.processor.v1.processor_pb2
 
@@ -33,6 +34,10 @@ class ProcessorBase(abc.ABC):
 
     @abc.abstractmethod
     async def Progress(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest, malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def Operate(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -70,6 +75,12 @@ class ProcessorBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest,
                 malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse,
+            ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Operate': grpclib.const.Handler(
+                self.Operate,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.test.scheduler.processor.v1.Processor/Unrouted': grpclib.const.Handler(
                 self.Unrouted,
@@ -112,6 +123,12 @@ class ProcessorStub:
             '/malonaz.test.scheduler.processor.v1.Processor/Progress',
             malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest,
             malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse,
+        )
+        self.Operate = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Operate',
+            malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest,
+            google.longrunning.operations_pb2.Operation,
         )
         self.Unrouted = grpclib.client.UnaryUnaryMethod(
             channel,
