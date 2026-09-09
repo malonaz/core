@@ -34,6 +34,9 @@ func (mc *methodCtx) generateList() {
 		g.P("// Parse parent names")
 		g.P(fmt.Sprintf("  var %s string", strings.Join(parentIDNames, ", ")))
 		g.P("  switch {")
+		if mc.rootPattern() != nil {
+			g.P("  case request.Parent == \"\":")
+		}
 		for _, parent := range mc.uniqueParentPatterns() {
 			g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
 			g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",

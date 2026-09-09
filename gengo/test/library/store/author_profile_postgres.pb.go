@@ -97,6 +97,9 @@ func (s *Store) InsertAuthorProfileIdempotently(ctx context.Context, requestID s
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrAuthorProfileAlreadyExists
+			}
 		}
 		return nil, err
 	}

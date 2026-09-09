@@ -41,10 +41,10 @@ func (s *SchedulerServiceServer) Start(ctx context.Context) error {
 type schedulerService_JobStore interface {
 	InsertJobIdempotently(ctx context.Context, requestID string, job *model.Job) (*model.Job, error)
 	UpdateJob(ctx context.Context, job *model.Job, updateClause string, columns []string, etag string) (*model.Job, error)
-	DeleteJob(ctx context.Context, jobId string, etag string) (*model.Job, error)
-	GetJob(ctx context.Context, jobId string) (*model.Job, error)
-	BatchGetJobs(ctx context.Context, jobIds []string) ([]*model.Job, error)
-	ListJobs(ctx context.Context, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Job, error)
+	DeleteJob(ctx context.Context, organizationId, userId, jobId string, etag string) (*model.Job, error)
+	GetJob(ctx context.Context, organizationId, userId, jobId string) (*model.Job, error)
+	BatchGetJobs(ctx context.Context, organizationIds []string, userIds []string, jobIds []string) ([]*model.Job, error)
+	ListJobs(ctx context.Context, organizationId, userId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Job, error)
 }
 
 type schedulerService_JobServer struct {
@@ -67,7 +67,26 @@ func (s *schedulerService_JobServer) CreateJob(ctx context.Context, request *v1.
 		jobId = aip.NewSystemGeneratedBase32ResourceID()
 	}
 
-	request.Job.Name = resourcename.Sprint("jobs/{job}", jobId)
+	var organizationId, userId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	switch {
+	case request.Parent == "":
+		request.Job.Name = resourcename.Sprint("jobs/{job}", jobId)
+	case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Job.Name = resourcename.Sprint("organizations/{organization}/users/{user}/jobs/{job}", organizationId, userId, jobId)
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Job.Name = resourcename.Sprint("organizations/{organization}/jobs/{job}", organizationId, jobId)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
 
 	// STEP 2: Instantiate timestamps.
 	// Check for x-migration-request header
@@ -120,13 +139,13 @@ func (s *schedulerService_JobServer) GetJob(ctx context.Context, request *v1.Get
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
 
-	jobId, err := model.ParseJobName(request.Name)
+	organizationId, userId, jobId, err := model.ParseJobName(request.Name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
 
 	// Retrieve from the database.
-	dbJobModel, err := s.store.GetJob(ctx, jobId)
+	dbJobModel, err := s.store.GetJob(ctx, organizationId, userId, jobId)
 	if err != nil {
 		if errors.Is(err, model.ErrJobNotExist) {
 			return nil, status.Errorf(codes.NotFound, "job does not exist").Err()
@@ -243,13 +262,13 @@ func (s *schedulerService_JobServer) DeleteJob(ctx context.Context, request *v1.
 	}
 
 	// STEP 1: Parse resource name.
-	jobId, err := model.ParseJobName(request.Name)
+	organizationId, userId, jobId, err := model.ParseJobName(request.Name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
 
 	// STEP 2: Hard delete the resource.
-	_, err = s.store.DeleteJob(ctx, jobId, request.GetEtag())
+	_, err = s.store.DeleteJob(ctx, organizationId, userId, jobId, request.GetEtag())
 	if err != nil {
 		if errors.Is(err, model.ErrJobNotExist) {
 			if request.AllowMissing {
@@ -269,6 +288,22 @@ func (s *schedulerService_JobServer) DeleteJob(ctx context.Context, request *v1.
 var listJobsRequestParser = aip.MustNewListRequestParser[*v1.ListJobsRequest, *v11.Job](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
 func (s *schedulerService_JobServer) ListJobs(ctx context.Context, request *v1.ListJobsRequest) (*v1.ListJobsResponse, error) {
+	// Parse parent names
+	var organizationId, userId string
+	switch {
+	case request.Parent == "":
+	case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
 	// Parse request
 	parsedRequest, err := listJobsRequestParser.Parse(request)
 	if err != nil {
@@ -278,7 +313,7 @@ func (s *schedulerService_JobServer) ListJobs(ctx context.Context, request *v1.L
 	var dbColumns []string
 
 	// Retrieve from the database.
-	dbJobs, err := s.store.ListJobs(ctx, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	dbJobs, err := s.store.ListJobs(ctx, organizationId, userId, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
 	if err != nil {
 		return nil, status.FromError(err, "listing jobs").Err()
 	}
@@ -305,20 +340,44 @@ func (s *schedulerService_JobServer) ListJobs(ctx context.Context, request *v1.L
 }
 
 func (s *schedulerService_JobServer) BatchGetJobs(ctx context.Context, request *v1.BatchGetJobsRequest) (*v1.BatchGetJobsResponse, error) {
+	var parentPatternValue string
+	if request.Parent != "" {
+		switch {
+		case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+			parentPatternValue = "organizations/{organization}/users/{user}/jobs/{job}"
+		case resourcename.Match("organizations/{organization}", request.Parent):
+			parentPatternValue = "organizations/{organization}/jobs/{job}"
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
 	jobIds := make([]string, len(request.GetNames()))
 
 	for i, name := range request.Names {
 		if resourcename.ContainsWildcard(name) {
 			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
 		}
-		jobId, err := model.ParseJobName(name)
+		if request.Parent != "" {
+			if !resourcename.HasParent(name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+			}
+			if !resourcename.Match(parentPatternValue, name) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q is not a direct child of parent %q", name, request.Parent).Err()
+			}
+		}
+		organizationId, userId, jobId, err := model.ParseJobName(name)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
 		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
 		jobIds[i] = jobId
 	}
 
-	dbJobs, err := s.store.BatchGetJobs(ctx, jobIds)
+	dbJobs, err := s.store.BatchGetJobs(ctx, organizationIds, userIds, jobIds)
 	if err != nil {
 		return nil, status.FromError(err, "batch getting job").Err()
 	}

@@ -3,6 +3,7 @@ package scheduler_service
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ type Opts struct {
 	LeaseDuration     time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its processor call is in flight; a lapsed lease returns the job to PENDING"`
 	Retention         time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
 	SweepInterval     time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
+	WorkerID          string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
 }
 
 var defaultRetryBackoff = &pb.RetryBackoff{
@@ -54,6 +56,13 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.LeaseDuration <= 0 || opts.PollInterval <= 0 || opts.SweepInterval <= 0 {
 		return nil, fmt.Errorf("lease-duration, poll-interval and sweep-interval must be positive")
+	}
+	if opts.WorkerID == "" {
+		hostname, err := os.Hostname()
+		if err != nil {
+			return nil, fmt.Errorf("resolving hostname: %w", err)
+		}
+		opts.WorkerID = fmt.Sprintf("%s:%d", hostname, os.Getpid())
 	}
 
 	bytes, err := jsonnet.EvaluateFile(opts.Configuration)

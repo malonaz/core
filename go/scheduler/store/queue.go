@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgerrcode"
 	v5 "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -17,6 +19,17 @@ import (
 // ErrJobNotRunning is returned by UpdateRunningJob when the job left RUNNING
 // under the worker's feet (cancelled, or reaped after its lease lapsed).
 var ErrJobNotRunning = errors.New("job is not running")
+
+// jobUniqueKeyLiveIndex allows one PENDING and one RUNNING job per unique key;
+// see the job migration.
+const jobUniqueKeyLiveIndex = "job_unique_key_live_idx"
+
+// IsUniqueKeyConflict reports whether err is a violation of the unique key
+// index, i.e. a transition that would give a key a second PENDING or RUNNING job.
+func IsUniqueKeyConflict(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == jobUniqueKeyLiveIndex
+}
 
 var (
 	// job_id identifies the row; every other column is written by a transition.
@@ -109,11 +122,31 @@ func (s *Store) UpdateRunningJob(ctx context.Context, job *model.Job, columns ..
 	return row, nil
 }
 
-// DeleteExpiredJobs deletes jobs whose retention lapsed before now.
-func (s *Store) DeleteExpiredJobs(ctx context.Context, now time.Time) (int64, error) {
-	tag, err := s.client.Exec(ctx, "DELETE FROM job WHERE expire_time < $1", now)
+var jobGetPendingByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM job WHERE unique_key = $1 AND state = $2", JobPostgresColumns)
+
+// GetPendingJobByUniqueKey returns the PENDING job holding the unique key, the
+// one a keyed create coalesces onto. Returns model.ErrJobNotExist when there is
+// none.
+func (s *Store) GetPendingJobByUniqueKey(ctx context.Context, uniqueKey string) (*model.Job, error) {
+	rows, err := s.client.Query(ctx, jobGetPendingByUniqueKeyQuery, uniqueKey, int16(schedulerpb.JobState_JOB_STATE_PENDING))
 	if err != nil {
-		return 0, fmt.Errorf("deleting expired jobs: %w", err)
+		return nil, fmt.Errorf("getting pending job by unique key: %w", err)
+	}
+	job, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
+	if err != nil {
+		if errors.Is(err, v5.ErrNoRows) {
+			return nil, model.ErrJobNotExist
+		}
+		return nil, fmt.Errorf("collecting row: %w", err)
+	}
+	return job, nil
+}
+
+// PurgeJobs deletes jobs whose retention lapsed before now.
+func (s *Store) PurgeJobs(ctx context.Context, now time.Time) (int64, error) {
+	tag, err := s.client.Exec(ctx, "DELETE FROM job WHERE purge_time < $1", now)
+	if err != nil {
+		return 0, fmt.Errorf("purging jobs: %w", err)
 	}
 	return tag.RowsAffected(), nil
 }

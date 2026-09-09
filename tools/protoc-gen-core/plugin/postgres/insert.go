@@ -204,6 +204,10 @@ func (mc *msgCtx) generateInsertIdempotently() {
 	g.P("      if lookupErr == nil {")
 	g.P("        return existing, nil")
 	g.P("      }")
+	// No row carries the request ID: another unique constraint of the table fired.
+	g.P(fmt.Sprintf("      if lookupErr == %s {", mc.pgx("ErrNoRows")))
+	g.P(fmt.Sprintf("        return nil, %s", mc.errAlreadyExists))
+	g.P("      }")
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")

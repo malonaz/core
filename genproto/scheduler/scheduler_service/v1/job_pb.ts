@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/scheduler_service/v1/job.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIrEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAQgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBItsBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOl66SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDFwoGbGFiZWxzCg1zY2hlZHVsZV90aW1lIm4KEERlbGV0ZUpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSLDAQoPTGlzdEpvYnNSZXF1ZXN0Eg4KBmZpbHRlchgBIAEoCRIQCghvcmRlcl9ieRgCIAEoCRIdCglwYWdlX3NpemUYAyABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgEIAEoCTpbgvMtAghkivMtSgoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCg1zY2hlZHVsZV90aW1lCg1jb21wbGV0ZV90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIlcKE0JhdGNoR2V0Sm9ic1JlcXVlc3QSQAoFbmFtZXMYASADKAlCMfpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIEJIBDQgBEOgHGAEiBHICEAEiPwoUQmF0Y2hHZXRKb2JzUmVzcG9uc2USJwoEam9icxgBIAMoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiJICg9SZXRyeUpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIkkKEENhbmNlbEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIoEBChhSZXBvcnRKb2JQcm9ncmVzc1JlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBEi4KCHByb2dyZXNzGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIGukgDyAEBQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
+  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIuEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEi4KA2pvYhgCIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIuUBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmi6SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDIQoGbGFiZWxzCg1zY2hlZHVsZV90aW1lCghwcmlvcml0eSJuChBEZWxldGVKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiigIKD0xpc3RKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6coLzLQIIZIrzLWEKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoNc2NoZWR1bGVfdGltZQoLZXhwaXJlX3RpbWUKDWNvbXBsZXRlX3RpbWUKCHByaW9yaXR5EhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIocBChNCYXRjaEdldEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIj8KFEJhdGNoR2V0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiSAoPUmV0cnlKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASJJChBDYW5jZWxKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASKBAQoYUmVwb3J0Sm9iUHJvZ3Jlc3NSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIuCghwcm9ncmVzcxgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCBrpIA8gBAUJBWj9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvc2NoZWR1bGVyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
 
 /**
  * Request message for SchedulerService.CreateJob.
@@ -27,9 +27,19 @@ export const file_malonaz_scheduler_scheduler_service_v1_job: GenFile = /*@__PUR
  */
 export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.CreateJobRequest"> & {
   /**
-   * The job to create. Only `payload`, `labels` and `schedule_time` are read.
+   * The parent resource. Empty for a system job.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/users/{user}
    *
-   * @generated from field: malonaz.scheduler.v1.Job job = 1;
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The job to create. Only the producer-owned fields are read: `payload`,
+   * `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+   *
+   * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */
   job?: Job;
 
@@ -39,7 +49,7 @@ export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
    * This value should be 1-63 characters, and valid characters
    * are /[a-z][0-9]-/.
    *
-   * @generated from field: string job_id = 2;
+   * @generated from field: string job_id = 3;
    */
   jobId: string;
 
@@ -47,14 +57,14 @@ export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
    * A unique identifier for this request. Must be a UUID. Repeating a request
    * with the same ID returns the job it created instead of creating another.
    *
-   * @generated from field: string request_id = 3;
+   * @generated from field: string request_id = 4;
    */
   requestId: string;
 
   /**
    * If set, validate the request and preview the response, but do not actually create the resource.
    *
-   * @generated from field: bool validate_only = 4;
+   * @generated from field: bool validate_only = 5;
    */
   validateOnly: boolean;
 };
@@ -66,9 +76,19 @@ export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
  */
 export type CreateJobRequestValid = Message<"malonaz.scheduler.scheduler_service.v1.CreateJobRequest"> & {
   /**
-   * The job to create. Only `payload`, `labels` and `schedule_time` are read.
+   * The parent resource. Empty for a system job.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/users/{user}
    *
-   * @generated from field: malonaz.scheduler.v1.Job job = 1;
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The job to create. Only the producer-owned fields are read: `payload`,
+   * `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+   *
+   * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */
   job: JobValid;
 
@@ -78,7 +98,7 @@ export type CreateJobRequestValid = Message<"malonaz.scheduler.scheduler_service
    * This value should be 1-63 characters, and valid characters
    * are /[a-z][0-9]-/.
    *
-   * @generated from field: string job_id = 2;
+   * @generated from field: string job_id = 3;
    */
   jobId: string;
 
@@ -86,14 +106,14 @@ export type CreateJobRequestValid = Message<"malonaz.scheduler.scheduler_service
    * A unique identifier for this request. Must be a UUID. Repeating a request
    * with the same ID returns the job it created instead of creating another.
    *
-   * @generated from field: string request_id = 3;
+   * @generated from field: string request_id = 4;
    */
   requestId: string;
 
   /**
    * If set, validate the request and preview the response, but do not actually create the resource.
    *
-   * @generated from field: bool validate_only = 4;
+   * @generated from field: bool validate_only = 5;
    */
   validateOnly: boolean;
 };
@@ -114,6 +134,8 @@ export type GetJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.GetJ
   /**
    * The resource name of the job to retrieve.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -129,6 +151,8 @@ export type GetJobRequestValid = Message<"malonaz.scheduler.scheduler_service.v1
   /**
    * The resource name of the job to retrieve.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -149,7 +173,8 @@ export const GetJobRequestSchema: GenMessage<GetJobRequest, {validType: GetJobRe
  */
 export type UpdateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.UpdateJobRequest"> & {
   /**
-   * The job to update. `schedule_time` may only be updated on a PENDING job.
+   * The job to update. `schedule_time` and `priority` may only be updated on
+   * a PENDING job.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 1;
    */
@@ -170,7 +195,8 @@ export type UpdateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.U
  */
 export type UpdateJobRequestValid = Message<"malonaz.scheduler.scheduler_service.v1.UpdateJobRequest"> & {
   /**
-   * The job to update. `schedule_time` may only be updated on a PENDING job.
+   * The job to update. `schedule_time` and `priority` may only be updated on
+   * a PENDING job.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 1;
    */
@@ -200,6 +226,8 @@ export type DeleteJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.D
   /**
    * The resource name of the job to delete.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -230,6 +258,8 @@ export type DeleteJobRequestValid = Message<"malonaz.scheduler.scheduler_service
   /**
    * The resource name of the job to delete.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -265,30 +295,40 @@ export const DeleteJobRequestSchema: GenMessage<DeleteJobRequest, {validType: De
  */
 export type ListJobsRequest = Message<"malonaz.scheduler.scheduler_service.v1.ListJobsRequest"> & {
   /**
+   * The parent to list jobs under. Empty lists system jobs; the wildcard `-`
+   * lists across parents (e.g. `organizations/-` for every organization's jobs).
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
    * @autogen.
    *
-   * @generated from field: string filter = 1;
+   * @generated from field: string filter = 2;
    */
   filter: string;
 
   /**
    * @autogen.
    *
-   * @generated from field: string order_by = 2;
+   * @generated from field: string order_by = 3;
    */
   orderBy: string;
 
   /**
    * Maximum number of jobs to return (max 1000).
    *
-   * @generated from field: int32 page_size = 3;
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
    * A page token, received from a previous `ListJobs` call.
    *
-   * @generated from field: string page_token = 4;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -360,11 +400,23 @@ export const ListJobsResponseSchema: GenMessage<ListJobsResponse, {validType: Li
  */
 export type BatchGetJobsRequest = Message<"malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest"> & {
   /**
+   * The parent shared by every requested job. Optional; when set, every name
+   * must be a direct child of it.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
    * The resource names of the jobs to retrieve.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    * A maximum of 1000 jobs can be retrieved in a batch.
    *
-   * @generated from field: repeated string names = 1;
+   * @generated from field: repeated string names = 2;
    */
   names: string[];
 };
@@ -422,6 +474,8 @@ export type RetryJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.Re
   /**
    * The resource name of the job to retry.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -437,6 +491,8 @@ export type RetryJobRequestValid = Message<"malonaz.scheduler.scheduler_service.
   /**
    * The resource name of the job to retry.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -459,6 +515,8 @@ export type CancelJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
   /**
    * The resource name of the job to cancel.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -474,6 +532,8 @@ export type CancelJobRequestValid = Message<"malonaz.scheduler.scheduler_service
   /**
    * The resource name of the job to cancel.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -496,6 +556,8 @@ export type ReportJobProgressRequest = Message<"malonaz.scheduler.scheduler_serv
   /**
    * The resource name of the running job.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -518,6 +580,8 @@ export type ReportJobProgressRequestValid = Message<"malonaz.scheduler.scheduler
   /**
    * The resource name of the running job.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */

@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/v1/job.proto.
  */
 export const file_malonaz_scheduler_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxItoICgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEhUKCGpvYl90eXBlGAcgASgJQgPgQQMSOgoFc3RhdGUYCCABKA4yHi5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JTdGF0ZUIL4EEDukgFggECEAESOQoNc2NoZWR1bGVfdGltZRgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCBrrqDwIgARI5CgpzdGFydF90aW1lGAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEjwKDWNvbXBsZXRlX3RpbWUYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESOAoJbG9ja190aW1lGAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEhoKDWF0dGVtcHRfY291bnQYDSABKAVCA+BBAxIuCgVlcnJvchgOIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzQgvgQQO66g8EGAEgARIzCghyZXNwb25zZRgPIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEjMKCHByb2dyZXNzGBAgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIL4EEDuuoPBBgBIAESOgoLZXhwaXJlX3RpbWUYESABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATph6kEyChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEgpqb2JzL3tqb2J9KgRqb2JzMgNqb2LSpgQAgvYsJDhkYmExODcyLTkxOTMtNGRkZC1hOTllLTY4YWJmMzI3ZWFkMyqbAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFQoRSk9CX1NUQVRFX1BFTkRJTkcQARIVChFKT0JfU1RBVEVfUlVOTklORxACEhcKE0pPQl9TVEFURV9TVUNDRUVERUQQAxIUChBKT0JfU1RBVEVfRkFJTEVEEAQSFwoTSk9CX1NUQVRFX0NBTkNFTExFRBAFQi9aLWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxIrEMCgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEhUKCGpvYl90eXBlGAcgASgJQgPgQQMSOgoFc3RhdGUYCCABKA4yHi5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JTdGF0ZUIL4EEDukgFggECEAESJAoIcHJpb3JpdHkYCSABKAVCErpIDxoNGGQonP//////////ARIiCgp1bmlxdWVfa2V5GAogASgJQg66SAVyAxiAArrqDwIgARI5Cg1zY2hlZHVsZV90aW1lGAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIGuuoPAiABEjcKC2V4cGlyZV90aW1lGAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIGuuoPAiABEjkKCnN0YXJ0X3RpbWUYDSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESPAoNY29tcGxldGVfdGltZRgOIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI4Cglsb2NrX3RpbWUYDyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESOQoKcHVyZ2VfdGltZRgQIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIaCg1hdHRlbXB0X2NvdW50GBEgASgFQgPgQQMSLgoFZXJyb3IYEiABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBgBIAESMwoIcmVzcG9uc2UYEyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55QgvgQQO66g8EGAEgARIzCghwcm9ncmVzcxgUIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEkAKCG1ldGFkYXRhGBUgASgLMiEubWFsb25hei5zY2hlZHVsZXIudjEuSm9iTWV0YWRhdGFCC+BBA7rqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE68wLqQZEBChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEgpqb2JzL3tqb2J9Eidvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L2pvYnMve2pvYn0SNG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2pvYnMve2pvYn0qBGpvYnMyA2pvYrpIrgEaqwEKI2pvYi5leHBpcmVfdGltZV9hZnRlcl9zY2hlZHVsZV90aW1lEidleHBpcmVfdGltZSBtdXN0IGJlIGFmdGVyIHNjaGVkdWxlX3RpbWUaWyFoYXModGhpcy5leHBpcmVfdGltZSkgfHwgIWhhcyh0aGlzLnNjaGVkdWxlX3RpbWUpIHx8IHRoaXMuZXhwaXJlX3RpbWUgPiB0aGlzLnNjaGVkdWxlX3RpbWXSpgQAgvYsJDhkYmExODcyLTkxOTMtNGRkZC1hOTllLTY4YWJmMzI3ZWFkMyJRCgtKb2JNZXRhZGF0YRIyCghhdHRlbXB0cxgBIAMoCzIgLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkF0dGVtcHQSDgoGd29ya2VyGAIgASgJIq4BCgpKb2JBdHRlbXB0Eg8KB2F0dGVtcHQYASABKAUSLgoKc3RhcnRfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLAoIZW5kX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg4KBndvcmtlchgEIAEoCRIhCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzKpsBCghKb2JTdGF0ZRIZChVKT0JfU1RBVEVfVU5TUEVDSUZJRUQQABIVChFKT0JfU1RBVEVfUEVORElORxABEhUKEUpPQl9TVEFURV9SVU5OSU5HEAISFwoTSk9CX1NUQVRFX1NVQ0NFRURFRBADEhQKEEpPQl9TVEFURV9GQUlMRUQQBBIXChNKT0JfU1RBVEVfQ0FOQ0VMTEVEEAVC6AFaLWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci92MepBXwoic2NoZWR1bGVyLm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhIcb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufSoNb3JnYW5pemF0aW9uczIMb3JnYW5pemF0aW9u6kFUChpzY2hlZHVsZXIubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Job is a unit of deferred work: a request payload the scheduler delivers
@@ -27,9 +27,13 @@ export const file_malonaz_scheduler_v1_job: GenFile = /*@__PURE__*/
  * retrying with backoff until it succeeds or exhausts its attempts.
  *
  * The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
- * `error`, `response`); producers own `payload`, `labels` and `schedule_time`.
- * The outcome mirrors a long-running operation: a terminal job carries either
- * a `response` or an `error`.
+ * `error`, `response`, `metadata`); producers own `payload`, `labels`,
+ * `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
+ * a long-running operation: a terminal job carries either a `response` or an
+ * `error`.
+ *
+ * A job belongs to the organization or user it runs on behalf of; system-wide
+ * work (e.g. nightly maintenance) lives at the root.
  *
  * @generated from message malonaz.scheduler.v1.Job
  */
@@ -37,6 +41,8 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   /**
    * The resource name of the job.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -95,24 +101,53 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   state: JobState;
 
   /**
+   * The claim priority among due jobs: higher runs first, ties run in due
+   * order. Defaults to 0. May only be updated on a PENDING job.
+   *
+   * @generated from field: int32 priority = 9;
+   */
+  priority: number;
+
+  /**
+   * An optional producer-chosen key coalescing work: at most one PENDING and
+   * one RUNNING job exist per key at any time. Creating a job whose key already
+   * has a PENDING job returns that job instead; creating one while the key's
+   * job is RUNNING queues a single trailing run. Keys are global, so producers
+   * namespace them.
+   *
+   * @generated from field: string unique_key = 10;
+   */
+  uniqueKey: string;
+
+  /**
    * The earliest time the job may run. Runs immediately if unset. Also holds
    * the time of the next attempt while a failed job waits out its backoff.
    *
-   * @generated from field: google.protobuf.Timestamp schedule_time = 9;
+   * @generated from field: google.protobuf.Timestamp schedule_time = 11;
    */
   scheduleTime?: Timestamp;
 
   /**
+   * The time the job expires: it must have started by then. A job still
+   * PENDING at its expiry fails with DEADLINE_EXCEEDED, and a retry whose
+   * backoff would reach past it fails at once instead of waiting. Cleared by
+   * RetryJob, which is an explicit request to run regardless.
+   *
+   * @generated from field: google.protobuf.Timestamp expire_time = 12;
+   */
+  expireTime?: Timestamp;
+
+  /**
    * The time the current (or last) attempt started.
    *
-   * @generated from field: google.protobuf.Timestamp start_time = 10;
+   * @generated from field: google.protobuf.Timestamp start_time = 13;
    */
   startTime?: Timestamp;
 
   /**
    * The time the job reached a terminal state.
    *
-   * @generated from field: google.protobuf.Timestamp complete_time = 11;
+   * @generated from field: google.protobuf.Timestamp complete_time = 14;
    */
   completeTime?: Timestamp;
 
@@ -121,14 +156,22 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
    * call is in flight; a running job whose lease has lapsed is returned to
    * PENDING, which is how a crashed worker's jobs are recovered.
    *
-   * @generated from field: google.protobuf.Timestamp lock_time = 12;
+   * @generated from field: google.protobuf.Timestamp lock_time = 15;
    */
   lockTime?: Timestamp;
 
   /**
+   * The time after which a terminal job is permanently deleted. Set when the
+   * job reaches a terminal state, from the scheduler's retention.
+   *
+   * @generated from field: google.protobuf.Timestamp purge_time = 16;
+   */
+  purgeTime?: Timestamp;
+
+  /**
    * The number of times the job has been claimed by a worker.
    *
-   * @generated from field: int32 attempt_count = 13;
+   * @generated from field: int32 attempt_count = 17;
    */
   attemptCount: number;
 
@@ -136,7 +179,7 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
    * The error of the last failed attempt. Cleared when the job is retried.
    * Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
    *
-   * @generated from field: google.rpc.Status error = 14;
+   * @generated from field: google.rpc.Status error = 18;
    */
   error?: Status;
 
@@ -144,24 +187,23 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
    * The processor's response, set on SUCCEEDED jobs whose type declares a
    * response type.
    *
-   * @generated from field: google.protobuf.Any response = 15;
+   * @generated from field: google.protobuf.Any response = 19;
    */
   response?: Any;
 
   /**
    * The latest progress reported by the processor through ReportJobProgress.
    *
-   * @generated from field: google.protobuf.Any progress = 16;
+   * @generated from field: google.protobuf.Any progress = 20;
    */
   progress?: Any;
 
   /**
-   * The time after which a terminal job is deleted. Set when the job reaches
-   * a terminal state, from the scheduler's retention.
+   * The execution history of the job.
    *
-   * @generated from field: google.protobuf.Timestamp expire_time = 17;
+   * @generated from field: malonaz.scheduler.v1.JobMetadata metadata = 21;
    */
-  expireTime?: Timestamp;
+  metadata?: JobMetadata;
 };
 
 /**
@@ -170,9 +212,13 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
  * retrying with backoff until it succeeds or exhausts its attempts.
  *
  * The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
- * `error`, `response`); producers own `payload`, `labels` and `schedule_time`.
- * The outcome mirrors a long-running operation: a terminal job carries either
- * a `response` or an `error`.
+ * `error`, `response`, `metadata`); producers own `payload`, `labels`,
+ * `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
+ * a long-running operation: a terminal job carries either a `response` or an
+ * `error`.
+ *
+ * A job belongs to the organization or user it runs on behalf of; system-wide
+ * work (e.g. nightly maintenance) lives at the root.
  *
  * @generated from message malonaz.scheduler.v1.Job
  */
@@ -180,6 +226,8 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   /**
    * The resource name of the job.
    * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
    *
    * @generated from field: string name = 1;
    */
@@ -238,24 +286,53 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   state: JobState;
 
   /**
+   * The claim priority among due jobs: higher runs first, ties run in due
+   * order. Defaults to 0. May only be updated on a PENDING job.
+   *
+   * @generated from field: int32 priority = 9;
+   */
+  priority: number;
+
+  /**
+   * An optional producer-chosen key coalescing work: at most one PENDING and
+   * one RUNNING job exist per key at any time. Creating a job whose key already
+   * has a PENDING job returns that job instead; creating one while the key's
+   * job is RUNNING queues a single trailing run. Keys are global, so producers
+   * namespace them.
+   *
+   * @generated from field: string unique_key = 10;
+   */
+  uniqueKey: string;
+
+  /**
    * The earliest time the job may run. Runs immediately if unset. Also holds
    * the time of the next attempt while a failed job waits out its backoff.
    *
-   * @generated from field: google.protobuf.Timestamp schedule_time = 9;
+   * @generated from field: google.protobuf.Timestamp schedule_time = 11;
    */
   scheduleTime?: Timestamp;
 
   /**
+   * The time the job expires: it must have started by then. A job still
+   * PENDING at its expiry fails with DEADLINE_EXCEEDED, and a retry whose
+   * backoff would reach past it fails at once instead of waiting. Cleared by
+   * RetryJob, which is an explicit request to run regardless.
+   *
+   * @generated from field: google.protobuf.Timestamp expire_time = 12;
+   */
+  expireTime?: Timestamp;
+
+  /**
    * The time the current (or last) attempt started.
    *
-   * @generated from field: google.protobuf.Timestamp start_time = 10;
+   * @generated from field: google.protobuf.Timestamp start_time = 13;
    */
   startTime?: Timestamp;
 
   /**
    * The time the job reached a terminal state.
    *
-   * @generated from field: google.protobuf.Timestamp complete_time = 11;
+   * @generated from field: google.protobuf.Timestamp complete_time = 14;
    */
   completeTime?: Timestamp;
 
@@ -264,14 +341,22 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
    * call is in flight; a running job whose lease has lapsed is returned to
    * PENDING, which is how a crashed worker's jobs are recovered.
    *
-   * @generated from field: google.protobuf.Timestamp lock_time = 12;
+   * @generated from field: google.protobuf.Timestamp lock_time = 15;
    */
   lockTime?: Timestamp;
 
   /**
+   * The time after which a terminal job is permanently deleted. Set when the
+   * job reaches a terminal state, from the scheduler's retention.
+   *
+   * @generated from field: google.protobuf.Timestamp purge_time = 16;
+   */
+  purgeTime?: Timestamp;
+
+  /**
    * The number of times the job has been claimed by a worker.
    *
-   * @generated from field: int32 attempt_count = 13;
+   * @generated from field: int32 attempt_count = 17;
    */
   attemptCount: number;
 
@@ -279,7 +364,7 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
    * The error of the last failed attempt. Cleared when the job is retried.
    * Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
    *
-   * @generated from field: google.rpc.Status error = 14;
+   * @generated from field: google.rpc.Status error = 18;
    */
   error?: StatusValid;
 
@@ -287,24 +372,23 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
    * The processor's response, set on SUCCEEDED jobs whose type declares a
    * response type.
    *
-   * @generated from field: google.protobuf.Any response = 15;
+   * @generated from field: google.protobuf.Any response = 19;
    */
   response?: Any;
 
   /**
    * The latest progress reported by the processor through ReportJobProgress.
    *
-   * @generated from field: google.protobuf.Any progress = 16;
+   * @generated from field: google.protobuf.Any progress = 20;
    */
   progress?: Any;
 
   /**
-   * The time after which a terminal job is deleted. Set when the job reaches
-   * a terminal state, from the scheduler's retention.
+   * The execution history of the job.
    *
-   * @generated from field: google.protobuf.Timestamp expire_time = 17;
+   * @generated from field: malonaz.scheduler.v1.JobMetadata metadata = 21;
    */
-  expireTime?: Timestamp;
+  metadata?: JobMetadataValid;
 };
 
 /**
@@ -313,6 +397,89 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
  */
 export const JobSchema: GenMessage<Job, {validType: JobValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_v1_job, 0);
+
+/**
+ * The execution history of a job, maintained by the scheduler.
+ *
+ * @generated from message malonaz.scheduler.v1.JobMetadata
+ */
+export type JobMetadata = Message<"malonaz.scheduler.v1.JobMetadata"> & {
+  /**
+   * The attempts made so far, most recent last. Capped at the 20 most recent;
+   * cleared when the job is retried.
+   *
+   * @generated from field: repeated malonaz.scheduler.v1.JobAttempt attempts = 1;
+   */
+  attempts: JobAttempt[];
+
+  /**
+   * The worker instance holding the lease while the job is RUNNING.
+   *
+   * @generated from field: string worker = 2;
+   */
+  worker: string;
+};
+
+export type JobMetadataValid = JobMetadata;
+
+/**
+ * Describes the message malonaz.scheduler.v1.JobMetadata.
+ * Use `create(JobMetadataSchema)` to create a new message.
+ */
+export const JobMetadataSchema: GenMessage<JobMetadata, {validType: JobMetadataValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_v1_job, 1);
+
+/**
+ * One attempt at running a job.
+ *
+ * @generated from message malonaz.scheduler.v1.JobAttempt
+ */
+export type JobAttempt = Message<"malonaz.scheduler.v1.JobAttempt"> & {
+  /**
+   * The 1-based attempt number.
+   *
+   * @generated from field: int32 attempt = 1;
+   */
+  attempt: number;
+
+  /**
+   * The time the attempt was claimed.
+   *
+   * @generated from field: google.protobuf.Timestamp start_time = 2;
+   */
+  startTime?: Timestamp;
+
+  /**
+   * The time the attempt's outcome was recorded.
+   *
+   * @generated from field: google.protobuf.Timestamp end_time = 3;
+   */
+  endTime?: Timestamp;
+
+  /**
+   * The worker instance that ran the attempt.
+   *
+   * @generated from field: string worker = 4;
+   */
+  worker: string;
+
+  /**
+   * The attempt's failure; unset when the attempt succeeded. A reaped attempt
+   * (worker lease lapsed) records UNAVAILABLE.
+   *
+   * @generated from field: google.rpc.Status error = 5;
+   */
+  error?: Status;
+};
+
+export type JobAttemptValid = JobAttempt;
+
+/**
+ * Describes the message malonaz.scheduler.v1.JobAttempt.
+ * Use `create(JobAttemptSchema)` to create a new message.
+ */
+export const JobAttemptSchema: GenMessage<JobAttempt, {validType: JobAttemptValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_v1_job, 2);
 
 /**
  * The lifecycle state of a job.

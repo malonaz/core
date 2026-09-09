@@ -86,6 +86,9 @@ func (s *Store) InsertShelfIdempotently(ctx context.Context, requestID string, r
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrShelfAlreadyExists
+			}
 		}
 		return nil, err
 	}

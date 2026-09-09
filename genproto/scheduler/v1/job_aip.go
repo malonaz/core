@@ -8,10 +8,190 @@
 package v1
 
 import (
+	encoding "encoding"
 	fmt "fmt"
 	resourcename "go.einride.tech/aip/resourcename"
 	strings "strings"
 )
+
+type OrganizationResourceName struct {
+	Organization string
+}
+
+func (n OrganizationResourceName) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n OrganizationResourceName) ContainsWildcard() bool {
+	return false || n.Organization == "-"
+}
+
+func (n OrganizationResourceName) String() string {
+	return resourcename.Sprint(
+		"organizations/{organization}",
+		n.Organization,
+	)
+}
+
+func (n OrganizationResourceName) MarshalString() (string, error) {
+	if err := n.Validate(); err != nil {
+		return "", err
+	}
+	return n.String(), nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n OrganizationResourceName) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+func (n *OrganizationResourceName) UnmarshalString(name string) error {
+	err := resourcename.Sscan(
+		name,
+		"organizations/{organization}",
+		&n.Organization,
+	)
+	if err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *OrganizationResourceName) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n OrganizationResourceName) Type() string {
+	return "scheduler.malonaz.com/Organization"
+}
+
+// Pattern returns the resource name pattern for OrganizationResourceName as a string.
+func (n OrganizationResourceName) Pattern() string {
+	return "organizations/{organization}"
+}
+
+type UserResourceName struct {
+	Organization string
+	User         string
+}
+
+func (n OrganizationResourceName) UserResourceName(
+	user string,
+) UserResourceName {
+	return UserResourceName{
+		Organization: n.Organization,
+		User:         user,
+	}
+}
+
+func (n UserResourceName) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	if n.User == "" {
+		return fmt.Errorf("user: empty")
+	}
+	if strings.IndexByte(n.User, '/') != -1 {
+		return fmt.Errorf("user: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n UserResourceName) ContainsWildcard() bool {
+	return false || n.Organization == "-" || n.User == "-"
+}
+
+func (n UserResourceName) String() string {
+	return resourcename.Sprint(
+		"organizations/{organization}/users/{user}",
+		n.Organization,
+		n.User,
+	)
+}
+
+func (n UserResourceName) MarshalString() (string, error) {
+	if err := n.Validate(); err != nil {
+		return "", err
+	}
+	return n.String(), nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n UserResourceName) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+func (n *UserResourceName) UnmarshalString(name string) error {
+	err := resourcename.Sscan(
+		name,
+		"organizations/{organization}/users/{user}",
+		&n.Organization,
+		&n.User,
+	)
+	if err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *UserResourceName) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n UserResourceName) Type() string {
+	return "scheduler.malonaz.com/User"
+}
+
+// Pattern returns the resource name pattern for UserResourceName as a string.
+func (n UserResourceName) Pattern() string {
+	return "organizations/{organization}/users/{user}"
+}
+
+func (n UserResourceName) OrganizationResourceName() OrganizationResourceName {
+	return OrganizationResourceName{
+		Organization: n.Organization,
+	}
+}
+
+type JobMultiPatternResourceName interface {
+	fmt.Stringer
+	encoding.TextMarshaler
+	MarshalString() (string, error)
+	ContainsWildcard() bool
+}
+
+func ParseJobMultiPatternResourceName(name string) (JobMultiPatternResourceName, error) {
+	switch {
+	case resourcename.Match("jobs/{job}", name):
+		var result JobResourceName
+		return &result, result.UnmarshalString(name)
+	case resourcename.Match("organizations/{organization}/jobs/{job}", name):
+		var result OrganizationsJobResourceName
+		return &result, result.UnmarshalString(name)
+	case resourcename.Match("organizations/{organization}/users/{user}/jobs/{job}", name):
+		var result OrganizationsUsersJobResourceName
+		return &result, result.UnmarshalString(name)
+	default:
+		return nil, fmt.Errorf("no matching pattern")
+	}
+}
 
 type JobResourceName struct {
 	Job string
@@ -77,4 +257,212 @@ func (n JobResourceName) Type() string {
 // Pattern returns the resource name pattern for JobResourceName as a string.
 func (n JobResourceName) Pattern() string {
 	return "jobs/{job}"
+}
+
+type OrganizationsJobResourceName struct {
+	Organization string
+	Job          string
+}
+
+func (n OrganizationResourceName) OrganizationsJobResourceName(
+	job string,
+) OrganizationsJobResourceName {
+	return OrganizationsJobResourceName{
+		Organization: n.Organization,
+		Job:          job,
+	}
+}
+
+func (n OrganizationsJobResourceName) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	if n.Job == "" {
+		return fmt.Errorf("job: empty")
+	}
+	if strings.IndexByte(n.Job, '/') != -1 {
+		return fmt.Errorf("job: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n OrganizationsJobResourceName) ContainsWildcard() bool {
+	return false || n.Organization == "-" || n.Job == "-"
+}
+
+func (n OrganizationsJobResourceName) String() string {
+	return resourcename.Sprint(
+		"organizations/{organization}/jobs/{job}",
+		n.Organization,
+		n.Job,
+	)
+}
+
+func (n OrganizationsJobResourceName) MarshalString() (string, error) {
+	if err := n.Validate(); err != nil {
+		return "", err
+	}
+	return n.String(), nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n OrganizationsJobResourceName) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+func (n *OrganizationsJobResourceName) UnmarshalString(name string) error {
+	err := resourcename.Sscan(
+		name,
+		"organizations/{organization}/jobs/{job}",
+		&n.Organization,
+		&n.Job,
+	)
+	if err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *OrganizationsJobResourceName) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n OrganizationsJobResourceName) Type() string {
+	return "scheduler.malonaz.com/Job"
+}
+
+// Pattern returns the resource name pattern for OrganizationsJobResourceName as a string.
+func (n OrganizationsJobResourceName) Pattern() string {
+	return "organizations/{organization}/jobs/{job}"
+}
+
+func (n OrganizationsJobResourceName) OrganizationResourceName() OrganizationResourceName {
+	return OrganizationResourceName{
+		Organization: n.Organization,
+	}
+}
+
+type OrganizationsUsersJobResourceName struct {
+	Organization string
+	User         string
+	Job          string
+}
+
+func (n OrganizationResourceName) OrganizationsUsersJobResourceName(
+	user string,
+	job string,
+) OrganizationsUsersJobResourceName {
+	return OrganizationsUsersJobResourceName{
+		Organization: n.Organization,
+		User:         user,
+		Job:          job,
+	}
+}
+
+func (n UserResourceName) OrganizationsUsersJobResourceName(
+	job string,
+) OrganizationsUsersJobResourceName {
+	return OrganizationsUsersJobResourceName{
+		Organization: n.Organization,
+		User:         n.User,
+		Job:          job,
+	}
+}
+
+func (n OrganizationsUsersJobResourceName) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	if n.User == "" {
+		return fmt.Errorf("user: empty")
+	}
+	if strings.IndexByte(n.User, '/') != -1 {
+		return fmt.Errorf("user: contains illegal character '/'")
+	}
+	if n.Job == "" {
+		return fmt.Errorf("job: empty")
+	}
+	if strings.IndexByte(n.Job, '/') != -1 {
+		return fmt.Errorf("job: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n OrganizationsUsersJobResourceName) ContainsWildcard() bool {
+	return false || n.Organization == "-" || n.User == "-" || n.Job == "-"
+}
+
+func (n OrganizationsUsersJobResourceName) String() string {
+	return resourcename.Sprint(
+		"organizations/{organization}/users/{user}/jobs/{job}",
+		n.Organization,
+		n.User,
+		n.Job,
+	)
+}
+
+func (n OrganizationsUsersJobResourceName) MarshalString() (string, error) {
+	if err := n.Validate(); err != nil {
+		return "", err
+	}
+	return n.String(), nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n OrganizationsUsersJobResourceName) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+func (n *OrganizationsUsersJobResourceName) UnmarshalString(name string) error {
+	err := resourcename.Sscan(
+		name,
+		"organizations/{organization}/users/{user}/jobs/{job}",
+		&n.Organization,
+		&n.User,
+		&n.Job,
+	)
+	if err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *OrganizationsUsersJobResourceName) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n OrganizationsUsersJobResourceName) Type() string {
+	return "scheduler.malonaz.com/Job"
+}
+
+// Pattern returns the resource name pattern for OrganizationsUsersJobResourceName as a string.
+func (n OrganizationsUsersJobResourceName) Pattern() string {
+	return "organizations/{organization}/users/{user}/jobs/{job}"
+}
+
+func (n OrganizationsUsersJobResourceName) OrganizationResourceName() OrganizationResourceName {
+	return OrganizationResourceName{
+		Organization: n.Organization,
+	}
+}
+
+func (n OrganizationsUsersJobResourceName) UserResourceName() UserResourceName {
+	return UserResourceName{
+		Organization: n.Organization,
+		User:         n.User,
+	}
 }

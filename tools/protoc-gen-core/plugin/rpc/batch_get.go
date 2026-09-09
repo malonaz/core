@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-
-	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 func (mc *methodCtx) generateBatchGet() error {
@@ -26,7 +24,7 @@ func (mc *methodCtx) generateBatchGet() error {
 		g.P("  var parentPatternValue string")
 		g.P("  if request.Parent != \"\" {")
 		g.P("    switch {")
-		for _, pattern := range resource.SortPatternsBySpecificity(mc.patterns) {
+		for _, pattern := range mc.parentedPatterns() {
 			g.P(fmt.Sprintf("    case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), pattern.Parent.Value))
 			g.P(fmt.Sprintf("      parentPatternValue = \"%s\"", pattern.Value))
 		}

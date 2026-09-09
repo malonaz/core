@@ -16,9 +16,21 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 //
 // # Resource model
 //
-// - The API has a top-level collection of [Job][malonaz.scheduler.v1.Job]
-//   resources.
+// - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
+//   hang off the organization or user they run on behalf of.
 //   Format: jobs/{job}
+//   Format: organizations/{organization}/jobs/{job}
+//   Format: organizations/{organization}/users/{user}/jobs/{job}
+//
+// # Scheduling
+//
+// A job is due at its `schedule_time` (at creation when unset). Due jobs are
+// claimed highest `priority` first, then in due order, across every parent.
+// A job with an `expire_time` must have started by then: it fails with
+// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
+// would reach past it fails at once. A `unique_key` coalesces work: at most one
+// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
+// one run plus, if one was in flight, a single trailing run.
 //
 // # Delivery
 //
@@ -28,7 +40,7 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 // jobs, invoke the method with the payload as request body, and record the
 // outcome: SUCCEEDED with the response, or PENDING again with the next attempt
 // scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted.
+// exhausted. Every attempt is recorded in the job's `metadata`.
 //
 // Every processor call carries the job's resource name in the
 // `x-scheduler-job` request metadata, which processors pass to
@@ -36,20 +48,32 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+//
+// Terminal jobs are kept for the scheduler's retention and deleted at their
+// `purge_time`.
 service SchedulerService {
   option (google.api.default_host) = "scheduler.malonaz.com";
 
   // ===================== Job Management =====================
 
-  // Create a job.
+  // Create a job. When the job carries a `unique_key` that already has a
+  // PENDING job, no job is created and that job is returned instead.
   //
   // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateJob(CreateJobRequest) returns (scheduler.v1.Job) {
     option (google.api.http) = {
       post: "/v1/jobs"
       body: "job"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/jobs"
+        body: "job"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/users/*}/jobs"
+        body: "job"
+      }
     };
-    option (google.api.method_signature) = "job";
+    option (google.api.method_signature) = "parent,job";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
 
@@ -58,7 +82,11 @@ service SchedulerService {
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetJob(GetJobRequest) returns (scheduler.v1.Job) {
     option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{name=jobs/*}"};
+    option (google.api.http) = {
+      get: "/v1/{name=jobs/*}"
+      additional_bindings: {get: "/v1/{name=organizations/*/jobs/*}"}
+      additional_bindings: {get: "/v1/{name=organizations/*/users/*/jobs/*}"}
+    };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
@@ -70,6 +98,14 @@ service SchedulerService {
     option (google.api.http) = {
       patch: "/v1/{job.name=jobs/*}"
       body: "job"
+      additional_bindings: {
+        patch: "/v1/{job.name=organizations/*/jobs/*}"
+        body: "job"
+      }
+      additional_bindings: {
+        patch: "/v1/{job.name=organizations/*/users/*/jobs/*}"
+        body: "job"
+      }
     };
     option (google.api.method_signature) = "job,update_mask";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
@@ -79,7 +115,11 @@ service SchedulerService {
   //
   // See: https://google.aip.dev/135 (Standard methods: Delete).
   rpc DeleteJob(DeleteJobRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/v1/{name=jobs/*}"};
+    option (google.api.http) = {
+      delete: "/v1/{name=jobs/*}"
+      additional_bindings: {delete: "/v1/{name=organizations/*/jobs/*}"}
+      additional_bindings: {delete: "/v1/{name=organizations/*/users/*/jobs/*}"}
+    };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
@@ -89,8 +129,12 @@ service SchedulerService {
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListJobs(ListJobsRequest) returns (ListJobsResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/jobs"};
-    option (google.api.method_signature) = "";
+    option (google.api.http) = {
+      get: "/v1/jobs"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/jobs"}
+      additional_bindings: {get: "/v1/{parent=organizations/*/users/*}/jobs"}
+    };
+    option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
 
@@ -99,20 +143,33 @@ service SchedulerService {
   // See: https://google.aip.dev/231 (Batch methods: Get).
   rpc BatchGetJobs(BatchGetJobsRequest) returns (BatchGetJobsResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/jobs:batchGet"};
-    option (google.api.method_signature) = "names";
+    option (google.api.http) = {
+      get: "/v1/jobs:batchGet"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/jobs:batchGet"}
+      additional_bindings: {get: "/v1/{parent=organizations/*/users/*}/jobs:batchGet"}
+    };
+    option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
 
-  // Retry a terminal job: returns it to PENDING with its attempts and outcome
-  // reset, so it runs again immediately. Fails with FAILED_PRECONDITION on a
-  // PENDING or RUNNING job.
+  // Retry a terminal job: returns it to PENDING with its attempts, outcome and
+  // `expire_time` reset, so it runs again immediately. Fails with
+  // FAILED_PRECONDITION on a PENDING or RUNNING job, and with ALREADY_EXISTS
+  // when the job's `unique_key` already has a PENDING job.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc RetryJob(RetryJobRequest) returns (scheduler.v1.Job) {
     option (google.api.http) = {
       post: "/v1/{name=jobs/*}:retry"
       body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/jobs/*}:retry"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/jobs/*}:retry"
+        body: "*"
+      }
     };
     option (google.api.method_signature) = "name";
   }
@@ -126,6 +183,14 @@ service SchedulerService {
     option (google.api.http) = {
       post: "/v1/{name=jobs/*}:cancel"
       body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/jobs/*}:cancel"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/jobs/*}:cancel"
+        body: "*"
+      }
     };
     option (google.api.method_signature) = "name";
   }
@@ -140,6 +205,14 @@ service SchedulerService {
     option (google.api.http) = {
       post: "/v1/{name=jobs/*}:reportProgress"
       body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/jobs/*}:reportProgress"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/jobs/*}:reportProgress"
+        body: "*"
+      }
     };
     option (google.api.method_signature) = "name,progress";
   }

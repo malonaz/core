@@ -31,10 +31,11 @@ const (
 // Request message for SchedulerService.CreateJob.
 type CreateJobRequest struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Job          *v1.Job                `protobuf:"bytes,1,opt,name=job,proto3"`
-	xxx_hidden_JobId        string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3"`
-	xxx_hidden_RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3"`
-	xxx_hidden_ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3"`
+	xxx_hidden_Parent       string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Job          *v1.Job                `protobuf:"bytes,2,opt,name=job,proto3"`
+	xxx_hidden_JobId        string                 `protobuf:"bytes,3,opt,name=job_id,json=jobId,proto3"`
+	xxx_hidden_RequestId    string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
+	xxx_hidden_ValidateOnly bool                   `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -64,6 +65,13 @@ func (x *CreateJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *CreateJobRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
 func (x *CreateJobRequest) GetJob() *v1.Job {
 	if x != nil {
 		return x.xxx_hidden_Job
@@ -90,6 +98,10 @@ func (x *CreateJobRequest) GetValidateOnly() bool {
 		return x.xxx_hidden_ValidateOnly
 	}
 	return false
+}
+
+func (x *CreateJobRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
 }
 
 func (x *CreateJobRequest) SetJob(v *v1.Job) {
@@ -122,7 +134,12 @@ func (x *CreateJobRequest) ClearJob() {
 type CreateJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The job to create. Only `payload`, `labels` and `schedule_time` are read.
+	// The parent resource. Empty for a system job.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
+	// The job to create. Only the producer-owned fields are read: `payload`,
+	// `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
 	Job *v1.Job
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -140,6 +157,7 @@ func (b0 CreateJobRequest_builder) Build() *CreateJobRequest {
 	m0 := &CreateJobRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Job = b.Job
 	x.xxx_hidden_JobId = b.JobId
 	x.xxx_hidden_RequestId = b.RequestId
@@ -196,6 +214,8 @@ type GetJobRequest_builder struct {
 
 	// The resource name of the job to retrieve.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 }
 
@@ -288,7 +308,8 @@ func (x *UpdateJobRequest) ClearUpdateMask() {
 type UpdateJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The job to update. `schedule_time` may only be updated on a PENDING job.
+	// The job to update. `schedule_time` and `priority` may only be updated on
+	// a PENDING job.
 	Job *v1.Job
 	// The list of fields to update.
 	UpdateMask *fieldmaskpb.FieldMask
@@ -376,6 +397,8 @@ type DeleteJobRequest_builder struct {
 
 	// The resource name of the job to delete.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 	// If true, and the job is not found, the request will succeed
 	// but no action will be taken on the server.
@@ -397,10 +420,11 @@ func (b0 DeleteJobRequest_builder) Build() *DeleteJobRequest {
 // Request message for SchedulerService.ListJobs.
 type ListJobsRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Filter    string                 `protobuf:"bytes,1,opt,name=filter,proto3"`
-	xxx_hidden_OrderBy   string                 `protobuf:"bytes,2,opt,name=order_by,json=orderBy,proto3"`
-	xxx_hidden_PageSize  int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3"`
-	xxx_hidden_PageToken string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Filter    string                 `protobuf:"bytes,2,opt,name=filter,proto3"`
+	xxx_hidden_OrderBy   string                 `protobuf:"bytes,3,opt,name=order_by,json=orderBy,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -428,6 +452,13 @@ func (x *ListJobsRequest) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
+}
+
+func (x *ListJobsRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
 }
 
 func (x *ListJobsRequest) GetFilter() string {
@@ -458,6 +489,10 @@ func (x *ListJobsRequest) GetPageToken() string {
 	return ""
 }
 
+func (x *ListJobsRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
 func (x *ListJobsRequest) SetFilter(v string) {
 	x.xxx_hidden_Filter = v
 }
@@ -477,6 +512,11 @@ func (x *ListJobsRequest) SetPageToken(v string) {
 type ListJobsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The parent to list jobs under. Empty lists system jobs; the wildcard `-`
+	// lists across parents (e.g. `organizations/-` for every organization's jobs).
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
 	// @autogen.
 	Filter string
 	// @autogen.
@@ -491,6 +531,7 @@ func (b0 ListJobsRequest_builder) Build() *ListJobsRequest {
 	m0 := &ListJobsRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Filter = b.Filter
 	x.xxx_hidden_OrderBy = b.OrderBy
 	x.xxx_hidden_PageSize = b.PageSize
@@ -577,10 +618,11 @@ func (b0 ListJobsResponse_builder) Build() *ListJobsResponse {
 
 // Request message for SchedulerService.BatchGetJobs.
 type BatchGetJobsRequest struct {
-	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Names []string               `protobuf:"bytes,1,rep,name=names,proto3"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Names  []string               `protobuf:"bytes,2,rep,name=names,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *BatchGetJobsRequest) Reset() {
@@ -608,11 +650,22 @@ func (x *BatchGetJobsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *BatchGetJobsRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
 func (x *BatchGetJobsRequest) GetNames() []string {
 	if x != nil {
 		return x.xxx_hidden_Names
 	}
 	return nil
+}
+
+func (x *BatchGetJobsRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
 }
 
 func (x *BatchGetJobsRequest) SetNames(v []string) {
@@ -622,8 +675,15 @@ func (x *BatchGetJobsRequest) SetNames(v []string) {
 type BatchGetJobsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The parent shared by every requested job. Optional; when set, every name
+	// must be a direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
 	// The resource names of the jobs to retrieve.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	// A maximum of 1000 jobs can be retrieved in a batch.
 	Names []string
 }
@@ -632,6 +692,7 @@ func (b0 BatchGetJobsRequest_builder) Build() *BatchGetJobsRequest {
 	m0 := &BatchGetJobsRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Names = b.Names
 	return m0
 }
@@ -746,6 +807,8 @@ type RetryJobRequest_builder struct {
 
 	// The resource name of the job to retry.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 }
 
@@ -806,6 +869,8 @@ type CancelJobRequest_builder struct {
 
 	// The resource name of the job to cancel.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 }
 
@@ -889,6 +954,8 @@ type ReportJobProgressRequest_builder struct {
 
 	// The resource name of the running job.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 	// The progress to record, replacing any previously reported progress.
 	Progress *anypb.Any
@@ -907,45 +974,51 @@ var File_malonaz_scheduler_scheduler_service_v1_job_proto protoreflect.FileDescr
 
 const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\xd6\x01\n" +
-	"\x10CreateJobRequest\x123\n" +
-	"\x03job\x18\x01 \x01(\v2\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xc8\x01\x01R\x03job\x12<\n" +
-	"\x06job_id\x18\x02 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\x05jobId\x12*\n" +
+	"0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\x8e\x02\n" +
+	"\x10CreateJobRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x123\n" +
+	"\x03job\x18\x02 \x01(\v2\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xc8\x01\x01R\x03job\x12<\n" +
+	"\x06job_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\x05jobId\x12*\n" +
 	"\n" +
-	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12#\n" +
-	"\rvalidate_only\x18\x04 \x01(\bR\fvalidateOnly\"L\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12#\n" +
+	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"L\n" +
 	"\rGetJobRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\xec\x01\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\xf6\x01\n" +
 	"\x10UpdateJobRequest\x123\n" +
 	"\x03job\x18\x01 \x01(\v2\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xd8\x01\x03R\x03job\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:^\xbaH?\x1a=\n" +
-	"\x11job.name_required\x12\x14job.name must be set\x1a\x12has(this.job.name)\xea\x9c\xc1\x03\x17\n" +
+	"updateMask:h\xbaH?\x1a=\n" +
+	"\x11job.name_required\x12\x14job.name must be set\x1a\x12has(this.job.name)\xea\x9c\xc1\x03!\n" +
 	"\x06labels\n" +
-	"\rschedule_time\"\x88\x01\n" +
+	"\rschedule_time\n" +
+	"\bpriority\"\x88\x01\n" +
 	"\x10DeleteJobRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xe9\x01\n" +
-	"\x0fListJobsRequest\x12\x16\n" +
-	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x19\n" +
-	"\border_by\x18\x02 \x01(\tR\aorderBy\x12'\n" +
-	"\tpage_size\x18\x03 \x01(\x05B\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xb8\x02\n" +
+	"\x0fListJobsRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x03 \x01(\tR\aorderBy\x12'\n" +
+	"\tpage_size\x18\x04 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x04 \x01(\tR\tpageToken:[\x82\xf3-\x02\bd\x8a\xf3-J\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:r\x82\xf3-\x02\bd\x8a\xf3-a\n" +
 	"\vcreate_time\n" +
 	"\vupdate_time\n" +
 	"\rschedule_time\n" +
-	"\rcomplete_time\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"\vexpire_time\n" +
+	"\rcomplete_time\n" +
+	"\bpriority\x12\x10create_time desc\x92\xf3-\x03\n" +
 	"\x01*\"i\n" +
 	"\x10ListJobsResponse\x12-\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"^\n" +
-	"\x13BatchGetJobsRequest\x12G\n" +
-	"\x05names\x18\x01 \x03(\tB1\xfaA\x1b\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x96\x01\n" +
+	"\x13BatchGetJobsRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x12G\n" +
+	"\x05names\x18\x02 \x03(\tB1\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"E\n" +
 	"\x14BatchGetJobsResponse\x12-\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\"N\n" +

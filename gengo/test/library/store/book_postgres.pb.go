@@ -112,6 +112,9 @@ func (s *Store) InsertBookIdempotently(ctx context.Context, requestID string, ra
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrBookAlreadyExists
+			}
 		}
 		return nil, err
 	}

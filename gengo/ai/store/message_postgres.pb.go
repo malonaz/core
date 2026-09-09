@@ -89,6 +89,9 @@ func (s *Store) InsertMessageIdempotently(ctx context.Context, requestID string,
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrMessageAlreadyExists
+			}
 		}
 		return nil, err
 	}

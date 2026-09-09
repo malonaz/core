@@ -13,15 +13,11 @@ import (
 
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
-	"github.com/malonaz/core/go/aip"
-	"github.com/malonaz/core/go/uuid"
 )
 
 // JobMetadataKey is the request metadata key under which the scheduler sends a
 // processor the resource name of the job it is executing.
 const JobMetadataKey = "x-scheduler-job"
-
-var jobUUIDNamespace = aip.MustGetUUIDNamespace(&schedulerpb.Job{})
 
 // JobFromIncomingContext returns the name of the job a processor call executes.
 func JobFromIncomingContext(ctx context.Context) (string, bool) {
@@ -42,11 +38,25 @@ func WithScheduleTime(scheduleTime time.Time) CreateJobOption {
 	}
 }
 
-// WithIdempotencyKey derives the request ID from key, so that repeated
-// requests with the same key create a single job.
-func WithIdempotencyKey(key string) CreateJobOption {
+// WithExpireTime requires the job to have started by the given time.
+func WithExpireTime(expireTime time.Time) CreateJobOption {
 	return func(request *pb.CreateJobRequest) {
-		request.RequestId = uuid.NewV5(jobUUIDNamespace, key).String()
+		request.Job.ExpireTime = timestamppb.New(expireTime)
+	}
+}
+
+// WithPriority sets the job's claim priority; higher runs first.
+func WithPriority(priority int32) CreateJobOption {
+	return func(request *pb.CreateJobRequest) {
+		request.Job.Priority = priority
+	}
+}
+
+// WithUniqueKey coalesces the job with any PENDING job sharing the key. Keys
+// are global: namespace them.
+func WithUniqueKey(uniqueKey string) CreateJobOption {
+	return func(request *pb.CreateJobRequest) {
+		request.Job.UniqueKey = uniqueKey
 	}
 }
 
@@ -58,14 +68,15 @@ func WithLabels(labels map[string]string) CreateJobOption {
 }
 
 // NewCreateJobRequest builds a CreateJob request delivering message to the
-// processor configured for its type.
-func NewCreateJobRequest(message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
+// processor configured for its type, under parent (empty for a system job).
+func NewCreateJobRequest(parent string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
 	payload, err := anypb.New(message)
 	if err != nil {
 		return nil, err
 	}
 	request := &pb.CreateJobRequest{
-		Job: &schedulerpb.Job{Payload: payload},
+		Parent: parent,
+		Job:    &schedulerpb.Job{Payload: payload},
 	}
 	for _, option := range options {
 		option(request)

@@ -12,27 +12,52 @@ import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+option (google.api.resource_definition) = {
+  type: "scheduler.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+option (google.api.resource_definition) = {
+  type: "scheduler.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
 
 // A Job is a unit of deferred work: a request payload the scheduler delivers
 // to the processor configured for its type, at or after its schedule time,
 // retrying with backoff until it succeeds or exhausts its attempts.
 //
 // The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
-// `error`, `response`); producers own `payload`, `labels` and `schedule_time`.
-// The outcome mirrors a long-running operation: a terminal job carries either
-// a `response` or an `error`.
+// `error`, `response`, `metadata`); producers own `payload`, `labels`,
+// `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
+// a long-running operation: a terminal job carries either a `response` or an
+// `error`.
+//
+// A job belongs to the organization or user it runs on behalf of; system-wide
+// work (e.g. nightly maintenance) lives at the root.
 message Job {
   option (google.api.resource) = {
     type: "scheduler.malonaz.com/Job"
     pattern: "jobs/{job}"
+    pattern: "organizations/{organization}/jobs/{job}"
+    pattern: "organizations/{organization}/users/{user}/jobs/{job}"
     singular: "job"
     plural: "jobs"
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "8dba1872-9193-4ddd-a99e-68abf327ead3";
+  option (buf.validate.message).cel = {
+    id: "job.expire_time_after_schedule_time"
+    message: "expire_time must be after schedule_time"
+    expression: "!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_time"
+  };
 
   // The resource name of the job.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // The creation timestamp of the job.
@@ -80,18 +105,41 @@ message Job {
     (buf.validate.field).enum.defined_only = true
   ];
 
+  // The claim priority among due jobs: higher runs first, ties run in due
+  // order. Defaults to 0. May only be updated on a PENDING job.
+  int32 priority = 9 [(buf.validate.field).int32 = {
+    gte: -100
+    lte: 100
+  }];
+
+  // An optional producer-chosen key coalescing work: at most one PENDING and
+  // one RUNNING job exist per key at any time. Creating a job whose key already
+  // has a PENDING job returns that job instead; creating one while the key's
+  // job is RUNNING queues a single trailing run. Keys are global, so producers
+  // namespace them.
+  string unique_key = 10 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
   // The earliest time the job may run. Runs immediately if unset. Also holds
   // the time of the next attempt while a failed job waits out its backoff.
-  google.protobuf.Timestamp schedule_time = 9 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+  google.protobuf.Timestamp schedule_time = 11 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // The time the job expires: it must have started by then. A job still
+  // PENDING at its expiry fails with DEADLINE_EXCEEDED, and a retry whose
+  // backoff would reach past it fails at once instead of waiting. Cleared by
+  // RetryJob, which is an explicit request to run regardless.
+  google.protobuf.Timestamp expire_time = 12 [(malonaz.codegen.model.v1.field_opts).nullable = true];
 
   // The time the current (or last) attempt started.
-  google.protobuf.Timestamp start_time = 10 [
+  google.protobuf.Timestamp start_time = 13 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
   // The time the job reached a terminal state.
-  google.protobuf.Timestamp complete_time = 11 [
+  google.protobuf.Timestamp complete_time = 14 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
@@ -99,17 +147,24 @@ message Job {
   // The expiry of the running worker's lease. Renewed while the processor
   // call is in flight; a running job whose lease has lapsed is returned to
   // PENDING, which is how a crashed worker's jobs are recovered.
-  google.protobuf.Timestamp lock_time = 12 [
+  google.protobuf.Timestamp lock_time = 15 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The time after which a terminal job is permanently deleted. Set when the
+  // job reaches a terminal state, from the scheduler's retention.
+  google.protobuf.Timestamp purge_time = 16 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
   // The number of times the job has been claimed by a worker.
-  int32 attempt_count = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+  int32 attempt_count = 17 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The error of the last failed attempt. Cleared when the job is retried.
   // Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
-  google.rpc.Status error = 14 [
+  google.rpc.Status error = 18 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
@@ -117,25 +172,54 @@ message Job {
 
   // The processor's response, set on SUCCEEDED jobs whose type declares a
   // response type.
-  google.protobuf.Any response = 15 [
+  google.protobuf.Any response = 19 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
   // The latest progress reported by the processor through ReportJobProgress.
-  google.protobuf.Any progress = 16 [
+  google.protobuf.Any progress = 20 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
-  // The time after which a terminal job is deleted. Set when the job reaches
-  // a terminal state, from the scheduler's retention.
-  google.protobuf.Timestamp expire_time = 17 [
+  // The execution history of the job.
+  JobMetadata metadata = 21 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
+}
+
+// The execution history of a job, maintained by the scheduler.
+message JobMetadata {
+  // The attempts made so far, most recent last. Capped at the 20 most recent;
+  // cleared when the job is retried.
+  repeated JobAttempt attempts = 1;
+
+  // The worker instance holding the lease while the job is RUNNING.
+  string worker = 2;
+}
+
+// One attempt at running a job.
+message JobAttempt {
+  // The 1-based attempt number.
+  int32 attempt = 1;
+
+  // The time the attempt was claimed.
+  google.protobuf.Timestamp start_time = 2;
+
+  // The time the attempt's outcome was recorded.
+  google.protobuf.Timestamp end_time = 3;
+
+  // The worker instance that ran the attempt.
+  string worker = 4;
+
+  // The attempt's failure; unset when the attempt succeeded. A reaped attempt
+  // (worker lease lapsed) records UNAVAILABLE.
+  google.rpc.Status error = 5;
 }
 
 // The lifecycle state of a job.

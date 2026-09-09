@@ -2,4 +2,4 @@
 # Append-only: never reorder or edit an entry whose migration has been applied.
 migrations:
   - path: job/001_init.sql
-    hash: 8ba691ff79e8b8a974c7a79565ec8ed0
+    hash: 59c05d321e470df80c3da58b8bb63926
