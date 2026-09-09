@@ -382,12 +382,12 @@ func (s *userService_OrganizationServer) UndeleteOrganization(ctx context.Contex
 
 	// Compute the new etag.
 	getOrganizationRequest := &v11.GetOrganizationRequest{Name: request.Name}
-	organization, err := s.GetOrganization(ctx, getOrganizationRequest)
+	Organization, err := s.GetOrganization(ctx, getOrganizationRequest)
 	if err != nil {
 		return nil, err
 	}
-	organization.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(organization)
+	Organization.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Organization)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -408,7 +408,7 @@ func (s *userService_OrganizationServer) UndeleteOrganization(ctx context.Contex
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	organization, err = dbOrganizationModel.ToPb()
+	organization, err := dbOrganizationModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting organization from model to pb: %v", err).Err()
 	}
@@ -843,12 +843,12 @@ func (s *userService_UserServer) UndeleteUser(ctx context.Context, request *v11.
 
 	// Compute the new etag.
 	getUserRequest := &v11.GetUserRequest{Name: request.Name}
-	user, err := s.GetUser(ctx, getUserRequest)
+	User, err := s.GetUser(ctx, getUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	user.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(user)
+	User.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(User)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -869,7 +869,7 @@ func (s *userService_UserServer) UndeleteUser(ctx context.Context, request *v11.
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	user, err = dbUserModel.ToPb()
+	user, err := dbUserModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting user from model to pb: %v", err).Err()
 	}

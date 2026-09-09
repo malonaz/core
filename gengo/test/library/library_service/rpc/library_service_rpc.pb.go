@@ -387,12 +387,12 @@ func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, reques
 
 	// Compute the new etag.
 	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
-	author, err := s.GetAuthor(ctx, getAuthorRequest)
+	Author, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
 	}
-	author.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(author)
+	Author.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Author)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -413,7 +413,7 @@ func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, reques
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	author, err = dbAuthorModel.ToPb()
+	author, err := dbAuthorModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting author from model to pb: %v", err).Err()
 	}
@@ -2453,12 +2453,12 @@ func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v
 
 	// Compute the new etag.
 	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
-	note, err := s.GetNote(ctx, getNoteRequest)
+	Note, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
 	}
-	note.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(note)
+	Note.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Note)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -2479,7 +2479,7 @@ func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	note, err = dbNoteModel.ToPb()
+	note, err := dbNoteModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
 	}

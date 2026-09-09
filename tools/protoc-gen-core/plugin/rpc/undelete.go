@@ -47,16 +47,17 @@ func (mc *methodCtx) generateUndelete() error {
 	undeleteArgs := fmt.Sprintf("ctx, %s", mc.idParams())
 	if mc.hasEtag {
 		// The etag covers the whole resource, so it is recomputed over the
-		// restored (tombstone-free) state.
+		// restored (tombstone-free) state. PascalCase keeps the local from
+		// shadowing the model package (a resource may be named Model).
 		g.P("  // Compute the new etag.")
 		g.P(fmt.Sprintf("  get%sRequest := &%s{ Name: request.Name }",
 			resourceGoName, mc.gen.fileIdent("Get"+resourceGoName+"Request")))
-		g.P(fmt.Sprintf("  %s, err := s.Get%s(ctx, get%sRequest)", resourceVar, resourceGoName, resourceGoName))
+		g.P(fmt.Sprintf("  %s, err := s.Get%s(ctx, get%sRequest)", resourceGoName, resourceGoName, resourceGoName))
 		g.P("  if err != nil {")
 		g.P("    return nil, err")
 		g.P("  }")
-		g.P(fmt.Sprintf("  %s.DeleteTime = nil", resourceVar))
-		g.P(fmt.Sprintf("  newEtag, err := %s(%s)", mc.gen.ident(aipPkg, "ComputeETag"), resourceVar))
+		g.P(fmt.Sprintf("  %s.DeleteTime = nil", resourceGoName))
+		g.P(fmt.Sprintf("  newEtag, err := %s(%s)", mc.gen.ident(aipPkg, "ComputeETag"), resourceGoName))
 		g.P("  if err != nil {")
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"computing etag: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("Internal")))
@@ -88,11 +89,7 @@ func (mc *methodCtx) generateUndelete() error {
 	g.P()
 
 	g.P("  // STEP 3: Convert to protobuf and return.")
-	if mc.hasEtag {
-		g.P(fmt.Sprintf("  %s, err = db%s.ToPb()", resourceVar, mc.modelGoName))
-	} else {
-		g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", resourceVar, mc.modelGoName))
-	}
+	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", resourceVar, mc.modelGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))

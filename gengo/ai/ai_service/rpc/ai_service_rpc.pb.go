@@ -337,12 +337,12 @@ func (s *aiService_ChatServer) UndeleteChat(ctx context.Context, request *v1.Und
 
 	// Compute the new etag.
 	getChatRequest := &v1.GetChatRequest{Name: request.Name}
-	chat, err := s.GetChat(ctx, getChatRequest)
+	Chat, err := s.GetChat(ctx, getChatRequest)
 	if err != nil {
 		return nil, err
 	}
-	chat.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(chat)
+	Chat.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Chat)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -363,7 +363,7 @@ func (s *aiService_ChatServer) UndeleteChat(ctx context.Context, request *v1.Und
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	chat, err = dbChatModel.ToPb()
+	chat, err := dbChatModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
@@ -767,12 +767,12 @@ func (s *aiService_MessageServer) UndeleteMessage(ctx context.Context, request *
 
 	// Compute the new etag.
 	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
-	message, err := s.GetMessage(ctx, getMessageRequest)
+	Message, err := s.GetMessage(ctx, getMessageRequest)
 	if err != nil {
 		return nil, err
 	}
-	message.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(message)
+	Message.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Message)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -793,7 +793,7 @@ func (s *aiService_MessageServer) UndeleteMessage(ctx context.Context, request *
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	message, err = dbMessageModel.ToPb()
+	message, err := dbMessageModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
 	}

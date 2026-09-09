@@ -331,12 +331,12 @@ func (s *bookmarkService_BookmarkServer) UndeleteBookmark(ctx context.Context, r
 
 	// Compute the new etag.
 	getBookmarkRequest := &v1.GetBookmarkRequest{Name: request.Name}
-	bookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
+	Bookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
 	if err != nil {
 		return nil, err
 	}
-	bookmark.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(bookmark)
+	Bookmark.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(Bookmark)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -357,7 +357,7 @@ func (s *bookmarkService_BookmarkServer) UndeleteBookmark(ctx context.Context, r
 	}
 
 	// STEP 3: Convert to protobuf and return.
-	bookmark, err = dbBookmarkModel.ToPb()
+	bookmark, err := dbBookmarkModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting bookmark from model to pb: %v", err).Err()
 	}
