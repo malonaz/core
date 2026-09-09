@@ -459,6 +459,71 @@ func (b0 UpdateOptions_builder) Build() *UpdateOptions {
 	return m0
 }
 
+// Options for a method returning `google.longrunning.Operation` (AIP-151).
+// The rpc codegen turns such a method into two roles behind one RPC: a
+// producer that hands the request to the scheduler as a job, and a runner
+// the scheduler calls back with the same request to do the work.
+type LongrunningOptions struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The scheduler queue the method's jobs run in.
+	// Format: queues/{queue}
+	Queue         string `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LongrunningOptions) Reset() {
+	*x = LongrunningOptions{}
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LongrunningOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LongrunningOptions) ProtoMessage() {}
+
+func (x *LongrunningOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *LongrunningOptions) GetQueue() string {
+	if x != nil {
+		return x.Queue
+	}
+	return ""
+}
+
+func (x *LongrunningOptions) SetQueue(v string) {
+	x.Queue = v
+}
+
+type LongrunningOptions_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The scheduler queue the method's jobs run in.
+	// Format: queues/{queue}
+	Queue string
+}
+
+func (b0 LongrunningOptions_builder) Build() *LongrunningOptions {
+	m0 := &LongrunningOptions{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Queue = b.Queue
+	return m0
+}
+
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
 // The protoc-gen-api plugin uses this to generate appropriate server and client code.
 type StandardMethod struct {
@@ -476,7 +541,7 @@ type StandardMethod struct {
 
 func (x *StandardMethod) Reset() {
 	*x = StandardMethod{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -488,7 +553,7 @@ func (x *StandardMethod) String() string {
 func (*StandardMethod) ProtoMessage() {}
 
 func (x *StandardMethod) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[5]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -562,7 +627,7 @@ type SearchOptions_Field struct {
 
 func (x *SearchOptions_Field) Reset() {
 	*x = SearchOptions_Field{}
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -574,7 +639,7 @@ func (x *SearchOptions_Field) String() string {
 func (*SearchOptions_Field) ProtoMessage() {}
 
 func (x *SearchOptions_Field) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[6]
+	mi := &file_malonaz_codegen_aip_v1_aip_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -654,6 +719,14 @@ var file_malonaz_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 		Filename:      "malonaz/codegen/aip/v1/aip.proto",
 	},
 	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*LongrunningOptions)(nil),
+		Field:         93001,
+		Name:          "malonaz.codegen.aip.v1.longrunning",
+		Tag:           "bytes,93001,opt,name=longrunning",
+		Filename:      "malonaz/codegen/aip/v1/aip.proto",
+	},
+	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
 		ExtensionType: (*string)(nil),
 		Field:         92000,
@@ -709,6 +782,11 @@ var (
 	//
 	// optional malonaz.codegen.aip.v1.StandardMethod standard_method = 93000;
 	E_StandardMethod = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[0]
+	// Extension for long-running operation methods: those returning
+	// `google.longrunning.Operation`.
+	//
+	// optional malonaz.codegen.aip.v1.LongrunningOptions longrunning = 93001;
+	E_Longrunning = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[1]
 )
 
 // Extension fields to descriptorpb.MessageOptions.
@@ -716,27 +794,27 @@ var (
 	//	The uuid namespace for a resource.
 	//
 	// optional string uuid_namespace = 92000;
-	E_UuidNamespace = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[1]
+	E_UuidNamespace = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[2]
 	// Configuration for AIP Update RPCs, including field mask handling and authorization.
 	//
 	// optional malonaz.codegen.aip.v1.UpdateOptions update = 920013;
-	E_Update = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[2]
+	E_Update = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[3]
 	// Option for pagination.
 	//
 	// optional malonaz.codegen.aip.v1.PaginationOptions pagination = 94000;
-	E_Pagination = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[3]
+	E_Pagination = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[4]
 	// Option for ordering.
 	//
 	// optional malonaz.codegen.aip.v1.OrderingOptions ordering = 94001;
-	E_Ordering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[4]
+	E_Ordering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[5]
 	// Option for ordering.
 	//
 	// optional malonaz.codegen.aip.v1.FilteringOptions filtering = 94002;
-	E_Filtering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[5]
+	E_Filtering = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[6]
 	// Option for search. Set on a resource message to make it searchable.
 	//
 	// optional malonaz.codegen.aip.v1.SearchOptions search = 94003;
-	E_Search = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[6]
+	E_Search = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[7]
 )
 
 var File_malonaz_codegen_aip_v1_aip_proto protoreflect.FileDescriptor
@@ -768,12 +846,15 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01R\x05paths\x12 \n" +
 	"\adefault\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\adefault\"%\n" +
 	"\rUpdateOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x7f\n" +
-	"\x0eStandardMethod\x12N\n" +
-	"\bresource\x18\x01 \x01(\tB2\xbaH/\xc8\x01\x01r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"D\n" +
+	"\x12LongrunningOptions\x12.\n" +
+	"\x05queue\x18\x01 \x01(\tB\x18\xbaH\x15\xc8\x01\x01r\x102\x0e^queues/[^/]+$R\x05queue\"\x81\x01\n" +
+	"\x0eStandardMethod\x12P\n" +
+	"\bresource\x18\x01 \x01(\tB4\xbaH1\xc8\x01\x01r,2*^[a-z]+\\.[a-z]+\\.[a-z0-9]+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
 	"\n" +
 	"emit_event\x18\x02 \x01(\bR\temitEvent:q\n" +
-	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:H\n" +
+	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:n\n" +
+	"\vlongrunning\x12\x1e.google.protobuf.MethodOptions\x18\xc9\xd6\x05 \x01(\v2*.malonaz.codegen.aip.v1.LongrunningOptionsR\vlongrunning:H\n" +
 	"\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\tR\ruuidNamespace:`\n" +
 	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18͓8 \x01(\v2%.malonaz.codegen.aip.v1.UpdateOptionsR\x06update:l\n" +
 	"\n" +
@@ -784,7 +865,7 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x06search\x12\x1f.google.protobuf.MessageOptions\x18\xb3\xde\x05 \x01(\v2%.malonaz.codegen.aip.v1.SearchOptionsR\x06searchB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3"
 
 var file_malonaz_codegen_aip_v1_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_malonaz_codegen_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_codegen_aip_v1_aip_proto_goTypes = []any{
 	(SearchOptions_Weight)(0),           // 0: malonaz.codegen.aip.v1.SearchOptions.Weight
 	(SearchOptions_Split)(0),            // 1: malonaz.codegen.aip.v1.SearchOptions.Split
@@ -793,32 +874,35 @@ var file_malonaz_codegen_aip_v1_aip_proto_goTypes = []any{
 	(*PaginationOptions)(nil),           // 4: malonaz.codegen.aip.v1.PaginationOptions
 	(*OrderingOptions)(nil),             // 5: malonaz.codegen.aip.v1.OrderingOptions
 	(*UpdateOptions)(nil),               // 6: malonaz.codegen.aip.v1.UpdateOptions
-	(*StandardMethod)(nil),              // 7: malonaz.codegen.aip.v1.StandardMethod
-	(*SearchOptions_Field)(nil),         // 8: malonaz.codegen.aip.v1.SearchOptions.Field
-	(*descriptorpb.MethodOptions)(nil),  // 9: google.protobuf.MethodOptions
-	(*descriptorpb.MessageOptions)(nil), // 10: google.protobuf.MessageOptions
+	(*LongrunningOptions)(nil),          // 7: malonaz.codegen.aip.v1.LongrunningOptions
+	(*StandardMethod)(nil),              // 8: malonaz.codegen.aip.v1.StandardMethod
+	(*SearchOptions_Field)(nil),         // 9: malonaz.codegen.aip.v1.SearchOptions.Field
+	(*descriptorpb.MethodOptions)(nil),  // 10: google.protobuf.MethodOptions
+	(*descriptorpb.MessageOptions)(nil), // 11: google.protobuf.MessageOptions
 }
 var file_malonaz_codegen_aip_v1_aip_proto_depIdxs = []int32{
-	8,  // 0: malonaz.codegen.aip.v1.SearchOptions.fields:type_name -> malonaz.codegen.aip.v1.SearchOptions.Field
+	9,  // 0: malonaz.codegen.aip.v1.SearchOptions.fields:type_name -> malonaz.codegen.aip.v1.SearchOptions.Field
 	0,  // 1: malonaz.codegen.aip.v1.SearchOptions.Field.weight:type_name -> malonaz.codegen.aip.v1.SearchOptions.Weight
 	1,  // 2: malonaz.codegen.aip.v1.SearchOptions.Field.split:type_name -> malonaz.codegen.aip.v1.SearchOptions.Split
-	9,  // 3: malonaz.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
-	10, // 4: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
-	10, // 5: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
-	10, // 6: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
-	10, // 7: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
-	10, // 8: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
-	10, // 9: malonaz.codegen.aip.v1.search:extendee -> google.protobuf.MessageOptions
-	7,  // 10: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
-	6,  // 11: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
-	4,  // 12: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
-	5,  // 13: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
-	2,  // 14: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
-	3,  // 15: malonaz.codegen.aip.v1.search:type_name -> malonaz.codegen.aip.v1.SearchOptions
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	10, // [10:16] is the sub-list for extension type_name
-	3,  // [3:10] is the sub-list for extension extendee
+	10, // 3: malonaz.codegen.aip.v1.standard_method:extendee -> google.protobuf.MethodOptions
+	10, // 4: malonaz.codegen.aip.v1.longrunning:extendee -> google.protobuf.MethodOptions
+	11, // 5: malonaz.codegen.aip.v1.uuid_namespace:extendee -> google.protobuf.MessageOptions
+	11, // 6: malonaz.codegen.aip.v1.update:extendee -> google.protobuf.MessageOptions
+	11, // 7: malonaz.codegen.aip.v1.pagination:extendee -> google.protobuf.MessageOptions
+	11, // 8: malonaz.codegen.aip.v1.ordering:extendee -> google.protobuf.MessageOptions
+	11, // 9: malonaz.codegen.aip.v1.filtering:extendee -> google.protobuf.MessageOptions
+	11, // 10: malonaz.codegen.aip.v1.search:extendee -> google.protobuf.MessageOptions
+	8,  // 11: malonaz.codegen.aip.v1.standard_method:type_name -> malonaz.codegen.aip.v1.StandardMethod
+	7,  // 12: malonaz.codegen.aip.v1.longrunning:type_name -> malonaz.codegen.aip.v1.LongrunningOptions
+	6,  // 13: malonaz.codegen.aip.v1.update:type_name -> malonaz.codegen.aip.v1.UpdateOptions
+	4,  // 14: malonaz.codegen.aip.v1.pagination:type_name -> malonaz.codegen.aip.v1.PaginationOptions
+	5,  // 15: malonaz.codegen.aip.v1.ordering:type_name -> malonaz.codegen.aip.v1.OrderingOptions
+	2,  // 16: malonaz.codegen.aip.v1.filtering:type_name -> malonaz.codegen.aip.v1.FilteringOptions
+	3,  // 17: malonaz.codegen.aip.v1.search:type_name -> malonaz.codegen.aip.v1.SearchOptions
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	11, // [11:18] is the sub-list for extension type_name
+	3,  // [3:11] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
 }
 
@@ -833,8 +917,8 @@ func file_malonaz_codegen_aip_v1_aip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_aip_v1_aip_proto_rawDesc), len(file_malonaz_codegen_aip_v1_aip_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   7,
-			NumExtensions: 7,
+			NumMessages:   8,
+			NumExtensions: 8,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_codegen_aip_v1_aip_proto_goTypes,
