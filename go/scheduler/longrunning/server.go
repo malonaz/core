@@ -73,8 +73,8 @@ func (s *Server) GetOperation(ctx context.Context, request *longrunningpb.GetOpe
 
 // ListOperations lists the operations directly on the named resource
 // (`{name}/operations/*`) of this server's methods; their jobs all live under
-// the parent the name derives to. The supported filter subset is `done = true`
-// and `done = false`; the page token is the scheduler's.
+// the parent the name derives to. The supported filter subset is `done` and
+// `NOT done`; the page token is the scheduler's.
 func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.ListOperationsRequest) (*longrunningpb.ListOperationsResponse, error) {
 	if request.GetName() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "name must be set").Err()
@@ -101,18 +101,19 @@ func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.List
 }
 
 // jobsFilter translates an operations filter into a job filter clause. Only
-// `done` is filterable: it is the one Operation field the job stores as a
-// column (its state); response, error and metadata are opaque blobs.
+// `done` is filterable, in its AIP-160 boolean forms (`done`, `NOT done`,
+// `-done`, `done = true`, `done = false`): it is the one Operation field the
+// job stores as a column (its state); response, error and metadata are opaque blobs.
 func jobsFilter(filter string) (string, error) {
 	switch strings.Join(strings.Fields(filter), " ") {
 	case "":
 		return "", nil
-	case "done = true":
+	case "done", "done = true":
 		return " AND " + statesFilter(terminalStates), nil
-	case "done = false":
+	case "NOT done", "-done", "done = false":
 		return " AND " + statesFilter(liveStates), nil
 	}
-	return "", status.Errorf(codes.InvalidArgument, "unsupported filter %q: only `done = true` and `done = false` are supported", filter).Err()
+	return "", status.Errorf(codes.InvalidArgument, "unsupported filter %q: only `done` and `NOT done` are supported", filter).Err()
 }
 
 var (
