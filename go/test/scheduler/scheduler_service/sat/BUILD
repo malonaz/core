@@ -1,11 +1,3 @@
-subinclude("//build_defs/proto:descriptor")
-
-proto_descriptor_set(
-    name = "processor_descriptor_set",
-    srcs = ["//malonaz/test/scheduler/processor/v1"],
-    test_only = True,
-)
-
 go_test(
     name = "sat",
     srcs = [
@@ -18,7 +10,6 @@ go_test(
         "worker_test.go",
     ],
     data = [
-        ":processor_descriptor_set",
         "//cmd/postgres-migrator",
         "//cmd/scheduler-service",
         "//go/scheduler/migrations",
@@ -41,6 +32,7 @@ go_test(
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__testing__protocmp",

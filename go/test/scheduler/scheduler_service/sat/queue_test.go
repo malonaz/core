@@ -46,7 +46,7 @@ func TestQueue_CRUD(t *testing.T) {
 		codepb.Code_DEADLINE_EXCEEDED, codepb.Code_RESOURCE_EXHAUSTED, codepb.Code_ABORTED,
 	}, policy.GetRetryableCodes())
 
-	// Handler types come from the descriptor set.
+	// Handler types come from the target, over reflection.
 	require.Len(t, created.GetHandlers(), 2)
 	require.Equal(t, processorPath+"Echo", created.GetHandlers()[0].GetMethod())
 	require.Equal(t, targetName, created.GetHandlers()[0].GetTarget())
@@ -112,6 +112,29 @@ func TestQueue_CRUD(t *testing.T) {
 	require.NoError(t, err)
 	_, err = schedulerServiceClient.GetQueue(ctx, &schedulerservicepb.GetQueueRequest{Name: created.GetName()})
 	grpcrequire.Error(t, codes.NotFound, err)
+
+	// Handlers sharing a target share one schema fetch, cached for later mutations.
+	header := uuid.MustNewV7().String()
+	target := createTarget(t, processorURL, map[string]string{testHeader: header})
+	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{
+		Policy: newPolicy(),
+		Handlers: []*schedulerpb.Handler{
+			{Method: processorPath + "Echo", Target: target.GetName()},
+			{Method: processorPath + "Sleep", Target: target.GetName()},
+		},
+	}}
+	private, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest)
+	require.NoError(t, err)
+	t.Cleanup(func() { deleteQueueOnceIdle(t, private.GetName()) })
+	require.Equal(t, typeURL(&processorpb.SleepRequest{}), private.GetHandlers()[1].GetRequestType())
+	require.Equal(t, 1, testProcessor.reflectionStreams(header))
+	updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
+		Queue:      &schedulerpb.Queue{Name: private.GetName(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Flaky", Target: target.GetName()}}},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"handlers"}},
+	}
+	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+	require.NoError(t, err)
+	require.Equal(t, 1, testProcessor.reflectionStreams(header))
 }
 
 func TestQueue_Validation(t *testing.T) {
@@ -133,6 +156,14 @@ func TestQueue_Validation(t *testing.T) {
 	t.Run("unknown method", func(t *testing.T) {
 		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{handler("Nope")}}))
 		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: "malformed", Target: targetName}}}))
+	})
+	t.Run("unreachable target", func(t *testing.T) {
+		target := createTarget(t, deadURL, nil)
+		grpcrequire.Error(t, codes.FailedPrecondition, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}}))
+	})
+	t.Run("target without reflection", func(t *testing.T) {
+		target := createTarget(t, bareURL, nil)
+		grpcrequire.Error(t, codes.FailedPrecondition, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}}))
 	})
 	t.Run("unknown target", func(t *testing.T) {
 		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: "targets/does-not-exist"}}}))

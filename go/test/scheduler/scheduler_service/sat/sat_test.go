@@ -42,8 +42,8 @@ const (
 	processorPort        = 9091
 	// A port nothing listens on, for targets pointed at a dead endpoint.
 	deadPort = 9093
-
-	processorDescriptorSetPath = "go/test/scheduler/scheduler_service/sat/processor_descriptor_set.bin"
+	// A gRPC server without reflection.
+	barePort = 9094
 
 	postgresHost = "localhost"
 	postgresPort = 5432
@@ -58,6 +58,7 @@ const (
 	targetName    = "targets/test-processor"
 	processorURL  = "http://localhost:9091"
 	deadURL       = "http://localhost:9093"
+	bareURL       = "http://localhost:9094"
 	testHeader    = "x-test-header"
 	processorPath = "/malonaz.test.scheduler.processor.v1.Processor/"
 
@@ -116,7 +117,6 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int) sat.SUT {
 			"--scheduler-service-external-grpc.disable-tls",
 			"--health.port", strconv.Itoa(healthPort),
 			"--prometheus.port", strconv.Itoa(prometheusPort),
-			"--scheduler-service.file-descriptor-set", processorDescriptorSetPath,
 			"--scheduler-service.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
 			"--scheduler-service.poll-interval", pollInterval.String(),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
@@ -141,6 +141,11 @@ func run(ctx context.Context) (func(), error) {
 		return cleanup, err
 	}
 	cleanupFns = append(cleanupFns, stopProcessor)
+	stopBare, err := serveBare(fmt.Sprintf("%s:%d", schedulerServiceHost, barePort))
+	if err != nil {
+		return cleanup, err
+	}
+	cleanupFns = append(cleanupFns, stopBare)
 
 	config := &sat.Config{
 		SUTS: []sat.SUT{

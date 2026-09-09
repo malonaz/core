@@ -3,6 +3,7 @@ package sat
 import (
 	"context"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -34,21 +36,59 @@ type processor struct {
 
 	mutex      sync.Mutex
 	keyToCalls map[string][]call
+	// Reflection streams opened per test header value, so a test can count
+	// the schema fetches its own target caused.
+	headerToReflectionStreams map[string]int
 }
 
 func newProcessor() *processor {
-	return &processor{keyToCalls: map[string][]call{}}
+	return &processor{keyToCalls: map[string][]call{}, headerToReflectionStreams: map[string]int{}}
 }
 
+// serve exposes the processor with gRPC reflection, as the scheduler resolves
+// handler methods against it.
 func (p *processor) serve(address string) (func(), error) {
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.StreamInterceptor(p.countReflectionStreams))
 	processorpb.RegisterProcessorServer(server, p)
+	reflection.Register(server)
 	go server.Serve(listener)
 	return server.Stop, nil
+}
+
+// serveBare starts a gRPC server without reflection, for targets that cannot
+// describe themselves.
+func serveBare(address string) (func(), error) {
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return nil, err
+	}
+	server := grpc.NewServer()
+	go server.Serve(listener)
+	return server.Stop, nil
+}
+
+func (p *processor) countReflectionStreams(server any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if strings.HasPrefix(info.FullMethod, "/grpc.reflection.") {
+		headers, _ := metadata.FromIncomingContext(stream.Context())
+		p.mutex.Lock()
+		for _, value := range headers.Get(testHeader) {
+			p.headerToReflectionStreams[value]++
+		}
+		p.mutex.Unlock()
+	}
+	return handler(server, stream)
+}
+
+// reflectionStreams returns how many reflection streams carried the test
+// header value.
+func (p *processor) reflectionStreams(header string) int {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.headerToReflectionStreams[header]
 }
 
 // record registers a call under key and returns a function recording whether

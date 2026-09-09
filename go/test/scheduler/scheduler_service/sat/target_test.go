@@ -21,9 +21,9 @@ import (
 )
 
 // createTarget creates a target private to a test, deleted once the test ends.
-func createTarget(t *testing.T, url string) *schedulerpb.Target {
+func createTarget(t *testing.T, url string, headers map[string]string) *schedulerpb.Target {
 	t.Helper()
-	createTargetRequest := &schedulerservicepb.CreateTargetRequest{Target: &schedulerpb.Target{Url: url}}
+	createTargetRequest := &schedulerservicepb.CreateTargetRequest{Target: &schedulerpb.Target{Url: url, Headers: headers}}
 	target, err := schedulerServiceClient.CreateTarget(ctx, createTargetRequest)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -36,7 +36,7 @@ func createTarget(t *testing.T, url string) *schedulerpb.Target {
 
 func TestTarget_CRUD(t *testing.T) {
 	t.Parallel()
-	created := createTarget(t, processorURL)
+	created := createTarget(t, processorURL, nil)
 	require.Regexp(t, `^targets/[a-z0-9]+$`, created.GetName())
 	require.NotEmpty(t, created.GetEtag())
 	require.Equal(t, created.GetCreateTime().AsTime(), created.GetUpdateTime().AsTime())
@@ -95,7 +95,7 @@ func TestTarget_Validation(t *testing.T) {
 			grpcrequire.Error(t, codes.InvalidArgument, err)
 		})
 	}
-	target := createTarget(t, processorURL)
+	target := createTarget(t, processorURL, nil)
 	updateTargetRequest := &schedulerservicepb.UpdateTargetRequest{
 		Target:     &schedulerpb.Target{Name: target.GetName(), Url: "http://localhost:notaport"},
 		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"url"}},
@@ -106,7 +106,7 @@ func TestTarget_Validation(t *testing.T) {
 
 func TestTarget_DeleteWhileReferenced(t *testing.T) {
 	t.Parallel()
-	target := createTarget(t, processorURL)
+	target := createTarget(t, processorURL, nil)
 	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{
 		Policy:   &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(time.Second), MaxAttempts: 1},
 		Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}},
@@ -127,7 +127,7 @@ func TestTarget_DeleteWhileReferenced(t *testing.T) {
 func TestTarget_UpdateRedials(t *testing.T) {
 	t.Parallel()
 	// A private target and queue, so the shared processor route is untouched.
-	target := createTarget(t, processorURL)
+	target := createTarget(t, processorURL, nil)
 	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{
 		Policy: &schedulerpb.QueuePolicy{
 			AttemptTimeout: durationpb.New(2 * time.Second),
@@ -153,17 +153,28 @@ func TestTarget_UpdateRedials(t *testing.T) {
 	live := createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: uuid.MustNewV7().String()})
 	waitForState(t, live.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
 
-	// Pointed at a dead port, attempts fail UNAVAILABLE and are retried.
+	// Pointed at a dead port, attempts fail UNAVAILABLE and are retried, and
+	// handlers cannot be resolved against it.
 	setURL(t, deadURL)
 	value := uuid.MustNewV7().String()
 	dead := createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: value})
 	failing := waitForJob(t, dead.GetName(), func(job *schedulerpb.Job) bool { return job.GetAttemptCount() >= 2 })
 	require.Equal(t, int32(codes.Unavailable), failing.GetMetadata().GetAttempts()[0].GetError().GetCode())
 	require.Empty(t, testProcessor.calls(value))
+	updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
+		Queue:      &schedulerpb.Queue{Name: queue.GetName(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Sleep", Target: target.GetName()}}},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"handlers"}},
+	}
+	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+	grpcrequire.Error(t, codes.FailedPrecondition, err)
 
-	// Back on the live port, the next attempt goes through.
+	// Back on the live port, the next attempt goes through and the schema
+	// follows the new etag.
 	setURL(t, processorURL)
 	job := waitForTerminal(t, dead.GetName())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
 	require.Len(t, testProcessor.calls(value), 1)
+	updated, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+	require.NoError(t, err)
+	require.Equal(t, typeURL(&processorpb.SleepRequest{}), updated.GetHandlers()[0].GetRequestType())
 }
