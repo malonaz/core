@@ -1,0 +1,3 @@
+# Collapse codegen in PR reviews.
+genproto/** linguist-generated=true
+gengo/** linguist-generated=true
