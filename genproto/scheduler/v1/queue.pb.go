@@ -583,16 +583,16 @@ func (b0 RetryBackoff_builder) Build() *RetryBackoff {
 type Handler struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-	// Must be present in the scheduler's descriptor set.
+	// Must be served by the target, which the scheduler checks over gRPC reflection.
 	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
 	// The target the method is invoked on.
 	// Format: targets/{target}
 	Target string `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
-	// The type URL of the method's request, resolved from the method
-	// descriptor. Jobs whose payload has this type URL are routed here.
+	// The type URL of the method's request, as the target describes it. Jobs
+	// whose payload has this type URL are routed here.
 	RequestType string `protobuf:"bytes,3,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
-	// The type URL of the method's response, resolved from the method
-	// descriptor. Job responses are stored under it.
+	// The type URL of the method's response, as the target describes it. Job
+	// responses are stored under it.
 	ResponseType  string `protobuf:"bytes,4,opt,name=response_type,json=responseType,proto3" json:"response_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -671,16 +671,16 @@ type Handler_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-	// Must be present in the scheduler's descriptor set.
+	// Must be served by the target, which the scheduler checks over gRPC reflection.
 	Method string
 	// The target the method is invoked on.
 	// Format: targets/{target}
 	Target string
-	// The type URL of the method's request, resolved from the method
-	// descriptor. Jobs whose payload has this type URL are routed here.
+	// The type URL of the method's request, as the target describes it. Jobs
+	// whose payload has this type URL are routed here.
 	RequestType string
-	// The type URL of the method's response, resolved from the method
-	// descriptor. Job responses are stored under it.
+	// The type URL of the method's response, as the target describes it. Job
+	// responses are stored under it.
 	ResponseType string
 }
 

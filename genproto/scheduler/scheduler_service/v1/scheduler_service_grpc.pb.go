@@ -56,7 +56,8 @@ const (
 // # Resource model
 //
 //   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
-//     scheduler dials.
+//     scheduler dials; each must serve gRPC reflection, the scheduler's only
+//     source of method and message type information.
 //     Format: targets/{target}
 //   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
 //     the handlers (method on a target) jobs are routed to.
@@ -124,9 +125,9 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetTargets(ctx context.Context, in *BatchGetTargetsRequest, opts ...grpc.CallOption) (*BatchGetTargetsResponse, error)
-	// Create a queue. Every handler's method must be present in the scheduler's
-	// descriptor set and its target must exist; no two handlers may share a
-	// request type. The queue starts RUNNING.
+	// Create a queue. Every handler's target must exist and serve the handler's
+	// method, which the scheduler checks over the target's gRPC reflection
+	// service; no two handlers may share a request type. The queue starts RUNNING.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
@@ -460,7 +461,8 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // # Resource model
 //
 //   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
-//     scheduler dials.
+//     scheduler dials; each must serve gRPC reflection, the scheduler's only
+//     source of method and message type information.
 //     Format: targets/{target}
 //   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
 //     the handlers (method on a target) jobs are routed to.
@@ -528,9 +530,9 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetTargets(context.Context, *BatchGetTargetsRequest) (*BatchGetTargetsResponse, error)
-	// Create a queue. Every handler's method must be present in the scheduler's
-	// descriptor set and its target must exist; no two handlers may share a
-	// request type. The queue starts RUNNING.
+	// Create a queue. Every handler's target must exist and serve the handler's
+	// method, which the scheduler checks over the target's gRPC reflection
+	// service; no two handlers may share a request type. The queue starts RUNNING.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateQueue(context.Context, *CreateQueueRequest) (*v1.Queue, error)

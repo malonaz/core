@@ -28,8 +28,9 @@ const (
 )
 
 // A Target is a gRPC server the scheduler delivers jobs to. Queue handlers
-// reference targets by name; the scheduler dials a target lazily on the first
-// job routed to it and re-dials when the target is updated.
+// reference targets by name; the scheduler dials a target lazily on first use
+// and re-dials when the target is updated. A target must serve gRPC
+// reflection: the methods handlers route to are resolved against it.
 //
 // A target cannot be deleted while a queue handler references it.
 type Target struct {

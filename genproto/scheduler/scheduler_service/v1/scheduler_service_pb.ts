@@ -35,7 +35,8 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  * # Resource model
  *
  * - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
- *   scheduler dials.
+ *   scheduler dials; each must serve gRPC reflection, the scheduler's only
+ *   source of method and message type information.
  *   Format: targets/{target}
  * - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
  *   the handlers (method on a target) jobs are routed to.
@@ -155,9 +156,9 @@ export const SchedulerService: GenService<{
     output: typeof BatchGetTargetsResponseSchema;
   },
   /**
-   * Create a queue. Every handler's method must be present in the scheduler's
-   * descriptor set and its target must exist; no two handlers may share a
-   * request type. The queue starts RUNNING.
+   * Create a queue. Every handler's target must exist and serve the handler's
+   * method, which the scheduler checks over the target's gRPC reflection
+   * service; no two handlers may share a request type. The queue starts RUNNING.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *

@@ -349,7 +349,7 @@ export const RetryBackoffSchema: GenMessage<RetryBackoff, {validType: RetryBacko
 export type Handler = Message<"malonaz.scheduler.v1.Handler"> & {
   /**
    * The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-   * Must be present in the scheduler's descriptor set.
+   * Must be served by the target, which the scheduler checks over gRPC reflection.
    *
    * @generated from field: string method = 1;
    */
@@ -364,16 +364,16 @@ export type Handler = Message<"malonaz.scheduler.v1.Handler"> & {
   target: string;
 
   /**
-   * The type URL of the method's request, resolved from the method
-   * descriptor. Jobs whose payload has this type URL are routed here.
+   * The type URL of the method's request, as the target describes it. Jobs
+   * whose payload has this type URL are routed here.
    *
    * @generated from field: string request_type = 3;
    */
   requestType: string;
 
   /**
-   * The type URL of the method's response, resolved from the method
-   * descriptor. Job responses are stored under it.
+   * The type URL of the method's response, as the target describes it. Job
+   * responses are stored under it.
    *
    * @generated from field: string response_type = 4;
    */
@@ -389,7 +389,7 @@ export type Handler = Message<"malonaz.scheduler.v1.Handler"> & {
 export type HandlerValid = Message<"malonaz.scheduler.v1.Handler"> & {
   /**
    * The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-   * Must be present in the scheduler's descriptor set.
+   * Must be served by the target, which the scheduler checks over gRPC reflection.
    *
    * @generated from field: string method = 1;
    */
@@ -404,16 +404,16 @@ export type HandlerValid = Message<"malonaz.scheduler.v1.Handler"> & {
   target: string;
 
   /**
-   * The type URL of the method's request, resolved from the method
-   * descriptor. Jobs whose payload has this type URL are routed here.
+   * The type URL of the method's request, as the target describes it. Jobs
+   * whose payload has this type URL are routed here.
    *
    * @generated from field: string request_type = 3;
    */
   requestType: string;
 
   /**
-   * The type URL of the method's response, resolved from the method
-   * descriptor. Job responses are stored under it.
+   * The type URL of the method's response, as the target describes it. Job
+   * responses are stored under it.
    *
    * @generated from field: string response_type = 4;
    */
