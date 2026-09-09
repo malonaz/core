@@ -117,7 +117,7 @@ func (b *CommandBuilder) buildServiceCommand(serviceDescriptor protoreflect.Serv
 		method := methods.Get(i)
 		methodCmd, err := b.buildMethodCommand(method)
 		if err != nil {
-			return nil, fmt.Errorf("build command for method %q: %w", method.FullName, err)
+			return nil, fmt.Errorf("build command for method %q: %w", method.FullName(), err)
 		}
 		methodCmd.Annotations[annotationKeyService] = string(serviceDescriptor.FullName())
 		cmd.AddCommand(methodCmd)
