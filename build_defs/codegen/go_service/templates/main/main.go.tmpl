@@ -295,22 +295,9 @@ func run(ctx {{ goImport "context" }}.Context) error {
             {{ $serviceName }}WithServiceAccount := func(ctx {{ goImport "context" }}.Context) {{ goImport "context" }}.Context { return ctx }
             {{ end }}
 
-            {{- $longrunning := false }}
-            {{- range $codegen := $serviceManifest.codegens }}{{ if $codegen.longrunning }}{{ $longrunning = true }}{{ end }}{{ end }}
-            {{- $serviceAccountRunners := false }}
-            {{- range $interceptor := $server.interceptors }}{{ if eq $interceptor.type "permission_authentication" }}{{ $serviceAccountRunners = true }}{{ end }}{{ end }}
-
             {{ "\n" }}// Instantiate {{ $serviceName }}.
             {{ $serviceName }}, err := {{ plzGoImport $serviceManifest.implementation }}.New(
                 opts.{{ $serviceName | title }},
-                {{- if $longrunning }}
-                    {{- /* The scheduler's job metadata lets a call run work inline; only service accounts may present it where sessions exist. */}}
-                    {{- if $serviceAccountRunners }}
-                    {{ goImport "github.com/malonaz/core/go/scheduler/longrunning" }}.ServiceAccountRunners(),
-                    {{- else }}
-                    {{ goImport "github.com/malonaz/core/go/scheduler/longrunning" }}.AllowAllRunners(),
-                    {{- end }}
-                {{- end }}
                 {{- range $dep := $serviceManifest.dependencies }}
                     {{- if eq $dep.type "grpc_client" }}
                         {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") -}}

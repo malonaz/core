@@ -45,7 +45,6 @@ type LibraryServiceServer struct {
 	natsClient             *nats.Client
 	schedulerServiceClient v1.SchedulerServiceClient
 	runner                 LibraryServiceRunner
-	runnerAuthorizer       longrunning.RunnerAuthorizer
 	*libraryService_AuthorServer
 	*libraryService_AuthorProfileServer
 	*libraryService_ShelfServer
@@ -54,15 +53,11 @@ type LibraryServiceServer struct {
 	*libraryService_NoteServer
 }
 
-func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner, runnerAuthorizer longrunning.RunnerAuthorizer) *LibraryServiceServer {
-	if runnerAuthorizer == nil {
-		panic("runnerAuthorizer must be set: use longrunning.AllowAllRunners() to trust every caller")
-	}
+func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner) *LibraryServiceServer {
 	return &LibraryServiceServer{
 		natsClient:                         natsClient,
 		schedulerServiceClient:             schedulerServiceClient,
 		runner:                             runner,
-		runnerAuthorizer:                   runnerAuthorizer,
 		libraryService_AuthorServer:        newLibraryService_AuthorServer(store),
 		libraryService_AuthorProfileServer: newLibraryService_AuthorProfileServer(store),
 		libraryService_ShelfServer:         newLibraryService_ShelfServer(store, natsClient),
@@ -2566,10 +2561,6 @@ func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.Imp
 			RequestID: request.GetRequestId(),
 		}
 		return longrunning.Start(ctx, s.schedulerServiceClient, startRequest)
-	}
-	// The scheduler's job metadata is a privilege: it makes the call do the work inline.
-	if err := s.runnerAuthorizer(ctx); err != nil {
-		return nil, err
 	}
 	response, err := s.runner.RunImportBooks(ctx, request)
 	if err != nil {

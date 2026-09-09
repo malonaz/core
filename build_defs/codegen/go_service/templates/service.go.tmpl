@@ -68,9 +68,6 @@ func (s *Service) WithLogger(logger *{{ goImport "log/slog" }}.Logger) *Service 
 
 func New(
   opts *Opts,
-      {{- if $longrunning }}
-      runnerAuthorizer {{ goImport "github.com/malonaz/core/go/scheduler/longrunning" }}.RunnerAuthorizer,
-      {{- end }}
       {{- range $dep := .dependencies }}
             {{- if eq $dep.type "grpc_client" }}
                 {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
@@ -113,7 +110,7 @@ func New(
   {{- range $codegen := .codegens }}
       {{- if eq $codegen.type "rpc" }}
   {{- /* The service itself is the runner: it implements Run{Method} for each long-running method. */}}
-  service.{{ $codegen.name | camelcase }}Server = {{ plzGoImport $codegen.implementation }}.New{{ $codegen.name | camelcase }}Server({{ $codegen.store | camelcase | untitle }}PostgresStore{{ if $codegen.nats }}, natsClient{{ end }}{{ if $codegen.longrunning }}, {{ $schedulerClient }}, service, runnerAuthorizer{{ end }})
+  service.{{ $codegen.name | camelcase }}Server = {{ plzGoImport $codegen.implementation }}.New{{ $codegen.name | camelcase }}Server({{ $codegen.store | camelcase | untitle }}PostgresStore{{ if $codegen.nats }}, natsClient{{ end }}{{ if $codegen.longrunning }}, {{ $schedulerClient }}, service{{ end }})
       {{- end }}
   {{- end }}
   {{- if $longrunning }}

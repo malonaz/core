@@ -9,10 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	"github.com/malonaz/core/go/aip"
-	"github.com/malonaz/core/go/authentication"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/scheduler"
 )
@@ -90,37 +88,4 @@ func Done(response proto.Message) (*longrunningpb.Operation, error) {
 // applies its retry policy to the error's code as if the call had returned it.
 func Failed(err error) *longrunningpb.Operation {
 	return &longrunningpb.Operation{Done: true, Result: &longrunningpb.Operation_Error{Error: grpcstatus.Convert(err).Proto()}}
-}
-
-// RunnerAuthorizer decides whether a call carrying the scheduler's job
-// metadata may run the work inline. The metadata is a privilege: without a
-// check, any caller could run a job's worth of work synchronously.
-type RunnerAuthorizer func(ctx context.Context) error
-
-// AllowAllRunners trusts every caller. For tests and servers without authentication.
-func AllowAllRunners() RunnerAuthorizer {
-	return func(context.Context) error { return nil }
-}
-
-// ServiceAccountRunners admits sessions authenticated as a service account,
-// any when none is named, else one of the given IDs.
-func ServiceAccountRunners(serviceAccountIDs ...string) RunnerAuthorizer {
-	serviceAccountIDSet := make(map[string]bool, len(serviceAccountIDs))
-	for _, serviceAccountID := range serviceAccountIDs {
-		serviceAccountIDSet[serviceAccountID] = true
-	}
-	return func(ctx context.Context) error {
-		session, err := authentication.GetSession(ctx)
-		if err != nil {
-			return status.Errorf(codes.PermissionDenied, "running a job requires a session: %v", err).Err()
-		}
-		identity, ok := session.GetIdentity().(*authenticationpb.Session_ServiceAccountIdentity)
-		if !ok {
-			return status.Errorf(codes.PermissionDenied, "running a job requires a service account").Err()
-		}
-		if len(serviceAccountIDSet) > 0 && !serviceAccountIDSet[identity.ServiceAccountIdentity.GetServiceAccountId()] {
-			return status.Errorf(codes.PermissionDenied, "service account %q may not run jobs", identity.ServiceAccountIdentity.GetServiceAccountId()).Err()
-		}
-		return nil
-	}
 }

@@ -8,10 +8,8 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/aip",
-        "//go/authentication",
         "//go/grpc/status",
         "//go/scheduler",
-        "//malonaz/authentication/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",

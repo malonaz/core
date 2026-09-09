@@ -52,7 +52,7 @@ type serviceInfo struct {
 }
 
 // longrunning reports whether the service has long-running methods, which give
-// its server a scheduler client, a runner and a runner authorizer.
+// its server a scheduler client and a runner.
 func (si *serviceInfo) longrunning() bool { return len(si.lroMethods) > 0 }
 
 // methodInfo holds the collected info for a single RPC method.
@@ -235,7 +235,6 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	if si.longrunning() {
 		g.P(fmt.Sprintf("  schedulerServiceClient %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient")))
 		g.P(fmt.Sprintf("  runner %s", runnerGoName(si)))
-		g.P(fmt.Sprintf("  runnerAuthorizer %s", gen.ident(longrunningPkg, "RunnerAuthorizer")))
 	}
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  *%s_%sServer", svcNameUntitled, pr.SingularGoName()))
@@ -249,15 +248,9 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		params += fmt.Sprintf(", natsClient *%s", gen.ident(natsPkg, "Client"))
 	}
 	if si.longrunning() {
-		params += fmt.Sprintf(", schedulerServiceClient %s, runner %s, runnerAuthorizer %s",
-			gen.ident(schedulerGenPkg, "SchedulerServiceClient"), runnerGoName(si), gen.ident(longrunningPkg, "RunnerAuthorizer"))
+		params += fmt.Sprintf(", schedulerServiceClient %s, runner %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient"), runnerGoName(si))
 	}
 	g.P(fmt.Sprintf("func New%sServer(%s) *%sServer {", svcName, params, svcName))
-	if si.longrunning() {
-		g.P("  if runnerAuthorizer == nil {")
-		g.P("    panic(\"runnerAuthorizer must be set: use longrunning.AllowAllRunners() to trust every caller\")")
-		g.P("  }")
-	}
 	g.P(fmt.Sprintf("  return &%sServer{", svcName))
 	if si.natsStream {
 		g.P("    natsClient: natsClient,")
@@ -265,7 +258,6 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	if si.longrunning() {
 		g.P("    schedulerServiceClient: schedulerServiceClient,")
 		g.P("    runner: runner,")
-		g.P("    runnerAuthorizer: runnerAuthorizer,")
 	}
 	for _, pr := range si.resources {
 		natsArg := ""
