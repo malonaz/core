@@ -125,7 +125,7 @@ message StandardMethod {
   // Used to determine request/response message types and validate method naming.
   string resource = 1 [
     (buf.validate.field).required = true,
-    (buf.validate.field).string.pattern = "^[a-z]+\\.[a-z]+\\.[a-z0-9]+/[A-Z][a-zA-Z]*$"
+    (buf.validate.field).string.pattern = "^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$"
   ];
   // Emit an event for this action, using github.com/malonaz/pgq.
   // Only supported on CREATE, UPDATE & DELETE methods.
