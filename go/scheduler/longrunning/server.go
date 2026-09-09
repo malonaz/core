@@ -71,12 +71,10 @@ func (s *Server) GetOperation(ctx context.Context, request *longrunningpb.GetOpe
 	return OperationFromJob(job), nil
 }
 
-// ListOperations lists the operations under the named resource, that is those
-// whose name starts with it, of this server's methods. The supported filter
-// subset is `done = true` and `done = false`; the page token is the scheduler's.
-//
-// Jobs are listed under the scheduler parent the name derives to, so listing
-// an organization's operations does not include those of its users' resources.
+// ListOperations lists the operations directly on the named resource
+// (`{name}/operations/*`) of this server's methods; their jobs all live under
+// the parent the name derives to. The supported filter subset is `done = true`
+// and `done = false`; the page token is the scheduler's.
 func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.ListOperationsRequest) (*longrunningpb.ListOperationsResponse, error) {
 	if request.GetName() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "name must be set").Err()
@@ -87,7 +85,7 @@ func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.List
 	}
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{
 		Parent:    JobParentOf(request.GetName()),
-		Filter:    fmt.Sprintf("operation_name = %q AND %s%s", request.GetName()+"/*", s.methodsFilter, filter),
+		Filter:    fmt.Sprintf("operation_name = %q AND %s%s", OperationName(request.GetName(), "*"), s.methodsFilter, filter),
 		PageSize:  request.GetPageSize(),
 		PageToken: request.GetPageToken(),
 	}
