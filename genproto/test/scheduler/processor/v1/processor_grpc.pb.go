@@ -24,16 +24,15 @@ const (
 	Processor_Sleep_FullMethodName    = "/malonaz.test.scheduler.processor.v1.Processor/Sleep"
 	Processor_Deadline_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Deadline"
 	Processor_Progress_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Progress"
-	Processor_Ignored_FullMethodName  = "/malonaz.test.scheduler.processor.v1.Processor/Ignored"
+	Processor_Unrouted_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Unrouted"
 )
 
 // ProcessorClient is the client API for Processor service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// A scriptable processor the scheduler sats route jobs to. Each request type
-// is one job type, so the scheduler configuration can give each its own
-// timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. The sats give each
+// method its own queue, so each can have its own timeout and retry policy.
 type ProcessorClient interface {
 	// Returns the value it was given.
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
@@ -46,8 +45,8 @@ type ProcessorClient interface {
 	Deadline(ctx context.Context, in *DeadlineRequest, opts ...grpc.CallOption) (*DeadlineResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error)
-	// Never routed: the sats configure the scheduler to ignore this job type.
-	Ignored(ctx context.Context, in *IgnoredRequest, opts ...grpc.CallOption) (*IgnoredResponse, error)
+	// Never routed: no sat queue has a handler for it.
+	Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error)
 }
 
 type processorClient struct {
@@ -108,10 +107,10 @@ func (c *processorClient) Progress(ctx context.Context, in *ProgressRequest, opt
 	return out, nil
 }
 
-func (c *processorClient) Ignored(ctx context.Context, in *IgnoredRequest, opts ...grpc.CallOption) (*IgnoredResponse, error) {
+func (c *processorClient) Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IgnoredResponse)
-	err := c.cc.Invoke(ctx, Processor_Ignored_FullMethodName, in, out, cOpts...)
+	out := new(UnroutedResponse)
+	err := c.cc.Invoke(ctx, Processor_Unrouted_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,9 +121,8 @@ func (c *processorClient) Ignored(ctx context.Context, in *IgnoredRequest, opts 
 // All implementations should embed UnimplementedProcessorServer
 // for forward compatibility.
 //
-// A scriptable processor the scheduler sats route jobs to. Each request type
-// is one job type, so the scheduler configuration can give each its own
-// timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. The sats give each
+// method its own queue, so each can have its own timeout and retry policy.
 type ProcessorServer interface {
 	// Returns the value it was given.
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
@@ -137,8 +135,8 @@ type ProcessorServer interface {
 	Deadline(context.Context, *DeadlineRequest) (*DeadlineResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(context.Context, *ProgressRequest) (*ProgressResponse, error)
-	// Never routed: the sats configure the scheduler to ignore this job type.
-	Ignored(context.Context, *IgnoredRequest) (*IgnoredResponse, error)
+	// Never routed: no sat queue has a handler for it.
+	Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error)
 }
 
 // UnimplementedProcessorServer should be embedded to have
@@ -163,8 +161,8 @@ func (UnimplementedProcessorServer) Deadline(context.Context, *DeadlineRequest) 
 func (UnimplementedProcessorServer) Progress(context.Context, *ProgressRequest) (*ProgressResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Progress not implemented")
 }
-func (UnimplementedProcessorServer) Ignored(context.Context, *IgnoredRequest) (*IgnoredResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Ignored not implemented")
+func (UnimplementedProcessorServer) Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Unrouted not implemented")
 }
 func (UnimplementedProcessorServer) testEmbeddedByValue() {}
 
@@ -276,20 +274,20 @@ func _Processor_Progress_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Processor_Ignored_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IgnoredRequest)
+func _Processor_Unrouted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnroutedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProcessorServer).Ignored(ctx, in)
+		return srv.(ProcessorServer).Unrouted(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Processor_Ignored_FullMethodName,
+		FullMethod: Processor_Unrouted_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProcessorServer).Ignored(ctx, req.(*IgnoredRequest))
+		return srv.(ProcessorServer).Unrouted(ctx, req.(*UnroutedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -322,8 +320,8 @@ var Processor_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Processor_Progress_Handler,
 		},
 		{
-			MethodName: "Ignored",
-			Handler:    _Processor_Ignored_Handler,
+			MethodName: "Unrouted",
+			Handler:    _Processor_Unrouted_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

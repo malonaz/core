@@ -151,7 +151,10 @@ type FlakyRequest struct {
 	// The number of calls to fail before succeeding.
 	Failures int32 `protobuf:"varint,2,opt,name=failures,proto3" json:"failures,omitempty"`
 	// The gRPC code failures are returned with.
-	Code          int32 `protobuf:"varint,3,opt,name=code,proto3" json:"code,omitempty"`
+	Code int32 `protobuf:"varint,3,opt,name=code,proto3" json:"code,omitempty"`
+	// When set, failures carry a `google.rpc.RetryInfo` detail asking the
+	// scheduler to wait this long before the next attempt.
+	RetryDelay    *durationpb.Duration `protobuf:"bytes,4,opt,name=retry_delay,json=retryDelay,proto3" json:"retry_delay,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -202,6 +205,13 @@ func (x *FlakyRequest) GetCode() int32 {
 	return 0
 }
 
+func (x *FlakyRequest) GetRetryDelay() *durationpb.Duration {
+	if x != nil {
+		return x.RetryDelay
+	}
+	return nil
+}
+
 func (x *FlakyRequest) SetKey(v string) {
 	x.Key = v
 }
@@ -214,6 +224,21 @@ func (x *FlakyRequest) SetCode(v int32) {
 	x.Code = v
 }
 
+func (x *FlakyRequest) SetRetryDelay(v *durationpb.Duration) {
+	x.RetryDelay = v
+}
+
+func (x *FlakyRequest) HasRetryDelay() bool {
+	if x == nil {
+		return false
+	}
+	return x.RetryDelay != nil
+}
+
+func (x *FlakyRequest) ClearRetryDelay() {
+	x.RetryDelay = nil
+}
+
 type FlakyRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -223,6 +248,9 @@ type FlakyRequest_builder struct {
 	Failures int32
 	// The gRPC code failures are returned with.
 	Code int32
+	// When set, failures carry a `google.rpc.RetryInfo` detail asking the
+	// scheduler to wait this long before the next attempt.
+	RetryDelay *durationpb.Duration
 }
 
 func (b0 FlakyRequest_builder) Build() *FlakyRequest {
@@ -232,6 +260,7 @@ func (b0 FlakyRequest_builder) Build() *FlakyRequest {
 	x.Key = b.Key
 	x.Failures = b.Failures
 	x.Code = b.Code
+	x.RetryDelay = b.RetryDelay
 	return m0
 }
 
@@ -721,27 +750,27 @@ func (b0 Step_builder) Build() *Step {
 	return m0
 }
 
-// Request message for Processor.Ignored.
-type IgnoredRequest struct {
+// Request message for Processor.Unrouted.
+type UnroutedRequest struct {
 	state         protoimpl.MessageState `protogen:"hybrid.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *IgnoredRequest) Reset() {
-	*x = IgnoredRequest{}
+func (x *UnroutedRequest) Reset() {
+	*x = UnroutedRequest{}
 	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IgnoredRequest) String() string {
+func (x *UnroutedRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IgnoredRequest) ProtoMessage() {}
+func (*UnroutedRequest) ProtoMessage() {}
 
-func (x *IgnoredRequest) ProtoReflect() protoreflect.Message {
+func (x *UnroutedRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -753,39 +782,39 @@ func (x *IgnoredRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-type IgnoredRequest_builder struct {
+type UnroutedRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 }
 
-func (b0 IgnoredRequest_builder) Build() *IgnoredRequest {
-	m0 := &IgnoredRequest{}
+func (b0 UnroutedRequest_builder) Build() *UnroutedRequest {
+	m0 := &UnroutedRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
 	return m0
 }
 
-// Response message for Processor.Ignored.
-type IgnoredResponse struct {
+// Response message for Processor.Unrouted.
+type UnroutedResponse struct {
 	state         protoimpl.MessageState `protogen:"hybrid.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *IgnoredResponse) Reset() {
-	*x = IgnoredResponse{}
+func (x *UnroutedResponse) Reset() {
+	*x = UnroutedResponse{}
 	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IgnoredResponse) String() string {
+func (x *UnroutedResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IgnoredResponse) ProtoMessage() {}
+func (*UnroutedResponse) ProtoMessage() {}
 
-func (x *IgnoredResponse) ProtoReflect() protoreflect.Message {
+func (x *UnroutedResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -797,13 +826,13 @@ func (x *IgnoredResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-type IgnoredResponse_builder struct {
+type UnroutedResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 }
 
-func (b0 IgnoredResponse_builder) Build() *IgnoredResponse {
-	m0 := &IgnoredResponse{}
+func (b0 UnroutedResponse_builder) Build() *UnroutedResponse {
+	m0 := &UnroutedResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
 	return m0
@@ -817,11 +846,13 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\vEchoRequest\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\"$\n" +
 	"\fEchoResponse\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\tR\x05value\"P\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"\x8c\x01\n" +
 	"\fFlakyRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1a\n" +
 	"\bfailures\x18\x02 \x01(\x05R\bfailures\x12\x12\n" +
-	"\x04code\x18\x03 \x01(\x05R\x04code\"%\n" +
+	"\x04code\x18\x03 \x01(\x05R\x04code\x12:\n" +
+	"\vretry_delay\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\n" +
+	"retryDelay\"%\n" +
 	"\rFlakyResponse\x12\x14\n" +
 	"\x05calls\x18\x01 \x01(\x05R\x05calls\"W\n" +
 	"\fSleepRequest\x12\x10\n" +
@@ -836,16 +867,16 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x05steps\x18\x01 \x01(\x05R\x05steps\"\x12\n" +
 	"\x10ProgressResponse\"\x1c\n" +
 	"\x04Step\x12\x14\n" +
-	"\x05index\x18\x01 \x01(\x05R\x05index\"\x10\n" +
-	"\x0eIgnoredRequest\"\x11\n" +
-	"\x0fIgnoredResponse2\xc0\x05\n" +
+	"\x05index\x18\x01 \x01(\x05R\x05index\"\x11\n" +
+	"\x0fUnroutedRequest\"\x12\n" +
+	"\x10UnroutedResponse2\xc3\x05\n" +
 	"\tProcessor\x12k\n" +
 	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n" +
 	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n" +
 	"\x05Sleep\x121.malonaz.test.scheduler.processor.v1.SleepRequest\x1a2.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n" +
 	"\bDeadline\x124.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a5.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n" +
-	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\x12t\n" +
-	"\aIgnored\x123.malonaz.test.scheduler.processor.v1.IgnoredRequest\x1a4.malonaz.test.scheduler.processor.v1.IgnoredResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3"
+	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\x12w\n" +
+	"\bUnrouted\x124.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a5.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3"
 
 var file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_malonaz_test_scheduler_processor_v1_processor_proto_goTypes = []any{
@@ -860,30 +891,31 @@ var file_malonaz_test_scheduler_processor_v1_processor_proto_goTypes = []any{
 	(*ProgressRequest)(nil),     // 8: malonaz.test.scheduler.processor.v1.ProgressRequest
 	(*ProgressResponse)(nil),    // 9: malonaz.test.scheduler.processor.v1.ProgressResponse
 	(*Step)(nil),                // 10: malonaz.test.scheduler.processor.v1.Step
-	(*IgnoredRequest)(nil),      // 11: malonaz.test.scheduler.processor.v1.IgnoredRequest
-	(*IgnoredResponse)(nil),     // 12: malonaz.test.scheduler.processor.v1.IgnoredResponse
+	(*UnroutedRequest)(nil),     // 11: malonaz.test.scheduler.processor.v1.UnroutedRequest
+	(*UnroutedResponse)(nil),    // 12: malonaz.test.scheduler.processor.v1.UnroutedResponse
 	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
 }
 var file_malonaz_test_scheduler_processor_v1_processor_proto_depIdxs = []int32{
-	13, // 0: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
-	13, // 1: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
-	0,  // 2: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
-	2,  // 3: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
-	4,  // 4: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
-	6,  // 5: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
-	8,  // 6: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
-	11, // 7: malonaz.test.scheduler.processor.v1.Processor.Ignored:input_type -> malonaz.test.scheduler.processor.v1.IgnoredRequest
-	1,  // 8: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
-	3,  // 9: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
-	5,  // 10: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
-	7,  // 11: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
-	9,  // 12: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
-	12, // 13: malonaz.test.scheduler.processor.v1.Processor.Ignored:output_type -> malonaz.test.scheduler.processor.v1.IgnoredResponse
-	8,  // [8:14] is the sub-list for method output_type
-	2,  // [2:8] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+	13, // 0: malonaz.test.scheduler.processor.v1.FlakyRequest.retry_delay:type_name -> google.protobuf.Duration
+	13, // 1: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
+	13, // 2: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
+	0,  // 3: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
+	2,  // 4: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
+	4,  // 5: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
+	6,  // 6: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
+	8,  // 7: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
+	11, // 8: malonaz.test.scheduler.processor.v1.Processor.Unrouted:input_type -> malonaz.test.scheduler.processor.v1.UnroutedRequest
+	1,  // 9: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
+	3,  // 10: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
+	5,  // 11: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
+	7,  // 12: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
+	9,  // 13: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
+	12, // 14: malonaz.test.scheduler.processor.v1.Processor.Unrouted:output_type -> malonaz.test.scheduler.processor.v1.UnroutedResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_scheduler_processor_v1_processor_proto_init() }

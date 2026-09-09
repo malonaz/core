@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -81,10 +82,17 @@ func (p *processor) Echo(ctx context.Context, request *processorpb.EchoRequest) 
 func (p *processor) Flaky(ctx context.Context, request *processorpb.FlakyRequest) (*processorpb.FlakyResponse, error) {
 	defer p.record(ctx, request.GetKey())()
 	calls := int32(len(p.calls(request.GetKey())))
-	if calls <= request.GetFailures() {
-		return nil, status.Errorf(codes.Code(request.GetCode()), "flaky failure %d/%d", calls, request.GetFailures())
+	if calls > request.GetFailures() {
+		return &processorpb.FlakyResponse{Calls: calls}, nil
 	}
-	return &processorpb.FlakyResponse{Calls: calls}, nil
+	failure := status.Newf(codes.Code(request.GetCode()), "flaky failure %d/%d", calls, request.GetFailures())
+	if request.GetRetryDelay() != nil {
+		var err error
+		if failure, err = failure.WithDetails(&errdetails.RetryInfo{RetryDelay: request.GetRetryDelay()}); err != nil {
+			return nil, err
+		}
+	}
+	return nil, failure.Err()
 }
 
 func (p *processor) Sleep(ctx context.Context, request *processorpb.SleepRequest) (*processorpb.SleepResponse, error) {

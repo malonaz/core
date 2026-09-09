@@ -36,7 +36,7 @@ class ProcessorBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def Ignored(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredRequest, malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredResponse]') -> None:
+    async def Unrouted(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedRequest, malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -71,11 +71,11 @@ class ProcessorBase(abc.ABC):
                 malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest,
                 malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse,
             ),
-            '/malonaz.test.scheduler.processor.v1.Processor/Ignored': grpclib.const.Handler(
-                self.Ignored,
+            '/malonaz.test.scheduler.processor.v1.Processor/Unrouted': grpclib.const.Handler(
+                self.Unrouted,
                 grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredRequest,
-                malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredResponse,
+                malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedResponse,
             ),
         }
 
@@ -113,9 +113,9 @@ class ProcessorStub:
             malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest,
             malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse,
         )
-        self.Ignored = grpclib.client.UnaryUnaryMethod(
+        self.Unrouted = grpclib.client.UnaryUnaryMethod(
             channel,
-            '/malonaz.test.scheduler.processor.v1.Processor/Ignored',
-            malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredRequest,
-            malonaz.test.scheduler.processor.v1.processor_pb2.IgnoredResponse,
+            '/malonaz.test.scheduler.processor.v1.Processor/Unrouted',
+            malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.UnroutedResponse,
         )

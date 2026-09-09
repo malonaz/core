@@ -36,7 +36,8 @@ func TestCreateJob_PopulatesServerFields(t *testing.T) {
 	require.NotEmpty(t, job.GetEtag())
 	require.NotNil(t, job.GetCreateTime())
 	require.Equal(t, job.GetCreateTime().AsTime(), job.GetUpdateTime().AsTime())
-	require.Equal(t, jobType(&processorpb.EchoRequest{}), job.GetJobType())
+	require.Equal(t, echoQueue, job.GetQueue())
+	require.Equal(t, processorPath+"Echo", job.GetMethod())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, job.GetState())
 	require.Equal(t, map[string]string{"team": "core"}, job.GetLabels())
 	require.True(t, farFuture.Equal(job.GetScheduleTime().AsTime()))
@@ -47,17 +48,17 @@ func TestCreateJob_PopulatesServerFields(t *testing.T) {
 
 func TestCreateJob_IgnoresOutputOnlyFields(t *testing.T) {
 	t.Parallel()
-	createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"}, scheduler.WithScheduleTime(farFuture))
+	createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"}, scheduler.WithScheduleTime(farFuture))
 	require.NoError(t, err)
 	createJobRequest.Job.State = schedulerpb.JobState_JOB_STATE_SUCCEEDED
 	createJobRequest.Job.AttemptCount = 7
-	createJobRequest.Job.JobType = "forged"
+	createJobRequest.Job.Method = "forged"
 	createJobRequest.Job.StartTime = timestamppb.Now()
 	job, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, job.GetState())
 	require.Zero(t, job.GetAttemptCount())
-	require.Equal(t, jobType(&processorpb.EchoRequest{}), job.GetJobType())
+	require.Equal(t, processorPath+"Echo", job.GetMethod())
 	require.Nil(t, job.GetStartTime())
 }
 
@@ -65,13 +66,38 @@ func TestCreateJob_Validation(t *testing.T) {
 	t.Parallel()
 	t.Run("missing payload", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest := &schedulerservicepb.CreateJobRequest{Job: &schedulerpb.Job{}}
+		createJobRequest := &schedulerservicepb.CreateJobRequest{Job: &schedulerpb.Job{Queue: echoQueue}}
 		_, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+	t.Run("missing queue", func(t *testing.T) {
+		t.Parallel()
+		createJobRequest, err := scheduler.NewCreateJobRequest("", "", &processorpb.EchoRequest{Value: "x"})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+	t.Run("unknown queue", func(t *testing.T) {
+		t.Parallel()
+		createJobRequest, err := scheduler.NewCreateJobRequest("", "queues/does-not-exist", &processorpb.EchoRequest{Value: "x"})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
+		grpcrequire.Error(t, codes.NotFound, err)
+	})
+	t.Run("payload without a handler", func(t *testing.T) {
+		t.Parallel()
+		createJobRequest, err := scheduler.NewCreateJobRequest("", echoQueue, &processorpb.UnroutedRequest{})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+		createJobRequest, err = scheduler.NewCreateJobRequest("", echoQueue, &processorpb.SleepRequest{Key: "x"})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 	})
 	t.Run("bad label value", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"},
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithLabels(map[string]string{"k": "Not Valid!"}))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -79,7 +105,7 @@ func TestCreateJob_Validation(t *testing.T) {
 	})
 	t.Run("bad request id", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"})
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"})
 		require.NoError(t, err)
 		createJobRequest.RequestId = "not-a-uuid"
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -87,7 +113,7 @@ func TestCreateJob_Validation(t *testing.T) {
 	})
 	t.Run("validate only", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"})
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"})
 		require.NoError(t, err)
 		createJobRequest.ValidateOnly = true
 		job, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -102,7 +128,7 @@ func TestCreateJob_Idempotent(t *testing.T) {
 	requestID := uuid.MustNewV7().String()
 	newRequest := func(t *testing.T) *schedulerservicepb.CreateJobRequest {
 		t.Helper()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "idempotent"}, scheduler.WithScheduleTime(farFuture))
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "idempotent"}, scheduler.WithScheduleTime(farFuture))
 		require.NoError(t, err)
 		createJobRequest.RequestId = requestID
 		return createJobRequest
@@ -121,7 +147,7 @@ func TestCreateJob_Idempotent(t *testing.T) {
 	require.Equal(t, first.GetName(), third.GetName())
 
 	// A job id collision with a fresh request id is a conflict.
-	createJobRequest, err = scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "idempotent"}, scheduler.WithScheduleTime(farFuture))
+	createJobRequest, err = scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "idempotent"}, scheduler.WithScheduleTime(farFuture))
 	require.NoError(t, err)
 	createJobRequest.JobId = first.GetName()[len("jobs/"):]
 	_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -180,6 +206,17 @@ func TestUpdateJob(t *testing.T) {
 		updateJobRequest := &schedulerservicepb.UpdateJobRequest{
 			Job:        &schedulerpb.Job{Name: job.GetName(), State: schedulerpb.JobState_JOB_STATE_SUCCEEDED},
 			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"state"}},
+		}
+		_, err := schedulerServiceClient.UpdateJob(ctx, updateJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("queue is immutable", func(t *testing.T) {
+		t.Parallel()
+		job := createJob(t, &processorpb.EchoRequest{Value: "update"}, scheduler.WithScheduleTime(farFuture))
+		updateJobRequest := &schedulerservicepb.UpdateJobRequest{
+			Job:        &schedulerpb.Job{Name: job.GetName(), Queue: sleepQueue},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"queue"}},
 		}
 		_, err := schedulerServiceClient.UpdateJob(ctx, updateJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
@@ -294,9 +331,11 @@ func TestListJobs(t *testing.T) {
 		require.ElementsMatch(t, []string{done1.GetName(), done2.GetName()}, names(list(t, `labels.kind = "done"`, "")))
 		require.ElementsMatch(t, []string{later.GetName(), sooner.GetName()}, names(list(t, "NOT labels.kind:*", "")))
 	})
-	t.Run("filter on job_type", func(t *testing.T) {
-		require.Len(t, list(t, fmt.Sprintf(`job_type = "%s"`, jobType(&processorpb.EchoRequest{})), ""), 4)
-		require.Empty(t, list(t, fmt.Sprintf(`job_type = "%s"`, jobType(&processorpb.SleepRequest{})), ""))
+	t.Run("filter on queue and method", func(t *testing.T) {
+		require.Len(t, list(t, fmt.Sprintf(`queue = "%s"`, echoQueue), ""), 4)
+		require.Empty(t, list(t, fmt.Sprintf(`queue = "%s"`, sleepQueue), ""))
+		require.Len(t, list(t, fmt.Sprintf(`method = "%sEcho"`, processorPath), ""), 4)
+		require.Empty(t, list(t, fmt.Sprintf(`method = "%sSleep"`, processorPath), ""))
 	})
 	t.Run("filter on presence and time", func(t *testing.T) {
 		require.ElementsMatch(t, []string{done1.GetName(), done2.GetName()}, names(list(t, "complete_time:*", "")))
@@ -378,7 +417,7 @@ func TestJob_Parents(t *testing.T) {
 	t.Run("invalid parent", func(t *testing.T) {
 		_, err := schedulerServiceClient.ListJobs(ctx, &schedulerservicepb.ListJobsRequest{Parent: "teams/x"})
 		grpcrequire.Error(t, codes.InvalidArgument, err)
-		createJobRequest, err := scheduler.NewCreateJobRequest("teams/x", &processorpb.EchoRequest{Value: "x"})
+		createJobRequest, err := scheduler.NewCreateJobRequest("teams/x", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"})
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
@@ -421,7 +460,7 @@ func TestCreateJob_Priority(t *testing.T) {
 	t.Parallel()
 	t.Run("validation", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"}, scheduler.WithPriority(101))
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"}, scheduler.WithPriority(101))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
@@ -450,7 +489,7 @@ func TestCreateJob_Priority(t *testing.T) {
 func TestProcess_PriorityOrder(t *testing.T) {
 	// Hold every slot so that exactly one job can be claimed when one is released.
 	run := uuid.MustNewV7().String()
-	fillers := make([]*schedulerpb.Job, maxParallelJobs)
+	fillers := make([]*schedulerpb.Job, replicaCount*maxParallelJobs)
 	for i := range fillers {
 		fillers[i] = createJob(t, &processorpb.SleepRequest{Key: fmt.Sprintf("%s-filler-%d", run, i), Duration: durationpb.New(sleepTimeout)})
 	}
@@ -538,7 +577,7 @@ func TestCreateJob_UniqueKey(t *testing.T) {
 	t.Run("request id is independent", func(t *testing.T) {
 		t.Parallel()
 		key := uuid.MustNewV7().String()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key), scheduler.WithScheduleTime(farFuture))
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key), scheduler.WithScheduleTime(farFuture))
 		require.NoError(t, err)
 		createJobRequest.RequestId = uuid.MustNewV7().String()
 		first, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -554,7 +593,7 @@ func TestCreateJob_UniqueKey(t *testing.T) {
 
 	t.Run("validation", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"}, scheduler.WithUniqueKey(strings.Repeat("k", 257)))
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"}, scheduler.WithUniqueKey(strings.Repeat("k", 257)))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)

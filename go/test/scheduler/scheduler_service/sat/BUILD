@@ -1,13 +1,24 @@
+subinclude("//build_defs/proto:descriptor")
+
+proto_descriptor_set(
+    name = "processor_descriptor_set",
+    srcs = ["//malonaz/test/scheduler/processor/v1"],
+    test_only = True,
+)
+
 go_test(
     name = "sat",
     srcs = [
         "job_test.go",
+        "policy_test.go",
         "processor_test.go",
+        "queue_test.go",
         "sat_test.go",
+        "target_test.go",
         "worker_test.go",
     ],
     data = [
-        "configuration.jsonnet",
+        ":processor_descriptor_set",
         "//cmd/postgres-migrator",
         "//cmd/scheduler-service",
         "//go/scheduler/migrations",
@@ -26,6 +37,7 @@ go_test(
         "//malonaz/test/scheduler/processor/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
@@ -36,6 +48,6 @@ go_test(
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
-        "//third_party/go:google.golang.org__protobuf__types__known__wrapperspb",
+        "//third_party/proto:google__rpc__code",
     ],
 )

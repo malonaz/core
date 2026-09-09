@@ -6,9 +6,8 @@ import "google/protobuf/duration.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/scheduler/processor/v1";
 
-// A scriptable processor the scheduler sats route jobs to. Each request type
-// is one job type, so the scheduler configuration can give each its own
-// timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. The sats give each
+// method its own queue, so each can have its own timeout and retry policy.
 service Processor {
   // Returns the value it was given.
   rpc Echo(EchoRequest) returns (EchoResponse);
@@ -26,8 +25,8 @@ service Processor {
   // Reports `steps` progress updates to the scheduler before returning.
   rpc Progress(ProgressRequest) returns (ProgressResponse);
 
-  // Never routed: the sats configure the scheduler to ignore this job type.
-  rpc Ignored(IgnoredRequest) returns (IgnoredResponse);
+  // Never routed: no sat queue has a handler for it.
+  rpc Unrouted(UnroutedRequest) returns (UnroutedResponse);
 }
 
 // Request message for Processor.Echo.
@@ -52,6 +51,10 @@ message FlakyRequest {
 
   // The gRPC code failures are returned with.
   int32 code = 3;
+
+  // When set, failures carry a `google.rpc.RetryInfo` detail asking the
+  // scheduler to wait this long before the next attempt.
+  google.protobuf.Duration retry_delay = 4;
 }
 
 // Response message for Processor.Flaky.
@@ -99,8 +102,8 @@ message Step {
   int32 index = 1;
 }
 
-// Request message for Processor.Ignored.
-message IgnoredRequest {}
+// Request message for Processor.Unrouted.
+message UnroutedRequest {}
 
-// Response message for Processor.Ignored.
-message IgnoredResponse {}
+// Response message for Processor.Unrouted.
+message UnroutedResponse {}
