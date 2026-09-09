@@ -31,13 +31,14 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("instantiating runtime: %w", err)
 	}
-	return &Service{
+	service := &Service{
 		runtime:         runtime,
-		AiServiceServer: rpc.NewAiServiceServer(aiPostgresStore),
 		log:             slog.Default(),
 		opts:            opts,
 		aiPostgresStore: aiPostgresStore,
-	}, nil
+	}
+	service.AiServiceServer = rpc.NewAiServiceServer(aiPostgresStore)
+	return service, nil
 }
 
 func (s *Service) Start(ctx context.Context, withServiceAccount func(context.Context) context.Context) (func(), error) {

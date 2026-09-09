@@ -43,6 +43,7 @@ const (
 	SchedulerService_BatchGetJobs_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetJobs"
 	SchedulerService_RetryJob_FullMethodName          = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/RetryJob"
 	SchedulerService_CancelJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob"
+	SchedulerService_WaitJob_FullMethodName           = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob"
 	SchedulerService_ReportJobProgress_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress"
 )
 
@@ -92,6 +93,15 @@ const (
 //
 // Every handler call carries the job's resource name in the `x-scheduler-job`
 // request metadata, which handlers pass to ReportJobProgress.
+//
+// # Long-running operations
+//
+// A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
+// sets `operation_name` at creation, with the job's ID as the operation's ID.
+// A handler whose response type is `google.longrunning.Operation` must return
+// it done: its `response` or `error` is recorded as the job's outcome, and an
+// unfinished operation fails the job with FAILED_PRECONDITION without retry.
+// `WaitJob` backs `WaitOperation`.
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
@@ -204,6 +214,13 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
+	// Wait for a job to reach a terminal state, or for the timeout to elapse,
+	// whichever comes first, and return it as it is then. Timing out is not an
+	// error: callers inspect `state`. The timeout is capped by the server; see
+	// [WaitJobRequest.timeout][malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout].
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	WaitJob(ctx context.Context, in *WaitJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
 	// Report the progress of a RUNNING job. Processors call this with the job
 	// name received in the `x-scheduler-job` metadata. Fails with
 	// FAILED_PRECONDITION once the job is no longer running, which lets a
@@ -441,6 +458,16 @@ func (c *schedulerServiceClient) CancelJob(ctx context.Context, in *CancelJobReq
 	return out, nil
 }
 
+func (c *schedulerServiceClient) WaitJob(ctx context.Context, in *WaitJobRequest, opts ...grpc.CallOption) (*v1.Job, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Job)
+	err := c.cc.Invoke(ctx, SchedulerService_WaitJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *ReportJobProgressRequest, opts ...grpc.CallOption) (*v1.Job, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Job)
@@ -497,6 +524,15 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // Every handler call carries the job's resource name in the `x-scheduler-job`
 // request metadata, which handlers pass to ReportJobProgress.
+//
+// # Long-running operations
+//
+// A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
+// sets `operation_name` at creation, with the job's ID as the operation's ID.
+// A handler whose response type is `google.longrunning.Operation` must return
+// it done: its `response` or `error` is recorded as the job's outcome, and an
+// unfinished operation fails the job with FAILED_PRECONDITION without retry.
+// `WaitJob` backs `WaitOperation`.
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
@@ -609,6 +645,13 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelJob(context.Context, *CancelJobRequest) (*v1.Job, error)
+	// Wait for a job to reach a terminal state, or for the timeout to elapse,
+	// whichever comes first, and return it as it is then. Timing out is not an
+	// error: callers inspect `state`. The timeout is capped by the server; see
+	// [WaitJobRequest.timeout][malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout].
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	WaitJob(context.Context, *WaitJobRequest) (*v1.Job, error)
 	// Report the progress of a RUNNING job. Processors call this with the job
 	// name received in the `x-scheduler-job` metadata. Fails with
 	// FAILED_PRECONDITION once the job is no longer running, which lets a
@@ -690,6 +733,9 @@ func (UnimplementedSchedulerServiceServer) RetryJob(context.Context, *RetryJobRe
 }
 func (UnimplementedSchedulerServiceServer) CancelJob(context.Context, *CancelJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelJob not implemented")
+}
+func (UnimplementedSchedulerServiceServer) WaitJob(context.Context, *WaitJobRequest) (*v1.Job, error) {
+	return nil, status.Error(codes.Unimplemented, "method WaitJob not implemented")
 }
 func (UnimplementedSchedulerServiceServer) ReportJobProgress(context.Context, *ReportJobProgressRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportJobProgress not implemented")
@@ -1110,6 +1156,24 @@ func _SchedulerService_CancelJob_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchedulerService_WaitJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WaitJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).WaitJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_WaitJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).WaitJob(ctx, req.(*WaitJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SchedulerService_ReportJobProgress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReportJobProgressRequest)
 	if err := dec(in); err != nil {
@@ -1222,6 +1286,10 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelJob",
 			Handler:    _SchedulerService_CancelJob_Handler,
+		},
+		{
+			MethodName: "WaitJob",
+			Handler:    _SchedulerService_WaitJob_Handler,
 		},
 		{
 			MethodName: "ReportJobProgress",

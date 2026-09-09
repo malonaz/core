@@ -97,38 +97,39 @@ func (x JobState) Number() protoreflect.EnumNumber {
 //
 // The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
 // `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
-// `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
-// `expire_time`. The outcome mirrors a long-running operation: a terminal job
+// `payload`, `labels`, `priority`, `unique_key`, `schedule_time`,
+// `expire_time` and `operation_name`. The outcome mirrors a long-running operation: a terminal job
 // carries either a `response` or an `error`.
 //
 // A job belongs to the organization or user it runs on behalf of; system-wide
 // work (e.g. nightly maintenance) lives at the root.
 type Job struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_CreateTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_UpdateTime   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
-	xxx_hidden_Etag         string                 `protobuf:"bytes,4,opt,name=etag,proto3"`
-	xxx_hidden_Labels       map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Payload      *anypb.Any             `protobuf:"bytes,6,opt,name=payload,proto3"`
-	xxx_hidden_Queue        string                 `protobuf:"bytes,7,opt,name=queue,proto3"`
-	xxx_hidden_Method       string                 `protobuf:"bytes,22,opt,name=method,proto3"`
-	xxx_hidden_State        JobState               `protobuf:"varint,8,opt,name=state,proto3,enum=malonaz.scheduler.v1.JobState"`
-	xxx_hidden_Priority     int32                  `protobuf:"varint,9,opt,name=priority,proto3"`
-	xxx_hidden_UniqueKey    string                 `protobuf:"bytes,10,opt,name=unique_key,json=uniqueKey,proto3"`
-	xxx_hidden_ScheduleTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=schedule_time,json=scheduleTime,proto3"`
-	xxx_hidden_ExpireTime   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=expire_time,json=expireTime,proto3"`
-	xxx_hidden_StartTime    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=start_time,json=startTime,proto3"`
-	xxx_hidden_CompleteTime *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=complete_time,json=completeTime,proto3"`
-	xxx_hidden_LockTime     *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=lock_time,json=lockTime,proto3"`
-	xxx_hidden_PurgeTime    *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=purge_time,json=purgeTime,proto3"`
-	xxx_hidden_AttemptCount int32                  `protobuf:"varint,17,opt,name=attempt_count,json=attemptCount,proto3"`
-	xxx_hidden_Error        *status.Status         `protobuf:"bytes,18,opt,name=error,proto3"`
-	xxx_hidden_Response     *anypb.Any             `protobuf:"bytes,19,opt,name=response,proto3"`
-	xxx_hidden_Progress     *anypb.Any             `protobuf:"bytes,20,opt,name=progress,proto3"`
-	xxx_hidden_Metadata     *JobMetadata           `protobuf:"bytes,21,opt,name=metadata,proto3"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name          string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_CreateTime    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3"`
+	xxx_hidden_Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Payload       *anypb.Any             `protobuf:"bytes,6,opt,name=payload,proto3"`
+	xxx_hidden_Queue         string                 `protobuf:"bytes,7,opt,name=queue,proto3"`
+	xxx_hidden_Method        string                 `protobuf:"bytes,22,opt,name=method,proto3"`
+	xxx_hidden_OperationName string                 `protobuf:"bytes,23,opt,name=operation_name,json=operationName,proto3"`
+	xxx_hidden_State         JobState               `protobuf:"varint,8,opt,name=state,proto3,enum=malonaz.scheduler.v1.JobState"`
+	xxx_hidden_Priority      int32                  `protobuf:"varint,9,opt,name=priority,proto3"`
+	xxx_hidden_UniqueKey     string                 `protobuf:"bytes,10,opt,name=unique_key,json=uniqueKey,proto3"`
+	xxx_hidden_ScheduleTime  *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=schedule_time,json=scheduleTime,proto3"`
+	xxx_hidden_ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=expire_time,json=expireTime,proto3"`
+	xxx_hidden_StartTime     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=start_time,json=startTime,proto3"`
+	xxx_hidden_CompleteTime  *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=complete_time,json=completeTime,proto3"`
+	xxx_hidden_LockTime      *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=lock_time,json=lockTime,proto3"`
+	xxx_hidden_PurgeTime     *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=purge_time,json=purgeTime,proto3"`
+	xxx_hidden_AttemptCount  int32                  `protobuf:"varint,17,opt,name=attempt_count,json=attemptCount,proto3"`
+	xxx_hidden_Error         *status.Status         `protobuf:"bytes,18,opt,name=error,proto3"`
+	xxx_hidden_Response      *anypb.Any             `protobuf:"bytes,19,opt,name=response,proto3"`
+	xxx_hidden_Progress      *anypb.Any             `protobuf:"bytes,20,opt,name=progress,proto3"`
+	xxx_hidden_Metadata      *JobMetadata           `protobuf:"bytes,21,opt,name=metadata,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *Job) Reset() {
@@ -208,6 +209,13 @@ func (x *Job) GetQueue() string {
 func (x *Job) GetMethod() string {
 	if x != nil {
 		return x.xxx_hidden_Method
+	}
+	return ""
+}
+
+func (x *Job) GetOperationName() string {
+	if x != nil {
+		return x.xxx_hidden_OperationName
 	}
 	return ""
 }
@@ -340,6 +348,10 @@ func (x *Job) SetQueue(v string) {
 
 func (x *Job) SetMethod(v string) {
 	x.xxx_hidden_Method = v
+}
+
+func (x *Job) SetOperationName(v string) {
+	x.xxx_hidden_OperationName = v
 }
 
 func (x *Job) SetState(v JobState) {
@@ -568,6 +580,13 @@ type Job_builder struct {
 	// The gRPC method the payload is delivered to, resolved at creation from
 	// the payload type against the queue's handlers.
 	Method string
+	// The name of the long-running operation this job backs, when the producer
+	// exposes the job as one (AIP-151). Unique across jobs. The operation's ID
+	// is the job's ID, so the operation name alone locates the job: the job's
+	// parent is derived from the operation's resource, and the last segment is
+	// the job ID.
+	// Format: {resource}/operations/{job}
+	OperationName string
 	// The lifecycle state of the job.
 	State JobState
 	// The claim priority among due jobs: higher runs first, ties run in due
@@ -623,6 +642,7 @@ func (b0 Job_builder) Build() *Job {
 	x.xxx_hidden_Payload = b.Payload
 	x.xxx_hidden_Queue = b.Queue
 	x.xxx_hidden_Method = b.Method
+	x.xxx_hidden_OperationName = b.OperationName
 	x.xxx_hidden_State = b.State
 	x.xxx_hidden_Priority = b.Priority
 	x.xxx_hidden_UniqueKey = b.UniqueKey
@@ -902,7 +922,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd0\x0e\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa1\x0f\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -914,7 +934,8 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x12?\n" +
 	"\x05queue\x18\a \x01(\tB)\xe0A\x05\xfaA\x1d\n" +
 	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x05queue\x12\x1b\n" +
-	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12A\n" +
+	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12O\n" +
+	"\x0eoperation_name\x18\x17 \x01(\tB(\xe0A\x05\xbaH\x1c\xd8\x01\x01r\x172\x15^.+/operations/[^/]+$\xba\xea\x0f\x02 \x01R\roperationName\x12A\n" +
 	"\x05state\x18\b \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12.\n" +
 	"\bpriority\x18\t \x01(\x05B\x12\xbaH\x0f\x1a\r\x18d(\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01R\bpriority\x12-\n" +
 	"\n" +

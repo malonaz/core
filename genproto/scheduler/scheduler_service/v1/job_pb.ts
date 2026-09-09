@@ -7,8 +7,8 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { Any, FieldMask } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_any, file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
+import type { Any, Duration, FieldMask } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import type { Job, JobValid } from "../../v1/job_pb";
 import { file_malonaz_scheduler_v1_job } from "../../v1/job_pb";
@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/scheduler_service/v1/job.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIuEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEi4KA2pvYhgCIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIuUBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmi6SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDIQoGbGFiZWxzCg1zY2hlZHVsZV90aW1lCghwcmlvcml0eSJuChBEZWxldGVKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiigIKD0xpc3RKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6coLzLQIIZIrzLWEKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoNc2NoZWR1bGVfdGltZQoLZXhwaXJlX3RpbWUKDWNvbXBsZXRlX3RpbWUKCHByaW9yaXR5EhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIocBChNCYXRjaEdldEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIj8KFEJhdGNoR2V0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiSAoPUmV0cnlKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASJJChBDYW5jZWxKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASKBAQoYUmVwb3J0Sm9iUHJvZ3Jlc3NSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIuCghwcm9ncmVzcxgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCBrpIA8gBAUJBWj9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvc2NoZWR1bGVyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
+  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIuEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEi4KA2pvYhgCIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIuUBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmi6SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDIQoGbGFiZWxzCg1zY2hlZHVsZV90aW1lCghwcmlvcml0eSJuChBEZWxldGVKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiigIKD0xpc3RKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6coLzLQIIZIrzLWEKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoNc2NoZWR1bGVfdGltZQoLZXhwaXJlX3RpbWUKDWNvbXBsZXRlX3RpbWUKCHByaW9yaXR5EhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIocBChNCYXRjaEdldEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIj8KFEJhdGNoR2V0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiSAoPUmV0cnlKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASJJChBDYW5jZWxKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASKBAQoYUmVwb3J0Sm9iUHJvZ3Jlc3NSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIuCghwcm9ncmVzcxgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCBrpIA8gBASJ9Cg5XYWl0Sm9iUmVxdWVzdBI1CgRuYW1lGAEgASgJQifgQQL6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SAPIAQESNAoHdGltZW91dBgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIIukgFqgECMgBCQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3NjaGVkdWxlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
 
 /**
  * Request message for SchedulerService.CreateJob.
@@ -37,7 +37,8 @@ export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
 
   /**
    * The job to create. Only the producer-owned fields are read: `payload`,
-   * `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+   * `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
+   * `expire_time` and `operation_name`.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */
@@ -86,7 +87,8 @@ export type CreateJobRequestValid = Message<"malonaz.scheduler.scheduler_service
 
   /**
    * The job to create. Only the producer-owned fields are read: `payload`,
-   * `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+   * `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
+   * `expire_time` and `operation_name`.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */
@@ -601,4 +603,67 @@ export type ReportJobProgressRequestValid = Message<"malonaz.scheduler.scheduler
  */
 export const ReportJobProgressRequestSchema: GenMessage<ReportJobProgressRequest, {validType: ReportJobProgressRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 10);
+
+/**
+ * Request message for SchedulerService.WaitJob.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+ */
+export type WaitJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.WaitJobRequest"> & {
+  /**
+   * The resource name of the job to wait for.
+   * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The longest time to wait for the job to reach a terminal state. The
+   * server caps it at its `--wait-job-max-timeout` (5m by default) without
+   * error; unset means the cap. The job is returned in whatever state it is
+   * in once either elapses, so callers inspect `state`, as with
+   * `google.longrunning.Operations.WaitOperation`.
+   *
+   * @generated from field: google.protobuf.Duration timeout = 2;
+   */
+  timeout?: Duration;
+};
+
+/**
+ * Request message for SchedulerService.WaitJob.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+ */
+export type WaitJobRequestValid = Message<"malonaz.scheduler.scheduler_service.v1.WaitJobRequest"> & {
+  /**
+   * The resource name of the job to wait for.
+   * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The longest time to wait for the job to reach a terminal state. The
+   * server caps it at its `--wait-job-max-timeout` (5m by default) without
+   * error; unset means the cap. The job is returned in whatever state it is
+   * in once either elapses, so callers inspect `state`, as with
+   * `google.longrunning.Operations.WaitOperation`.
+   *
+   * @generated from field: google.protobuf.Duration timeout = 2;
+   */
+  timeout?: Duration;
+};
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.WaitJobRequest.
+ * Use `create(WaitJobRequestSchema)` to create a new message.
+ */
+export const WaitJobRequestSchema: GenMessage<WaitJobRequest, {validType: WaitJobRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 11);
 
