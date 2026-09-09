@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package malonaz.scheduler.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "google/rpc/code.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+
+// A Queue groups jobs sharing an execution policy and the handlers they are
+// routed to. A job's payload type selects, among its queue's handlers, the
+// gRPC method and [Target][malonaz.scheduler.v1.Target] it is delivered to; the
+// queue's policy governs the attempt timeout, retries and concurrency of every
+// job in it.
+//
+// Pausing a queue stops new claims: running jobs finish, pending jobs wait.
+// A queue cannot be deleted while a non-terminal job references it.
+message Queue {
+  option (google.api.resource) = {
+    type: "scheduler.malonaz.com/Queue"
+    pattern: "queues/{queue}"
+    singular: "queue"
+    plural: "queues"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "0b0bf9b6-d8ee-40c0-8483-7b245c19afec";
+
+  // The resource name of the queue.
+  // Format: queues/{queue}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the queue.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the queue.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 4;
+
+  // Whether the queue's jobs are being claimed. RUNNING on creation; changed
+  // through PauseQueue and ResumeQueue.
+  QueueState state = 5 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (buf.validate.field).enum.defined_only = true
+  ];
+
+  // The execution policy of every job in the queue.
+  QueuePolicy policy = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).required = true
+  ];
+
+  // The handlers jobs are routed to. A job's payload type selects the handler
+  // whose `request_type` matches; no two handlers may share a request type.
+  repeated Handler handlers = 7 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).repeated.min_items = 1
+  ];
+
+  // The queue's backlog, computed when the queue is read.
+  QueueStats stats = 8 [
+    (malonaz.codegen.model.v1.field_opts).skip = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+}
+
+// The execution policy of a queue's jobs.
+message QueuePolicy {
+  // The deadline of a single attempt. An attempt exceeding it fails with
+  // DEADLINE_EXCEEDED and is retried like any other retryable failure.
+  google.protobuf.Duration attempt_timeout = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The total number of attempts, including the first. 1 disables retries.
+  int32 max_attempts = 2 [(buf.validate.field).int32.gte = 1];
+
+  // The backoff between attempts. Defaults to 10s, doubling, capped at 10m.
+  RetryBackoff retry_backoff = 3;
+
+  // The number of jobs of this queue that may run at once across every
+  // scheduler instance. 0 means unlimited.
+  int32 max_concurrency = 4 [(buf.validate.field).int32.gte = 0];
+
+  // The gRPC codes an attempt is retried on; any other code fails the job at
+  // once regardless of the attempts left. Defaults to UNAVAILABLE, INTERNAL,
+  // UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
+  repeated google.rpc.Code retryable_codes = 5 [(buf.validate.field).repeated = {
+    unique: true
+    items: {
+      enum: {
+        defined_only: true
+        not_in: [0]
+      }
+    }
+  }];
+}
+
+// An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
+message RetryBackoff {
+  // The wait before the second attempt.
+  google.protobuf.Duration initial = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The longest wait between two attempts.
+  google.protobuf.Duration max = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The factor applied to the wait after each failed attempt.
+  double multiplier = 3 [(buf.validate.field).double.gte = 1];
+}
+
+// A handler is a gRPC method on a target that jobs of one payload type are
+// delivered to.
+message Handler {
+  // The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
+  // Must be present in the scheduler's descriptor set.
+  string method = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.pattern = "^/[^/]+/[^/]+$"
+  ];
+
+  // The target the method is invoked on.
+  // Format: targets/{target}
+  string target = 2 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Target"
+  ];
+
+  // The type URL of the method's request, resolved from the method
+  // descriptor. Jobs whose payload has this type URL are routed here.
+  string request_type = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The type URL of the method's response, resolved from the method
+  // descriptor. Job responses are stored under it.
+  string response_type = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// The backlog of a queue.
+message QueueStats {
+  // The number of PENDING jobs.
+  int32 pending_count = 1;
+
+  // The number of RUNNING jobs.
+  int32 running_count = 2;
+
+  // The earliest due time among PENDING jobs: the schedule time, or the
+  // creation time of a job without one. Unset when nothing is pending.
+  google.protobuf.Timestamp oldest_pending_schedule_time = 3;
+}
+
+// Whether a queue's jobs are being claimed.
+enum QueueState {
+  // Used to detect an unset field.
+  QUEUE_STATE_UNSPECIFIED = 0;
+
+  // Due jobs are claimed and run.
+  QUEUE_STATE_RUNNING = 1;
+
+  // No job is claimed; running jobs finish and pending jobs wait.
+  QUEUE_STATE_PAUSED = 2;
+}

@@ -1,9 +1,10 @@
 filegroup(
     name = "proto",
     srcs = [
-        "configuration.proto",
         "job.proto",
+        "queue.proto",
         "scheduler_service.proto",
+        "target.proto",
     ],
     visibility = ["PUBLIC"],
 )
@@ -11,9 +12,10 @@ filegroup(
 grpc_library(
     name = "v1",
     srcs = [
-        "configuration.proto",
         "job.proto",
+        "queue.proto",
         "scheduler_service.proto",
+        "target.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1",

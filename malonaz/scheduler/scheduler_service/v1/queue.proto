@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package malonaz.scheduler.scheduler_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/scheduler/v1/queue.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
+
+// Request message for SchedulerService.CreateQueue.
+message CreateQueueRequest {
+  // The queue to create. Only `policy` and `handlers` are read.
+  scheduler.v1.Queue queue = 1 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string queue_id = 2 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the queue it created instead of creating another.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 4;
+}
+
+// Request message for SchedulerService.GetQueue.
+message GetQueueRequest {
+  // The resource name of the queue to retrieve.
+  // Format: queues/{queue}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+}
+
+// Request message for SchedulerService.UpdateQueue.
+message UpdateQueueRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "policy",
+      "handlers"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "queue.name_required"
+    message: "queue.name must be set"
+    expression: "has(this.queue.name)"
+  };
+
+  // The queue to update.
+  scheduler.v1.Queue queue = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for SchedulerService.DeleteQueue.
+message DeleteQueueRequest {
+  // The resource name of the queue to delete.
+  // Format: queues/{queue}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // If true, and the queue is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for SchedulerService.ListQueues.
+message ListQueuesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time asc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // @autogen.
+  string filter = 1;
+
+  // @autogen.
+  string order_by = 2;
+
+  // Maximum number of queues to return (max 1000).
+  int32 page_size = 3 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListQueues` call.
+  string page_token = 4;
+}
+
+// Response message for SchedulerService.ListQueues.
+message ListQueuesResponse {
+  // The list of queues.
+  repeated scheduler.v1.Queue queues = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// Request message for SchedulerService.BatchGetQueues.
+message BatchGetQueuesRequest {
+  // The resource names of the queues to retrieve.
+  // Format: queues/{queue}
+  // A maximum of 1000 queues can be retrieved in a batch.
+  repeated string names = 1 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+}
+
+// Response message for SchedulerService.BatchGetQueues.
+message BatchGetQueuesResponse {
+  // Queues requested.
+  repeated scheduler.v1.Queue queues = 1;
+}
+
+// Request message for SchedulerService.PauseQueue.
+message PauseQueueRequest {
+  // The resource name of the queue to pause.
+  // Format: queues/{queue}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for SchedulerService.ResumeQueue.
+message ResumeQueueRequest {
+  // The resource name of the queue to resume.
+  // Format: queues/{queue}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}

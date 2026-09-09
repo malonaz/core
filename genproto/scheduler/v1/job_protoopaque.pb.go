@@ -17,6 +17,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -90,14 +91,15 @@ func (x JobState) Number() protoreflect.EnumNumber {
 }
 
 // A Job is a unit of deferred work: a request payload the scheduler delivers
-// to the processor configured for its type, at or after its schedule time,
-// retrying with backoff until it succeeds or exhausts its attempts.
+// to the handler its [Queue][malonaz.scheduler.v1.Queue] routes it to, at or
+// after its schedule time, retrying under the queue's policy until it succeeds
+// or exhausts its attempts.
 //
-// The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
-// `error`, `response`, `metadata`); producers own `payload`, `labels`,
-// `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
-// a long-running operation: a terminal job carries either a `response` or an
-// `error`.
+// The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
+// `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
+// `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
+// `expire_time`. The outcome mirrors a long-running operation: a terminal job
+// carries either a `response` or an `error`.
 //
 // A job belongs to the organization or user it runs on behalf of; system-wide
 // work (e.g. nightly maintenance) lives at the root.
@@ -109,7 +111,8 @@ type Job struct {
 	xxx_hidden_Etag         string                 `protobuf:"bytes,4,opt,name=etag,proto3"`
 	xxx_hidden_Labels       map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Payload      *anypb.Any             `protobuf:"bytes,6,opt,name=payload,proto3"`
-	xxx_hidden_JobType      string                 `protobuf:"bytes,7,opt,name=job_type,json=jobType,proto3"`
+	xxx_hidden_Queue        string                 `protobuf:"bytes,7,opt,name=queue,proto3"`
+	xxx_hidden_Method       string                 `protobuf:"bytes,22,opt,name=method,proto3"`
 	xxx_hidden_State        JobState               `protobuf:"varint,8,opt,name=state,proto3,enum=malonaz.scheduler.v1.JobState"`
 	xxx_hidden_Priority     int32                  `protobuf:"varint,9,opt,name=priority,proto3"`
 	xxx_hidden_UniqueKey    string                 `protobuf:"bytes,10,opt,name=unique_key,json=uniqueKey,proto3"`
@@ -195,9 +198,16 @@ func (x *Job) GetPayload() *anypb.Any {
 	return nil
 }
 
-func (x *Job) GetJobType() string {
+func (x *Job) GetQueue() string {
 	if x != nil {
-		return x.xxx_hidden_JobType
+		return x.xxx_hidden_Queue
+	}
+	return ""
+}
+
+func (x *Job) GetMethod() string {
+	if x != nil {
+		return x.xxx_hidden_Method
 	}
 	return ""
 }
@@ -324,8 +334,12 @@ func (x *Job) SetPayload(v *anypb.Any) {
 	x.xxx_hidden_Payload = v
 }
 
-func (x *Job) SetJobType(v string) {
-	x.xxx_hidden_JobType = v
+func (x *Job) SetQueue(v string) {
+	x.xxx_hidden_Queue = v
+}
+
+func (x *Job) SetMethod(v string) {
+	x.xxx_hidden_Method = v
 }
 
 func (x *Job) SetState(v JobState) {
@@ -545,11 +559,15 @@ type Job_builder struct {
 	Etag string
 	// The labels on this job.
 	Labels map[string]string
-	// The request delivered to the processor. Its type URL selects the
-	// processor and method through the scheduler's configuration.
+	// The request delivered to the handler. Its type URL selects the handler
+	// among the queue's.
 	Payload *anypb.Any
-	// The type URL of `payload`, denormalized so jobs can be filtered by type.
-	JobType string
+	// The queue the job runs in: its policy and handlers apply to the job.
+	// Format: queues/{queue}
+	Queue string
+	// The gRPC method the payload is delivered to, resolved at creation from
+	// the payload type against the queue's handlers.
+	Method string
 	// The lifecycle state of the job.
 	State JobState
 	// The claim priority among due jobs: higher runs first, ties run in due
@@ -585,8 +603,7 @@ type Job_builder struct {
 	// The error of the last failed attempt. Cleared when the job is retried.
 	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
 	Error *status.Status
-	// The processor's response, set on SUCCEEDED jobs whose type declares a
-	// response type.
+	// The handler's response, set on SUCCEEDED jobs.
 	Response *anypb.Any
 	// The latest progress reported by the processor through ReportJobProgress.
 	Progress *anypb.Any
@@ -604,7 +621,8 @@ func (b0 Job_builder) Build() *Job {
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Labels = b.Labels
 	x.xxx_hidden_Payload = b.Payload
-	x.xxx_hidden_JobType = b.JobType
+	x.xxx_hidden_Queue = b.Queue
+	x.xxx_hidden_Method = b.Method
 	x.xxx_hidden_State = b.State
 	x.xxx_hidden_Priority = b.Priority
 	x.xxx_hidden_UniqueKey = b.UniqueKey
@@ -701,14 +719,15 @@ func (b0 JobMetadata_builder) Build() *JobMetadata {
 
 // One attempt at running a job.
 type JobAttempt struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Attempt   int32                  `protobuf:"varint,1,opt,name=attempt,proto3"`
-	xxx_hidden_StartTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3"`
-	xxx_hidden_EndTime   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3"`
-	xxx_hidden_Worker    string                 `protobuf:"bytes,4,opt,name=worker,proto3"`
-	xxx_hidden_Error     *status.Status         `protobuf:"bytes,5,opt,name=error,proto3"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Attempt    int32                  `protobuf:"varint,1,opt,name=attempt,proto3"`
+	xxx_hidden_StartTime  *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3"`
+	xxx_hidden_EndTime    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3"`
+	xxx_hidden_Worker     string                 `protobuf:"bytes,4,opt,name=worker,proto3"`
+	xxx_hidden_Error      *status.Status         `protobuf:"bytes,5,opt,name=error,proto3"`
+	xxx_hidden_RetryDelay *durationpb.Duration   `protobuf:"bytes,6,opt,name=retry_delay,json=retryDelay,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *JobAttempt) Reset() {
@@ -771,6 +790,13 @@ func (x *JobAttempt) GetError() *status.Status {
 	return nil
 }
 
+func (x *JobAttempt) GetRetryDelay() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_RetryDelay
+	}
+	return nil
+}
+
 func (x *JobAttempt) SetAttempt(v int32) {
 	x.xxx_hidden_Attempt = v
 }
@@ -789,6 +815,10 @@ func (x *JobAttempt) SetWorker(v string) {
 
 func (x *JobAttempt) SetError(v *status.Status) {
 	x.xxx_hidden_Error = v
+}
+
+func (x *JobAttempt) SetRetryDelay(v *durationpb.Duration) {
+	x.xxx_hidden_RetryDelay = v
 }
 
 func (x *JobAttempt) HasStartTime() bool {
@@ -812,6 +842,13 @@ func (x *JobAttempt) HasError() bool {
 	return x.xxx_hidden_Error != nil
 }
 
+func (x *JobAttempt) HasRetryDelay() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_RetryDelay != nil
+}
+
 func (x *JobAttempt) ClearStartTime() {
 	x.xxx_hidden_StartTime = nil
 }
@@ -822,6 +859,10 @@ func (x *JobAttempt) ClearEndTime() {
 
 func (x *JobAttempt) ClearError() {
 	x.xxx_hidden_Error = nil
+}
+
+func (x *JobAttempt) ClearRetryDelay() {
+	x.xxx_hidden_RetryDelay = nil
 }
 
 type JobAttempt_builder struct {
@@ -838,6 +879,10 @@ type JobAttempt_builder struct {
 	// The attempt's failure; unset when the attempt succeeded. A reaped attempt
 	// (worker lease lapsed) records UNAVAILABLE.
 	Error *status.Status
+	// The wait before the next attempt requested by the handler through a
+	// `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
+	// Unset when the handler requested none.
+	RetryDelay *durationpb.Duration
 }
 
 func (b0 JobAttempt_builder) Build() *JobAttempt {
@@ -849,6 +894,7 @@ func (b0 JobAttempt_builder) Build() *JobAttempt {
 	x.xxx_hidden_EndTime = b.EndTime
 	x.xxx_hidden_Worker = b.Worker
 	x.xxx_hidden_Error = b.Error
+	x.xxx_hidden_RetryDelay = b.RetryDelay
 	return m0
 }
 
@@ -856,7 +902,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x92\x0e\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd0\x0e\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -865,8 +911,10 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"updateTime\x12\x12\n" +
 	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xd3\x01\n" +
 	"\x06labels\x18\x05 \x03(\v2%.malonaz.scheduler.v1.Job.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12<\n" +
-	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x12\x1e\n" +
-	"\bjob_type\x18\a \x01(\tB\x03\xe0A\x03R\ajobType\x12A\n" +
+	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x12?\n" +
+	"\x05queue\x18\a \x01(\tB)\xe0A\x05\xfaA\x1d\n" +
+	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x05queue\x12\x1b\n" +
+	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12A\n" +
 	"\x05state\x18\b \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12.\n" +
 	"\bpriority\x18\t \x01(\x05B\x12\xbaH\x0f\x1a\r\x18d(\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01R\bpriority\x12-\n" +
 	"\n" +
@@ -894,7 +942,7 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"#job.expire_time_after_schedule_time\x12'expire_time must be after schedule_time\x1a[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_timeҦ\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"c\n" +
 	"\vJobMetadata\x12<\n" +
 	"\battempts\x18\x01 \x03(\v2 .malonaz.scheduler.v1.JobAttemptR\battempts\x12\x16\n" +
-	"\x06worker\x18\x02 \x01(\tR\x06worker\"\xda\x01\n" +
+	"\x06worker\x18\x02 \x01(\tR\x06worker\"\x96\x02\n" +
 	"\n" +
 	"JobAttempt\x12\x18\n" +
 	"\aattempt\x18\x01 \x01(\x05R\aattempt\x129\n" +
@@ -902,7 +950,9 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"start_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
 	"\bend_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12\x16\n" +
 	"\x06worker\x18\x04 \x01(\tR\x06worker\x12(\n" +
-	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusR\x05error*\x9b\x01\n" +
+	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusR\x05error\x12:\n" +
+	"\vretry_delay\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\n" +
+	"retryDelay*\x9b\x01\n" +
 	"\bJobState\x12\x19\n" +
 	"\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11JOB_STATE_PENDING\x10\x01\x12\x15\n" +
@@ -924,6 +974,7 @@ var file_malonaz_scheduler_v1_job_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 	(*anypb.Any)(nil),             // 6: google.protobuf.Any
 	(*status.Status)(nil),         // 7: google.rpc.Status
+	(*durationpb.Duration)(nil),   // 8: google.protobuf.Duration
 }
 var file_malonaz_scheduler_v1_job_proto_depIdxs = []int32{
 	5,  // 0: malonaz.scheduler.v1.Job.create_time:type_name -> google.protobuf.Timestamp
@@ -945,11 +996,12 @@ var file_malonaz_scheduler_v1_job_proto_depIdxs = []int32{
 	5,  // 16: malonaz.scheduler.v1.JobAttempt.start_time:type_name -> google.protobuf.Timestamp
 	5,  // 17: malonaz.scheduler.v1.JobAttempt.end_time:type_name -> google.protobuf.Timestamp
 	7,  // 18: malonaz.scheduler.v1.JobAttempt.error:type_name -> google.rpc.Status
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	8,  // 19: malonaz.scheduler.v1.JobAttempt.retry_delay:type_name -> google.protobuf.Duration
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_v1_job_proto_init() }

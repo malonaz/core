@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -26,14 +27,15 @@ option (google.api.resource_definition) = {
 };
 
 // A Job is a unit of deferred work: a request payload the scheduler delivers
-// to the processor configured for its type, at or after its schedule time,
-// retrying with backoff until it succeeds or exhausts its attempts.
+// to the handler its [Queue][malonaz.scheduler.v1.Queue] routes it to, at or
+// after its schedule time, retrying under the queue's policy until it succeeds
+// or exhausts its attempts.
 //
-// The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
-// `error`, `response`, `metadata`); producers own `payload`, `labels`,
-// `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
-// a long-running operation: a terminal job carries either a `response` or an
-// `error`.
+// The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
+// `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
+// `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
+// `expire_time`. The outcome mirrors a long-running operation: a terminal job
+// carries either a `response` or an `error`.
 //
 // A job belongs to the organization or user it runs on behalf of; system-wide
 // work (e.g. nightly maintenance) lives at the root.
@@ -89,15 +91,24 @@ message Job {
     }
   ];
 
-  // The request delivered to the processor. Its type URL selects the
-  // processor and method through the scheduler's configuration.
+  // The request delivered to the handler. Its type URL selects the handler
+  // among the queue's.
   google.protobuf.Any payload = 6 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (buf.validate.field).required = true
   ];
 
-  // The type URL of `payload`, denormalized so jobs can be filtered by type.
-  string job_type = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The queue the job runs in: its policy and handlers apply to the job.
+  // Format: queues/{queue}
+  string queue = 7 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // The gRPC method the payload is delivered to, resolved at creation from
+  // the payload type against the queue's handlers.
+  string method = 22 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The lifecycle state of the job.
   JobState state = 8 [
@@ -170,8 +181,7 @@ message Job {
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
-  // The processor's response, set on SUCCEEDED jobs whose type declares a
-  // response type.
+  // The handler's response, set on SUCCEEDED jobs.
   google.protobuf.Any response = 19 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
@@ -220,6 +230,11 @@ message JobAttempt {
   // The attempt's failure; unset when the attempt succeeded. A reaped attempt
   // (worker lease lapsed) records UNAVAILABLE.
   google.rpc.Status error = 5;
+
+  // The wait before the next attempt requested by the handler through a
+  // `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
+  // Unset when the handler requested none.
+  google.protobuf.Duration retry_delay = 6;
 }
 
 // The lifecycle state of a job.
