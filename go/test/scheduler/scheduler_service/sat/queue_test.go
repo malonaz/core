@@ -159,11 +159,16 @@ func TestQueue_Validation(t *testing.T) {
 	})
 	t.Run("unreachable target", func(t *testing.T) {
 		target := createTarget(t, deadURL, nil)
-		grpcrequire.Error(t, codes.FailedPrecondition, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}}))
+		err := create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}})
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		require.ErrorContains(t, err, target.GetName())
+		require.ErrorContains(t, err, codes.Unavailable.String())
 	})
 	t.Run("target without reflection", func(t *testing.T) {
 		target := createTarget(t, bareURL, nil)
-		grpcrequire.Error(t, codes.FailedPrecondition, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}}))
+		err := create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}})
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		require.ErrorContains(t, err, target.GetName()+" does not serve gRPC reflection")
 	})
 	t.Run("unknown target", func(t *testing.T) {
 		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: "targets/does-not-exist"}}}))
