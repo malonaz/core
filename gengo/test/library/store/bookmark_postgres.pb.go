@@ -89,6 +89,9 @@ func (s *Store) InsertBookmarkIdempotently(ctx context.Context, requestID string
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrBookmarkAlreadyExists
+			}
 		}
 		return nil, err
 	}

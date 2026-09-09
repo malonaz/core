@@ -99,6 +99,9 @@ func (s *Store) InsertOrganizationIdempotently(ctx context.Context, requestID st
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrOrganizationAlreadyExists
+			}
 		}
 		return nil, err
 	}
