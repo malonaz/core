@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-
-	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 func (mc *methodCtx) generateCreate() error {
@@ -208,7 +206,7 @@ func (mc *methodCtx) generateMultiPatternCreateName() error {
 	// Each parent pattern must map to exactly one resource pattern, otherwise
 	// the parent alone cannot determine the resource name.
 	parentValueSet := map[string]bool{}
-	for _, pattern := range mc.patterns {
+	for _, pattern := range mc.parentedPatterns() {
 		if parentValueSet[pattern.Parent.Value] {
 			return fmt.Errorf("patterns of resource %s share parent pattern %q; cannot determine the resource name from the parent", mc.pr.Desc.Type, pattern.Parent.Value)
 		}
@@ -221,7 +219,12 @@ func (mc *methodCtx) generateMultiPatternCreateName() error {
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
 	g.P("  }")
 	g.P("  switch {")
-	for _, pattern := range resource.SortPatternsBySpecificity(mc.patterns) {
+	if rootPattern := mc.rootPattern(); rootPattern != nil {
+		g.P("  case request.Parent == \"\":")
+		g.P(fmt.Sprintf("    request.%s.Name = %s(\"%s\", %s)",
+			resourceGoName, mc.gen.ident(resourcenamePkg, "Sprint"), rootPattern.Value, mc.patternIDArgs(rootPattern)))
+	}
+	for _, pattern := range mc.parentedPatterns() {
 		parent := pattern.Parent
 		g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
 		g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",

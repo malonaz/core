@@ -514,10 +514,15 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		if len(singletonChildren) > 0 {
 			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", pr.Desc.Type)
 		}
+		// An empty parent selects the parentless pattern, so there can be at most one.
+		rootPatterns := 0
 		for _, p := range pr.Patterns {
 			if p.Parent == nil {
-				return nil, fmt.Errorf("multi-pattern resource %s has parentless pattern %q; not supported", pr.Desc.Type, p.Value)
+				rootPatterns++
 			}
+		}
+		if rootPatterns > 1 {
+			return nil, fmt.Errorf("multi-pattern resource %s has %d parentless patterns; at most one is supported", pr.Desc.Type, rootPatterns)
 		}
 	}
 
@@ -610,6 +615,29 @@ func (mc *methodCtx) patternIDArgs(pattern *resource.ParsedPattern) string {
 		names[i] = xstrings.ToCamelCase(variable) + "Id"
 	}
 	return strings.Join(names, ", ")
+}
+
+// rootPattern returns the resource's parentless pattern, if it declares one.
+// An empty `parent` selects it.
+func (mc *methodCtx) rootPattern() *resource.ParsedPattern {
+	for _, pattern := range mc.patterns {
+		if pattern.Parent == nil {
+			return pattern
+		}
+	}
+	return nil
+}
+
+// parentedPatterns returns the resource's patterns that have a parent, most
+// specific first.
+func (mc *methodCtx) parentedPatterns() []*resource.ParsedPattern {
+	var patterns []*resource.ParsedPattern
+	for _, pattern := range mc.patterns {
+		if pattern.Parent != nil {
+			patterns = append(patterns, pattern)
+		}
+	}
+	return resource.SortPatternsBySpecificity(patterns)
 }
 
 // uniqueParentPatterns returns the distinct parent patterns of the resource's
