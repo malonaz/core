@@ -6,12 +6,16 @@ import (
 	"github.com/huandu/xstrings"
 )
 
+// generateInsertVars emits the insert queries. A singleton has no Create of
+// its own: it only gets the query its parent's BatchInsert runs alongside the
+// parent rows (ON CONFLICT DO NOTHING keeps a replay of the parent idempotent).
 func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
 	if mc.singleton {
 		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
 		g.P()
+		return
 	}
 
 	g.P(fmt.Sprintf("type %sWithRequestID struct {", mc.goType))
@@ -28,15 +32,13 @@ func (mc *msgCtx) generateInsertVars() {
 	}
 	// The no-op upsert makes RETURNING yield the existing row on conflict, so
 	// the caller can tell a replay (same request id) from a true collision.
-	g.P(fmt.Sprintf("  %sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s RETURNING ` + %s",
-		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier, mc.returningExpr(mc.withRequestIDWriteColumns())))
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  %sGetByRequestIDsQuery = %s(`SELECT %%s FROM %s ` + %sJoinClause + ` WHERE %s.request_id = ANY($1)`, %s(%s, %q) + %sJoinSelectExprs)",
-			mc.goName, mc.fmtI("Sprintf"), mc.tableName, mc.goName, mc.bareTableName, mc.postgres("QualifyColumns"), mc.withRequestIDWriteColumns(), mc.bareTableName, mc.goName))
-	} else {
-		g.P(fmt.Sprintf("  %sGetByRequestIDsQuery = `SELECT ` + %s(\"%%s\", %sWithRequestIDPostgresColumns) + ` FROM %s WHERE request_id = ANY($1)`",
-			mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.tableName))
-	}
+	// The RETURNING list is kept apart from the template BatchInsertQuery
+	// formats, so its join subqueries are never read as format verbs.
+	g.P(fmt.Sprintf("  %sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s`",
+		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier))
+	g.P(fmt.Sprintf("  %sInsertReturningClause = ` RETURNING ` + %s", mc.goName, mc.returningExpr(mc.withRequestIDWriteColumns())))
+	g.P(fmt.Sprintf("  %sGetByRequestIDsQuery = %s + ` WHERE %s.request_id = ANY($1)`",
+		mc.goName, mc.selectExpr(mc.withRequestIDWriteColumns()), mc.bareTableName))
 	g.P(")")
 	g.P()
 }
@@ -66,6 +68,9 @@ func (cc *childCtx) pluralParam() string {
 // returned in request order, matched on request id since RETURNING order is
 // not guaranteed.
 func (mc *msgCtx) generateBatchInsert() {
+	if mc.singleton {
+		return
+	}
 	g := mc.g
 	batchInsertQuery := mc.postgres("BatchInsertQuery")
 	collectRows := mc.pgx("CollectRows")
@@ -123,11 +128,8 @@ func (mc *msgCtx) generateBatchInsert() {
 	g.P(fmt.Sprintf("  for i, %s := range %s {", mc.goParam, mc.pluralParam()))
 	g.P(fmt.Sprintf("    withRequestIDs[i] = &%s{RequestID: requestIDs[i], %s: *%s}", withRequestID, mc.goType, mc.goParam))
 	g.P("  }")
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, withRequestIDs, %s...)", batchInsertQuery, mc.goName, mc.withRequestIDWriteColumns()))
-	} else {
-		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, withRequestIDs)", batchInsertQuery, mc.goName))
-	}
+	g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, withRequestIDs, %s...)", batchInsertQuery, mc.goName, mc.withRequestIDWriteColumns()))
+	g.P(fmt.Sprintf("  query += %sInsertReturningClause", mc.goName))
 	for i, cc := range mc.singletonChildren {
 		idx := i + 2
 		if cc.writeColumnsVar != "" {

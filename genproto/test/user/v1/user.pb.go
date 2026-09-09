@@ -413,7 +413,7 @@ var File_malonaz_test_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x9b\b\n" +
+	"\x1fmalonaz/test/user/v1/user.proto\x12\x14malonaz.test.user.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xa1\b\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -428,9 +428,9 @@ const file_malonaz_test_user_v1_user_proto_rawDesc = "" +
 	"\fphone_number\x18\a \x01(\tB \xba\xea\x0f\x16\n" +
 	"\x14phone_number_renamed\x82\xb5\x18\x02\x10\x01R\vphoneNumber\x12\xd4\x01\n" +
 	"\x06labels\x18\b \x03(\v2&.malonaz.test.user.v1.User.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
-	"\x04etag\x18\t \x01(\tR\x04etag\x12F\n" +
+	"\x04etag\x18\t \x01(\tR\x04etag\x12L\n" +
 	"\bmetadata\x18\n" +
-	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x12.\n" +
+	" \x01(\v2\".malonaz.test.user.v1.UserMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x12.\n" +
 	"\abalance\x18\v \x01(\v2\x14.google.type.DecimalR\abalance\x12?\n" +
 	"\fcredit_limit\x18\f \x01(\v2\x14.google.type.DecimalB\x06\xba\xea\x0f\x02 \x01R\vcreditLimit\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +

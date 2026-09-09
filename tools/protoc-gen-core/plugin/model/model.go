@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	validate "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
@@ -104,6 +106,9 @@ func Parse(message *protogen.Message, generatedFile *protogen.GeneratedFile) (*M
 	if err != nil {
 		return nil, fmt.Errorf("parsing fields for %s: %w", message.GoIdent.GoName, err)
 	}
+	if err := checkRequiredPresence(fields); err != nil {
+		return nil, fmt.Errorf("%s: %w", message.GoIdent.GoName, err)
+	}
 
 	return &Model{
 		Message:        message,
@@ -133,6 +138,40 @@ func parseFields(message *protogen.Message) ([]*Field, error) {
 		})
 	}
 	return fields, nil
+}
+
+// checkRequiredPresence enforces that a message-typed field backing a NOT NULL
+// column is declared required. Unlike scalars, lists and maps, such a field
+// has presence: an unset one would only be caught by FromPb, as an Internal
+// error, instead of at the boundary by protovalidate as InvalidArgument.
+// buf.validate stays the single source of the client's obligations; nullable
+// only shapes the column, and the two must agree. Server-set (OUTPUT_ONLY)
+// fields, joins and embeds are not the client's to send.
+func checkRequiredPresence(fields []*Field) error {
+	for _, field := range fields {
+		desc := field.ProtoField.Desc
+		if field.Skipped || field.IsName || desc.Kind() != protoreflect.MessageKind || desc.IsMap() || desc.IsList() {
+			continue
+		}
+		if field.FieldOpts.GetNullable() || field.FieldOpts.GetEmbed() || field.FieldOpts.GetJoin() != nil || protofield.IsDecimal(field.ProtoField) {
+			continue
+		}
+		behavior, err := pbutil.GetFieldBehavior(desc)
+		if err != nil {
+			return fmt.Errorf("field %s: %w", desc.Name(), err)
+		}
+		if behavior.OutputOnly {
+			continue
+		}
+		rules, err := pbutil.GetExtension[*validate.FieldRules](desc.Options(), validate.E_Field)
+		if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return fmt.Errorf("field %s: getting validate rules: %w", desc.Name(), err)
+		}
+		if !rules.GetRequired() {
+			return fmt.Errorf("field %s backs a NOT NULL column but may be unset: declare (buf.validate.field).required = true or (malonaz.codegen.model.v1.field_opts).nullable = true", desc.Name())
+		}
+	}
+	return nil
 }
 
 // --- import helpers ---
@@ -634,7 +673,20 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 			fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"marshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
 			fmt.Fprintf(&b, "\t\t}\n")
 			fmt.Fprintf(&b, "\t}\n")
+		} else if field.Desc.IsMap() {
+			// A proto3 map has no presence: unset and empty are the same thing,
+			// and a nil map would marshal as JSON null.
+			fmt.Fprintf(&b, "\t%s := m.%s\n", goName, goName)
+			fmt.Fprintf(&b, "\tif %s == nil {\n", goName)
+			fmt.Fprintf(&b, "\t\t%s = map[%s]%s{}\n", goName, field.Desc.MapKey().Kind(), field.Desc.MapValue().Kind())
+			fmt.Fprintf(&b, "\t}\n")
+			fmt.Fprintf(&b, "\t%sBytes, err := %s(%s)\n", goName, m.fqn(lib, fn), goName)
+			fmt.Fprintf(&b, "\tif err != nil {\n")
+			fmt.Fprintf(&b, "\t\treturn nil, %s(\"marshaling %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), goName)
+			fmt.Fprintf(&b, "\t}\n")
 		} else {
+			// A message has presence: unset is a client error buf.validate is
+			// expected to have rejected, so this stays an invariant.
 			fmt.Fprintf(&b, "\tif m.%s == nil {\n", goName)
 			fmt.Fprintf(&b, "\t\treturn nil, %s(\"%s cannot be nil\")\n", m.fqn("fmt", "Errorf"), goName)
 			fmt.Fprintf(&b, "\t}\n")
@@ -717,6 +769,19 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 		fmt.Fprintf(&b, "\t}\n")
 	}
 
+	// A proto3 list has no presence: unset and empty are the same thing, but
+	// pgx encodes a nil slice as NULL, which a non-nullable column rejects.
+	if field.Desc.IsList() || field.Desc.Kind() == protoreflect.BytesKind {
+		goType, err := protofield.GoType(field)
+		if err != nil {
+			return "", fmt.Errorf("resolving go type for %s: %w", goName, err)
+		}
+		fmt.Fprintf(&b, "\t%s := m.%s\n", goName, goName)
+		fmt.Fprintf(&b, "\tif %s == nil {\n", goName)
+		fmt.Fprintf(&b, "\t\t%s = %s{}\n", goName, goType)
+		fmt.Fprintf(&b, "\t}\n")
+	}
+
 	// An unset non-nullable decimal is a nil message, which parses as "". Leave
 	// it at the zero value, matching how non-nullable scalars behave.
 	if protofield.IsDecimal(field) {
@@ -753,6 +818,9 @@ func (m *Model) fromPbFieldValue(field *protogen.Field, fieldOpts *modelpb.Field
 		return goName
 	}
 	if nullable {
+		return goName
+	}
+	if field.Desc.IsList() || field.Desc.Kind() == protoreflect.BytesKind {
 		return goName
 	}
 	return m.protoFieldValue(field)

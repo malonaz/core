@@ -14,19 +14,10 @@ func (mc *msgCtx) generateGet() {
 		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
 		mc.emitIDConditionAppends("  ", idParamName)
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%%%s FROM %s WHERE %%s\", %s(conditions, \" AND \"))",
-			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join")))
-		g.P(fmt.Sprintf("  query = %s(query, %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+		g.P(fmt.Sprintf("  query := %s + \" WHERE \" + %s(conditions, \" AND \")", mc.selectExpr(mc.writeColumns()), mc.stringsI("Join")))
 		g.P("  rows, err := s.client.Query(ctx, query, params...)")
-	} else if mc.hasJoins {
-		g.P(fmt.Sprintf("  query := `SELECT %%s FROM %s ` + %sJoinClause + ` WHERE %s`",
-			mc.tableName, mc.goName, mc.qualifiedPlaceholderDecls()))
-		g.P(fmt.Sprintf("  query = %s(query, %s(%s, %q) + %sJoinSelectExprs)",
-			mc.fmtI("Sprintf"), mc.postgres("QualifyColumns"), mc.writeColumns(), mc.bareTableName, mc.goName))
-		g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
 	} else {
-		g.P(fmt.Sprintf("  query := `SELECT %%s FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
-		g.P(fmt.Sprintf("  query = %s(query, %sPostgresColumns)", mc.postgres("SelectQuery"), mc.goType))
+		g.P(fmt.Sprintf("  query := %s + ` WHERE %s`", mc.selectExpr(mc.writeColumns()), mc.qualifiedPlaceholderDecls()))
 		g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
 	}
 

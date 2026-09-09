@@ -15,13 +15,18 @@ var (
 	TargetPostgresColumns = postgres.GetDBColumns(model.Target{})
 )
 
-func (s *Store) getTargetETag(ctx context.Context, q querier, targetId string) (string, error) {
-	query := `SELECT etag FROM target WHERE target_id = $1`
-	rows, err := q.Query(ctx, query, targetId)
-	if err != nil {
-		return "", err
+func (s *Store) probeTarget(ctx context.Context, q querier, targetId string) (bool, string, error) {
+	query := `SELECT TRUE, etag FROM target WHERE target_id = $1`
+	params := []any{targetId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrTargetNotExist
+		}
+		return false, "", fmt.Errorf("probing target: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type TargetWithRequestID struct {
@@ -31,8 +36,9 @@ type TargetWithRequestID struct {
 
 var (
 	TargetWithRequestIDPostgresColumns = postgres.GetDBColumns(TargetWithRequestID{})
-	targetInsertPostgresQuery          = `INSERT INTO target %s VALUES %s ON CONFLICT(target_id) DO UPDATE SET target_id = EXCLUDED.target_id RETURNING ` + postgres.SelectQuery("%s", TargetWithRequestIDPostgresColumns)
-	targetGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", TargetWithRequestIDPostgresColumns) + ` FROM target WHERE request_id = ANY($1)`
+	targetInsertPostgresQuery          = `INSERT INTO target %s VALUES %s ON CONFLICT(target_id) DO UPDATE SET target_id = EXCLUDED.target_id`
+	targetInsertReturningClause        = ` RETURNING ` + strings.Join(TargetWithRequestIDPostgresColumns, ",")
+	targetGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(TargetWithRequestIDPostgresColumns, "target") + " FROM target" + ` WHERE target.request_id = ANY($1)`
 )
 
 func orderTargetsByRequestID(requestIDs []string, rows []*TargetWithRequestID) ([]*model.Target, error) {
@@ -70,7 +76,8 @@ func (s *Store) BatchInsertTargets(ctx context.Context, requestIDs []string, tar
 	for i, _target := range targets {
 		withRequestIDs[i] = &TargetWithRequestID{RequestID: requestIDs[i], Target: *_target}
 	}
-	query, params := postgres.BatchInsertQuery(targetInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(targetInsertPostgresQuery, withRequestIDs, TargetWithRequestIDPostgresColumns...)
+	query += targetInsertReturningClause
 
 	var inserted []*model.Target
 	transactionFN := func(tx postgres.Tx) error {
@@ -115,7 +122,7 @@ func (s *Store) BatchInsertTargets(ctx context.Context, requestIDs []string, tar
 }
 
 var updateTargetPostgresQuery = `UPDATE target SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", TargetPostgresColumns)
+	strings.Join(TargetPostgresColumns, ",")
 
 func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateClause string, updateColumns []string, etag string) (*model.Target, error) {
 	updateParams := postgres.GetParams(_target, updateColumns...)
@@ -141,21 +148,14 @@ func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateC
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Target])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getTargetETag(ctx, s.client, _target.TargetID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrTargetETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrTargetNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeTarget(ctx, s.client, _target.TargetID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrTargetNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrTargetETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but target exists")
 		}
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateC
 }
 
 var deleteTargetPostgresQuery = `DELETE FROM target WHERE target_id = $1 RETURNING ` +
-	postgres.SelectQuery("%s", TargetPostgresColumns)
+	strings.Join(TargetPostgresColumns, ",")
 
 func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) (*model.Target, error) {
 	query := deleteTargetPostgresQuery
@@ -179,21 +179,14 @@ func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) 
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Target])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getTargetETag(ctx, s.client, targetId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrTargetETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrTargetNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeTarget(ctx, s.client, targetId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrTargetNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrTargetETagChanged
+			}
+			return nil, fmt.Errorf("delete matched no rows but target exists")
 		}
 		return nil, err
 	}
@@ -201,8 +194,7 @@ func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) 
 }
 
 func (s *Store) GetTarget(ctx context.Context, targetId string) (*model.Target, error) {
-	query := `SELECT %s FROM target WHERE target_id = $1`
-	query = postgres.SelectQuery(query, TargetPostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM target" + ` WHERE target.target_id = $1`
 	rows, err := s.client.Query(ctx, query, targetId)
 	if err != nil {
 		return nil, fmt.Errorf("getting target: %w", err)
@@ -228,13 +220,13 @@ func (s *Store) BatchGetTargets(ctx context.Context, targetIds []string) ([]*mod
 	for i := 0; i < n; i++ {
 		base := i * 1
 		conditions := make([]string, 1)
-		conditions[0] = fmt.Sprintf("target_id = $%d", base+1)
+		conditions[0] = fmt.Sprintf("target.target_id = $%d", base+1)
 		params = append(params, targetIds[i])
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM target %s", postgres.SelectQuery("%s", TargetPostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM target" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -248,26 +240,10 @@ func (s *Store) ListTargets(ctx context.Context, whereClause, orderByClause, pag
 		columns = TargetPostgresColumns
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM target #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var targets []*model.Target
-	transactionFN := func(tx postgres.Tx) error {
-		targets = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting targets: %w", err)
-		}
-		targets, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Target])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "target") + " FROM target" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting targets: %w", err)
 	}
-	return targets, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Target])
 }

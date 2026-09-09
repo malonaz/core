@@ -1033,7 +1033,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\x97\x0f\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xa5\x0f\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1047,12 +1047,12 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x04isbn\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x18\x11R\x04isbn\x12)\n" +
 	"\x10publication_year\x18\a \x01(\x05R\x0fpublicationYear\x12&\n" +
 	"\n" +
-	"page_count\x18\b \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tpageCount\x125\n" +
-	"\bduration\x18\t \x01(\v2\x19.google.protobuf.DurationR\bduration\x12\xd7\x01\n" +
+	"page_count\x18\b \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tpageCount\x12=\n" +
+	"\bduration\x18\t \x01(\v2\x19.google.protobuf.DurationB\x06\xbaH\x03\xc8\x01\x01R\bduration\x12\xd7\x01\n" +
 	"\x06labels\x18\n" +
 	" \x03(\v2).malonaz.test.library.v1.Book.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
-	"\x04etag\x18\v \x01(\tR\x04etag\x12I\n" +
-	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\x06\xba\xea\x0f\x02\x10\x01R\bmetadata\x12d\n" +
+	"\x04etag\x18\v \x01(\tR\x04etag\x12O\n" +
+	"\bmetadata\x18\f \x01(\v2%.malonaz.test.library.v1.BookMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x12d\n" +
 	"\x11shelf_external_id\x18\r \x01(\tB8\xe0A\x03\xba\xea\x0f1 \x01B-\n" +
 	"\x1elibrary.test.malonaz.com/Shelf\x12\vexternal_idR\x0fshelfExternalId\x12v\n" +
 	"\vshelf_genre\x18\x0e \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB0\xe0A\x03\xba\xea\x0f)B'\n" +

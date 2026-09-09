@@ -5,7 +5,12 @@ import (
 	"strings"
 )
 
+// generateDelete emits Delete{R} or SoftDelete{R}. Singletons get neither:
+// they are deleted by their parent's cascade.
 func (mc *msgCtx) generateDelete() {
+	if mc.singleton {
+		return
+	}
 	if mc.hasDeleteTime {
 		mc.generateSoftDelete()
 	} else {
@@ -21,6 +26,9 @@ func (mc *msgCtx) forceParam() string {
 	return ""
 }
 
+// generateSoftDelete emits SoftDelete{R}. The UPDATE only matches a live row,
+// so a tombstone is never rewritten (its etag in particular must survive a
+// redundant delete); a miss is explained by the probe.
 func (mc *msgCtx) generateSoftDelete() {
 	if mc.multiPattern {
 		mc.generateMultiPatternSoftDelete()
@@ -29,21 +37,16 @@ func (mc *msgCtx) generateSoftDelete() {
 
 	g := mc.g
 	numVars := len(mc.columnBindings)
-	writeColumns := mc.writeColumns()
 
 	etagSet := ""
 	if mc.hasEtag {
 		etagSet = fmt.Sprintf(", etag = $%d", numVars+2)
 	}
 
-	returningExpr := mc.returningExpr(writeColumns)
-
-	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = COALESCE(delete_time, $%d)%s WHERE %s RETURNING (delete_time < $%d) AS was_already_deleted, ` +",
-		mc.goType, mc.tableName, numVars+1, etagSet, mc.placeholderDecls, numVars+1))
-	g.P(fmt.Sprintf("  %s", returningExpr))
+	g.P(fmt.Sprintf("var softDelete%sPostgresQuery = `UPDATE %s SET delete_time = $%d%s WHERE %s AND delete_time IS NULL RETURNING ` +",
+		mc.goType, mc.tableName, numVars+1, etagSet, mc.placeholderDecls))
+	g.P(fmt.Sprintf("  %s", mc.returningExpr(mc.writeColumns())))
 	g.P()
-
-	mc.generateSoftDeleteResultStruct()
 
 	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s%s, deleteTime %s) (*%s, error) {",
 		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.forceParam(), mc.gen.ident(timePkg, "Time"), mc.goTypeFqi))
@@ -67,39 +70,25 @@ func (mc *msgCtx) generateSoftDelete() {
 	g.P()
 }
 
-func (mc *msgCtx) generateSoftDeleteResultStruct() {
-	g := mc.g
-	g.P(fmt.Sprintf("type softDelete%sResult struct {", mc.goType))
-	g.P("  WasAlreadyDeleted bool `db:\"was_already_deleted\"`")
-	g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
-	g.P("}")
-	g.P()
-}
-
 // generateMultiPatternSoftDelete builds the WHERE clause and parameter indexes
 // at runtime, matching unset pattern-specific identifiers against NULL.
 func (mc *msgCtx) generateMultiPatternSoftDelete() {
 	g := mc.g
 	returningExpr := mc.returningExpr(mc.writeColumns())
 
-	mc.generateSoftDeleteResultStruct()
-
 	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s, deleteTime %s) (*%s, error) {",
 		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.gen.ident(timePkg, "Time"), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+3))
 	mc.emitIDConditionAppends("  ", idParamName)
-	g.P("  deleteTimeIndex := len(params) + 1")
 	g.P("  params = append(params, deleteTime)")
+	g.P(fmt.Sprintf("  setClause := %s(\"delete_time = $%%d\", len(params))", mc.fmtI("Sprintf")))
 	if mc.hasEtag {
-		g.P("  newEtagIndex := len(params) + 1")
 		g.P("  params = append(params, newEtag)")
-		g.P(fmt.Sprintf("  query := %s(\"UPDATE %s SET delete_time = COALESCE(delete_time, $%%d), etag = $%%d WHERE %%s RETURNING (delete_time < $%%d) AS was_already_deleted, \", deleteTimeIndex, newEtagIndex, %s(conditions, \" AND \"), deleteTimeIndex) + %s",
-			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
-	} else {
-		g.P(fmt.Sprintf("  query := %s(\"UPDATE %s SET delete_time = COALESCE(delete_time, $%%d) WHERE %%s RETURNING (delete_time < $%%d) AS was_already_deleted, \", deleteTimeIndex, %s(conditions, \" AND \"), deleteTimeIndex) + %s",
-			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
+		g.P(fmt.Sprintf("  setClause += %s(\", etag = $%%d\", len(params))", mc.fmtI("Sprintf")))
 	}
+	g.P(fmt.Sprintf("  query := \"UPDATE %s SET \" + setClause + \" WHERE \" + %s(conditions, \" AND \") + \" AND delete_time IS NULL RETURNING \" + %s",
+		mc.tableName, mc.stringsI("Join"), returningExpr))
 	mc.emitEtagFilter()
 
 	mc.generateSoftDeleteDirect()
@@ -115,20 +104,21 @@ func (mc *msgCtx) generateSoftDeleteDirect() {
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(\"soft deleting %s: %%w\", err)", mc.fmtI("Errorf"), mc.goName))
 	g.P("  }")
-	g.P(fmt.Sprintf("  row, err := %s(rows, %s[softDelete%sResult])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goType))
+	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	if mc.hasEtag {
-		mc.generateETagCheck("soft delete", mc.patternVarIDUntitled(), false)
-	}
-	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
+	mc.emitNoRowsProbe(mc.patternVarIDsGoTrue(), false, true, mc.errAlreadyDeleted, mc.softDeleteUnexpected())
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
-	g.P("  if row.WasAlreadyDeleted {")
-	g.P(fmt.Sprintf("    return nil, %s", mc.errAlreadyDeleted))
-	g.P("  }")
-	g.P(fmt.Sprintf("  return &row.%s, nil", mc.goType))
+	g.P("  return row, nil")
+}
+
+// softDeleteUnexpected is the error for a live, etag-matching row the soft
+// delete nonetheless missed: a concurrent writer moved it between the two
+// statements.
+func (mc *msgCtx) softDeleteUnexpected() string {
+	return fmt.Sprintf("%s(\"soft delete matched no rows but %s is live\")", mc.fmtI("Errorf"), mc.goName)
 }
 
 func (mc *msgCtx) generateSoftDeleteWithTransaction() {
@@ -141,20 +131,13 @@ func (mc *msgCtx) generateSoftDeleteWithTransaction() {
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return %s(\"soft deleting %s: %%w\", err)", mc.fmtI("Errorf"), mc.goName))
 	g.P("    }")
-	g.P(fmt.Sprintf("    row, err := %s(rows, %s[softDelete%sResult])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goType))
+	g.P(fmt.Sprintf("    result, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	if mc.hasEtag {
-		mc.generateETagCheck("soft delete", mc.patternVarIDUntitled(), true)
-	}
-	g.P(fmt.Sprintf("        return %s", mc.errNotExist))
+	mc.emitNoRowsProbe(mc.patternVarIDsGoTrue(), true, true, mc.errAlreadyDeleted, mc.softDeleteUnexpected())
 	g.P("      }")
 	g.P("      return err")
 	g.P("    }")
-	g.P("    if row.WasAlreadyDeleted {")
-	g.P(fmt.Sprintf("      return %s", mc.errAlreadyDeleted))
-	g.P("    }")
-	g.P(fmt.Sprintf("    result = &row.%s", mc.goType))
 	g.P()
 	mc.generateCascade()
 	g.P("    return nil")
@@ -228,10 +211,7 @@ func (mc *msgCtx) generateHardDeleteDirect() {
 	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	if mc.hasEtag {
-		mc.generateETagCheck("delete", mc.patternVarIDUntitled(), false)
-	}
-	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
+	mc.emitNoRowsProbe(mc.patternVarIDsGoTrue(), false, true, "", mc.hardDeleteUnexpected())
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
@@ -253,10 +233,7 @@ func (mc *msgCtx) generateHardDeleteWithTransaction() {
 	g.P(fmt.Sprintf("    deleted, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	if mc.hasEtag {
-		mc.generateETagCheck("delete", mc.patternVarIDUntitled(), true)
-	}
-	g.P(fmt.Sprintf("        return %s", mc.errNotExist))
+	mc.emitNoRowsProbe(mc.patternVarIDsGoTrue(), true, true, "", mc.hardDeleteUnexpected())
 	g.P("      }")
 	g.P("      return err")
 	g.P("    }")
@@ -267,6 +244,12 @@ func (mc *msgCtx) generateHardDeleteWithTransaction() {
 	g.P("    return nil, err")
 	g.P("  }")
 	g.P("  return deleted, nil")
+}
+
+// hardDeleteUnexpected is the error for an etag-matching row the delete
+// nonetheless missed: a concurrent writer moved it between the two statements.
+func (mc *msgCtx) hardDeleteUnexpected() string {
+	return fmt.Sprintf("%s(\"delete matched no rows but %s exists\")", mc.fmtI("Errorf"), mc.goName)
 }
 
 // generateCascade emits, inside a transaction, the AIP-135 children guard and

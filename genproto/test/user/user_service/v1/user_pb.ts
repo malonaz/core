@@ -445,7 +445,26 @@ export type ListUsersResponse = Message<"malonaz.test.user.user_service.v1.ListU
   nextPageToken: string;
 };
 
-export type ListUsersResponseValid = ListUsersResponse;
+/**
+ * Response message for UserService.ListUsers.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.ListUsersResponse
+ */
+export type ListUsersResponseValid = Message<"malonaz.test.user.user_service.v1.ListUsersResponse"> & {
+  /**
+   * The list of users.
+   *
+   * @generated from field: repeated malonaz.test.user.v1.User users = 1;
+   */
+  users: UserValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
 
 /**
  * Describes the message malonaz.test.user.user_service.v1.ListUsersResponse.
@@ -501,7 +520,19 @@ export type BatchGetUsersResponse = Message<"malonaz.test.user.user_service.v1.B
   users: User[];
 };
 
-export type BatchGetUsersResponseValid = BatchGetUsersResponse;
+/**
+ * Response message for UserService.BatchGetUsers.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.BatchGetUsersResponse
+ */
+export type BatchGetUsersResponseValid = Message<"malonaz.test.user.user_service.v1.BatchGetUsersResponse"> & {
+  /**
+   * Users requested.
+   *
+   * @generated from field: repeated malonaz.test.user.v1.User users = 1;
+   */
+  users: UserValid[];
+};
 
 /**
  * Describes the message malonaz.test.user.user_service.v1.BatchGetUsersResponse.

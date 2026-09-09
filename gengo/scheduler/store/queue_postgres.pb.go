@@ -15,13 +15,18 @@ var (
 	QueuePostgresColumns = postgres.GetDBColumns(model.Queue{})
 )
 
-func (s *Store) getQueueETag(ctx context.Context, q querier, queueId string) (string, error) {
-	query := `SELECT etag FROM queue WHERE queue_id = $1`
-	rows, err := q.Query(ctx, query, queueId)
-	if err != nil {
-		return "", err
+func (s *Store) probeQueue(ctx context.Context, q querier, queueId string) (bool, string, error) {
+	query := `SELECT TRUE, etag FROM queue WHERE queue_id = $1`
+	params := []any{queueId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrQueueNotExist
+		}
+		return false, "", fmt.Errorf("probing queue: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type QueueWithRequestID struct {
@@ -31,8 +36,9 @@ type QueueWithRequestID struct {
 
 var (
 	QueueWithRequestIDPostgresColumns = postgres.GetDBColumns(QueueWithRequestID{})
-	queueInsertPostgresQuery          = `INSERT INTO queue %s VALUES %s ON CONFLICT(queue_id) DO UPDATE SET queue_id = EXCLUDED.queue_id RETURNING ` + postgres.SelectQuery("%s", QueueWithRequestIDPostgresColumns)
-	queueGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", QueueWithRequestIDPostgresColumns) + ` FROM queue WHERE request_id = ANY($1)`
+	queueInsertPostgresQuery          = `INSERT INTO queue %s VALUES %s ON CONFLICT(queue_id) DO UPDATE SET queue_id = EXCLUDED.queue_id`
+	queueInsertReturningClause        = ` RETURNING ` + strings.Join(QueueWithRequestIDPostgresColumns, ",")
+	queueGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(QueueWithRequestIDPostgresColumns, "queue") + " FROM queue" + ` WHERE queue.request_id = ANY($1)`
 )
 
 func orderQueuesByRequestID(requestIDs []string, rows []*QueueWithRequestID) ([]*model.Queue, error) {
@@ -70,7 +76,8 @@ func (s *Store) BatchInsertQueues(ctx context.Context, requestIDs []string, queu
 	for i, _queue := range queues {
 		withRequestIDs[i] = &QueueWithRequestID{RequestID: requestIDs[i], Queue: *_queue}
 	}
-	query, params := postgres.BatchInsertQuery(queueInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(queueInsertPostgresQuery, withRequestIDs, QueueWithRequestIDPostgresColumns...)
+	query += queueInsertReturningClause
 
 	var inserted []*model.Queue
 	transactionFN := func(tx postgres.Tx) error {
@@ -115,7 +122,7 @@ func (s *Store) BatchInsertQueues(ctx context.Context, requestIDs []string, queu
 }
 
 var updateQueuePostgresQuery = `UPDATE queue SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", QueuePostgresColumns)
+	strings.Join(QueuePostgresColumns, ",")
 
 func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClause string, updateColumns []string, etag string) (*model.Queue, error) {
 	updateParams := postgres.GetParams(_queue, updateColumns...)
@@ -141,21 +148,14 @@ func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClau
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getQueueETag(ctx, s.client, _queue.QueueID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrQueueETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrQueueNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeQueue(ctx, s.client, _queue.QueueID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrQueueNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrQueueETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but queue exists")
 		}
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClau
 }
 
 var deleteQueuePostgresQuery = `DELETE FROM queue WHERE queue_id = $1 RETURNING ` +
-	postgres.SelectQuery("%s", QueuePostgresColumns)
+	strings.Join(QueuePostgresColumns, ",")
 
 func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*model.Queue, error) {
 	query := deleteQueuePostgresQuery
@@ -179,21 +179,14 @@ func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getQueueETag(ctx, s.client, queueId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrQueueETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrQueueNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeQueue(ctx, s.client, queueId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrQueueNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrQueueETagChanged
+			}
+			return nil, fmt.Errorf("delete matched no rows but queue exists")
 		}
 		return nil, err
 	}
@@ -201,8 +194,7 @@ func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*
 }
 
 func (s *Store) GetQueue(ctx context.Context, queueId string) (*model.Queue, error) {
-	query := `SELECT %s FROM queue WHERE queue_id = $1`
-	query = postgres.SelectQuery(query, QueuePostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM queue" + ` WHERE queue.queue_id = $1`
 	rows, err := s.client.Query(ctx, query, queueId)
 	if err != nil {
 		return nil, fmt.Errorf("getting queue: %w", err)
@@ -228,13 +220,13 @@ func (s *Store) BatchGetQueues(ctx context.Context, queueIds []string) ([]*model
 	for i := 0; i < n; i++ {
 		base := i * 1
 		conditions := make([]string, 1)
-		conditions[0] = fmt.Sprintf("queue_id = $%d", base+1)
+		conditions[0] = fmt.Sprintf("queue.queue_id = $%d", base+1)
 		params = append(params, queueIds[i])
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM queue %s", postgres.SelectQuery("%s", QueuePostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM queue" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -248,26 +240,10 @@ func (s *Store) ListQueues(ctx context.Context, whereClause, orderByClause, pagi
 		columns = QueuePostgresColumns
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM queue #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var queues []*model.Queue
-	transactionFN := func(tx postgres.Tx) error {
-		queues = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting queues: %w", err)
-		}
-		queues, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "queue") + " FROM queue" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting queues: %w", err)
 	}
-	return queues, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
 }

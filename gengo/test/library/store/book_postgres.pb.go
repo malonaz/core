@@ -16,17 +16,22 @@ var (
 	BookWritePostgresColumns = postgres.GetDBColumns(model.Book{}, postgres.ExceptColumns("shelf_external_id", "shelf_genre", "latest_bookmark", "latest_bookmark_color", "first_bookmark", "first_bookmark_color"))
 )
 
-var bookJoinSubqueryExpr = `,(SELECT shelf.ext_id FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_external_id,(SELECT shelf.genre FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_genre,(SELECT 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST LIMIT 1) AS latest_bookmark,(SELECT bookmark.color FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST LIMIT 1) AS latest_bookmark_color,(SELECT 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST LIMIT 1) AS first_bookmark,(SELECT bookmark.color FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST LIMIT 1) AS first_bookmark_color`
+var bookJoinSubqueryExpr = `,(SELECT shelf.ext_id FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_external_id,(SELECT shelf.genre FROM library.shelf AS shelf WHERE shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id) AS shelf_genre,(SELECT 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS latest_bookmark,(SELECT bookmark.color FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS latest_bookmark_color,(SELECT 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS first_bookmark,(SELECT bookmark.color FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS first_bookmark_color`
 var bookJoinSelectExprs = `,shelf.ext_id AS shelf_external_id,shelf.genre AS shelf_genre,latest_bookmark.name AS latest_bookmark,latest_bookmark.color AS latest_bookmark_color,first_bookmark.name AS first_bookmark,first_bookmark.color AS first_bookmark_color`
-var bookJoinClause = `INNER JOIN library.shelf AS shelf ON shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST LIMIT 1) AS latest_bookmark ON TRUE LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST LIMIT 1) AS first_bookmark ON TRUE`
+var bookJoinClause = `INNER JOIN library.shelf AS shelf ON shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS latest_bookmark ON TRUE LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST, bookmark.bookmark_id LIMIT 1) AS first_bookmark ON TRUE`
 
-func (s *Store) getBookETag(ctx context.Context, q querier, organizationId, shelfId, bookId string) (string, error) {
-	query := `SELECT etag FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
-	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId)
-	if err != nil {
-		return "", err
+func (s *Store) probeBook(ctx context.Context, q querier, organizationId, shelfId, bookId string) (bool, string, error) {
+	query := `SELECT TRUE, etag FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
+	params := []any{organizationId, shelfId, bookId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrBookNotExist
+		}
+		return false, "", fmt.Errorf("probing book: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type BookWithRequestID struct {
@@ -37,8 +42,9 @@ type BookWithRequestID struct {
 var (
 	BookWithRequestIDPostgresColumns      = postgres.GetDBColumns(BookWithRequestID{})
 	BookWithRequestIDWritePostgresColumns = postgres.GetDBColumns(BookWithRequestID{}, postgres.ExceptColumns("shelf_external_id", "shelf_genre", "latest_bookmark", "latest_bookmark_color", "first_bookmark", "first_bookmark_color"))
-	bookInsertPostgresQuery               = `INSERT INTO library.book %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO UPDATE SET book_id = EXCLUDED.book_id RETURNING ` + postgres.SelectQuery("%s", BookWithRequestIDWritePostgresColumns) + bookJoinSubqueryExpr
-	bookGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.book `+bookJoinClause+` WHERE book.request_id = ANY($1)`, postgres.QualifyColumns(BookWithRequestIDWritePostgresColumns, "book")+bookJoinSelectExprs)
+	bookInsertPostgresQuery               = `INSERT INTO library.book %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO UPDATE SET book_id = EXCLUDED.book_id`
+	bookInsertReturningClause             = ` RETURNING ` + strings.Join(BookWithRequestIDWritePostgresColumns, ",") + bookJoinSubqueryExpr
+	bookGetByRequestIDsQuery              = "SELECT " + postgres.QualifyColumns(BookWithRequestIDWritePostgresColumns, "book") + bookJoinSelectExprs + " FROM library.book " + bookJoinClause + ` WHERE book.request_id = ANY($1)`
 )
 
 func orderBooksByRequestID(requestIDs []string, rows []*BookWithRequestID) ([]*model.Book, error) {
@@ -80,6 +86,7 @@ func (s *Store) BatchInsertBooks(ctx context.Context, requestIDs []string, books
 		withRequestIDs[i] = &BookWithRequestID{RequestID: requestIDs[i], Book: *_book}
 	}
 	query, params := postgres.BatchInsertQuery(bookInsertPostgresQuery, withRequestIDs, BookWithRequestIDWritePostgresColumns...)
+	query += bookInsertReturningClause
 	query2, params2 := postgres.BatchInsertQuery(BookReviewInsertSingletonPostgresQuery, bookReviews, BookReviewWritePostgresColumns...)
 
 	var inserted []*model.Book
@@ -128,7 +135,7 @@ func (s *Store) BatchInsertBooks(ctx context.Context, requestIDs []string, books
 }
 
 var updateBookPostgresQuery = `UPDATE library.book SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", BookWritePostgresColumns) + bookJoinSubqueryExpr
+	strings.Join(BookWritePostgresColumns, ",") + bookJoinSubqueryExpr
 
 func (s *Store) UpdateBook(ctx context.Context, _book *model.Book, updateClause string, updateColumns []string, etag string) (*model.Book, error) {
 	updateParams := postgres.GetParams(_book, updateColumns...)
@@ -156,21 +163,14 @@ func (s *Store) UpdateBook(ctx context.Context, _book *model.Book, updateClause 
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Book])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getBookETag(ctx, s.client, _book.OrganizationID, _book.ShelfID, _book.BookID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrBookETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrBookNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeBook(ctx, s.client, _book.OrganizationID, _book.ShelfID, _book.BookID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrBookNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrBookETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but book exists")
 		}
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (s *Store) UpdateBook(ctx context.Context, _book *model.Book, updateClause 
 }
 
 var deleteBookPostgresQuery = `DELETE FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 RETURNING ` +
-	postgres.SelectQuery("%s", BookWritePostgresColumns) + bookJoinSubqueryExpr
+	strings.Join(BookWritePostgresColumns, ",") + bookJoinSubqueryExpr
 
 func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string, force bool) (*model.Book, error) {
 	query := deleteBookPostgresQuery
@@ -213,21 +213,14 @@ func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId 
 		deleted, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Book])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				if etag != "" {
-					currentEtag, getEtagErr := s.getBookETag(ctx, tx, organizationId, shelfId, bookId)
-					switch getEtagErr {
-					case nil:
-						if currentEtag == etag {
-							return fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
-						}
-						return model.ErrBookETagChanged
-					case v5.ErrNoRows:
-						return model.ErrBookNotExist
-					default:
-						return fmt.Errorf("getting etag: %v", getEtagErr)
-					}
+				_, currentEtag, probeErr := s.probeBook(ctx, tx, organizationId, shelfId, bookId)
+				if probeErr != nil {
+					return probeErr
 				}
-				return model.ErrBookNotExist
+				if etag != "" && currentEtag != etag {
+					return model.ErrBookETagChanged
+				}
+				return fmt.Errorf("delete matched no rows but book exists")
 			}
 			return err
 		}
@@ -241,8 +234,7 @@ func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId 
 }
 
 func (s *Store) GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error) {
-	query := `SELECT %s FROM library.book ` + bookJoinClause + ` WHERE book.organization_id = $1 AND book.shelf_id = $2 AND book.book_id = $3`
-	query = fmt.Sprintf(query, postgres.QualifyColumns(BookWritePostgresColumns, "book")+bookJoinSelectExprs)
+	query := "SELECT " + postgres.QualifyColumns(BookWritePostgresColumns, "book") + bookJoinSelectExprs + " FROM library.book " + bookJoinClause + ` WHERE book.organization_id = $1 AND book.shelf_id = $2 AND book.book_id = $3`
 	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId)
 	if err != nil {
 		return nil, fmt.Errorf("getting book: %w", err)
@@ -284,7 +276,7 @@ func (s *Store) BatchGetBooks(ctx context.Context, organizationIds []string, she
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.book "+bookJoinClause+" %s", postgres.QualifyColumns(BookWritePostgresColumns, "book")+bookJoinSelectExprs, whereClause)
+	query := "SELECT " + postgres.QualifyColumns(BookWritePostgresColumns, "book") + bookJoinSelectExprs + " FROM library.book " + bookJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -307,28 +299,12 @@ func (s *Store) ListBooks(ctx context.Context, organizationId, shelfId string, w
 		params = append(params, shelfId)
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.book "+bookJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "book")+bookJoinSelectExprs)
-
-	var books []*model.Book
-	transactionFN := func(tx postgres.Tx) error {
-		books = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting books: %w", err)
-		}
-		books, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Book])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "book") + bookJoinSelectExprs + " FROM library.book " + bookJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting books: %w", err)
 	}
-	return books, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Book])
 }
 
 // BookSearchDocumentExpression is the SQL expression composing the resource's
@@ -369,33 +345,19 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 		params = append(params, tsQuery)
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.book "+bookJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
 	selectColumns := postgres.QualifyColumns(columns, "book") + bookJoinSelectExprs
 	for _, snippetColumn := range snippetColumns {
 		selectColumns += "," + snippetColumn
 	}
-	query = fmt.Sprintf(query, selectColumns)
+	query := "SELECT " + selectColumns + " FROM library.book " + bookJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
 
-	var searchRows []*bookSearchRow
-	transactionFN := func(tx postgres.Tx) error {
-		searchRows = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting books: %w", err)
-		}
-		searchRows, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[bookSearchRow])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting books: %w", err)
 	}
-	if err := s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN); err != nil {
-		return nil, nil, err
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[bookSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
 	}
 	books := make([]*model.Book, 0, len(searchRows))
 	var snippets []map[string]string

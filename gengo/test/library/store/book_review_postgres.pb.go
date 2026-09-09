@@ -20,110 +20,24 @@ var bookReviewJoinSubqueryExpr = `,(SELECT book.title FROM library.book AS book 
 var bookReviewJoinSelectExprs = `,book.title AS book_title,book.publication_year AS book_publication_year`
 var bookReviewJoinClause = `INNER JOIN library.book AS book ON book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id`
 
-func (s *Store) getBookReviewETag(ctx context.Context, q querier, organizationId, shelfId, bookId string) (string, error) {
-	query := `SELECT etag FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
-	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId)
-	if err != nil {
-		return "", err
+func (s *Store) probeBookReview(ctx context.Context, q querier, organizationId, shelfId, bookId string) (bool, string, error) {
+	query := `SELECT TRUE, etag FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
+	params := []any{organizationId, shelfId, bookId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrBookReviewNotExist
+		}
+		return false, "", fmt.Errorf("probing bookReview: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 const BookReviewInsertSingletonPostgresQuery = `INSERT INTO library.book_review %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO NOTHING`
 
-type BookReviewWithRequestID struct {
-	RequestID string `db:"request_id"`
-	model.BookReview
-}
-
-var (
-	BookReviewWithRequestIDPostgresColumns      = postgres.GetDBColumns(BookReviewWithRequestID{})
-	BookReviewWithRequestIDWritePostgresColumns = postgres.GetDBColumns(BookReviewWithRequestID{}, postgres.ExceptColumns("book_title", "book_publication_year"))
-	bookReviewInsertPostgresQuery               = `INSERT INTO library.book_review %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", BookReviewWithRequestIDWritePostgresColumns) + bookReviewJoinSubqueryExpr
-	bookReviewGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.book_review `+bookReviewJoinClause+` WHERE book_review.request_id = ANY($1)`, postgres.QualifyColumns(BookReviewWithRequestIDWritePostgresColumns, "book_review")+bookReviewJoinSelectExprs)
-)
-
-func orderBookReviewsByRequestID(requestIDs []string, rows []*BookReviewWithRequestID) ([]*model.BookReview, error) {
-	indexByRequestID := make(map[string]int, len(requestIDs))
-	for i, requestID := range requestIDs {
-		indexByRequestID[requestID] = i
-	}
-	ordered := make([]*model.BookReview, len(requestIDs))
-	for _, row := range rows {
-		// A returned request id outside this batch is a pre-existing row.
-		i, ok := indexByRequestID[row.RequestID]
-		if !ok {
-			return nil, model.ErrBookReviewAlreadyExists
-		}
-		ordered[i] = &row.BookReview
-	}
-	for i, row := range ordered {
-		if row == nil {
-			return nil, fmt.Errorf("inserted bookReview with request id %q was not returned", requestIDs[i])
-		}
-	}
-	return ordered, nil
-}
-
-func (s *Store) BatchInsertBookReviews(ctx context.Context, requestIDs []string, bookReviews []*model.BookReview) ([]*model.BookReview, error) {
-	n := len(bookReviews)
-	if len(requestIDs) != n {
-		return nil, fmt.Errorf("mismatched slice lengths")
-	}
-	if n == 0 {
-		return nil, nil
-	}
-
-	withRequestIDs := make([]*BookReviewWithRequestID, n)
-	for i, _bookReview := range bookReviews {
-		withRequestIDs[i] = &BookReviewWithRequestID{RequestID: requestIDs[i], BookReview: *_bookReview}
-	}
-	query, params := postgres.BatchInsertQuery(bookReviewInsertPostgresQuery, withRequestIDs, BookReviewWithRequestIDWritePostgresColumns...)
-
-	var inserted []*model.BookReview
-	transactionFN := func(tx postgres.Tx) error {
-		inserted = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return err
-		}
-		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookReviewWithRequestID])
-		if err != nil {
-			return err
-		}
-		inserted, err = orderBookReviewsByRequestID(requestIDs, upserted)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-		// A replay with server-generated ids collides on request_id rather than
-		// on the primary key; return the committed batch if it is whole.
-		if postgres.IsUniqueViolation(err) {
-			rows, lookupErr := s.client.Query(ctx, bookReviewGetByRequestIDsQuery, requestIDs)
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookReviewWithRequestID])
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			if len(existing) == n {
-				return orderBookReviewsByRequestID(requestIDs, existing)
-			}
-			// Not a whole replay: another unique constraint of the table fired.
-			return nil, model.ErrBookReviewAlreadyExists
-		}
-		return nil, err
-	}
-	return inserted, nil
-}
-
 var updateBookReviewPostgresQuery = `UPDATE library.book_review SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", BookReviewWritePostgresColumns) + bookReviewJoinSubqueryExpr
+	strings.Join(BookReviewWritePostgresColumns, ",") + bookReviewJoinSubqueryExpr
 
 func (s *Store) UpdateBookReview(ctx context.Context, _bookReview *model.BookReview, updateClause string, updateColumns []string, etag string) (*model.BookReview, error) {
 	updateParams := postgres.GetParams(_bookReview, updateColumns...)
@@ -151,59 +65,14 @@ func (s *Store) UpdateBookReview(ctx context.Context, _bookReview *model.BookRev
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getBookReviewETag(ctx, s.client, _bookReview.OrganizationID, _bookReview.ShelfID, _bookReview.BookID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrBookReviewETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrBookReviewNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeBookReview(ctx, s.client, _bookReview.OrganizationID, _bookReview.ShelfID, _bookReview.BookID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrBookReviewNotExist
-		}
-		return nil, err
-	}
-	return row, nil
-}
-
-var deleteBookReviewPostgresQuery = `DELETE FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 RETURNING ` +
-	postgres.SelectQuery("%s", BookReviewWritePostgresColumns) + bookReviewJoinSubqueryExpr
-
-func (s *Store) DeleteBookReview(ctx context.Context, organizationId, shelfId, bookId string, etag string) (*model.BookReview, error) {
-	query := deleteBookReviewPostgresQuery
-	params := []any{organizationId, shelfId, bookId}
-	if etag != "" {
-		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
-		params = append(params, etag)
-	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getBookReviewETag(ctx, s.client, organizationId, shelfId, bookId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrBookReviewETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrBookReviewNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrBookReviewETagChanged
 			}
-			return nil, model.ErrBookReviewNotExist
+			return nil, fmt.Errorf("update matched no rows but bookReview exists")
 		}
 		return nil, err
 	}
@@ -211,8 +80,7 @@ func (s *Store) DeleteBookReview(ctx context.Context, organizationId, shelfId, b
 }
 
 func (s *Store) GetBookReview(ctx context.Context, organizationId, shelfId, bookId string) (*model.BookReview, error) {
-	query := `SELECT %s FROM library.book_review ` + bookReviewJoinClause + ` WHERE book_review.organization_id = $1 AND book_review.shelf_id = $2 AND book_review.book_id = $3`
-	query = fmt.Sprintf(query, postgres.QualifyColumns(BookReviewWritePostgresColumns, "book_review")+bookReviewJoinSelectExprs)
+	query := "SELECT " + postgres.QualifyColumns(BookReviewWritePostgresColumns, "book_review") + bookReviewJoinSelectExprs + " FROM library.book_review " + bookReviewJoinClause + ` WHERE book_review.organization_id = $1 AND book_review.shelf_id = $2 AND book_review.book_id = $3`
 	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId)
 	if err != nil {
 		return nil, fmt.Errorf("getting bookReview: %w", err)
@@ -254,7 +122,7 @@ func (s *Store) BatchGetBookReviews(ctx context.Context, organizationIds []strin
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.book_review "+bookReviewJoinClause+" %s", postgres.QualifyColumns(BookReviewWritePostgresColumns, "book_review")+bookReviewJoinSelectExprs, whereClause)
+	query := "SELECT " + postgres.QualifyColumns(BookReviewWritePostgresColumns, "book_review") + bookReviewJoinSelectExprs + " FROM library.book_review " + bookReviewJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -281,26 +149,10 @@ func (s *Store) ListBookReviews(ctx context.Context, organizationId, shelfId, bo
 		params = append(params, bookId)
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.book_review "+bookReviewJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "book_review")+bookReviewJoinSelectExprs)
-
-	var bookReviews []*model.BookReview
-	transactionFN := func(tx postgres.Tx) error {
-		bookReviews = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting bookReviews: %w", err)
-		}
-		bookReviews, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "book_review") + bookReviewJoinSelectExprs + " FROM library.book_review " + bookReviewJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting bookReviews: %w", err)
 	}
-	return bookReviews, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
 }

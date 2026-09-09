@@ -153,7 +153,10 @@ message Author {
   string etag = 12;
 
   // Author metadata.
-  AuthorMetadata metadata = 13 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  AuthorMetadata metadata = 13 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
 }
 
 // Metadata for an author.

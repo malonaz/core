@@ -348,6 +348,7 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"featured",
 		"extra.note",
 		"extra.rank",
+		"latest_draft_book",
 	}, paths)
 }
 

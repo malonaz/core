@@ -32,7 +32,7 @@ var (
 	JobPostgresColumns = postgres.GetDBColumns(model.Job{})
 )
 
-func (s *Store) getJobETag(ctx context.Context, q querier, organizationId, userId, jobId string) (string, error) {
+func (s *Store) probeJob(ctx context.Context, q querier, organizationId, userId, jobId string) (bool, string, error) {
 	conditions := make([]string, 0, 3)
 	params := make([]any, 0, 3)
 	if organizationId != "" {
@@ -49,12 +49,16 @@ func (s *Store) getJobETag(ctx context.Context, q querier, organizationId, userI
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := fmt.Sprintf("SELECT etag FROM job WHERE %s", strings.Join(conditions, " AND "))
-	rows, err := q.Query(ctx, query, params...)
-	if err != nil {
-		return "", err
+	query := "SELECT TRUE, etag FROM job WHERE " + strings.Join(conditions, " AND ")
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrJobNotExist
+		}
+		return false, "", fmt.Errorf("probing job: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type JobWithRequestID struct {
@@ -64,8 +68,9 @@ type JobWithRequestID struct {
 
 var (
 	JobWithRequestIDPostgresColumns = postgres.GetDBColumns(JobWithRequestID{})
-	jobInsertPostgresQuery          = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id RETURNING ` + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns)
-	jobGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns) + ` FROM job WHERE request_id = ANY($1)`
+	jobInsertPostgresQuery          = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id`
+	jobInsertReturningClause        = ` RETURNING ` + strings.Join(JobWithRequestIDPostgresColumns, ",")
+	jobGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(JobWithRequestIDPostgresColumns, "job") + " FROM job" + ` WHERE job.request_id = ANY($1)`
 )
 
 func orderJobsByRequestID(requestIDs []string, rows []*JobWithRequestID) ([]*model.Job, error) {
@@ -103,7 +108,8 @@ func (s *Store) BatchInsertJobs(ctx context.Context, requestIDs []string, jobs [
 	for i, _job := range jobs {
 		withRequestIDs[i] = &JobWithRequestID{RequestID: requestIDs[i], Job: *_job}
 	}
-	query, params := postgres.BatchInsertQuery(jobInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(jobInsertPostgresQuery, withRequestIDs, JobWithRequestIDPostgresColumns...)
+	query += jobInsertReturningClause
 
 	var inserted []*model.Job
 	transactionFN := func(tx postgres.Tx) error {
@@ -148,7 +154,7 @@ func (s *Store) BatchInsertJobs(ctx context.Context, requestIDs []string, jobs [
 }
 
 var updateJobPostgresQuery = `UPDATE job SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", JobPostgresColumns)
+	strings.Join(JobPostgresColumns, ",")
 
 func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause string, updateColumns []string, etag string) (*model.Job, error) {
 	organizationId := ""
@@ -193,21 +199,14 @@ func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause str
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, s.client, organizationId, userId, jobId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrJobETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrJobNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeJob(ctx, s.client, organizationId, userId, jobId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrJobNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrJobETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but job exists")
 		}
 		return nil, err
 	}
@@ -231,7 +230,7 @@ func (s *Store) DeleteJob(ctx context.Context, organizationId, userId, jobId str
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := fmt.Sprintf("DELETE FROM job WHERE %s RETURNING ", strings.Join(conditions, " AND ")) + postgres.SelectQuery("%s", JobPostgresColumns)
+	query := fmt.Sprintf("DELETE FROM job WHERE %s RETURNING ", strings.Join(conditions, " AND ")) + strings.Join(JobPostgresColumns, ",")
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
@@ -243,21 +242,14 @@ func (s *Store) DeleteJob(ctx context.Context, organizationId, userId, jobId str
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, s.client, organizationId, userId, jobId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrJobETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrJobNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			_, currentEtag, probeErr := s.probeJob(ctx, s.client, organizationId, userId, jobId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrJobNotExist
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrJobETagChanged
+			}
+			return nil, fmt.Errorf("delete matched no rows but job exists")
 		}
 		return nil, err
 	}
@@ -281,8 +273,7 @@ func (s *Store) GetJob(ctx context.Context, organizationId, userId, jobId string
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := fmt.Sprintf("SELECT %%s FROM job WHERE %s", strings.Join(conditions, " AND "))
-	query = postgres.SelectQuery(query, JobPostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM job" + " WHERE " + strings.Join(conditions, " AND ")
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("getting job: %w", err)
@@ -331,7 +322,7 @@ func (s *Store) BatchGetJobs(ctx context.Context, organizationIds []string, user
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM job %s", postgres.SelectQuery("%s", JobPostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM job" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -346,42 +337,26 @@ func (s *Store) ListJobs(ctx context.Context, organizationId, userId string, whe
 	}
 
 	if organizationId == "-" {
-		whereClause = postgres.AddToWhereClause(whereClause, "organization_id IS NOT NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "job.organization_id IS NOT NULL")
 	} else if organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("job.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	} else {
-		whereClause = postgres.AddToWhereClause(whereClause, "organization_id IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "job.organization_id IS NULL")
 	}
 	if userId == "-" {
-		whereClause = postgres.AddToWhereClause(whereClause, "user_id IS NOT NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "job.user_id IS NOT NULL")
 	} else if userId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("user_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("job.user_id = $%d", len(params)+1))
 		params = append(params, userId)
 	} else {
-		whereClause = postgres.AddToWhereClause(whereClause, "user_id IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "job.user_id IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM job #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var jobs []*model.Job
-	transactionFN := func(tx postgres.Tx) error {
-		jobs = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting jobs: %w", err)
-		}
-		jobs, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "job") + " FROM job" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting jobs: %w", err)
 	}
-	return jobs, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
 }

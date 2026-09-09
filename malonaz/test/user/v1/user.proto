@@ -86,7 +86,10 @@ message User {
   string etag = 9;
 
   // User metadata.
-  UserMetadata metadata = 10 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  UserMetadata metadata = 10 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
 
   // The account balance of the user.
   google.type.Decimal balance = 11;

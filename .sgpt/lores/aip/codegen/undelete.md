@@ -48,9 +48,9 @@ implicit contract as Delete). Nothing else — AIP-164 forbids other fields.
 | `update_time` | untouched: undelete is not an edit |
 | Etag | recomputed over the restored resource (`aip.ComputeETag` with `delete_time` cleared), so it moves on undelete |
 
-The zero-row case is disambiguated by a follow-up probe
-(`undelete{R}NoRows`: `SELECT delete_time IS NULL[, etag]`), mirroring how
-Delete's etag check works.
+The zero-row case is disambiguated by the resource's `probe{R}`
+(`SELECT delete_time IS NULL[, etag]`), the same probe Update and Delete use;
+see `lores/aip/codegen/delete` for the state-before-etag precedence.
 
 ## Descendants: lifecycle singletons only
 

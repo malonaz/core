@@ -9,7 +9,6 @@ import (
 	model "github.com/malonaz/core/gengo/test/library/model"
 	postgres "github.com/malonaz/core/go/postgres"
 	strings "strings"
-	time "time"
 )
 
 var (
@@ -21,110 +20,24 @@ var authorProfileJoinSubqueryExpr = `,(SELECT author.display_name FROM library.a
 var authorProfileJoinSelectExprs = `,author.display_name AS author_display_name,author.email_address AS author_email_address`
 var authorProfileJoinClause = `INNER JOIN library.author AS author ON author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id`
 
-func (s *Store) getAuthorProfileETag(ctx context.Context, q querier, organizationId, authorId string) (string, error) {
-	query := `SELECT etag FROM library.author_profile WHERE organization_id = $1 AND author_id = $2`
-	rows, err := q.Query(ctx, query, organizationId, authorId)
-	if err != nil {
-		return "", err
+func (s *Store) probeAuthorProfile(ctx context.Context, q querier, organizationId, authorId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM library.author_profile WHERE organization_id = $1 AND author_id = $2`
+	params := []any{organizationId, authorId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrAuthorProfileNotExist
+		}
+		return false, "", fmt.Errorf("probing authorProfile: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 const AuthorProfileInsertSingletonPostgresQuery = `INSERT INTO library.author_profile %s VALUES %s ON CONFLICT(organization_id, author_id) DO NOTHING`
 
-type AuthorProfileWithRequestID struct {
-	RequestID string `db:"request_id"`
-	model.AuthorProfile
-}
-
-var (
-	AuthorProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(AuthorProfileWithRequestID{})
-	AuthorProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(AuthorProfileWithRequestID{}, postgres.ExceptColumns("author_display_name", "author_email_address"))
-	authorProfileInsertPostgresQuery               = `INSERT INTO library.author_profile %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", AuthorProfileWithRequestIDWritePostgresColumns) + authorProfileJoinSubqueryExpr
-	authorProfileGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.author_profile `+authorProfileJoinClause+` WHERE author_profile.request_id = ANY($1)`, postgres.QualifyColumns(AuthorProfileWithRequestIDWritePostgresColumns, "author_profile")+authorProfileJoinSelectExprs)
-)
-
-func orderAuthorProfilesByRequestID(requestIDs []string, rows []*AuthorProfileWithRequestID) ([]*model.AuthorProfile, error) {
-	indexByRequestID := make(map[string]int, len(requestIDs))
-	for i, requestID := range requestIDs {
-		indexByRequestID[requestID] = i
-	}
-	ordered := make([]*model.AuthorProfile, len(requestIDs))
-	for _, row := range rows {
-		// A returned request id outside this batch is a pre-existing row.
-		i, ok := indexByRequestID[row.RequestID]
-		if !ok {
-			return nil, model.ErrAuthorProfileAlreadyExists
-		}
-		ordered[i] = &row.AuthorProfile
-	}
-	for i, row := range ordered {
-		if row == nil {
-			return nil, fmt.Errorf("inserted authorProfile with request id %q was not returned", requestIDs[i])
-		}
-	}
-	return ordered, nil
-}
-
-func (s *Store) BatchInsertAuthorProfiles(ctx context.Context, requestIDs []string, authorProfiles []*model.AuthorProfile) ([]*model.AuthorProfile, error) {
-	n := len(authorProfiles)
-	if len(requestIDs) != n {
-		return nil, fmt.Errorf("mismatched slice lengths")
-	}
-	if n == 0 {
-		return nil, nil
-	}
-
-	withRequestIDs := make([]*AuthorProfileWithRequestID, n)
-	for i, _authorProfile := range authorProfiles {
-		withRequestIDs[i] = &AuthorProfileWithRequestID{RequestID: requestIDs[i], AuthorProfile: *_authorProfile}
-	}
-	query, params := postgres.BatchInsertQuery(authorProfileInsertPostgresQuery, withRequestIDs, AuthorProfileWithRequestIDWritePostgresColumns...)
-
-	var inserted []*model.AuthorProfile
-	transactionFN := func(tx postgres.Tx) error {
-		inserted = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return err
-		}
-		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorProfileWithRequestID])
-		if err != nil {
-			return err
-		}
-		inserted, err = orderAuthorProfilesByRequestID(requestIDs, upserted)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-		// A replay with server-generated ids collides on request_id rather than
-		// on the primary key; return the committed batch if it is whole.
-		if postgres.IsUniqueViolation(err) {
-			rows, lookupErr := s.client.Query(ctx, authorProfileGetByRequestIDsQuery, requestIDs)
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorProfileWithRequestID])
-			if lookupErr != nil {
-				return nil, lookupErr
-			}
-			if len(existing) == n {
-				return orderAuthorProfilesByRequestID(requestIDs, existing)
-			}
-			// Not a whole replay: another unique constraint of the table fired.
-			return nil, model.ErrAuthorProfileAlreadyExists
-		}
-		return nil, err
-	}
-	return inserted, nil
-}
-
 var updateAuthorProfilePostgresQuery = `UPDATE library.author_profile SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", AuthorProfileWritePostgresColumns) + authorProfileJoinSubqueryExpr
+	strings.Join(AuthorProfileWritePostgresColumns, ",") + authorProfileJoinSubqueryExpr
 
 func (s *Store) UpdateAuthorProfile(ctx context.Context, _authorProfile *model.AuthorProfile, updateClause string, updateColumns []string, etag string) (*model.AuthorProfile, error) {
 	updateParams := postgres.GetParams(_authorProfile, updateColumns...)
@@ -151,76 +64,25 @@ func (s *Store) UpdateAuthorProfile(ctx context.Context, _authorProfile *model.A
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.AuthorProfile])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, s.client, _authorProfile.OrganizationID, _authorProfile.AuthorID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrAuthorProfileETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrAuthorProfileNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeAuthorProfile(ctx, s.client, _authorProfile.OrganizationID, _authorProfile.AuthorID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrAuthorProfileNotExist
+			if !live {
+				return nil, model.ErrAuthorProfileNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrAuthorProfileETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but authorProfile exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteAuthorProfilePostgresQuery = `UPDATE library.author_profile SET delete_time = COALESCE(delete_time, $3), etag = $4 WHERE organization_id = $1 AND author_id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", AuthorProfileWritePostgresColumns) + authorProfileJoinSubqueryExpr
-
-type softDeleteAuthorProfileResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.AuthorProfile
-}
-
-func (s *Store) SoftDeleteAuthorProfile(ctx context.Context, organizationId, authorId string, etag, newEtag string, deleteTime time.Time) (*model.AuthorProfile, error) {
-	query := softDeleteAuthorProfilePostgresQuery
-	params := []any{organizationId, authorId, deleteTime, newEtag}
-	if etag != "" {
-		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
-		params = append(params, etag)
-	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting authorProfile: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteAuthorProfileResult])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, s.client, organizationId, authorId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrAuthorProfileETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrAuthorProfileNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
-			}
-			return nil, model.ErrAuthorProfileNotExist
-		}
-		return nil, err
-	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrAuthorProfileAlreadyDeleted
-	}
-	return &row.AuthorProfile, nil
-}
-
 func (s *Store) GetAuthorProfile(ctx context.Context, organizationId, authorId string) (*model.AuthorProfile, error) {
-	query := `SELECT %s FROM library.author_profile ` + authorProfileJoinClause + ` WHERE author_profile.organization_id = $1 AND author_profile.author_id = $2`
-	query = fmt.Sprintf(query, postgres.QualifyColumns(AuthorProfileWritePostgresColumns, "author_profile")+authorProfileJoinSelectExprs)
+	query := "SELECT " + postgres.QualifyColumns(AuthorProfileWritePostgresColumns, "author_profile") + authorProfileJoinSelectExprs + " FROM library.author_profile " + authorProfileJoinClause + ` WHERE author_profile.organization_id = $1 AND author_profile.author_id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, authorId)
 	if err != nil {
 		return nil, fmt.Errorf("getting authorProfile: %w", err)
@@ -257,7 +119,7 @@ func (s *Store) BatchGetAuthorProfiles(ctx context.Context, organizationIds []st
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.author_profile "+authorProfileJoinClause+" %s", postgres.QualifyColumns(AuthorProfileWritePostgresColumns, "author_profile")+authorProfileJoinSelectExprs, whereClause)
+	query := "SELECT " + postgres.QualifyColumns(AuthorProfileWritePostgresColumns, "author_profile") + authorProfileJoinSelectExprs + " FROM library.author_profile " + authorProfileJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -284,26 +146,10 @@ func (s *Store) ListAuthorProfiles(ctx context.Context, organizationId, authorId
 		whereClause = postgres.AddToWhereClause(whereClause, "author_profile.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.author_profile "+authorProfileJoinClause+" #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = fmt.Sprintf(query, postgres.QualifyColumns(columns, "author_profile")+authorProfileJoinSelectExprs)
-
-	var authorProfiles []*model.AuthorProfile
-	transactionFN := func(tx postgres.Tx) error {
-		authorProfiles = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting authorProfiles: %w", err)
-		}
-		authorProfiles, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.AuthorProfile])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "author_profile") + authorProfileJoinSelectExprs + " FROM library.author_profile " + authorProfileJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting authorProfiles: %w", err)
 	}
-	return authorProfiles, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.AuthorProfile])
 }

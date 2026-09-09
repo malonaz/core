@@ -109,6 +109,7 @@ type Shelf struct {
 	xxx_hidden_SecondaryGenre    ShelfGenre             `protobuf:"varint,16,opt,name=secondary_genre,json=secondaryGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
 	xxx_hidden_ShelfNumber       int32                  `protobuf:"varint,17,opt,name=shelf_number,json=shelfNumber,proto3"`
 	xxx_hidden_Featured          bool                   `protobuf:"varint,18,opt,name=featured,proto3"`
+	xxx_hidden_LatestDraftBook   string                 `protobuf:"bytes,20,opt,name=latest_draft_book,json=latestDraftBook,proto3"`
 	xxx_hidden_Extra             *ShelfExtra            `protobuf:"bytes,19,opt,name=extra,proto3"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
@@ -265,6 +266,13 @@ func (x *Shelf) GetFeatured() bool {
 	return false
 }
 
+func (x *Shelf) GetLatestDraftBook() string {
+	if x != nil {
+		return x.xxx_hidden_LatestDraftBook
+	}
+	return ""
+}
+
 func (x *Shelf) GetExtra() *ShelfExtra {
 	if x != nil {
 		return x.xxx_hidden_Extra
@@ -342,6 +350,10 @@ func (x *Shelf) SetShelfNumber(v int32) {
 
 func (x *Shelf) SetFeatured(v bool) {
 	x.xxx_hidden_Featured = v
+}
+
+func (x *Shelf) SetLatestDraftBook(v string) {
+	x.xxx_hidden_LatestDraftBook = v
 }
 
 func (x *Shelf) SetExtra(v *ShelfExtra) {
@@ -456,6 +468,11 @@ type Shelf_builder struct {
 	ShelfNumber int32
 	// Whether the shelf is featured. Nullable.
 	Featured bool
+	// The most recently created book whose title starts with "Draft", resolved
+	// by a query join whose filter carries a wildcard: the transpiled LIKE
+	// pattern's `%` must survive every query the join is spliced into.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	LatestDraftBook string
 	// Optional extra data, stored as nullable JSONB.
 	Extra *ShelfExtra
 }
@@ -482,6 +499,7 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.xxx_hidden_SecondaryGenre = b.SecondaryGenre
 	x.xxx_hidden_ShelfNumber = b.ShelfNumber
 	x.xxx_hidden_Featured = b.Featured
+	x.xxx_hidden_LatestDraftBook = b.LatestDraftBook
 	x.xxx_hidden_Extra = b.Extra
 	return m0
 }
@@ -859,7 +877,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x84\x0f\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb1\x10\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -880,8 +898,8 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x0ecorrelation_idR\x0ecorrelationId2\x12=\n" +
 	"\bduration\x18\t \x01(\v2\x19.google.protobuf.DurationB\x06\xba\xea\x0f\x02 \x01R\bduration\x12\xd8\x01\n" +
 	"\x06labels\x18\n" +
-	" \x03(\v2*.malonaz.test.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12W\n" +
-	"\bmetadata\x18\v \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x13\xba\xea\x0f\x0f\n" +
+	" \x03(\v2*.malonaz.test.library.v1.Shelf.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12]\n" +
+	"\bmetadata\x18\v \x01(\v2&.malonaz.test.library.v1.ShelfMetadataB\x19\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x0f\n" +
 	"\vlegacy_meta\x10\x01R\bmetadata\x12?\n" +
 	"\tbest_book\x18\f \x01(\tB\"\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/BookR\bbestBook\x12r\n" +
@@ -897,7 +915,11 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\x05title\x1a\vlatest_bookR\x0flatestBookTitle\x12T\n" +
 	"\x0fsecondary_genre\x18\x10 \x01(\x0e2#.malonaz.test.library.v1.ShelfGenreB\x06\xba\xea\x0f\x02 \x01R\x0esecondaryGenre\x12)\n" +
 	"\fshelf_number\x18\x11 \x01(\x05B\x06\xba\xea\x0f\x02 \x01R\vshelfNumber\x12\"\n" +
-	"\bfeatured\x18\x12 \x01(\bB\x06\xba\xea\x0f\x02 \x01R\bfeatured\x12C\n" +
+	"\bfeatured\x18\x12 \x01(\bB\x06\xba\xea\x0f\x02 \x01R\bfeatured\x12\xa4\x01\n" +
+	"\x11latest_draft_book\x18\x14 \x01(\tBx\xe0A\x03\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Book\xba\xea\x0fO \x01BK\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name\"$\n" +
+	"\x10title = \"Draft*\"\x12\x10create_time descR\x0flatestDraftBook\x12C\n" +
 	"\x05extra\x18\x13 \x01(\v2#.malonaz.test.library.v1.ShelfExtraB\b\xba\xea\x0f\x04\x10\x01 \x01R\x05extra\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

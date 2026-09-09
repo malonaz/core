@@ -16,13 +16,18 @@ var (
 	BookmarkPostgresColumns = postgres.GetDBColumns(model.Bookmark{})
 )
 
-func (s *Store) getBookmarkETag(ctx context.Context, q querier, organizationId, shelfId, bookId, bookmarkId string) (string, error) {
-	query := `SELECT etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
-	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId, bookmarkId)
-	if err != nil {
-		return "", err
+func (s *Store) probeBookmark(ctx context.Context, q querier, organizationId, shelfId, bookId, bookmarkId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
+	params := []any{organizationId, shelfId, bookId, bookmarkId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrBookmarkNotExist
+		}
+		return false, "", fmt.Errorf("probing bookmark: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type BookmarkWithRequestID struct {
@@ -32,8 +37,9 @@ type BookmarkWithRequestID struct {
 
 var (
 	BookmarkWithRequestIDPostgresColumns = postgres.GetDBColumns(BookmarkWithRequestID{})
-	bookmarkInsertPostgresQuery          = `INSERT INTO library.bookmark %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id, bookmark_id) DO UPDATE SET bookmark_id = EXCLUDED.bookmark_id RETURNING ` + postgres.SelectQuery("%s", BookmarkWithRequestIDPostgresColumns)
-	bookmarkGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", BookmarkWithRequestIDPostgresColumns) + ` FROM library.bookmark WHERE request_id = ANY($1)`
+	bookmarkInsertPostgresQuery          = `INSERT INTO library.bookmark %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id, bookmark_id) DO UPDATE SET bookmark_id = EXCLUDED.bookmark_id`
+	bookmarkInsertReturningClause        = ` RETURNING ` + strings.Join(BookmarkWithRequestIDPostgresColumns, ",")
+	bookmarkGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(BookmarkWithRequestIDPostgresColumns, "bookmark") + " FROM library.bookmark" + ` WHERE bookmark.request_id = ANY($1)`
 )
 
 func orderBookmarksByRequestID(requestIDs []string, rows []*BookmarkWithRequestID) ([]*model.Bookmark, error) {
@@ -71,7 +77,8 @@ func (s *Store) BatchInsertBookmarks(ctx context.Context, requestIDs []string, b
 	for i, _bookmark := range bookmarks {
 		withRequestIDs[i] = &BookmarkWithRequestID{RequestID: requestIDs[i], Bookmark: *_bookmark}
 	}
-	query, params := postgres.BatchInsertQuery(bookmarkInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(bookmarkInsertPostgresQuery, withRequestIDs, BookmarkWithRequestIDPostgresColumns...)
+	query += bookmarkInsertReturningClause
 
 	var inserted []*model.Bookmark
 	transactionFN := func(tx postgres.Tx) error {
@@ -116,7 +123,7 @@ func (s *Store) BatchInsertBookmarks(ctx context.Context, requestIDs []string, b
 }
 
 var updateBookmarkPostgresQuery = `UPDATE library.bookmark SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", BookmarkPostgresColumns)
+	strings.Join(BookmarkPostgresColumns, ",")
 
 func (s *Store) UpdateBookmark(ctx context.Context, _bookmark *model.Bookmark, updateClause string, updateColumns []string, etag string) (*model.Bookmark, error) {
 	updateParams := postgres.GetParams(_bookmark, updateColumns...)
@@ -145,34 +152,25 @@ func (s *Store) UpdateBookmark(ctx context.Context, _bookmark *model.Bookmark, u
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getBookmarkETag(ctx, s.client, _bookmark.OrganizationID, _bookmark.ShelfID, _bookmark.BookID, _bookmark.BookmarkID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrBookmarkETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrBookmarkNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeBookmark(ctx, s.client, _bookmark.OrganizationID, _bookmark.ShelfID, _bookmark.BookID, _bookmark.BookmarkID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrBookmarkNotExist
+			if !live {
+				return nil, model.ErrBookmarkNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrBookmarkETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but bookmark exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteBookmarkPostgresQuery = `UPDATE library.bookmark SET delete_time = COALESCE(delete_time, $5), etag = $6 WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4 RETURNING (delete_time < $5) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", BookmarkPostgresColumns)
-
-type softDeleteBookmarkResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.Bookmark
-}
+var softDeleteBookmarkPostgresQuery = `UPDATE library.bookmark SET delete_time = $5, etag = $6 WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4 AND delete_time IS NULL RETURNING ` +
+	strings.Join(BookmarkPostgresColumns, ",")
 
 func (s *Store) SoftDeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string, deleteTime time.Time) (*model.Bookmark, error) {
 	query := softDeleteBookmarkPostgresQuery
@@ -185,55 +183,28 @@ func (s *Store) SoftDeleteBookmark(ctx context.Context, organizationId, shelfId,
 	if err != nil {
 		return nil, fmt.Errorf("soft deleting bookmark: %w", err)
 	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteBookmarkResult])
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getBookmarkETag(ctx, s.client, organizationId, shelfId, bookId, bookmarkId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrBookmarkETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrBookmarkNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeBookmark(ctx, s.client, organizationId, shelfId, bookId, bookmarkId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrBookmarkNotExist
+			if !live {
+				return nil, model.ErrBookmarkAlreadyDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrBookmarkETagChanged
+			}
+			return nil, fmt.Errorf("soft delete matched no rows but bookmark is live")
 		}
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrBookmarkAlreadyDeleted
-	}
-	return &row.Bookmark, nil
-}
-
-func (s *Store) undeleteBookmarkNoRows(ctx context.Context, q querier, organizationId, shelfId, bookId, bookmarkId string, etag string) error {
-	query := `SELECT delete_time IS NULL, etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
-	params := []any{organizationId, shelfId, bookId, bookmarkId}
-	var live bool
-	var currentEtag string
-	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrBookmarkNotExist
-		}
-		return fmt.Errorf("probing bookmark: %w", err)
-	}
-	if live {
-		return model.ErrBookmarkNotDeleted
-	}
-	if etag != "" && currentEtag != etag {
-		return model.ErrBookmarkETagChanged
-	}
-	return fmt.Errorf("undelete matched no rows but bookmark is deleted")
+	return row, nil
 }
 
 var undeleteBookmarkPostgresQuery = `UPDATE library.bookmark SET delete_time = NULL, etag = $5 WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4 AND delete_time IS NOT NULL RETURNING ` +
-	postgres.SelectQuery("%s", BookmarkPostgresColumns)
+	strings.Join(BookmarkPostgresColumns, ",")
 
 func (s *Store) UndeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string) (*model.Bookmark, error) {
 	query := undeleteBookmarkPostgresQuery
@@ -249,7 +220,17 @@ func (s *Store) UndeleteBookmark(ctx context.Context, organizationId, shelfId, b
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteBookmarkNoRows(ctx, s.client, organizationId, shelfId, bookId, bookmarkId, etag)
+			live, currentEtag, probeErr := s.probeBookmark(ctx, s.client, organizationId, shelfId, bookId, bookmarkId)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if live {
+				return nil, model.ErrBookmarkNotDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrBookmarkETagChanged
+			}
+			return nil, fmt.Errorf("undelete matched no rows but bookmark is deleted")
 		}
 		return nil, err
 	}
@@ -257,8 +238,7 @@ func (s *Store) UndeleteBookmark(ctx context.Context, organizationId, shelfId, b
 }
 
 func (s *Store) GetBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (*model.Bookmark, error) {
-	query := `SELECT %s FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
-	query = postgres.SelectQuery(query, BookmarkPostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(BookmarkPostgresColumns, "bookmark") + " FROM library.bookmark" + ` WHERE bookmark.organization_id = $1 AND bookmark.shelf_id = $2 AND bookmark.book_id = $3 AND bookmark.bookmark_id = $4`
 	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId, bookmarkId)
 	if err != nil {
 		return nil, fmt.Errorf("getting bookmark: %w", err)
@@ -293,10 +273,10 @@ func (s *Store) BatchGetBookmarks(ctx context.Context, organizationIds []string,
 	for i := 0; i < n; i++ {
 		base := i * 4
 		conditions := make([]string, 4)
-		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
-		conditions[1] = fmt.Sprintf("shelf_id = $%d", base+2)
-		conditions[2] = fmt.Sprintf("book_id = $%d", base+3)
-		conditions[3] = fmt.Sprintf("bookmark_id = $%d", base+4)
+		conditions[0] = fmt.Sprintf("bookmark.organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("bookmark.shelf_id = $%d", base+2)
+		conditions[2] = fmt.Sprintf("bookmark.book_id = $%d", base+3)
+		conditions[3] = fmt.Sprintf("bookmark.bookmark_id = $%d", base+4)
 		params = append(params, organizationIds[i])
 		params = append(params, shelfIds[i])
 		params = append(params, bookIds[i])
@@ -305,7 +285,7 @@ func (s *Store) BatchGetBookmarks(ctx context.Context, organizationIds []string,
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.bookmark %s", postgres.SelectQuery("%s", BookmarkPostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(BookmarkPostgresColumns, "bookmark") + " FROM library.bookmark" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -320,42 +300,26 @@ func (s *Store) ListBookmarks(ctx context.Context, organizationId, shelfId, book
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 	if shelfId != "-" && shelfId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.shelf_id = $%d", len(params)+1))
 		params = append(params, shelfId)
 	}
 	if bookId != "-" && bookId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.book_id = $%d", len(params)+1))
 		params = append(params, bookId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "bookmark.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.bookmark #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var bookmarks []*model.Bookmark
-	transactionFN := func(tx postgres.Tx) error {
-		bookmarks = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting bookmarks: %w", err)
-		}
-		bookmarks, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "bookmark") + " FROM library.bookmark" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting bookmarks: %w", err)
 	}
-	return bookmarks, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 }

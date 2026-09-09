@@ -280,14 +280,17 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	// Store interface.
 	g.P(fmt.Sprintf("type %s interface {", storeIface))
 
-	// BatchInsert: Create is a single-element batch.
-	insertSig := fmt.Sprintf("  BatchInsert%s(ctx %s, requestIDs []string, %s []*%s",
-		pr.PluralGoName(), gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(pr.PluralGoName()), goTypeQgi)
-	for _, child := range mc.singletonChildren {
-		insertSig += fmt.Sprintf(", %s []*%s", xstrings.ToCamelCase(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
+	// BatchInsert: Create is a single-element batch. A singleton is inserted by
+	// its parent's BatchInsert and has no insert of its own.
+	if !mc.singleton {
+		insertSig := fmt.Sprintf("  BatchInsert%s(ctx %s, requestIDs []string, %s []*%s",
+			pr.PluralGoName(), gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(pr.PluralGoName()), goTypeQgi)
+		for _, child := range mc.singletonChildren {
+			insertSig += fmt.Sprintf(", %s []*%s", xstrings.ToCamelCase(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
+		}
+		insertSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
+		g.P(insertSig)
 	}
-	insertSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
-	g.P(insertSig)
 
 	// Update
 	updateSig := fmt.Sprintf("  Update%s(ctx %s, %s *%s, updateClause string, columns []string",

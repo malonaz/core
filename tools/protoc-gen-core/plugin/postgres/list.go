@@ -29,18 +29,11 @@ func (mc *msgCtx) generateList() {
 		pluralGoName, parentParam, showDeletedParam, mc.goTypeFqi))
 
 	g.P("  if columns == nil {")
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("    columns = %s", mc.writeColumns()))
-	} else {
-		g.P(fmt.Sprintf("    columns = %sPostgresColumns", mc.goType))
-	}
+	g.P(fmt.Sprintf("    columns = %s", mc.writeColumns()))
 	g.P("  }")
 	g.P()
 
-	colPrefix := ""
-	if mc.hasJoins {
-		colPrefix = mc.bareTableName + "."
-	}
+	colPrefix := mc.bareTableName + "."
 
 	if len(mc.parentBindings) > 0 {
 		for _, binding := range mc.parentBindings {
@@ -76,39 +69,12 @@ func (mc *msgCtx) generateList() {
 		g.P()
 	}
 
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s \" + %sJoinClause + \" #where# #orderby# #pagination#\", \"#where#\", whereClause)",
-			mc.stringsI("ReplaceAll"), mc.tableName, mc.goName))
-		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, %s(columns, %q) + %sJoinSelectExprs)",
-			mc.fmtI("Sprintf"), mc.postgres("QualifyColumns"), mc.bareTableName, mc.goName))
-	} else {
-		g.P(fmt.Sprintf("  query := %s(\"SELECT %%s FROM %s #where# #orderby# #pagination#\", \"#where#\", whereClause)",
-			mc.stringsI("ReplaceAll"), mc.tableName))
-		g.P(fmt.Sprintf("  query = %s(query, \"#orderby#\", orderByClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, \"#pagination#\", paginationClause)", mc.stringsI("ReplaceAll")))
-		g.P(fmt.Sprintf("  query = %s(query, columns)", mc.postgres("SelectQuery")))
-	}
-	g.P()
-
-	g.P(fmt.Sprintf("  var %s []*%s", pluralUntitled, mc.goTypeFqi))
-	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
-	g.P(fmt.Sprintf("    %s = nil", pluralUntitled))
-	g.P("    rows, err := tx.Query(ctx, query, params...)")
-	g.P("    if err != nil {")
-	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	g.P("        return nil")
-	g.P("      }")
-	g.P(fmt.Sprintf("      return %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
-	g.P("    }")
-	g.P(fmt.Sprintf("    %s, err = %s(rows, %s[%s])", pluralUntitled, mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
-	g.P("    if err != nil {")
-	g.P(fmt.Sprintf("      return %s(\"collecting rows: %%w\", err)", mc.fmtI("Errorf")))
-	g.P("    }")
-	g.P("    return nil")
+	g.P(fmt.Sprintf("  query := %s + \" \" + whereClause + \" \" + orderByClause + \" \" + paginationClause", mc.selectExpr("columns")))
+	g.P("  rows, err := s.client.Query(ctx, query, params...)")
+	g.P("  if err != nil {")
+	g.P(fmt.Sprintf("    return nil, %s(\"selecting %s: %%w\", err)", mc.fmtI("Errorf"), pluralUntitled))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s, s.client.ExecuteTransaction(ctx, %s, transactionFN)", pluralUntitled, mc.postgres("RepeatableRead")))
+	g.P(fmt.Sprintf("  return %s(rows, %s[%s])", mc.pgx("CollectRows"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("}")
 	g.P()
 }

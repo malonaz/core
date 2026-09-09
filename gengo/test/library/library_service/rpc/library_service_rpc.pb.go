@@ -677,7 +677,6 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 }
 
 type libraryService_AuthorProfileStore interface {
-	BatchInsertAuthorProfiles(ctx context.Context, requestIDs []string, authorProfiles []*model.AuthorProfile) ([]*model.AuthorProfile, error)
 	UpdateAuthorProfile(ctx context.Context, authorProfile *model.AuthorProfile, updateClause string, columns []string, etag string) (*model.AuthorProfile, error)
 	GetAuthorProfile(ctx context.Context, organizationId, authorId string) (*model.AuthorProfile, error)
 	BatchGetAuthorProfiles(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.AuthorProfile, error)
@@ -1904,7 +1903,6 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 }
 
 type libraryService_BookReviewStore interface {
-	BatchInsertBookReviews(ctx context.Context, requestIDs []string, bookReviews []*model.BookReview) ([]*model.BookReview, error)
 	UpdateBookReview(ctx context.Context, bookReview *model.BookReview, updateClause string, columns []string, etag string) (*model.BookReview, error)
 	GetBookReview(ctx context.Context, organizationId, shelfId, bookId string) (*model.BookReview, error)
 	BatchGetBookReviews(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.BookReview, error)

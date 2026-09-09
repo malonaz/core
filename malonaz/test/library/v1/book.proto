@@ -80,7 +80,7 @@ message Book {
   int32 page_count = 8 [(buf.validate.field).int32.gte = 0];
 
   // The duration of the book.
-  google.protobuf.Duration duration = 9;
+  google.protobuf.Duration duration = 9 [(buf.validate.field).required = true];
 
   // The labels on this book.
   map<string, string> labels = 10 [
@@ -104,7 +104,10 @@ message Book {
   string etag = 11;
 
   // Book metadata.
-  BookMetadata metadata = 12 [(malonaz.codegen.model.v1.field_opts).as_json_bytes = true];
+  BookMetadata metadata = 12 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
 
   // Join on parent.
   string shelf_external_id = 13 [

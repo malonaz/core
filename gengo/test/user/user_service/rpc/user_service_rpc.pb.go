@@ -979,7 +979,6 @@ func (s *userService_UserServer) BatchGetUsers(ctx context.Context, request *v11
 }
 
 type userService_UserProfileStore interface {
-	BatchInsertUserProfiles(ctx context.Context, requestIDs []string, userProfiles []*model.UserProfile) ([]*model.UserProfile, error)
 	UpdateUserProfile(ctx context.Context, userProfile *model.UserProfile, updateClause string, columns []string, etag string) (*model.UserProfile, error)
 	GetUserProfile(ctx context.Context, organizationId, userId string) (*model.UserProfile, error)
 	BatchGetUserProfiles(ctx context.Context, organizationIds []string, userIds []string) ([]*model.UserProfile, error)

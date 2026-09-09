@@ -29,8 +29,10 @@ go_test(
         "shelf_test.go",
         "singleton_hard_deletable_test.go",
         "singleton_soft_deletable_test.go",
+        "tombstone_test.go",
         "undelete_test.go",
         "update_test.go",
+        "zero_value_test.go",
     ],
     data = [
         "//cmd/library-service",
@@ -61,6 +63,7 @@ go_test(
         "//third_party/go:google.golang.org__protobuf__testing__protocmp",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:validate",
     ],
 )

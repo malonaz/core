@@ -16,13 +16,18 @@ var (
 	MessagePostgresColumns = postgres.GetDBColumns(model.Message{})
 )
 
-func (s *Store) getMessageETag(ctx context.Context, q querier, organizationId, userId, chatId, messageId string) (string, error) {
-	query := `SELECT etag FROM message WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4`
-	rows, err := q.Query(ctx, query, organizationId, userId, chatId, messageId)
-	if err != nil {
-		return "", err
+func (s *Store) probeMessage(ctx context.Context, q querier, organizationId, userId, chatId, messageId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM message WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4`
+	params := []any{organizationId, userId, chatId, messageId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrMessageNotExist
+		}
+		return false, "", fmt.Errorf("probing message: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type MessageWithRequestID struct {
@@ -32,8 +37,9 @@ type MessageWithRequestID struct {
 
 var (
 	MessageWithRequestIDPostgresColumns = postgres.GetDBColumns(MessageWithRequestID{})
-	messageInsertPostgresQuery          = `INSERT INTO message %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id) DO UPDATE SET message_id = EXCLUDED.message_id RETURNING ` + postgres.SelectQuery("%s", MessageWithRequestIDPostgresColumns)
-	messageGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", MessageWithRequestIDPostgresColumns) + ` FROM message WHERE request_id = ANY($1)`
+	messageInsertPostgresQuery          = `INSERT INTO message %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id) DO UPDATE SET message_id = EXCLUDED.message_id`
+	messageInsertReturningClause        = ` RETURNING ` + strings.Join(MessageWithRequestIDPostgresColumns, ",")
+	messageGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(MessageWithRequestIDPostgresColumns, "message") + " FROM message" + ` WHERE message.request_id = ANY($1)`
 )
 
 func orderMessagesByRequestID(requestIDs []string, rows []*MessageWithRequestID) ([]*model.Message, error) {
@@ -71,7 +77,8 @@ func (s *Store) BatchInsertMessages(ctx context.Context, requestIDs []string, me
 	for i, _message := range messages {
 		withRequestIDs[i] = &MessageWithRequestID{RequestID: requestIDs[i], Message: *_message}
 	}
-	query, params := postgres.BatchInsertQuery(messageInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(messageInsertPostgresQuery, withRequestIDs, MessageWithRequestIDPostgresColumns...)
+	query += messageInsertReturningClause
 
 	var inserted []*model.Message
 	transactionFN := func(tx postgres.Tx) error {
@@ -116,7 +123,7 @@ func (s *Store) BatchInsertMessages(ctx context.Context, requestIDs []string, me
 }
 
 var updateMessagePostgresQuery = `UPDATE message SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", MessagePostgresColumns)
+	strings.Join(MessagePostgresColumns, ",")
 
 func (s *Store) UpdateMessage(ctx context.Context, _message *model.Message, updateClause string, updateColumns []string, etag string) (*model.Message, error) {
 	updateParams := postgres.GetParams(_message, updateColumns...)
@@ -145,34 +152,25 @@ func (s *Store) UpdateMessage(ctx context.Context, _message *model.Message, upda
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getMessageETag(ctx, s.client, _message.OrganizationID, _message.UserID, _message.ChatID, _message.MessageID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrMessageETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrMessageNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeMessage(ctx, s.client, _message.OrganizationID, _message.UserID, _message.ChatID, _message.MessageID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrMessageNotExist
+			if !live {
+				return nil, model.ErrMessageNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrMessageETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but message exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteMessagePostgresQuery = `UPDATE message SET delete_time = COALESCE(delete_time, $5), etag = $6 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 RETURNING (delete_time < $5) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", MessagePostgresColumns)
-
-type softDeleteMessageResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.Message
-}
+var softDeleteMessagePostgresQuery = `UPDATE message SET delete_time = $5, etag = $6 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND delete_time IS NULL RETURNING ` +
+	strings.Join(MessagePostgresColumns, ",")
 
 func (s *Store) SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error) {
 	query := softDeleteMessagePostgresQuery
@@ -185,55 +183,28 @@ func (s *Store) SoftDeleteMessage(ctx context.Context, organizationId, userId, c
 	if err != nil {
 		return nil, fmt.Errorf("soft deleting message: %w", err)
 	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteMessageResult])
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getMessageETag(ctx, s.client, organizationId, userId, chatId, messageId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrMessageETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrMessageNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeMessage(ctx, s.client, organizationId, userId, chatId, messageId)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrMessageNotExist
+			if !live {
+				return nil, model.ErrMessageAlreadyDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrMessageETagChanged
+			}
+			return nil, fmt.Errorf("soft delete matched no rows but message is live")
 		}
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrMessageAlreadyDeleted
-	}
-	return &row.Message, nil
-}
-
-func (s *Store) undeleteMessageNoRows(ctx context.Context, q querier, organizationId, userId, chatId, messageId string, etag string) error {
-	query := `SELECT delete_time IS NULL, etag FROM message WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4`
-	params := []any{organizationId, userId, chatId, messageId}
-	var live bool
-	var currentEtag string
-	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrMessageNotExist
-		}
-		return fmt.Errorf("probing message: %w", err)
-	}
-	if live {
-		return model.ErrMessageNotDeleted
-	}
-	if etag != "" && currentEtag != etag {
-		return model.ErrMessageETagChanged
-	}
-	return fmt.Errorf("undelete matched no rows but message is deleted")
+	return row, nil
 }
 
 var undeleteMessagePostgresQuery = `UPDATE message SET delete_time = NULL, etag = $5 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND delete_time IS NOT NULL RETURNING ` +
-	postgres.SelectQuery("%s", MessagePostgresColumns)
+	strings.Join(MessagePostgresColumns, ",")
 
 func (s *Store) UndeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string) (*model.Message, error) {
 	query := undeleteMessagePostgresQuery
@@ -249,7 +220,17 @@ func (s *Store) UndeleteMessage(ctx context.Context, organizationId, userId, cha
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteMessageNoRows(ctx, s.client, organizationId, userId, chatId, messageId, etag)
+			live, currentEtag, probeErr := s.probeMessage(ctx, s.client, organizationId, userId, chatId, messageId)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if live {
+				return nil, model.ErrMessageNotDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrMessageETagChanged
+			}
+			return nil, fmt.Errorf("undelete matched no rows but message is deleted")
 		}
 		return nil, err
 	}
@@ -257,8 +238,7 @@ func (s *Store) UndeleteMessage(ctx context.Context, organizationId, userId, cha
 }
 
 func (s *Store) GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error) {
-	query := `SELECT %s FROM message WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4`
-	query = postgres.SelectQuery(query, MessagePostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(MessagePostgresColumns, "message") + " FROM message" + ` WHERE message.organization_id = $1 AND message.user_id = $2 AND message.chat_id = $3 AND message.message_id = $4`
 	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId, messageId)
 	if err != nil {
 		return nil, fmt.Errorf("getting message: %w", err)
@@ -293,10 +273,10 @@ func (s *Store) BatchGetMessages(ctx context.Context, organizationIds []string, 
 	for i := 0; i < n; i++ {
 		base := i * 4
 		conditions := make([]string, 4)
-		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
-		conditions[1] = fmt.Sprintf("user_id = $%d", base+2)
-		conditions[2] = fmt.Sprintf("chat_id = $%d", base+3)
-		conditions[3] = fmt.Sprintf("message_id = $%d", base+4)
+		conditions[0] = fmt.Sprintf("message.organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("message.user_id = $%d", base+2)
+		conditions[2] = fmt.Sprintf("message.chat_id = $%d", base+3)
+		conditions[3] = fmt.Sprintf("message.message_id = $%d", base+4)
 		params = append(params, organizationIds[i])
 		params = append(params, userIds[i])
 		params = append(params, chatIds[i])
@@ -305,7 +285,7 @@ func (s *Store) BatchGetMessages(ctx context.Context, organizationIds []string, 
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM message %s", postgres.SelectQuery("%s", MessagePostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(MessagePostgresColumns, "message") + " FROM message" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -320,42 +300,26 @@ func (s *Store) ListMessages(ctx context.Context, organizationId, userId, chatId
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 	if userId != "-" && userId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("user_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.user_id = $%d", len(params)+1))
 		params = append(params, userId)
 	}
 	if chatId != "-" && chatId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.chat_id = $%d", len(params)+1))
 		params = append(params, chatId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "message.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM message #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var messages []*model.Message
-	transactionFN := func(tx postgres.Tx) error {
-		messages = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting messages: %w", err)
-		}
-		messages, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Message])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "message") + " FROM message" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting messages: %w", err)
 	}
-	return messages, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Message])
 }

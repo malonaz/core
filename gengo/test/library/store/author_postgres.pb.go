@@ -33,13 +33,18 @@ var (
 	AuthorPostgresColumns = postgres.GetDBColumns(model.Author{})
 )
 
-func (s *Store) getAuthorETag(ctx context.Context, q querier, organizationId, authorId string) (string, error) {
-	query := `SELECT etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
-	rows, err := q.Query(ctx, query, organizationId, authorId)
-	if err != nil {
-		return "", err
+func (s *Store) probeAuthor(ctx context.Context, q querier, organizationId, authorId string) (bool, string, error) {
+	query := `SELECT delete_time IS NULL, etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
+	params := []any{organizationId, authorId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return false, "", model.ErrAuthorNotExist
+		}
+		return false, "", fmt.Errorf("probing author: %w", err)
 	}
-	return v5.CollectOneRow(rows, v5.RowTo[string])
+	return live, currentEtag, nil
 }
 
 type AuthorWithRequestID struct {
@@ -49,8 +54,9 @@ type AuthorWithRequestID struct {
 
 var (
 	AuthorWithRequestIDPostgresColumns = postgres.GetDBColumns(AuthorWithRequestID{})
-	authorInsertPostgresQuery          = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id RETURNING ` + postgres.SelectQuery("%s", AuthorWithRequestIDPostgresColumns)
-	authorGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", AuthorWithRequestIDPostgresColumns) + ` FROM library.author WHERE request_id = ANY($1)`
+	authorInsertPostgresQuery          = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id`
+	authorInsertReturningClause        = ` RETURNING ` + strings.Join(AuthorWithRequestIDPostgresColumns, ",")
+	authorGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(AuthorWithRequestIDPostgresColumns, "author") + " FROM library.author" + ` WHERE author.request_id = ANY($1)`
 )
 
 func orderAuthorsByRequestID(requestIDs []string, rows []*AuthorWithRequestID) ([]*model.Author, error) {
@@ -91,7 +97,8 @@ func (s *Store) BatchInsertAuthors(ctx context.Context, requestIDs []string, aut
 	for i, _author := range authors {
 		withRequestIDs[i] = &AuthorWithRequestID{RequestID: requestIDs[i], Author: *_author}
 	}
-	query, params := postgres.BatchInsertQuery(authorInsertPostgresQuery, withRequestIDs)
+	query, params := postgres.BatchInsertQuery(authorInsertPostgresQuery, withRequestIDs, AuthorWithRequestIDPostgresColumns...)
+	query += authorInsertReturningClause
 	query2, params2 := postgres.BatchInsertQuery(AuthorProfileInsertSingletonPostgresQuery, authorProfiles, AuthorProfileWritePostgresColumns...)
 
 	var inserted []*model.Author
@@ -140,7 +147,7 @@ func (s *Store) BatchInsertAuthors(ctx context.Context, requestIDs []string, aut
 }
 
 var updateAuthorPostgresQuery = `UPDATE library.author SET #update_clause# WHERE #where_clause# RETURNING ` +
-	postgres.SelectQuery("%s", AuthorPostgresColumns)
+	strings.Join(AuthorPostgresColumns, ",")
 
 func (s *Store) UpdateAuthor(ctx context.Context, _author *model.Author, updateClause string, updateColumns []string, etag string) (*model.Author, error) {
 	updateParams := postgres.GetParams(_author, updateColumns...)
@@ -167,34 +174,25 @@ func (s *Store) UpdateAuthor(ctx context.Context, _author *model.Author, updateC
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorETag(ctx, s.client, _author.OrganizationID, _author.AuthorID)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("update matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrAuthorETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrAuthorNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
+			live, currentEtag, probeErr := s.probeAuthor(ctx, s.client, _author.OrganizationID, _author.AuthorID)
+			if probeErr != nil {
+				return nil, probeErr
 			}
-			return nil, model.ErrAuthorNotExist
+			if !live {
+				return nil, model.ErrAuthorNotExist
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrAuthorETagChanged
+			}
+			return nil, fmt.Errorf("update matched no rows but author exists")
 		}
 		return nil, err
 	}
 	return row, nil
 }
 
-var softDeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = COALESCE(delete_time, $3), etag = $4 WHERE organization_id = $1 AND author_id = $2 RETURNING (delete_time < $3) AS was_already_deleted, ` +
-	postgres.SelectQuery("%s", AuthorPostgresColumns)
-
-type softDeleteAuthorResult struct {
-	WasAlreadyDeleted bool `db:"was_already_deleted"`
-	model.Author
-}
+var softDeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = $3, etag = $4 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NULL RETURNING ` +
+	strings.Join(AuthorPostgresColumns, ",")
 
 func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error) {
 	query := softDeleteAuthorPostgresQuery
@@ -210,31 +208,23 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 		if err != nil {
 			return fmt.Errorf("soft deleting author: %w", err)
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteAuthorResult])
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				if etag != "" {
-					currentEtag, getEtagErr := s.getAuthorETag(ctx, tx, organizationId, authorId)
-					switch getEtagErr {
-					case nil:
-						if currentEtag == etag {
-							return fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-						}
-						return model.ErrAuthorETagChanged
-					case v5.ErrNoRows:
-						return model.ErrAuthorNotExist
-					default:
-						return fmt.Errorf("getting etag: %v", getEtagErr)
-					}
+				live, currentEtag, probeErr := s.probeAuthor(ctx, tx, organizationId, authorId)
+				if probeErr != nil {
+					return probeErr
 				}
-				return model.ErrAuthorNotExist
+				if !live {
+					return model.ErrAuthorAlreadyDeleted
+				}
+				if etag != "" && currentEtag != etag {
+					return model.ErrAuthorETagChanged
+				}
+				return fmt.Errorf("soft delete matched no rows but author is live")
 			}
 			return err
 		}
-		if row.WasAlreadyDeleted {
-			return model.ErrAuthorAlreadyDeleted
-		}
-		result = &row.Author
 
 		if !force {
 			var hasChildren bool
@@ -261,28 +251,8 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 	return result, nil
 }
 
-func (s *Store) undeleteAuthorNoRows(ctx context.Context, q querier, organizationId, authorId string, etag string) error {
-	query := `SELECT delete_time IS NULL, etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
-	params := []any{organizationId, authorId}
-	var live bool
-	var currentEtag string
-	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
-		if err == v5.ErrNoRows {
-			return model.ErrAuthorNotExist
-		}
-		return fmt.Errorf("probing author: %w", err)
-	}
-	if live {
-		return model.ErrAuthorNotDeleted
-	}
-	if etag != "" && currentEtag != etag {
-		return model.ErrAuthorETagChanged
-	}
-	return fmt.Errorf("undelete matched no rows but author is deleted")
-}
-
 var undeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NOT NULL RETURNING ` +
-	postgres.SelectQuery("%s", AuthorPostgresColumns)
+	strings.Join(AuthorPostgresColumns, ",")
 
 func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string) (*model.Author, error) {
 	query := undeleteAuthorPostgresQuery
@@ -301,7 +271,17 @@ func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId str
 		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				return s.undeleteAuthorNoRows(ctx, tx, organizationId, authorId, etag)
+				live, currentEtag, probeErr := s.probeAuthor(ctx, tx, organizationId, authorId)
+				if probeErr != nil {
+					return probeErr
+				}
+				if live {
+					return model.ErrAuthorNotDeleted
+				}
+				if etag != "" && currentEtag != etag {
+					return model.ErrAuthorETagChanged
+				}
+				return fmt.Errorf("undelete matched no rows but author is deleted")
 			}
 			return err
 		}
@@ -318,8 +298,7 @@ func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId str
 }
 
 func (s *Store) GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error) {
-	query := `SELECT %s FROM library.author WHERE organization_id = $1 AND author_id = $2`
-	query = postgres.SelectQuery(query, AuthorPostgresColumns)
+	query := "SELECT " + postgres.QualifyColumns(AuthorPostgresColumns, "author") + " FROM library.author" + ` WHERE author.organization_id = $1 AND author.author_id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, authorId)
 	if err != nil {
 		return nil, fmt.Errorf("getting author: %w", err)
@@ -348,15 +327,15 @@ func (s *Store) BatchGetAuthors(ctx context.Context, organizationIds []string, a
 	for i := 0; i < n; i++ {
 		base := i * 2
 		conditions := make([]string, 2)
-		conditions[0] = fmt.Sprintf("organization_id = $%d", base+1)
-		conditions[1] = fmt.Sprintf("author_id = $%d", base+2)
+		conditions[0] = fmt.Sprintf("author.organization_id = $%d", base+1)
+		conditions[1] = fmt.Sprintf("author.author_id = $%d", base+2)
 		params = append(params, organizationIds[i])
 		params = append(params, authorIds[i])
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := fmt.Sprintf("SELECT %s FROM library.author %s", postgres.SelectQuery("%s", AuthorPostgresColumns), whereClause)
+	query := "SELECT " + postgres.QualifyColumns(AuthorPostgresColumns, "author") + " FROM library.author" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -371,36 +350,20 @@ func (s *Store) ListAuthors(ctx context.Context, organizationId string, showDele
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "author.delete_time IS NULL")
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.author #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	query = postgres.SelectQuery(query, columns)
-
-	var authors []*model.Author
-	transactionFN := func(tx postgres.Tx) error {
-		authors = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting authors: %w", err)
-		}
-		authors, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Author])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	query := "SELECT " + postgres.QualifyColumns(columns, "author") + " FROM library.author" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting authors: %w", err)
 	}
-	return authors, s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN)
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Author])
 }
 
 // AuthorSearchDocumentExpression is the SQL expression composing the resource's
@@ -427,56 +390,45 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 	}
 
 	if organizationId != "-" && organizationId != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author.organization_id = $%d", len(params)+1))
 		params = append(params, organizationId)
 	}
 
 	if !showDeleted {
-		whereClause = postgres.AddToWhereClause(whereClause, "delete_time IS NULL")
+		whereClause = postgres.AddToWhereClause(whereClause, "author.delete_time IS NULL")
 	}
 
 	var snippetColumns []string
-	orderByClause := "ORDER BY create_time DESC"
+	orderByClause := "ORDER BY author.create_time DESC"
 	if tsQuery != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("search_document @@ to_tsquery('simple', $%d)", len(params)+1))
-		orderByClause = fmt.Sprintf("ORDER BY ts_rank(search_document, to_tsquery('simple', $%d)) DESC, create_time DESC", len(params)+1)
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(author.search_document, to_tsquery('simple', $%d)) DESC, author.create_time DESC", len(params)+1)
 		if includeSnippets {
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_display_name`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(email_address, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_address`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(phone_number, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_number`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(email_addresses, ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_addresses`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(coalesce(phone_numbers, ARRAY[]::text[]), ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_numbers`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(metadata #> '{email_addresses}', 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_email_addresses`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_display_name`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.email_address, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_address`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.phone_number, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_number`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(author.email_addresses, ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_addresses`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(coalesce(author.phone_numbers, ARRAY[]::text[]), ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_numbers`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(author.metadata #> '{email_addresses}', 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_email_addresses`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
 		}
 		params = append(params, tsQuery)
 	}
 
-	query := strings.ReplaceAll("SELECT %s FROM library.author #where# #orderby# #pagination#", "#where#", whereClause)
-	query = strings.ReplaceAll(query, "#orderby#", orderByClause)
-	query = strings.ReplaceAll(query, "#pagination#", paginationClause)
-	columns = append(columns, snippetColumns...)
-	query = postgres.SelectQuery(query, columns)
-
-	var searchRows []*authorSearchRow
-	transactionFN := func(tx postgres.Tx) error {
-		searchRows = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			if err == v5.ErrNoRows {
-				return nil
-			}
-			return fmt.Errorf("selecting authors: %w", err)
-		}
-		searchRows, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[authorSearchRow])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		return nil
+	selectColumns := postgres.QualifyColumns(columns, "author")
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
 	}
-	if err := s.client.ExecuteTransaction(ctx, postgres.RepeatableRead, transactionFN); err != nil {
-		return nil, nil, err
+	query := "SELECT " + selectColumns + " FROM library.author" + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting authors: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[authorSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
 	}
 	authors := make([]*model.Author, 0, len(searchRows))
 	var snippets []map[string]string

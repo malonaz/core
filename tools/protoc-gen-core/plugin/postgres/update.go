@@ -30,14 +30,12 @@ func (mc *msgCtx) generateUpdate() {
 	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	if mc.hasEtag {
-		if mc.multiPattern {
-			mc.generateETagCheck("update", mc.patternVarIDUntitled(), false)
-		} else {
-			mc.generateETagCheck("update", mc.patternVarFieldAccess(), false)
-		}
+	// A tombstone reads as not existing: Update only ever addresses live rows.
+	ids := mc.patternVarFieldAccess()
+	if mc.multiPattern {
+		ids = mc.patternVarIDsGoTrue()
 	}
-	g.P(fmt.Sprintf("      return nil, %s", mc.errNotExist))
+	mc.emitNoRowsProbe(ids, false, true, mc.errNotExist, fmt.Sprintf("%s(\"update matched no rows but %s exists\")", mc.fmtI("Errorf"), mc.goName))
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")

@@ -120,6 +120,7 @@ message Shelf {
 
   // Shelf metadata.
   ShelfMetadata metadata = 11 [
+    (buf.validate.field).required = true,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).column_name = "legacy_meta"
   ];
@@ -180,6 +181,26 @@ message Shelf {
 
   // Whether the shelf is featured. Nullable.
   bool featured = 18 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // The most recently created book whose title starts with "Draft", resolved
+  // by a query join whose filter carries a wildcard: the transpiled LIKE
+  // pattern's `%` must survive every query the join is spliced into.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string latest_draft_book = 20 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        query: {
+          filter: "title = \"Draft*\""
+          order_by: "create_time desc"
+        }
+      }
+    }
+  ];
 
   // Optional extra data, stored as nullable JSONB.
   ShelfExtra extra = 19 [

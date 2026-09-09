@@ -187,6 +187,16 @@ type JoinQuery struct {
 	Filter   string
 	OrderBy  string
 	NameExpr string
+	// TieBreak is the qualified identifier column of the joined resource. It is
+	// appended to OrderBy so that `LIMIT 1` is deterministic: the RETURNING
+	// path evaluates one subquery per joined field, and ties on the declared
+	// order must not let them pick different rows.
+	TieBreak string
+}
+
+// OrderByWithTieBreak is the ORDER BY list, made total by the identifier column.
+func (q *JoinQuery) OrderByWithTieBreak() string {
+	return q.OrderBy + ", " + q.TieBreak
 }
 
 // joinSource bundles everything resolvable from a join's source resource type.
@@ -568,6 +578,7 @@ func buildJoinQuery(message *protogen.Message, join *modelpb.Join) (*JoinQuery, 
 		Filter:   filter,
 		OrderBy:  orderBy,
 		NameExpr: resourceNameExpr(childPattern, childBindings, childTable.Name),
+		TieBreak: childTable.Name + "." + childBindings[len(childBindings)-1].Column,
 	}, nil
 }
 
