@@ -34,17 +34,19 @@ func (mc *methodCtx) batchCreateRequestsField(createRequest *protogen.Message) (
 // resource field, named after the resource's plural.
 func (mc *methodCtx) batchCreateResponseField() (*protogen.Field, error) {
 	method := mc.mi.method
+	// Desc.Plural is lowerCamel ("modelRevisions"); proto field names are snake_case.
+	fieldName := xstrings.ToSnakeCase(mc.pr.Desc.Plural)
 	for _, field := range method.Output.Fields {
-		if string(field.Desc.Name()) != mc.pr.Desc.Plural {
+		if string(field.Desc.Name()) != fieldName {
 			continue
 		}
 		if field.Desc.Cardinality() != protoreflect.Repeated || field.Message == nil ||
 			field.Message.Desc.FullName() != mc.mi.rpc.Message.Desc.FullName() {
-			return nil, fmt.Errorf("%s.%s must be repeated %s", method.Output.GoIdent.GoName, mc.pr.Desc.Plural, mc.mi.rpc.Message.Desc.FullName())
+			return nil, fmt.Errorf("%s.%s must be repeated %s", method.Output.GoIdent.GoName, fieldName, mc.mi.rpc.Message.Desc.FullName())
 		}
 		return field, nil
 	}
-	return nil, fmt.Errorf("%s must declare a repeated `%s` field", method.Output.GoIdent.GoName, mc.pr.Desc.Plural)
+	return nil, fmt.Errorf("%s must declare a repeated `%s` field", method.Output.GoIdent.GoName, fieldName)
 }
 
 // generateBatchCreate emits BatchCreate{Plural}: every sub-request is prepared
