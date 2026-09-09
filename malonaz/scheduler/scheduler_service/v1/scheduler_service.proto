@@ -58,6 +58,15 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 // Every handler call carries the job's resource name in the `x-scheduler-job`
 // request metadata, which handlers pass to ReportJobProgress.
 //
+// # Long-running operations
+//
+// A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
+// sets `operation_name` at creation, with the job's ID as the operation's ID.
+// A handler whose response type is `google.longrunning.Operation` must return
+// it done: its `response` or `error` is recorded as the job's outcome, and an
+// unfinished operation fails the job with FAILED_PRECONDITION without retry.
+// `WaitJob` backs `WaitOperation`.
+//
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
 //
@@ -366,6 +375,28 @@ service SchedulerService {
       }
     };
     option (google.api.method_signature) = "name";
+  }
+
+  // Wait for a job to reach a terminal state, or for the timeout to elapse,
+  // whichever comes first, and return it as it is then. Timing out is not an
+  // error: callers inspect `state`. The timeout is capped by the server; see
+  // [WaitJobRequest.timeout][malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout].
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc WaitJob(WaitJobRequest) returns (scheduler.v1.Job) {
+    option (google.api.http) = {
+      post: "/v1/{name=jobs/*}:wait"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/jobs/*}:wait"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/jobs/*}:wait"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "name,timeout";
   }
 
   // Report the progress of a RUNNING job. Processors call this with the job

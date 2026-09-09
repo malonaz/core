@@ -17,6 +17,8 @@ type Opts struct {
 	Retention       time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
 	SweepInterval   time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
 	WorkerID        string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
+	// WaitJob's timeout is client-supplied, so it is capped here rather than trusted.
+	WaitJobMaxTimeout time.Duration `long:"wait-job-max-timeout" env:"WAIT_JOB_MAX_TIMEOUT" default:"5m" description:"Longest a WaitJob call blocks, whatever timeout the request asks for"`
 }
 
 type runtime struct {
@@ -37,8 +39,8 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.MaxParallelJobs < 1 {
 		return nil, fmt.Errorf("max-parallel-jobs must be at least 1")
 	}
-	if opts.LeaseDuration <= 0 || opts.PollInterval <= 0 || opts.SweepInterval <= 0 {
-		return nil, fmt.Errorf("lease-duration, poll-interval and sweep-interval must be positive")
+	if opts.LeaseDuration <= 0 || opts.PollInterval <= 0 || opts.SweepInterval <= 0 || opts.WaitJobMaxTimeout <= 0 {
+		return nil, fmt.Errorf("lease-duration, poll-interval, sweep-interval and wait-job-max-timeout must be positive")
 	}
 	if opts.WorkerID == "" {
 		hostname, err := os.Hostname()
