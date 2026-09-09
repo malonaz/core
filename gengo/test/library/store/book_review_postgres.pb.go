@@ -31,74 +31,91 @@ func (s *Store) getBookReviewETag(ctx context.Context, organizationId, shelfId, 
 
 const BookReviewInsertSingletonPostgresQuery = `INSERT INTO library.book_review %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO NOTHING`
 
-var (
-	BookReviewWithRequestIDPostgresColumns      = postgres.GetDBColumns(BookReviewWithRequestID{})
-	BookReviewWithRequestIDWritePostgresColumns = postgres.GetDBColumns(BookReviewWithRequestID{}, postgres.ExceptColumns("book_title", "book_publication_year"))
-	_bookReviewInsertPostgresQuery              = `INSERT INTO library.book_review %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO UPDATE SET  = EXCLUDED. RETURNING `
-	bookReviewWithRequestIDInsertPostgresQuery  = _bookReviewInsertPostgresQuery + postgres.SelectQuery("%s", BookReviewWithRequestIDWritePostgresColumns) + bookReviewJoinSubqueryExpr
-	bookReviewInsertPostgresQuery               = _bookReviewInsertPostgresQuery + postgres.SelectQuery("%s", BookReviewWritePostgresColumns) + bookReviewJoinSubqueryExpr
-)
-
-func (s *Store) InsertBookReview(ctx context.Context, _bookReview *model.BookReview) (*model.BookReview, error) {
-	query, params := postgres.InsertQuery(bookReviewInsertPostgresQuery, _bookReview, BookReviewWritePostgresColumns...)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type BookReviewWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.BookReview
 }
 
-var bookReviewGetByRequestIDQuery = fmt.Sprintf(`SELECT %s FROM library.book_review `+bookReviewJoinClause+` WHERE book_review.request_id = $1`, postgres.QualifyColumns(BookReviewWritePostgresColumns, "book_review")+bookReviewJoinSelectExprs)
+var (
+	BookReviewWithRequestIDPostgresColumns      = postgres.GetDBColumns(BookReviewWithRequestID{})
+	BookReviewWithRequestIDWritePostgresColumns = postgres.GetDBColumns(BookReviewWithRequestID{}, postgres.ExceptColumns("book_title", "book_publication_year"))
+	bookReviewInsertPostgresQuery               = `INSERT INTO library.book_review %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", BookReviewWithRequestIDWritePostgresColumns) + bookReviewJoinSubqueryExpr
+	bookReviewGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.book_review `+bookReviewJoinClause+` WHERE book_review.request_id = ANY($1)`, postgres.QualifyColumns(BookReviewWithRequestIDWritePostgresColumns, "book_review")+bookReviewJoinSelectExprs)
+)
 
-func (s *Store) InsertBookReviewIdempotently(ctx context.Context, requestID string, raw_bookReview *model.BookReview) (*model.BookReview, error) {
-	_bookReview := &BookReviewWithRequestID{
-		RequestID:  requestID,
-		BookReview: *raw_bookReview,
+func orderBookReviewsByRequestID(requestIDs []string, rows []*BookReviewWithRequestID) ([]*model.BookReview, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(bookReviewWithRequestIDInsertPostgresQuery, _bookReview, BookReviewWithRequestIDWritePostgresColumns...)
+	ordered := make([]*model.BookReview, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrBookReviewAlreadyExists
+		}
+		ordered[i] = &row.BookReview
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted bookReview with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.BookReview
+func (s *Store) BatchInsertBookReviews(ctx context.Context, requestIDs []string, bookReviews []*model.BookReview) ([]*model.BookReview, error) {
+	n := len(bookReviews)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*BookReviewWithRequestID, n)
+	for i, _bookReview := range bookReviews {
+		withRequestIDs[i] = &BookReviewWithRequestID{RequestID: requestIDs[i], BookReview: *_bookReview}
+	}
+	query, params := postgres.BatchInsertQuery(bookReviewInsertPostgresQuery, withRequestIDs, BookReviewWithRequestIDWritePostgresColumns...)
+
+	var inserted []*model.BookReview
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[BookReviewWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookReviewWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrBookReviewAlreadyExists
+		inserted, err = orderBookReviewsByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.BookReview
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, bookReviewGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, bookReviewGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.BookReview])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookReviewWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrBookReviewAlreadyExists
+			if len(existing) == n {
+				return orderBookReviewsByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrBookReviewAlreadyExists
 		}
 		return nil, err
 	}

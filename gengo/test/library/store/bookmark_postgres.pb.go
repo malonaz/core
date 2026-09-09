@@ -25,73 +25,90 @@ func (s *Store) getBookmarkETag(ctx context.Context, organizationId, shelfId, bo
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	BookmarkWithRequestIDPostgresColumns     = postgres.GetDBColumns(BookmarkWithRequestID{})
-	_bookmarkInsertPostgresQuery             = `INSERT INTO library.bookmark %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id, bookmark_id) DO UPDATE SET bookmark_id = EXCLUDED.bookmark_id RETURNING `
-	bookmarkWithRequestIDInsertPostgresQuery = _bookmarkInsertPostgresQuery + postgres.SelectQuery("%s", BookmarkWithRequestIDPostgresColumns)
-	bookmarkInsertPostgresQuery              = _bookmarkInsertPostgresQuery + postgres.SelectQuery("%s", BookmarkPostgresColumns)
-)
-
-func (s *Store) InsertBookmark(ctx context.Context, _bookmark *model.Bookmark) (*model.Bookmark, error) {
-	query, params := postgres.InsertQuery(bookmarkInsertPostgresQuery, _bookmark)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type BookmarkWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Bookmark
 }
 
-var bookmarkGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", BookmarkPostgresColumns) + ` FROM library.bookmark WHERE request_id = $1`
+var (
+	BookmarkWithRequestIDPostgresColumns = postgres.GetDBColumns(BookmarkWithRequestID{})
+	bookmarkInsertPostgresQuery          = `INSERT INTO library.bookmark %s VALUES %s ON CONFLICT(organization_id, shelf_id, book_id, bookmark_id) DO UPDATE SET bookmark_id = EXCLUDED.bookmark_id RETURNING ` + postgres.SelectQuery("%s", BookmarkWithRequestIDPostgresColumns)
+	bookmarkGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", BookmarkWithRequestIDPostgresColumns) + ` FROM library.bookmark WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertBookmarkIdempotently(ctx context.Context, requestID string, raw_bookmark *model.Bookmark) (*model.Bookmark, error) {
-	_bookmark := &BookmarkWithRequestID{
-		RequestID: requestID,
-		Bookmark:  *raw_bookmark,
+func orderBookmarksByRequestID(requestIDs []string, rows []*BookmarkWithRequestID) ([]*model.Bookmark, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(bookmarkWithRequestIDInsertPostgresQuery, _bookmark)
+	ordered := make([]*model.Bookmark, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrBookmarkAlreadyExists
+		}
+		ordered[i] = &row.Bookmark
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted bookmark with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Bookmark
+func (s *Store) BatchInsertBookmarks(ctx context.Context, requestIDs []string, bookmarks []*model.Bookmark) ([]*model.Bookmark, error) {
+	n := len(bookmarks)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*BookmarkWithRequestID, n)
+	for i, _bookmark := range bookmarks {
+		withRequestIDs[i] = &BookmarkWithRequestID{RequestID: requestIDs[i], Bookmark: *_bookmark}
+	}
+	query, params := postgres.BatchInsertQuery(bookmarkInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Bookmark
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[BookmarkWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookmarkWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrBookmarkAlreadyExists
+		inserted, err = orderBookmarksByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Bookmark
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, bookmarkGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, bookmarkGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[BookmarkWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrBookmarkAlreadyExists
+			if len(existing) == n {
+				return orderBookmarksByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrBookmarkAlreadyExists
 		}
 		return nil, err
 	}

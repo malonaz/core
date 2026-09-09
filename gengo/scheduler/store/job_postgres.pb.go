@@ -50,73 +50,90 @@ func (s *Store) getJobETag(ctx context.Context, organizationId, userId, jobId st
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	JobWithRequestIDPostgresColumns     = postgres.GetDBColumns(JobWithRequestID{})
-	_jobInsertPostgresQuery             = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id RETURNING `
-	jobWithRequestIDInsertPostgresQuery = _jobInsertPostgresQuery + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns)
-	jobInsertPostgresQuery              = _jobInsertPostgresQuery + postgres.SelectQuery("%s", JobPostgresColumns)
-)
-
-func (s *Store) InsertJob(ctx context.Context, _job *model.Job) (*model.Job, error) {
-	query, params := postgres.InsertQuery(jobInsertPostgresQuery, _job)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type JobWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Job
 }
 
-var jobGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", JobPostgresColumns) + ` FROM job WHERE request_id = $1`
+var (
+	JobWithRequestIDPostgresColumns = postgres.GetDBColumns(JobWithRequestID{})
+	jobInsertPostgresQuery          = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id RETURNING ` + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns)
+	jobGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns) + ` FROM job WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertJobIdempotently(ctx context.Context, requestID string, raw_job *model.Job) (*model.Job, error) {
-	_job := &JobWithRequestID{
-		RequestID: requestID,
-		Job:       *raw_job,
+func orderJobsByRequestID(requestIDs []string, rows []*JobWithRequestID) ([]*model.Job, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(jobWithRequestIDInsertPostgresQuery, _job)
+	ordered := make([]*model.Job, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrJobAlreadyExists
+		}
+		ordered[i] = &row.Job
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted job with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Job
+func (s *Store) BatchInsertJobs(ctx context.Context, requestIDs []string, jobs []*model.Job) ([]*model.Job, error) {
+	n := len(jobs)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*JobWithRequestID, n)
+	for i, _job := range jobs {
+		withRequestIDs[i] = &JobWithRequestID{RequestID: requestIDs[i], Job: *_job}
+	}
+	query, params := postgres.BatchInsertQuery(jobInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Job
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[JobWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[JobWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrJobAlreadyExists
+		inserted, err = orderJobsByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Job
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, jobGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, jobGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[JobWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrJobAlreadyExists
+			if len(existing) == n {
+				return orderJobsByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrJobAlreadyExists
 		}
 		return nil, err
 	}

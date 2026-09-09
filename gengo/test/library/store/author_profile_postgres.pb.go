@@ -32,74 +32,91 @@ func (s *Store) getAuthorProfileETag(ctx context.Context, organizationId, author
 
 const AuthorProfileInsertSingletonPostgresQuery = `INSERT INTO library.author_profile %s VALUES %s ON CONFLICT(organization_id, author_id) DO NOTHING`
 
-var (
-	AuthorProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(AuthorProfileWithRequestID{})
-	AuthorProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(AuthorProfileWithRequestID{}, postgres.ExceptColumns("author_display_name", "author_email_address"))
-	_authorProfileInsertPostgresQuery              = `INSERT INTO library.author_profile %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET  = EXCLUDED. RETURNING `
-	authorProfileWithRequestIDInsertPostgresQuery  = _authorProfileInsertPostgresQuery + postgres.SelectQuery("%s", AuthorProfileWithRequestIDWritePostgresColumns) + authorProfileJoinSubqueryExpr
-	authorProfileInsertPostgresQuery               = _authorProfileInsertPostgresQuery + postgres.SelectQuery("%s", AuthorProfileWritePostgresColumns) + authorProfileJoinSubqueryExpr
-)
-
-func (s *Store) InsertAuthorProfile(ctx context.Context, _authorProfile *model.AuthorProfile) (*model.AuthorProfile, error) {
-	query, params := postgres.InsertQuery(authorProfileInsertPostgresQuery, _authorProfile, AuthorProfileWritePostgresColumns...)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.AuthorProfile])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type AuthorProfileWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.AuthorProfile
 }
 
-var authorProfileGetByRequestIDQuery = fmt.Sprintf(`SELECT %s FROM library.author_profile `+authorProfileJoinClause+` WHERE author_profile.request_id = $1`, postgres.QualifyColumns(AuthorProfileWritePostgresColumns, "author_profile")+authorProfileJoinSelectExprs)
+var (
+	AuthorProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(AuthorProfileWithRequestID{})
+	AuthorProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(AuthorProfileWithRequestID{}, postgres.ExceptColumns("author_display_name", "author_email_address"))
+	authorProfileInsertPostgresQuery               = `INSERT INTO library.author_profile %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", AuthorProfileWithRequestIDWritePostgresColumns) + authorProfileJoinSubqueryExpr
+	authorProfileGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.author_profile `+authorProfileJoinClause+` WHERE author_profile.request_id = ANY($1)`, postgres.QualifyColumns(AuthorProfileWithRequestIDWritePostgresColumns, "author_profile")+authorProfileJoinSelectExprs)
+)
 
-func (s *Store) InsertAuthorProfileIdempotently(ctx context.Context, requestID string, raw_authorProfile *model.AuthorProfile) (*model.AuthorProfile, error) {
-	_authorProfile := &AuthorProfileWithRequestID{
-		RequestID:     requestID,
-		AuthorProfile: *raw_authorProfile,
+func orderAuthorProfilesByRequestID(requestIDs []string, rows []*AuthorProfileWithRequestID) ([]*model.AuthorProfile, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(authorProfileWithRequestIDInsertPostgresQuery, _authorProfile, AuthorProfileWithRequestIDWritePostgresColumns...)
+	ordered := make([]*model.AuthorProfile, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrAuthorProfileAlreadyExists
+		}
+		ordered[i] = &row.AuthorProfile
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted authorProfile with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.AuthorProfile
+func (s *Store) BatchInsertAuthorProfiles(ctx context.Context, requestIDs []string, authorProfiles []*model.AuthorProfile) ([]*model.AuthorProfile, error) {
+	n := len(authorProfiles)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*AuthorProfileWithRequestID, n)
+	for i, _authorProfile := range authorProfiles {
+		withRequestIDs[i] = &AuthorProfileWithRequestID{RequestID: requestIDs[i], AuthorProfile: *_authorProfile}
+	}
+	query, params := postgres.BatchInsertQuery(authorProfileInsertPostgresQuery, withRequestIDs, AuthorProfileWithRequestIDWritePostgresColumns...)
+
+	var inserted []*model.AuthorProfile
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[AuthorProfileWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorProfileWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrAuthorProfileAlreadyExists
+		inserted, err = orderAuthorProfilesByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.AuthorProfile
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, authorProfileGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, authorProfileGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.AuthorProfile])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorProfileWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrAuthorProfileAlreadyExists
+			if len(existing) == n {
+				return orderAuthorProfilesByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrAuthorProfileAlreadyExists
 		}
 		return nil, err
 	}

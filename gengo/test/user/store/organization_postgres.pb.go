@@ -35,73 +35,90 @@ func (s *Store) getOrganizationETag(ctx context.Context, organizationId string) 
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	OrganizationWithRequestIDPostgresColumns     = postgres.GetDBColumns(OrganizationWithRequestID{})
-	_organizationInsertPostgresQuery             = `INSERT INTO organization %s VALUES %s ON CONFLICT(organization_id) DO UPDATE SET organization_id = EXCLUDED.organization_id RETURNING `
-	organizationWithRequestIDInsertPostgresQuery = _organizationInsertPostgresQuery + postgres.SelectQuery("%s", OrganizationWithRequestIDPostgresColumns)
-	organizationInsertPostgresQuery              = _organizationInsertPostgresQuery + postgres.SelectQuery("%s", OrganizationPostgresColumns)
-)
-
-func (s *Store) InsertOrganization(ctx context.Context, _organization *model.Organization) (*model.Organization, error) {
-	query, params := postgres.InsertQuery(organizationInsertPostgresQuery, _organization)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Organization])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type OrganizationWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Organization
 }
 
-var organizationGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", OrganizationPostgresColumns) + ` FROM organization WHERE request_id = $1`
+var (
+	OrganizationWithRequestIDPostgresColumns = postgres.GetDBColumns(OrganizationWithRequestID{})
+	organizationInsertPostgresQuery          = `INSERT INTO organization %s VALUES %s ON CONFLICT(organization_id) DO UPDATE SET organization_id = EXCLUDED.organization_id RETURNING ` + postgres.SelectQuery("%s", OrganizationWithRequestIDPostgresColumns)
+	organizationGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", OrganizationWithRequestIDPostgresColumns) + ` FROM organization WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertOrganizationIdempotently(ctx context.Context, requestID string, raw_organization *model.Organization) (*model.Organization, error) {
-	_organization := &OrganizationWithRequestID{
-		RequestID:    requestID,
-		Organization: *raw_organization,
+func orderOrganizationsByRequestID(requestIDs []string, rows []*OrganizationWithRequestID) ([]*model.Organization, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(organizationWithRequestIDInsertPostgresQuery, _organization)
+	ordered := make([]*model.Organization, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrOrganizationAlreadyExists
+		}
+		ordered[i] = &row.Organization
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted organization with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Organization
+func (s *Store) BatchInsertOrganizations(ctx context.Context, requestIDs []string, organizations []*model.Organization) ([]*model.Organization, error) {
+	n := len(organizations)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*OrganizationWithRequestID, n)
+	for i, _organization := range organizations {
+		withRequestIDs[i] = &OrganizationWithRequestID{RequestID: requestIDs[i], Organization: *_organization}
+	}
+	query, params := postgres.BatchInsertQuery(organizationInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Organization
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[OrganizationWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[OrganizationWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrOrganizationAlreadyExists
+		inserted, err = orderOrganizationsByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Organization
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, organizationGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, organizationGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Organization])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[OrganizationWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrOrganizationAlreadyExists
+			if len(existing) == n {
+				return orderOrganizationsByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrOrganizationAlreadyExists
 		}
 		return nil, err
 	}

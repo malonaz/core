@@ -182,6 +182,34 @@ message BatchGetAuthorsResponse {
   repeated malonaz.test.library.v1.Author authors = 1;
 }
 
+// Request message for LibraryService.BatchCreateAuthors.
+message BatchCreateAuthorsRequest {
+  // The parent organization that will own the authors. When set, each
+  // request's parent must either be omitted or match it.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Organization"];
+
+  // The requests specifying the authors to create.
+  // A maximum of 1000 authors can be created in a batch.
+  repeated CreateAuthorRequest requests = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    }
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resources.
+  bool validate_only = 3;
+}
+
+// Response message for LibraryService.BatchCreateAuthors.
+message BatchCreateAuthorsResponse {
+  // Authors created, in request order.
+  repeated malonaz.test.library.v1.Author authors = 1;
+}
+
 // Request message for LibraryService.SearchAuthors.
 message SearchAuthorsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

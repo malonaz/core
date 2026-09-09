@@ -42,7 +42,7 @@ func (s *AiServiceServer) Start(ctx context.Context) error {
 }
 
 type aiService_ChatStore interface {
-	InsertChatIdempotently(ctx context.Context, requestID string, chat *model.Chat) (*model.Chat, error)
+	BatchInsertChats(ctx context.Context, requestIDs []string, chats []*model.Chat) ([]*model.Chat, error)
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)
 	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Chat, error)
 	GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error)
@@ -60,7 +60,7 @@ func newAiService_ChatServer(store aiService_ChatStore) *aiService_ChatServer {
 	}
 }
 
-func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.CreateChatRequest) (*v11.Chat, error) {
+func (s *aiService_ChatServer) prepareCreateChat(ctx context.Context, request *v1.CreateChatRequest) (*model.Chat, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -105,20 +105,32 @@ func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.Creat
 		return nil, status.Errorf(codes.Internal, "converting chat from pb to model: %v", err).Err()
 	}
 
+	return chatModel, nil
+}
+
+func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.CreateChatRequest) (*v11.Chat, error) {
+	chatModel, err := s.prepareCreateChat(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Chat, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbChatModel, err := s.store.InsertChatIdempotently(ctx, request.RequestId, chatModel)
+	// STEP 4: Insert the resource.
+	dbChats, err := s.store.BatchInsertChats(ctx, []string{request.RequestId}, []*model.Chat{chatModel})
 	if err != nil {
 		if errors.Is(err, model.ErrChatAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "chat already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting chat").Err()
+		return nil, status.FromError(err, "inserting chats").Err()
+	}
+	if len(dbChats) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted chat, got %d", len(dbChats)).Err()
 	}
 
-	chat, err := dbChatModel.ToPb()
+	chat, err := dbChats[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
 	}
@@ -415,7 +427,7 @@ func (s *aiService_ChatServer) BatchGetChats(ctx context.Context, request *v1.Ba
 }
 
 type aiService_MessageStore interface {
-	InsertMessageIdempotently(ctx context.Context, requestID string, message *model.Message) (*model.Message, error)
+	BatchInsertMessages(ctx context.Context, requestIDs []string, messages []*model.Message) ([]*model.Message, error)
 	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
 	SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error)
 	GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error)
@@ -433,7 +445,7 @@ func newAiService_MessageServer(store aiService_MessageStore) *aiService_Message
 	}
 }
 
-func (s *aiService_MessageServer) CreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*v11.Message, error) {
+func (s *aiService_MessageServer) prepareCreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*model.Message, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -478,20 +490,32 @@ func (s *aiService_MessageServer) CreateMessage(ctx context.Context, request *v1
 		return nil, status.Errorf(codes.Internal, "converting message from pb to model: %v", err).Err()
 	}
 
+	return messageModel, nil
+}
+
+func (s *aiService_MessageServer) CreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*v11.Message, error) {
+	messageModel, err := s.prepareCreateMessage(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Message, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbMessageModel, err := s.store.InsertMessageIdempotently(ctx, request.RequestId, messageModel)
+	// STEP 4: Insert the resource.
+	dbMessages, err := s.store.BatchInsertMessages(ctx, []string{request.RequestId}, []*model.Message{messageModel})
 	if err != nil {
 		if errors.Is(err, model.ErrMessageAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "message already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting message").Err()
+		return nil, status.FromError(err, "inserting messages").Err()
+	}
+	if len(dbMessages) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted message, got %d", len(dbMessages)).Err()
 	}
 
-	message, err := dbMessageModel.ToPb()
+	message, err := dbMessages[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
 	}

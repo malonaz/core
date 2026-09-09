@@ -11,10 +11,10 @@ import (
 
 // RPC represents a parsed standard AIP method bound to its target resource.
 type RPC struct {
-	StandardMethod                                      *aippb.StandardMethod
-	Message                                             *protogen.Message
-	ParsedResource                                      *ParsedResource
-	Create, Update, Delete, Get, BatchGet, List, Search bool
+	StandardMethod                                                   *aippb.StandardMethod
+	Message                                                          *protogen.Message
+	ParsedResource                                                   *ParsedResource
+	Create, BatchCreate, Update, Delete, Get, BatchGet, List, Search bool
 }
 
 // ParseRPC extracts the standard method annotation from a gRPC method and resolves
@@ -52,13 +52,14 @@ func ParseRPC(method *protogen.Method) (*RPC, error) {
 	resourceNameSingular := parsedResource.SingularGoName()
 	resourceNamePlural := parsedResource.PluralGoName()
 	create := method.GoName == "Create"+resourceNameSingular
+	batchCreate := method.GoName == "BatchCreate"+resourceNamePlural
 	get := method.GoName == "Get"+resourceNameSingular
 	batchGet := method.GoName == "BatchGet"+resourceNamePlural
 	update := method.GoName == "Update"+resourceNameSingular
 	delete := method.GoName == "Delete"+resourceNameSingular
 	list := method.GoName == "List"+resourceNamePlural
 	search := method.GoName == "Search"+resourceNamePlural
-	if !(create || get || update || delete || batchGet || list || search) {
+	if !(create || batchCreate || get || update || delete || batchGet || list || search) {
 		return nil, fmt.Errorf("method %s does not match any standard CRUD pattern for resource %s", method.GoName, resourceType)
 	}
 
@@ -67,6 +68,7 @@ func ParseRPC(method *protogen.Method) (*RPC, error) {
 		Message:        message,
 		ParsedResource: parsedResource,
 		Create:         create,
+		BatchCreate:    batchCreate,
 		Get:            get,
 		BatchGet:       batchGet,
 		Update:         update,

@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/note.proto.
  */
 export const file_malonaz_test_library_library_service_v1_note: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKQAQoUQmF0Y2hHZXROb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEkQKBW5hbWVzGAIgAygJQjX6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlukgQkgENCAEQ6AcYASIEcgIQASJFChVCYXRjaEdldE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKuAQoXQmF0Y2hDcmVhdGVOb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEl8KCHJlcXVlc3RzGAIgAygLMjoubWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxLkNyZWF0ZU5vdGVSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBASJIChhCYXRjaENyZWF0ZU5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlIpABChRCYXRjaEdldE5vdGVzUmVxdWVzdBIyCgZwYXJlbnQYASABKAlCIvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGUSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Tm90ZXNSZXNwb25zZRIsCgVub3RlcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
 
 /**
  * Request message for LibraryService.CreateNote.
@@ -412,6 +412,90 @@ export const ListNotesResponseSchema: GenMessage<ListNotesResponse, {validType: 
   messageDesc(file_malonaz_test_library_library_service_v1_note, 5);
 
 /**
+ * Request message for LibraryService.BatchCreateNotes.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchCreateNotesRequest
+ */
+export type BatchCreateNotesRequest = Message<"malonaz.test.library.library_service.v1.BatchCreateNotesRequest"> & {
+  /**
+   * The parent that will own the notes. When set, each request's parent must
+   * either be omitted or match it. Omit it to create notes under different
+   * parents in one batch.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/authors/{author}
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The requests specifying the notes to create.
+   * A maximum of 1000 notes can be created in a batch.
+   *
+   * @generated from field: repeated malonaz.test.library.library_service.v1.CreateNoteRequest requests = 2;
+   */
+  requests: CreateNoteRequest[];
+};
+
+/**
+ * Request message for LibraryService.BatchCreateNotes.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchCreateNotesRequest
+ */
+export type BatchCreateNotesRequestValid = Message<"malonaz.test.library.library_service.v1.BatchCreateNotesRequest"> & {
+  /**
+   * The parent that will own the notes. When set, each request's parent must
+   * either be omitted or match it. Omit it to create notes under different
+   * parents in one batch.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/authors/{author}
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The requests specifying the notes to create.
+   * A maximum of 1000 notes can be created in a batch.
+   *
+   * @generated from field: repeated malonaz.test.library.library_service.v1.CreateNoteRequest requests = 2;
+   */
+  requests: CreateNoteRequestValid[];
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.BatchCreateNotesRequest.
+ * Use `create(BatchCreateNotesRequestSchema)` to create a new message.
+ */
+export const BatchCreateNotesRequestSchema: GenMessage<BatchCreateNotesRequest, {validType: BatchCreateNotesRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 6);
+
+/**
+ * Response message for LibraryService.BatchCreateNotes.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.BatchCreateNotesResponse
+ */
+export type BatchCreateNotesResponse = Message<"malonaz.test.library.library_service.v1.BatchCreateNotesResponse"> & {
+  /**
+   * Notes created, in request order.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Note notes = 1;
+   */
+  notes: Note[];
+};
+
+export type BatchCreateNotesResponseValid = BatchCreateNotesResponse;
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.BatchCreateNotesResponse.
+ * Use `create(BatchCreateNotesResponseSchema)` to create a new message.
+ */
+export const BatchCreateNotesResponseSchema: GenMessage<BatchCreateNotesResponse, {validType: BatchCreateNotesResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 7);
+
+/**
  * Request message for LibraryService.BatchGetNotes.
  *
  * @generated from message malonaz.test.library.library_service.v1.BatchGetNotesRequest
@@ -444,7 +528,7 @@ export type BatchGetNotesRequestValid = BatchGetNotesRequest;
  * Use `create(BatchGetNotesRequestSchema)` to create a new message.
  */
 export const BatchGetNotesRequestSchema: GenMessage<BatchGetNotesRequest, {validType: BatchGetNotesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 6);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 8);
 
 /**
  * Response message for LibraryService.BatchGetNotes.
@@ -467,5 +551,5 @@ export type BatchGetNotesResponseValid = BatchGetNotesResponse;
  * Use `create(BatchGetNotesResponseSchema)` to create a new message.
  */
 export const BatchGetNotesResponseSchema: GenMessage<BatchGetNotesResponse, {validType: BatchGetNotesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 9);
 

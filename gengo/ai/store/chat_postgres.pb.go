@@ -35,73 +35,90 @@ func (s *Store) getChatETag(ctx context.Context, organizationId, userId, chatId 
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	ChatWithRequestIDPostgresColumns     = postgres.GetDBColumns(ChatWithRequestID{})
-	_chatInsertPostgresQuery             = `INSERT INTO chat %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id) DO UPDATE SET chat_id = EXCLUDED.chat_id RETURNING `
-	chatWithRequestIDInsertPostgresQuery = _chatInsertPostgresQuery + postgres.SelectQuery("%s", ChatWithRequestIDPostgresColumns)
-	chatInsertPostgresQuery              = _chatInsertPostgresQuery + postgres.SelectQuery("%s", ChatPostgresColumns)
-)
-
-func (s *Store) InsertChat(ctx context.Context, _chat *model.Chat) (*model.Chat, error) {
-	query, params := postgres.InsertQuery(chatInsertPostgresQuery, _chat)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type ChatWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Chat
 }
 
-var chatGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", ChatPostgresColumns) + ` FROM chat WHERE request_id = $1`
+var (
+	ChatWithRequestIDPostgresColumns = postgres.GetDBColumns(ChatWithRequestID{})
+	chatInsertPostgresQuery          = `INSERT INTO chat %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id) DO UPDATE SET chat_id = EXCLUDED.chat_id RETURNING ` + postgres.SelectQuery("%s", ChatWithRequestIDPostgresColumns)
+	chatGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", ChatWithRequestIDPostgresColumns) + ` FROM chat WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertChatIdempotently(ctx context.Context, requestID string, raw_chat *model.Chat) (*model.Chat, error) {
-	_chat := &ChatWithRequestID{
-		RequestID: requestID,
-		Chat:      *raw_chat,
+func orderChatsByRequestID(requestIDs []string, rows []*ChatWithRequestID) ([]*model.Chat, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(chatWithRequestIDInsertPostgresQuery, _chat)
+	ordered := make([]*model.Chat, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrChatAlreadyExists
+		}
+		ordered[i] = &row.Chat
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted chat with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Chat
+func (s *Store) BatchInsertChats(ctx context.Context, requestIDs []string, chats []*model.Chat) ([]*model.Chat, error) {
+	n := len(chats)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*ChatWithRequestID, n)
+	for i, _chat := range chats {
+		withRequestIDs[i] = &ChatWithRequestID{RequestID: requestIDs[i], Chat: *_chat}
+	}
+	query, params := postgres.BatchInsertQuery(chatInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Chat
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[ChatWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[ChatWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrChatAlreadyExists
+		inserted, err = orderChatsByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Chat
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, chatGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, chatGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[ChatWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrChatAlreadyExists
+			if len(existing) == n {
+				return orderChatsByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrChatAlreadyExists
 		}
 		return nil, err
 	}

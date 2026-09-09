@@ -74,7 +74,7 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 }
 
 type libraryService_AuthorStore interface {
-	InsertAuthorIdempotently(ctx context.Context, requestID string, author *model.Author, authorProfile *model.AuthorProfile) (*model.Author, error)
+	BatchInsertAuthors(ctx context.Context, requestIDs []string, authors []*model.Author, authorProfiles []*model.AuthorProfile) ([]*model.Author, error)
 	UpdateAuthor(ctx context.Context, author *model.Author, updateClause string, columns []string, etag string) (*model.Author, error)
 	SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error)
 	GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error)
@@ -93,7 +93,7 @@ func newLibraryService_AuthorServer(store libraryService_AuthorStore) *librarySe
 	}
 }
 
-func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request *v11.CreateAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, request *v11.CreateAuthorRequest) (*model.Author, *model.AuthorProfile, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -105,10 +105,10 @@ func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request 
 
 	var organizationId string
 	if resourcename.ContainsWildcard(request.Parent) {
-		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}
 
 	request.Author.Name = resourcename.Sprint("organizations/{organization}/authors/{author}", organizationId, authorId)
@@ -117,7 +117,7 @@ func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request 
 	// Check for x-migration-request header
 	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
 		if request.Author.CreateTime == nil {
-			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
 	} else {
 		request.Author.CreateTime = timestamppb.Now()
@@ -128,14 +128,14 @@ func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request 
 		var err error
 		request.Author.Etag, err = aip.ComputeETag(request.Author)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 		}
 	}
 
 	// STEP 3: Convert the resource to the database representation.
 	authorModel, err := model.AuthorFromPb(request.Author)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting author from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting author from pb to model: %v", err).Err()
 	}
 
 	authorProfile := &v13.AuthorProfile{
@@ -147,28 +147,40 @@ func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request 
 		var err error
 		authorProfile.Etag, err = aip.ComputeETag(authorProfile)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing %s etag: %v", "authorProfile", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing %s etag: %v", "authorProfile", err).Err()
 		}
 	}
 	authorProfileModel, err := model.AuthorProfileFromPb(authorProfile)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting authorProfile from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting authorProfile from pb to model: %v", err).Err()
+	}
+
+	return authorModel, authorProfileModel, nil
+}
+
+func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request *v11.CreateAuthorRequest) (*v13.Author, error) {
+	authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, request)
+	if err != nil {
+		return nil, err
 	}
 
 	if request.ValidateOnly {
 		return request.Author, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbAuthorModel, err := s.store.InsertAuthorIdempotently(ctx, request.RequestId, authorModel, authorProfileModel)
+	// STEP 4: Insert the resource.
+	dbAuthors, err := s.store.BatchInsertAuthors(ctx, []string{request.RequestId}, []*model.Author{authorModel}, []*model.AuthorProfile{authorProfileModel})
 	if err != nil {
 		if errors.Is(err, model.ErrAuthorAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "author already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting author").Err()
+		return nil, status.FromError(err, "inserting authors").Err()
+	}
+	if len(dbAuthors) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted author, got %d", len(dbAuthors)).Err()
 	}
 
-	author, err := dbAuthorModel.ToPb()
+	author, err := dbAuthors[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting author from model to pb: %v", err).Err()
 	}
@@ -462,6 +474,77 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 	}, nil
 }
 
+func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, request *v11.BatchCreateAuthorsRequest) (*v11.BatchCreateAuthorsResponse, error) {
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	n := len(request.Requests)
+	requestIDs := make([]string, 0, n)
+	requestIDSet := make(map[string]struct{}, n)
+	authorModels := make([]*model.Author, 0, n)
+	authorProfileModels := make([]*model.AuthorProfile, 0, n)
+	names := make(map[string]struct{}, n)
+	for i, createRequest := range request.Requests {
+		// A sub-request inherits the batch parent; an explicit one must agree.
+		if request.Parent != "" {
+			if createRequest.Parent == "" {
+				createRequest.Parent = request.Parent
+			} else if createRequest.Parent != request.Parent {
+				return nil, status.Errorf(codes.InvalidArgument, "requests[%d].parent %q does not match parent %q", i, createRequest.Parent, request.Parent).Err()
+			}
+		}
+		if createRequest.ValidateOnly {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported; set validate_only on the batch request", i).Err()
+		}
+		authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, createRequest)
+		if err != nil {
+			return nil, status.FromError(err, "requests[%d]", i).Err()
+		}
+		if _, ok := names[createRequest.Author.Name]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate author name %q", i, createRequest.Author.Name).Err()
+		}
+		names[createRequest.Author.Name] = struct{}{}
+		if _, ok := requestIDSet[createRequest.RequestId]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate request_id %q", i, createRequest.RequestId).Err()
+		}
+		requestIDSet[createRequest.RequestId] = struct{}{}
+		requestIDs = append(requestIDs, createRequest.RequestId)
+		authorModels = append(authorModels, authorModel)
+		authorProfileModels = append(authorProfileModels, authorProfileModel)
+	}
+
+	if request.ValidateOnly {
+		authors := make([]*v13.Author, n)
+		for i, createRequest := range request.Requests {
+			authors[i] = createRequest.Author
+		}
+		return &v11.BatchCreateAuthorsResponse{Authors: authors}, nil
+	}
+
+	// Insert the whole batch atomically.
+	dbAuthors, err := s.store.BatchInsertAuthors(ctx, requestIDs, authorModels, authorProfileModels)
+	if err != nil {
+		if errors.Is(err, model.ErrAuthorAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "author already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting authors").Err()
+	}
+	if len(dbAuthors) != n {
+		return nil, status.Errorf(codes.Internal, "expected %d inserted authors, got %d", n, len(dbAuthors)).Err()
+	}
+
+	authors := make([]*v13.Author, n)
+	for i, dbAuthorModel := range dbAuthors {
+		author, err := dbAuthorModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting author from model to pb: %v", err).Err()
+		}
+		authors[i] = author
+	}
+
+	return &v11.BatchCreateAuthorsResponse{Authors: authors}, nil
+}
+
 var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v11.SearchAuthorsRequest, *v13.Author](aip.WithFQN())
 
 func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request *v11.SearchAuthorsRequest) (*v11.SearchAuthorsResponse, error) {
@@ -546,7 +629,7 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 }
 
 type libraryService_AuthorProfileStore interface {
-	InsertAuthorProfile(ctx context.Context, authorProfile *model.AuthorProfile) (*model.AuthorProfile, error)
+	BatchInsertAuthorProfiles(ctx context.Context, requestIDs []string, authorProfiles []*model.AuthorProfile) ([]*model.AuthorProfile, error)
 	UpdateAuthorProfile(ctx context.Context, authorProfile *model.AuthorProfile, updateClause string, columns []string, etag string) (*model.AuthorProfile, error)
 	GetAuthorProfile(ctx context.Context, organizationId, authorId string) (*model.AuthorProfile, error)
 	BatchGetAuthorProfiles(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.AuthorProfile, error)
@@ -791,7 +874,7 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 }
 
 type libraryService_ShelfStore interface {
-	InsertShelfIdempotently(ctx context.Context, requestID string, shelf *model.Shelf) (*model.Shelf, error)
+	BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf) ([]*model.Shelf, error)
 	UpdateShelf(ctx context.Context, shelf *model.Shelf, updateClause string, columns []string) (*model.Shelf, error)
 	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error)
 	GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
@@ -811,7 +894,7 @@ func newLibraryService_ShelfServer(store libraryService_ShelfStore, natsClient *
 	}
 }
 
-func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v11.CreateShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v11.CreateShelfRequest) (*model.Shelf, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -848,20 +931,32 @@ func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v
 		return nil, status.Errorf(codes.Internal, "converting shelf from pb to model: %v", err).Err()
 	}
 
+	return shelfModel, nil
+}
+
+func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v11.CreateShelfRequest) (*v13.Shelf, error) {
+	shelfModel, err := s.prepareCreateShelf(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Shelf, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbShelfModel, err := s.store.InsertShelfIdempotently(ctx, request.RequestId, shelfModel)
+	// STEP 4: Insert the resource.
+	dbShelves, err := s.store.BatchInsertShelves(ctx, []string{request.RequestId}, []*model.Shelf{shelfModel})
 	if err != nil {
 		if errors.Is(err, model.ErrShelfAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "shelf already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting shelf").Err()
+		return nil, status.FromError(err, "inserting shelves").Err()
+	}
+	if len(dbShelves) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted shelf, got %d", len(dbShelves)).Err()
 	}
 
-	shelf, err := dbShelfModel.ToPb()
+	shelf, err := dbShelves[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
 	}
@@ -1078,6 +1173,77 @@ func (s *libraryService_ShelfServer) ListShelves(ctx context.Context, request *v
 	}, nil
 }
 
+func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, request *v11.BatchCreateShelvesRequest) (*v11.BatchCreateShelvesResponse, error) {
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	n := len(request.Requests)
+	requestIDs := make([]string, 0, n)
+	requestIDSet := make(map[string]struct{}, n)
+	shelfModels := make([]*model.Shelf, 0, n)
+	names := make(map[string]struct{}, n)
+	for i, createRequest := range request.Requests {
+		// A sub-request inherits the batch parent; an explicit one must agree.
+		if request.Parent != "" {
+			if createRequest.Parent == "" {
+				createRequest.Parent = request.Parent
+			} else if createRequest.Parent != request.Parent {
+				return nil, status.Errorf(codes.InvalidArgument, "requests[%d].parent %q does not match parent %q", i, createRequest.Parent, request.Parent).Err()
+			}
+		}
+		if createRequest.ValidateOnly {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported", i).Err()
+		}
+		shelfModel, err := s.prepareCreateShelf(ctx, createRequest)
+		if err != nil {
+			return nil, status.FromError(err, "requests[%d]", i).Err()
+		}
+		if _, ok := names[createRequest.Shelf.Name]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate shelf name %q", i, createRequest.Shelf.Name).Err()
+		}
+		names[createRequest.Shelf.Name] = struct{}{}
+		if _, ok := requestIDSet[createRequest.RequestId]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate request_id %q", i, createRequest.RequestId).Err()
+		}
+		requestIDSet[createRequest.RequestId] = struct{}{}
+		requestIDs = append(requestIDs, createRequest.RequestId)
+		shelfModels = append(shelfModels, shelfModel)
+	}
+
+	// Insert the whole batch atomically.
+	dbShelves, err := s.store.BatchInsertShelves(ctx, requestIDs, shelfModels)
+	if err != nil {
+		if errors.Is(err, model.ErrShelfAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "shelf already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting shelves").Err()
+	}
+	if len(dbShelves) != n {
+		return nil, status.Errorf(codes.Internal, "expected %d inserted shelves, got %d", n, len(dbShelves)).Err()
+	}
+
+	shelves := make([]*v13.Shelf, n)
+	for i, dbShelfModel := range dbShelves {
+		shelf, err := dbShelfModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		shelves[i] = shelf
+	}
+
+	for _, shelf := range shelves {
+		// STEP 5: Publish events.
+		{
+			subject := v13.GetShelfStream().GetCreatedSubject()
+			if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
+				return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
+			}
+		}
+	}
+
+	return &v11.BatchCreateShelvesResponse{Shelves: shelves}, nil
+}
+
 func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, request *v11.BatchGetShelvesRequest) (*v11.BatchGetShelvesResponse, error) {
 	var organizationId string
 	if request.Parent != "" {
@@ -1136,7 +1302,7 @@ func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, reques
 }
 
 type libraryService_BookStore interface {
-	InsertBookIdempotently(ctx context.Context, requestID string, book *model.Book, bookReview *model.BookReview) (*model.Book, error)
+	BatchInsertBooks(ctx context.Context, requestIDs []string, books []*model.Book, bookReviews []*model.BookReview) ([]*model.Book, error)
 	UpdateBook(ctx context.Context, book *model.Book, updateClause string, columns []string, etag string) (*model.Book, error)
 	DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string, force bool) (*model.Book, error)
 	GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error)
@@ -1157,7 +1323,7 @@ func newLibraryService_BookServer(store libraryService_BookStore, natsClient *na
 	}
 }
 
-func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11.CreateBookRequest) (*v13.Book, error) {
+func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, request *v11.CreateBookRequest) (*model.Book, *model.BookReview, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -1169,10 +1335,10 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11
 
 	var organizationId, shelfId string
 	if resourcename.ContainsWildcard(request.Parent) {
-		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}
 
 	request.Book.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", organizationId, shelfId, bookId)
@@ -1181,7 +1347,7 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11
 	// Check for x-migration-request header
 	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
 		if request.Book.CreateTime == nil {
-			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
 	} else {
 		request.Book.CreateTime = timestamppb.Now()
@@ -1192,14 +1358,14 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11
 		var err error
 		request.Book.Etag, err = aip.ComputeETag(request.Book)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 		}
 	}
 
 	// STEP 3: Convert the resource to the database representation.
 	bookModel, err := model.BookFromPb(request.Book)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting book from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting book from pb to model: %v", err).Err()
 	}
 
 	bookReview := &v13.BookReview{
@@ -1211,28 +1377,40 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11
 		var err error
 		bookReview.Etag, err = aip.ComputeETag(bookReview)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing %s etag: %v", "bookReview", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing %s etag: %v", "bookReview", err).Err()
 		}
 	}
 	bookReviewModel, err := model.BookReviewFromPb(bookReview)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting bookReview from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting bookReview from pb to model: %v", err).Err()
+	}
+
+	return bookModel, bookReviewModel, nil
+}
+
+func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11.CreateBookRequest) (*v13.Book, error) {
+	bookModel, bookReviewModel, err := s.prepareCreateBook(ctx, request)
+	if err != nil {
+		return nil, err
 	}
 
 	if request.ValidateOnly {
 		return request.Book, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbBookModel, err := s.store.InsertBookIdempotently(ctx, request.RequestId, bookModel, bookReviewModel)
+	// STEP 4: Insert the resource.
+	dbBooks, err := s.store.BatchInsertBooks(ctx, []string{request.RequestId}, []*model.Book{bookModel}, []*model.BookReview{bookReviewModel})
 	if err != nil {
 		if errors.Is(err, model.ErrBookAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "book already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting book").Err()
+		return nil, status.FromError(err, "inserting books").Err()
+	}
+	if len(dbBooks) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted book, got %d", len(dbBooks)).Err()
 	}
 
-	book, err := dbBookModel.ToPb()
+	book, err := dbBooks[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting book from model to pb: %v", err).Err()
 	}
@@ -1630,7 +1808,7 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 }
 
 type libraryService_BookReviewStore interface {
-	InsertBookReview(ctx context.Context, bookReview *model.BookReview) (*model.BookReview, error)
+	BatchInsertBookReviews(ctx context.Context, requestIDs []string, bookReviews []*model.BookReview) ([]*model.BookReview, error)
 	UpdateBookReview(ctx context.Context, bookReview *model.BookReview, updateClause string, columns []string, etag string) (*model.BookReview, error)
 	GetBookReview(ctx context.Context, organizationId, shelfId, bookId string) (*model.BookReview, error)
 	BatchGetBookReviews(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.BookReview, error)
@@ -1873,7 +2051,7 @@ func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Contex
 }
 
 type libraryService_NoteStore interface {
-	InsertNoteIdempotently(ctx context.Context, requestID string, note *model.Note) (*model.Note, error)
+	BatchInsertNotes(ctx context.Context, requestIDs []string, notes []*model.Note) ([]*model.Note, error)
 	UpdateNote(ctx context.Context, note *model.Note, updateClause string, columns []string, etag string) (*model.Note, error)
 	SoftDeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string, deleteTime time.Time) (*model.Note, error)
 	GetNote(ctx context.Context, organizationId, authorId, shelfId, noteId string) (*model.Note, error)
@@ -1891,7 +2069,7 @@ func newLibraryService_NoteServer(store libraryService_NoteStore) *libraryServic
 	}
 }
 
-func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*model.Note, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -1950,20 +2128,32 @@ func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11
 		return nil, status.Errorf(codes.Internal, "converting note from pb to model: %v", err).Err()
 	}
 
+	return noteModel, nil
+}
+
+func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*v13.Note, error) {
+	noteModel, err := s.prepareCreateNote(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Note, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbNoteModel, err := s.store.InsertNoteIdempotently(ctx, request.RequestId, noteModel)
+	// STEP 4: Insert the resource.
+	dbNotes, err := s.store.BatchInsertNotes(ctx, []string{request.RequestId}, []*model.Note{noteModel})
 	if err != nil {
 		if errors.Is(err, model.ErrNoteAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "note already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting note").Err()
+		return nil, status.FromError(err, "inserting notes").Err()
+	}
+	if len(dbNotes) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted note, got %d", len(dbNotes)).Err()
 	}
 
-	note, err := dbNoteModel.ToPb()
+	note, err := dbNotes[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
 	}
@@ -2208,6 +2398,67 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 		Notes:         notes,
 		NextPageToken: nextPageToken,
 	}, nil
+}
+
+func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, request *v11.BatchCreateNotesRequest) (*v11.BatchCreateNotesResponse, error) {
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	n := len(request.Requests)
+	requestIDs := make([]string, 0, n)
+	requestIDSet := make(map[string]struct{}, n)
+	noteModels := make([]*model.Note, 0, n)
+	names := make(map[string]struct{}, n)
+	for i, createRequest := range request.Requests {
+		// A sub-request inherits the batch parent; an explicit one must agree.
+		if request.Parent != "" {
+			if createRequest.Parent == "" {
+				createRequest.Parent = request.Parent
+			} else if createRequest.Parent != request.Parent {
+				return nil, status.Errorf(codes.InvalidArgument, "requests[%d].parent %q does not match parent %q", i, createRequest.Parent, request.Parent).Err()
+			}
+		}
+		if createRequest.ValidateOnly {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported", i).Err()
+		}
+		noteModel, err := s.prepareCreateNote(ctx, createRequest)
+		if err != nil {
+			return nil, status.FromError(err, "requests[%d]", i).Err()
+		}
+		if _, ok := names[createRequest.Note.Name]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate note name %q", i, createRequest.Note.Name).Err()
+		}
+		names[createRequest.Note.Name] = struct{}{}
+		if _, ok := requestIDSet[createRequest.RequestId]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate request_id %q", i, createRequest.RequestId).Err()
+		}
+		requestIDSet[createRequest.RequestId] = struct{}{}
+		requestIDs = append(requestIDs, createRequest.RequestId)
+		noteModels = append(noteModels, noteModel)
+	}
+
+	// Insert the whole batch atomically.
+	dbNotes, err := s.store.BatchInsertNotes(ctx, requestIDs, noteModels)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "note already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting notes").Err()
+	}
+	if len(dbNotes) != n {
+		return nil, status.Errorf(codes.Internal, "expected %d inserted notes, got %d", n, len(dbNotes)).Err()
+	}
+
+	notes := make([]*v13.Note, n)
+	for i, dbNoteModel := range dbNotes {
+		note, err := dbNoteModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+		}
+		notes[i] = note
+	}
+
+	return &v11.BatchCreateNotesResponse{Notes: notes}, nil
 }
 
 func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v11.BatchGetNotesRequest) (*v11.BatchGetNotesResponse, error) {

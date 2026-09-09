@@ -61,7 +61,7 @@ func (s *UserServiceServer) Start(ctx context.Context) error {
 }
 
 type userService_OrganizationStore interface {
-	InsertOrganizationIdempotently(ctx context.Context, requestID string, organization *model.Organization) (*model.Organization, error)
+	BatchInsertOrganizations(ctx context.Context, requestIDs []string, organizations []*model.Organization) ([]*model.Organization, error)
 	UpdateOrganization(ctx context.Context, organization *model.Organization, updateClause string, columns []string, etag string) (*model.Organization, error)
 	SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Organization, error)
 	GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error)
@@ -81,7 +81,7 @@ func newUserService_OrganizationServer(store userService_OrganizationStore, nats
 	}
 }
 
-func (s *userService_OrganizationServer) CreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest) (*v13.Organization, error) {
+func (s *userService_OrganizationServer) prepareCreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest) (*model.Organization, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -118,20 +118,32 @@ func (s *userService_OrganizationServer) CreateOrganization(ctx context.Context,
 		return nil, status.Errorf(codes.Internal, "converting organization from pb to model: %v", err).Err()
 	}
 
+	return organizationModel, nil
+}
+
+func (s *userService_OrganizationServer) CreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest) (*v13.Organization, error) {
+	organizationModel, err := s.prepareCreateOrganization(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Organization, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbOrganizationModel, err := s.store.InsertOrganizationIdempotently(ctx, request.RequestId, organizationModel)
+	// STEP 4: Insert the resource.
+	dbOrganizations, err := s.store.BatchInsertOrganizations(ctx, []string{request.RequestId}, []*model.Organization{organizationModel})
 	if err != nil {
 		if errors.Is(err, model.ErrOrganizationAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "organization already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting organization").Err()
+		return nil, status.FromError(err, "inserting organizations").Err()
+	}
+	if len(dbOrganizations) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted organization, got %d", len(dbOrganizations)).Err()
 	}
 
-	organization, err := dbOrganizationModel.ToPb()
+	organization, err := dbOrganizations[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting organization from model to pb: %v", err).Err()
 	}
@@ -440,7 +452,7 @@ func (s *userService_OrganizationServer) BatchGetOrganizations(ctx context.Conte
 }
 
 type userService_UserStore interface {
-	InsertUserIdempotently(ctx context.Context, requestID string, user *model.User, userProfile *model.UserProfile) (*model.User, error)
+	BatchInsertUsers(ctx context.Context, requestIDs []string, users []*model.User, userProfiles []*model.UserProfile) ([]*model.User, error)
 	UpdateUser(ctx context.Context, user *model.User, updateClause string, columns []string, etag string) (*model.User, error)
 	SoftDeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string, deleteTime time.Time) (*model.User, error)
 	GetUser(ctx context.Context, organizationId, userId string) (*model.User, error)
@@ -460,7 +472,7 @@ func newUserService_UserServer(store userService_UserStore, natsClient *nats.Cli
 	}
 }
 
-func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.CreateUserRequest) (*v13.User, error) {
+func (s *userService_UserServer) prepareCreateUser(ctx context.Context, request *v11.CreateUserRequest) (*model.User, *model.UserProfile, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -472,10 +484,10 @@ func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.Cr
 
 	var organizationId string
 	if resourcename.ContainsWildcard(request.Parent) {
-		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
 	}
 
 	request.User.Name = resourcename.Sprint("organizations/{organization}/users/{user}", organizationId, userId)
@@ -484,7 +496,7 @@ func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.Cr
 	// Check for x-migration-request header
 	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
 		if request.User.CreateTime == nil {
-			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
 	} else {
 		request.User.CreateTime = timestamppb.Now()
@@ -495,14 +507,14 @@ func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.Cr
 		var err error
 		request.User.Etag, err = aip.ComputeETag(request.User)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 		}
 	}
 
 	// STEP 3: Convert the resource to the database representation.
 	userModel, err := model.UserFromPb(request.User)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting user from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting user from pb to model: %v", err).Err()
 	}
 
 	userProfile := &v13.UserProfile{
@@ -514,28 +526,40 @@ func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.Cr
 		var err error
 		userProfile.Etag, err = aip.ComputeETag(userProfile)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "computing %s etag: %v", "userProfile", err).Err()
+			return nil, nil, status.Errorf(codes.Internal, "computing %s etag: %v", "userProfile", err).Err()
 		}
 	}
 	userProfileModel, err := model.UserProfileFromPb(userProfile)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting userProfile from pb to model: %v", err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "converting userProfile from pb to model: %v", err).Err()
+	}
+
+	return userModel, userProfileModel, nil
+}
+
+func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.CreateUserRequest) (*v13.User, error) {
+	userModel, userProfileModel, err := s.prepareCreateUser(ctx, request)
+	if err != nil {
+		return nil, err
 	}
 
 	if request.ValidateOnly {
 		return request.User, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbUserModel, err := s.store.InsertUserIdempotently(ctx, request.RequestId, userModel, userProfileModel)
+	// STEP 4: Insert the resource.
+	dbUsers, err := s.store.BatchInsertUsers(ctx, []string{request.RequestId}, []*model.User{userModel}, []*model.UserProfile{userProfileModel})
 	if err != nil {
 		if errors.Is(err, model.ErrUserAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "user already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting user").Err()
+		return nil, status.FromError(err, "inserting users").Err()
+	}
+	if len(dbUsers) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted user, got %d", len(dbUsers)).Err()
 	}
 
-	user, err := dbUserModel.ToPb()
+	user, err := dbUsers[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting user from model to pb: %v", err).Err()
 	}
@@ -859,7 +883,7 @@ func (s *userService_UserServer) BatchGetUsers(ctx context.Context, request *v11
 }
 
 type userService_UserProfileStore interface {
-	InsertUserProfile(ctx context.Context, userProfile *model.UserProfile) (*model.UserProfile, error)
+	BatchInsertUserProfiles(ctx context.Context, requestIDs []string, userProfiles []*model.UserProfile) ([]*model.UserProfile, error)
 	UpdateUserProfile(ctx context.Context, userProfile *model.UserProfile, updateClause string, columns []string, etag string) (*model.UserProfile, error)
 	GetUserProfile(ctx context.Context, organizationId, userId string) (*model.UserProfile, error)
 	BatchGetUserProfiles(ctx context.Context, organizationIds []string, userIds []string) ([]*model.UserProfile, error)

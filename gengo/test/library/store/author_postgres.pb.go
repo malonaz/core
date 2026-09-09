@@ -35,71 +35,73 @@ func (s *Store) getAuthorETag(ctx context.Context, organizationId, authorId stri
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	AuthorWithRequestIDPostgresColumns     = postgres.GetDBColumns(AuthorWithRequestID{})
-	_authorInsertPostgresQuery             = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id RETURNING `
-	authorWithRequestIDInsertPostgresQuery = _authorInsertPostgresQuery + postgres.SelectQuery("%s", AuthorWithRequestIDPostgresColumns)
-	authorInsertPostgresQuery              = _authorInsertPostgresQuery + postgres.SelectQuery("%s", AuthorPostgresColumns)
-)
-
-func (s *Store) InsertAuthor(ctx context.Context, _author *model.Author, authorProfile *model.AuthorProfile) (*model.Author, error) {
-	query, params := postgres.InsertQuery(authorInsertPostgresQuery, _author)
-	query2, params2 := postgres.InsertQuery(AuthorProfileInsertSingletonPostgresQuery, authorProfile, AuthorProfileWritePostgresColumns...)
-
-	var inserted *model.Author
-	transactionFN := func(tx postgres.Tx) error {
-		inserted = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return err
-		}
-		inserted, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
-		if err != nil {
-			return err
-		}
-
-		if _, err := tx.Exec(ctx, query2, params2...); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-		return nil, err
-	}
-	return inserted, nil
-}
-
 type AuthorWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Author
 }
 
-var authorGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", AuthorPostgresColumns) + ` FROM library.author WHERE request_id = $1`
+var (
+	AuthorWithRequestIDPostgresColumns = postgres.GetDBColumns(AuthorWithRequestID{})
+	authorInsertPostgresQuery          = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id RETURNING ` + postgres.SelectQuery("%s", AuthorWithRequestIDPostgresColumns)
+	authorGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", AuthorWithRequestIDPostgresColumns) + ` FROM library.author WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertAuthorIdempotently(ctx context.Context, requestID string, raw_author *model.Author, authorProfile *model.AuthorProfile) (*model.Author, error) {
-	_author := &AuthorWithRequestID{
-		RequestID: requestID,
-		Author:    *raw_author,
+func orderAuthorsByRequestID(requestIDs []string, rows []*AuthorWithRequestID) ([]*model.Author, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(authorWithRequestIDInsertPostgresQuery, _author)
-	query2, params2 := postgres.InsertQuery(AuthorProfileInsertSingletonPostgresQuery, authorProfile, AuthorProfileWritePostgresColumns...)
+	ordered := make([]*model.Author, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrAuthorAlreadyExists
+		}
+		ordered[i] = &row.Author
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted author with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Author
+func (s *Store) BatchInsertAuthors(ctx context.Context, requestIDs []string, authors []*model.Author, authorProfiles []*model.AuthorProfile) ([]*model.Author, error) {
+	n := len(authors)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(authorProfiles) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*AuthorWithRequestID, n)
+	for i, _author := range authors {
+		withRequestIDs[i] = &AuthorWithRequestID{RequestID: requestIDs[i], Author: *_author}
+	}
+	query, params := postgres.BatchInsertQuery(authorInsertPostgresQuery, withRequestIDs)
+	query2, params2 := postgres.BatchInsertQuery(AuthorProfileInsertSingletonPostgresQuery, authorProfiles, AuthorProfileWritePostgresColumns...)
+
+	var inserted []*model.Author
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[AuthorWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrAuthorAlreadyExists
+		inserted, err = orderAuthorsByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Author
 
 		if _, err := tx.Exec(ctx, query2, params2...); err != nil {
 			return err
@@ -108,18 +110,22 @@ func (s *Store) InsertAuthorIdempotently(ctx context.Context, requestID string, 
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, authorGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, authorGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[AuthorWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrAuthorAlreadyExists
+			if len(existing) == n {
+				return orderAuthorsByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrAuthorAlreadyExists
 		}
 		return nil, err
 	}

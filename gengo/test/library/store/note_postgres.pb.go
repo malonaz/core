@@ -43,73 +43,90 @@ func (s *Store) getNoteETag(ctx context.Context, organizationId, authorId, shelf
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	NoteWithRequestIDPostgresColumns     = postgres.GetDBColumns(NoteWithRequestID{})
-	_noteInsertPostgresQuery             = `INSERT INTO library.note %s VALUES %s ON CONFLICT(organization_id, author_id, shelf_id, note_id) DO UPDATE SET note_id = EXCLUDED.note_id RETURNING `
-	noteWithRequestIDInsertPostgresQuery = _noteInsertPostgresQuery + postgres.SelectQuery("%s", NoteWithRequestIDPostgresColumns)
-	noteInsertPostgresQuery              = _noteInsertPostgresQuery + postgres.SelectQuery("%s", NotePostgresColumns)
-)
-
-func (s *Store) InsertNote(ctx context.Context, _note *model.Note) (*model.Note, error) {
-	query, params := postgres.InsertQuery(noteInsertPostgresQuery, _note)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type NoteWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Note
 }
 
-var noteGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", NotePostgresColumns) + ` FROM library.note WHERE request_id = $1`
+var (
+	NoteWithRequestIDPostgresColumns = postgres.GetDBColumns(NoteWithRequestID{})
+	noteInsertPostgresQuery          = `INSERT INTO library.note %s VALUES %s ON CONFLICT(organization_id, author_id, shelf_id, note_id) DO UPDATE SET note_id = EXCLUDED.note_id RETURNING ` + postgres.SelectQuery("%s", NoteWithRequestIDPostgresColumns)
+	noteGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", NoteWithRequestIDPostgresColumns) + ` FROM library.note WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertNoteIdempotently(ctx context.Context, requestID string, raw_note *model.Note) (*model.Note, error) {
-	_note := &NoteWithRequestID{
-		RequestID: requestID,
-		Note:      *raw_note,
+func orderNotesByRequestID(requestIDs []string, rows []*NoteWithRequestID) ([]*model.Note, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(noteWithRequestIDInsertPostgresQuery, _note)
+	ordered := make([]*model.Note, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrNoteAlreadyExists
+		}
+		ordered[i] = &row.Note
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted note with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Note
+func (s *Store) BatchInsertNotes(ctx context.Context, requestIDs []string, notes []*model.Note) ([]*model.Note, error) {
+	n := len(notes)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*NoteWithRequestID, n)
+	for i, _note := range notes {
+		withRequestIDs[i] = &NoteWithRequestID{RequestID: requestIDs[i], Note: *_note}
+	}
+	query, params := postgres.BatchInsertQuery(noteInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Note
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[NoteWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[NoteWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrNoteAlreadyExists
+		inserted, err = orderNotesByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Note
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, noteGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, noteGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[NoteWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrNoteAlreadyExists
+			if len(existing) == n {
+				return orderNotesByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrNoteAlreadyExists
 		}
 		return nil, err
 	}

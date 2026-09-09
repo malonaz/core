@@ -39,7 +39,7 @@ func (s *SchedulerServiceServer) Start(ctx context.Context) error {
 }
 
 type schedulerService_JobStore interface {
-	InsertJobIdempotently(ctx context.Context, requestID string, job *model.Job) (*model.Job, error)
+	BatchInsertJobs(ctx context.Context, requestIDs []string, jobs []*model.Job) ([]*model.Job, error)
 	UpdateJob(ctx context.Context, job *model.Job, updateClause string, columns []string, etag string) (*model.Job, error)
 	DeleteJob(ctx context.Context, organizationId, userId, jobId string, etag string) (*model.Job, error)
 	GetJob(ctx context.Context, organizationId, userId, jobId string) (*model.Job, error)
@@ -57,7 +57,7 @@ func newSchedulerService_JobServer(store schedulerService_JobStore) *schedulerSe
 	}
 }
 
-func (s *schedulerService_JobServer) CreateJob(ctx context.Context, request *v1.CreateJobRequest) (*v11.Job, error) {
+func (s *schedulerService_JobServer) prepareCreateJob(ctx context.Context, request *v1.CreateJobRequest) (*model.Job, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -113,20 +113,32 @@ func (s *schedulerService_JobServer) CreateJob(ctx context.Context, request *v1.
 		return nil, status.Errorf(codes.Internal, "converting job from pb to model: %v", err).Err()
 	}
 
+	return jobModel, nil
+}
+
+func (s *schedulerService_JobServer) CreateJob(ctx context.Context, request *v1.CreateJobRequest) (*v11.Job, error) {
+	jobModel, err := s.prepareCreateJob(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Job, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbJobModel, err := s.store.InsertJobIdempotently(ctx, request.RequestId, jobModel)
+	// STEP 4: Insert the resource.
+	dbJobs, err := s.store.BatchInsertJobs(ctx, []string{request.RequestId}, []*model.Job{jobModel})
 	if err != nil {
 		if errors.Is(err, model.ErrJobAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "job already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting job").Err()
+		return nil, status.FromError(err, "inserting jobs").Err()
+	}
+	if len(dbJobs) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted job, got %d", len(dbJobs)).Err()
 	}
 
-	job, err := dbJobModel.ToPb()
+	job, err := dbJobs[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting job from model to pb: %v", err).Err()
 	}

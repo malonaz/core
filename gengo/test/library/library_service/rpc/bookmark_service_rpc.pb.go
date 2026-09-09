@@ -39,7 +39,7 @@ func (s *BookmarkServiceServer) Start(ctx context.Context) error {
 }
 
 type bookmarkService_BookmarkStore interface {
-	InsertBookmarkIdempotently(ctx context.Context, requestID string, bookmark *model.Bookmark) (*model.Bookmark, error)
+	BatchInsertBookmarks(ctx context.Context, requestIDs []string, bookmarks []*model.Bookmark) ([]*model.Bookmark, error)
 	UpdateBookmark(ctx context.Context, bookmark *model.Bookmark, updateClause string, columns []string, etag string) (*model.Bookmark, error)
 	SoftDeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string, deleteTime time.Time) (*model.Bookmark, error)
 	GetBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (*model.Bookmark, error)
@@ -57,7 +57,7 @@ func newBookmarkService_BookmarkServer(store bookmarkService_BookmarkStore) *boo
 	}
 }
 
-func (s *bookmarkService_BookmarkServer) CreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest) (*v11.Bookmark, error) {
+func (s *bookmarkService_BookmarkServer) prepareCreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest) (*model.Bookmark, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -102,20 +102,32 @@ func (s *bookmarkService_BookmarkServer) CreateBookmark(ctx context.Context, req
 		return nil, status.Errorf(codes.Internal, "converting bookmark from pb to model: %v", err).Err()
 	}
 
+	return bookmarkModel, nil
+}
+
+func (s *bookmarkService_BookmarkServer) CreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest) (*v11.Bookmark, error) {
+	bookmarkModel, err := s.prepareCreateBookmark(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.ValidateOnly {
 		return request.Bookmark, nil
 	}
 
-	// STEP 4: Insert the resource idempotently.
-	dbBookmarkModel, err := s.store.InsertBookmarkIdempotently(ctx, request.RequestId, bookmarkModel)
+	// STEP 4: Insert the resource.
+	dbBookmarks, err := s.store.BatchInsertBookmarks(ctx, []string{request.RequestId}, []*model.Bookmark{bookmarkModel})
 	if err != nil {
 		if errors.Is(err, model.ErrBookmarkAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "bookmark already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting bookmark").Err()
+		return nil, status.FromError(err, "inserting bookmarks").Err()
+	}
+	if len(dbBookmarks) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted bookmark, got %d", len(dbBookmarks)).Err()
 	}
 
-	bookmark, err := dbBookmarkModel.ToPb()
+	bookmark, err := dbBookmarks[0].ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting bookmark from model to pb: %v", err).Err()
 	}
