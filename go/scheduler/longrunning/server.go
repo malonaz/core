@@ -108,11 +108,25 @@ func jobsFilter(filter string) (string, error) {
 	case "":
 		return "", nil
 	case "done = true":
-		return " AND (state = JOB_STATE_SUCCEEDED OR state = JOB_STATE_FAILED OR state = JOB_STATE_CANCELLED)", nil
+		return " AND " + statesFilter(terminalStates), nil
 	case "done = false":
-		return " AND (state = JOB_STATE_PENDING OR state = JOB_STATE_RUNNING)", nil
+		return " AND " + statesFilter(liveStates), nil
 	}
 	return "", status.Errorf(codes.InvalidArgument, "unsupported filter %q: only `done = true` and `done = false` are supported", filter).Err()
+}
+
+var (
+	terminalStates = []schedulerpb.JobState{schedulerpb.JobState_JOB_STATE_SUCCEEDED, schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED}
+	liveStates     = []schedulerpb.JobState{schedulerpb.JobState_JOB_STATE_PENDING, schedulerpb.JobState_JOB_STATE_RUNNING}
+)
+
+// statesFilter returns the filter clause matching any of the states.
+func statesFilter(states []schedulerpb.JobState) string {
+	terms := make([]string, len(states))
+	for i, state := range states {
+		terms[i] = fmt.Sprintf("state = %s", state)
+	}
+	return "(" + strings.Join(terms, " OR ") + ")"
 }
 
 // CancelOperation implements longrunningpb.OperationsServer. A finished
