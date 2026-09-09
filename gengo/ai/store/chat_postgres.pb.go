@@ -245,6 +245,50 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 	return result, nil
 }
 
+func (s *Store) undeleteChatNoRows(ctx context.Context, organizationId, userId, chatId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
+	params := []any{organizationId, userId, chatId}
+	var live bool
+	var currentEtag string
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrChatNotExist
+		}
+		return fmt.Errorf("probing chat: %w", err)
+	}
+	if live {
+		return model.ErrChatNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrChatETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but chat is deleted")
+}
+
+var undeleteChatPostgresQuery = `UPDATE chat SET delete_time = NULL, etag = $4 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", ChatPostgresColumns)
+
+func (s *Store) UndeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string) (*model.Chat, error) {
+	query := undeleteChatPostgresQuery
+	params := []any{organizationId, userId, chatId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting chat: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteChatNoRows(ctx, organizationId, userId, chatId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
 func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error) {
 	query := `SELECT %s FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
 	query = postgres.SelectQuery(query, ChatPostgresColumns)

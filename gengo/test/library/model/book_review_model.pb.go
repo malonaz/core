@@ -16,6 +16,7 @@ import (
 var ErrBookReviewAlreadyExists = errors.New("book_review already exists")
 var ErrBookReviewNotExist = errors.New("book_review does not exist")
 var ErrBookReviewAlreadyDeleted = errors.New("book_review already deleted")
+var ErrBookReviewNotDeleted = errors.New("book_review is not deleted")
 var ErrBookReviewHasChildren = errors.New("book_review has child resources")
 var ErrBookReviewETagChanged = errors.New("book_review etag changed")
 

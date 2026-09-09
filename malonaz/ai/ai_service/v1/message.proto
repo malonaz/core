@@ -109,6 +109,20 @@ message DeleteMessageRequest {
   string etag = 3;
 }
 
+// Request message for AiService.UndeleteMessage.
+message UndeleteMessageRequest {
+  // The resource name of the deleted message to restore.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Message"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for AiService.ListMessages.
 message ListMessagesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 1000};

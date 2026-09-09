@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/user/user_service/v1/user.proto.
  */
 export const file_malonaz_test_user_user_service_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("CixtYWxvbmF6L3Rlc3QvdXNlci91c2VyX3NlcnZpY2UvdjEvdXNlci5wcm90bxIhbWFsb25hei50ZXN0LnVzZXIudXNlcl9zZXJ2aWNlLnYxIvcBChFDcmVhdGVVc2VyUmVxdWVzdBJACgZwYXJlbnQYASABKAlCMOBBAvpBJAoidXNlci50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARI2Cgd1c2VyX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjAKBHVzZXIYAyABKAsyGi5tYWxvbmF6LnRlc3QudXNlci52MS5Vc2VyQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJICg5HZXRVc2VyUmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGnVzZXIudGVzdC5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBIogCChFVcGRhdGVVc2VyUmVxdWVzdBIwCgR1c2VyGAEgASgLMhoubWFsb25hei50ZXN0LnVzZXIudjEuVXNlckIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOocBukhCGkAKEnVzZXIubmFtZV9yZXF1aXJlZBIVdXNlci5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy51c2VyLm5hbWUp6pzBAz0KDGRpc3BsYXlfbmFtZQoNZW1haWxfYWRkcmVzcwoMcGhvbmVfbnVtYmVyCgZsYWJlbHMKCG1ldGFkYXRhInAKEURlbGV0ZVVzZXJSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoadXNlci50ZXN0Lm1hbG9uYXouY29tL1VzZXK6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIowCChBMaXN0VXNlcnNSZXF1ZXN0EkAKBnBhcmVudBgBIAEoCUIw4EEC+kEkCiJ1c2VyLnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6S4LzLQIIZIrzLToKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoMZGlzcGxheV9uYW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJXChFMaXN0VXNlcnNSZXNwb25zZRIpCgV1c2VycxgBIAMoCzIaLm1hbG9uYXoudGVzdC51c2VyLnYxLlVzZXISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIpIBChRCYXRjaEdldFVzZXJzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ/pBJAoidXNlci50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJBCgVuYW1lcxgCIAMoCUIy+kEcChp1c2VyLnRlc3QubWFsb25hei5jb20vVXNlcrpIEJIBDQgBEOgHGAEiBHICEAEiQgoVQmF0Y2hHZXRVc2Vyc1Jlc3BvbnNlEikKBXVzZXJzGAEgAygLMhoubWFsb25hei50ZXN0LnVzZXIudjEuVXNlckI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3VzZXIvdXNlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_user_v1_user]);
+  fileDesc("CixtYWxvbmF6L3Rlc3QvdXNlci91c2VyX3NlcnZpY2UvdjEvdXNlci5wcm90bxIhbWFsb25hei50ZXN0LnVzZXIudXNlcl9zZXJ2aWNlLnYxIvcBChFDcmVhdGVVc2VyUmVxdWVzdBJACgZwYXJlbnQYASABKAlCMOBBAvpBJAoidXNlci50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARI2Cgd1c2VyX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjAKBHVzZXIYAyABKAsyGi5tYWxvbmF6LnRlc3QudXNlci52MS5Vc2VyQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJICg5HZXRVc2VyUmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGnVzZXIudGVzdC5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBIogCChFVcGRhdGVVc2VyUmVxdWVzdBIwCgR1c2VyGAEgASgLMhoubWFsb25hei50ZXN0LnVzZXIudjEuVXNlckIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOocBukhCGkAKEnVzZXIubmFtZV9yZXF1aXJlZBIVdXNlci5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy51c2VyLm5hbWUp6pzBAz0KDGRpc3BsYXlfbmFtZQoNZW1haWxfYWRkcmVzcwoMcGhvbmVfbnVtYmVyCgZsYWJlbHMKCG1ldGFkYXRhInAKEURlbGV0ZVVzZXJSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoadXNlci50ZXN0Lm1hbG9uYXouY29tL1VzZXK6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIlsKE1VuZGVsZXRlVXNlclJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChp1c2VyLnRlc3QubWFsb25hei5jb20vVXNlcrpIA8gBARIMCgRldGFnGAIgASgJIowCChBMaXN0VXNlcnNSZXF1ZXN0EkAKBnBhcmVudBgBIAEoCUIw4EEC+kEkCiJ1c2VyLnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6S4LzLQIIZIrzLToKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoMZGlzcGxheV9uYW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJXChFMaXN0VXNlcnNSZXNwb25zZRIpCgV1c2VycxgBIAMoCzIaLm1hbG9uYXoudGVzdC51c2VyLnYxLlVzZXISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIpIBChRCYXRjaEdldFVzZXJzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ/pBJAoidXNlci50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJBCgVuYW1lcxgCIAMoCUIy+kEcChp1c2VyLnRlc3QubWFsb25hei5jb20vVXNlcrpIEJIBDQgBEOgHGAEiBHICEAEiQgoVQmF0Y2hHZXRVc2Vyc1Jlc3BvbnNlEikKBXVzZXJzGAEgAygLMhoubWFsb25hei50ZXN0LnVzZXIudjEuVXNlckI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3VzZXIvdXNlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_user_v1_user]);
 
 /**
  * Request message for UserService.CreateUser.
@@ -267,6 +267,57 @@ export const DeleteUserRequestSchema: GenMessage<DeleteUserRequest, {validType: 
   messageDesc(file_malonaz_test_user_user_service_v1_user, 3);
 
 /**
+ * Request message for UserService.UndeleteUser.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.UndeleteUserRequest
+ */
+export type UndeleteUserRequest = Message<"malonaz.test.user.user_service.v1.UndeleteUserRequest"> & {
+  /**
+   * The resource name of the deleted user to restore.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Request message for UserService.UndeleteUser.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.UndeleteUserRequest
+ */
+export type UndeleteUserRequestValid = Message<"malonaz.test.user.user_service.v1.UndeleteUserRequest"> & {
+  /**
+   * The resource name of the deleted user to restore.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Describes the message malonaz.test.user.user_service.v1.UndeleteUserRequest.
+ * Use `create(UndeleteUserRequestSchema)` to create a new message.
+ */
+export const UndeleteUserRequestSchema: GenMessage<UndeleteUserRequest, {validType: UndeleteUserRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_user_user_service_v1_user, 4);
+
+/**
  * Request message for UserService.ListUsers.
  *
  * @generated from message malonaz.test.user.user_service.v1.ListUsersRequest
@@ -371,7 +422,7 @@ export type ListUsersRequestValid = Message<"malonaz.test.user.user_service.v1.L
  * Use `create(ListUsersRequestSchema)` to create a new message.
  */
 export const ListUsersRequestSchema: GenMessage<ListUsersRequest, {validType: ListUsersRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_user, 4);
+  messageDesc(file_malonaz_test_user_user_service_v1_user, 5);
 
 /**
  * Response message for UserService.ListUsers.
@@ -401,7 +452,7 @@ export type ListUsersResponseValid = ListUsersResponse;
  * Use `create(ListUsersResponseSchema)` to create a new message.
  */
 export const ListUsersResponseSchema: GenMessage<ListUsersResponse, {validType: ListUsersResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_user, 5);
+  messageDesc(file_malonaz_test_user_user_service_v1_user, 6);
 
 /**
  * Request message for UserService.BatchGetUsers.
@@ -434,7 +485,7 @@ export type BatchGetUsersRequestValid = BatchGetUsersRequest;
  * Use `create(BatchGetUsersRequestSchema)` to create a new message.
  */
 export const BatchGetUsersRequestSchema: GenMessage<BatchGetUsersRequest, {validType: BatchGetUsersRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_user, 6);
+  messageDesc(file_malonaz_test_user_user_service_v1_user, 7);
 
 /**
  * Response message for UserService.BatchGetUsers.
@@ -457,5 +508,5 @@ export type BatchGetUsersResponseValid = BatchGetUsersResponse;
  * Use `create(BatchGetUsersResponseSchema)` to create a new message.
  */
 export const BatchGetUsersResponseSchema: GenMessage<BatchGetUsersResponse, {validType: BatchGetUsersResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_user, 7);
+  messageDesc(file_malonaz_test_user_user_service_v1_user, 8);
 

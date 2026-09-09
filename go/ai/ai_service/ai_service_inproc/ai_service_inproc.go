@@ -197,6 +197,15 @@ func (c *Client) DeleteChat(
 	return c.server.DeleteChat(ctx, request)
 }
 
+// UndeleteChat restores a soft-deleted chat by its resource name.
+func (c *Client) UndeleteChat(
+	ctx context.Context,
+	request *aiservicepb.UndeleteChatRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Chat, error) {
+	return c.server.UndeleteChat(ctx, request)
+}
+
 // ListChats returns a paginated list of chats for a user.
 func (c *Client) ListChats(
 	ctx context.Context,
@@ -249,6 +258,15 @@ func (c *Client) DeleteMessage(
 	opts ...grpc.CallOption,
 ) (*aipb.Message, error) {
 	return c.server.DeleteMessage(ctx, request)
+}
+
+// UndeleteMessage restores a soft-deleted message by its resource name.
+func (c *Client) UndeleteMessage(
+	ctx context.Context,
+	request *aiservicepb.UndeleteMessageRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Message, error) {
+	return c.server.UndeleteMessage(ctx, request)
 }
 
 // ListMessages returns a paginated list of messages within a chat.

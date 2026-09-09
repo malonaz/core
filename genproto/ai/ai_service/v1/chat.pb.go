@@ -446,6 +446,84 @@ func (b0 DeleteChatRequest_builder) Build() *DeleteChatRequest {
 	return m0
 }
 
+// Request message for AiService.UndeleteChat.
+type UndeleteChatRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the deleted chat to restore.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UndeleteChatRequest) Reset() {
+	*x = UndeleteChatRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UndeleteChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UndeleteChatRequest) ProtoMessage() {}
+
+func (x *UndeleteChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UndeleteChatRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UndeleteChatRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *UndeleteChatRequest) SetName(v string) {
+	x.Name = v
+}
+
+func (x *UndeleteChatRequest) SetEtag(v string) {
+	x.Etag = v
+}
+
+type UndeleteChatRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the deleted chat to restore.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Name string
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag string
+}
+
+func (b0 UndeleteChatRequest_builder) Build() *UndeleteChatRequest {
+	m0 := &UndeleteChatRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	x.Etag = b.Etag
+	return m0
+}
+
 // Request message for AiService.ListChats.
 type ListChatsRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -468,7 +546,7 @@ type ListChatsRequest struct {
 
 func (x *ListChatsRequest) Reset() {
 	*x = ListChatsRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +558,7 @@ func (x *ListChatsRequest) String() string {
 func (*ListChatsRequest) ProtoMessage() {}
 
 func (x *ListChatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +680,7 @@ type ListChatsResponse struct {
 
 func (x *ListChatsResponse) Reset() {
 	*x = ListChatsResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -614,7 +692,7 @@ func (x *ListChatsResponse) String() string {
 func (*ListChatsResponse) ProtoMessage() {}
 
 func (x *ListChatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -684,7 +762,7 @@ type BatchGetChatsRequest struct {
 
 func (x *BatchGetChatsRequest) Reset() {
 	*x = BatchGetChatsRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -696,7 +774,7 @@ func (x *BatchGetChatsRequest) String() string {
 func (*BatchGetChatsRequest) ProtoMessage() {}
 
 func (x *BatchGetChatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -763,7 +841,7 @@ type BatchGetChatsResponse struct {
 
 func (x *BatchGetChatsResponse) Reset() {
 	*x = BatchGetChatsResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -775,7 +853,7 @@ func (x *BatchGetChatsResponse) String() string {
 func (*BatchGetChatsResponse) ProtoMessage() {}
 
 func (x *BatchGetChatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -843,7 +921,11 @@ const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
 	"\x04etag\x18\x03 \x01(\tR\x04etag\x12\x14\n" +
-	"\x05force\x18\x04 \x01(\bR\x05force\"\xa9\x02\n" +
+	"\x05force\x18\x04 \x01(\bR\x05force\"`\n" +
+	"\x13UndeleteChatRequest\x125\n" +
+	"\x04name\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
+	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xa9\x02\n" +
 	"\x10ListChatsRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -867,30 +949,31 @@ const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\x15BatchGetChatsResponse\x12)\n" +
 	"\x05chats\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ChatR\x05chatsB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_ai_ai_service_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_malonaz_ai_ai_service_v1_chat_proto_goTypes = []any{
 	(*CreateChatRequest)(nil),     // 0: malonaz.ai.ai_service.v1.CreateChatRequest
 	(*GetChatRequest)(nil),        // 1: malonaz.ai.ai_service.v1.GetChatRequest
 	(*UpdateChatRequest)(nil),     // 2: malonaz.ai.ai_service.v1.UpdateChatRequest
 	(*DeleteChatRequest)(nil),     // 3: malonaz.ai.ai_service.v1.DeleteChatRequest
-	(*ListChatsRequest)(nil),      // 4: malonaz.ai.ai_service.v1.ListChatsRequest
-	(*ListChatsResponse)(nil),     // 5: malonaz.ai.ai_service.v1.ListChatsResponse
-	(*BatchGetChatsRequest)(nil),  // 6: malonaz.ai.ai_service.v1.BatchGetChatsRequest
-	(*BatchGetChatsResponse)(nil), // 7: malonaz.ai.ai_service.v1.BatchGetChatsResponse
-	(*v1.Chat)(nil),               // 8: malonaz.ai.v1.Chat
-	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
+	(*UndeleteChatRequest)(nil),   // 4: malonaz.ai.ai_service.v1.UndeleteChatRequest
+	(*ListChatsRequest)(nil),      // 5: malonaz.ai.ai_service.v1.ListChatsRequest
+	(*ListChatsResponse)(nil),     // 6: malonaz.ai.ai_service.v1.ListChatsResponse
+	(*BatchGetChatsRequest)(nil),  // 7: malonaz.ai.ai_service.v1.BatchGetChatsRequest
+	(*BatchGetChatsResponse)(nil), // 8: malonaz.ai.ai_service.v1.BatchGetChatsResponse
+	(*v1.Chat)(nil),               // 9: malonaz.ai.v1.Chat
+	(*fieldmaskpb.FieldMask)(nil), // 10: google.protobuf.FieldMask
 }
 var file_malonaz_ai_ai_service_v1_chat_proto_depIdxs = []int32{
-	8, // 0: malonaz.ai.ai_service.v1.CreateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
-	8, // 1: malonaz.ai.ai_service.v1.UpdateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
-	9, // 2: malonaz.ai.ai_service.v1.UpdateChatRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.ai.ai_service.v1.ListChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
-	8, // 4: malonaz.ai.ai_service.v1.BatchGetChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	9,  // 0: malonaz.ai.ai_service.v1.CreateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
+	9,  // 1: malonaz.ai.ai_service.v1.UpdateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
+	10, // 2: malonaz.ai.ai_service.v1.UpdateChatRequest.update_mask:type_name -> google.protobuf.FieldMask
+	9,  // 3: malonaz.ai.ai_service.v1.ListChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
+	9,  // 4: malonaz.ai.ai_service.v1.BatchGetChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_chat_proto_init() }
@@ -904,7 +987,7 @@ func file_malonaz_ai_ai_service_v1_chat_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_chat_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

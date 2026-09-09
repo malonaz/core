@@ -77,6 +77,7 @@ type libraryService_AuthorStore interface {
 	BatchInsertAuthors(ctx context.Context, requestIDs []string, authors []*model.Author, authorProfiles []*model.AuthorProfile) ([]*model.Author, error)
 	UpdateAuthor(ctx context.Context, author *model.Author, updateClause string, columns []string, etag string) (*model.Author, error)
 	SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error)
+	UndeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string) (*model.Author, error)
 	GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error)
 	BatchGetAuthors(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.Author, error)
 	ListAuthors(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, error)
@@ -366,6 +367,53 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 
 	// STEP 3: Convert to protobuf and return.
 	author, err := dbAuthorModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting author from model to pb: %v", err).Err()
+	}
+
+	return author, nil
+}
+
+func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, request *v11.UndeleteAuthorRequest) (*v13.Author, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, authorId, err := model.ParseAuthorName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
+	author, err := s.GetAuthor(ctx, getAuthorRequest)
+	if err != nil {
+		return nil, err
+	}
+	author.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(author)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbAuthorModel, err := s.store.UndeleteAuthor(ctx, organizationId, authorId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrAuthorNotExist) {
+			return nil, status.Errorf(codes.NotFound, "author does not exist").Err()
+		}
+		if errors.Is(err, model.ErrAuthorNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "author is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrAuthorETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting author").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	author, err = dbAuthorModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting author from model to pb: %v", err).Err()
 	}
@@ -877,6 +925,7 @@ type libraryService_ShelfStore interface {
 	BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf) ([]*model.Shelf, error)
 	UpdateShelf(ctx context.Context, shelf *model.Shelf, updateClause string, columns []string) (*model.Shelf, error)
 	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error)
+	UndeleteShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
 	GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
 	BatchGetShelves(ctx context.Context, organizationIds []string, shelfIds []string) ([]*model.Shelf, error)
 	ListShelves(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Shelf, error)
@@ -1123,6 +1172,53 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 
 	// STEP 4: Publish event.
 	if err := s.publishResourceDeletedEvent(ctx, shelf); err != nil {
+		return nil, err
+	}
+
+	return shelf, nil
+}
+
+func (s *libraryService_ShelfServer) publishResourceUndeletedEvent(ctx context.Context, shelf *v13.Shelf) error {
+	{
+		subject := v13.GetShelfStream().GetUndeletedSubject()
+		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
+			return status.Errorf(codes.Internal, "publishing undeleted event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request *v11.UndeleteShelfRequest) (*v13.Shelf, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, shelfId, err := model.ParseShelfName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbShelfModel, err := s.store.UndeleteShelf(ctx, organizationId, shelfId)
+	if err != nil {
+		if errors.Is(err, model.ErrShelfNotExist) {
+			return nil, status.Errorf(codes.NotFound, "shelf does not exist").Err()
+		}
+		if errors.Is(err, model.ErrShelfNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "shelf is not deleted").Err()
+		}
+		return nil, status.FromError(err, "undeleting shelf").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	shelf, err := dbShelfModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+	}
+
+	// STEP 4: Publish event.
+	if err := s.publishResourceUndeletedEvent(ctx, shelf); err != nil {
 		return nil, err
 	}
 
@@ -2054,6 +2150,7 @@ type libraryService_NoteStore interface {
 	BatchInsertNotes(ctx context.Context, requestIDs []string, notes []*model.Note) ([]*model.Note, error)
 	UpdateNote(ctx context.Context, note *model.Note, updateClause string, columns []string, etag string) (*model.Note, error)
 	SoftDeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string, deleteTime time.Time) (*model.Note, error)
+	UndeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string) (*model.Note, error)
 	GetNote(ctx context.Context, organizationId, authorId, shelfId, noteId string) (*model.Note, error)
 	BatchGetNotes(ctx context.Context, organizationIds []string, authorIds []string, shelfIds []string, noteIds []string) ([]*model.Note, error)
 	ListNotes(ctx context.Context, organizationId, authorId, shelfId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Note, error)
@@ -2336,6 +2433,53 @@ func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11
 
 	// STEP 3: Convert to protobuf and return.
 	note, err := dbNoteModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
+	}
+
+	return note, nil
+}
+
+func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v11.UndeleteNoteRequest) (*v13.Note, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, authorId, shelfId, noteId, err := model.ParseNoteName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+	note, err := s.GetNote(ctx, getNoteRequest)
+	if err != nil {
+		return nil, err
+	}
+	note.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(note)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbNoteModel, err := s.store.UndeleteNote(ctx, organizationId, authorId, shelfId, noteId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrNoteNotExist) {
+			return nil, status.Errorf(codes.NotFound, "note does not exist").Err()
+		}
+		if errors.Is(err, model.ErrNoteNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "note is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrNoteETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting note").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	note, err = dbNoteModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting note from model to pb: %v", err).Err()
 	}

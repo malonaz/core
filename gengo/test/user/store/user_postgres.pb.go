@@ -232,6 +232,62 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 	return result, nil
 }
 
+func (s *Store) undeleteUserNoRows(ctx context.Context, organizationId, userId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM user_ WHERE organization_id = $1 AND id = $2`
+	params := []any{organizationId, userId}
+	var live bool
+	var currentEtag string
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrUserNotExist
+		}
+		return fmt.Errorf("probing user: %w", err)
+	}
+	if live {
+		return model.ErrUserNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrUserETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but user is deleted")
+}
+
+var undeleteUserPostgresQuery = `UPDATE user_ SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND id = $2 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", UserPostgresColumns)
+
+func (s *Store) UndeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string) (*model.User, error) {
+	query := undeleteUserPostgresQuery
+	params := []any{organizationId, userId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	var result *model.User
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("undeleting user: %w", err)
+		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return s.undeleteUserNoRows(ctx, organizationId, userId, etag)
+			}
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE user_profile SET delete_time = NULL WHERE organization_id = $1 AND user_id = $2`, organizationId, userId); err != nil {
+			return fmt.Errorf("restoring user_profile with user: %w", err)
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (s *Store) GetUser(ctx context.Context, organizationId, userId string) (*model.User, error) {
 	query := `SELECT %s FROM user_ WHERE organization_id = $1 AND id = $2`
 	query = postgres.SelectQuery(query, UserPostgresColumns)

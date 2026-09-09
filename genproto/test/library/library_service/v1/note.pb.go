@@ -426,6 +426,90 @@ func (b0 DeleteNoteRequest_builder) Build() *DeleteNoteRequest {
 	return m0
 }
 
+// Request message for LibraryService.UndeleteNote.
+type UndeleteNoteRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the deleted note to restore.
+	// Format: organizations/{organization}/notes/{note}
+	//
+	//	organizations/{organization}/authors/{author}/notes/{note}
+	//	organizations/{organization}/shelves/{shelf}/notes/{note}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UndeleteNoteRequest) Reset() {
+	*x = UndeleteNoteRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UndeleteNoteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UndeleteNoteRequest) ProtoMessage() {}
+
+func (x *UndeleteNoteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UndeleteNoteRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UndeleteNoteRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *UndeleteNoteRequest) SetName(v string) {
+	x.Name = v
+}
+
+func (x *UndeleteNoteRequest) SetEtag(v string) {
+	x.Etag = v
+}
+
+type UndeleteNoteRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the deleted note to restore.
+	// Format: organizations/{organization}/notes/{note}
+	//
+	//	organizations/{organization}/authors/{author}/notes/{note}
+	//	organizations/{organization}/shelves/{shelf}/notes/{note}
+	Name string
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag string
+}
+
+func (b0 UndeleteNoteRequest_builder) Build() *UndeleteNoteRequest {
+	m0 := &UndeleteNoteRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	x.Etag = b.Etag
+	return m0
+}
+
 // Request message for LibraryService.ListNotes.
 type ListNotesRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -449,7 +533,7 @@ type ListNotesRequest struct {
 
 func (x *ListNotesRequest) Reset() {
 	*x = ListNotesRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -461,7 +545,7 @@ func (x *ListNotesRequest) String() string {
 func (*ListNotesRequest) ProtoMessage() {}
 
 func (x *ListNotesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +667,7 @@ type ListNotesResponse struct {
 
 func (x *ListNotesResponse) Reset() {
 	*x = ListNotesResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -595,7 +679,7 @@ func (x *ListNotesResponse) String() string {
 func (*ListNotesResponse) ProtoMessage() {}
 
 func (x *ListNotesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -665,7 +749,7 @@ type BatchCreateNotesRequest struct {
 
 func (x *BatchCreateNotesRequest) Reset() {
 	*x = BatchCreateNotesRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -677,7 +761,7 @@ func (x *BatchCreateNotesRequest) String() string {
 func (*BatchCreateNotesRequest) ProtoMessage() {}
 
 func (x *BatchCreateNotesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -745,7 +829,7 @@ type BatchCreateNotesResponse struct {
 
 func (x *BatchCreateNotesResponse) Reset() {
 	*x = BatchCreateNotesResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -757,7 +841,7 @@ func (x *BatchCreateNotesResponse) String() string {
 func (*BatchCreateNotesResponse) ProtoMessage() {}
 
 func (x *BatchCreateNotesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -812,7 +896,7 @@ type BatchGetNotesRequest struct {
 
 func (x *BatchGetNotesRequest) Reset() {
 	*x = BatchGetNotesRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +908,7 @@ func (x *BatchGetNotesRequest) String() string {
 func (*BatchGetNotesRequest) ProtoMessage() {}
 
 func (x *BatchGetNotesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -891,7 +975,7 @@ type BatchGetNotesResponse struct {
 
 func (x *BatchGetNotesResponse) Reset() {
 	*x = BatchGetNotesResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +987,7 @@ func (x *BatchGetNotesResponse) String() string {
 func (*BatchGetNotesResponse) ProtoMessage() {}
 
 func (x *BatchGetNotesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -967,7 +1051,11 @@ const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Note\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xc2\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"j\n" +
+	"\x13UndeleteNoteRequest\x12?\n" +
+	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Note\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xc2\x02\n" +
 	"\x10ListNotesRequest\x12C\n" +
 	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/Note\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12!\n" +
@@ -996,29 +1084,30 @@ const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
 	"\x15BatchGetNotesResponse\x123\n" +
 	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notesBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_test_library_library_service_v1_note_proto_goTypes = []any{
 	(*CreateNoteRequest)(nil),        // 0: malonaz.test.library.library_service.v1.CreateNoteRequest
 	(*GetNoteRequest)(nil),           // 1: malonaz.test.library.library_service.v1.GetNoteRequest
 	(*UpdateNoteRequest)(nil),        // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest
 	(*DeleteNoteRequest)(nil),        // 3: malonaz.test.library.library_service.v1.DeleteNoteRequest
-	(*ListNotesRequest)(nil),         // 4: malonaz.test.library.library_service.v1.ListNotesRequest
-	(*ListNotesResponse)(nil),        // 5: malonaz.test.library.library_service.v1.ListNotesResponse
-	(*BatchCreateNotesRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchCreateNotesRequest
-	(*BatchCreateNotesResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchCreateNotesResponse
-	(*BatchGetNotesRequest)(nil),     // 8: malonaz.test.library.library_service.v1.BatchGetNotesRequest
-	(*BatchGetNotesResponse)(nil),    // 9: malonaz.test.library.library_service.v1.BatchGetNotesResponse
-	(*v1.Note)(nil),                  // 10: malonaz.test.library.v1.Note
-	(*fieldmaskpb.FieldMask)(nil),    // 11: google.protobuf.FieldMask
+	(*UndeleteNoteRequest)(nil),      // 4: malonaz.test.library.library_service.v1.UndeleteNoteRequest
+	(*ListNotesRequest)(nil),         // 5: malonaz.test.library.library_service.v1.ListNotesRequest
+	(*ListNotesResponse)(nil),        // 6: malonaz.test.library.library_service.v1.ListNotesResponse
+	(*BatchCreateNotesRequest)(nil),  // 7: malonaz.test.library.library_service.v1.BatchCreateNotesRequest
+	(*BatchCreateNotesResponse)(nil), // 8: malonaz.test.library.library_service.v1.BatchCreateNotesResponse
+	(*BatchGetNotesRequest)(nil),     // 9: malonaz.test.library.library_service.v1.BatchGetNotesRequest
+	(*BatchGetNotesResponse)(nil),    // 10: malonaz.test.library.library_service.v1.BatchGetNotesResponse
+	(*v1.Note)(nil),                  // 11: malonaz.test.library.v1.Note
+	(*fieldmaskpb.FieldMask)(nil),    // 12: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_note_proto_depIdxs = []int32{
-	10, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	10, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	11, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	11, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	11, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	12, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
 	0,  // 4: malonaz.test.library.library_service.v1.BatchCreateNotesRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateNoteRequest
-	10, // 5: malonaz.test.library.library_service.v1.BatchCreateNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
-	10, // 6: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	11, // 5: malonaz.test.library.library_service.v1.BatchCreateNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	11, // 6: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
 	7,  // [7:7] is the sub-list for method output_type
 	7,  // [7:7] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
@@ -1037,7 +1126,7 @@ func file_malonaz_test_library_library_service_v1_note_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_note_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_note_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

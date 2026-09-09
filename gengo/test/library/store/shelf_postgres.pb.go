@@ -203,6 +203,42 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 	return result, nil
 }
 
+func (s *Store) undeleteShelfNoRows(ctx context.Context, organizationId, shelfId string) error {
+	query := `SELECT delete_time IS NULL FROM library.shelf WHERE organization_id = $1 AND shelf_id = $2`
+	params := []any{organizationId, shelfId}
+	var live bool
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrShelfNotExist
+		}
+		return fmt.Errorf("probing shelf: %w", err)
+	}
+	if live {
+		return model.ErrShelfNotDeleted
+	}
+	return fmt.Errorf("undelete matched no rows but shelf is deleted")
+}
+
+var undeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = NULL WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
+
+func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
+	query := undeleteShelfPostgresQuery
+	params := []any{organizationId, shelfId}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting shelf: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteShelfNoRows(ctx, organizationId, shelfId)
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
 func (s *Store) GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
 	query := `SELECT %s FROM library.shelf ` + shelfJoinClause + ` WHERE shelf.organization_id = $1 AND shelf.shelf_id = $2`
 	query = fmt.Sprintf(query, postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs)

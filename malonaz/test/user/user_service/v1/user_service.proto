@@ -67,6 +67,18 @@ service UserService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
   }
 
+  // Undeletes a organization.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteOrganization(UndeleteOrganizationRequest) returns (malonaz.test.user.v1.Organization) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/Organization";
+  }
+
   // Lists organizations.
   rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
     option (google.api.http) = {get: "/v1/organizations"};
@@ -114,6 +126,18 @@ service UserService {
   // Deletes a user.
   rpc DeleteUser(DeleteUserRequest) returns (malonaz.test.user.v1.User) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
+  }
+
+  // Undeletes a user.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteUser(UndeleteUserRequest) returns (malonaz.test.user.v1.User) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*}:undelete"
+      body: "*"
+    };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "user.test.malonaz.com/User";
   }

@@ -110,6 +110,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateBatchInsert()
 		mc.generateUpdate()
 		mc.generateDelete()
+		mc.generateUndelete()
 		mc.generateGet()
 		mc.generateBatchGet()
 		mc.generateList()
@@ -208,6 +209,7 @@ type msgCtx struct {
 	errNotExist       string
 	errAlreadyExists  string
 	errAlreadyDeleted string
+	errNotDeleted     string
 	errETagChanged    string
 	errHasChildren    string
 
@@ -337,6 +339,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errNotExist:       gen.modelIdent("Err" + goType + "NotExist"),
 		errAlreadyExists:  gen.modelIdent("Err" + goType + "AlreadyExists"),
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
+		errNotDeleted:     gen.modelIdent("Err" + goType + "NotDeleted"),
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 		errHasChildren:    gen.modelIdent("Err" + goType + "HasChildren"),
 

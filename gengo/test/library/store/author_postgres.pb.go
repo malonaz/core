@@ -254,6 +254,62 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 	return result, nil
 }
 
+func (s *Store) undeleteAuthorNoRows(ctx context.Context, organizationId, authorId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
+	params := []any{organizationId, authorId}
+	var live bool
+	var currentEtag string
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrAuthorNotExist
+		}
+		return fmt.Errorf("probing author: %w", err)
+	}
+	if live {
+		return model.ErrAuthorNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrAuthorETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but author is deleted")
+}
+
+var undeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", AuthorPostgresColumns)
+
+func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string) (*model.Author, error) {
+	query := undeleteAuthorPostgresQuery
+	params := []any{organizationId, authorId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	var result *model.Author
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("undeleting author: %w", err)
+		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return s.undeleteAuthorNoRows(ctx, organizationId, authorId, etag)
+			}
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE library.author_profile SET delete_time = NULL WHERE organization_id = $1 AND author_id = $2`, organizationId, authorId); err != nil {
+			return fmt.Errorf("restoring library.author_profile with author: %w", err)
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (s *Store) GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error) {
 	query := `SELECT %s FROM library.author WHERE organization_id = $1 AND author_id = $2`
 	query = postgres.SelectQuery(query, AuthorPostgresColumns)

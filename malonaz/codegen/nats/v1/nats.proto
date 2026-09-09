@@ -49,6 +49,10 @@ message EventOptions {
   // Options for deleted events, published when a resource is deleted via its Delete method.
   // If unset, no deleted event is generated.
   repeated EventMethodOptions deleted = 5;
+
+  // Options for undeleted events, published when a soft-deleted resource is restored via its Undelete method.
+  // If unset, no undeleted event is generated.
+  repeated EventMethodOptions undeleted = 6;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.
@@ -70,7 +74,7 @@ message EventMethodOptions {
   // Optional CEL expression evaluated before publishing.
   // If present, the event is only published when the expression evaluates to true.
   // Available variables:
-  //   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+  //   - `<resource>` (e.g., `shelf`) on created, updated, deleted & undeleted events.
   //   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
   //   - `update_mask` on updated events.
   string cel = 3;

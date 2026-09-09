@@ -246,6 +246,50 @@ func (s *Store) SoftDeleteOrganization(ctx context.Context, organizationId strin
 	return result, nil
 }
 
+func (s *Store) undeleteOrganizationNoRows(ctx context.Context, organizationId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM organization WHERE organization_id = $1`
+	params := []any{organizationId}
+	var live bool
+	var currentEtag string
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrOrganizationNotExist
+		}
+		return fmt.Errorf("probing organization: %w", err)
+	}
+	if live {
+		return model.ErrOrganizationNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrOrganizationETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but organization is deleted")
+}
+
+var undeleteOrganizationPostgresQuery = `UPDATE organization SET delete_time = NULL, etag = $2 WHERE organization_id = $1 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", OrganizationPostgresColumns)
+
+func (s *Store) UndeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string) (*model.Organization, error) {
+	query := undeleteOrganizationPostgresQuery
+	params := []any{organizationId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting organization: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Organization])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteOrganizationNoRows(ctx, organizationId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
 func (s *Store) GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error) {
 	query := `SELECT %s FROM organization WHERE organization_id = $1`
 	query = postgres.SelectQuery(query, OrganizationPostgresColumns)

@@ -39,6 +39,11 @@ type shelfDeletedEvent struct {
 	Shelf *librarypb.Shelf
 }
 
+type shelfUndeletedEvent struct {
+	Shelf *librarypb.Shelf
+	Type  aippb.ResourceEventType
+}
+
 type authorCreatedEvent struct {
 	Author *librarypb.Author
 }
@@ -78,6 +83,7 @@ func TestNatsEvents_Shelf(t *testing.T) {
 	shelfNameToCreatedEvents := map[string][]*shelfCreatedEvent{}
 	shelfNameToUpdatedEvents := map[string][]*shelfUpdatedEvent{}
 	shelfNameToDeletedEvents := map[string][]*shelfDeletedEvent{}
+	shelfNameToUndeletedEvents := map[string][]*shelfUndeletedEvent{}
 
 	natsClient, err := satEnvironment.GetNatsClient(ctx)
 	require.NoError(t, err)
@@ -141,6 +147,25 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, deletedProcessor.Start(ctx))
+
+	undeletedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{shelfStream.GetUndeletedSubject().MustGet()},
+		ConsumerName: "test-shelf-undeleted-" + consumerSuffix,
+		BatchSize:    100,
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
+		mu.Lock()
+		defer mu.Unlock()
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		shelfNameToUndeletedEvents[shelf.Name] = append(shelfNameToUndeletedEvents[shelf.Name], &shelfUndeletedEvent{
+			Shelf: shelf,
+			Type:  message.Payload.GetType(),
+		})
+		return nil
+	})
+	require.NoError(t, undeletedProcessor.Start(ctx))
 
 	// Processor that filters on subject.
 	targetGenre := librarypb.ShelfGenre_SHELF_GENRE_SCIENCE_FICTION
@@ -486,6 +511,47 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		require.Len(t, events, 1)
 		require.Equal(t, shelf.Name, events[0].Shelf.Name)
 		require.NotNil(t, events[0].Shelf.DeleteTime)
+	})
+
+	t.Run("UndeletedEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Nats Undeleted Shelf", librarypb.ShelfGenre_SHELF_GENRE_BIOGRAPHY)
+
+		deleteShelfRequest := &libraryservicepb.DeleteShelfRequest{Name: shelf.Name}
+		_, err := libraryServiceClient.DeleteShelf(ctx, deleteShelfRequest)
+		require.NoError(t, err)
+		undeleteShelfRequest := &libraryservicepb.UndeleteShelfRequest{Name: shelf.Name}
+		_, err = libraryServiceClient.UndeleteShelf(ctx, undeleteShelfRequest)
+		require.NoError(t, err)
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToUndeletedEvents[shelf.Name]) >= 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+
+		mu.Lock()
+		defer mu.Unlock()
+		events := shelfNameToUndeletedEvents[shelf.Name]
+		require.Len(t, events, 1)
+		require.Equal(t, shelf.Name, events[0].Shelf.Name)
+		require.Nil(t, events[0].Shelf.DeleteTime)
+		require.Equal(t, aippb.ResourceEventType_RESOURCE_EVENT_TYPE_UNDELETED, events[0].Type)
+	})
+
+	t.Run("FailedUndelete_AlreadyExists_NoEvent", func(t *testing.T) {
+		t.Parallel()
+		shelf := createTestShelf(t, organizationParent, "Nats Live Undelete Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+
+		undeleteShelfRequest := &libraryservicepb.UndeleteShelfRequest{Name: shelf.Name}
+		_, err := libraryServiceClient.UndeleteShelf(ctx, undeleteShelfRequest)
+		grpcrequire.Error(t, codes.AlreadyExists, err)
+
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(shelfNameToUndeletedEvents[shelf.Name]) > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 
 	t.Run("FailedDelete_NotFound_NoEvent", func(t *testing.T) {

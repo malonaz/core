@@ -24,6 +24,7 @@ const (
 	BookmarkService_GetBookmark_FullMethodName       = "/malonaz.test.library.library_service.v1.BookmarkService/GetBookmark"
 	BookmarkService_UpdateBookmark_FullMethodName    = "/malonaz.test.library.library_service.v1.BookmarkService/UpdateBookmark"
 	BookmarkService_DeleteBookmark_FullMethodName    = "/malonaz.test.library.library_service.v1.BookmarkService/DeleteBookmark"
+	BookmarkService_UndeleteBookmark_FullMethodName  = "/malonaz.test.library.library_service.v1.BookmarkService/UndeleteBookmark"
 	BookmarkService_ListBookmarks_FullMethodName     = "/malonaz.test.library.library_service.v1.BookmarkService/ListBookmarks"
 	BookmarkService_BatchGetBookmarks_FullMethodName = "/malonaz.test.library.library_service.v1.BookmarkService/BatchGetBookmarks"
 )
@@ -42,6 +43,10 @@ type BookmarkServiceClient interface {
 	UpdateBookmark(ctx context.Context, in *UpdateBookmarkRequest, opts ...grpc.CallOption) (*v1.Bookmark, error)
 	// Deletes a bookmark.
 	DeleteBookmark(ctx context.Context, in *DeleteBookmarkRequest, opts ...grpc.CallOption) (*v1.Bookmark, error)
+	// Undeletes a bookmark.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteBookmark(ctx context.Context, in *UndeleteBookmarkRequest, opts ...grpc.CallOption) (*v1.Bookmark, error)
 	// Lists bookmarks.
 	ListBookmarks(ctx context.Context, in *ListBookmarksRequest, opts ...grpc.CallOption) (*ListBookmarksResponse, error)
 	// Gets multiple bookmarks in a single request.
@@ -98,6 +103,16 @@ func (c *bookmarkServiceClient) DeleteBookmark(ctx context.Context, in *DeleteBo
 	return out, nil
 }
 
+func (c *bookmarkServiceClient) UndeleteBookmark(ctx context.Context, in *UndeleteBookmarkRequest, opts ...grpc.CallOption) (*v1.Bookmark, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Bookmark)
+	err := c.cc.Invoke(ctx, BookmarkService_UndeleteBookmark_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bookmarkServiceClient) ListBookmarks(ctx context.Context, in *ListBookmarksRequest, opts ...grpc.CallOption) (*ListBookmarksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListBookmarksResponse)
@@ -132,6 +147,10 @@ type BookmarkServiceServer interface {
 	UpdateBookmark(context.Context, *UpdateBookmarkRequest) (*v1.Bookmark, error)
 	// Deletes a bookmark.
 	DeleteBookmark(context.Context, *DeleteBookmarkRequest) (*v1.Bookmark, error)
+	// Undeletes a bookmark.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteBookmark(context.Context, *UndeleteBookmarkRequest) (*v1.Bookmark, error)
 	// Lists bookmarks.
 	ListBookmarks(context.Context, *ListBookmarksRequest) (*ListBookmarksResponse, error)
 	// Gets multiple bookmarks in a single request.
@@ -158,6 +177,9 @@ func (UnimplementedBookmarkServiceServer) UpdateBookmark(context.Context, *Updat
 }
 func (UnimplementedBookmarkServiceServer) DeleteBookmark(context.Context, *DeleteBookmarkRequest) (*v1.Bookmark, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteBookmark not implemented")
+}
+func (UnimplementedBookmarkServiceServer) UndeleteBookmark(context.Context, *UndeleteBookmarkRequest) (*v1.Bookmark, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteBookmark not implemented")
 }
 func (UnimplementedBookmarkServiceServer) ListBookmarks(context.Context, *ListBookmarksRequest) (*ListBookmarksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBookmarks not implemented")
@@ -257,6 +279,24 @@ func _BookmarkService_DeleteBookmark_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BookmarkService_UndeleteBookmark_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteBookmarkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookmarkServiceServer).UndeleteBookmark(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BookmarkService_UndeleteBookmark_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookmarkServiceServer).UndeleteBookmark(ctx, req.(*UndeleteBookmarkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BookmarkService_ListBookmarks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListBookmarksRequest)
 	if err := dec(in); err != nil {
@@ -315,6 +355,10 @@ var BookmarkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBookmark",
 			Handler:    _BookmarkService_DeleteBookmark_Handler,
+		},
+		{
+			MethodName: "UndeleteBookmark",
+			Handler:    _BookmarkService_UndeleteBookmark_Handler,
 		},
 		{
 			MethodName: "ListBookmarks",

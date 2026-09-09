@@ -36,6 +36,10 @@ class BookmarkServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def UndeleteBookmark(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.bookmark_pb2.UndeleteBookmarkRequest, malonaz.test.library.v1.bookmark_pb2.Bookmark]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListBookmarks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksRequest, malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksResponse]') -> None:
         pass
 
@@ -67,6 +71,12 @@ class BookmarkServiceBase(abc.ABC):
                 self.DeleteBookmark,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.bookmark_pb2.DeleteBookmarkRequest,
+                malonaz.test.library.v1.bookmark_pb2.Bookmark,
+            ),
+            '/malonaz.test.library.library_service.v1.BookmarkService/UndeleteBookmark': grpclib.const.Handler(
+                self.UndeleteBookmark,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.bookmark_pb2.UndeleteBookmarkRequest,
                 malonaz.test.library.v1.bookmark_pb2.Bookmark,
             ),
             '/malonaz.test.library.library_service.v1.BookmarkService/ListBookmarks': grpclib.const.Handler(
@@ -109,6 +119,12 @@ class BookmarkServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.BookmarkService/DeleteBookmark',
             malonaz.test.library.library_service.v1.bookmark_pb2.DeleteBookmarkRequest,
+            malonaz.test.library.v1.bookmark_pb2.Bookmark,
+        )
+        self.UndeleteBookmark = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.BookmarkService/UndeleteBookmark',
+            malonaz.test.library.library_service.v1.bookmark_pb2.UndeleteBookmarkRequest,
             malonaz.test.library.v1.bookmark_pb2.Bookmark,
         )
         self.ListBookmarks = grpclib.client.UnaryUnaryMethod(

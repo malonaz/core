@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/user/user_service/v1/organization.proto.
  */
 export const file_malonaz_test_user_user_service_v1_organization: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L3Rlc3QvdXNlci91c2VyX3NlcnZpY2UvdjEvb3JnYW5pemF0aW9uLnByb3RvEiFtYWxvbmF6LnRlc3QudXNlci51c2VyX3NlcnZpY2UudjEi1QEKGUNyZWF0ZU9yZ2FuaXphdGlvblJlcXVlc3QSPgoPb3JnYW5pemF0aW9uX2lkGAEgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEkAKDG9yZ2FuaXphdGlvbhgCIAEoCzIiLm1hbG9uYXoudGVzdC51c2VyLnYxLk9yZ2FuaXphdGlvbkIGukgDyAEBEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBCABKAgiWAoWR2V0T3JnYW5pemF0aW9uUmVxdWVzdBI+CgRuYW1lGAEgASgJQjDgQQL6QSQKInVzZXIudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQEikAIKGVVwZGF0ZU9yZ2FuaXphdGlvblJlcXVlc3QSQAoMb3JnYW5pemF0aW9uGAEgASgLMiIubWFsb25hei50ZXN0LnVzZXIudjEuT3JnYW5pemF0aW9uQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6eLpIWhpYChpvcmdhbml6YXRpb24ubmFtZV9yZXF1aXJlZBIdb3JnYW5pemF0aW9uLm5hbWUgbXVzdCBiZSBzZXQaG2hhcyh0aGlzLm9yZ2FuaXphdGlvbi5uYW1lKeqcwQMWCgxkaXNwbGF5X25hbWUKBmxhYmVscyKPAQoZRGVsZXRlT3JnYW5pemF0aW9uUmVxdWVzdBI+CgRuYW1lGAEgASgJQjDgQQL6QSQKInVzZXIudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIItIBChhMaXN0T3JnYW5pemF0aW9uc1JlcXVlc3QSDgoGZmlsdGVyGAEgASgJEhQKDHNob3dfZGVsZXRlZBgCIAEoCBIQCghvcmRlcl9ieRgDIAEoCRIdCglwYWdlX3NpemUYBCABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgFIAEoCTpLgvMtAghkivMtOgoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgxkaXNwbGF5X25hbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIm8KGUxpc3RPcmdhbml6YXRpb25zUmVzcG9uc2USOQoNb3JnYW5pemF0aW9ucxgBIAMoCzIiLm1hbG9uYXoudGVzdC51c2VyLnYxLk9yZ2FuaXphdGlvbhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiaQocQmF0Y2hHZXRPcmdhbml6YXRpb25zUmVxdWVzdBJJCgVuYW1lcxgBIAMoCUI6+kEkCiJ1c2VyLnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgQkgENCAEQ6AcYASIEcgIQASJaCh1CYXRjaEdldE9yZ2FuaXphdGlvbnNSZXNwb25zZRI5Cg1vcmdhbml6YXRpb25zGAEgAygLMiIubWFsb25hei50ZXN0LnVzZXIudjEuT3JnYW5pemF0aW9uQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvdXNlci91c2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_user_v1_organization]);
+  fileDesc("CjRtYWxvbmF6L3Rlc3QvdXNlci91c2VyX3NlcnZpY2UvdjEvb3JnYW5pemF0aW9uLnByb3RvEiFtYWxvbmF6LnRlc3QudXNlci51c2VyX3NlcnZpY2UudjEi1QEKGUNyZWF0ZU9yZ2FuaXphdGlvblJlcXVlc3QSPgoPb3JnYW5pemF0aW9uX2lkGAEgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEkAKDG9yZ2FuaXphdGlvbhgCIAEoCzIiLm1hbG9uYXoudGVzdC51c2VyLnYxLk9yZ2FuaXphdGlvbkIGukgDyAEBEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBCABKAgiWAoWR2V0T3JnYW5pemF0aW9uUmVxdWVzdBI+CgRuYW1lGAEgASgJQjDgQQL6QSQKInVzZXIudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQEikAIKGVVwZGF0ZU9yZ2FuaXphdGlvblJlcXVlc3QSQAoMb3JnYW5pemF0aW9uGAEgASgLMiIubWFsb25hei50ZXN0LnVzZXIudjEuT3JnYW5pemF0aW9uQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6eLpIWhpYChpvcmdhbml6YXRpb24ubmFtZV9yZXF1aXJlZBIdb3JnYW5pemF0aW9uLm5hbWUgbXVzdCBiZSBzZXQaG2hhcyh0aGlzLm9yZ2FuaXphdGlvbi5uYW1lKeqcwQMWCgxkaXNwbGF5X25hbWUKBmxhYmVscyKPAQoZRGVsZXRlT3JnYW5pemF0aW9uUmVxdWVzdBI+CgRuYW1lGAEgASgJQjDgQQL6QSQKInVzZXIudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIImsKG1VuZGVsZXRlT3JnYW5pemF0aW9uUmVxdWVzdBI+CgRuYW1lGAEgASgJQjDgQQL6QSQKInVzZXIudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESDAoEZXRhZxgCIAEoCSLSAQoYTGlzdE9yZ2FuaXphdGlvbnNSZXF1ZXN0Eg4KBmZpbHRlchgBIAEoCRIUCgxzaG93X2RlbGV0ZWQYAiABKAgSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6S4LzLQIIZIrzLToKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoMZGlzcGxheV9uYW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJvChlMaXN0T3JnYW5pemF0aW9uc1Jlc3BvbnNlEjkKDW9yZ2FuaXphdGlvbnMYASADKAsyIi5tYWxvbmF6LnRlc3QudXNlci52MS5Pcmdhbml6YXRpb24SFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJImkKHEJhdGNoR2V0T3JnYW5pemF0aW9uc1JlcXVlc3QSSQoFbmFtZXMYASADKAlCOvpBJAoidXNlci50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIEJIBDQgBEOgHGAEiBHICEAEiWgodQmF0Y2hHZXRPcmdhbml6YXRpb25zUmVzcG9uc2USOQoNb3JnYW5pemF0aW9ucxgBIAMoCzIiLm1hbG9uYXoudGVzdC51c2VyLnYxLk9yZ2FuaXphdGlvbkI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3VzZXIvdXNlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_user_v1_organization]);
 
 /**
  * Request message for UserService.CreateOrganization.
@@ -267,6 +267,57 @@ export const DeleteOrganizationRequestSchema: GenMessage<DeleteOrganizationReque
   messageDesc(file_malonaz_test_user_user_service_v1_organization, 3);
 
 /**
+ * Request message for UserService.UndeleteOrganization.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.UndeleteOrganizationRequest
+ */
+export type UndeleteOrganizationRequest = Message<"malonaz.test.user.user_service.v1.UndeleteOrganizationRequest"> & {
+  /**
+   * The resource name of the deleted organization to restore.
+   * Format: organizations/{organization}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Request message for UserService.UndeleteOrganization.
+ *
+ * @generated from message malonaz.test.user.user_service.v1.UndeleteOrganizationRequest
+ */
+export type UndeleteOrganizationRequestValid = Message<"malonaz.test.user.user_service.v1.UndeleteOrganizationRequest"> & {
+  /**
+   * The resource name of the deleted organization to restore.
+   * Format: organizations/{organization}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Describes the message malonaz.test.user.user_service.v1.UndeleteOrganizationRequest.
+ * Use `create(UndeleteOrganizationRequestSchema)` to create a new message.
+ */
+export const UndeleteOrganizationRequestSchema: GenMessage<UndeleteOrganizationRequest, {validType: UndeleteOrganizationRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_user_user_service_v1_organization, 4);
+
+/**
  * Request message for UserService.ListOrganizations.
  *
  * @generated from message malonaz.test.user.user_service.v1.ListOrganizationsRequest
@@ -315,7 +366,7 @@ export type ListOrganizationsRequestValid = ListOrganizationsRequest;
  * Use `create(ListOrganizationsRequestSchema)` to create a new message.
  */
 export const ListOrganizationsRequestSchema: GenMessage<ListOrganizationsRequest, {validType: ListOrganizationsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_organization, 4);
+  messageDesc(file_malonaz_test_user_user_service_v1_organization, 5);
 
 /**
  * Response message for UserService.ListOrganizations.
@@ -345,7 +396,7 @@ export type ListOrganizationsResponseValid = ListOrganizationsResponse;
  * Use `create(ListOrganizationsResponseSchema)` to create a new message.
  */
 export const ListOrganizationsResponseSchema: GenMessage<ListOrganizationsResponse, {validType: ListOrganizationsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_organization, 5);
+  messageDesc(file_malonaz_test_user_user_service_v1_organization, 6);
 
 /**
  * Request message for UserService.BatchGetOrganizations.
@@ -370,7 +421,7 @@ export type BatchGetOrganizationsRequestValid = BatchGetOrganizationsRequest;
  * Use `create(BatchGetOrganizationsRequestSchema)` to create a new message.
  */
 export const BatchGetOrganizationsRequestSchema: GenMessage<BatchGetOrganizationsRequest, {validType: BatchGetOrganizationsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_organization, 6);
+  messageDesc(file_malonaz_test_user_user_service_v1_organization, 7);
 
 /**
  * Response message for UserService.BatchGetOrganizations.
@@ -393,5 +444,5 @@ export type BatchGetOrganizationsResponseValid = BatchGetOrganizationsResponse;
  * Use `create(BatchGetOrganizationsResponseSchema)` to create a new message.
  */
 export const BatchGetOrganizationsResponseSchema: GenMessage<BatchGetOrganizationsResponse, {validType: BatchGetOrganizationsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_user_user_service_v1_organization, 7);
+  messageDesc(file_malonaz_test_user_user_service_v1_organization, 8);
 

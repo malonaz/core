@@ -35,6 +35,7 @@ type EventOptions struct {
 	xxx_hidden_Created          *[]*EventMethodOptions `protobuf:"bytes,3,rep,name=created,proto3"`
 	xxx_hidden_Updated          *[]*EventMethodOptions `protobuf:"bytes,4,rep,name=updated,proto3"`
 	xxx_hidden_Deleted          *[]*EventMethodOptions `protobuf:"bytes,5,rep,name=deleted,proto3"`
+	xxx_hidden_Undeleted        *[]*EventMethodOptions `protobuf:"bytes,6,rep,name=undeleted,proto3"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -105,6 +106,15 @@ func (x *EventOptions) GetDeleted() []*EventMethodOptions {
 	return nil
 }
 
+func (x *EventOptions) GetUndeleted() []*EventMethodOptions {
+	if x != nil {
+		if x.xxx_hidden_Undeleted != nil {
+			return *x.xxx_hidden_Undeleted
+		}
+	}
+	return nil
+}
+
 func (x *EventOptions) SetStream(v string) {
 	x.xxx_hidden_Stream = v
 }
@@ -123,6 +133,10 @@ func (x *EventOptions) SetUpdated(v []*EventMethodOptions) {
 
 func (x *EventOptions) SetDeleted(v []*EventMethodOptions) {
 	x.xxx_hidden_Deleted = &v
+}
+
+func (x *EventOptions) SetUndeleted(v []*EventMethodOptions) {
+	x.xxx_hidden_Undeleted = &v
 }
 
 type EventOptions_builder struct {
@@ -145,6 +159,9 @@ type EventOptions_builder struct {
 	// Options for deleted events, published when a resource is deleted via its Delete method.
 	// If unset, no deleted event is generated.
 	Deleted []*EventMethodOptions
+	// Options for undeleted events, published when a soft-deleted resource is restored via its Undelete method.
+	// If unset, no undeleted event is generated.
+	Undeleted []*EventMethodOptions
 }
 
 func (b0 EventOptions_builder) Build() *EventOptions {
@@ -156,6 +173,7 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	x.xxx_hidden_Created = &b.Created
 	x.xxx_hidden_Updated = &b.Updated
 	x.xxx_hidden_Deleted = &b.Deleted
+	x.xxx_hidden_Undeleted = &b.Undeleted
 	return m0
 }
 
@@ -245,7 +263,7 @@ type EventMethodOptions_builder struct {
 	// Optional CEL expression evaluated before publishing.
 	// If present, the event is only published when the expression evaluates to true.
 	// Available variables:
-	//   - `<resource>` (e.g., `shelf`) on created, updated & deleted events.
+	//   - `<resource>` (e.g., `shelf`) on created, updated, deleted & undeleted events.
 	//   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
 	//   - `update_mask` on updated events.
 	Cel string
@@ -300,13 +318,14 @@ var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xb0\x02\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xfb\x02\n" +
 	"\fEventOptions\x12\x1e\n" +
 	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12+\n" +
 	"\x11resource_segments\x18\x02 \x03(\tR\x10resourceSegments\x12E\n" +
 	"\acreated\x18\x03 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
 	"\aupdated\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
-	"\adeleted\x18\x05 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\"o\n" +
+	"\adeleted\x18\x05 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\x12I\n" +
+	"\tundeleted\x18\x06 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\tundeleted\"o\n" +
 	"\x12EventMethodOptions\x12 \n" +
 	"\asubject\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12%\n" +
 	"\x0esubject_fields\x18\x02 \x03(\tR\rsubjectFields\x12\x10\n" +
@@ -326,15 +345,16 @@ var file_malonaz_codegen_nats_v1_nats_proto_depIdxs = []int32{
 	1, // 0: malonaz.codegen.nats.v1.EventOptions.created:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
 	1, // 1: malonaz.codegen.nats.v1.EventOptions.updated:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
 	1, // 2: malonaz.codegen.nats.v1.EventOptions.deleted:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
-	2, // 3: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
-	3, // 4: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
-	4, // 5: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
-	0, // 6: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	5, // [5:7] is the sub-list for extension type_name
-	3, // [3:5] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	1, // 3: malonaz.codegen.nats.v1.EventOptions.undeleted:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
+	2, // 4: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
+	3, // 5: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
+	4, // 6: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
+	0, // 7: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	6, // [6:8] is the sub-list for extension type_name
+	4, // [4:6] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_nats_v1_nats_proto_init() }

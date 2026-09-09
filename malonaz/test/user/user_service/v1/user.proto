@@ -97,6 +97,20 @@ message DeleteUserRequest {
   string etag = 3;
 }
 
+// Request message for UserService.UndeleteUser.
+message UndeleteUserRequest {
+  // The resource name of the deleted user to restore.
+  // Format: organizations/{organization}/users/{user}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/User"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for UserService.ListUsers.
 message ListUsersRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

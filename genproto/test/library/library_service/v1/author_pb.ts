@@ -20,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/author.proto.
  */
 export const file_malonaz_test_library_library_service_v1_author: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYXV0aG9yLnByb3RvEidtYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEihQIKE0NyZWF0ZUF1dGhvclJlcXVlc3QSQwoGcGFyZW50GAEgASgJQjPgQQL6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESOAoJYXV0aG9yX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjcKBmF1dGhvchgDIAEoCzIfLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvckIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiTwoQR2V0QXV0aG9yUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQEiogIKE1VwZGF0ZUF1dGhvclJlcXVlc3QSNwoGYXV0aG9yGAEgASgLMh8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQXV0aG9yQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6mAG6SEgaRgoUYXV0aG9yLm5hbWVfcmVxdWlyZWQSF2F1dGhvci5uYW1lIG11c3QgYmUgc2V0GhVoYXModGhpcy5hdXRob3IubmFtZSnqnMEDSAoMZGlzcGxheV9uYW1lCgliaW9ncmFwaHkKDWVtYWlsX2FkZHJlc3MKDHBob25lX251bWJlcgoGbGFiZWxzCghtZXRhZGF0YSKGAQoTRGVsZXRlQXV0aG9yUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIpECChJMaXN0QXV0aG9yc1JlcXVlc3QSQwoGcGFyZW50GAEgASgJQjPgQQL6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCTpLgvMtAghkivMtOgoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgxkaXNwbGF5X25hbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqImAKE0xpc3RBdXRob3JzUmVzcG9uc2USMAoHYXV0aG9ycxgBIAMoCzIfLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvchIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkinAEKFkJhdGNoR2V0QXV0aG9yc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SRgoFbmFtZXMYAiADKAlCN/pBIQofbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0F1dGhvcrpIEJIBDQgBEOgHGAEiBHICEAEiSwoXQmF0Y2hHZXRBdXRob3JzUmVzcG9uc2USMAoHYXV0aG9ycxgBIAMoCzIfLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvciLRAQoZQmF0Y2hDcmVhdGVBdXRob3JzUmVxdWVzdBI6CgZwYXJlbnQYASABKAlCKvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJhCghyZXF1ZXN0cxgCIAMoCzI8Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5DcmVhdGVBdXRob3JSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBARIVCg12YWxpZGF0ZV9vbmx5GAMgASgIIk4KGkJhdGNoQ3JlYXRlQXV0aG9yc1Jlc3BvbnNlEjAKB2F1dGhvcnMYASADKAsyHy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5BdXRob3Ii+QEKFFNlYXJjaEF1dGhvcnNSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEhoKBXF1ZXJ5GAIgASgJQgu6SAhyAxiAAsgBARIOCgZmaWx0ZXIYAyABKAkSFAoMc2hvd19kZWxldGVkGAQgASgIEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYByABKAg6DYLzLQIIZJLzLQMKASoikwEKFVNlYXJjaEF1dGhvcnNSZXNwb25zZRIwCgdhdXRob3JzGAEgAygLMh8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQXV0aG9yEi8KCHNuaXBwZXRzGAIgAygLMh0ubWFsb25hei5haXAudjEuU2VhcmNoU25pcHBldBIXCg9uZXh0X3BhZ2VfdG9rZW4YAyABKAlCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_author]);
+  fileDesc("CjRtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYXV0aG9yLnByb3RvEidtYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEihQIKE0NyZWF0ZUF1dGhvclJlcXVlc3QSQwoGcGFyZW50GAEgASgJQjPgQQL6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESOAoJYXV0aG9yX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjcKBmF1dGhvchgDIAEoCzIfLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvckIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiTwoQR2V0QXV0aG9yUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQEiogIKE1VwZGF0ZUF1dGhvclJlcXVlc3QSNwoGYXV0aG9yGAEgASgLMh8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQXV0aG9yQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6mAG6SEgaRgoUYXV0aG9yLm5hbWVfcmVxdWlyZWQSF2F1dGhvci5uYW1lIG11c3QgYmUgc2V0GhVoYXModGhpcy5hdXRob3IubmFtZSnqnMEDSAoMZGlzcGxheV9uYW1lCgliaW9ncmFwaHkKDWVtYWlsX2FkZHJlc3MKDHBob25lX251bWJlcgoGbGFiZWxzCghtZXRhZGF0YSKGAQoTRGVsZXRlQXV0aG9yUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIImIKFVVuZGVsZXRlQXV0aG9yUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SAPIAQESDAoEZXRhZxgCIAEoCSKRAgoSTGlzdEF1dGhvcnNSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6S4LzLQIIZIrzLToKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoMZGlzcGxheV9uYW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJgChNMaXN0QXV0aG9yc1Jlc3BvbnNlEjAKB2F1dGhvcnMYASADKAsyHy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5BdXRob3ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIpwBChZCYXRjaEdldEF1dGhvcnNSZXF1ZXN0EjoKBnBhcmVudBgBIAEoCUIq+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uEkYKBW5hbWVzGAIgAygJQjf6QSEKH2xpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9BdXRob3K6SBCSAQ0IARDoBxgBIgRyAhABIksKF0JhdGNoR2V0QXV0aG9yc1Jlc3BvbnNlEjAKB2F1dGhvcnMYASADKAsyHy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5BdXRob3Ii0QEKGUJhdGNoQ3JlYXRlQXV0aG9yc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SYQoIcmVxdWVzdHMYAiADKAsyPC5tYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuQ3JlYXRlQXV0aG9yUmVxdWVzdEIR4EECukgLkgEFCAEQ6AfIAQESFQoNdmFsaWRhdGVfb25seRgDIAEoCCJOChpCYXRjaENyZWF0ZUF1dGhvcnNSZXNwb25zZRIwCgdhdXRob3JzGAEgAygLMh8ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQXV0aG9yIvkBChRTZWFyY2hBdXRob3JzUmVxdWVzdBJDCgZwYXJlbnQYASABKAlCM+BBAvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEhQKDHNob3dfZGVsZXRlZBgEIAEoCBIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAcgASgIOg2C8y0CCGSS8y0DCgEqIpMBChVTZWFyY2hBdXRob3JzUmVzcG9uc2USMAoHYXV0aG9ycxgBIAMoCzIfLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkF1dGhvchIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_author]);
 
 /**
  * Request message for LibraryService.CreateAuthor.
@@ -285,6 +285,57 @@ export const DeleteAuthorRequestSchema: GenMessage<DeleteAuthorRequest, {validTy
   messageDesc(file_malonaz_test_library_library_service_v1_author, 3);
 
 /**
+ * Request message for LibraryService.UndeleteAuthor.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteAuthorRequest
+ */
+export type UndeleteAuthorRequest = Message<"malonaz.test.library.library_service.v1.UndeleteAuthorRequest"> & {
+  /**
+   * The resource name of the deleted author to restore.
+   * Format: organizations/{organization}/authors/{author}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Request message for LibraryService.UndeleteAuthor.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteAuthorRequest
+ */
+export type UndeleteAuthorRequestValid = Message<"malonaz.test.library.library_service.v1.UndeleteAuthorRequest"> & {
+  /**
+   * The resource name of the deleted author to restore.
+   * Format: organizations/{organization}/authors/{author}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.UndeleteAuthorRequest.
+ * Use `create(UndeleteAuthorRequestSchema)` to create a new message.
+ */
+export const UndeleteAuthorRequestSchema: GenMessage<UndeleteAuthorRequest, {validType: UndeleteAuthorRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 4);
+
+/**
  * Request message for LibraryService.ListAuthors.
  *
  * @generated from message malonaz.test.library.library_service.v1.ListAuthorsRequest
@@ -389,7 +440,7 @@ export type ListAuthorsRequestValid = Message<"malonaz.test.library.library_serv
  * Use `create(ListAuthorsRequestSchema)` to create a new message.
  */
 export const ListAuthorsRequestSchema: GenMessage<ListAuthorsRequest, {validType: ListAuthorsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 4);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 5);
 
 /**
  * Response message for LibraryService.ListAuthors.
@@ -419,7 +470,7 @@ export type ListAuthorsResponseValid = ListAuthorsResponse;
  * Use `create(ListAuthorsResponseSchema)` to create a new message.
  */
 export const ListAuthorsResponseSchema: GenMessage<ListAuthorsResponse, {validType: ListAuthorsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 5);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 6);
 
 /**
  * Request message for LibraryService.BatchGetAuthors.
@@ -452,7 +503,7 @@ export type BatchGetAuthorsRequestValid = BatchGetAuthorsRequest;
  * Use `create(BatchGetAuthorsRequestSchema)` to create a new message.
  */
 export const BatchGetAuthorsRequestSchema: GenMessage<BatchGetAuthorsRequest, {validType: BatchGetAuthorsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 6);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 7);
 
 /**
  * Response message for LibraryService.BatchGetAuthors.
@@ -475,7 +526,7 @@ export type BatchGetAuthorsResponseValid = BatchGetAuthorsResponse;
  * Use `create(BatchGetAuthorsResponseSchema)` to create a new message.
  */
 export const BatchGetAuthorsResponseSchema: GenMessage<BatchGetAuthorsResponse, {validType: BatchGetAuthorsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 8);
 
 /**
  * Request message for LibraryService.BatchCreateAuthors.
@@ -544,7 +595,7 @@ export type BatchCreateAuthorsRequestValid = Message<"malonaz.test.library.libra
  * Use `create(BatchCreateAuthorsRequestSchema)` to create a new message.
  */
 export const BatchCreateAuthorsRequestSchema: GenMessage<BatchCreateAuthorsRequest, {validType: BatchCreateAuthorsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 8);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 9);
 
 /**
  * Response message for LibraryService.BatchCreateAuthors.
@@ -567,7 +618,7 @@ export type BatchCreateAuthorsResponseValid = BatchCreateAuthorsResponse;
  * Use `create(BatchCreateAuthorsResponseSchema)` to create a new message.
  */
 export const BatchCreateAuthorsResponseSchema: GenMessage<BatchCreateAuthorsResponse, {validType: BatchCreateAuthorsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 9);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 10);
 
 /**
  * Request message for LibraryService.SearchAuthors.
@@ -690,7 +741,7 @@ export type SearchAuthorsRequestValid = Message<"malonaz.test.library.library_se
  * Use `create(SearchAuthorsRequestSchema)` to create a new message.
  */
 export const SearchAuthorsRequestSchema: GenMessage<SearchAuthorsRequest, {validType: SearchAuthorsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 10);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 11);
 
 /**
  * Response message for LibraryService.SearchAuthors.
@@ -727,5 +778,5 @@ export type SearchAuthorsResponseValid = SearchAuthorsResponse;
  * Use `create(SearchAuthorsResponseSchema)` to create a new message.
  */
 export const SearchAuthorsResponseSchema: GenMessage<SearchAuthorsResponse, {validType: SearchAuthorsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_author, 11);
+  messageDesc(file_malonaz_test_library_library_service_v1_author, 12);
 

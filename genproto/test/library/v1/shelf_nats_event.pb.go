@@ -434,6 +434,95 @@ func (s *ShelfStream) GetDeletedSubject() *ShelfDeletedSubject {
 	return &ShelfDeletedSubject{stream: s}
 }
 
+type ShelfUndeletedSubject struct {
+	stream        *ShelfStream
+	_organization *string
+	_genre        *ShelfGenre
+}
+
+func (s *ShelfUndeletedSubject) WithOrganization(v string) *ShelfUndeletedSubject {
+	s._organization = &v
+	return s
+}
+
+func (s *ShelfUndeletedSubject) WithGenre(v ShelfGenre) *ShelfUndeletedSubject {
+	s._genre = &v
+	return s
+}
+
+func (s *ShelfUndeletedSubject) evaluate(resource *Shelf) (bool, error) {
+	return true, nil
+}
+
+func (s *ShelfUndeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
+	event, err := aip.NewResourceUndeletedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, subject, event)
+}
+
+func (s *ShelfUndeletedSubject) set(resource *Shelf) error {
+	var organizationID, shelfID string
+	if err := resourcename.Sscan(resource.GetName(), "organizations/{organization}/shelves/{shelf}", &organizationID, &shelfID); err != nil {
+		return fmt.Errorf("parsing resource name: %v", err)
+	}
+	s.WithOrganization(organizationID)
+	s.WithGenre(resource.Genre)
+	return nil
+}
+
+func (s *ShelfUndeletedSubject) Get() (*nats.Subject, error) {
+	if s._organization != nil && *s._organization == "" {
+		return nil, fmt.Errorf("organization must not be empty")
+	}
+	if s._genre != nil && *s._genre == 0 {
+		return nil, fmt.Errorf("genre must not be unspecified")
+	}
+	tokens := []string{
+		func() string {
+			if s._organization != nil {
+				return *s._organization
+			}
+			return "*"
+		}(),
+		"undeleted",
+		func() string {
+			if s._genre != nil {
+				return strings.ToLower(strings.TrimPrefix(s._genre.String(), "SHELF_GENRE_"))
+			}
+			return "*"
+		}(),
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *ShelfUndeletedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
+}
+
+func (s *ShelfStream) GetUndeletedSubject() *ShelfUndeletedSubject {
+	return &ShelfUndeletedSubject{stream: s}
+}
+
 var (
 	shelfUpdatedCELProgramOnce sync.Once
 	shelfUpdatedCELProgramVal  cel.Program

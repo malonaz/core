@@ -16,6 +16,7 @@ import (
 var ErrAuthorAlreadyExists = errors.New("author already exists")
 var ErrAuthorNotExist = errors.New("author does not exist")
 var ErrAuthorAlreadyDeleted = errors.New("author already deleted")
+var ErrAuthorNotDeleted = errors.New("author is not deleted")
 var ErrAuthorHasChildren = errors.New("author has child resources")
 var ErrAuthorETagChanged = errors.New("author etag changed")
 

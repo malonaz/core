@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/shelf.proto.
  */
 export const file_malonaz_test_library_library_service_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("CjNtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvc2hlbGYucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKBAgoSQ3JlYXRlU2hlbGZSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjUKBXNoZWxmGAMgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIk0KD0dldFNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASLgAgoSVXBkYXRlU2hlbGZSZXF1ZXN0EjUKBXNoZWxmGAEgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATrZAbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQOLAQoMZGlzcGxheV9uYW1lCgVnZW5yZQoQY29ycmVsYXRpb25faWRfMgoLZXh0ZXJuYWxfaWQKCWJlc3RfYm9vawoRbWV0YWRhdGEuY2FwYWNpdHkKDm1ldGFkYXRhLmR1bW15Cg5tZXRhZGF0YS5ub3RlcwoXbWV0YWRhdGEuYXV0aG9yX3RvX25vdGUidgoSRGVsZXRlU2hlbGZSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDQoFZm9yY2UYAyABKAgi7AEKEkxpc3RTaGVsdmVzUmVxdWVzdBJDCgZwYXJlbnQYASABKAlCM+BBAvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOiaC8y0CCGSK8y0VCgEqEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJfChNMaXN0U2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiuQEKGUJhdGNoQ3JlYXRlU2hlbHZlc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SYAoIcmVxdWVzdHMYAiADKAsyOy5tYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuQ3JlYXRlU2hlbGZSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBASJNChpCYXRjaENyZWF0ZVNoZWx2ZXNSZXNwb25zZRIvCgdzaGVsdmVzGAEgAygLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYimwEKFkJhdGNoR2V0U2hlbHZlc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SRQoFbmFtZXMYAiADKAlCNvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgQkgENCAEQ6AcYASIEcgIQASJKChdCYXRjaEdldFNoZWx2ZXNSZXNwb25zZRIvCgdzaGVsdmVzGAEgAygLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_shelf]);
+  fileDesc("CjNtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvc2hlbGYucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKBAgoSQ3JlYXRlU2hlbGZSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjUKBXNoZWxmGAMgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIk0KD0dldFNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASLgAgoSVXBkYXRlU2hlbGZSZXF1ZXN0EjUKBXNoZWxmGAEgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATrZAbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQOLAQoMZGlzcGxheV9uYW1lCgVnZW5yZQoQY29ycmVsYXRpb25faWRfMgoLZXh0ZXJuYWxfaWQKCWJlc3RfYm9vawoRbWV0YWRhdGEuY2FwYWNpdHkKDm1ldGFkYXRhLmR1bW15Cg5tZXRhZGF0YS5ub3RlcwoXbWV0YWRhdGEuYXV0aG9yX3RvX25vdGUidgoSRGVsZXRlU2hlbGZSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDQoFZm9yY2UYAyABKAgiUgoUVW5kZWxldGVTaGVsZlJlcXVlc3QSOgoEbmFtZRgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQEi7AEKEkxpc3RTaGVsdmVzUmVxdWVzdBJDCgZwYXJlbnQYASABKAlCM+BBAvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOiaC8y0CCGSK8y0VCgEqEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJfChNMaXN0U2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiuQEKGUJhdGNoQ3JlYXRlU2hlbHZlc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SYAoIcmVxdWVzdHMYAiADKAsyOy5tYWxvbmF6LnRlc3QubGlicmFyeS5saWJyYXJ5X3NlcnZpY2UudjEuQ3JlYXRlU2hlbGZSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBASJNChpCYXRjaENyZWF0ZVNoZWx2ZXNSZXNwb25zZRIvCgdzaGVsdmVzGAEgAygLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYimwEKFkJhdGNoR2V0U2hlbHZlc1JlcXVlc3QSOgoGcGFyZW50GAEgASgJQir6QScKJWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SRQoFbmFtZXMYAiADKAlCNvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgQkgENCAEQ6AcYASIEcgIQASJKChdCYXRjaEdldFNoZWx2ZXNSZXNwb25zZRIvCgdzaGVsdmVzGAEgAygLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_shelf]);
 
 /**
  * Request message for LibraryService.CreateShelf.
@@ -269,6 +269,43 @@ export const DeleteShelfRequestSchema: GenMessage<DeleteShelfRequest, {validType
   messageDesc(file_malonaz_test_library_library_service_v1_shelf, 3);
 
 /**
+ * Request message for LibraryService.UndeleteShelf.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteShelfRequest
+ */
+export type UndeleteShelfRequest = Message<"malonaz.test.library.library_service.v1.UndeleteShelfRequest"> & {
+  /**
+   * The resource name of the deleted shelf to restore.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+};
+
+/**
+ * Request message for LibraryService.UndeleteShelf.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteShelfRequest
+ */
+export type UndeleteShelfRequestValid = Message<"malonaz.test.library.library_service.v1.UndeleteShelfRequest"> & {
+  /**
+   * The resource name of the deleted shelf to restore.
+   * Format: organizations/{organization}/shelves/{shelf}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.UndeleteShelfRequest.
+ * Use `create(UndeleteShelfRequestSchema)` to create a new message.
+ */
+export const UndeleteShelfRequestSchema: GenMessage<UndeleteShelfRequest, {validType: UndeleteShelfRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 4);
+
+/**
  * Request message for LibraryService.ListShelves.
  *
  * @generated from message malonaz.test.library.library_service.v1.ListShelvesRequest
@@ -373,7 +410,7 @@ export type ListShelvesRequestValid = Message<"malonaz.test.library.library_serv
  * Use `create(ListShelvesRequestSchema)` to create a new message.
  */
 export const ListShelvesRequestSchema: GenMessage<ListShelvesRequest, {validType: ListShelvesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 4);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 5);
 
 /**
  * Response message for LibraryService.ListShelves.
@@ -422,7 +459,7 @@ export type ListShelvesResponseValid = Message<"malonaz.test.library.library_ser
  * Use `create(ListShelvesResponseSchema)` to create a new message.
  */
 export const ListShelvesResponseSchema: GenMessage<ListShelvesResponse, {validType: ListShelvesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 5);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 6);
 
 /**
  * Request message for LibraryService.BatchCreateShelves.
@@ -477,7 +514,7 @@ export type BatchCreateShelvesRequestValid = Message<"malonaz.test.library.libra
  * Use `create(BatchCreateShelvesRequestSchema)` to create a new message.
  */
 export const BatchCreateShelvesRequestSchema: GenMessage<BatchCreateShelvesRequest, {validType: BatchCreateShelvesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 6);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 7);
 
 /**
  * Response message for LibraryService.BatchCreateShelves.
@@ -512,7 +549,7 @@ export type BatchCreateShelvesResponseValid = Message<"malonaz.test.library.libr
  * Use `create(BatchCreateShelvesResponseSchema)` to create a new message.
  */
 export const BatchCreateShelvesResponseSchema: GenMessage<BatchCreateShelvesResponse, {validType: BatchCreateShelvesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 8);
 
 /**
  * Request message for LibraryService.BatchGetShelves.
@@ -545,7 +582,7 @@ export type BatchGetShelvesRequestValid = BatchGetShelvesRequest;
  * Use `create(BatchGetShelvesRequestSchema)` to create a new message.
  */
 export const BatchGetShelvesRequestSchema: GenMessage<BatchGetShelvesRequest, {validType: BatchGetShelvesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 8);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 9);
 
 /**
  * Response message for LibraryService.BatchGetShelves.
@@ -580,5 +617,5 @@ export type BatchGetShelvesResponseValid = Message<"malonaz.test.library.library
  * Use `create(BatchGetShelvesResponseSchema)` to create a new message.
  */
 export const BatchGetShelvesResponseSchema: GenMessage<BatchGetShelvesResponse, {validType: BatchGetShelvesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 9);
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 10);
 

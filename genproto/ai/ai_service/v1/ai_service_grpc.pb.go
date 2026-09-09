@@ -35,12 +35,14 @@ const (
 	AiService_GetChat_FullMethodName               = "/malonaz.ai.ai_service.v1.AiService/GetChat"
 	AiService_UpdateChat_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/UpdateChat"
 	AiService_DeleteChat_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/DeleteChat"
+	AiService_UndeleteChat_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/UndeleteChat"
 	AiService_ListChats_FullMethodName             = "/malonaz.ai.ai_service.v1.AiService/ListChats"
 	AiService_BatchGetChats_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/BatchGetChats"
 	AiService_CreateMessage_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/CreateMessage"
 	AiService_GetMessage_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/GetMessage"
 	AiService_UpdateMessage_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/UpdateMessage"
 	AiService_DeleteMessage_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/DeleteMessage"
+	AiService_UndeleteMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/UndeleteMessage"
 	AiService_ListMessages_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ListMessages"
 	AiService_BatchGetMessages_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/BatchGetMessages"
 	AiService_GenerateMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/GenerateMessage"
@@ -156,6 +158,10 @@ type AiServiceClient interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
+	// Undelete a chat.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteChat(ctx context.Context, in *UndeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error)
 	// List chats for a user.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
@@ -188,6 +194,12 @@ type AiServiceClient interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
+	// Undelete a message.
+	//
+	// Restored messages rejoin the conversation history sent to ai providers.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteMessage(ctx context.Context, in *UndeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error)
 	// List messages within a chat.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
@@ -401,6 +413,16 @@ func (c *aiServiceClient) DeleteChat(ctx context.Context, in *DeleteChatRequest,
 	return out, nil
 }
 
+func (c *aiServiceClient) UndeleteChat(ctx context.Context, in *UndeleteChatRequest, opts ...grpc.CallOption) (*v1.Chat, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Chat)
+	err := c.cc.Invoke(ctx, AiService_UndeleteChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiServiceClient) ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListChatsResponse)
@@ -455,6 +477,16 @@ func (c *aiServiceClient) DeleteMessage(ctx context.Context, in *DeleteMessageRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Message)
 	err := c.cc.Invoke(ctx, AiService_DeleteMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UndeleteMessage(ctx context.Context, in *UndeleteMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Message)
+	err := c.cc.Invoke(ctx, AiService_UndeleteMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -657,6 +689,10 @@ type AiServiceServer interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error)
+	// Undelete a chat.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteChat(context.Context, *UndeleteChatRequest) (*v1.Chat, error)
 	// List chats for a user.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
@@ -689,6 +725,12 @@ type AiServiceServer interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error)
+	// Undelete a message.
+	//
+	// Restored messages rejoin the conversation history sent to ai providers.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteMessage(context.Context, *UndeleteMessageRequest) (*v1.Message, error)
 	// List messages within a chat.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
@@ -781,6 +823,9 @@ func (UnimplementedAiServiceServer) UpdateChat(context.Context, *UpdateChatReque
 func (UnimplementedAiServiceServer) DeleteChat(context.Context, *DeleteChatRequest) (*v1.Chat, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteChat not implemented")
 }
+func (UnimplementedAiServiceServer) UndeleteChat(context.Context, *UndeleteChatRequest) (*v1.Chat, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteChat not implemented")
+}
 func (UnimplementedAiServiceServer) ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListChats not implemented")
 }
@@ -798,6 +843,9 @@ func (UnimplementedAiServiceServer) UpdateMessage(context.Context, *UpdateMessag
 }
 func (UnimplementedAiServiceServer) DeleteMessage(context.Context, *DeleteMessageRequest) (*v1.Message, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteMessage not implemented")
+}
+func (UnimplementedAiServiceServer) UndeleteMessage(context.Context, *UndeleteMessageRequest) (*v1.Message, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteMessage not implemented")
 }
 func (UnimplementedAiServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMessages not implemented")
@@ -1081,6 +1129,24 @@ func _AiService_DeleteChat_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_UndeleteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UndeleteChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UndeleteChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UndeleteChat(ctx, req.(*UndeleteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_ListChats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListChatsRequest)
 	if err := dec(in); err != nil {
@@ -1185,6 +1251,24 @@ func _AiService_DeleteMessage_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).DeleteMessage(ctx, req.(*DeleteMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UndeleteMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UndeleteMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UndeleteMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UndeleteMessage(ctx, req.(*UndeleteMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1357,6 +1441,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_DeleteChat_Handler,
 		},
 		{
+			MethodName: "UndeleteChat",
+			Handler:    _AiService_UndeleteChat_Handler,
+		},
+		{
 			MethodName: "ListChats",
 			Handler:    _AiService_ListChats_Handler,
 		},
@@ -1379,6 +1467,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMessage",
 			Handler:    _AiService_DeleteMessage_Handler,
+		},
+		{
+			MethodName: "UndeleteMessage",
+			Handler:    _AiService_UndeleteMessage_Handler,
 		},
 		{
 			MethodName: "ListMessages",

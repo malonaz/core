@@ -105,6 +105,20 @@ message DeleteChatRequest {
   bool force = 4;
 }
 
+// Request message for AiService.UndeleteChat.
+message UndeleteChatRequest {
+  // The resource name of the deleted chat to restore.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for AiService.ListChats.
 message ListChatsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

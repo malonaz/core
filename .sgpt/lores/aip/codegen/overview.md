@@ -15,12 +15,12 @@ here — this documents what our implementation decides on top of them.
 
 | Plugin | Emits | Driven by |
 |---|---|---|
-| `model` | `gengo/.../model`: struct per resource with `db` tags, `FromPb`/`ToPb`, `Parse{Resource}Name`, `Err{Resource}{AlreadyExists,NotExist,AlreadyDeleted,HasChildren,ETagChanged}` | `google.api.resource` + `malonaz.codegen.model.v1.model_opts` (see `lores/style/protobuf`) |
-| `postgres` | `gengo/.../store`: one `Store` per proto package, `BatchInsert/Update/Get/BatchGet/List/Delete/Search` per resource, raw SQL | same, plus `field_opts` joins |
+| `model` | `gengo/.../model`: struct per resource with `db` tags, `FromPb`/`ToPb`, `Parse{Resource}Name`, `Err{Resource}{AlreadyExists,NotExist,AlreadyDeleted,NotDeleted,HasChildren,ETagChanged}` | `google.api.resource` + `malonaz.codegen.model.v1.model_opts` (see `lores/style/protobuf`) |
+| `postgres` | `gengo/.../store`: one `Store` per proto package, `BatchInsert/Update/Get/BatchGet/List/Delete/Undelete/Search` per resource, raw SQL | same, plus `field_opts` joins |
 | `rpc` | `gengo/.../{service}/rpc`: `{Service}Server` embedding one `{service}_{Resource}Server` per resource, each over a `{service}_{Resource}Store` interface | `malonaz.codegen.aip.v1.standard_method` on each RPC, `pagination`/`ordering`/`filtering`/`update` on requests, `malonaz.codegen.nats.v1.event` on resources |
 
 A method is generated iff it carries `standard_method.resource` **and** is
-named `{Create,Get,Update,Delete}{Singular}` / `{BatchCreate,List,BatchGet,Search}{Plural}`;
+named `{Create,Get,Update,Delete,Undelete}{Singular}` / `{BatchCreate,List,BatchGet,Search}{Plural}`;
 anything else is a codegen error. Wiring (`manifest.yaml` → `service.tmpl.go`)
 is `build_defs/codegen/go_service`; the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
@@ -55,18 +55,19 @@ registry is per package — cross-package parent/child links do not exist):
   `List` means "across all parents".
 - **Soft delete** is opted in by a nullable `delete_time` field. Tombstones are
   returned by `Get`/`BatchGet`, hidden from `List` unless `show_deleted`,
-  rejected by `Update` (`NotFound`), and never resurrected.
+  rejected by `Update` (`NotFound`), and restored only by `Undelete` — which
+  every soft-deletable resource with a `Delete` **must** declare (AIP-164).
 - **Etag** is opted in by an `etag` field: computed with `aip.ComputeETag`
   over the whole resource on every write; a mismatched client etag on
   `Update`/`Delete` is `Aborted`.
-- **Model errors → codes**: `NotExist`→`NotFound`, `AlreadyExists`→
-  `AlreadyExists`, `ETagChanged`→`Aborted`, `HasChildren`→
+- **Model errors → codes**: `NotExist`→`NotFound`, `AlreadyExists`/
+  `NotDeleted`→`AlreadyExists`, `ETagChanged`→`Aborted`, `HasChildren`→
   `FailedPrecondition`; anything else goes through `status.FromError`.
 - **Store ↔ RPC contract**: the RPC layer only ever calls the generated
   `{service}_{Resource}Store` interface, so a hand-written store can replace
   the Postgres one.
 - **Events**: with `malonaz.codegen.nats.v1.event` on the resource,
-  `Create`/`BatchCreate`/`Update`/`Delete` publish typed JetStream events after the write
+  `Create`/`BatchCreate`/`Update`/`Delete`/`Undelete` publish typed JetStream events after the write
   (subject = `resource_segments… . subject . subject_fields…`, optional CEL
   gate). Cascaded descendants and singleton children publish nothing.
 
@@ -81,5 +82,5 @@ registry is per package — cross-package parent/child links do not exist):
 - **Extra store methods**: add them on a hand-written type that embeds the
   generated `store.Store`.
 
-Per-RPC lores: `lores/aip/codegen/{create,batch-create,get,batch-get,list,update,delete}`;
+Per-RPC lores: `lores/aip/codegen/{create,batch-create,get,batch-get,list,update,delete,undelete}`;
 search is `lores/aip/search`.

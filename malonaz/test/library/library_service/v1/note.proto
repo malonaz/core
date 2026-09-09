@@ -98,6 +98,22 @@ message DeleteNoteRequest {
   string etag = 3;
 }
 
+// Request message for LibraryService.UndeleteNote.
+message UndeleteNoteRequest {
+  // The resource name of the deleted note to restore.
+  // Format: organizations/{organization}/notes/{note}
+  //         organizations/{organization}/authors/{author}/notes/{note}
+  //         organizations/{organization}/shelves/{shelf}/notes/{note}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Note"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for LibraryService.ListNotes.
 message ListNotesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

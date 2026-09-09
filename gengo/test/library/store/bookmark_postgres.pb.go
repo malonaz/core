@@ -212,6 +212,50 @@ func (s *Store) SoftDeleteBookmark(ctx context.Context, organizationId, shelfId,
 	return &row.Bookmark, nil
 }
 
+func (s *Store) undeleteBookmarkNoRows(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
+	params := []any{organizationId, shelfId, bookId, bookmarkId}
+	var live bool
+	var currentEtag string
+	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrBookmarkNotExist
+		}
+		return fmt.Errorf("probing bookmark: %w", err)
+	}
+	if live {
+		return model.ErrBookmarkNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrBookmarkETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but bookmark is deleted")
+}
+
+var undeleteBookmarkPostgresQuery = `UPDATE library.bookmark SET delete_time = NULL, etag = $5 WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", BookmarkPostgresColumns)
+
+func (s *Store) UndeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string) (*model.Bookmark, error) {
+	query := undeleteBookmarkPostgresQuery
+	params := []any{organizationId, shelfId, bookId, bookmarkId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting bookmark: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteBookmarkNoRows(ctx, organizationId, shelfId, bookId, bookmarkId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
 func (s *Store) GetBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (*model.Bookmark, error) {
 	query := `SELECT %s FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
 	query = postgres.SelectQuery(query, BookmarkPostgresColumns)
