@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package malonaz.scheduler.scheduler_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/scheduler/v1/target.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
+
+// Request message for SchedulerService.CreateTarget.
+message CreateTargetRequest {
+  // The target to create. Only `url` and `headers` are read.
+  scheduler.v1.Target target = 1 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string target_id = 2 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the target it created instead of creating another.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 4;
+}
+
+// Request message for SchedulerService.GetTarget.
+message GetTargetRequest {
+  // The resource name of the target to retrieve.
+  // Format: targets/{target}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Target"
+  ];
+}
+
+// Request message for SchedulerService.UpdateTarget.
+message UpdateTargetRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "url",
+      "headers"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "target.name_required"
+    message: "target.name must be set"
+    expression: "has(this.target.name)"
+  };
+
+  // The target to update.
+  scheduler.v1.Target target = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for SchedulerService.DeleteTarget.
+message DeleteTargetRequest {
+  // The resource name of the target to delete.
+  // Format: targets/{target}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Target"
+  ];
+
+  // If true, and the target is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for SchedulerService.ListTargets.
+message ListTargetsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time asc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // @autogen.
+  string filter = 1;
+
+  // @autogen.
+  string order_by = 2;
+
+  // Maximum number of targets to return (max 1000).
+  int32 page_size = 3 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListTargets` call.
+  string page_token = 4;
+}
+
+// Response message for SchedulerService.ListTargets.
+message ListTargetsResponse {
+  // The list of targets.
+  repeated scheduler.v1.Target targets = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// Request message for SchedulerService.BatchGetTargets.
+message BatchGetTargetsRequest {
+  // The resource names of the targets to retrieve.
+  // Format: targets/{target}
+  // A maximum of 1000 targets can be retrieved in a batch.
+  repeated string names = 1 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Target"
+  ];
+}
+
+// Response message for SchedulerService.BatchGetTargets.
+message BatchGetTargetsResponse {
+  // Targets requested.
+  repeated scheduler.v1.Target targets = 1;
+}

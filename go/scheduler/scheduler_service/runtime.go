@@ -7,39 +7,22 @@ import (
 	"sync"
 	"time"
 
-	"buf.build/go/protovalidate"
-	"google.golang.org/protobuf/types/known/durationpb"
-
-	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
-	"github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/jsonnet"
-	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/routine"
 )
 
 type Opts struct {
-	Configuration     string        `long:"configuration" env:"CONFIGURATION" description:"Path to the jsonnet configuration"`
-	IgnoreJobTypeURLs []string      `long:"ignore-job" env:"IGNORE_JOB" env-delim:"," description:"Job type URLs this instance leaves unclaimed"`
-	MaxParallelJobs   int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
-	PollInterval      time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
-	LeaseDuration     time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its processor call is in flight; a lapsed lease returns the job to PENDING"`
-	Retention         time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
-	SweepInterval     time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
-	WorkerID          string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
-}
-
-var defaultRetryBackoff = &pb.RetryBackoff{
-	Initial:    durationpb.New(10 * time.Second),
-	Max:        durationpb.New(10 * time.Minute),
-	Multiplier: 2,
+	MaxParallelJobs int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
+	PollInterval    time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
+	LeaseDuration   time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its handler call is in flight; a lapsed lease returns the job to PENDING"`
+	Retention       time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
+	SweepInterval   time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
+	WorkerID        string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
 }
 
 type runtime struct {
-	configuration               *pb.Configuration
-	ignoredJobTypes             []string
-	jobTypeToConfiguration      map[string]*pb.JobTypeConfiguration
-	processorIDToProcessor      map[string]*pb.Processor
-	processorIDToGRPCConnection map[string]*grpc.Connection
+	targets *targetConnections
+	// What each target serves, the only source of method and message type information.
+	schemas *targetSchemas
 
 	// Workers in flight on this instance, so CancelJob can cut a local call short.
 	inflight *inflight
@@ -64,65 +47,16 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		}
 		opts.WorkerID = fmt.Sprintf("%s:%d", hostname, os.Getpid())
 	}
-
-	bytes, err := jsonnet.EvaluateFile(opts.Configuration)
-	if err != nil {
-		return nil, fmt.Errorf("evaluating configuration: %w", err)
-	}
-	configuration := &pb.Configuration{}
-	if err := pbutil.JSONUnmarshalStrict(bytes, configuration); err != nil {
-		return nil, fmt.Errorf("parsing configuration: %w", err)
-	}
-	if err := protovalidate.Validate(configuration); err != nil {
-		return nil, fmt.Errorf("validating configuration: %w", err)
-	}
-
-	processorIDToProcessor := map[string]*pb.Processor{}
-	for _, processor := range configuration.GetProcessors() {
-		if _, ok := processorIDToProcessor[processor.GetId()]; ok {
-			return nil, fmt.Errorf("duplicate processor %q", processor.GetId())
-		}
-		processorIDToProcessor[processor.GetId()] = processor
-	}
-	jobTypeToConfiguration := map[string]*pb.JobTypeConfiguration{}
-	for _, jobTypeConfiguration := range configuration.GetJobTypeConfigurations() {
-		jobType := jobTypeConfiguration.GetJobTypeUrl()
-		if _, ok := jobTypeToConfiguration[jobType]; ok {
-			return nil, fmt.Errorf("duplicate job type %q", jobType)
-		}
-		if _, ok := processorIDToProcessor[jobTypeConfiguration.GetProcessorId()]; !ok {
-			return nil, fmt.Errorf("job type %q targets unknown processor %q", jobType, jobTypeConfiguration.GetProcessorId())
-		}
-		if jobTypeConfiguration.RetryBackoff == nil {
-			jobTypeConfiguration.RetryBackoff = defaultRetryBackoff
-		}
-		jobTypeToConfiguration[jobType] = jobTypeConfiguration
-	}
-
-	// An empty array (never NULL) keeps the claim query's `job_type = ANY($n)` well-defined.
-	ignoredJobTypes := append([]string{}, opts.IgnoreJobTypeURLs...)
-
 	return &runtime{
-		configuration:               configuration,
-		ignoredJobTypes:             ignoredJobTypes,
-		jobTypeToConfiguration:      jobTypeToConfiguration,
-		processorIDToProcessor:      processorIDToProcessor,
-		processorIDToGRPCConnection: map[string]*grpc.Connection{},
-		inflight:                    newInflight(),
-		slots:                       make(chan struct{}, opts.MaxParallelJobs),
-		claimSignal:                 make(chan struct{}, 1),
+		targets:     newTargetConnections(),
+		schemas:     newTargetSchemas(),
+		inflight:    newInflight(),
+		slots:       make(chan struct{}, opts.MaxParallelJobs),
+		claimSignal: make(chan struct{}, 1),
 	}, nil
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
-	for processorID, processor := range s.processorIDToProcessor {
-		connection, err := s.connectProcessor(ctx, processor)
-		if err != nil {
-			return nil, fmt.Errorf("connecting to processor %q: %w", processorID, err)
-		}
-		s.processorIDToGRPCConnection[processorID] = connection
-	}
-
 	// Workers outlive the routines that spawn them: they are cancelled and drained last.
 	workerCtx, cancelWorkers := context.WithCancel(ctx)
 
@@ -143,25 +77,8 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		}
 		cancelWorkers()
 		s.workers.Wait()
-		for _, connection := range s.processorIDToGRPCConnection {
-			connection.Close()
-		}
+		s.targets.close()
 	}, nil
-}
-
-func (s *Service) connectProcessor(ctx context.Context, processor *pb.Processor) (*grpc.Connection, error) {
-	opts, err := grpc.ParseOpts(processor.GetUrl())
-	if err != nil {
-		return nil, fmt.Errorf("parsing url %q: %w", processor.GetUrl(), err)
-	}
-	connection, err := grpc.NewConnection(opts, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("creating connection: %w", err)
-	}
-	if err := connection.Connect(ctx); err != nil {
-		return nil, fmt.Errorf("connecting: %w", err)
-	}
-	return connection, nil
 }
 
 // inflight tracks the cancel function of every job this instance is processing.
@@ -186,7 +103,7 @@ func (i *inflight) remove(jobID string) {
 	delete(i.jobIDToCancel, jobID)
 }
 
-// cancel cuts the job's processor call short if it runs on this instance.
+// cancel cuts the job's handler call short if it runs on this instance.
 func (i *inflight) cancel(jobID string) {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()

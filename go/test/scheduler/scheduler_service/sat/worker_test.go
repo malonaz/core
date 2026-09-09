@@ -11,7 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -37,15 +36,15 @@ func TestProcess_Succeeds(t *testing.T) {
 	require.NotNil(t, job.GetPurgeTime(), "retention stamps terminal jobs")
 	require.NotEqual(t, created.GetEtag(), job.GetEtag())
 
-	// The response is stored under the configured type.
-	require.Equal(t, jobType(&processorpb.EchoResponse{}), job.GetResponse().GetTypeUrl())
+	// The response is stored under the handler's response type.
+	require.Equal(t, typeURL(&processorpb.EchoResponse{}), job.GetResponse().GetTypeUrl())
 	require.Equal(t, value, unpackAny[*processorpb.EchoResponse](t, job.GetResponse()).GetValue())
 
 	// The processor saw exactly one call, carrying the job name and the configured headers.
 	calls := testProcessor.calls(value)
 	require.Len(t, calls, 1)
 	require.Equal(t, job.GetName(), calls[0].job)
-	require.Equal(t, []string{"hello"}, calls[0].headers.Get("x-test-header"))
+	require.Equal(t, []string{"hello"}, calls[0].headers.Get(testHeader))
 }
 
 func TestProcess_ScheduleTime(t *testing.T) {
@@ -176,6 +175,9 @@ func TestProcess_LongJobUnderTimeoutIsNotKilled(t *testing.T) {
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
 	require.Equal(t, int32(1), job.GetAttemptCount())
 	require.GreaterOrEqual(t, job.GetCompleteTime().AsTime().Sub(job.GetStartTime().AsTime()), duration)
+	// An empty response is still stored under the handler's response type.
+	require.Equal(t, typeURL(&processorpb.SleepResponse{}), job.GetResponse().GetTypeUrl())
+	require.Empty(t, job.GetResponse().GetValue())
 	calls := testProcessor.calls(key)
 	require.Len(t, calls, 1)
 	require.False(t, calls[0].cancelled)
@@ -367,25 +369,6 @@ func TestProcess_Concurrency(t *testing.T) {
 	}
 }
 
-func TestProcess_IgnoredJobTypeStaysPending(t *testing.T) {
-	t.Parallel()
-	created := createJob(t, &processorpb.IgnoredRequest{})
-	time.Sleep(10 * pollInterval)
-	job := getJob(t, created.GetName())
-	require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, job.GetState())
-	require.Zero(t, job.GetAttemptCount())
-}
-
-func TestProcess_UnknownJobTypeFails(t *testing.T) {
-	t.Parallel()
-	created := createJob(t, wrapperspb.String("no processor for me"))
-	job := waitForTerminal(t, created.GetName())
-	require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
-	require.Equal(t, int32(1), job.GetAttemptCount())
-	require.Equal(t, int32(codes.FailedPrecondition), job.GetError().GetCode())
-	require.Contains(t, job.GetError().GetMessage(), "no configuration for job type")
-}
-
 func TestRetention_PurgesJobs(t *testing.T) {
 	t.Parallel()
 	value := uuid.MustNewV7().String()
@@ -432,7 +415,7 @@ func TestProcess_ExpireTime(t *testing.T) {
 
 	t.Run("must follow schedule_time", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"},
+		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithScheduleTime(farFuture), scheduler.WithExpireTime(farFuture.Add(-time.Minute)))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)

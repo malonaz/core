@@ -3,3 +3,9 @@
 migrations:
   - path: job/001_init.sql
     hash: 59c05d321e470df80c3da58b8bb63926
+  - path: target/001_init.sql
+    hash: eb18f0e9c69cfce108c96b1a4bb58fd2
+  - path: queue/001_init.sql
+    hash: 4d1eec7832524ab96ba2f7b86c79c75a
+  - path: job/002_queue.sql
+    hash: b009b42896af54bf1b624da8b1a5fcaa

@@ -3,6 +3,8 @@ go_library(
     srcs = [
         "job_model.pb.go",
         "labels_model.pb.go",
+        "queue_model.pb.go",
+        "target_model.pb.go",
     ],
     visibility = ["//..."],
     deps = [

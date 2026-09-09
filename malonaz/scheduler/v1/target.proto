@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package malonaz.scheduler.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+
+// A Target is a gRPC server the scheduler delivers jobs to. Queue handlers
+// reference targets by name; the scheduler dials a target lazily on first use
+// and re-dials when the target is updated. A target must serve gRPC
+// reflection: the methods handlers route to are resolved against it.
+//
+// A target cannot be deleted while a queue handler references it.
+message Target {
+  option (google.api.resource) = {
+    type: "scheduler.malonaz.com/Target"
+    pattern: "targets/{target}"
+    singular: "target"
+    plural: "targets"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "08144269-a867-4ab0-9605-5fe82afe5725";
+
+  // The resource name of the target.
+  // Format: targets/{target}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the target.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the target.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 4;
+
+  // The gRPC endpoint: `https://host:port`, `http://host:port` (plaintext) or
+  // `unix:/path`.
+  string url = 5 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.pattern = "^(https://|http://|unix:)."
+  ];
+
+  // Request metadata attached to every call to this target.
+  map<string, string> headers = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+}

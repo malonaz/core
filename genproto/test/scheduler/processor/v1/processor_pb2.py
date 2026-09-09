@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a\x1egoogle/protobuf/duration.proto\"\x1c\n\x0b\x45\x63hoRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1d\n\x0c\x45\x63hoResponse\x12\r\n\x05value\x18\x01 \x01(\t\";\n\x0c\x46lakyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x10\n\x08\x66\x61ilures\x18\x02 \x01(\x05\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\"\x1e\n\rFlakyResponse\x12\r\n\x05\x63\x61lls\x18\x01 \x01(\x05\"H\n\x0cSleepRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x0f\n\rSleepResponse\"K\n\x0f\x44\x65\x61\x64lineRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x12\n\x10\x44\x65\x61\x64lineResponse\" \n\x0fProgressRequest\x12\r\n\x05steps\x18\x01 \x01(\x05\"\x12\n\x10ProgressResponse\"\x15\n\x04Step\x12\r\n\x05index\x18\x01 \x01(\x05\"\x10\n\x0eIgnoredRequest\"\x11\n\x0fIgnoredResponse2\xc0\x05\n\tProcessor\x12k\n\x04\x45\x63ho\x12\x30.malonaz.test.scheduler.processor.v1.EchoRequest\x1a\x31.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n\x05\x46laky\x12\x31.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a\x32.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n\x05Sleep\x12\x31.malonaz.test.scheduler.processor.v1.SleepRequest\x1a\x32.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n\x08\x44\x65\x61\x64line\x12\x34.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a\x35.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n\x08Progress\x12\x34.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a\x35.malonaz.test.scheduler.processor.v1.ProgressResponse\x12t\n\x07Ignored\x12\x33.malonaz.test.scheduler.processor.v1.IgnoredRequest\x1a\x34.malonaz.test.scheduler.processor.v1.IgnoredResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a\x1egoogle/protobuf/duration.proto\"\x1c\n\x0b\x45\x63hoRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1d\n\x0c\x45\x63hoResponse\x12\r\n\x05value\x18\x01 \x01(\t\"k\n\x0c\x46lakyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x10\n\x08\x66\x61ilures\x18\x02 \x01(\x05\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\x12.\n\x0bretry_delay\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x1e\n\rFlakyResponse\x12\r\n\x05\x63\x61lls\x18\x01 \x01(\x05\"H\n\x0cSleepRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x0f\n\rSleepResponse\"K\n\x0f\x44\x65\x61\x64lineRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x12\n\x10\x44\x65\x61\x64lineResponse\" \n\x0fProgressRequest\x12\r\n\x05steps\x18\x01 \x01(\x05\"\x12\n\x10ProgressResponse\"\x15\n\x04Step\x12\r\n\x05index\x18\x01 \x01(\x05\"\x11\n\x0fUnroutedRequest\"\x12\n\x10UnroutedResponse2\xc3\x05\n\tProcessor\x12k\n\x04\x45\x63ho\x12\x30.malonaz.test.scheduler.processor.v1.EchoRequest\x1a\x31.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n\x05\x46laky\x12\x31.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a\x32.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n\x05Sleep\x12\x31.malonaz.test.scheduler.processor.v1.SleepRequest\x1a\x32.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n\x08\x44\x65\x61\x64line\x12\x34.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a\x35.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n\x08Progress\x12\x34.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a\x35.malonaz.test.scheduler.processor.v1.ProgressResponse\x12w\n\x08Unrouted\x12\x34.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a\x35.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -38,27 +38,27 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_ECHORESPONSE']._serialized_start=154
   _globals['_ECHORESPONSE']._serialized_end=183
   _globals['_FLAKYREQUEST']._serialized_start=185
-  _globals['_FLAKYREQUEST']._serialized_end=244
-  _globals['_FLAKYRESPONSE']._serialized_start=246
-  _globals['_FLAKYRESPONSE']._serialized_end=276
-  _globals['_SLEEPREQUEST']._serialized_start=278
-  _globals['_SLEEPREQUEST']._serialized_end=350
-  _globals['_SLEEPRESPONSE']._serialized_start=352
-  _globals['_SLEEPRESPONSE']._serialized_end=367
-  _globals['_DEADLINEREQUEST']._serialized_start=369
-  _globals['_DEADLINEREQUEST']._serialized_end=444
-  _globals['_DEADLINERESPONSE']._serialized_start=446
-  _globals['_DEADLINERESPONSE']._serialized_end=464
-  _globals['_PROGRESSREQUEST']._serialized_start=466
-  _globals['_PROGRESSREQUEST']._serialized_end=498
-  _globals['_PROGRESSRESPONSE']._serialized_start=500
-  _globals['_PROGRESSRESPONSE']._serialized_end=518
-  _globals['_STEP']._serialized_start=520
-  _globals['_STEP']._serialized_end=541
-  _globals['_IGNOREDREQUEST']._serialized_start=543
-  _globals['_IGNOREDREQUEST']._serialized_end=559
-  _globals['_IGNOREDRESPONSE']._serialized_start=561
-  _globals['_IGNOREDRESPONSE']._serialized_end=578
-  _globals['_PROCESSOR']._serialized_start=581
-  _globals['_PROCESSOR']._serialized_end=1285
+  _globals['_FLAKYREQUEST']._serialized_end=292
+  _globals['_FLAKYRESPONSE']._serialized_start=294
+  _globals['_FLAKYRESPONSE']._serialized_end=324
+  _globals['_SLEEPREQUEST']._serialized_start=326
+  _globals['_SLEEPREQUEST']._serialized_end=398
+  _globals['_SLEEPRESPONSE']._serialized_start=400
+  _globals['_SLEEPRESPONSE']._serialized_end=415
+  _globals['_DEADLINEREQUEST']._serialized_start=417
+  _globals['_DEADLINEREQUEST']._serialized_end=492
+  _globals['_DEADLINERESPONSE']._serialized_start=494
+  _globals['_DEADLINERESPONSE']._serialized_end=512
+  _globals['_PROGRESSREQUEST']._serialized_start=514
+  _globals['_PROGRESSREQUEST']._serialized_end=546
+  _globals['_PROGRESSRESPONSE']._serialized_start=548
+  _globals['_PROGRESSRESPONSE']._serialized_end=566
+  _globals['_STEP']._serialized_start=568
+  _globals['_STEP']._serialized_end=589
+  _globals['_UNROUTEDREQUEST']._serialized_start=591
+  _globals['_UNROUTEDREQUEST']._serialized_end=608
+  _globals['_UNROUTEDRESPONSE']._serialized_start=610
+  _globals['_UNROUTEDRESPONSE']._serialized_end=628
+  _globals['_PROCESSOR']._serialized_start=631
+  _globals['_PROCESSOR']._serialized_end=1338
 # @@protoc_insertion_point(module_scope)

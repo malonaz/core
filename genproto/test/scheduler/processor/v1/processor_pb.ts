@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/scheduler/processor/v1/processor.proto.
  */
 export const file_malonaz_test_scheduler_processor_v1_processor: GenFile = /*@__PURE__*/
-  fileDesc("CjNtYWxvbmF6L3Rlc3Qvc2NoZWR1bGVyL3Byb2Nlc3Nvci92MS9wcm9jZXNzb3IucHJvdG8SI21hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxIhwKC0VjaG9SZXF1ZXN0Eg0KBXZhbHVlGAEgASgJIh0KDEVjaG9SZXNwb25zZRINCgV2YWx1ZRgBIAEoCSI7CgxGbGFreVJlcXVlc3QSCwoDa2V5GAEgASgJEhAKCGZhaWx1cmVzGAIgASgFEgwKBGNvZGUYAyABKAUiHgoNRmxha3lSZXNwb25zZRINCgVjYWxscxgBIAEoBSJICgxTbGVlcFJlcXVlc3QSCwoDa2V5GAEgASgJEisKCGR1cmF0aW9uGAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uIg8KDVNsZWVwUmVzcG9uc2UiSwoPRGVhZGxpbmVSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiISChBEZWFkbGluZVJlc3BvbnNlIiAKD1Byb2dyZXNzUmVxdWVzdBINCgVzdGVwcxgBIAEoBSISChBQcm9ncmVzc1Jlc3BvbnNlIhUKBFN0ZXASDQoFaW5kZXgYASABKAUiEAoOSWdub3JlZFJlcXVlc3QiEQoPSWdub3JlZFJlc3BvbnNlMsAFCglQcm9jZXNzb3ISawoERWNobxIwLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLkVjaG9SZXF1ZXN0GjEubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRWNob1Jlc3BvbnNlEm4KBUZsYWt5EjEubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRmxha3lSZXF1ZXN0GjIubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRmxha3lSZXNwb25zZRJuCgVTbGVlcBIxLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVxdWVzdBoyLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVzcG9uc2USdwoIRGVhZGxpbmUSNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlcXVlc3QaNS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlc3BvbnNlEncKCFByb2dyZXNzEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXNwb25zZRJ0CgdJZ25vcmVkEjMubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuSWdub3JlZFJlcXVlc3QaNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5JZ25vcmVkUmVzcG9uc2VCPlo8Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9zY2hlZHVsZXIvcHJvY2Vzc29yL3YxYgZwcm90bzM", [file_google_protobuf_duration]);
+  fileDesc("CjNtYWxvbmF6L3Rlc3Qvc2NoZWR1bGVyL3Byb2Nlc3Nvci92MS9wcm9jZXNzb3IucHJvdG8SI21hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxIhwKC0VjaG9SZXF1ZXN0Eg0KBXZhbHVlGAEgASgJIh0KDEVjaG9SZXNwb25zZRINCgV2YWx1ZRgBIAEoCSJrCgxGbGFreVJlcXVlc3QSCwoDa2V5GAEgASgJEhAKCGZhaWx1cmVzGAIgASgFEgwKBGNvZGUYAyABKAUSLgoLcmV0cnlfZGVsYXkYBCABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24iHgoNRmxha3lSZXNwb25zZRINCgVjYWxscxgBIAEoBSJICgxTbGVlcFJlcXVlc3QSCwoDa2V5GAEgASgJEisKCGR1cmF0aW9uGAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uIg8KDVNsZWVwUmVzcG9uc2UiSwoPRGVhZGxpbmVSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiISChBEZWFkbGluZVJlc3BvbnNlIiAKD1Byb2dyZXNzUmVxdWVzdBINCgVzdGVwcxgBIAEoBSISChBQcm9ncmVzc1Jlc3BvbnNlIhUKBFN0ZXASDQoFaW5kZXgYASABKAUiEQoPVW5yb3V0ZWRSZXF1ZXN0IhIKEFVucm91dGVkUmVzcG9uc2UywwUKCVByb2Nlc3NvchJrCgRFY2hvEjAubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRWNob1JlcXVlc3QaMS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5FY2hvUmVzcG9uc2USbgoFRmxha3kSMS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5GbGFreVJlcXVlc3QaMi5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5GbGFreVJlc3BvbnNlEm4KBVNsZWVwEjEubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuU2xlZXBSZXF1ZXN0GjIubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuU2xlZXBSZXNwb25zZRJ3CghEZWFkbGluZRI0Lm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLkRlYWRsaW5lUmVxdWVzdBo1Lm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLkRlYWRsaW5lUmVzcG9uc2USdwoIUHJvZ3Jlc3MSNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5Qcm9ncmVzc1JlcXVlc3QaNS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5Qcm9ncmVzc1Jlc3BvbnNlEncKCFVucm91dGVkEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXNwb25zZUI+WjxnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3NjaGVkdWxlci9wcm9jZXNzb3IvdjFiBnByb3RvMw", [file_google_protobuf_duration]);
 
 /**
  * Request message for Processor.Echo.
@@ -86,6 +86,14 @@ export type FlakyRequest = Message<"malonaz.test.scheduler.processor.v1.FlakyReq
    * @generated from field: int32 code = 3;
    */
   code: number;
+
+  /**
+   * When set, failures carry a `google.rpc.RetryInfo` detail asking the
+   * scheduler to wait this long before the next attempt.
+   *
+   * @generated from field: google.protobuf.Duration retry_delay = 4;
+   */
+  retryDelay?: Duration;
 };
 
 export type FlakyRequestValid = FlakyRequest;
@@ -278,43 +286,42 @@ export const StepSchema: GenMessage<Step, {validType: StepValid}> = /*@__PURE__*
   messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 10);
 
 /**
- * Request message for Processor.Ignored.
+ * Request message for Processor.Unrouted.
  *
- * @generated from message malonaz.test.scheduler.processor.v1.IgnoredRequest
+ * @generated from message malonaz.test.scheduler.processor.v1.UnroutedRequest
  */
-export type IgnoredRequest = Message<"malonaz.test.scheduler.processor.v1.IgnoredRequest"> & {
+export type UnroutedRequest = Message<"malonaz.test.scheduler.processor.v1.UnroutedRequest"> & {
 };
 
-export type IgnoredRequestValid = IgnoredRequest;
+export type UnroutedRequestValid = UnroutedRequest;
 
 /**
- * Describes the message malonaz.test.scheduler.processor.v1.IgnoredRequest.
- * Use `create(IgnoredRequestSchema)` to create a new message.
+ * Describes the message malonaz.test.scheduler.processor.v1.UnroutedRequest.
+ * Use `create(UnroutedRequestSchema)` to create a new message.
  */
-export const IgnoredRequestSchema: GenMessage<IgnoredRequest, {validType: IgnoredRequestValid}> = /*@__PURE__*/
+export const UnroutedRequestSchema: GenMessage<UnroutedRequest, {validType: UnroutedRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 11);
 
 /**
- * Response message for Processor.Ignored.
+ * Response message for Processor.Unrouted.
  *
- * @generated from message malonaz.test.scheduler.processor.v1.IgnoredResponse
+ * @generated from message malonaz.test.scheduler.processor.v1.UnroutedResponse
  */
-export type IgnoredResponse = Message<"malonaz.test.scheduler.processor.v1.IgnoredResponse"> & {
+export type UnroutedResponse = Message<"malonaz.test.scheduler.processor.v1.UnroutedResponse"> & {
 };
 
-export type IgnoredResponseValid = IgnoredResponse;
+export type UnroutedResponseValid = UnroutedResponse;
 
 /**
- * Describes the message malonaz.test.scheduler.processor.v1.IgnoredResponse.
- * Use `create(IgnoredResponseSchema)` to create a new message.
+ * Describes the message malonaz.test.scheduler.processor.v1.UnroutedResponse.
+ * Use `create(UnroutedResponseSchema)` to create a new message.
  */
-export const IgnoredResponseSchema: GenMessage<IgnoredResponse, {validType: IgnoredResponseValid}> = /*@__PURE__*/
+export const UnroutedResponseSchema: GenMessage<UnroutedResponse, {validType: UnroutedResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 12);
 
 /**
- * A scriptable processor the scheduler sats route jobs to. Each request type
- * is one job type, so the scheduler configuration can give each its own
- * timeout and retry policy.
+ * A scriptable processor the scheduler sats route jobs to. The sats give each
+ * method its own queue, so each can have its own timeout and retry policy.
  *
  * @generated from service malonaz.test.scheduler.processor.v1.Processor
  */
@@ -371,14 +378,14 @@ export const Processor: GenService<{
     output: typeof ProgressResponseSchema;
   },
   /**
-   * Never routed: the sats configure the scheduler to ignore this job type.
+   * Never routed: no sat queue has a handler for it.
    *
-   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Ignored
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Unrouted
    */
-  ignored: {
+  unrouted: {
     methodKind: "unary";
-    input: typeof IgnoredRequestSchema;
-    output: typeof IgnoredResponseSchema;
+    input: typeof UnroutedRequestSchema;
+    output: typeof UnroutedResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_malonaz_test_scheduler_processor_v1_processor, 0);

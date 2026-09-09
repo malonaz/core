@@ -4,149 +4,104 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/jackc/pgerrcode"
 	v5 "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/postgres"
 )
 
-// ErrJobNotRunning is returned by UpdateRunningJob when the job left RUNNING
-// under the worker's feet (cancelled, or reaped after its lease lapsed).
-var ErrJobNotRunning = errors.New("job is not running")
-
-// jobUniqueKeyLiveIndex allows one PENDING and one RUNNING job per unique key;
-// see the job migration.
-const jobUniqueKeyLiveIndex = "job_unique_key_live_idx"
-
-// IsUniqueKeyConflict reports whether err is a violation of the unique key
-// index, i.e. a transition that would give a key a second PENDING or RUNNING job.
-func IsUniqueKeyConflict(err error) bool {
-	var pgErr *pgconn.PgError
-	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == jobUniqueKeyLiveIndex
-}
-
 var (
-	// job_id identifies the row; every other column is written by a transition.
-	jobTransitionColumns = postgres.GetDBColumns(model.Job{}, postgres.ExceptColumns("job_id"))
-	jobTransitionQuery   = transitionQuery(jobTransitionColumns) + fmt.Sprintf(" WHERE job_id = $%d", len(jobTransitionColumns)+1)
-	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE SKIP LOCKED", JobPostgresColumns)
+	// queue_id identifies the row; every other column is written by a transition.
+	queueTransitionColumns = postgres.GetDBColumns(model.Queue{}, postgres.ExceptColumns("queue_id"))
+	queueTransitionQuery   = updateQuery("queue", queueTransitionColumns) + fmt.Sprintf(" WHERE queue_id = $%d", len(queueTransitionColumns)+1)
+	queueSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM queue WHERE queue_id = $1 FOR UPDATE", QueuePostgresColumns)
 )
 
-func transitionQuery(columns []string) string {
-	assignments := make([]string, len(columns))
-	for i, column := range columns {
-		assignments[i] = fmt.Sprintf("%s = $%d", column, i+1)
-	}
-	return "UPDATE job SET " + strings.Join(assignments, ", ")
-}
-
-// TransitionJobs locks up to limit jobs matching whereClause, applies
-// transition to each and persists them, all in one transaction. SKIP LOCKED
-// lets concurrent workers claim disjoint sets without contending. Rows are
-// selected in orderBy order (e.g. "ORDER BY schedule_time NULLS FIRST").
-func (s *Store) TransitionJobs(ctx context.Context, whereClause, orderBy string, limit int, params []any, transition func(*model.Job) error) ([]*model.Job, error) {
-	query := strings.NewReplacer(
-		"#where#", whereClause,
-		"#order_by#", orderBy,
-		"#limit#", fmt.Sprint(limit),
-	).Replace(jobSelectForUpdate)
-
-	var jobs []*model.Job
+// TransitionQueue locks one queue and applies transition to it, persisting the
+// result when transition reports a change. The transition may return an error
+// to refuse the change. Returns model.ErrQueueNotExist when there is no such queue.
+func (s *Store) TransitionQueue(ctx context.Context, queueID string, transition func(*model.Queue) (bool, error)) (*model.Queue, error) {
+	var queue *model.Queue
 	transactionFN := func(tx postgres.Tx) error {
-		jobs = nil
-		rows, err := tx.Query(ctx, query, params...)
+		rows, err := tx.Query(ctx, queueSelectForUpdate, queueID)
 		if err != nil {
-			return fmt.Errorf("selecting jobs: %w", err)
+			return fmt.Errorf("selecting queue: %w", err)
 		}
-		jobs, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
+		queue, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
 		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		if len(jobs) == 0 {
-			return nil
-		}
-		batch := &v5.Batch{}
-		for _, job := range jobs {
-			if err := transition(job); err != nil {
-				return err
+			if errors.Is(err, v5.ErrNoRows) {
+				return model.ErrQueueNotExist
 			}
-			params := append(postgres.GetParams(job, jobTransitionColumns...), job.JobID)
-			batch.Queue(jobTransitionQuery, params...)
+			return fmt.Errorf("collecting row: %w", err)
 		}
-		return tx.SendBatch(ctx, batch).Close()
+		changed, err := transition(queue)
+		if err != nil || !changed {
+			return err
+		}
+		params := append(postgres.GetParams(queue, queueTransitionColumns...), queue.QueueID)
+		if _, err := tx.Exec(ctx, queueTransitionQuery, params...); err != nil {
+			return fmt.Errorf("updating queue: %w", err)
+		}
+		return nil
 	}
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	return jobs, nil
+	return queue, nil
 }
 
-// TransitionJob locks one job and applies transition to it. The transition
-// may return an error to refuse the change (e.g. a state precondition).
-func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func(*model.Job) error) (*model.Job, error) {
-	jobs, err := s.TransitionJobs(ctx, "job_id = $1", "", 1, []any{jobID}, transition)
-	if err != nil {
-		return nil, err
-	}
-	if len(jobs) == 0 {
-		return nil, model.ErrJobNotExist
-	}
-	return jobs[0], nil
+// QueueStats is a queue's live backlog.
+type QueueStats struct {
+	QueueID                   string     `db:"queue_id"`
+	PendingCount              int64      `db:"pending_count"`
+	RunningCount              int64      `db:"running_count"`
+	OldestPendingScheduleTime *time.Time `db:"oldest_pending_schedule_time"`
 }
 
-// UpdateRunningJob writes the given columns of a job the caller believes to be
-// RUNNING and returns the fresh row. It is the worker's write path: the state
-// predicate makes a cancelled or reaped job's late writes no-ops, surfaced as
-// ErrJobNotRunning.
-func (s *Store) UpdateRunningJob(ctx context.Context, job *model.Job, columns ...string) (*model.Job, error) {
-	params := append(postgres.GetParams(job, columns...), job.JobID, int16(schedulerpb.JobState_JOB_STATE_RUNNING))
-	query := transitionQuery(columns) + fmt.Sprintf(" WHERE job_id = $%d AND state = $%d RETURNING ", len(columns)+1, len(columns)+2) +
-		postgres.SelectQuery("%s", JobPostgresColumns)
-	rows, err := s.client.Query(ctx, query, params...)
+const queueStatsQuery = `
+SELECT queue.queue_id,
+    count(job.job_id) FILTER (WHERE job.state = $1) AS pending_count,
+    count(job.job_id) FILTER (WHERE job.state = $2) AS running_count,
+    min(COALESCE(job.schedule_time, job.create_time)) FILTER (WHERE job.state = $1) AS oldest_pending_schedule_time
+FROM queue
+LEFT JOIN job ON job.queue = 'queues/' || queue.queue_id AND job.state IN ($1, $2)
+WHERE $3::text[] IS NULL OR queue.queue_id = ANY($3)
+GROUP BY queue.queue_id`
+
+// ListQueueStats returns the backlog of the given queues, or of every queue
+// when queueIDs is nil. Queues without live jobs are reported with zero counts.
+func (s *Store) ListQueueStats(ctx context.Context, queueIDs []string) ([]*QueueStats, error) {
+	rows, err := s.client.Query(ctx, queueStatsQuery, int16(schedulerpb.JobState_JOB_STATE_PENDING), int16(schedulerpb.JobState_JOB_STATE_RUNNING), queueIDs)
 	if err != nil {
-		return nil, fmt.Errorf("updating running job: %w", err)
+		return nil, fmt.Errorf("listing queue stats: %w", err)
 	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
+	stats, err := v5.CollectRows(rows, v5.RowToAddrOfStructByName[QueueStats])
 	if err != nil {
-		if errors.Is(err, v5.ErrNoRows) {
-			return nil, ErrJobNotRunning
-		}
-		return nil, fmt.Errorf("collecting row: %w", err)
+		return nil, fmt.Errorf("collecting rows: %w", err)
 	}
-	return row, nil
+	return stats, nil
 }
 
-var jobGetPendingByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM job WHERE unique_key = $1 AND state = $2", JobPostgresColumns)
-
-// GetPendingJobByUniqueKey returns the PENDING job holding the unique key, the
-// one a keyed create coalesces onto. Returns model.ErrJobNotExist when there is
-// none.
-func (s *Store) GetPendingJobByUniqueKey(ctx context.Context, uniqueKey string) (*model.Job, error) {
-	rows, err := s.client.Query(ctx, jobGetPendingByUniqueKeyQuery, uniqueKey, int16(schedulerpb.JobState_JOB_STATE_PENDING))
-	if err != nil {
-		return nil, fmt.Errorf("getting pending job by unique key: %w", err)
+// QueueHasLiveJobs reports whether a PENDING or RUNNING job references the
+// queue, which is what refuses its deletion.
+func (s *Store) QueueHasLiveJobs(ctx context.Context, queueName string) (bool, error) {
+	var exists bool
+	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM job WHERE queue = $1 AND state IN ($2, $3))",
+		queueName, int16(schedulerpb.JobState_JOB_STATE_PENDING), int16(schedulerpb.JobState_JOB_STATE_RUNNING)).Scan(&exists); err != nil {
+		return false, fmt.Errorf("checking queue jobs: %w", err)
 	}
-	job, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
-	if err != nil {
-		if errors.Is(err, v5.ErrNoRows) {
-			return nil, model.ErrJobNotExist
-		}
-		return nil, fmt.Errorf("collecting row: %w", err)
-	}
-	return job, nil
+	return exists, nil
 }
 
-// PurgeJobs deletes jobs whose retention lapsed before now.
-func (s *Store) PurgeJobs(ctx context.Context, now time.Time) (int64, error) {
-	tag, err := s.client.Exec(ctx, "DELETE FROM job WHERE purge_time < $1", now)
-	if err != nil {
-		return 0, fmt.Errorf("purging jobs: %w", err)
+// TargetIsReferenced reports whether a queue handler references the target,
+// which is what refuses its deletion.
+func (s *Store) TargetIsReferenced(ctx context.Context, targetName string) (bool, error) {
+	var exists bool
+	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM queue WHERE handlers @> jsonb_build_array(jsonb_build_object('target', $1::text)))", targetName).Scan(&exists); err != nil {
+		return false, fmt.Errorf("checking target references: %w", err)
 	}
-	return tag.RowsAffected(), nil
+	return exists, nil
 }

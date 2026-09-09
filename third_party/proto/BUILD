@@ -59,6 +59,15 @@ github_proto_library(
 )
 
 github_proto_library(
+    name = "google__rpc__code",
+    additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/rpc/code"},
+    dir = "google/rpc",
+    files = ["code.proto"],
+    repo = "googleapis/googleapis",
+    revision = GOOGLEAPI_REVISION,
+)
+
+github_proto_library(
     name = "google__rpc__status",
     additional_context = {GO_IMPORT_PATH: "google.golang.org/genproto/googleapis/rpc/status"},
     dir = "google/rpc",

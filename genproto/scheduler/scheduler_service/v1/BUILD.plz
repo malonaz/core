@@ -1,10 +1,11 @@
 go_library(
     name = "v1",
     srcs = [
-        "configuration.pb.go",
         "job.pb.go",
+        "queue.pb.go",
         "scheduler_service.pb.go",
         "scheduler_service_grpc.pb.go",
+        "target.pb.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -16,7 +17,6 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
-        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/proto:google__api__annotations",

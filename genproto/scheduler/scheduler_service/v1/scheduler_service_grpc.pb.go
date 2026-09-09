@@ -21,6 +21,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	SchedulerService_CreateTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateTarget"
+	SchedulerService_GetTarget_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetTarget"
+	SchedulerService_UpdateTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateTarget"
+	SchedulerService_DeleteTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteTarget"
+	SchedulerService_ListTargets_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListTargets"
+	SchedulerService_BatchGetTargets_FullMethodName   = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetTargets"
+	SchedulerService_CreateQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateQueue"
+	SchedulerService_GetQueue_FullMethodName          = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetQueue"
+	SchedulerService_UpdateQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateQueue"
+	SchedulerService_DeleteQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteQueue"
+	SchedulerService_ListQueues_FullMethodName        = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListQueues"
+	SchedulerService_BatchGetQueues_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetQueues"
+	SchedulerService_PauseQueue_FullMethodName        = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseQueue"
+	SchedulerService_ResumeQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeQueue"
 	SchedulerService_CreateJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateJob"
 	SchedulerService_GetJob_FullMethodName            = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetJob"
 	SchedulerService_UpdateJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateJob"
@@ -37,10 +51,17 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // This API represents a scheduler service: a durable, Postgres-backed job
-// queue that delivers each job's payload to a processor over gRPC.
+// queue that delivers each job's payload to a handler over gRPC.
 //
 // # Resource model
 //
+//   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
+//     scheduler dials; each must serve gRPC reflection, the scheduler's only
+//     source of method and message type information.
+//     Format: targets/{target}
+//   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
+//     the handlers (method on a target) jobs are routed to.
+//     Format: queues/{queue}
 //   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
 //     hang off the organization or user they run on behalf of.
 //     Format: jobs/{job}
@@ -49,27 +70,28 @@ const (
 //
 // # Scheduling
 //
-// A job is due at its `schedule_time` (at creation when unset). Due jobs are
-// claimed highest `priority` first, then in due order, across every parent.
-// A job with an `expire_time` must have started by then: it fails with
-// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
-// would reach past it fails at once. A `unique_key` coalesces work: at most one
-// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
-// one run plus, if one was in flight, a single trailing run.
+// A job is due at its `schedule_time` (at creation when unset). Due jobs of
+// RUNNING queues are claimed highest `priority` first, then in due order,
+// across every parent, within each queue's `max_concurrency`. A job with an
+// `expire_time` must have started by then: it fails with DEADLINE_EXCEEDED if
+// still PENDING at expiry, and a retry whose backoff would reach past it fails
+// at once. A `unique_key` coalesces work: at most one PENDING and one RUNNING
+// job exist per key, so a burst of keyed creates yields one run plus, if one
+// was in flight, a single trailing run.
 //
 // # Delivery
 //
-// A job's payload type URL selects, through the service configuration, the
-// processor and gRPC method it is delivered to, the per-attempt timeout, the
-// number of attempts and the backoff between them. Workers claim due PENDING
-// jobs, invoke the method with the payload as request body, and record the
-// outcome: SUCCEEDED with the response, or PENDING again with the next attempt
-// scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted. Every attempt is recorded in the job's `metadata`.
+// At creation, a job's payload type URL selects the handler of its queue it is
+// delivered to. Workers claim due PENDING jobs, invoke the handler's method on
+// its target with the payload as request body under the queue's attempt
+// timeout, and record the outcome: SUCCEEDED with the response, or PENDING
+// again with the next attempt scheduled after the backoff, or FAILED with the
+// error once attempts are exhausted or the error is not retryable. A handler
+// may attach a `google.rpc.RetryInfo` detail to its error to set the wait
+// before the next attempt. Every attempt is recorded in the job's `metadata`.
 //
-// Every processor call carries the job's resource name in the
-// `x-scheduler-job` request metadata, which processors pass to
-// ReportJobProgress.
+// Every handler call carries the job's resource name in the `x-scheduler-job`
+// request metadata, which handlers pass to ReportJobProgress.
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
@@ -77,8 +99,75 @@ const (
 // Terminal jobs are kept for the scheduler's retention and deleted at their
 // `purge_time`.
 type SchedulerServiceClient interface {
-	// Create a job. When the job carries a `unique_key` that already has a
-	// PENDING job, no job is created and that job is returned instead.
+	// Create a target.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateTarget(ctx context.Context, in *CreateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
+	// Get a target.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetTarget(ctx context.Context, in *GetTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
+	// Update a target. Jobs routed to it after the update use the new
+	// endpoint; calls in flight complete on the old one.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateTarget(ctx context.Context, in *UpdateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
+	// Delete a target. Fails with FAILED_PRECONDITION while a queue handler
+	// references it.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteTarget(ctx context.Context, in *DeleteTargetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// List targets.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListTargets(ctx context.Context, in *ListTargetsRequest, opts ...grpc.CallOption) (*ListTargetsResponse, error)
+	// Get multiple targets in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetTargets(ctx context.Context, in *BatchGetTargetsRequest, opts ...grpc.CallOption) (*BatchGetTargetsResponse, error)
+	// Create a queue. Every handler's target must exist and serve the handler's
+	// method, which the scheduler checks over the target's gRPC reflection
+	// service; no two handlers may share a request type. The queue starts RUNNING.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Get a queue.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetQueue(ctx context.Context, in *GetQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Update a queue. The new policy applies to attempts claimed after the
+	// update; the new handlers apply to jobs created after it.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Delete a queue. Fails with FAILED_PRECONDITION while a PENDING or RUNNING
+	// job references it.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteQueue(ctx context.Context, in *DeleteQueueRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// List queues.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListQueues(ctx context.Context, in *ListQueuesRequest, opts ...grpc.CallOption) (*ListQueuesResponse, error)
+	// Get multiple queues in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetQueues(ctx context.Context, in *BatchGetQueuesRequest, opts ...grpc.CallOption) (*BatchGetQueuesResponse, error)
+	// Pause a queue: no further job of it is claimed until it is resumed;
+	// running jobs finish and new jobs are accepted. Idempotent on a PAUSED
+	// queue.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	PauseQueue(ctx context.Context, in *PauseQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Resume a paused queue. Idempotent on a RUNNING queue.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResumeQueue(ctx context.Context, in *ResumeQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Create a job in its queue. Fails with NOT_FOUND when the queue does not
+	// exist and with INVALID_ARGUMENT when no handler of the queue accepts the
+	// payload type. A job on a PAUSED queue is accepted and waits. When the job
+	// carries a `unique_key` that already has a PENDING job, no job is created
+	// and that job is returned instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(ctx context.Context, in *CreateJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
@@ -130,6 +219,146 @@ type schedulerServiceClient struct {
 
 func NewSchedulerServiceClient(cc grpc.ClientConnInterface) SchedulerServiceClient {
 	return &schedulerServiceClient{cc}
+}
+
+func (c *schedulerServiceClient) CreateTarget(ctx context.Context, in *CreateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Target)
+	err := c.cc.Invoke(ctx, SchedulerService_CreateTarget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) GetTarget(ctx context.Context, in *GetTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Target)
+	err := c.cc.Invoke(ctx, SchedulerService_GetTarget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) UpdateTarget(ctx context.Context, in *UpdateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Target)
+	err := c.cc.Invoke(ctx, SchedulerService_UpdateTarget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) DeleteTarget(ctx context.Context, in *DeleteTargetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, SchedulerService_DeleteTarget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) ListTargets(ctx context.Context, in *ListTargetsRequest, opts ...grpc.CallOption) (*ListTargetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTargetsResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_ListTargets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchGetTargets(ctx context.Context, in *BatchGetTargetsRequest, opts ...grpc.CallOption) (*BatchGetTargetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetTargetsResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchGetTargets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Queue)
+	err := c.cc.Invoke(ctx, SchedulerService_CreateQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) GetQueue(ctx context.Context, in *GetQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Queue)
+	err := c.cc.Invoke(ctx, SchedulerService_GetQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Queue)
+	err := c.cc.Invoke(ctx, SchedulerService_UpdateQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) DeleteQueue(ctx context.Context, in *DeleteQueueRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, SchedulerService_DeleteQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) ListQueues(ctx context.Context, in *ListQueuesRequest, opts ...grpc.CallOption) (*ListQueuesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListQueuesResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_ListQueues_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchGetQueues(ctx context.Context, in *BatchGetQueuesRequest, opts ...grpc.CallOption) (*BatchGetQueuesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetQueuesResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchGetQueues_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) PauseQueue(ctx context.Context, in *PauseQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Queue)
+	err := c.cc.Invoke(ctx, SchedulerService_PauseQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) ResumeQueue(ctx context.Context, in *ResumeQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Queue)
+	err := c.cc.Invoke(ctx, SchedulerService_ResumeQueue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *schedulerServiceClient) CreateJob(ctx context.Context, in *CreateJobRequest, opts ...grpc.CallOption) (*v1.Job, error) {
@@ -227,10 +456,17 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // for forward compatibility.
 //
 // This API represents a scheduler service: a durable, Postgres-backed job
-// queue that delivers each job's payload to a processor over gRPC.
+// queue that delivers each job's payload to a handler over gRPC.
 //
 // # Resource model
 //
+//   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
+//     scheduler dials; each must serve gRPC reflection, the scheduler's only
+//     source of method and message type information.
+//     Format: targets/{target}
+//   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
+//     the handlers (method on a target) jobs are routed to.
+//     Format: queues/{queue}
 //   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
 //     hang off the organization or user they run on behalf of.
 //     Format: jobs/{job}
@@ -239,27 +475,28 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // # Scheduling
 //
-// A job is due at its `schedule_time` (at creation when unset). Due jobs are
-// claimed highest `priority` first, then in due order, across every parent.
-// A job with an `expire_time` must have started by then: it fails with
-// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
-// would reach past it fails at once. A `unique_key` coalesces work: at most one
-// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
-// one run plus, if one was in flight, a single trailing run.
+// A job is due at its `schedule_time` (at creation when unset). Due jobs of
+// RUNNING queues are claimed highest `priority` first, then in due order,
+// across every parent, within each queue's `max_concurrency`. A job with an
+// `expire_time` must have started by then: it fails with DEADLINE_EXCEEDED if
+// still PENDING at expiry, and a retry whose backoff would reach past it fails
+// at once. A `unique_key` coalesces work: at most one PENDING and one RUNNING
+// job exist per key, so a burst of keyed creates yields one run plus, if one
+// was in flight, a single trailing run.
 //
 // # Delivery
 //
-// A job's payload type URL selects, through the service configuration, the
-// processor and gRPC method it is delivered to, the per-attempt timeout, the
-// number of attempts and the backoff between them. Workers claim due PENDING
-// jobs, invoke the method with the payload as request body, and record the
-// outcome: SUCCEEDED with the response, or PENDING again with the next attempt
-// scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted. Every attempt is recorded in the job's `metadata`.
+// At creation, a job's payload type URL selects the handler of its queue it is
+// delivered to. Workers claim due PENDING jobs, invoke the handler's method on
+// its target with the payload as request body under the queue's attempt
+// timeout, and record the outcome: SUCCEEDED with the response, or PENDING
+// again with the next attempt scheduled after the backoff, or FAILED with the
+// error once attempts are exhausted or the error is not retryable. A handler
+// may attach a `google.rpc.RetryInfo` detail to its error to set the wait
+// before the next attempt. Every attempt is recorded in the job's `metadata`.
 //
-// Every processor call carries the job's resource name in the
-// `x-scheduler-job` request metadata, which processors pass to
-// ReportJobProgress.
+// Every handler call carries the job's resource name in the `x-scheduler-job`
+// request metadata, which handlers pass to ReportJobProgress.
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
@@ -267,8 +504,75 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // Terminal jobs are kept for the scheduler's retention and deleted at their
 // `purge_time`.
 type SchedulerServiceServer interface {
-	// Create a job. When the job carries a `unique_key` that already has a
-	// PENDING job, no job is created and that job is returned instead.
+	// Create a target.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateTarget(context.Context, *CreateTargetRequest) (*v1.Target, error)
+	// Get a target.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetTarget(context.Context, *GetTargetRequest) (*v1.Target, error)
+	// Update a target. Jobs routed to it after the update use the new
+	// endpoint; calls in flight complete on the old one.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateTarget(context.Context, *UpdateTargetRequest) (*v1.Target, error)
+	// Delete a target. Fails with FAILED_PRECONDITION while a queue handler
+	// references it.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteTarget(context.Context, *DeleteTargetRequest) (*emptypb.Empty, error)
+	// List targets.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListTargets(context.Context, *ListTargetsRequest) (*ListTargetsResponse, error)
+	// Get multiple targets in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetTargets(context.Context, *BatchGetTargetsRequest) (*BatchGetTargetsResponse, error)
+	// Create a queue. Every handler's target must exist and serve the handler's
+	// method, which the scheduler checks over the target's gRPC reflection
+	// service; no two handlers may share a request type. The queue starts RUNNING.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateQueue(context.Context, *CreateQueueRequest) (*v1.Queue, error)
+	// Get a queue.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetQueue(context.Context, *GetQueueRequest) (*v1.Queue, error)
+	// Update a queue. The new policy applies to attempts claimed after the
+	// update; the new handlers apply to jobs created after it.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateQueue(context.Context, *UpdateQueueRequest) (*v1.Queue, error)
+	// Delete a queue. Fails with FAILED_PRECONDITION while a PENDING or RUNNING
+	// job references it.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteQueue(context.Context, *DeleteQueueRequest) (*emptypb.Empty, error)
+	// List queues.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListQueues(context.Context, *ListQueuesRequest) (*ListQueuesResponse, error)
+	// Get multiple queues in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetQueues(context.Context, *BatchGetQueuesRequest) (*BatchGetQueuesResponse, error)
+	// Pause a queue: no further job of it is claimed until it is resumed;
+	// running jobs finish and new jobs are accepted. Idempotent on a PAUSED
+	// queue.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	PauseQueue(context.Context, *PauseQueueRequest) (*v1.Queue, error)
+	// Resume a paused queue. Idempotent on a RUNNING queue.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResumeQueue(context.Context, *ResumeQueueRequest) (*v1.Queue, error)
+	// Create a job in its queue. Fails with NOT_FOUND when the queue does not
+	// exist and with INVALID_ARGUMENT when no handler of the queue accepts the
+	// payload type. A job on a PAUSED queue is accepted and waits. When the job
+	// carries a `unique_key` that already has a PENDING job, no job is created
+	// and that job is returned instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(context.Context, *CreateJobRequest) (*v1.Job, error)
@@ -321,6 +625,48 @@ type SchedulerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSchedulerServiceServer struct{}
 
+func (UnimplementedSchedulerServiceServer) CreateTarget(context.Context, *CreateTargetRequest) (*v1.Target, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTarget not implemented")
+}
+func (UnimplementedSchedulerServiceServer) GetTarget(context.Context, *GetTargetRequest) (*v1.Target, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTarget not implemented")
+}
+func (UnimplementedSchedulerServiceServer) UpdateTarget(context.Context, *UpdateTargetRequest) (*v1.Target, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTarget not implemented")
+}
+func (UnimplementedSchedulerServiceServer) DeleteTarget(context.Context, *DeleteTargetRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTarget not implemented")
+}
+func (UnimplementedSchedulerServiceServer) ListTargets(context.Context, *ListTargetsRequest) (*ListTargetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTargets not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchGetTargets(context.Context, *BatchGetTargetsRequest) (*BatchGetTargetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetTargets not implemented")
+}
+func (UnimplementedSchedulerServiceServer) CreateQueue(context.Context, *CreateQueueRequest) (*v1.Queue, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateQueue not implemented")
+}
+func (UnimplementedSchedulerServiceServer) GetQueue(context.Context, *GetQueueRequest) (*v1.Queue, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetQueue not implemented")
+}
+func (UnimplementedSchedulerServiceServer) UpdateQueue(context.Context, *UpdateQueueRequest) (*v1.Queue, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateQueue not implemented")
+}
+func (UnimplementedSchedulerServiceServer) DeleteQueue(context.Context, *DeleteQueueRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteQueue not implemented")
+}
+func (UnimplementedSchedulerServiceServer) ListQueues(context.Context, *ListQueuesRequest) (*ListQueuesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListQueues not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchGetQueues(context.Context, *BatchGetQueuesRequest) (*BatchGetQueuesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetQueues not implemented")
+}
+func (UnimplementedSchedulerServiceServer) PauseQueue(context.Context, *PauseQueueRequest) (*v1.Queue, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseQueue not implemented")
+}
+func (UnimplementedSchedulerServiceServer) ResumeQueue(context.Context, *ResumeQueueRequest) (*v1.Queue, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResumeQueue not implemented")
+}
 func (UnimplementedSchedulerServiceServer) CreateJob(context.Context, *CreateJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateJob not implemented")
 }
@@ -366,6 +712,258 @@ func RegisterSchedulerServiceServer(s grpc.ServiceRegistrar, srv SchedulerServic
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&SchedulerService_ServiceDesc, srv)
+}
+
+func _SchedulerService_CreateTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTargetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).CreateTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_CreateTarget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).CreateTarget(ctx, req.(*CreateTargetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_GetTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTargetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).GetTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_GetTarget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).GetTarget(ctx, req.(*GetTargetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_UpdateTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTargetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).UpdateTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_UpdateTarget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).UpdateTarget(ctx, req.(*UpdateTargetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_DeleteTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTargetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).DeleteTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_DeleteTarget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).DeleteTarget(ctx, req.(*DeleteTargetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_ListTargets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTargetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ListTargets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ListTargets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ListTargets(ctx, req.(*ListTargetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_BatchGetTargets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetTargetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchGetTargets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchGetTargets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchGetTargets(ctx, req.(*BatchGetTargetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_CreateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).CreateQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_CreateQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).CreateQueue(ctx, req.(*CreateQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_GetQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).GetQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_GetQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).GetQueue(ctx, req.(*GetQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_UpdateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).UpdateQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_UpdateQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).UpdateQueue(ctx, req.(*UpdateQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_DeleteQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).DeleteQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_DeleteQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).DeleteQueue(ctx, req.(*DeleteQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_ListQueues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListQueuesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ListQueues(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ListQueues_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ListQueues(ctx, req.(*ListQueuesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_BatchGetQueues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetQueuesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchGetQueues(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchGetQueues_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchGetQueues(ctx, req.(*BatchGetQueuesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_PauseQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).PauseQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_PauseQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).PauseQueue(ctx, req.(*PauseQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_ResumeQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ResumeQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ResumeQueue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ResumeQueue(ctx, req.(*ResumeQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _SchedulerService_CreateJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -537,6 +1135,62 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "malonaz.scheduler.scheduler_service.v1.SchedulerService",
 	HandlerType: (*SchedulerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateTarget",
+			Handler:    _SchedulerService_CreateTarget_Handler,
+		},
+		{
+			MethodName: "GetTarget",
+			Handler:    _SchedulerService_GetTarget_Handler,
+		},
+		{
+			MethodName: "UpdateTarget",
+			Handler:    _SchedulerService_UpdateTarget_Handler,
+		},
+		{
+			MethodName: "DeleteTarget",
+			Handler:    _SchedulerService_DeleteTarget_Handler,
+		},
+		{
+			MethodName: "ListTargets",
+			Handler:    _SchedulerService_ListTargets_Handler,
+		},
+		{
+			MethodName: "BatchGetTargets",
+			Handler:    _SchedulerService_BatchGetTargets_Handler,
+		},
+		{
+			MethodName: "CreateQueue",
+			Handler:    _SchedulerService_CreateQueue_Handler,
+		},
+		{
+			MethodName: "GetQueue",
+			Handler:    _SchedulerService_GetQueue_Handler,
+		},
+		{
+			MethodName: "UpdateQueue",
+			Handler:    _SchedulerService_UpdateQueue_Handler,
+		},
+		{
+			MethodName: "DeleteQueue",
+			Handler:    _SchedulerService_DeleteQueue_Handler,
+		},
+		{
+			MethodName: "ListQueues",
+			Handler:    _SchedulerService_ListQueues_Handler,
+		},
+		{
+			MethodName: "BatchGetQueues",
+			Handler:    _SchedulerService_BatchGetQueues_Handler,
+		},
+		{
+			MethodName: "PauseQueue",
+			Handler:    _SchedulerService_PauseQueue_Handler,
+		},
+		{
+			MethodName: "ResumeQueue",
+			Handler:    _SchedulerService_ResumeQueue_Handler,
+		},
 		{
 			MethodName: "CreateJob",
 			Handler:    _SchedulerService_CreateJob_Handler,

@@ -15,7 +15,11 @@ go_protoc_gen_core(
 
 filegroup(
     name = "handwritten",
-    srcs = ["queue.go"],
+    srcs = [
+        "claim.go",
+        "job.go",
+        "queue.go",
+    ],
     labels = [
         "codegen",
         "copy_generated_code:go:gengo",
@@ -25,6 +29,8 @@ filegroup(
 go_library(
     name = "store",
     srcs = [
+        "claim.go",
+        "job.go",
         "queue.go",
         ":codegen",
     ],

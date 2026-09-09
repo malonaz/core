@@ -16,10 +16,10 @@ import (
 )
 
 // JobMetadataKey is the request metadata key under which the scheduler sends a
-// processor the resource name of the job it is executing.
+// handler the resource name of the job it is executing.
 const JobMetadataKey = "x-scheduler-job"
 
-// JobFromIncomingContext returns the name of the job a processor call executes.
+// JobFromIncomingContext returns the name of the job a handler call executes.
 func JobFromIncomingContext(ctx context.Context) (string, bool) {
 	values := metadata.ValueFromIncomingContext(ctx, JobMetadataKey)
 	if len(values) == 0 {
@@ -67,16 +67,16 @@ func WithLabels(labels map[string]string) CreateJobOption {
 	}
 }
 
-// NewCreateJobRequest builds a CreateJob request delivering message to the
-// processor configured for its type, under parent (empty for a system job).
-func NewCreateJobRequest(parent string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
+// NewCreateJobRequest builds a CreateJob request delivering message through
+// the queue's handler for its type, under parent (empty for a system job).
+func NewCreateJobRequest(parent, queue string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
 	payload, err := anypb.New(message)
 	if err != nil {
 		return nil, err
 	}
 	request := &pb.CreateJobRequest{
 		Parent: parent,
-		Job:    &schedulerpb.Job{Payload: payload},
+		Job:    &schedulerpb.Job{Queue: queue, Payload: payload},
 	}
 	for _, option := range options {
 		option(request)

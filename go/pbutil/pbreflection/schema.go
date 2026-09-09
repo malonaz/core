@@ -173,10 +173,22 @@ func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.Resour
 	return resourceDescriptor, ok
 }
 
-func newSchema(data *schemaData) (*Schema, error) {
+// ResolveFiles fetches every file descriptor the server exposes over
+// reflection into one registry, without the AIP interpretation a Schema adds.
+func ResolveFiles(ctx context.Context, reflectionClient rpb.ServerReflectionClient) (*protoregistry.Files, error) {
+	data, err := resolve(ctx, reflectionClient)
+	if err != nil {
+		return nil, err
+	}
+	return newFiles(data.FileDescriptors)
+}
+
+// newFiles registers the descriptors dependencies-first, whatever order the
+// server returned them in.
+func newFiles(fileDescriptors []*descriptorpb.FileDescriptorProto) (*protoregistry.Files, error) {
 	files := new(protoregistry.Files)
 	fdMap := make(map[string]*descriptorpb.FileDescriptorProto)
-	for _, fd := range data.FileDescriptors {
+	for _, fd := range fileDescriptors {
 		fdMap[fd.GetName()] = fd
 	}
 
@@ -199,10 +211,18 @@ func newSchema(data *schemaData) (*Schema, error) {
 		return files.RegisterFile(fd)
 	}
 
-	for _, fdProto := range data.FileDescriptors {
+	for _, fdProto := range fileDescriptors {
 		if err := registerFile(fdProto); err != nil {
 			return nil, err
 		}
+	}
+	return files, nil
+}
+
+func newSchema(data *schemaData) (*Schema, error) {
+	files, err := newFiles(data.FileDescriptors)
+	if err != nil {
+		return nil, err
 	}
 
 	serviceSet := make(map[string]struct{})

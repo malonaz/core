@@ -7,15 +7,26 @@ import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/scheduler/scheduler_service/v1/job.proto";
+import "malonaz/scheduler/scheduler_service/v1/queue.proto";
+import "malonaz/scheduler/scheduler_service/v1/target.proto";
 import "malonaz/scheduler/v1/job.proto";
+import "malonaz/scheduler/v1/queue.proto";
+import "malonaz/scheduler/v1/target.proto";
 
 option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
 
 // This API represents a scheduler service: a durable, Postgres-backed job
-// queue that delivers each job's payload to a processor over gRPC.
+// queue that delivers each job's payload to a handler over gRPC.
 //
 // # Resource model
 //
+// - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
+//   scheduler dials; each must serve gRPC reflection, the scheduler's only
+//   source of method and message type information.
+//   Format: targets/{target}
+// - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
+//   the handlers (method on a target) jobs are routed to.
+//   Format: queues/{queue}
 // - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
 //   hang off the organization or user they run on behalf of.
 //   Format: jobs/{job}
@@ -24,27 +35,28 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 //
 // # Scheduling
 //
-// A job is due at its `schedule_time` (at creation when unset). Due jobs are
-// claimed highest `priority` first, then in due order, across every parent.
-// A job with an `expire_time` must have started by then: it fails with
-// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
-// would reach past it fails at once. A `unique_key` coalesces work: at most one
-// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
-// one run plus, if one was in flight, a single trailing run.
+// A job is due at its `schedule_time` (at creation when unset). Due jobs of
+// RUNNING queues are claimed highest `priority` first, then in due order,
+// across every parent, within each queue's `max_concurrency`. A job with an
+// `expire_time` must have started by then: it fails with DEADLINE_EXCEEDED if
+// still PENDING at expiry, and a retry whose backoff would reach past it fails
+// at once. A `unique_key` coalesces work: at most one PENDING and one RUNNING
+// job exist per key, so a burst of keyed creates yields one run plus, if one
+// was in flight, a single trailing run.
 //
 // # Delivery
 //
-// A job's payload type URL selects, through the service configuration, the
-// processor and gRPC method it is delivered to, the per-attempt timeout, the
-// number of attempts and the backoff between them. Workers claim due PENDING
-// jobs, invoke the method with the payload as request body, and record the
-// outcome: SUCCEEDED with the response, or PENDING again with the next attempt
-// scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted. Every attempt is recorded in the job's `metadata`.
+// At creation, a job's payload type URL selects the handler of its queue it is
+// delivered to. Workers claim due PENDING jobs, invoke the handler's method on
+// its target with the payload as request body under the queue's attempt
+// timeout, and record the outcome: SUCCEEDED with the response, or PENDING
+// again with the next attempt scheduled after the backoff, or FAILED with the
+// error once attempts are exhausted or the error is not retryable. A handler
+// may attach a `google.rpc.RetryInfo` detail to its error to set the wait
+// before the next attempt. Every attempt is recorded in the job's `metadata`.
 //
-// Every processor call carries the job's resource name in the
-// `x-scheduler-job` request metadata, which processors pass to
-// ReportJobProgress.
+// Every handler call carries the job's resource name in the `x-scheduler-job`
+// request metadata, which handlers pass to ReportJobProgress.
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
@@ -54,10 +66,171 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 service SchedulerService {
   option (google.api.default_host) = "scheduler.malonaz.com";
 
+  // ===================== Target Management =====================
+
+  // Create a target.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateTarget(CreateTargetRequest) returns (scheduler.v1.Target) {
+    option (google.api.http) = {
+      post: "/v1/targets"
+      body: "target"
+    };
+    option (google.api.method_signature) = "target";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // Get a target.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetTarget(GetTargetRequest) returns (scheduler.v1.Target) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=targets/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // Update a target. Jobs routed to it after the update use the new
+  // endpoint; calls in flight complete on the old one.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateTarget(UpdateTargetRequest) returns (scheduler.v1.Target) {
+    option (google.api.http) = {
+      patch: "/v1/{target.name=targets/*}"
+      body: "target"
+    };
+    option (google.api.method_signature) = "target,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // Delete a target. Fails with FAILED_PRECONDITION while a queue handler
+  // references it.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteTarget(DeleteTargetRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/{name=targets/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // List targets.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListTargets(ListTargetsRequest) returns (ListTargetsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/targets"};
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // Get multiple targets in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetTargets(BatchGetTargetsRequest) returns (BatchGetTargetsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/targets:batchGet"};
+    option (google.api.method_signature) = "names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Target";
+  }
+
+  // ===================== Queue Management =====================
+
+  // Create a queue. Every handler's target must exist and serve the handler's
+  // method, which the scheduler checks over the target's gRPC reflection
+  // service; no two handlers may share a request type. The queue starts RUNNING.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateQueue(CreateQueueRequest) returns (scheduler.v1.Queue) {
+    option (google.api.http) = {
+      post: "/v1/queues"
+      body: "queue"
+    };
+    option (google.api.method_signature) = "queue";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // Get a queue.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetQueue(GetQueueRequest) returns (scheduler.v1.Queue) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=queues/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // Update a queue. The new policy applies to attempts claimed after the
+  // update; the new handlers apply to jobs created after it.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateQueue(UpdateQueueRequest) returns (scheduler.v1.Queue) {
+    option (google.api.http) = {
+      patch: "/v1/{queue.name=queues/*}"
+      body: "queue"
+    };
+    option (google.api.method_signature) = "queue,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // Delete a queue. Fails with FAILED_PRECONDITION while a PENDING or RUNNING
+  // job references it.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteQueue(DeleteQueueRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/{name=queues/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // List queues.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListQueues(ListQueuesRequest) returns (ListQueuesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/queues"};
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // Get multiple queues in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetQueues(BatchGetQueuesRequest) returns (BatchGetQueuesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/queues:batchGet"};
+    option (google.api.method_signature) = "names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Queue";
+  }
+
+  // Pause a queue: no further job of it is claimed until it is resumed;
+  // running jobs finish and new jobs are accepted. Idempotent on a PAUSED
+  // queue.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc PauseQueue(PauseQueueRequest) returns (scheduler.v1.Queue) {
+    option (google.api.http) = {
+      post: "/v1/{name=queues/*}:pause"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Resume a paused queue. Idempotent on a RUNNING queue.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ResumeQueue(ResumeQueueRequest) returns (scheduler.v1.Queue) {
+    option (google.api.http) = {
+      post: "/v1/{name=queues/*}:resume"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
   // ===================== Job Management =====================
 
-  // Create a job. When the job carries a `unique_key` that already has a
-  // PENDING job, no job is created and that job is returned instead.
+  // Create a job in its queue. Fails with NOT_FOUND when the queue does not
+  // exist and with INVALID_ARGUMENT when no handler of the queue accepts the
+  // payload type. A job on a PAUSED queue is accepted and waits. When the job
+  // carries a `unique_key` that already has a PENDING job, no job is created
+  // and that job is returned instead.
   //
   // See: https://google.aip.dev/133 (Standard methods: Create).
   rpc CreateJob(CreateJobRequest) returns (scheduler.v1.Job) {

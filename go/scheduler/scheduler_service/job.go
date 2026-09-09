@@ -42,22 +42,33 @@ func isTerminal(state schedulerpb.JobState) bool {
 // key's PENDING job keeps being claimed between the lookup and the insert.
 const uniqueKeyCreateAttempts = 3
 
-// CreateJob accepts only the producer-owned fields and stamps the job type. A
-// keyed job coalesces onto the key's PENDING job when there is one.
+// CreateJob accepts only the producer-owned fields and resolves the handler
+// the payload type selects among the queue's. A keyed job coalesces onto the
+// key's PENDING job when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
 	job := request.GetJob()
-	jobType := job.GetPayload().GetTypeUrl()
-	if jobType == "" {
+	requestType := job.GetPayload().GetTypeUrl()
+	if requestType == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "payload.type_url must be set").Err()
+	}
+	getQueueRequest := &pb.GetQueueRequest{Name: job.GetQueue()}
+	queue, err := s.SchedulerServiceServer.GetQueue(ctx, getQueueRequest)
+	if err != nil {
+		return nil, err
+	}
+	handler := handlerFor(queue, requestType)
+	if handler == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "no handler of %s accepts %s", queue.GetName(), requestType).Err()
 	}
 	request.Job = &schedulerpb.Job{
 		Labels:       job.GetLabels(),
 		Payload:      job.GetPayload(),
+		Queue:        queue.GetName(),
+		Method:       handler.GetMethod(),
 		Priority:     job.GetPriority(),
 		UniqueKey:    job.GetUniqueKey(),
 		ScheduleTime: job.GetScheduleTime(),
 		ExpireTime:   job.GetExpireTime(),
-		JobType:      jobType,
 		State:        schedulerpb.JobState_JOB_STATE_PENDING,
 	}
 	uniqueKey := job.GetUniqueKey()
@@ -83,6 +94,16 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 			return nil, err
 		}
 	}
+}
+
+// handlerFor returns the queue's handler accepting the request type, or nil.
+func handlerFor(queue *schedulerpb.Queue, requestType string) *schedulerpb.Handler {
+	for _, handler := range queue.GetHandlers() {
+		if handler.GetRequestType() == requestType {
+			return handler
+		}
+	}
+	return nil
 }
 
 // pendingJobByUniqueKey returns the PENDING job holding the key, or nil.
@@ -192,14 +213,14 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 		}
 		cancelled := grpcstatus.New(codes.Canceled, "cancelled by client")
 		if job.GetState() == schedulerpb.JobState_JOB_STATE_RUNNING {
-			recordAttempt(job, now, cancelled.Err())
+			recordAttempt(job, now, cancelled.Err(), nil)
 		}
 		job.State = schedulerpb.JobState_JOB_STATE_CANCELLED
 		job.CompleteTime = timestamppb.New(now)
 		job.LockTime = nil
 		job.PurgeTime = s.purgeTime(now)
 		job.Error = cancelled.Proto()
-		observeTransition(job.GetJobType(), job.State)
+		observeTransition(job, job.State)
 		return nil
 	})
 	if err != nil {

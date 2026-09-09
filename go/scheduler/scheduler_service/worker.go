@@ -5,22 +5,26 @@ import (
 	"errors"
 	"log/slog"
 	"math"
+	"slices"
 	"time"
 
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
+	codepb "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	"github.com/malonaz/core/gengo/scheduler/store"
-	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/scheduler"
 )
@@ -68,16 +72,17 @@ func mutate(job *model.Job, now time.Time, fn func(*schedulerpb.Job) error) erro
 
 // recordAttempt closes the job's current attempt in its history with the given
 // outcome (nil on success) and releases the worker.
-func recordAttempt(job *schedulerpb.Job, now time.Time, err error) {
+func recordAttempt(job *schedulerpb.Job, now time.Time, err error, retryDelay *durationpb.Duration) {
 	metadata := job.GetMetadata()
 	if metadata == nil {
 		metadata = &schedulerpb.JobMetadata{}
 	}
 	attempt := &schedulerpb.JobAttempt{
-		Attempt:   job.GetAttemptCount(),
-		StartTime: job.GetStartTime(),
-		EndTime:   timestamppb.New(now),
-		Worker:    metadata.GetWorker(),
+		Attempt:    job.GetAttemptCount(),
+		StartTime:  job.GetStartTime(),
+		EndTime:    timestamppb.New(now),
+		Worker:     metadata.GetWorker(),
+		RetryDelay: retryDelay,
 	}
 	if err != nil {
 		// Details may carry types this binary cannot resolve, which the JSON column cannot hold.
@@ -101,26 +106,19 @@ func (s *Service) claim(ctx, workerCtx context.Context) error {
 	}
 	now := truncatedNow()
 	lockTime := now.Add(s.opts.LeaseDuration)
-	jobs, err := s.schedulerPostgresStore.TransitionJobs(ctx,
-		"state = $1 AND (schedule_time IS NULL OR schedule_time <= $2) AND (expire_time IS NULL OR expire_time > $2) AND NOT (job_type = ANY($3))",
-		// Highest priority first; among equals, a job is due at its schedule time, or at creation when it has none.
-		"ORDER BY priority DESC, COALESCE(schedule_time, create_time), create_time",
-		free,
-		[]any{int16(schedulerpb.JobState_JOB_STATE_PENDING), now, s.ignoredJobTypes},
-		func(job *model.Job) error {
-			return mutate(job, now, func(job *schedulerpb.Job) error {
-				job.State = schedulerpb.JobState_JOB_STATE_RUNNING
-				job.StartTime = timestamppb.New(now)
-				job.LockTime = timestamppb.New(lockTime)
-				job.AttemptCount++
-				if job.Metadata == nil {
-					job.Metadata = &schedulerpb.JobMetadata{}
-				}
-				job.Metadata.Worker = s.opts.WorkerID
-				return nil
-			})
-		},
-	)
+	jobs, err := s.schedulerPostgresStore.ClaimJobs(ctx, now, free, func(job *store.ClaimedJob) error {
+		return mutate(&job.Job, now, func(job *schedulerpb.Job) error {
+			job.State = schedulerpb.JobState_JOB_STATE_RUNNING
+			job.StartTime = timestamppb.New(now)
+			job.LockTime = timestamppb.New(lockTime)
+			job.AttemptCount++
+			if job.Metadata == nil {
+				job.Metadata = &schedulerpb.JobMetadata{}
+			}
+			job.Metadata.Worker = s.opts.WorkerID
+			return nil
+		})
+	})
 	if err != nil {
 		return err
 	}
@@ -142,34 +140,60 @@ func (s *Service) wakeClaim() {
 	}
 }
 
-// process runs one claimed job: invokes the processor under the job type's
+// process runs one claimed job: invokes its handler under the queue's attempt
 // timeout while renewing the lease, then records the outcome.
-func (s *Service) process(ctx context.Context, job *model.Job) {
+func (s *Service) process(ctx context.Context, claimed *store.ClaimedJob) {
 	defer s.workers.Done()
 	defer func() { <-s.slots }()
 	inflightGauge.Inc()
 	defer inflightGauge.Dec()
-	log := s.log.With("job", job.JobID, "job_type", job.JobType, "attempt", job.AttemptCount)
+	job := &claimed.Job
+	log := s.log.With("job", job.JobID, "queue", job.Queue, "method", job.Method, "attempt", job.AttemptCount)
 
-	jobTypeConfiguration, ok := s.jobTypeToConfiguration[job.JobType]
-	if !ok {
-		err := grpcstatus.Errorf(codes.FailedPrecondition, "no configuration for job type %q", job.JobType)
-		s.complete(ctx, log, job, &pb.JobTypeConfiguration{MaxAttempts: 1}, nil, err)
+	policy, handler, err := routing(claimed)
+	if err != nil {
+		// Nothing to retry against: the job is failed at once.
+		s.complete(ctx, log, job, &schedulerpb.QueuePolicy{MaxAttempts: 1}, nil, err)
 		return
 	}
 
-	jobCtx, cancel := context.WithTimeout(ctx, jobTypeConfiguration.GetTimeout().AsDuration())
+	jobCtx, cancel := context.WithTimeout(ctx, policy.GetAttemptTimeout().AsDuration())
 	defer cancel()
 	s.inflight.add(job.JobID, cancel)
 	defer s.inflight.remove(job.JobID)
 
 	stopHeartbeat := s.heartbeat(jobCtx, cancel, log, job)
 	start := time.Now()
-	response, err := s.invoke(jobCtx, jobTypeConfiguration, job)
+	response, err := s.invoke(jobCtx, handler, job)
 	stopHeartbeat()
-	observeAttempt(job.JobType, time.Since(start), err)
+	observeAttempt(job, time.Since(start), err)
 
-	s.complete(ctx, log, job, jobTypeConfiguration, response, err)
+	var responseAny *anypb.Any
+	if err == nil {
+		responseAny = &anypb.Any{TypeUrl: handler.GetResponseType(), Value: response}
+	}
+	s.complete(ctx, log, job, policy, responseAny, err)
+}
+
+// routing decodes the queue policy and handler the job was claimed with. A
+// missing queue (deleted since the job was created) is a precondition failure.
+func routing(claimed *store.ClaimedJob) (*schedulerpb.QueuePolicy, *schedulerpb.Handler, error) {
+	if claimed.QueuePolicy == nil {
+		return nil, nil, grpcstatus.Errorf(codes.FailedPrecondition, "queue %s does not exist", claimed.Queue)
+	}
+	policy := &schedulerpb.QueuePolicy{}
+	if err := pbutil.JSONUnmarshal(claimed.QueuePolicy, policy); err != nil {
+		return nil, nil, grpcstatus.Errorf(codes.Internal, "unmarshaling queue policy: %v", err)
+	}
+	handlers, err := pbutil.JSONUnmarshalSlice[schedulerpb.Handler](pbutil.JsonUnmarshalOptions, claimed.QueueHandlers)
+	if err != nil {
+		return nil, nil, grpcstatus.Errorf(codes.Internal, "unmarshaling queue handlers: %v", err)
+	}
+	index := slices.IndexFunc(handlers, func(handler *schedulerpb.Handler) bool { return handler.GetMethod() == claimed.Method })
+	if index < 0 {
+		return nil, nil, grpcstatus.Errorf(codes.FailedPrecondition, "queue %s no longer routes %s", claimed.Queue, claimed.Method)
+	}
+	return policy, handlers[index], nil
 }
 
 // heartbeat renews the lease every third of its duration until stopped. Losing
@@ -201,7 +225,7 @@ func (s *Service) heartbeat(ctx context.Context, cancel context.CancelFunc, log 
 			}
 			_, err := s.schedulerPostgresStore.UpdateRunningJob(ctx, &lease, "lock_time", "update_time", "etag")
 			if errors.Is(err, store.ErrJobNotRunning) {
-				log.InfoContext(ctx, "job no longer running, cancelling processor call")
+				log.InfoContext(ctx, "job no longer running, cancelling handler call")
 				cancel()
 				return
 			}
@@ -216,23 +240,38 @@ func (s *Service) heartbeat(ctx context.Context, cancel context.CancelFunc, log 
 	}
 }
 
-// invoke delivers the payload to the processor as the request body of the
-// configured method, returning the raw response body.
-func (s *Service) invoke(ctx context.Context, jobTypeConfiguration *pb.JobTypeConfiguration, job *model.Job) ([]byte, error) {
-	processor := s.processorIDToProcessor[jobTypeConfiguration.GetProcessorId()]
-	connection := s.processorIDToGRPCConnection[jobTypeConfiguration.GetProcessorId()]
+// invoke delivers the payload to the handler's target as the request body of
+// its method, returning the raw response body.
+func (s *Service) invoke(ctx context.Context, handler *schedulerpb.Handler, job *model.Job) ([]byte, error) {
+	targetID, err := model.ParseTargetName(handler.GetTarget())
+	if err != nil {
+		return nil, grpcstatus.Errorf(codes.FailedPrecondition, "parsing target name: %v", err)
+	}
+	targetModel, err := s.schedulerPostgresStore.GetTarget(ctx, targetID)
+	if err != nil {
+		if errors.Is(err, model.ErrTargetNotExist) {
+			return nil, grpcstatus.Errorf(codes.FailedPrecondition, "target %s does not exist", handler.GetTarget())
+		}
+		return nil, grpcstatus.Errorf(codes.Internal, "getting target: %v", err)
+	}
+	target, err := targetModel.ToPb()
+	if err != nil {
+		return nil, grpcstatus.Errorf(codes.Internal, "converting target from model to pb: %v", err)
+	}
+	connection, release, err := s.targets.acquire(ctx, target)
+	if err != nil {
+		return nil, grpcstatus.Errorf(codes.Unavailable, "connecting to target %s: %v", target.GetName(), err)
+	}
+	defer release()
 
 	payload := &anypb.Any{}
 	if err := pbutil.Unmarshal(job.Payload, payload); err != nil {
 		return nil, grpcstatus.Errorf(codes.FailedPrecondition, "unmarshaling payload: %v", err)
 	}
-	ctx = metadata.AppendToOutgoingContext(ctx, scheduler.JobMetadataKey, jobName(job))
-	for key, value := range processor.GetHeaders() {
-		ctx = metadata.AppendToOutgoingContext(ctx, key, value)
-	}
+	ctx = metadata.AppendToOutgoingContext(outgoingContext(ctx, target), scheduler.JobMetadataKey, jobName(job))
 	// Attempts are the scheduler's to account for: no transparent retries.
 	var response []byte
-	if err := connection.Get().Invoke(ctx, jobTypeConfiguration.GetMethod(), payload.GetValue(), &response, grpc.WithRawCodec(), grpc_retry.Disable()); err != nil {
+	if err := connection.Get().Invoke(ctx, handler.GetMethod(), payload.GetValue(), &response, grpc.WithRawCodec(), grpc_retry.Disable()); err != nil {
 		return nil, err
 	}
 	return response, nil
@@ -250,9 +289,10 @@ func jobName(job *model.Job) string {
 }
 
 // complete records an attempt's outcome: SUCCEEDED, PENDING again after the
-// backoff, FAILED once attempts are exhausted, or released untouched when the
-// instance is shutting down. A job that left RUNNING meanwhile is left alone.
-func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job, jobTypeConfiguration *pb.JobTypeConfiguration, response []byte, err error) {
+// backoff, FAILED once attempts are exhausted or the error is not retryable,
+// or released untouched when the instance is shutting down. A job that left
+// RUNNING meanwhile is left alone.
+func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job, policy *schedulerpb.QueuePolicy, response *anypb.Any, err error) {
 	now := truncatedNow()
 	transition := func(job *schedulerpb.Job) error {
 		job.LockTime = nil
@@ -264,20 +304,19 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 			if job.Metadata != nil {
 				job.Metadata.Worker = ""
 			}
-			observeTransition(job.JobType, job.State)
+			observeTransition(job, job.State)
 			return nil
 		}
-		recordAttempt(job, now, err)
-		nextScheduleTime := retryTime(job, jobTypeConfiguration, now)
+		retryDelay := retryDelayOf(err)
+		recordAttempt(job, now, err, retryDelay)
+		nextScheduleTime := retryTime(job, policy, retryDelay, now, err)
 		switch {
 		case err == nil:
 			job.State = schedulerpb.JobState_JOB_STATE_SUCCEEDED
 			job.CompleteTime = timestamppb.New(now)
 			job.PurgeTime = s.purgeTime(now)
 			job.Error = nil
-			if responseTypeURL := jobTypeConfiguration.GetResponseTypeUrl(); responseTypeURL != "" {
-				job.Response = &anypb.Any{TypeUrl: responseTypeURL, Value: response}
-			}
+			job.Response = response
 		case nextScheduleTime != nil:
 			job.State = schedulerpb.JobState_JOB_STATE_PENDING
 			job.ScheduleTime = nextScheduleTime
@@ -288,7 +327,7 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 			job.PurgeTime = s.purgeTime(now)
 			job.Error = grpcstatus.Convert(err).Proto()
 		}
-		observeTransition(job.JobType, job.State)
+		observeTransition(job, job.State)
 		return nil
 	}
 	if err := mutate(job, now, transition); err != nil {
@@ -317,14 +356,30 @@ func (s *Service) purgeTime(now time.Time) *timestamppb.Timestamp {
 	return timestamppb.New(now.Add(s.opts.Retention))
 }
 
+// retryDelayOf returns the wait a handler requested through a RetryInfo error
+// detail, or nil.
+func retryDelayOf(err error) *durationpb.Duration {
+	for retryInfo := range status.ErrorDetails[*errdetails.RetryInfo](err) {
+		return retryInfo.GetRetryDelay()
+	}
+	return nil
+}
+
 // retryTime returns when the job's next attempt should run, or nil when the
-// job must fail instead: attempts are exhausted, or the backoff would reach
-// past the expiry.
-func retryTime(job *schedulerpb.Job, jobTypeConfiguration *pb.JobTypeConfiguration, now time.Time) *timestamppb.Timestamp {
-	if job.GetAttemptCount() >= jobTypeConfiguration.GetMaxAttempts() {
+// job must fail instead: the error is not retryable, attempts are exhausted,
+// or the wait would reach past the expiry.
+func retryTime(job *schedulerpb.Job, policy *schedulerpb.QueuePolicy, retryDelay *durationpb.Duration, now time.Time, err error) *timestamppb.Timestamp {
+	if err == nil || !slices.Contains(policy.GetRetryableCodes(), codepb.Code(grpcstatus.Code(err))) {
 		return nil
 	}
-	next := now.Add(backoff(jobTypeConfiguration.GetRetryBackoff(), int(job.GetAttemptCount())))
+	if job.GetAttemptCount() >= policy.GetMaxAttempts() {
+		return nil
+	}
+	wait := backoff(policy.GetRetryBackoff(), int(job.GetAttemptCount()))
+	if retryDelay != nil {
+		wait = retryDelay.AsDuration()
+	}
+	next := now.Add(wait)
 	if job.ExpireTime != nil && !next.Before(job.GetExpireTime().AsTime()) {
 		return nil
 	}
@@ -332,18 +387,21 @@ func retryTime(job *schedulerpb.Job, jobTypeConfiguration *pb.JobTypeConfigurati
 }
 
 // backoff returns the wait after the given number of failed attempts.
-func backoff(retryBackoff *pb.RetryBackoff, failedAttempts int) time.Duration {
+func backoff(retryBackoff *schedulerpb.RetryBackoff, failedAttempts int) time.Duration {
 	wait := float64(retryBackoff.GetInitial().AsDuration()) * math.Pow(retryBackoff.GetMultiplier(), float64(failedAttempts-1))
 	return time.Duration(math.Min(wait, float64(retryBackoff.GetMax().AsDuration())))
 }
 
 // reap recovers jobs no worker will ever complete: those whose lease lapsed,
-// and those that expired before starting.
+// and those that expired before starting. It also refreshes the backlog gauges.
 func (s *Service) reap(ctx context.Context) error {
 	if err := s.reapLapsedLeases(ctx); err != nil {
 		return err
 	}
-	return s.reapExpiredJobs(ctx)
+	if err := s.reapExpiredJobs(ctx); err != nil {
+		return err
+	}
+	return s.observeBacklog(ctx)
 }
 
 // reapLapsedLeases returns RUNNING jobs whose lease lapsed to PENDING: their
@@ -357,7 +415,7 @@ func (s *Service) reapLapsedLeases(ctx context.Context) error {
 		[]any{int16(schedulerpb.JobState_JOB_STATE_RUNNING), now},
 		func(job *model.Job) error {
 			return mutate(job, now, func(job *schedulerpb.Job) error {
-				recordAttempt(job, now, grpcstatus.Error(codes.Unavailable, "lease lapsed"))
+				recordAttempt(job, now, grpcstatus.Error(codes.Unavailable, "lease lapsed"), nil)
 				job.State = schedulerpb.JobState_JOB_STATE_PENDING
 				job.LockTime = nil
 				return nil
@@ -368,8 +426,8 @@ func (s *Service) reapLapsedLeases(ctx context.Context) error {
 		return err
 	}
 	for _, job := range reaped {
-		s.log.WarnContext(ctx, "reaped job with lapsed lease", "job", job.JobID, "job_type", job.JobType, "attempt", job.AttemptCount)
-		reapedCounter.WithLabelValues(job.JobType).Inc()
+		s.log.WarnContext(ctx, "reaped job with lapsed lease", "job", job.JobID, "queue", job.Queue, "method", job.Method, "attempt", job.AttemptCount)
+		reapedCounter.WithLabelValues(job.Queue, job.Method).Inc()
 	}
 	if len(reaped) > 0 {
 		s.wakeClaim()
@@ -391,7 +449,7 @@ func (s *Service) reapExpiredJobs(ctx context.Context) error {
 				job.CompleteTime = timestamppb.New(now)
 				job.PurgeTime = s.purgeTime(now)
 				job.Error = grpcstatus.New(codes.DeadlineExceeded, "expired before starting").Proto()
-				observeTransition(job.GetJobType(), job.State)
+				observeTransition(job, job.State)
 				return nil
 			})
 		},
@@ -400,8 +458,18 @@ func (s *Service) reapExpiredJobs(ctx context.Context) error {
 		return err
 	}
 	for _, job := range expired {
-		s.log.InfoContext(ctx, "failed job that expired before starting", "job", job.JobID, "job_type", job.JobType)
+		s.log.InfoContext(ctx, "failed job that expired before starting", "job", job.JobID, "queue", job.Queue, "method", job.Method)
 	}
+	return nil
+}
+
+// observeBacklog refreshes the per-queue backlog gauges.
+func (s *Service) observeBacklog(ctx context.Context) error {
+	stats, err := s.schedulerPostgresStore.ListQueueStats(ctx, nil)
+	if err != nil {
+		return err
+	}
+	observeQueueStats(stats, truncatedNow())
 	return nil
 }
 
