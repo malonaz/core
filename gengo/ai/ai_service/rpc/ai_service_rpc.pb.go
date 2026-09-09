@@ -279,12 +279,12 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getChatRequest := &v1.GetChatRequest{Name: request.Name}
-	Chat, err := s.GetChat(ctx, getChatRequest)
+	existingChat, err := s.GetChat(ctx, getChatRequest)
 	if err != nil {
 		return nil, err
 	}
-	Chat.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Chat)
+	existingChat.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingChat)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -337,12 +337,12 @@ func (s *aiService_ChatServer) UndeleteChat(ctx context.Context, request *v1.Und
 
 	// Compute the new etag.
 	getChatRequest := &v1.GetChatRequest{Name: request.Name}
-	Chat, err := s.GetChat(ctx, getChatRequest)
+	existingChat, err := s.GetChat(ctx, getChatRequest)
 	if err != nil {
 		return nil, err
 	}
-	Chat.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Chat)
+	existingChat.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingChat)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -712,12 +712,12 @@ func (s *aiService_MessageServer) DeleteMessage(ctx context.Context, request *v1
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
-	Message, err := s.GetMessage(ctx, getMessageRequest)
+	existingMessage, err := s.GetMessage(ctx, getMessageRequest)
 	if err != nil {
 		return nil, err
 	}
-	Message.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Message)
+	existingMessage.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingMessage)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -767,12 +767,12 @@ func (s *aiService_MessageServer) UndeleteMessage(ctx context.Context, request *
 
 	// Compute the new etag.
 	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
-	Message, err := s.GetMessage(ctx, getMessageRequest)
+	existingMessage, err := s.GetMessage(ctx, getMessageRequest)
 	if err != nil {
 		return nil, err
 	}
-	Message.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Message)
+	existingMessage.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingMessage)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}

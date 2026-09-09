@@ -16,9 +16,9 @@ var (
 	BookmarkPostgresColumns = postgres.GetDBColumns(model.Bookmark{})
 )
 
-func (s *Store) getBookmarkETag(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (string, error) {
+func (s *Store) getBookmarkETag(ctx context.Context, q querier, organizationId, shelfId, bookId, bookmarkId string) (string, error) {
 	query := `SELECT etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
-	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId, bookmarkId)
+	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId, bookmarkId)
 	if err != nil {
 		return "", err
 	}
@@ -146,7 +146,7 @@ func (s *Store) UpdateBookmark(ctx context.Context, _bookmark *model.Bookmark, u
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getBookmarkETag(ctx, _bookmark.OrganizationID, _bookmark.ShelfID, _bookmark.BookID, _bookmark.BookmarkID)
+				currentEtag, getEtagErr := s.getBookmarkETag(ctx, s.client, _bookmark.OrganizationID, _bookmark.ShelfID, _bookmark.BookID, _bookmark.BookmarkID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -189,7 +189,7 @@ func (s *Store) SoftDeleteBookmark(ctx context.Context, organizationId, shelfId,
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getBookmarkETag(ctx, organizationId, shelfId, bookId, bookmarkId)
+				currentEtag, getEtagErr := s.getBookmarkETag(ctx, s.client, organizationId, shelfId, bookId, bookmarkId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -212,12 +212,12 @@ func (s *Store) SoftDeleteBookmark(ctx context.Context, organizationId, shelfId,
 	return &row.Bookmark, nil
 }
 
-func (s *Store) undeleteBookmarkNoRows(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag string) error {
+func (s *Store) undeleteBookmarkNoRows(ctx context.Context, q querier, organizationId, shelfId, bookId, bookmarkId string, etag string) error {
 	query := `SELECT delete_time IS NULL, etag FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND bookmark_id = $4`
 	params := []any{organizationId, shelfId, bookId, bookmarkId}
 	var live bool
 	var currentEtag string
-	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
 		if err == v5.ErrNoRows {
 			return model.ErrBookmarkNotExist
 		}
@@ -249,7 +249,7 @@ func (s *Store) UndeleteBookmark(ctx context.Context, organizationId, shelfId, b
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteBookmarkNoRows(ctx, organizationId, shelfId, bookId, bookmarkId, etag)
+			return nil, s.undeleteBookmarkNoRows(ctx, s.client, organizationId, shelfId, bookId, bookmarkId, etag)
 		}
 		return nil, err
 	}

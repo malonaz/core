@@ -15,9 +15,9 @@ var (
 	TargetPostgresColumns = postgres.GetDBColumns(model.Target{})
 )
 
-func (s *Store) getTargetETag(ctx context.Context, targetId string) (string, error) {
+func (s *Store) getTargetETag(ctx context.Context, q querier, targetId string) (string, error) {
 	query := `SELECT etag FROM target WHERE target_id = $1`
-	rows, err := s.client.Query(ctx, query, targetId)
+	rows, err := q.Query(ctx, query, targetId)
 	if err != nil {
 		return "", err
 	}
@@ -142,7 +142,7 @@ func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateC
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getTargetETag(ctx, _target.TargetID)
+				currentEtag, getEtagErr := s.getTargetETag(ctx, s.client, _target.TargetID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -180,7 +180,7 @@ func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getTargetETag(ctx, targetId)
+				currentEtag, getEtagErr := s.getTargetETag(ctx, s.client, targetId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

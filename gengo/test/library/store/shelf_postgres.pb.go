@@ -203,11 +203,11 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 	return result, nil
 }
 
-func (s *Store) undeleteShelfNoRows(ctx context.Context, organizationId, shelfId string) error {
+func (s *Store) undeleteShelfNoRows(ctx context.Context, q querier, organizationId, shelfId string) error {
 	query := `SELECT delete_time IS NULL FROM library.shelf WHERE organization_id = $1 AND shelf_id = $2`
 	params := []any{organizationId, shelfId}
 	var live bool
-	if err := s.client.QueryRow(ctx, query, params...).Scan(&live); err != nil {
+	if err := q.QueryRow(ctx, query, params...).Scan(&live); err != nil {
 		if err == v5.ErrNoRows {
 			return model.ErrShelfNotExist
 		}
@@ -232,7 +232,7 @@ func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId strin
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteShelfNoRows(ctx, organizationId, shelfId)
+			return nil, s.undeleteShelfNoRows(ctx, s.client, organizationId, shelfId)
 		}
 		return nil, err
 	}

@@ -14,12 +14,8 @@ func (mc *msgCtx) generateUpdate() {
 	g.P(returning)
 	g.P()
 
-	etagParam := ""
-	if mc.hasEtag {
-		etagParam = ", etag string"
-	}
 	g.P(fmt.Sprintf("func (s *Store) Update%s(ctx context.Context, %s *%s, updateClause string, updateColumns []string%s) (*%s, error) {",
-		mc.goType, mc.goParam, mc.goTypeFqi, etagParam, mc.goTypeFqi))
+		mc.goType, mc.goParam, mc.goTypeFqi, mc.etagMatchParam(), mc.goTypeFqi))
 
 	if mc.multiPattern {
 		mc.generateMultiPatternUpdateBody()
@@ -73,13 +69,7 @@ func (mc *msgCtx) generateSinglePatternUpdateBody() {
 	g.P("  )")
 	g.P()
 
-	if mc.hasEtag {
-		g.P("  if etag != \"\" {")
-		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
-		g.P("    params = append(params, etag)")
-		g.P("  }")
-	}
+	mc.emitEtagFilter()
 	g.P()
 }
 
@@ -111,12 +101,6 @@ func (mc *msgCtx) generateMultiPatternUpdateBody() {
 	g.P(fmt.Sprintf("  query = %s(query, \"#where_clause#\", %s(conditions, \" AND \"), 1)", mc.stringsI("Replace"), mc.stringsI("Join")))
 	g.P()
 
-	if mc.hasEtag {
-		g.P("  if etag != \"\" {")
-		g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-			mc.stringsI("Replace"), mc.fmtI("Sprintf")))
-		g.P("    params = append(params, etag)")
-		g.P("  }")
-	}
+	mc.emitEtagFilter()
 	g.P()
 }

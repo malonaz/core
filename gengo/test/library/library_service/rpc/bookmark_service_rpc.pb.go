@@ -276,12 +276,12 @@ func (s *bookmarkService_BookmarkServer) DeleteBookmark(ctx context.Context, req
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getBookmarkRequest := &v1.GetBookmarkRequest{Name: request.Name}
-	Bookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
+	existingBookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
 	if err != nil {
 		return nil, err
 	}
-	Bookmark.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Bookmark)
+	existingBookmark.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingBookmark)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -331,12 +331,12 @@ func (s *bookmarkService_BookmarkServer) UndeleteBookmark(ctx context.Context, r
 
 	// Compute the new etag.
 	getBookmarkRequest := &v1.GetBookmarkRequest{Name: request.Name}
-	Bookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
+	existingBookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
 	if err != nil {
 		return nil, err
 	}
-	Bookmark.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Bookmark)
+	existingBookmark.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingBookmark)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}

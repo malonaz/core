@@ -32,7 +32,7 @@ func (mc *msgCtx) generateUndelete() {
 	g.P()
 
 	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagParams(), mc.goTypeFqi))
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  query := undelete%sPostgresQuery", mc.goType))
 	if mc.hasEtag {
 		g.P(fmt.Sprintf("  params := []any{ %s, newEtag }", mc.patternVarIDsGoTrue()))
@@ -56,7 +56,7 @@ func (mc *msgCtx) generateMultiPatternUndelete() {
 	g := mc.g
 
 	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagParams(), mc.goTypeFqi))
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+2))
 	mc.emitIDConditionAppends("  ", idParamName)
@@ -74,31 +74,12 @@ func (mc *msgCtx) generateMultiPatternUndelete() {
 	g.P()
 }
 
-func (mc *msgCtx) etagParams() string {
-	if mc.hasEtag {
-		return ", etag, newEtag string"
-	}
-	return ""
-}
-
+// etagArg forwards the client's etag to the no-rows probe.
 func (mc *msgCtx) etagArg() string {
 	if mc.hasEtag {
 		return ", etag"
 	}
 	return ""
-}
-
-// emitEtagFilter narrows the write to the client's etag when one is supplied.
-func (mc *msgCtx) emitEtagFilter() {
-	if !mc.hasEtag {
-		return
-	}
-	g := mc.g
-	g.P("  if etag != \"\" {")
-	g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
-		mc.stringsI("Replace"), mc.fmtI("Sprintf")))
-	g.P("    params = append(params, etag)")
-	g.P("  }")
 }
 
 // hasLifecycleDescendants reports whether any singleton rides on this
@@ -122,7 +103,7 @@ func (mc *msgCtx) generateUndeleteDirect() {
 	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("      return nil, s.undelete%sNoRows(ctx, %s%s)", mc.goType, mc.patternVarIDsGoTrue(), mc.etagArg()))
+	g.P(fmt.Sprintf("      return nil, s.undelete%sNoRows(ctx, s.client, %s%s)", mc.goType, mc.patternVarIDsGoTrue(), mc.etagArg()))
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
@@ -143,7 +124,7 @@ func (mc *msgCtx) generateUndeleteWithTransaction() {
 	g.P(fmt.Sprintf("    result, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("        return s.undelete%sNoRows(ctx, %s%s)", mc.goType, ids, mc.etagArg()))
+	g.P(fmt.Sprintf("        return s.undelete%sNoRows(ctx, tx, %s%s)", mc.goType, ids, mc.etagArg()))
 	g.P("      }")
 	g.P("      return err")
 	g.P("    }")
@@ -169,13 +150,13 @@ func (mc *msgCtx) generateUndeleteWithTransaction() {
 // etag moved.
 func (mc *msgCtx) generateUndeleteNoRows() {
 	g := mc.g
-	etagParam, etagSelect, etagScan := "", "", ""
+	etagSelect, etagScan := "", ""
 	if mc.hasEtag {
-		etagParam, etagSelect, etagScan = ", etag string", ", etag", ", &currentEtag"
+		etagSelect, etagScan = ", etag", ", &currentEtag"
 	}
 
-	g.P(fmt.Sprintf("func (s *Store) undelete%sNoRows(ctx context.Context, %s string%s) error {",
-		mc.goType, mc.patternVarIDsGoTrue(), etagParam))
+	g.P(fmt.Sprintf("func (s *Store) undelete%sNoRows(ctx context.Context, q querier, %s string%s) error {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam()))
 	if mc.multiPattern {
 		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
@@ -190,7 +171,7 @@ func (mc *msgCtx) generateUndeleteNoRows() {
 	if mc.hasEtag {
 		g.P("  var currentEtag string")
 	}
-	g.P(fmt.Sprintf("  if err := s.client.QueryRow(ctx, query, params...).Scan(&live%s); err != nil {", etagScan))
+	g.P(fmt.Sprintf("  if err := q.QueryRow(ctx, query, params...).Scan(&live%s); err != nil {", etagScan))
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
 	g.P(fmt.Sprintf("      return %s", mc.errNotExist))
 	g.P("    }")

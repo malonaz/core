@@ -329,12 +329,12 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
-	Author, err := s.GetAuthor(ctx, getAuthorRequest)
+	existingAuthor, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
 	}
-	Author.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Author)
+	existingAuthor.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingAuthor)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -387,12 +387,12 @@ func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, reques
 
 	// Compute the new etag.
 	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
-	Author, err := s.GetAuthor(ctx, getAuthorRequest)
+	existingAuthor, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
 	}
-	Author.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Author)
+	existingAuthor.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingAuthor)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -2398,12 +2398,12 @@ func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
-	Note, err := s.GetNote(ctx, getNoteRequest)
+	existingNote, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
 	}
-	Note.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Note)
+	existingNote.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingNote)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -2453,12 +2453,12 @@ func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v
 
 	// Compute the new etag.
 	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
-	Note, err := s.GetNote(ctx, getNoteRequest)
+	existingNote, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
 	}
-	Note.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Note)
+	existingNote.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingNote)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}

@@ -62,14 +62,14 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 		g.P("// Compute the new Etag.")
 		g.P(fmt.Sprintf("  get%sRequest := &%s{ Name: request.Name }",
 			resourceGoName, mc.gen.fileIdent("Get"+resourceGoName+"Request")))
-		g.P(fmt.Sprintf("  %s, err := s.Get%s(ctx, get%sRequest)",
+		g.P(fmt.Sprintf("  existing%s, err := s.Get%s(ctx, get%sRequest)",
 			resourceGoName, resourceGoName, resourceGoName))
 		g.P("  if err != nil {")
 		g.P("    return nil, err")
 		g.P("  }")
-		g.P(fmt.Sprintf("  %s.DeleteTime = %s(deleteTime)",
+		g.P(fmt.Sprintf("  existing%s.DeleteTime = %s(deleteTime)",
 			resourceGoName, mc.gen.ident(timestamppbPkg, "New")))
-		g.P(fmt.Sprintf("  newEtag, err := %s(%s)",
+		g.P(fmt.Sprintf("  newEtag, err := %s(existing%s)",
 			mc.gen.ident(aipPkg, "ComputeETag"), resourceGoName))
 		g.P("  if err != nil {")
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"computing etag: %%v\", err).Err()",

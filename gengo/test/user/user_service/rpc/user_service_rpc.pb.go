@@ -316,12 +316,12 @@ func (s *userService_OrganizationServer) DeleteOrganization(ctx context.Context,
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getOrganizationRequest := &v11.GetOrganizationRequest{Name: request.Name}
-	Organization, err := s.GetOrganization(ctx, getOrganizationRequest)
+	existingOrganization, err := s.GetOrganization(ctx, getOrganizationRequest)
 	if err != nil {
 		return nil, err
 	}
-	Organization.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Organization)
+	existingOrganization.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingOrganization)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -382,12 +382,12 @@ func (s *userService_OrganizationServer) UndeleteOrganization(ctx context.Contex
 
 	// Compute the new etag.
 	getOrganizationRequest := &v11.GetOrganizationRequest{Name: request.Name}
-	Organization, err := s.GetOrganization(ctx, getOrganizationRequest)
+	existingOrganization, err := s.GetOrganization(ctx, getOrganizationRequest)
 	if err != nil {
 		return nil, err
 	}
-	Organization.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(Organization)
+	existingOrganization.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingOrganization)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -780,12 +780,12 @@ func (s *userService_UserServer) DeleteUser(ctx context.Context, request *v11.De
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getUserRequest := &v11.GetUserRequest{Name: request.Name}
-	User, err := s.GetUser(ctx, getUserRequest)
+	existingUser, err := s.GetUser(ctx, getUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	User.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(User)
+	existingUser.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingUser)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -843,12 +843,12 @@ func (s *userService_UserServer) UndeleteUser(ctx context.Context, request *v11.
 
 	// Compute the new etag.
 	getUserRequest := &v11.GetUserRequest{Name: request.Name}
-	User, err := s.GetUser(ctx, getUserRequest)
+	existingUser, err := s.GetUser(ctx, getUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	User.DeleteTime = nil
-	newEtag, err := aip.ComputeETag(User)
+	existingUser.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingUser)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}

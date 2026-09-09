@@ -21,9 +21,9 @@ var userProfileJoinSubqueryExpr = `,(SELECT user_.display_name FROM user_ AS use
 var userProfileJoinSelectExprs = `,user_.display_name AS user_display_name,user_.email_address AS user_email_address,organization.display_name AS organization_display_name`
 var userProfileJoinClause = `INNER JOIN user_ AS user_ ON user_.organization_id = user_profile.organization_id AND user_.id = user_profile.user_id INNER JOIN organization AS organization ON organization.organization_id = user_profile.organization_id`
 
-func (s *Store) getUserProfileETag(ctx context.Context, organizationId, userId string) (string, error) {
+func (s *Store) getUserProfileETag(ctx context.Context, q querier, organizationId, userId string) (string, error) {
 	query := `SELECT etag FROM user_profile WHERE organization_id = $1 AND user_id = $2`
-	rows, err := s.client.Query(ctx, query, organizationId, userId)
+	rows, err := q.Query(ctx, query, organizationId, userId)
 	if err != nil {
 		return "", err
 	}
@@ -152,7 +152,7 @@ func (s *Store) UpdateUserProfile(ctx context.Context, _userProfile *model.UserP
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getUserProfileETag(ctx, _userProfile.OrganizationID, _userProfile.UserID)
+				currentEtag, getEtagErr := s.getUserProfileETag(ctx, s.client, _userProfile.OrganizationID, _userProfile.UserID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -195,7 +195,7 @@ func (s *Store) SoftDeleteUserProfile(ctx context.Context, organizationId, userI
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getUserProfileETag(ctx, organizationId, userId)
+				currentEtag, getEtagErr := s.getUserProfileETag(ctx, s.client, organizationId, userId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

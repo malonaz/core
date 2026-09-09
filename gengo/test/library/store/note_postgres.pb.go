@@ -16,7 +16,7 @@ var (
 	NotePostgresColumns = postgres.GetDBColumns(model.Note{})
 )
 
-func (s *Store) getNoteETag(ctx context.Context, organizationId, authorId, shelfId, noteId string) (string, error) {
+func (s *Store) getNoteETag(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string) (string, error) {
 	conditions := make([]string, 0, 4)
 	params := make([]any, 0, 4)
 	params = append(params, organizationId)
@@ -36,7 +36,7 @@ func (s *Store) getNoteETag(ctx context.Context, organizationId, authorId, shelf
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
 	query := fmt.Sprintf("SELECT etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
-	rows, err := s.client.Query(ctx, query, params...)
+	rows, err := q.Query(ctx, query, params...)
 	if err != nil {
 		return "", err
 	}
@@ -183,7 +183,7 @@ func (s *Store) UpdateNote(ctx context.Context, _note *model.Note, updateClause 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, organizationId, authorId, shelfId, noteId)
+				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -244,7 +244,7 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, organizationId, authorId, shelfId, noteId)
+				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -267,7 +267,7 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 	return &row.Note, nil
 }
 
-func (s *Store) undeleteNoteNoRows(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag string) error {
+func (s *Store) undeleteNoteNoRows(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string, etag string) error {
 	conditions := make([]string, 0, 4)
 	params := make([]any, 0, 4)
 	params = append(params, organizationId)
@@ -289,7 +289,7 @@ func (s *Store) undeleteNoteNoRows(ctx context.Context, organizationId, authorId
 	query := fmt.Sprintf("SELECT delete_time IS NULL, etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
 	var live bool
 	var currentEtag string
-	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
 		if err == v5.ErrNoRows {
 			return model.ErrNoteNotExist
 		}
@@ -336,7 +336,7 @@ func (s *Store) UndeleteNote(ctx context.Context, organizationId, authorId, shel
 	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
 	if err != nil {
 		if err == v5.ErrNoRows {
-			return nil, s.undeleteNoteNoRows(ctx, organizationId, authorId, shelfId, noteId, etag)
+			return nil, s.undeleteNoteNoRows(ctx, s.client, organizationId, authorId, shelfId, noteId, etag)
 		}
 		return nil, err
 	}

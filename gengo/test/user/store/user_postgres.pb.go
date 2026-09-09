@@ -16,9 +16,9 @@ var (
 	UserPostgresColumns = postgres.GetDBColumns(model.User{})
 )
 
-func (s *Store) getUserETag(ctx context.Context, organizationId, userId string) (string, error) {
+func (s *Store) getUserETag(ctx context.Context, q querier, organizationId, userId string) (string, error) {
 	query := `SELECT etag FROM user_ WHERE organization_id = $1 AND id = $2`
-	rows, err := s.client.Query(ctx, query, organizationId, userId)
+	rows, err := q.Query(ctx, query, organizationId, userId)
 	if err != nil {
 		return "", err
 	}
@@ -151,7 +151,7 @@ func (s *Store) UpdateUser(ctx context.Context, _user *model.User, updateClause 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getUserETag(ctx, _user.OrganizationID, _user.UserID)
+				currentEtag, getEtagErr := s.getUserETag(ctx, s.client, _user.OrganizationID, _user.UserID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -197,7 +197,7 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 		if err != nil {
 			if err == v5.ErrNoRows {
 				if etag != "" {
-					currentEtag, getEtagErr := s.getUserETag(ctx, organizationId, userId)
+					currentEtag, getEtagErr := s.getUserETag(ctx, tx, organizationId, userId)
 					switch getEtagErr {
 					case nil:
 						if currentEtag == etag {
@@ -232,12 +232,12 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 	return result, nil
 }
 
-func (s *Store) undeleteUserNoRows(ctx context.Context, organizationId, userId string, etag string) error {
+func (s *Store) undeleteUserNoRows(ctx context.Context, q querier, organizationId, userId string, etag string) error {
 	query := `SELECT delete_time IS NULL, etag FROM user_ WHERE organization_id = $1 AND id = $2`
 	params := []any{organizationId, userId}
 	var live bool
 	var currentEtag string
-	if err := s.client.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
 		if err == v5.ErrNoRows {
 			return model.ErrUserNotExist
 		}
@@ -272,7 +272,7 @@ func (s *Store) UndeleteUser(ctx context.Context, organizationId, userId string,
 		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
 		if err != nil {
 			if err == v5.ErrNoRows {
-				return s.undeleteUserNoRows(ctx, organizationId, userId, etag)
+				return s.undeleteUserNoRows(ctx, tx, organizationId, userId, etag)
 			}
 			return err
 		}
