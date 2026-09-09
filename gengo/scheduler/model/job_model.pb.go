@@ -21,23 +21,29 @@ var ErrJobAlreadyDeleted = errors.New("job already deleted")
 var ErrJobETagChanged = errors.New("job etag changed")
 
 type Job struct {
-	JobID        string     `db:"job_id" schema:"public" table:"job"`
-	CreateTime   time.Time  `db:"create_time" schema:"public" table:"job"`
-	UpdateTime   time.Time  `db:"update_time" schema:"public" table:"job"`
-	Etag         string     `db:"etag" schema:"public" table:"job"`
-	Labels       []byte     `db:"labels" schema:"public" table:"job"`
-	Payload      []byte     `db:"payload" schema:"public" table:"job"`
-	JobType      string     `db:"job_type" schema:"public" table:"job"`
-	State        int16      `db:"state" schema:"public" table:"job"`
-	ScheduleTime *time.Time `db:"schedule_time" schema:"public" table:"job"`
-	StartTime    *time.Time `db:"start_time" schema:"public" table:"job"`
-	CompleteTime *time.Time `db:"complete_time" schema:"public" table:"job"`
-	LockTime     *time.Time `db:"lock_time" schema:"public" table:"job"`
-	AttemptCount int32      `db:"attempt_count" schema:"public" table:"job"`
-	Error        []byte     `db:"error" schema:"public" table:"job"`
-	Response     []byte     `db:"response" schema:"public" table:"job"`
-	Progress     []byte     `db:"progress" schema:"public" table:"job"`
-	ExpireTime   *time.Time `db:"expire_time" schema:"public" table:"job"`
+	OrganizationID *string    `db:"organization_id" schema:"public" table:"job"`
+	UserID         *string    `db:"user_id" schema:"public" table:"job"`
+	JobID          string     `db:"job_id" schema:"public" table:"job"`
+	CreateTime     time.Time  `db:"create_time" schema:"public" table:"job"`
+	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"job"`
+	Etag           string     `db:"etag" schema:"public" table:"job"`
+	Labels         []byte     `db:"labels" schema:"public" table:"job"`
+	Payload        []byte     `db:"payload" schema:"public" table:"job"`
+	JobType        string     `db:"job_type" schema:"public" table:"job"`
+	State          int16      `db:"state" schema:"public" table:"job"`
+	Priority       int32      `db:"priority" schema:"public" table:"job"`
+	UniqueKey      *string    `db:"unique_key" schema:"public" table:"job"`
+	ScheduleTime   *time.Time `db:"schedule_time" schema:"public" table:"job"`
+	ExpireTime     *time.Time `db:"expire_time" schema:"public" table:"job"`
+	StartTime      *time.Time `db:"start_time" schema:"public" table:"job"`
+	CompleteTime   *time.Time `db:"complete_time" schema:"public" table:"job"`
+	LockTime       *time.Time `db:"lock_time" schema:"public" table:"job"`
+	PurgeTime      *time.Time `db:"purge_time" schema:"public" table:"job"`
+	AttemptCount   int32      `db:"attempt_count" schema:"public" table:"job"`
+	Error          []byte     `db:"error" schema:"public" table:"job"`
+	Response       []byte     `db:"response" schema:"public" table:"job"`
+	Progress       []byte     `db:"progress" schema:"public" table:"job"`
+	Metadata       []byte     `db:"metadata" schema:"public" table:"job"`
 }
 
 func JobFromPb(m *v1.Job) (*Job, error) {
@@ -45,11 +51,19 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		return nil, fmt.Errorf("FromPb requires `name` to be set")
 	}
 
-	JobID, err := ParseJobName(m.Name)
+	OrganizationID, UserID, JobID, err := ParseJobName(m.Name)
 	if err != nil {
 		return nil, err
 	}
 
+	var OrganizationIDPtr *string
+	if OrganizationID != "" {
+		OrganizationIDPtr = &OrganizationID
+	}
+	var UserIDPtr *string
+	if UserID != "" {
+		UserIDPtr = &UserID
+	}
 	if err := m.CreateTime.CheckValid(); err != nil {
 		return nil, fmt.Errorf("validating create_time: %w", err)
 	}
@@ -71,6 +85,10 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Payload: %w", err)
 	}
+	var UniqueKey *string
+	if m.UniqueKey != "" {
+		UniqueKey = &m.UniqueKey
+	}
 	var ScheduleTime *time.Time
 	if m.ScheduleTime != nil {
 		if err := m.ScheduleTime.CheckValid(); err != nil {
@@ -78,6 +96,14 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		}
 		t := m.ScheduleTime.AsTime()
 		ScheduleTime = &t
+	}
+	var ExpireTime *time.Time
+	if m.ExpireTime != nil {
+		if err := m.ExpireTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating expire_time: %w", err)
+		}
+		t := m.ExpireTime.AsTime()
+		ExpireTime = &t
 	}
 	var StartTime *time.Time
 	if m.StartTime != nil {
@@ -103,6 +129,14 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		t := m.LockTime.AsTime()
 		LockTime = &t
 	}
+	var PurgeTime *time.Time
+	if m.PurgeTime != nil {
+		if err := m.PurgeTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating purge_time: %w", err)
+		}
+		t := m.PurgeTime.AsTime()
+		PurgeTime = &t
+	}
 	var ErrorBytes []byte
 	if m.Error != nil {
 		var err error
@@ -127,32 +161,38 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 			return nil, fmt.Errorf("marshaling Progress: %w", err)
 		}
 	}
-	var ExpireTime *time.Time
-	if m.ExpireTime != nil {
-		if err := m.ExpireTime.CheckValid(); err != nil {
-			return nil, fmt.Errorf("validating expire_time: %w", err)
+	var MetadataBytes []byte
+	if m.Metadata != nil {
+		var err error
+		MetadataBytes, err = pbutil.JSONMarshal(m.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Metadata: %w", err)
 		}
-		t := m.ExpireTime.AsTime()
-		ExpireTime = &t
 	}
 	return &Job{
-		JobID:        JobID,
-		CreateTime:   m.CreateTime.AsTime(),
-		UpdateTime:   m.UpdateTime.AsTime(),
-		Etag:         m.Etag,
-		Labels:       LabelsBytes,
-		Payload:      PayloadBytes,
-		JobType:      m.JobType,
-		State:        int16(m.State),
-		ScheduleTime: ScheduleTime,
-		StartTime:    StartTime,
-		CompleteTime: CompleteTime,
-		LockTime:     LockTime,
-		AttemptCount: m.AttemptCount,
-		Error:        ErrorBytes,
-		Response:     ResponseBytes,
-		Progress:     ProgressBytes,
-		ExpireTime:   ExpireTime,
+		OrganizationID: OrganizationIDPtr,
+		UserID:         UserIDPtr,
+		JobID:          JobID,
+		CreateTime:     m.CreateTime.AsTime(),
+		UpdateTime:     m.UpdateTime.AsTime(),
+		Etag:           m.Etag,
+		Labels:         LabelsBytes,
+		Payload:        PayloadBytes,
+		JobType:        m.JobType,
+		State:          int16(m.State),
+		Priority:       m.Priority,
+		UniqueKey:      UniqueKey,
+		ScheduleTime:   ScheduleTime,
+		ExpireTime:     ExpireTime,
+		StartTime:      StartTime,
+		CompleteTime:   CompleteTime,
+		LockTime:       LockTime,
+		PurgeTime:      PurgeTime,
+		AttemptCount:   m.AttemptCount,
+		Error:          ErrorBytes,
+		Response:       ResponseBytes,
+		Progress:       ProgressBytes,
+		Metadata:       MetadataBytes,
 	}, nil
 }
 
@@ -178,11 +218,22 @@ func (m *Job) ToPb() (*v1.Job, error) {
 	if err := pbutil.Unmarshal(m.Payload, Payload); err != nil {
 		return nil, fmt.Errorf("unmarshaling Payload: %w", err)
 	}
+	var UniqueKey string
+	if m.UniqueKey != nil {
+		UniqueKey = *m.UniqueKey
+	}
 	var ScheduleTime *timestamppb.Timestamp
 	if m.ScheduleTime != nil {
 		ScheduleTime = timestamppb.New(*m.ScheduleTime)
 		if err := ScheduleTime.CheckValid(); err != nil {
 			return nil, fmt.Errorf("validating schedule_time: %w", err)
+		}
+	}
+	var ExpireTime *timestamppb.Timestamp
+	if m.ExpireTime != nil {
+		ExpireTime = timestamppb.New(*m.ExpireTime)
+		if err := ExpireTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating expire_time: %w", err)
 		}
 	}
 	var StartTime *timestamppb.Timestamp
@@ -206,6 +257,13 @@ func (m *Job) ToPb() (*v1.Job, error) {
 			return nil, fmt.Errorf("validating lock_time: %w", err)
 		}
 	}
+	var PurgeTime *timestamppb.Timestamp
+	if m.PurgeTime != nil {
+		PurgeTime = timestamppb.New(*m.PurgeTime)
+		if err := PurgeTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating purge_time: %w", err)
+		}
+	}
 	var Error *status.Status
 	if m.Error != nil {
 		Error = &status.Status{}
@@ -227,14 +285,22 @@ func (m *Job) ToPb() (*v1.Job, error) {
 			return nil, fmt.Errorf("unmarshaling Progress: %w", err)
 		}
 	}
-	var ExpireTime *timestamppb.Timestamp
-	if m.ExpireTime != nil {
-		ExpireTime = timestamppb.New(*m.ExpireTime)
-		if err := ExpireTime.CheckValid(); err != nil {
-			return nil, fmt.Errorf("validating expire_time: %w", err)
+	var Metadata *v1.JobMetadata
+	if m.Metadata != nil {
+		Metadata = &v1.JobMetadata{}
+		if err := pbutil.JSONUnmarshal(m.Metadata, Metadata); err != nil {
+			return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
 		}
 	}
-	name := resourcename.Sprint("jobs/{job}", m.JobID)
+	var name string
+	switch {
+	case m.OrganizationID != nil && m.UserID != nil:
+		name = resourcename.Sprint("organizations/{organization}/users/{user}/jobs/{job}", *m.OrganizationID, *m.UserID, m.JobID)
+	case m.OrganizationID != nil:
+		name = resourcename.Sprint("organizations/{organization}/jobs/{job}", *m.OrganizationID, m.JobID)
+	default:
+		name = resourcename.Sprint("jobs/{job}", m.JobID)
+	}
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
@@ -247,22 +313,43 @@ func (m *Job) ToPb() (*v1.Job, error) {
 		Payload:      Payload,
 		JobType:      m.JobType,
 		State:        v1.JobState(m.State),
+		Priority:     m.Priority,
+		UniqueKey:    UniqueKey,
 		ScheduleTime: ScheduleTime,
+		ExpireTime:   ExpireTime,
 		StartTime:    StartTime,
 		CompleteTime: CompleteTime,
 		LockTime:     LockTime,
+		PurgeTime:    PurgeTime,
 		AttemptCount: m.AttemptCount,
 		Error:        Error,
 		Response:     Response,
 		Progress:     Progress,
-		ExpireTime:   ExpireTime,
+		Metadata:     Metadata,
 	}, nil
 }
 
-func ParseJobName(name string) (string, error) {
-	var JobID string
-	if err := resourcename.Sscan(name, "jobs/{job}", &JobID); err != nil {
-		return "", fmt.Errorf("parsing resource name: %v", err)
+func ParseJobName(name string) (string, string, string, error) {
+	switch {
+	case resourcename.Match("jobs/{job}", name):
+		var JobID string
+		if err := resourcename.Sscan(name, "jobs/{job}", &JobID); err != nil {
+			return "", "", "", fmt.Errorf("parsing resource name: %v", err)
+		}
+		return "", "", JobID, nil
+	case resourcename.Match("organizations/{organization}/jobs/{job}", name):
+		var OrganizationID, JobID string
+		if err := resourcename.Sscan(name, "organizations/{organization}/jobs/{job}", &OrganizationID, &JobID); err != nil {
+			return "", "", "", fmt.Errorf("parsing resource name: %v", err)
+		}
+		return OrganizationID, "", JobID, nil
+	case resourcename.Match("organizations/{organization}/users/{user}/jobs/{job}", name):
+		var OrganizationID, UserID, JobID string
+		if err := resourcename.Sscan(name, "organizations/{organization}/users/{user}/jobs/{job}", &OrganizationID, &UserID, &JobID); err != nil {
+			return "", "", "", fmt.Errorf("parsing resource name: %v", err)
+		}
+		return OrganizationID, UserID, JobID, nil
+	default:
+		return "", "", "", fmt.Errorf("parsing resource name: %q does not match any pattern of job", name)
 	}
-	return JobID, nil
 }

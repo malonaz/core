@@ -30,24 +30,24 @@ var File_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto protoref
 
 const file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_rawDesc = "" +
 	"\n" +
-	">malonaz/scheduler/scheduler_service/v1/scheduler_service.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a0malonaz/scheduler/scheduler_service/v1/job.proto\x1a\x1emalonaz/scheduler/v1/job.proto2\x98\f\n" +
-	"\x10SchedulerService\x12\x9c\x01\n" +
-	"\tCreateJob\x128.malonaz.scheduler.scheduler_service.v1.CreateJobRequest\x1a\x19.malonaz.scheduler.v1.Job\":\xdaA\x03job´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x0f:\x03job\"\b/v1/jobs\x12\x9e\x01\n" +
-	"\x06GetJob\x125.malonaz.scheduler.scheduler_service.v1.GetJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"B\xdaA\x04name´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/{name=jobs/*}\x90\x02\x01\x12\xb5\x01\n" +
-	"\tUpdateJob\x128.malonaz.scheduler.scheduler_service.v1.UpdateJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"S\xdaA\x0fjob,update_mask´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x1c:\x03job2\x15/v1/{job.name=jobs/*}\x12\x9e\x01\n" +
-	"\tDeleteJob\x128.malonaz.scheduler.scheduler_service.v1.DeleteJobRequest\x1a\x16.google.protobuf.Empty\"?\xdaA\x04name´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x13*\x11/v1/{name=jobs/*}\x12\xb4\x01\n" +
-	"\bListJobs\x127.malonaz.scheduler.scheduler_service.v1.ListJobsRequest\x1a8.malonaz.scheduler.scheduler_service.v1.ListJobsResponse\"5\xdaA\x00´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\n" +
-	"\x12\b/v1/jobs\x90\x02\x01\x12\xce\x01\n" +
-	"\fBatchGetJobs\x12;.malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest\x1a<.malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse\"C\xdaA\x05names´-\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/jobs:batchGet\x90\x02\x01\x12\x89\x01\n" +
-	"\bRetryJob\x127.malonaz.scheduler.scheduler_service.v1.RetryJobRequest\x1a\x19.malonaz.scheduler.v1.Job\")\xdaA\x04name\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/{name=jobs/*}:retry\x12\x8c\x01\n" +
-	"\tCancelJob\x128.malonaz.scheduler.scheduler_service.v1.CancelJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"*\xdaA\x04name\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/{name=jobs/*}:cancel\x12\xad\x01\n" +
-	"\x11ReportJobProgress\x12@.malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest\x1a\x19.malonaz.scheduler.v1.Job\";\xdaA\rname,progress\x82\xd3\xe4\x93\x02%:\x01*\" /v1/{name=jobs/*}:reportProgress\x1a\x18\xcaA\x15scheduler.malonaz.comBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
+	">malonaz/scheduler/scheduler_service/v1/scheduler_service.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a0malonaz/scheduler/scheduler_service/v1/job.proto\x1a\x1emalonaz/scheduler/v1/job.proto2\x93\x13\n" +
+	"\x10SchedulerService\x12\x80\x02\n" +
+	"\tCreateJob\x128.malonaz.scheduler.scheduler_service.v1.CreateJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x9d\x01\xdaA\n" +
+	"parent,job´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02k:\x03jobZ(:\x03job\"!/v1/{parent=organizations/*}/jobsZ0:\x03job\")/v1/{parent=organizations/*/users/*}/jobs\"\b/v1/jobs\x12\xf1\x01\n" +
+	"\x06GetJob\x125.malonaz.scheduler.scheduler_service.v1.GetJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x94\x01\xdaA\x04name´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02eZ#\x12!/v1/{name=organizations/*/jobs/*}Z+\x12)/v1/{name=organizations/*/users/*/jobs/*}\x12\x11/v1/{name=jobs/*}\x90\x02\x01\x12\x9b\x02\n" +
+	"\tUpdateJob\x128.malonaz.scheduler.scheduler_service.v1.UpdateJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\xb8\x01\xdaA\x0fjob,update_mask´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\x80\x01:\x03jobZ,:\x03job2%/v1/{job.name=organizations/*/jobs/*}Z4:\x03job2-/v1/{job.name=organizations/*/users/*/jobs/*}2\x15/v1/{job.name=jobs/*}\x12\xf1\x01\n" +
+	"\tDeleteJob\x128.malonaz.scheduler.scheduler_service.v1.DeleteJobRequest\x1a\x16.google.protobuf.Empty\"\x91\x01\xdaA\x04name´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02eZ#*!/v1/{name=organizations/*/jobs/*}Z+*)/v1/{name=organizations/*/users/*/jobs/*}*\x11/v1/{name=jobs/*}\x12\x8d\x02\n" +
+	"\bListJobs\x127.malonaz.scheduler.scheduler_service.v1.ListJobsRequest\x1a8.malonaz.scheduler.scheduler_service.v1.ListJobsResponse\"\x8d\x01\xdaA\x06parent´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02\\Z#\x12!/v1/{parent=organizations/*}/jobsZ+\x12)/v1/{parent=organizations/*/users/*}/jobs\x12\b/v1/jobs\x90\x02\x01\x12\xba\x02\n" +
+	"\fBatchGetJobs\x12;.malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest\x1a<.malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse\"\xae\x01\xdaA\fparent,names´-\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\x82\xd3\xe4\x93\x02wZ,\x12*/v1/{parent=organizations/*}/jobs:batchGetZ4\x122/v1/{parent=organizations/*/users/*}/jobs:batchGet\x12\x11/v1/jobs:batchGet\x90\x02\x01\x12\xef\x01\n" +
+	"\bRetryJob\x127.malonaz.scheduler.scheduler_service.v1.RetryJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x8e\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x80\x01:\x01*Z,:\x01*\"'/v1/{name=organizations/*/jobs/*}:retryZ4:\x01*\"//v1/{name=organizations/*/users/*/jobs/*}:retry\"\x17/v1/{name=jobs/*}:retry\x12\xf4\x01\n" +
+	"\tCancelJob\x128.malonaz.scheduler.scheduler_service.v1.CancelJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x91\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x83\x01:\x01*Z-:\x01*\"(/v1/{name=organizations/*/jobs/*}:cancelZ5:\x01*\"0/v1/{name=organizations/*/users/*/jobs/*}:cancel\"\x18/v1/{name=jobs/*}:cancel\x12\xa5\x02\n" +
+	"\x11ReportJobProgress\x12@.malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest\x1a\x19.malonaz.scheduler.v1.Job\"\xb2\x01\xdaA\rname,progress\x82\xd3\xe4\x93\x02\x9b\x01:\x01*Z5:\x01*\"0/v1/{name=organizations/*/jobs/*}:reportProgressZ=:\x01*\"8/v1/{name=organizations/*/users/*/jobs/*}:reportProgress\" /v1/{name=jobs/*}:reportProgress\x1a\x18\xcaA\x15scheduler.malonaz.comBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
 var file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_goTypes = []any{
 	(*CreateJobRequest)(nil),         // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest

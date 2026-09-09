@@ -41,9 +41,21 @@ const (
 //
 // # Resource model
 //
-//   - The API has a top-level collection of [Job][malonaz.scheduler.v1.Job]
-//     resources.
+//   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
+//     hang off the organization or user they run on behalf of.
 //     Format: jobs/{job}
+//     Format: organizations/{organization}/jobs/{job}
+//     Format: organizations/{organization}/users/{user}/jobs/{job}
+//
+// # Scheduling
+//
+// A job is due at its `schedule_time` (at creation when unset). Due jobs are
+// claimed highest `priority` first, then in due order, across every parent.
+// A job with an `expire_time` must have started by then: it fails with
+// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
+// would reach past it fails at once. A `unique_key` coalesces work: at most one
+// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
+// one run plus, if one was in flight, a single trailing run.
 //
 // # Delivery
 //
@@ -53,7 +65,7 @@ const (
 // jobs, invoke the method with the payload as request body, and record the
 // outcome: SUCCEEDED with the response, or PENDING again with the next attempt
 // scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted.
+// exhausted. Every attempt is recorded in the job's `metadata`.
 //
 // Every processor call carries the job's resource name in the
 // `x-scheduler-job` request metadata, which processors pass to
@@ -61,8 +73,12 @@ const (
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+//
+// Terminal jobs are kept for the scheduler's retention and deleted at their
+// `purge_time`.
 type SchedulerServiceClient interface {
-	// Create a job.
+	// Create a job. When the job carries a `unique_key` that already has a
+	// PENDING job, no job is created and that job is returned instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(ctx context.Context, in *CreateJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
@@ -86,9 +102,10 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetJobs(ctx context.Context, in *BatchGetJobsRequest, opts ...grpc.CallOption) (*BatchGetJobsResponse, error)
-	// Retry a terminal job: returns it to PENDING with its attempts and outcome
-	// reset, so it runs again immediately. Fails with FAILED_PRECONDITION on a
-	// PENDING or RUNNING job.
+	// Retry a terminal job: returns it to PENDING with its attempts, outcome and
+	// `expire_time` reset, so it runs again immediately. Fails with
+	// FAILED_PRECONDITION on a PENDING or RUNNING job, and with ALREADY_EXISTS
+	// when the job's `unique_key` already has a PENDING job.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	RetryJob(ctx context.Context, in *RetryJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
@@ -214,9 +231,21 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // # Resource model
 //
-//   - The API has a top-level collection of [Job][malonaz.scheduler.v1.Job]
-//     resources.
+//   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
+//     hang off the organization or user they run on behalf of.
 //     Format: jobs/{job}
+//     Format: organizations/{organization}/jobs/{job}
+//     Format: organizations/{organization}/users/{user}/jobs/{job}
+//
+// # Scheduling
+//
+// A job is due at its `schedule_time` (at creation when unset). Due jobs are
+// claimed highest `priority` first, then in due order, across every parent.
+// A job with an `expire_time` must have started by then: it fails with
+// DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
+// would reach past it fails at once. A `unique_key` coalesces work: at most one
+// PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
+// one run plus, if one was in flight, a single trailing run.
 //
 // # Delivery
 //
@@ -226,7 +255,7 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // jobs, invoke the method with the payload as request body, and record the
 // outcome: SUCCEEDED with the response, or PENDING again with the next attempt
 // scheduled after the backoff, or FAILED with the error once attempts are
-// exhausted.
+// exhausted. Every attempt is recorded in the job's `metadata`.
 //
 // Every processor call carries the job's resource name in the
 // `x-scheduler-job` request metadata, which processors pass to
@@ -234,8 +263,12 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // A running job holds a lease that its worker renews while the call is in
 // flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+//
+// Terminal jobs are kept for the scheduler's retention and deleted at their
+// `purge_time`.
 type SchedulerServiceServer interface {
-	// Create a job.
+	// Create a job. When the job carries a `unique_key` that already has a
+	// PENDING job, no job is created and that job is returned instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(context.Context, *CreateJobRequest) (*v1.Job, error)
@@ -259,9 +292,10 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetJobs(context.Context, *BatchGetJobsRequest) (*BatchGetJobsResponse, error)
-	// Retry a terminal job: returns it to PENDING with its attempts and outcome
-	// reset, so it runs again immediately. Fails with FAILED_PRECONDITION on a
-	// PENDING or RUNNING job.
+	// Retry a terminal job: returns it to PENDING with its attempts, outcome and
+	// `expire_time` reset, so it runs again immediately. Fails with
+	// FAILED_PRECONDITION on a PENDING or RUNNING job, and with ALREADY_EXISTS
+	// when the job's `unique_key` already has a PENDING job.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	RetryJob(context.Context, *RetryJobRequest) (*v1.Job, error)

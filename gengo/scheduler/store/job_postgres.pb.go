@@ -25,9 +25,25 @@ var (
 	JobPostgresColumns = postgres.GetDBColumns(model.Job{})
 )
 
-func (s *Store) getJobETag(ctx context.Context, jobId string) (string, error) {
-	query := `SELECT etag FROM job WHERE job_id = $1`
-	rows, err := s.client.Query(ctx, query, jobId)
+func (s *Store) getJobETag(ctx context.Context, organizationId, userId, jobId string) (string, error) {
+	conditions := make([]string, 0, 3)
+	params := make([]any, 0, 3)
+	if organizationId != "" {
+		params = append(params, organizationId)
+		conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "organization_id IS NULL")
+	}
+	if userId != "" {
+		params = append(params, userId)
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "user_id IS NULL")
+	}
+	params = append(params, jobId)
+	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
+	query := fmt.Sprintf("SELECT etag FROM job WHERE %s", strings.Join(conditions, " AND "))
+	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +52,7 @@ func (s *Store) getJobETag(ctx context.Context, jobId string) (string, error) {
 
 var (
 	JobWithRequestIDPostgresColumns     = postgres.GetDBColumns(JobWithRequestID{})
-	_jobInsertPostgresQuery             = `INSERT INTO job %s VALUES %s ON CONFLICT(job_id) DO UPDATE SET job_id = EXCLUDED.job_id RETURNING `
+	_jobInsertPostgresQuery             = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id RETURNING `
 	jobWithRequestIDInsertPostgresQuery = _jobInsertPostgresQuery + postgres.SelectQuery("%s", JobWithRequestIDPostgresColumns)
 	jobInsertPostgresQuery              = _jobInsertPostgresQuery + postgres.SelectQuery("%s", JobPostgresColumns)
 )
@@ -98,6 +114,9 @@ func (s *Store) InsertJobIdempotently(ctx context.Context, requestID string, raw
 			if lookupErr == nil {
 				return existing, nil
 			}
+			if lookupErr == v5.ErrNoRows {
+				return nil, model.ErrJobAlreadyExists
+			}
 		}
 		return nil, err
 	}
@@ -108,16 +127,35 @@ var updateJobPostgresQuery = `UPDATE job SET #update_clause# WHERE #where_clause
 	postgres.SelectQuery("%s", JobPostgresColumns)
 
 func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause string, updateColumns []string, etag string) (*model.Job, error) {
-	updateParams := postgres.GetParams(_job, updateColumns...)
+	organizationId := ""
+	if _job.OrganizationID != nil {
+		organizationId = *_job.OrganizationID
+	}
+	userId := ""
+	if _job.UserID != nil {
+		userId = *_job.UserID
+	}
+	jobId := _job.JobID
+
+	params := postgres.GetParams(_job, updateColumns...)
+	conditions := make([]string, 0, 3)
+	if organizationId != "" {
+		params = append(params, organizationId)
+		conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "organization_id IS NULL")
+	}
+	if userId != "" {
+		params = append(params, userId)
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "user_id IS NULL")
+	}
+	params = append(params, jobId)
+	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
 
 	query := strings.Replace(updateJobPostgresQuery, "#update_clause#", updateClause, 1)
-	numUpdateParams := len(updateParams)
-	whereClause := fmt.Sprintf("job_id = $%d", numUpdateParams+1)
-	query = strings.Replace(query, "#where_clause#", whereClause, 1)
-
-	params := append(updateParams,
-		_job.JobID,
-	)
+	query = strings.Replace(query, "#where_clause#", strings.Join(conditions, " AND "), 1)
 
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
@@ -132,7 +170,7 @@ func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause str
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, _job.JobID)
+				currentEtag, getEtagErr := s.getJobETag(ctx, organizationId, userId, jobId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -152,12 +190,24 @@ func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause str
 	return row, nil
 }
 
-var deleteJobPostgresQuery = `DELETE FROM job WHERE job_id = $1 RETURNING ` +
-	postgres.SelectQuery("%s", JobPostgresColumns)
-
-func (s *Store) DeleteJob(ctx context.Context, jobId string, etag string) (*model.Job, error) {
-	query := deleteJobPostgresQuery
-	params := []any{jobId}
+func (s *Store) DeleteJob(ctx context.Context, organizationId, userId, jobId string, etag string) (*model.Job, error) {
+	conditions := make([]string, 0, 3)
+	params := make([]any, 0, 4)
+	if organizationId != "" {
+		params = append(params, organizationId)
+		conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "organization_id IS NULL")
+	}
+	if userId != "" {
+		params = append(params, userId)
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "user_id IS NULL")
+	}
+	params = append(params, jobId)
+	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
+	query := fmt.Sprintf("DELETE FROM job WHERE %s RETURNING ", strings.Join(conditions, " AND ")) + postgres.SelectQuery("%s", JobPostgresColumns)
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
@@ -170,7 +220,7 @@ func (s *Store) DeleteJob(ctx context.Context, jobId string, etag string) (*mode
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, jobId)
+				currentEtag, getEtagErr := s.getJobETag(ctx, organizationId, userId, jobId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -190,10 +240,26 @@ func (s *Store) DeleteJob(ctx context.Context, jobId string, etag string) (*mode
 	return row, nil
 }
 
-func (s *Store) GetJob(ctx context.Context, jobId string) (*model.Job, error) {
-	query := `SELECT %s FROM job WHERE job_id = $1`
+func (s *Store) GetJob(ctx context.Context, organizationId, userId, jobId string) (*model.Job, error) {
+	conditions := make([]string, 0, 3)
+	params := make([]any, 0, 3)
+	if organizationId != "" {
+		params = append(params, organizationId)
+		conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "organization_id IS NULL")
+	}
+	if userId != "" {
+		params = append(params, userId)
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "user_id IS NULL")
+	}
+	params = append(params, jobId)
+	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
+	query := fmt.Sprintf("SELECT %%s FROM job WHERE %s", strings.Join(conditions, " AND "))
 	query = postgres.SelectQuery(query, JobPostgresColumns)
-	rows, err := s.client.Query(ctx, query, jobId)
+	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("getting job: %w", err)
 	}
@@ -207,19 +273,36 @@ func (s *Store) GetJob(ctx context.Context, jobId string) (*model.Job, error) {
 	return row, nil
 }
 
-func (s *Store) BatchGetJobs(ctx context.Context, jobIds []string) ([]*model.Job, error) {
-	n := len(jobIds)
+func (s *Store) BatchGetJobs(ctx context.Context, organizationIds []string, userIds []string, jobIds []string) ([]*model.Job, error) {
+	n := len(organizationIds)
+	if len(userIds) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(jobIds) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
 	if n == 0 {
 		return nil, nil
 	}
 
 	orClauses := make([]string, n)
-	params := make([]any, 0, n*1)
+	params := make([]any, 0, n*3)
 	for i := 0; i < n; i++ {
-		base := i * 1
-		conditions := make([]string, 1)
-		conditions[0] = fmt.Sprintf("job_id = $%d", base+1)
+		conditions := make([]string, 0, 3)
+		if organizationIds[i] != "" {
+			params = append(params, organizationIds[i])
+			conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+		} else {
+			conditions = append(conditions, "organization_id IS NULL")
+		}
+		if userIds[i] != "" {
+			params = append(params, userIds[i])
+			conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(params)))
+		} else {
+			conditions = append(conditions, "user_id IS NULL")
+		}
 		params = append(params, jobIds[i])
+		conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
 		orClauses[i] = "(" + strings.Join(conditions, " AND ") + ")"
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
@@ -233,9 +316,26 @@ func (s *Store) BatchGetJobs(ctx context.Context, jobIds []string) ([]*model.Job
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
 }
 
-func (s *Store) ListJobs(ctx context.Context, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Job, error) {
+func (s *Store) ListJobs(ctx context.Context, organizationId, userId string, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Job, error) {
 	if columns == nil {
 		columns = JobPostgresColumns
+	}
+
+	if organizationId == "-" {
+		whereClause = postgres.AddToWhereClause(whereClause, "organization_id IS NOT NULL")
+	} else if organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	} else {
+		whereClause = postgres.AddToWhereClause(whereClause, "organization_id IS NULL")
+	}
+	if userId == "-" {
+		whereClause = postgres.AddToWhereClause(whereClause, "user_id IS NOT NULL")
+	} else if userId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("user_id = $%d", len(params)+1))
+		params = append(params, userId)
+	} else {
+		whereClause = postgres.AddToWhereClause(whereClause, "user_id IS NULL")
 	}
 
 	query := strings.ReplaceAll("SELECT %s FROM job #where# #orderby# #pagination#", "#where#", whereClause)

@@ -14,14 +14,20 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 
 // Request message for SchedulerService.CreateJob.
 message CreateJobRequest {
-  // The job to create. Only `payload`, `labels` and `schedule_time` are read.
-  scheduler.v1.Job job = 1 [(buf.validate.field).required = true];
+  // The parent resource. Empty for a system job.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
+
+  // The job to create. Only the producer-owned fields are read: `payload`,
+  // `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+  scheduler.v1.Job job = 2 [(buf.validate.field).required = true];
 
   // The ID to use for the resource, which will become the final component of
   // the resource name.
   // This value should be 1-63 characters, and valid characters
   // are /[a-z][0-9]-/.
-  string job_id = 2 [
+  string job_id = 3 [
     (buf.validate.field).string = {
       min_len: 1
       max_len: 63
@@ -32,19 +38,21 @@ message CreateJobRequest {
 
   // A unique identifier for this request. Must be a UUID. Repeating a request
   // with the same ID returns the job it created instead of creating another.
-  string request_id = 3 [
+  string request_id = 4 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true
   ];
 
   // If set, validate the request and preview the response, but do not actually create the resource.
-  bool validate_only = 4;
+  bool validate_only = 5;
 }
 
 // Request message for SchedulerService.GetJob.
 message GetJobRequest {
   // The resource name of the job to retrieve.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
@@ -57,7 +65,8 @@ message UpdateJobRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
       "labels",
-      "schedule_time"
+      "schedule_time",
+      "priority"
     ]
   };
   option (buf.validate.message).cel = {
@@ -66,7 +75,8 @@ message UpdateJobRequest {
     expression: "has(this.job.name)"
   };
 
-  // The job to update. `schedule_time` may only be updated on a PENDING job.
+  // The job to update. `schedule_time` and `priority` may only be updated on
+  // a PENDING job.
   scheduler.v1.Job job = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
 
   // The list of fields to update.
@@ -77,6 +87,8 @@ message UpdateJobRequest {
 message DeleteJobRequest {
   // The resource name of the job to delete.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
@@ -99,7 +111,9 @@ message ListJobsRequest {
       "create_time",
       "update_time",
       "schedule_time",
-      "complete_time"
+      "expire_time",
+      "complete_time",
+      "priority"
     ]
     default: "create_time desc"
   };
@@ -107,20 +121,26 @@ message ListJobsRequest {
     paths: ["*"]
   };
 
-  // @autogen.
-  string filter = 1;
+  // The parent to list jobs under. Empty lists system jobs; the wildcard `-`
+  // lists across parents (e.g. `organizations/-` for every organization's jobs).
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
 
   // @autogen.
-  string order_by = 2;
+  string filter = 2;
+
+  // @autogen.
+  string order_by = 3;
 
   // Maximum number of jobs to return (max 1000).
-  int32 page_size = 3 [(buf.validate.field).int32 = {
+  int32 page_size = 4 [(buf.validate.field).int32 = {
     gte: 0
     lte: 1000
   }];
 
   // A page token, received from a previous `ListJobs` call.
-  string page_token = 4;
+  string page_token = 5;
 }
 
 // Response message for SchedulerService.ListJobs.
@@ -135,10 +155,18 @@ message ListJobsResponse {
 
 // Request message for SchedulerService.BatchGetJobs.
 message BatchGetJobsRequest {
+  // The parent shared by every requested job. Optional; when set, every name
+  // must be a direct child of it.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
+
   // The resource names of the jobs to retrieve.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   // A maximum of 1000 jobs can be retrieved in a batch.
-  repeated string names = 1 [
+  repeated string names = 2 [
     (buf.validate.field).repeated = {
       min_items: 1
       max_items: 1000
@@ -161,6 +189,8 @@ message BatchGetJobsResponse {
 message RetryJobRequest {
   // The resource name of the job to retry.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
@@ -172,6 +202,8 @@ message RetryJobRequest {
 message CancelJobRequest {
   // The resource name of the job to cancel.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
@@ -183,6 +215,8 @@ message CancelJobRequest {
 message ReportJobProgressRequest {
   // The resource name of the running job.
   // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,

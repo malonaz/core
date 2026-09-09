@@ -18,7 +18,7 @@ import { file_malonaz_scheduler_v1_job } from "../../v1/job_pb";
  * Describes the file malonaz/scheduler/scheduler_service/v1/scheduler_service.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenFile = /*@__PURE__*/
-  fileDesc("Cj5tYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZXJfc2VydmljZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEymAwKEFNjaGVkdWxlclNlcnZpY2USnAEKCUNyZWF0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNyZWF0ZUpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiOtpBA2pvYsK0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAg8iCC92MS9qb2JzOgNqb2ISngEKBkdldEpvYhI1Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkdldEpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiQpACAdpBBG5hbWXCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwITEhEvdjEve25hbWU9am9icy8qfRK1AQoJVXBkYXRlSm9iEjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuVXBkYXRlSm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiJT2kEPam9iLHVwZGF0ZV9tYXNrwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCHDIVL3YxL3tqb2IubmFtZT1qb2JzLyp9OgNqb2ISngEKCURlbGV0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkRlbGV0ZUpvYlJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkiP9pBBG5hbWXCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwITKhEvdjEve25hbWU9am9icy8qfRK0AQoITGlzdEpvYnMSNy5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5MaXN0Sm9ic1JlcXVlc3QaOC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5MaXN0Sm9ic1Jlc3BvbnNlIjWQAgHaQQDCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwIKEggvdjEvam9icxLOAQoMQmF0Y2hHZXRKb2JzEjsubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQmF0Y2hHZXRKb2JzUmVxdWVzdBo8Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0Sm9ic1Jlc3BvbnNlIkOQAgHaQQVuYW1lc8K0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAhMSES92MS9qb2JzOmJhdGNoR2V0EokBCghSZXRyeUpvYhI3Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLlJldHJ5Sm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiIp2kEEbmFtZYLT5JMCHCIXL3YxL3tuYW1lPWpvYnMvKn06cmV0cnk6ASoSjAEKCUNhbmNlbEpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNhbmNlbEpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiKtpBBG5hbWWC0+STAh0iGC92MS97bmFtZT1qb2JzLyp9OmNhbmNlbDoBKhKtAQoRUmVwb3J0Sm9iUHJvZ3Jlc3MSQC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXBvcnRKb2JQcm9ncmVzc1JlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiO9pBDW5hbWUscHJvZ3Jlc3OC0+STAiUiIC92MS97bmFtZT1qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqGhjKQRVzY2hlZHVsZXIubWFsb25hei5jb21CQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3NjaGVkdWxlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_google_api_annotations, file_google_api_client, file_google_protobuf_empty, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_scheduler_service_v1_job, file_malonaz_scheduler_v1_job]);
+  fileDesc("Cj5tYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZXJfc2VydmljZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEykxMKEFNjaGVkdWxlclNlcnZpY2USgAIKCUNyZWF0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNyZWF0ZUpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IinQHaQQpwYXJlbnQsam9iwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCayIIL3YxL2pvYnM6A2pvYlooIiEvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyp9L2pvYnM6A2pvYlowIikvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vam9iczoDam9iEvEBCgZHZXRKb2ISNS5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5HZXRKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIpQBkAIB2kEEbmFtZcK0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAmUSES92MS97bmFtZT1qb2JzLyp9WiMSIS92MS97bmFtZT1vcmdhbml6YXRpb25zLyovam9icy8qfVorEikvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovam9icy8qfRKbAgoJVXBkYXRlSm9iEjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuVXBkYXRlSm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiK4AdpBD2pvYix1cGRhdGVfbWFza8K0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAoABMhUvdjEve2pvYi5uYW1lPWpvYnMvKn06A2pvYlosMiUvdjEve2pvYi5uYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OgNqb2JaNDItL3YxL3tqb2IubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OgNqb2IS8QEKCURlbGV0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkRlbGV0ZUpvYlJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkikQHaQQRuYW1lwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCZSoRL3YxL3tuYW1lPWpvYnMvKn1aIyohL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9WisqKS92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9Eo0CCghMaXN0Sm9icxI3Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RKb2JzUmVxdWVzdBo4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RKb2JzUmVzcG9uc2UijQGQAgHaQQZwYXJlbnTCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwJcEggvdjEvam9ic1ojEiEvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyp9L2pvYnNaKxIpL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2pvYnMSugIKDEJhdGNoR2V0Sm9icxI7Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0Sm9ic1JlcXVlc3QaPC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5CYXRjaEdldEpvYnNSZXNwb25zZSKuAZACAdpBDHBhcmVudCxuYW1lc8K0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAncSES92MS9qb2JzOmJhdGNoR2V0WiwSKi92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKn0vam9iczpiYXRjaEdldFo0EjIvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vam9iczpiYXRjaEdldBLvAQoIUmV0cnlKb2ISNy5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXRyeUpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IijgHaQQRuYW1lgtPkkwKAASIXL3YxL3tuYW1lPWpvYnMvKn06cmV0cnk6ASpaLCInL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OnJldHJ5OgEqWjQiLy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OnJldHJ5OgEqEvQBCglDYW5jZWxKb2ISOC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5DYW5jZWxKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIpEB2kEEbmFtZYLT5JMCgwEiGC92MS97bmFtZT1qb2JzLyp9OmNhbmNlbDoBKlotIigvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2pvYnMvKn06Y2FuY2VsOgEqWjUiMC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OmNhbmNlbDoBKhKlAgoRUmVwb3J0Sm9iUHJvZ3Jlc3MSQC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXBvcnRKb2JQcm9ncmVzc1JlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IisgHaQQ1uYW1lLHByb2dyZXNzgtPkkwKbASIgL3YxL3tuYW1lPWpvYnMvKn06cmVwb3J0UHJvZ3Jlc3M6ASpaNSIwL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqWj0iOC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqGhjKQRVzY2hlZHVsZXIubWFsb25hei5jb21CQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3NjaGVkdWxlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_google_api_annotations, file_google_api_client, file_google_protobuf_empty, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_scheduler_service_v1_job, file_malonaz_scheduler_v1_job]);
 
 /**
  * This API represents a scheduler service: a durable, Postgres-backed job
@@ -26,9 +26,21 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  *
  * # Resource model
  *
- * - The API has a top-level collection of [Job][malonaz.scheduler.v1.Job]
- *   resources.
+ * - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
+ *   hang off the organization or user they run on behalf of.
  *   Format: jobs/{job}
+ *   Format: organizations/{organization}/jobs/{job}
+ *   Format: organizations/{organization}/users/{user}/jobs/{job}
+ *
+ * # Scheduling
+ *
+ * A job is due at its `schedule_time` (at creation when unset). Due jobs are
+ * claimed highest `priority` first, then in due order, across every parent.
+ * A job with an `expire_time` must have started by then: it fails with
+ * DEADLINE_EXCEEDED if still PENDING at expiry, and a retry whose backoff
+ * would reach past it fails at once. A `unique_key` coalesces work: at most one
+ * PENDING and one RUNNING job exist per key, so a burst of keyed creates yields
+ * one run plus, if one was in flight, a single trailing run.
  *
  * # Delivery
  *
@@ -38,7 +50,7 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  * jobs, invoke the method with the payload as request body, and record the
  * outcome: SUCCEEDED with the response, or PENDING again with the next attempt
  * scheduled after the backoff, or FAILED with the error once attempts are
- * exhausted.
+ * exhausted. Every attempt is recorded in the job's `metadata`.
  *
  * Every processor call carries the job's resource name in the
  * `x-scheduler-job` request metadata, which processors pass to
@@ -47,11 +59,15 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  * A running job holds a lease that its worker renews while the call is in
  * flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
  *
+ * Terminal jobs are kept for the scheduler's retention and deleted at their
+ * `purge_time`.
+ *
  * @generated from service malonaz.scheduler.scheduler_service.v1.SchedulerService
  */
 export const SchedulerService: GenService<{
   /**
-   * Create a job.
+   * Create a job. When the job carries a `unique_key` that already has a
+   * PENDING job, no job is created and that job is returned instead.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *
@@ -123,9 +139,10 @@ export const SchedulerService: GenService<{
     output: typeof BatchGetJobsResponseSchema;
   },
   /**
-   * Retry a terminal job: returns it to PENDING with its attempts and outcome
-   * reset, so it runs again immediately. Fails with FAILED_PRECONDITION on a
-   * PENDING or RUNNING job.
+   * Retry a terminal job: returns it to PENDING with its attempts, outcome and
+   * `expire_time` reset, so it runs again immediately. Fails with
+   * FAILED_PRECONDITION on a PENDING or RUNNING job, and with ALREADY_EXISTS
+   * when the job's `unique_key` already has a PENDING job.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *

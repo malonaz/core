@@ -32,14 +32,14 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xda\x08\n\x03Job\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xcb\x01\n\x06labels\x18\x05 \x03(\x0b\x32%.malonaz.scheduler.v1.Job.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x33\n\x07payload\x18\x06 \x01(\x0b\x32\x14.google.protobuf.AnyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01\x12\x15\n\x08job_type\x18\x07 \x01(\tB\x03\xe0\x41\x03\x12:\n\x05state\x18\x08 \x01(\x0e\x32\x1e.malonaz.scheduler.v1.JobStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12\x39\n\rschedule_time\x18\t \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01\x12\x39\n\nstart_time\x18\n \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12<\n\rcomplete_time\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x38\n\tlock_time\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x1a\n\rattempt_count\x18\r \x01(\x05\x42\x03\xe0\x41\x03\x12.\n\x05\x65rror\x18\x0e \x01(\x0b\x32\x12.google.rpc.StatusB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12\x33\n\x08response\x18\x0f \x01(\x0b\x32\x14.google.protobuf.AnyB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12\x33\n\x08progress\x18\x10 \x01(\x0b\x32\x14.google.protobuf.AnyB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12:\n\x0b\x65xpire_time\x18\x11 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:a\xea\x41\x32\n\x19scheduler.malonaz.com/Job\x12\njobs/{job}*\x04jobs2\x03job\xd2\xa6\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3*\x9b\x01\n\x08JobState\x12\x19\n\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x15\n\x11JOB_STATE_PENDING\x10\x01\x12\x15\n\x11JOB_STATE_RUNNING\x10\x02\x12\x17\n\x13JOB_STATE_SUCCEEDED\x10\x03\x12\x14\n\x10JOB_STATE_FAILED\x10\x04\x12\x17\n\x13JOB_STATE_CANCELLED\x10\x05\x42/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb1\x0c\n\x03Job\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xcb\x01\n\x06labels\x18\x05 \x03(\x0b\x32%.malonaz.scheduler.v1.Job.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12\x33\n\x07payload\x18\x06 \x01(\x0b\x32\x14.google.protobuf.AnyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01\x12\x15\n\x08job_type\x18\x07 \x01(\tB\x03\xe0\x41\x03\x12:\n\x05state\x18\x08 \x01(\x0e\x32\x1e.malonaz.scheduler.v1.JobStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12$\n\x08priority\x18\t \x01(\x05\x42\x12\xbaH\x0f\x1a\r\x18\x64(\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\"\n\nunique_key\x18\n \x01(\tB\x0e\xbaH\x05r\x03\x18\x80\x02\xba\xea\x0f\x02 \x01\x12\x39\n\rschedule_time\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01\x12\x37\n\x0b\x65xpire_time\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01\x12\x39\n\nstart_time\x18\r \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12<\n\rcomplete_time\x18\x0e \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x38\n\tlock_time\x18\x0f \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x39\n\npurge_time\x18\x10 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x1a\n\rattempt_count\x18\x11 \x01(\x05\x42\x03\xe0\x41\x03\x12.\n\x05\x65rror\x18\x12 \x01(\x0b\x32\x12.google.rpc.StatusB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12\x33\n\x08response\x18\x13 \x01(\x0b\x32\x14.google.protobuf.AnyB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12\x33\n\x08progress\x18\x14 \x01(\x0b\x32\x14.google.protobuf.AnyB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x18\x01 \x01\x12@\n\x08metadata\x18\x15 \x01(\x0b\x32!.malonaz.scheduler.v1.JobMetadataB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xf3\x02\xea\x41\x91\x01\n\x19scheduler.malonaz.com/Job\x12\njobs/{job}\x12\'organizations/{organization}/jobs/{job}\x12\x34organizations/{organization}/users/{user}/jobs/{job}*\x04jobs2\x03job\xbaH\xae\x01\x1a\xab\x01\n#job.expire_time_after_schedule_time\x12\'expire_time must be after schedule_time\x1a[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_time\xd2\xa6\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"Q\n\x0bJobMetadata\x12\x32\n\x08\x61ttempts\x18\x01 \x03(\x0b\x32 .malonaz.scheduler.v1.JobAttempt\x12\x0e\n\x06worker\x18\x02 \x01(\t\"\xae\x01\n\nJobAttempt\x12\x0f\n\x07\x61ttempt\x18\x01 \x01(\x05\x12.\n\nstart_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0e\n\x06worker\x18\x04 \x01(\t\x12!\n\x05\x65rror\x18\x05 \x01(\x0b\x32\x12.google.rpc.Status*\x9b\x01\n\x08JobState\x12\x19\n\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x15\n\x11JOB_STATE_PENDING\x10\x01\x12\x15\n\x11JOB_STATE_RUNNING\x10\x02\x12\x17\n\x13JOB_STATE_SUCCEEDED\x10\x03\x12\x14\n\x10JOB_STATE_FAILED\x10\x04\x12\x17\n\x13JOB_STATE_CANCELLED\x10\x05\x42\xe8\x01Z-github.com/malonaz/core/genproto/scheduler/v1\xea\x41_\n\"scheduler.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\x0corganization\xea\x41T\n\x1ascheduler.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.scheduler.v1.job_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z-github.com/malonaz/core/genproto/scheduler/v1'
+  _globals['DESCRIPTOR']._serialized_options = b'Z-github.com/malonaz/core/genproto/scheduler/v1\352A_\n\"scheduler.malonaz.com/Organization\022\034organizations/{organization}*\rorganizations2\014organization\352AT\n\032scheduler.malonaz.com/User\022)organizations/{organization}/users/{user}*\005users2\004user'
   _globals['_JOB_LABELSENTRY']._loaded_options = None
   _globals['_JOB_LABELSENTRY']._serialized_options = b'8\001'
   _globals['_JOB'].fields_by_name['name']._loaded_options = None
@@ -56,14 +56,22 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_JOB'].fields_by_name['job_type']._serialized_options = b'\340A\003'
   _globals['_JOB'].fields_by_name['state']._loaded_options = None
   _globals['_JOB'].fields_by_name['state']._serialized_options = b'\340A\003\272H\005\202\001\002\020\001'
+  _globals['_JOB'].fields_by_name['priority']._loaded_options = None
+  _globals['_JOB'].fields_by_name['priority']._serialized_options = b'\272H\017\032\r\030d(\234\377\377\377\377\377\377\377\377\001'
+  _globals['_JOB'].fields_by_name['unique_key']._loaded_options = None
+  _globals['_JOB'].fields_by_name['unique_key']._serialized_options = b'\272H\005r\003\030\200\002\272\352\017\002 \001'
   _globals['_JOB'].fields_by_name['schedule_time']._loaded_options = None
   _globals['_JOB'].fields_by_name['schedule_time']._serialized_options = b'\272\352\017\002 \001'
+  _globals['_JOB'].fields_by_name['expire_time']._loaded_options = None
+  _globals['_JOB'].fields_by_name['expire_time']._serialized_options = b'\272\352\017\002 \001'
   _globals['_JOB'].fields_by_name['start_time']._loaded_options = None
   _globals['_JOB'].fields_by_name['start_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
   _globals['_JOB'].fields_by_name['complete_time']._loaded_options = None
   _globals['_JOB'].fields_by_name['complete_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
   _globals['_JOB'].fields_by_name['lock_time']._loaded_options = None
   _globals['_JOB'].fields_by_name['lock_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
+  _globals['_JOB'].fields_by_name['purge_time']._loaded_options = None
+  _globals['_JOB'].fields_by_name['purge_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
   _globals['_JOB'].fields_by_name['attempt_count']._loaded_options = None
   _globals['_JOB'].fields_by_name['attempt_count']._serialized_options = b'\340A\003'
   _globals['_JOB'].fields_by_name['error']._loaded_options = None
@@ -72,14 +80,18 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_JOB'].fields_by_name['response']._serialized_options = b'\340A\003\272\352\017\004\030\001 \001'
   _globals['_JOB'].fields_by_name['progress']._loaded_options = None
   _globals['_JOB'].fields_by_name['progress']._serialized_options = b'\340A\003\272\352\017\004\030\001 \001'
-  _globals['_JOB'].fields_by_name['expire_time']._loaded_options = None
-  _globals['_JOB'].fields_by_name['expire_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
+  _globals['_JOB'].fields_by_name['metadata']._loaded_options = None
+  _globals['_JOB'].fields_by_name['metadata']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
   _globals['_JOB']._loaded_options = None
-  _globals['_JOB']._serialized_options = b'\352A2\n\031scheduler.malonaz.com/Job\022\njobs/{job}*\004jobs2\003job\322\246\004\000\202\366,$8dba1872-9193-4ddd-a99e-68abf327ead3'
-  _globals['_JOBSTATE']._serialized_start=1420
-  _globals['_JOBSTATE']._serialized_end=1575
+  _globals['_JOB']._serialized_options = b'\352A\221\001\n\031scheduler.malonaz.com/Job\022\njobs/{job}\022\'organizations/{organization}/jobs/{job}\0224organizations/{organization}/users/{user}/jobs/{job}*\004jobs2\003job\272H\256\001\032\253\001\n#job.expire_time_after_schedule_time\022\'expire_time must be after schedule_time\032[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_time\322\246\004\000\202\366,$8dba1872-9193-4ddd-a99e-68abf327ead3'
+  _globals['_JOBSTATE']._serialized_start=2151
+  _globals['_JOBSTATE']._serialized_end=2306
   _globals['_JOB']._serialized_start=303
-  _globals['_JOB']._serialized_end=1417
-  _globals['_JOB_LABELSENTRY']._serialized_start=1273
-  _globals['_JOB_LABELSENTRY']._serialized_end=1318
+  _globals['_JOB']._serialized_end=1888
+  _globals['_JOB_LABELSENTRY']._serialized_start=1469
+  _globals['_JOB_LABELSENTRY']._serialized_end=1514
+  _globals['_JOBMETADATA']._serialized_start=1890
+  _globals['_JOBMETADATA']._serialized_end=1971
+  _globals['_JOBATTEMPT']._serialized_start=1974
+  _globals['_JOBATTEMPT']._serialized_end=2148
 # @@protoc_insertion_point(module_scope)

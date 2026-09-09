@@ -94,9 +94,13 @@ func (x JobState) Number() protoreflect.EnumNumber {
 // retrying with backoff until it succeeds or exhausts its attempts.
 //
 // The scheduler owns the lifecycle fields (`state`, timestamps, `attempt_count`,
-// `error`, `response`); producers own `payload`, `labels` and `schedule_time`.
-// The outcome mirrors a long-running operation: a terminal job carries either
-// a `response` or an `error`.
+// `error`, `response`, `metadata`); producers own `payload`, `labels`,
+// `priority`, `unique_key`, `schedule_time` and `expire_time`. The outcome mirrors
+// a long-running operation: a terminal job carries either a `response` or an
+// `error`.
+//
+// A job belongs to the organization or user it runs on behalf of; system-wide
+// work (e.g. nightly maintenance) lives at the root.
 type Job struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -107,15 +111,19 @@ type Job struct {
 	xxx_hidden_Payload      *anypb.Any             `protobuf:"bytes,6,opt,name=payload,proto3"`
 	xxx_hidden_JobType      string                 `protobuf:"bytes,7,opt,name=job_type,json=jobType,proto3"`
 	xxx_hidden_State        JobState               `protobuf:"varint,8,opt,name=state,proto3,enum=malonaz.scheduler.v1.JobState"`
-	xxx_hidden_ScheduleTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=schedule_time,json=scheduleTime,proto3"`
-	xxx_hidden_StartTime    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=start_time,json=startTime,proto3"`
-	xxx_hidden_CompleteTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=complete_time,json=completeTime,proto3"`
-	xxx_hidden_LockTime     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=lock_time,json=lockTime,proto3"`
-	xxx_hidden_AttemptCount int32                  `protobuf:"varint,13,opt,name=attempt_count,json=attemptCount,proto3"`
-	xxx_hidden_Error        *status.Status         `protobuf:"bytes,14,opt,name=error,proto3"`
-	xxx_hidden_Response     *anypb.Any             `protobuf:"bytes,15,opt,name=response,proto3"`
-	xxx_hidden_Progress     *anypb.Any             `protobuf:"bytes,16,opt,name=progress,proto3"`
-	xxx_hidden_ExpireTime   *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=expire_time,json=expireTime,proto3"`
+	xxx_hidden_Priority     int32                  `protobuf:"varint,9,opt,name=priority,proto3"`
+	xxx_hidden_UniqueKey    string                 `protobuf:"bytes,10,opt,name=unique_key,json=uniqueKey,proto3"`
+	xxx_hidden_ScheduleTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=schedule_time,json=scheduleTime,proto3"`
+	xxx_hidden_ExpireTime   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=expire_time,json=expireTime,proto3"`
+	xxx_hidden_StartTime    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=start_time,json=startTime,proto3"`
+	xxx_hidden_CompleteTime *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=complete_time,json=completeTime,proto3"`
+	xxx_hidden_LockTime     *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=lock_time,json=lockTime,proto3"`
+	xxx_hidden_PurgeTime    *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=purge_time,json=purgeTime,proto3"`
+	xxx_hidden_AttemptCount int32                  `protobuf:"varint,17,opt,name=attempt_count,json=attemptCount,proto3"`
+	xxx_hidden_Error        *status.Status         `protobuf:"bytes,18,opt,name=error,proto3"`
+	xxx_hidden_Response     *anypb.Any             `protobuf:"bytes,19,opt,name=response,proto3"`
+	xxx_hidden_Progress     *anypb.Any             `protobuf:"bytes,20,opt,name=progress,proto3"`
+	xxx_hidden_Metadata     *JobMetadata           `protobuf:"bytes,21,opt,name=metadata,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -201,9 +209,30 @@ func (x *Job) GetState() JobState {
 	return JobState_JOB_STATE_UNSPECIFIED
 }
 
+func (x *Job) GetPriority() int32 {
+	if x != nil {
+		return x.xxx_hidden_Priority
+	}
+	return 0
+}
+
+func (x *Job) GetUniqueKey() string {
+	if x != nil {
+		return x.xxx_hidden_UniqueKey
+	}
+	return ""
+}
+
 func (x *Job) GetScheduleTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_ScheduleTime
+	}
+	return nil
+}
+
+func (x *Job) GetExpireTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_ExpireTime
 	}
 	return nil
 }
@@ -225,6 +254,13 @@ func (x *Job) GetCompleteTime() *timestamppb.Timestamp {
 func (x *Job) GetLockTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_LockTime
+	}
+	return nil
+}
+
+func (x *Job) GetPurgeTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_PurgeTime
 	}
 	return nil
 }
@@ -257,9 +293,9 @@ func (x *Job) GetProgress() *anypb.Any {
 	return nil
 }
 
-func (x *Job) GetExpireTime() *timestamppb.Timestamp {
+func (x *Job) GetMetadata() *JobMetadata {
 	if x != nil {
-		return x.xxx_hidden_ExpireTime
+		return x.xxx_hidden_Metadata
 	}
 	return nil
 }
@@ -296,8 +332,20 @@ func (x *Job) SetState(v JobState) {
 	x.xxx_hidden_State = v
 }
 
+func (x *Job) SetPriority(v int32) {
+	x.xxx_hidden_Priority = v
+}
+
+func (x *Job) SetUniqueKey(v string) {
+	x.xxx_hidden_UniqueKey = v
+}
+
 func (x *Job) SetScheduleTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_ScheduleTime = v
+}
+
+func (x *Job) SetExpireTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_ExpireTime = v
 }
 
 func (x *Job) SetStartTime(v *timestamppb.Timestamp) {
@@ -310,6 +358,10 @@ func (x *Job) SetCompleteTime(v *timestamppb.Timestamp) {
 
 func (x *Job) SetLockTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_LockTime = v
+}
+
+func (x *Job) SetPurgeTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_PurgeTime = v
 }
 
 func (x *Job) SetAttemptCount(v int32) {
@@ -328,8 +380,8 @@ func (x *Job) SetProgress(v *anypb.Any) {
 	x.xxx_hidden_Progress = v
 }
 
-func (x *Job) SetExpireTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_ExpireTime = v
+func (x *Job) SetMetadata(v *JobMetadata) {
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Job) HasCreateTime() bool {
@@ -360,6 +412,13 @@ func (x *Job) HasScheduleTime() bool {
 	return x.xxx_hidden_ScheduleTime != nil
 }
 
+func (x *Job) HasExpireTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ExpireTime != nil
+}
+
 func (x *Job) HasStartTime() bool {
 	if x == nil {
 		return false
@@ -379,6 +438,13 @@ func (x *Job) HasLockTime() bool {
 		return false
 	}
 	return x.xxx_hidden_LockTime != nil
+}
+
+func (x *Job) HasPurgeTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_PurgeTime != nil
 }
 
 func (x *Job) HasError() bool {
@@ -402,11 +468,11 @@ func (x *Job) HasProgress() bool {
 	return x.xxx_hidden_Progress != nil
 }
 
-func (x *Job) HasExpireTime() bool {
+func (x *Job) HasMetadata() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_ExpireTime != nil
+	return x.xxx_hidden_Metadata != nil
 }
 
 func (x *Job) ClearCreateTime() {
@@ -425,6 +491,10 @@ func (x *Job) ClearScheduleTime() {
 	x.xxx_hidden_ScheduleTime = nil
 }
 
+func (x *Job) ClearExpireTime() {
+	x.xxx_hidden_ExpireTime = nil
+}
+
 func (x *Job) ClearStartTime() {
 	x.xxx_hidden_StartTime = nil
 }
@@ -435,6 +505,10 @@ func (x *Job) ClearCompleteTime() {
 
 func (x *Job) ClearLockTime() {
 	x.xxx_hidden_LockTime = nil
+}
+
+func (x *Job) ClearPurgeTime() {
+	x.xxx_hidden_PurgeTime = nil
 }
 
 func (x *Job) ClearError() {
@@ -449,8 +523,8 @@ func (x *Job) ClearProgress() {
 	x.xxx_hidden_Progress = nil
 }
 
-func (x *Job) ClearExpireTime() {
-	x.xxx_hidden_ExpireTime = nil
+func (x *Job) ClearMetadata() {
+	x.xxx_hidden_Metadata = nil
 }
 
 type Job_builder struct {
@@ -458,6 +532,8 @@ type Job_builder struct {
 
 	// The resource name of the job.
 	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
 	Name string
 	// The creation timestamp of the job.
 	CreateTime *timestamppb.Timestamp
@@ -476,9 +552,23 @@ type Job_builder struct {
 	JobType string
 	// The lifecycle state of the job.
 	State JobState
+	// The claim priority among due jobs: higher runs first, ties run in due
+	// order. Defaults to 0. May only be updated on a PENDING job.
+	Priority int32
+	// An optional producer-chosen key coalescing work: at most one PENDING and
+	// one RUNNING job exist per key at any time. Creating a job whose key already
+	// has a PENDING job returns that job instead; creating one while the key's
+	// job is RUNNING queues a single trailing run. Keys are global, so producers
+	// namespace them.
+	UniqueKey string
 	// The earliest time the job may run. Runs immediately if unset. Also holds
 	// the time of the next attempt while a failed job waits out its backoff.
 	ScheduleTime *timestamppb.Timestamp
+	// The time the job expires: it must have started by then. A job still
+	// PENDING at its expiry fails with DEADLINE_EXCEEDED, and a retry whose
+	// backoff would reach past it fails at once instead of waiting. Cleared by
+	// RetryJob, which is an explicit request to run regardless.
+	ExpireTime *timestamppb.Timestamp
 	// The time the current (or last) attempt started.
 	StartTime *timestamppb.Timestamp
 	// The time the job reached a terminal state.
@@ -487,6 +577,9 @@ type Job_builder struct {
 	// call is in flight; a running job whose lease has lapsed is returned to
 	// PENDING, which is how a crashed worker's jobs are recovered.
 	LockTime *timestamppb.Timestamp
+	// The time after which a terminal job is permanently deleted. Set when the
+	// job reaches a terminal state, from the scheduler's retention.
+	PurgeTime *timestamppb.Timestamp
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32
 	// The error of the last failed attempt. Cleared when the job is retried.
@@ -497,9 +590,8 @@ type Job_builder struct {
 	Response *anypb.Any
 	// The latest progress reported by the processor through ReportJobProgress.
 	Progress *anypb.Any
-	// The time after which a terminal job is deleted. Set when the job reaches
-	// a terminal state, from the scheduler's retention.
-	ExpireTime *timestamppb.Timestamp
+	// The execution history of the job.
+	Metadata *JobMetadata
 }
 
 func (b0 Job_builder) Build() *Job {
@@ -514,15 +606,249 @@ func (b0 Job_builder) Build() *Job {
 	x.xxx_hidden_Payload = b.Payload
 	x.xxx_hidden_JobType = b.JobType
 	x.xxx_hidden_State = b.State
+	x.xxx_hidden_Priority = b.Priority
+	x.xxx_hidden_UniqueKey = b.UniqueKey
 	x.xxx_hidden_ScheduleTime = b.ScheduleTime
+	x.xxx_hidden_ExpireTime = b.ExpireTime
 	x.xxx_hidden_StartTime = b.StartTime
 	x.xxx_hidden_CompleteTime = b.CompleteTime
 	x.xxx_hidden_LockTime = b.LockTime
+	x.xxx_hidden_PurgeTime = b.PurgeTime
 	x.xxx_hidden_AttemptCount = b.AttemptCount
 	x.xxx_hidden_Error = b.Error
 	x.xxx_hidden_Response = b.Response
 	x.xxx_hidden_Progress = b.Progress
-	x.xxx_hidden_ExpireTime = b.ExpireTime
+	x.xxx_hidden_Metadata = b.Metadata
+	return m0
+}
+
+// The execution history of a job, maintained by the scheduler.
+type JobMetadata struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Attempts *[]*JobAttempt         `protobuf:"bytes,1,rep,name=attempts,proto3"`
+	xxx_hidden_Worker   string                 `protobuf:"bytes,2,opt,name=worker,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *JobMetadata) Reset() {
+	*x = JobMetadata{}
+	mi := &file_malonaz_scheduler_v1_job_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JobMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JobMetadata) ProtoMessage() {}
+
+func (x *JobMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_v1_job_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *JobMetadata) GetAttempts() []*JobAttempt {
+	if x != nil {
+		if x.xxx_hidden_Attempts != nil {
+			return *x.xxx_hidden_Attempts
+		}
+	}
+	return nil
+}
+
+func (x *JobMetadata) GetWorker() string {
+	if x != nil {
+		return x.xxx_hidden_Worker
+	}
+	return ""
+}
+
+func (x *JobMetadata) SetAttempts(v []*JobAttempt) {
+	x.xxx_hidden_Attempts = &v
+}
+
+func (x *JobMetadata) SetWorker(v string) {
+	x.xxx_hidden_Worker = v
+}
+
+type JobMetadata_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The attempts made so far, most recent last. Capped at the 20 most recent;
+	// cleared when the job is retried.
+	Attempts []*JobAttempt
+	// The worker instance holding the lease while the job is RUNNING.
+	Worker string
+}
+
+func (b0 JobMetadata_builder) Build() *JobMetadata {
+	m0 := &JobMetadata{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Attempts = &b.Attempts
+	x.xxx_hidden_Worker = b.Worker
+	return m0
+}
+
+// One attempt at running a job.
+type JobAttempt struct {
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Attempt   int32                  `protobuf:"varint,1,opt,name=attempt,proto3"`
+	xxx_hidden_StartTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3"`
+	xxx_hidden_EndTime   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3"`
+	xxx_hidden_Worker    string                 `protobuf:"bytes,4,opt,name=worker,proto3"`
+	xxx_hidden_Error     *status.Status         `protobuf:"bytes,5,opt,name=error,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *JobAttempt) Reset() {
+	*x = JobAttempt{}
+	mi := &file_malonaz_scheduler_v1_job_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JobAttempt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JobAttempt) ProtoMessage() {}
+
+func (x *JobAttempt) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_v1_job_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *JobAttempt) GetAttempt() int32 {
+	if x != nil {
+		return x.xxx_hidden_Attempt
+	}
+	return 0
+}
+
+func (x *JobAttempt) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_StartTime
+	}
+	return nil
+}
+
+func (x *JobAttempt) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_EndTime
+	}
+	return nil
+}
+
+func (x *JobAttempt) GetWorker() string {
+	if x != nil {
+		return x.xxx_hidden_Worker
+	}
+	return ""
+}
+
+func (x *JobAttempt) GetError() *status.Status {
+	if x != nil {
+		return x.xxx_hidden_Error
+	}
+	return nil
+}
+
+func (x *JobAttempt) SetAttempt(v int32) {
+	x.xxx_hidden_Attempt = v
+}
+
+func (x *JobAttempt) SetStartTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_StartTime = v
+}
+
+func (x *JobAttempt) SetEndTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_EndTime = v
+}
+
+func (x *JobAttempt) SetWorker(v string) {
+	x.xxx_hidden_Worker = v
+}
+
+func (x *JobAttempt) SetError(v *status.Status) {
+	x.xxx_hidden_Error = v
+}
+
+func (x *JobAttempt) HasStartTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartTime != nil
+}
+
+func (x *JobAttempt) HasEndTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EndTime != nil
+}
+
+func (x *JobAttempt) HasError() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Error != nil
+}
+
+func (x *JobAttempt) ClearStartTime() {
+	x.xxx_hidden_StartTime = nil
+}
+
+func (x *JobAttempt) ClearEndTime() {
+	x.xxx_hidden_EndTime = nil
+}
+
+func (x *JobAttempt) ClearError() {
+	x.xxx_hidden_Error = nil
+}
+
+type JobAttempt_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The 1-based attempt number.
+	Attempt int32
+	// The time the attempt was claimed.
+	StartTime *timestamppb.Timestamp
+	// The time the attempt's outcome was recorded.
+	EndTime *timestamppb.Timestamp
+	// The worker instance that ran the attempt.
+	Worker string
+	// The attempt's failure; unset when the attempt succeeded. A reaped attempt
+	// (worker lease lapsed) records UNAVAILABLE.
+	Error *status.Status
+}
+
+func (b0 JobAttempt_builder) Build() *JobAttempt {
+	m0 := &JobAttempt{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Attempt = b.Attempt
+	x.xxx_hidden_StartTime = b.StartTime
+	x.xxx_hidden_EndTime = b.EndTime
+	x.xxx_hidden_Worker = b.Worker
+	x.xxx_hidden_Error = b.Error
 	return m0
 }
 
@@ -530,8 +856,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x91\n" +
-	"\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x92\x0e\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -542,61 +867,89 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\x06labels\x18\x05 \x03(\v2%.malonaz.scheduler.v1.Job.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12<\n" +
 	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x12\x1e\n" +
 	"\bjob_type\x18\a \x01(\tB\x03\xe0A\x03R\ajobType\x12A\n" +
-	"\x05state\x18\b \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12G\n" +
-	"\rschedule_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01R\fscheduleTime\x12D\n" +
+	"\x05state\x18\b \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12.\n" +
+	"\bpriority\x18\t \x01(\x05B\x12\xbaH\x0f\x1a\r\x18d(\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01R\bpriority\x12-\n" +
 	"\n" +
-	"start_time\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\tstartTime\x12J\n" +
-	"\rcomplete_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\fcompleteTime\x12B\n" +
-	"\tlock_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\blockTime\x12(\n" +
-	"\rattempt_count\x18\r \x01(\x05B\x03\xe0A\x03R\fattemptCount\x125\n" +
-	"\x05error\x18\x0e \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\x05error\x12=\n" +
-	"\bresponse\x18\x0f \x01(\v2\x14.google.protobuf.AnyB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\bresponse\x12=\n" +
-	"\bprogress\x18\x10 \x01(\v2\x14.google.protobuf.AnyB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\bprogress\x12F\n" +
-	"\vexpire_time\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
-	"expireTime\x1a9\n" +
+	"unique_key\x18\n" +
+	" \x01(\tB\x0e\xbaH\x05r\x03\x18\x80\x02\xba\xea\x0f\x02 \x01R\tuniqueKey\x12G\n" +
+	"\rschedule_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01R\fscheduleTime\x12C\n" +
+	"\vexpire_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01R\n" +
+	"expireTime\x12D\n" +
+	"\n" +
+	"start_time\x18\r \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\tstartTime\x12J\n" +
+	"\rcomplete_time\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\fcompleteTime\x12B\n" +
+	"\tlock_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\blockTime\x12D\n" +
+	"\n" +
+	"purge_time\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\tpurgeTime\x12(\n" +
+	"\rattempt_count\x18\x11 \x01(\x05B\x03\xe0A\x03R\fattemptCount\x125\n" +
+	"\x05error\x18\x12 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\x05error\x12=\n" +
+	"\bresponse\x18\x13 \x01(\v2\x14.google.protobuf.AnyB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\bresponse\x12=\n" +
+	"\bprogress\x18\x14 \x01(\v2\x14.google.protobuf.AnyB\v\xe0A\x03\xba\xea\x0f\x04\x18\x01 \x01R\bprogress\x12J\n" +
+	"\bmetadata\x18\x15 \x01(\v2!.malonaz.scheduler.v1.JobMetadataB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:a\xeaA2\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf3\x02\xeaA\x91\x01\n" +
 	"\x19scheduler.malonaz.com/Job\x12\n" +
-	"jobs/{job}*\x04jobs2\x03jobҦ\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3*\x9b\x01\n" +
+	"jobs/{job}\x12'organizations/{organization}/jobs/{job}\x124organizations/{organization}/users/{user}/jobs/{job}*\x04jobs2\x03job\xbaH\xae\x01\x1a\xab\x01\n" +
+	"#job.expire_time_after_schedule_time\x12'expire_time must be after schedule_time\x1a[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_timeҦ\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"c\n" +
+	"\vJobMetadata\x12<\n" +
+	"\battempts\x18\x01 \x03(\v2 .malonaz.scheduler.v1.JobAttemptR\battempts\x12\x16\n" +
+	"\x06worker\x18\x02 \x01(\tR\x06worker\"\xda\x01\n" +
+	"\n" +
+	"JobAttempt\x12\x18\n" +
+	"\aattempt\x18\x01 \x01(\x05R\aattempt\x129\n" +
+	"\n" +
+	"start_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
+	"\bend_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12\x16\n" +
+	"\x06worker\x18\x04 \x01(\tR\x06worker\x12(\n" +
+	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusR\x05error*\x9b\x01\n" +
 	"\bJobState\x12\x19\n" +
 	"\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11JOB_STATE_PENDING\x10\x01\x12\x15\n" +
 	"\x11JOB_STATE_RUNNING\x10\x02\x12\x17\n" +
 	"\x13JOB_STATE_SUCCEEDED\x10\x03\x12\x14\n" +
 	"\x10JOB_STATE_FAILED\x10\x04\x12\x17\n" +
-	"\x13JOB_STATE_CANCELLED\x10\x05B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
+	"\x13JOB_STATE_CANCELLED\x10\x05B\xe8\x01\xeaA_\n" +
+	"\"scheduler.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\xeaAT\n" +
+	"\x1ascheduler.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var file_malonaz_scheduler_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_scheduler_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_scheduler_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_scheduler_v1_job_proto_goTypes = []any{
 	(JobState)(0),                 // 0: malonaz.scheduler.v1.JobState
 	(*Job)(nil),                   // 1: malonaz.scheduler.v1.Job
-	nil,                           // 2: malonaz.scheduler.v1.Job.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
-	(*anypb.Any)(nil),             // 4: google.protobuf.Any
-	(*status.Status)(nil),         // 5: google.rpc.Status
+	(*JobMetadata)(nil),           // 2: malonaz.scheduler.v1.JobMetadata
+	(*JobAttempt)(nil),            // 3: malonaz.scheduler.v1.JobAttempt
+	nil,                           // 4: malonaz.scheduler.v1.Job.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*anypb.Any)(nil),             // 6: google.protobuf.Any
+	(*status.Status)(nil),         // 7: google.rpc.Status
 }
 var file_malonaz_scheduler_v1_job_proto_depIdxs = []int32{
-	3,  // 0: malonaz.scheduler.v1.Job.create_time:type_name -> google.protobuf.Timestamp
-	3,  // 1: malonaz.scheduler.v1.Job.update_time:type_name -> google.protobuf.Timestamp
-	2,  // 2: malonaz.scheduler.v1.Job.labels:type_name -> malonaz.scheduler.v1.Job.LabelsEntry
-	4,  // 3: malonaz.scheduler.v1.Job.payload:type_name -> google.protobuf.Any
+	5,  // 0: malonaz.scheduler.v1.Job.create_time:type_name -> google.protobuf.Timestamp
+	5,  // 1: malonaz.scheduler.v1.Job.update_time:type_name -> google.protobuf.Timestamp
+	4,  // 2: malonaz.scheduler.v1.Job.labels:type_name -> malonaz.scheduler.v1.Job.LabelsEntry
+	6,  // 3: malonaz.scheduler.v1.Job.payload:type_name -> google.protobuf.Any
 	0,  // 4: malonaz.scheduler.v1.Job.state:type_name -> malonaz.scheduler.v1.JobState
-	3,  // 5: malonaz.scheduler.v1.Job.schedule_time:type_name -> google.protobuf.Timestamp
-	3,  // 6: malonaz.scheduler.v1.Job.start_time:type_name -> google.protobuf.Timestamp
-	3,  // 7: malonaz.scheduler.v1.Job.complete_time:type_name -> google.protobuf.Timestamp
-	3,  // 8: malonaz.scheduler.v1.Job.lock_time:type_name -> google.protobuf.Timestamp
-	5,  // 9: malonaz.scheduler.v1.Job.error:type_name -> google.rpc.Status
-	4,  // 10: malonaz.scheduler.v1.Job.response:type_name -> google.protobuf.Any
-	4,  // 11: malonaz.scheduler.v1.Job.progress:type_name -> google.protobuf.Any
-	3,  // 12: malonaz.scheduler.v1.Job.expire_time:type_name -> google.protobuf.Timestamp
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	5,  // 5: malonaz.scheduler.v1.Job.schedule_time:type_name -> google.protobuf.Timestamp
+	5,  // 6: malonaz.scheduler.v1.Job.expire_time:type_name -> google.protobuf.Timestamp
+	5,  // 7: malonaz.scheduler.v1.Job.start_time:type_name -> google.protobuf.Timestamp
+	5,  // 8: malonaz.scheduler.v1.Job.complete_time:type_name -> google.protobuf.Timestamp
+	5,  // 9: malonaz.scheduler.v1.Job.lock_time:type_name -> google.protobuf.Timestamp
+	5,  // 10: malonaz.scheduler.v1.Job.purge_time:type_name -> google.protobuf.Timestamp
+	7,  // 11: malonaz.scheduler.v1.Job.error:type_name -> google.rpc.Status
+	6,  // 12: malonaz.scheduler.v1.Job.response:type_name -> google.protobuf.Any
+	6,  // 13: malonaz.scheduler.v1.Job.progress:type_name -> google.protobuf.Any
+	2,  // 14: malonaz.scheduler.v1.Job.metadata:type_name -> malonaz.scheduler.v1.JobMetadata
+	3,  // 15: malonaz.scheduler.v1.JobMetadata.attempts:type_name -> malonaz.scheduler.v1.JobAttempt
+	5,  // 16: malonaz.scheduler.v1.JobAttempt.start_time:type_name -> google.protobuf.Timestamp
+	5,  // 17: malonaz.scheduler.v1.JobAttempt.end_time:type_name -> google.protobuf.Timestamp
+	7,  // 18: malonaz.scheduler.v1.JobAttempt.error:type_name -> google.rpc.Status
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_v1_job_proto_init() }
@@ -610,7 +963,7 @@ func file_malonaz_scheduler_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_v1_job_proto_rawDesc), len(file_malonaz_scheduler_v1_job_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
