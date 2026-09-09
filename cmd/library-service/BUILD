@@ -5,6 +5,7 @@ go_main_manifest(
     test_only = True,
     deps = [
         "//go/test/library/library_service:manifest",
+        "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/test/library/library_service/v1",
     ],
 )
@@ -29,8 +30,11 @@ go_binary(
         "//go/nats",
         "//go/postgres",
         "//go/prometheus",
+        "//go/scheduler/longrunning",
         "//go/test/library/library_service",
         "//go/test/library/store",
+        "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/test/library/library_service/v1",
+        "//third_party/proto:google__longrunning__operations",
     ],
 )

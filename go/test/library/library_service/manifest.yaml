@@ -7,6 +7,7 @@ codegens:
     store: library
     implementation: //gengo/test/library/library_service/rpc
     nats: true
+    longrunning: true
   - type: rpc
     name: bookmark-service
     store: library
@@ -16,3 +17,6 @@ dependencies:
   - type: postgres_db_client
     name: library
     implementation: //gengo/test/library/store
+  - type: grpc_client
+    proto: //malonaz/scheduler/scheduler_service/v1
+    service: scheduler-service

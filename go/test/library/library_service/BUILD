@@ -4,6 +4,7 @@ go_service_manifest(
     name = "manifest",
     test_only = True,
     visibility = ["//cmd/..."],
+    deps = ["//malonaz/scheduler/scheduler_service/v1"],
 )
 
 go_service_src(
@@ -15,6 +16,7 @@ go_service_src(
 go_library(
     name = "library_service",
     srcs = [
+        "import_books.go",
         "runtime.go",
         ":service.tmpl.go",
     ],
@@ -23,10 +25,16 @@ go_library(
     deps = [
         "//go/aip",
         "//go/grpc/middleware",
+        "//go/grpc/status",
         "//go/nats",
+        "//go/scheduler/longrunning",
         "//go/test/library/library_service/rpc",
         "//go/test/library/store",
+        "//go/uuid",
+        "//malonaz/scheduler/scheduler_service/v1",
+        "//malonaz/test/library/library_service/v1",
         "//malonaz/test/library/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
     ],
 )
