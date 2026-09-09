@@ -161,42 +161,69 @@ type softDeleteOrganizationResult struct {
 	model.Organization
 }
 
-func (s *Store) SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, deleteTime time.Time) (*model.Organization, error) {
+func (s *Store) SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Organization, error) {
 	query := softDeleteOrganizationPostgresQuery
 	params := []any{organizationId, deleteTime, newEtag}
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
 	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting organization: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteOrganizationResult])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getOrganizationETag(ctx, organizationId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrOrganizationETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrOrganizationNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
-			}
-			return nil, model.ErrOrganizationNotExist
+	var result *model.Organization
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("soft deleting organization: %w", err)
 		}
+		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteOrganizationResult])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				if etag != "" {
+					currentEtag, getEtagErr := s.getOrganizationETag(ctx, organizationId)
+					switch getEtagErr {
+					case nil:
+						if currentEtag == etag {
+							return fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
+						}
+						return model.ErrOrganizationETagChanged
+					case v5.ErrNoRows:
+						return model.ErrOrganizationNotExist
+					default:
+						return fmt.Errorf("getting etag: %v", getEtagErr)
+					}
+				}
+				return model.ErrOrganizationNotExist
+			}
+			return err
+		}
+		if row.WasAlreadyDeleted {
+			return model.ErrOrganizationAlreadyDeleted
+		}
+		result = &row.Organization
+
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM user_ WHERE organization_id = $1 AND delete_time IS NULL)`, organizationId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking organization children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrOrganizationHasChildren
+			}
+		}
+		if _, err := tx.Exec(ctx, `UPDATE user_profile SET delete_time = COALESCE(delete_time, $2) WHERE organization_id = $1`, organizationId, deleteTime); err != nil {
+			return fmt.Errorf("cascading organization delete to user_profile: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `UPDATE user_ SET delete_time = COALESCE(delete_time, $2) WHERE organization_id = $1`, organizationId, deleteTime); err != nil {
+			return fmt.Errorf("cascading organization delete to user_: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrOrganizationAlreadyDeleted
-	}
-	return &row.Organization, nil
+	return result, nil
 }
 
 func (s *Store) GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error) {

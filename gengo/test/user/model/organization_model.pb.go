@@ -15,6 +15,7 @@ import (
 var ErrOrganizationAlreadyExists = errors.New("organization already exists")
 var ErrOrganizationNotExist = errors.New("organization does not exist")
 var ErrOrganizationAlreadyDeleted = errors.New("organization already deleted")
+var ErrOrganizationHasChildren = errors.New("organization has child resources")
 var ErrOrganizationETagChanged = errors.New("organization etag changed")
 
 type Organization struct {

@@ -130,24 +130,57 @@ type softDeleteShelfResult struct {
 	model.Shelf
 }
 
-func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, deleteTime time.Time) (*model.Shelf, error) {
+func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error) {
 	query := softDeleteShelfPostgresQuery
 	params := []any{organizationId, shelfId, deleteTime}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting shelf: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteShelfResult])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			return nil, model.ErrShelfNotExist
+	var result *model.Shelf
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("soft deleting shelf: %w", err)
 		}
+		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteShelfResult])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return model.ErrShelfNotExist
+			}
+			return err
+		}
+		if row.WasAlreadyDeleted {
+			return model.ErrShelfAlreadyDeleted
+		}
+		result = &row.Shelf
+
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM library.book WHERE organization_id = $1 AND shelf_id = $2) OR EXISTS (SELECT 1 FROM library.note WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NULL)`, organizationId, shelfId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking shelf children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrShelfHasChildren
+			}
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2`, organizationId, shelfId); err != nil {
+			return fmt.Errorf("cascading shelf delete to library.book_review: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2`, organizationId, shelfId); err != nil {
+			return fmt.Errorf("cascading shelf delete to library.bookmark: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM library.book WHERE organization_id = $1 AND shelf_id = $2`, organizationId, shelfId); err != nil {
+			return fmt.Errorf("cascading shelf delete to library.book: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `UPDATE library.note SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND shelf_id = $2`, organizationId, shelfId, deleteTime); err != nil {
+			return fmt.Errorf("cascading shelf delete to library.note: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrShelfAlreadyDeleted
-	}
-	return &row.Shelf, nil
+	return result, nil
 }
 
 func (s *Store) GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {

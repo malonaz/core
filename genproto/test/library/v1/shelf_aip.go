@@ -13,6 +13,124 @@ import (
 	strings "strings"
 )
 
+type ShelfTagResourceName struct {
+	Organization string
+	Shelf        string
+	Tag          string
+}
+
+func (n OrganizationResourceName) ShelfTagResourceName(
+	shelf string,
+	tag string,
+) ShelfTagResourceName {
+	return ShelfTagResourceName{
+		Organization: n.Organization,
+		Shelf:        shelf,
+		Tag:          tag,
+	}
+}
+
+func (n ShelfResourceName) ShelfTagResourceName(
+	tag string,
+) ShelfTagResourceName {
+	return ShelfTagResourceName{
+		Organization: n.Organization,
+		Shelf:        n.Shelf,
+		Tag:          tag,
+	}
+}
+
+func (n ShelfTagResourceName) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	if n.Shelf == "" {
+		return fmt.Errorf("shelf: empty")
+	}
+	if strings.IndexByte(n.Shelf, '/') != -1 {
+		return fmt.Errorf("shelf: contains illegal character '/'")
+	}
+	if n.Tag == "" {
+		return fmt.Errorf("tag: empty")
+	}
+	if strings.IndexByte(n.Tag, '/') != -1 {
+		return fmt.Errorf("tag: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n ShelfTagResourceName) ContainsWildcard() bool {
+	return false || n.Organization == "-" || n.Shelf == "-" || n.Tag == "-"
+}
+
+func (n ShelfTagResourceName) String() string {
+	return resourcename.Sprint(
+		"organizations/{organization}/shelves/{shelf}/tags/{tag}",
+		n.Organization,
+		n.Shelf,
+		n.Tag,
+	)
+}
+
+func (n ShelfTagResourceName) MarshalString() (string, error) {
+	if err := n.Validate(); err != nil {
+		return "", err
+	}
+	return n.String(), nil
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (n ShelfTagResourceName) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+func (n *ShelfTagResourceName) UnmarshalString(name string) error {
+	err := resourcename.Sscan(
+		name,
+		"organizations/{organization}/shelves/{shelf}/tags/{tag}",
+		&n.Organization,
+		&n.Shelf,
+		&n.Tag,
+	)
+	if err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (n *ShelfTagResourceName) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n ShelfTagResourceName) Type() string {
+	return "library.test.malonaz.com/ShelfTag"
+}
+
+// Pattern returns the resource name pattern for ShelfTagResourceName as a string.
+func (n ShelfTagResourceName) Pattern() string {
+	return "organizations/{organization}/shelves/{shelf}/tags/{tag}"
+}
+
+func (n ShelfTagResourceName) OrganizationResourceName() OrganizationResourceName {
+	return OrganizationResourceName{
+		Organization: n.Organization,
+	}
+}
+
+func (n ShelfTagResourceName) ShelfResourceName() ShelfResourceName {
+	return ShelfResourceName{
+		Organization: n.Organization,
+		Shelf:        n.Shelf,
+	}
+}
+
 type ShelfResourceName struct {
 	Organization string
 	Shelf        string

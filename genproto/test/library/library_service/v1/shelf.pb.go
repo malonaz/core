@@ -332,7 +332,10 @@ type DeleteShelfRequest struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// If true, and the shelf is not found, the request will succeed
 	// but no action will be taken on the server.
-	AllowMissing  bool `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	AllowMissing bool `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// If true, any books and notes under this shelf are deleted too.
+	// Otherwise the request fails if the shelf has any.
+	Force         bool `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -376,12 +379,23 @@ func (x *DeleteShelfRequest) GetAllowMissing() bool {
 	return false
 }
 
+func (x *DeleteShelfRequest) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
 func (x *DeleteShelfRequest) SetName(v string) {
 	x.Name = v
 }
 
 func (x *DeleteShelfRequest) SetAllowMissing(v bool) {
 	x.AllowMissing = v
+}
+
+func (x *DeleteShelfRequest) SetForce(v bool) {
+	x.Force = v
 }
 
 type DeleteShelfRequest_builder struct {
@@ -393,6 +407,9 @@ type DeleteShelfRequest_builder struct {
 	// If true, and the shelf is not found, the request will succeed
 	// but no action will be taken on the server.
 	AllowMissing bool
+	// If true, any books and notes under this shelf are deleted too.
+	// Otherwise the request fails if the shelf has any.
+	Force bool
 }
 
 func (b0 DeleteShelfRequest_builder) Build() *DeleteShelfRequest {
@@ -401,6 +418,7 @@ func (b0 DeleteShelfRequest_builder) Build() *DeleteShelfRequest {
 	_, _ = b, x
 	x.Name = b.Name
 	x.AllowMissing = b.AllowMissing
+	x.Force = b.Force
 	return m0
 }
 
@@ -793,11 +811,12 @@ const file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\x11metadata.capacity\n" +
 	"\x0emetadata.dummy\n" +
 	"\x0emetadata.notes\n" +
-	"\x17metadata.author_to_note\"{\n" +
+	"\x17metadata.author_to_note\"\x91\x01\n" +
 	"\x12DeleteShelfRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
-	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\"\xa7\x02\n" +
+	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x14\n" +
+	"\x05force\x18\x03 \x01(\bR\x05force\"\xa7\x02\n" +
 	"\x12ListShelvesRequest\x12K\n" +
 	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
 	"%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +

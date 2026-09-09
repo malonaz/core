@@ -211,8 +211,9 @@ func (s *Store) SoftDeleteUser(ctx context.Context, organizationId, userId strin
 		result = &row.User
 
 		if _, err := tx.Exec(ctx, `UPDATE user_profile SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND user_id = $2`, organizationId, userId, deleteTime); err != nil {
-			return fmt.Errorf("soft deleting singleton child UserProfile: %w", err)
+			return fmt.Errorf("cascading user delete to user_profile: %w", err)
 		}
+
 		return nil
 	}
 

@@ -97,6 +97,10 @@ message DeleteAuthorRequest {
 
   // If set, the request will only succeed if the current etag matches this value.
   string etag = 3;
+
+  // If true, any notes under this author are deleted too.
+  // Otherwise the request fails if the author has any.
+  bool force = 4;
 }
 
 // Request message for LibraryService.ListAuthors.

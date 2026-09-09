@@ -76,7 +76,7 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 type libraryService_AuthorStore interface {
 	InsertAuthorIdempotently(ctx context.Context, requestID string, author *model.Author, authorProfile *model.AuthorProfile) (*model.Author, error)
 	UpdateAuthor(ctx context.Context, author *model.Author, updateClause string, columns []string, etag string) (*model.Author, error)
-	SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, deleteTime time.Time) (*model.Author, error)
+	SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error)
 	GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error)
 	BatchGetAuthors(ctx context.Context, organizationIds []string, authorIds []string) ([]*model.Author, error)
 	ListAuthors(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Author, error)
@@ -327,10 +327,13 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 	}
 
 	// STEP 2: Soft delete the resource.
-	dbAuthorModel, err := s.store.SoftDeleteAuthor(ctx, organizationId, authorId, request.GetEtag(), newEtag, deleteTime)
+	dbAuthorModel, err := s.store.SoftDeleteAuthor(ctx, organizationId, authorId, request.GetEtag(), newEtag, request.GetForce(), deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrAuthorNotExist) {
 			return nil, status.Errorf(codes.NotFound, "author does not exist").Err()
+		}
+		if errors.Is(err, model.ErrAuthorHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "author has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrAuthorETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
@@ -790,7 +793,7 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 type libraryService_ShelfStore interface {
 	InsertShelfIdempotently(ctx context.Context, requestID string, shelf *model.Shelf) (*model.Shelf, error)
 	UpdateShelf(ctx context.Context, shelf *model.Shelf, updateClause string, columns []string) (*model.Shelf, error)
-	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, deleteTime time.Time) (*model.Shelf, error)
+	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error)
 	GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
 	BatchGetShelves(ctx context.Context, organizationIds []string, shelfIds []string) ([]*model.Shelf, error)
 	ListShelves(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Shelf, error)
@@ -992,10 +995,13 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 
 	deleteTime := time.Now().UTC()
 	// STEP 2: Soft delete the resource.
-	dbShelfModel, err := s.store.SoftDeleteShelf(ctx, organizationId, shelfId, deleteTime)
+	dbShelfModel, err := s.store.SoftDeleteShelf(ctx, organizationId, shelfId, request.GetForce(), deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrShelfNotExist) {
 			return nil, status.Errorf(codes.NotFound, "shelf does not exist").Err()
+		}
+		if errors.Is(err, model.ErrShelfHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "shelf has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrShelfAlreadyDeleted) {
 			if request.AllowMissing {
@@ -1132,7 +1138,7 @@ func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, reques
 type libraryService_BookStore interface {
 	InsertBookIdempotently(ctx context.Context, requestID string, book *model.Book, bookReview *model.BookReview) (*model.Book, error)
 	UpdateBook(ctx context.Context, book *model.Book, updateClause string, columns []string, etag string) (*model.Book, error)
-	DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string) (*model.Book, error)
+	DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string, force bool) (*model.Book, error)
 	GetBook(ctx context.Context, organizationId, shelfId, bookId string) (*model.Book, error)
 	BatchGetBooks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string) ([]*model.Book, error)
 	ListBooks(ctx context.Context, organizationId, shelfId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Book, error)
@@ -1426,13 +1432,16 @@ func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11
 	}
 
 	// STEP 2: Hard delete the resource.
-	dbBookModel, err := s.store.DeleteBook(ctx, organizationId, shelfId, bookId, request.GetEtag())
+	dbBookModel, err := s.store.DeleteBook(ctx, organizationId, shelfId, bookId, request.GetEtag(), request.GetForce())
 	if err != nil {
 		if errors.Is(err, model.ErrBookNotExist) {
 			if request.AllowMissing {
 				return &emptypb.Empty{}, nil
 			}
 			return nil, status.Errorf(codes.NotFound, "book does not exist").Err()
+		}
+		if errors.Is(err, model.ErrBookHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "book has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrBookETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()

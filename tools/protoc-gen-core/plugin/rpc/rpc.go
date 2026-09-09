@@ -321,6 +321,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 			if mc.hasEtag {
 				deleteSig += ", etag, newEtag string"
 			}
+			deleteSig += mc.forceParam()
 			deleteSig += fmt.Sprintf(", deleteTime %s) (*%s, error)", gen.ident(timePkg, "Time"), goTypeQgi)
 			g.P(deleteSig)
 		} else {
@@ -329,6 +330,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 			if mc.hasEtag {
 				deleteSig += ", etag string"
 			}
+			deleteSig += mc.forceParam()
 			deleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 			g.P(deleteSig)
 		}
@@ -475,9 +477,12 @@ type methodCtx struct {
 	errEtagChanged    string
 	errAlreadyExists  string
 	errAlreadyDeleted string
+	errHasChildren    string
 
 	softDeletable bool
 	hasEtag       bool
+	// gated is true when live descendants block deletion unless forced.
+	gated bool
 
 	singletonChildren []schema.SingletonChild
 	natsStreamGoName  string
@@ -509,10 +514,14 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	if err != nil {
 		return nil, err
 	}
+	descendants, err := schema.Descendants(mi.rpc.Message, pr)
+	if err != nil {
+		return nil, err
+	}
 
 	if multiPattern {
-		if len(singletonChildren) > 0 {
-			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", pr.Desc.Type)
+		if len(descendants) > 0 {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot have descendants", pr.Desc.Type)
 		}
 		for _, p := range pr.Patterns {
 			if p.Parent == nil {
@@ -544,13 +553,23 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		errEtagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 		errAlreadyExists:  gen.modelIdent("Err" + goType + "AlreadyExists"),
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
+		errHasChildren:    gen.modelIdent("Err" + goType + "HasChildren"),
 
 		softDeletable: mi.rpc.Message.Desc.Fields().ByName("delete_time") != nil,
 		hasEtag:       mi.rpc.Message.Desc.Fields().ByName("etag") != nil,
+		gated:         schema.AnyGating(descendants),
 
 		singletonChildren: singletonChildren,
 		natsStreamGoName:  natsStreamGoName,
 	}, nil
+}
+
+// forceParam is the store's opt-in for cascading over gating descendants.
+func (mc *methodCtx) forceParam() string {
+	if mc.gated {
+		return ", force bool"
+	}
+	return ""
 }
 
 // --- identity helpers ---

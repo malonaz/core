@@ -15,6 +15,7 @@ import (
 var ErrChatAlreadyExists = errors.New("chat already exists")
 var ErrChatNotExist = errors.New("chat does not exist")
 var ErrChatAlreadyDeleted = errors.New("chat already deleted")
+var ErrChatHasChildren = errors.New("chat has child resources")
 var ErrChatETagChanged = errors.New("chat etag changed")
 
 type Chat struct {

@@ -44,7 +44,7 @@ func (s *AiServiceServer) Start(ctx context.Context) error {
 type aiService_ChatStore interface {
 	InsertChatIdempotently(ctx context.Context, requestID string, chat *model.Chat) (*model.Chat, error)
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)
-	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, deleteTime time.Time) (*model.Chat, error)
+	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Chat, error)
 	GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error)
 	BatchGetChats(ctx context.Context, organizationIds []string, userIds []string, chatIds []string) ([]*model.Chat, error)
 	ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Chat, error)
@@ -277,10 +277,13 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	}
 
 	// STEP 2: Soft delete the resource.
-	dbChatModel, err := s.store.SoftDeleteChat(ctx, organizationId, userId, chatId, request.GetEtag(), newEtag, deleteTime)
+	dbChatModel, err := s.store.SoftDeleteChat(ctx, organizationId, userId, chatId, request.GetEtag(), newEtag, request.GetForce(), deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrChatNotExist) {
 			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
+		}
+		if errors.Is(err, model.ErrChatHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "chat has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrChatETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()

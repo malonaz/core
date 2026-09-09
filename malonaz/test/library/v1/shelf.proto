@@ -11,6 +11,14 @@ import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
+// A silent child: declared without a message or a table, so deleting a shelf
+// neither checks for nor cascades into tags.
+option (google.api.resource_definition) = {
+  type: "library.test.malonaz.com/ShelfTag"
+  pattern: "organizations/{organization}/shelves/{shelf}/tags/{tag}"
+  singular: "shelfTag"
+  plural: "shelfTags"
+};
 
 // Shelf represents a categorized collection of books.
 message Shelf {

@@ -17,6 +17,7 @@ import (
 var ErrMessageAlreadyExists = errors.New("message already exists")
 var ErrMessageNotExist = errors.New("message does not exist")
 var ErrMessageAlreadyDeleted = errors.New("message already deleted")
+var ErrMessageHasChildren = errors.New("message has child resources")
 var ErrMessageETagChanged = errors.New("message etag changed")
 
 type Message struct {

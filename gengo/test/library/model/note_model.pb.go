@@ -15,6 +15,7 @@ import (
 var ErrNoteAlreadyExists = errors.New("note already exists")
 var ErrNoteNotExist = errors.New("note does not exist")
 var ErrNoteAlreadyDeleted = errors.New("note already deleted")
+var ErrNoteHasChildren = errors.New("note has child resources")
 var ErrNoteETagChanged = errors.New("note etag changed")
 
 type Note struct {

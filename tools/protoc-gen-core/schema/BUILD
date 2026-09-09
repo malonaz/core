@@ -1,6 +1,7 @@
 go_library(
     name = "schema",
     srcs = [
+        "descendants.go",
         "schema.go",
         "search.go",
     ],

@@ -16,6 +16,7 @@ import (
 var ErrAuthorProfileAlreadyExists = errors.New("author_profile already exists")
 var ErrAuthorProfileNotExist = errors.New("author_profile does not exist")
 var ErrAuthorProfileAlreadyDeleted = errors.New("author_profile already deleted")
+var ErrAuthorProfileHasChildren = errors.New("author_profile has child resources")
 var ErrAuthorProfileETagChanged = errors.New("author_profile etag changed")
 
 type AuthorProfile struct {
