@@ -500,6 +500,84 @@ func (b0 DeleteMessageRequest_builder) Build() *DeleteMessageRequest {
 	return m0
 }
 
+// Request message for AiService.UndeleteMessage.
+type UndeleteMessageRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the deleted message to restore.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UndeleteMessageRequest) Reset() {
+	*x = UndeleteMessageRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UndeleteMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UndeleteMessageRequest) ProtoMessage() {}
+
+func (x *UndeleteMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UndeleteMessageRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UndeleteMessageRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *UndeleteMessageRequest) SetName(v string) {
+	x.Name = v
+}
+
+func (x *UndeleteMessageRequest) SetEtag(v string) {
+	x.Etag = v
+}
+
+type UndeleteMessageRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the deleted message to restore.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	Name string
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag string
+}
+
+func (b0 UndeleteMessageRequest_builder) Build() *UndeleteMessageRequest {
+	m0 := &UndeleteMessageRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	x.Etag = b.Etag
+	return m0
+}
+
 // Request message for AiService.ListMessages.
 type ListMessagesRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -527,7 +605,7 @@ type ListMessagesRequest struct {
 
 func (x *ListMessagesRequest) Reset() {
 	*x = ListMessagesRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +617,7 @@ func (x *ListMessagesRequest) String() string {
 func (*ListMessagesRequest) ProtoMessage() {}
 
 func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -666,7 +744,7 @@ type ListMessagesResponse struct {
 
 func (x *ListMessagesResponse) Reset() {
 	*x = ListMessagesResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +756,7 @@ func (x *ListMessagesResponse) String() string {
 func (*ListMessagesResponse) ProtoMessage() {}
 
 func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -748,7 +826,7 @@ type BatchGetMessagesRequest struct {
 
 func (x *BatchGetMessagesRequest) Reset() {
 	*x = BatchGetMessagesRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +838,7 @@ func (x *BatchGetMessagesRequest) String() string {
 func (*BatchGetMessagesRequest) ProtoMessage() {}
 
 func (x *BatchGetMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +905,7 @@ type BatchGetMessagesResponse struct {
 
 func (x *BatchGetMessagesResponse) Reset() {
 	*x = BatchGetMessagesResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -839,7 +917,7 @@ func (x *BatchGetMessagesResponse) String() string {
 func (*BatchGetMessagesResponse) ProtoMessage() {}
 
 func (x *BatchGetMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -900,7 +978,7 @@ type MessageGenerationConfiguration struct {
 
 func (x *MessageGenerationConfiguration) Reset() {
 	*x = MessageGenerationConfiguration{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -912,7 +990,7 @@ func (x *MessageGenerationConfiguration) String() string {
 func (*MessageGenerationConfiguration) ProtoMessage() {}
 
 func (x *MessageGenerationConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[8]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1060,7 +1138,7 @@ type ImageGenerationConfiguration struct {
 
 func (x *ImageGenerationConfiguration) Reset() {
 	*x = ImageGenerationConfiguration{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1150,7 @@ func (x *ImageGenerationConfiguration) String() string {
 func (*ImageGenerationConfiguration) ProtoMessage() {}
 
 func (x *ImageGenerationConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[9]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1162,7 +1240,7 @@ type GenerateMessageRequest struct {
 
 func (x *GenerateMessageRequest) Reset() {
 	*x = GenerateMessageRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1174,7 +1252,7 @@ func (x *GenerateMessageRequest) String() string {
 func (*GenerateMessageRequest) ProtoMessage() {}
 
 func (x *GenerateMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[10]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1362,7 +1440,7 @@ type GenerateMessageResponse struct {
 
 func (x *GenerateMessageResponse) Reset() {
 	*x = GenerateMessageResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[11]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1374,7 +1452,7 @@ func (x *GenerateMessageResponse) String() string {
 func (*GenerateMessageResponse) ProtoMessage() {}
 
 func (x *GenerateMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[11]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1506,7 +1584,7 @@ type StreamGenerateMessageResponse struct {
 
 func (x *StreamGenerateMessageResponse) Reset() {
 	*x = StreamGenerateMessageResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1518,7 +1596,7 @@ func (x *StreamGenerateMessageResponse) String() string {
 func (*StreamGenerateMessageResponse) ProtoMessage() {}
 
 func (x *StreamGenerateMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12]
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1772,7 +1850,7 @@ func (b0 StreamGenerateMessageResponse_builder) Build() *StreamGenerateMessageRe
 type case_StreamGenerateMessageResponse_Content protoreflect.FieldNumber
 
 func (x case_StreamGenerateMessageResponse_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_message_proto_msgTypes[13].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1851,7 +1929,11 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
 	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xae\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"f\n" +
+	"\x16UndeleteMessageRequest\x128\n" +
+	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
+	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xae\x02\n" +
 	"\x13ListMessagesRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -1932,56 +2014,57 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x13STOP_REASON_REFUSAL\x10\x06B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(StopReason)(0),                        // 0: malonaz.ai.ai_service.v1.StopReason
 	(*CreateMessageRequest)(nil),           // 1: malonaz.ai.ai_service.v1.CreateMessageRequest
 	(*GetMessageRequest)(nil),              // 2: malonaz.ai.ai_service.v1.GetMessageRequest
 	(*UpdateMessageRequest)(nil),           // 3: malonaz.ai.ai_service.v1.UpdateMessageRequest
 	(*DeleteMessageRequest)(nil),           // 4: malonaz.ai.ai_service.v1.DeleteMessageRequest
-	(*ListMessagesRequest)(nil),            // 5: malonaz.ai.ai_service.v1.ListMessagesRequest
-	(*ListMessagesResponse)(nil),           // 6: malonaz.ai.ai_service.v1.ListMessagesResponse
-	(*BatchGetMessagesRequest)(nil),        // 7: malonaz.ai.ai_service.v1.BatchGetMessagesRequest
-	(*BatchGetMessagesResponse)(nil),       // 8: malonaz.ai.ai_service.v1.BatchGetMessagesResponse
-	(*MessageGenerationConfiguration)(nil), // 9: malonaz.ai.ai_service.v1.MessageGenerationConfiguration
-	(*ImageGenerationConfiguration)(nil),   // 10: malonaz.ai.ai_service.v1.ImageGenerationConfiguration
-	(*GenerateMessageRequest)(nil),         // 11: malonaz.ai.ai_service.v1.GenerateMessageRequest
-	(*GenerateMessageResponse)(nil),        // 12: malonaz.ai.ai_service.v1.GenerateMessageResponse
-	(*StreamGenerateMessageResponse)(nil),  // 13: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
-	nil,                                    // 14: malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
-	(*v1.Message)(nil),                     // 15: malonaz.ai.v1.Message
-	(*fieldmaskpb.FieldMask)(nil),          // 16: google.protobuf.FieldMask
-	(*v1.ToolChoice)(nil),                  // 17: malonaz.ai.v1.ToolChoice
-	(v1.ReasoningEffort)(0),                // 18: malonaz.ai.v1.ReasoningEffort
-	(*v1.Tool)(nil),                        // 19: malonaz.ai.v1.Tool
-	(*v1.ToolSet)(nil),                     // 20: malonaz.ai.v1.ToolSet
-	(*v1.ModelUsage)(nil),                  // 21: malonaz.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),           // 22: malonaz.ai.v1.GenerationMetrics
-	(*v1.Block)(nil),                       // 23: malonaz.ai.v1.Block
+	(*UndeleteMessageRequest)(nil),         // 5: malonaz.ai.ai_service.v1.UndeleteMessageRequest
+	(*ListMessagesRequest)(nil),            // 6: malonaz.ai.ai_service.v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),           // 7: malonaz.ai.ai_service.v1.ListMessagesResponse
+	(*BatchGetMessagesRequest)(nil),        // 8: malonaz.ai.ai_service.v1.BatchGetMessagesRequest
+	(*BatchGetMessagesResponse)(nil),       // 9: malonaz.ai.ai_service.v1.BatchGetMessagesResponse
+	(*MessageGenerationConfiguration)(nil), // 10: malonaz.ai.ai_service.v1.MessageGenerationConfiguration
+	(*ImageGenerationConfiguration)(nil),   // 11: malonaz.ai.ai_service.v1.ImageGenerationConfiguration
+	(*GenerateMessageRequest)(nil),         // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest
+	(*GenerateMessageResponse)(nil),        // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse
+	(*StreamGenerateMessageResponse)(nil),  // 14: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
+	nil,                                    // 15: malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	(*v1.Message)(nil),                     // 16: malonaz.ai.v1.Message
+	(*fieldmaskpb.FieldMask)(nil),          // 17: google.protobuf.FieldMask
+	(*v1.ToolChoice)(nil),                  // 18: malonaz.ai.v1.ToolChoice
+	(v1.ReasoningEffort)(0),                // 19: malonaz.ai.v1.ReasoningEffort
+	(*v1.Tool)(nil),                        // 20: malonaz.ai.v1.Tool
+	(*v1.ToolSet)(nil),                     // 21: malonaz.ai.v1.ToolSet
+	(*v1.ModelUsage)(nil),                  // 22: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),           // 23: malonaz.ai.v1.GenerationMetrics
+	(*v1.Block)(nil),                       // 24: malonaz.ai.v1.Block
 }
 var file_malonaz_ai_ai_service_v1_message_proto_depIdxs = []int32{
-	15, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	15, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	16, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
-	15, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
-	15, // 4: malonaz.ai.ai_service.v1.BatchGetMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
-	17, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
-	18, // 6: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	10, // 7: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.image_configuration:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfiguration
-	15, // 8: malonaz.ai.ai_service.v1.GenerateMessageRequest.messages:type_name -> malonaz.ai.v1.Message
-	19, // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
-	20, // 10: malonaz.ai.ai_service.v1.GenerateMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
-	9,  // 11: malonaz.ai.ai_service.v1.GenerateMessageRequest.configuration:type_name -> malonaz.ai.ai_service.v1.MessageGenerationConfiguration
-	14, // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
-	15, // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	16, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	16, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	17, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
+	16, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	16, // 4: malonaz.ai.ai_service.v1.BatchGetMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	18, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
+	19, // 6: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	11, // 7: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.image_configuration:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfiguration
+	16, // 8: malonaz.ai.ai_service.v1.GenerateMessageRequest.messages:type_name -> malonaz.ai.v1.Message
+	20, // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
+	21, // 10: malonaz.ai.ai_service.v1.GenerateMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	10, // 11: malonaz.ai.ai_service.v1.GenerateMessageRequest.configuration:type_name -> malonaz.ai.ai_service.v1.MessageGenerationConfiguration
+	15, // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	16, // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
 	0,  // 14: malonaz.ai.ai_service.v1.GenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
-	21, // 15: malonaz.ai.ai_service.v1.GenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	22, // 16: malonaz.ai.ai_service.v1.GenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	23, // 17: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.block:type_name -> malonaz.ai.v1.Block
+	22, // 15: malonaz.ai.ai_service.v1.GenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	23, // 16: malonaz.ai.ai_service.v1.GenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	24, // 17: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.block:type_name -> malonaz.ai.v1.Block
 	0,  // 18: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
-	22, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	15, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
-	21, // 21: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	23, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	16, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	22, // 21: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
 	22, // [22:22] is the sub-list for method output_type
 	22, // [22:22] is the sub-list for method input_type
 	22, // [22:22] is the sub-list for extension type_name
@@ -1994,7 +2077,7 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 	if File_malonaz_ai_ai_service_v1_message_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_service_v1_message_proto_msgTypes[12].OneofWrappers = []any{
+	file_malonaz_ai_ai_service_v1_message_proto_msgTypes[13].OneofWrappers = []any{
 		(*StreamGenerateMessageResponse_Block)(nil),
 		(*StreamGenerateMessageResponse_StopReason)(nil),
 		(*StreamGenerateMessageResponse_GenerationMetrics)(nil),
@@ -2007,7 +2090,7 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_message_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_message_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

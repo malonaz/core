@@ -15,6 +15,7 @@ import (
 var ErrTargetAlreadyExists = errors.New("target already exists")
 var ErrTargetNotExist = errors.New("target does not exist")
 var ErrTargetAlreadyDeleted = errors.New("target already deleted")
+var ErrTargetNotDeleted = errors.New("target is not deleted")
 var ErrTargetHasChildren = errors.New("target has child resources")
 var ErrTargetETagChanged = errors.New("target etag changed")
 

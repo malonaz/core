@@ -29,6 +29,7 @@ go_test(
         "shelf_test.go",
         "singleton_hard_deletable_test.go",
         "singleton_soft_deletable_test.go",
+        "undelete_test.go",
         "update_test.go",
     ],
     data = [

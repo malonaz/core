@@ -15,9 +15,9 @@ var (
 	QueuePostgresColumns = postgres.GetDBColumns(model.Queue{})
 )
 
-func (s *Store) getQueueETag(ctx context.Context, queueId string) (string, error) {
+func (s *Store) getQueueETag(ctx context.Context, q querier, queueId string) (string, error) {
 	query := `SELECT etag FROM queue WHERE queue_id = $1`
-	rows, err := s.client.Query(ctx, query, queueId)
+	rows, err := q.Query(ctx, query, queueId)
 	if err != nil {
 		return "", err
 	}
@@ -142,7 +142,7 @@ func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClau
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getQueueETag(ctx, _queue.QueueID)
+				currentEtag, getEtagErr := s.getQueueETag(ctx, s.client, _queue.QueueID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -180,7 +180,7 @@ func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getQueueETag(ctx, queueId)
+				currentEtag, getEtagErr := s.getQueueETag(ctx, s.client, queueId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

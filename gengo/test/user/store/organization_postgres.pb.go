@@ -22,13 +22,20 @@ func New(client *postgres.Client) *Store {
 	return &Store{client: client}
 }
 
+// querier is what reads go through: the pool, or the open transaction so
+// that a probe never waits on a second pool connection while holding one.
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (v5.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) v5.Row
+}
+
 var (
 	OrganizationPostgresColumns = postgres.GetDBColumns(model.Organization{})
 )
 
-func (s *Store) getOrganizationETag(ctx context.Context, organizationId string) (string, error) {
+func (s *Store) getOrganizationETag(ctx context.Context, q querier, organizationId string) (string, error) {
 	query := `SELECT etag FROM organization WHERE organization_id = $1`
-	rows, err := s.client.Query(ctx, query, organizationId)
+	rows, err := q.Query(ctx, query, organizationId)
 	if err != nil {
 		return "", err
 	}
@@ -153,7 +160,7 @@ func (s *Store) UpdateOrganization(ctx context.Context, _organization *model.Org
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getOrganizationETag(ctx, _organization.OrganizationID)
+				currentEtag, getEtagErr := s.getOrganizationETag(ctx, s.client, _organization.OrganizationID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -199,7 +206,7 @@ func (s *Store) SoftDeleteOrganization(ctx context.Context, organizationId strin
 		if err != nil {
 			if err == v5.ErrNoRows {
 				if etag != "" {
-					currentEtag, getEtagErr := s.getOrganizationETag(ctx, organizationId)
+					currentEtag, getEtagErr := s.getOrganizationETag(ctx, tx, organizationId)
 					switch getEtagErr {
 					case nil:
 						if currentEtag == etag {
@@ -244,6 +251,50 @@ func (s *Store) SoftDeleteOrganization(ctx context.Context, organizationId strin
 		return nil, err
 	}
 	return result, nil
+}
+
+func (s *Store) undeleteOrganizationNoRows(ctx context.Context, q querier, organizationId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM organization WHERE organization_id = $1`
+	params := []any{organizationId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrOrganizationNotExist
+		}
+		return fmt.Errorf("probing organization: %w", err)
+	}
+	if live {
+		return model.ErrOrganizationNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrOrganizationETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but organization is deleted")
+}
+
+var undeleteOrganizationPostgresQuery = `UPDATE organization SET delete_time = NULL, etag = $2 WHERE organization_id = $1 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", OrganizationPostgresColumns)
+
+func (s *Store) UndeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string) (*model.Organization, error) {
+	query := undeleteOrganizationPostgresQuery
+	params := []any{organizationId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting organization: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Organization])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteOrganizationNoRows(ctx, s.client, organizationId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
 }
 
 func (s *Store) GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error) {

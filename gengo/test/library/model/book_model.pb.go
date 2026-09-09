@@ -17,6 +17,7 @@ import (
 var ErrBookAlreadyExists = errors.New("book already exists")
 var ErrBookNotExist = errors.New("book does not exist")
 var ErrBookAlreadyDeleted = errors.New("book already deleted")
+var ErrBookNotDeleted = errors.New("book is not deleted")
 var ErrBookHasChildren = errors.New("book has child resources")
 var ErrBookETagChanged = errors.New("book etag changed")
 

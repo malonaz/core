@@ -90,6 +90,20 @@ message DeleteOrganizationRequest {
   bool force = 4;
 }
 
+// Request message for UserService.UndeleteOrganization.
+message UndeleteOrganizationRequest {
+  // The resource name of the deleted organization to restore.
+  // Format: organizations/{organization}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "user.test.malonaz.com/Organization"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for UserService.ListOrganizations.
 message ListOrganizationsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

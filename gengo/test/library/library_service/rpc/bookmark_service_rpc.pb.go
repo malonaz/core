@@ -42,6 +42,7 @@ type bookmarkService_BookmarkStore interface {
 	BatchInsertBookmarks(ctx context.Context, requestIDs []string, bookmarks []*model.Bookmark) ([]*model.Bookmark, error)
 	UpdateBookmark(ctx context.Context, bookmark *model.Bookmark, updateClause string, columns []string, etag string) (*model.Bookmark, error)
 	SoftDeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string, deleteTime time.Time) (*model.Bookmark, error)
+	UndeleteBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string, etag, newEtag string) (*model.Bookmark, error)
 	GetBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (*model.Bookmark, error)
 	BatchGetBookmarks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string, bookmarkIds []string) ([]*model.Bookmark, error)
 	ListBookmarks(ctx context.Context, organizationId, shelfId, bookId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Bookmark, error)
@@ -275,12 +276,12 @@ func (s *bookmarkService_BookmarkServer) DeleteBookmark(ctx context.Context, req
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getBookmarkRequest := &v1.GetBookmarkRequest{Name: request.Name}
-	Bookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
+	existingBookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
 	if err != nil {
 		return nil, err
 	}
-	Bookmark.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Bookmark)
+	existingBookmark.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingBookmark)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -306,6 +307,53 @@ func (s *bookmarkService_BookmarkServer) DeleteBookmark(ctx context.Context, req
 			return nil, status.Errorf(codes.NotFound, "bookmark already deleted").Err()
 		}
 		return nil, status.FromError(err, "soft deleting bookmark").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	bookmark, err := dbBookmarkModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting bookmark from model to pb: %v", err).Err()
+	}
+
+	return bookmark, nil
+}
+
+func (s *bookmarkService_BookmarkServer) UndeleteBookmark(ctx context.Context, request *v1.UndeleteBookmarkRequest) (*v11.Bookmark, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, shelfId, bookId, bookmarkId, err := model.ParseBookmarkName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getBookmarkRequest := &v1.GetBookmarkRequest{Name: request.Name}
+	existingBookmark, err := s.GetBookmark(ctx, getBookmarkRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingBookmark.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingBookmark)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbBookmarkModel, err := s.store.UndeleteBookmark(ctx, organizationId, shelfId, bookId, bookmarkId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrBookmarkNotExist) {
+			return nil, status.Errorf(codes.NotFound, "bookmark does not exist").Err()
+		}
+		if errors.Is(err, model.ErrBookmarkNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "bookmark is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrBookmarkETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting bookmark").Err()
 	}
 
 	// STEP 3: Convert to protobuf and return.

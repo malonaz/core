@@ -103,6 +103,20 @@ message DeleteAuthorRequest {
   bool force = 4;
 }
 
+// Request message for LibraryService.UndeleteAuthor.
+message UndeleteAuthorRequest {
+  // The resource name of the deleted author to restore.
+  // Format: organizations/{organization}/authors/{author}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Author"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for LibraryService.ListAuthors.
 message ListAuthorsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

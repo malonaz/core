@@ -75,6 +75,18 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
   }
 
+  // Undeletes a author.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteAuthor(UndeleteAuthorRequest) returns (malonaz.test.library.v1.Author) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/authors/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
   // Lists authors.
   rpc ListAuthors(ListAuthorsRequest) returns (ListAuthorsResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/authors"};
@@ -177,6 +189,18 @@ service LibraryService {
   // Deletes a shelf.
   rpc DeleteShelf(DeleteShelfRequest) returns (malonaz.test.library.v1.Shelf) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/shelves/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Undeletes a shelf.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteShelf(UndeleteShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/shelves/*}:undelete"
+      body: "*"
+    };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
   }
@@ -359,6 +383,26 @@ service LibraryService {
       delete: "/v1/{name=organizations/*/notes/*}"
       additional_bindings: {delete: "/v1/{name=organizations/*/authors/*/notes/*}"}
       additional_bindings: {delete: "/v1/{name=organizations/*/shelves/*/notes/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Undeletes a note.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteNote(UndeleteNoteRequest) returns (malonaz.test.library.v1.Note) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/notes/*}:undelete"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/authors/*/notes/*}:undelete"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/shelves/*/notes/*}:undelete"
+        body: "*"
+      }
     };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";

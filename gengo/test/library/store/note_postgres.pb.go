@@ -16,7 +16,7 @@ var (
 	NotePostgresColumns = postgres.GetDBColumns(model.Note{})
 )
 
-func (s *Store) getNoteETag(ctx context.Context, organizationId, authorId, shelfId, noteId string) (string, error) {
+func (s *Store) getNoteETag(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string) (string, error) {
 	conditions := make([]string, 0, 4)
 	params := make([]any, 0, 4)
 	params = append(params, organizationId)
@@ -36,7 +36,7 @@ func (s *Store) getNoteETag(ctx context.Context, organizationId, authorId, shelf
 	params = append(params, noteId)
 	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
 	query := fmt.Sprintf("SELECT etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
-	rows, err := s.client.Query(ctx, query, params...)
+	rows, err := q.Query(ctx, query, params...)
 	if err != nil {
 		return "", err
 	}
@@ -183,7 +183,7 @@ func (s *Store) UpdateNote(ctx context.Context, _note *model.Note, updateClause 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, organizationId, authorId, shelfId, noteId)
+				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -244,7 +244,7 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getNoteETag(ctx, organizationId, authorId, shelfId, noteId)
+				currentEtag, getEtagErr := s.getNoteETag(ctx, s.client, organizationId, authorId, shelfId, noteId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -265,6 +265,82 @@ func (s *Store) SoftDeleteNote(ctx context.Context, organizationId, authorId, sh
 		return nil, model.ErrNoteAlreadyDeleted
 	}
 	return &row.Note, nil
+}
+
+func (s *Store) undeleteNoteNoRows(ctx context.Context, q querier, organizationId, authorId, shelfId, noteId string, etag string) error {
+	conditions := make([]string, 0, 4)
+	params := make([]any, 0, 4)
+	params = append(params, organizationId)
+	conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	if authorId != "" {
+		params = append(params, authorId)
+		conditions = append(conditions, fmt.Sprintf("author_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "author_id IS NULL")
+	}
+	if shelfId != "" {
+		params = append(params, shelfId)
+		conditions = append(conditions, fmt.Sprintf("shelf_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "shelf_id IS NULL")
+	}
+	params = append(params, noteId)
+	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
+	query := fmt.Sprintf("SELECT delete_time IS NULL, etag FROM library.note WHERE %s", strings.Join(conditions, " AND "))
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrNoteNotExist
+		}
+		return fmt.Errorf("probing note: %w", err)
+	}
+	if live {
+		return model.ErrNoteNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrNoteETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but note is deleted")
+}
+
+func (s *Store) UndeleteNote(ctx context.Context, organizationId, authorId, shelfId, noteId string, etag, newEtag string) (*model.Note, error) {
+	conditions := make([]string, 0, 4)
+	params := make([]any, 0, 6)
+	params = append(params, organizationId)
+	conditions = append(conditions, fmt.Sprintf("organization_id = $%d", len(params)))
+	if authorId != "" {
+		params = append(params, authorId)
+		conditions = append(conditions, fmt.Sprintf("author_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "author_id IS NULL")
+	}
+	if shelfId != "" {
+		params = append(params, shelfId)
+		conditions = append(conditions, fmt.Sprintf("shelf_id = $%d", len(params)))
+	} else {
+		conditions = append(conditions, "shelf_id IS NULL")
+	}
+	params = append(params, noteId)
+	conditions = append(conditions, fmt.Sprintf("note_id = $%d", len(params)))
+	params = append(params, newEtag)
+	query := fmt.Sprintf("UPDATE library.note SET delete_time = NULL, etag = $%d WHERE %s AND delete_time IS NOT NULL RETURNING ", len(params), strings.Join(conditions, " AND ")) + postgres.SelectQuery("%s", NotePostgresColumns)
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting note: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Note])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteNoteNoRows(ctx, s.client, organizationId, authorId, shelfId, noteId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
 }
 
 func (s *Store) GetNote(ctx context.Context, organizationId, authorId, shelfId, noteId string) (*model.Note, error) {

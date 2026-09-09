@@ -112,6 +112,9 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			mi := &methodInfo{method: method, rpc: rpc, natsEventOpts: natsEventOpts}
 			allMethods = append(allMethods, methodEntry{si: si, mi: mi})
 		}
+		if err := requireUndelete(si); err != nil {
+			return err
+		}
 		if len(si.resources) > 0 {
 			services = append(services, si)
 		}
@@ -318,6 +321,17 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		}
 	}
 
+	// Undelete (soft-deletable non-singletons only).
+	if !mc.singleton && mc.softDeletable {
+		undeleteSig := fmt.Sprintf("  Undelete%s(ctx %s, %s string",
+			resourceGoName, gen.ident(contextPkg, "Context"), mc.idParams())
+		if mc.hasEtag {
+			undeleteSig += ", etag, newEtag string"
+		}
+		undeleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
+		g.P(undeleteSig)
+	}
+
 	// Get
 	g.P(fmt.Sprintf("  Get%s(ctx %s, %s string) (*%s, error)",
 		resourceGoName, gen.ident(contextPkg, "Context"), mc.idParams(), goTypeQgi))
@@ -411,6 +425,49 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	return nil
 }
 
+// requireUndelete enforces AIP-164: a service that soft-deletes a resource must
+// also let callers recover it, and only soft-deleted resources can be undeleted.
+func requireUndelete(si *serviceInfo) error {
+	type lifecycle struct {
+		pr               *resource.ParsedResource
+		delete, undelete bool
+	}
+	byType := map[string]*lifecycle{}
+	for _, method := range si.service.Methods {
+		rpc, err := resource.ParseRPC(method)
+		if err != nil {
+			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
+		}
+		if rpc == nil || !(rpc.Delete || rpc.Undelete) {
+			continue
+		}
+		if rpc.Undelete && rpc.Message.Desc.Fields().ByName("delete_time") == nil {
+			return fmt.Errorf("%s is not soft-deletable (no delete_time field): %s must not be declared (AIP-164)", rpc.ParsedResource.Desc.Type, method.GoName)
+		}
+		if rpc.Undelete && method.Output.Desc.FullName() != rpc.Message.Desc.FullName() {
+			return fmt.Errorf("%s must return %s (AIP-164)", method.GoName, rpc.Message.Desc.FullName())
+		}
+		// Hard-deletable resources have nothing to recover.
+		if rpc.Delete && rpc.Message.Desc.Fields().ByName("delete_time") == nil {
+			continue
+		}
+		l := byType[rpc.ParsedResource.Desc.Type]
+		if l == nil {
+			l = &lifecycle{pr: rpc.ParsedResource}
+			byType[rpc.ParsedResource.Desc.Type] = l
+		}
+		l.delete = l.delete || rpc.Delete
+		l.undelete = l.undelete || rpc.Undelete
+	}
+	for _, l := range byType {
+		if l.delete && !l.undelete {
+			return fmt.Errorf("%s is soft-deletable: %s must also declare Undelete%s (AIP-164)",
+				l.pr.Desc.Type, si.service.GoName, l.pr.SingularGoName())
+		}
+	}
+	return nil
+}
+
 // createRequestMessage returns the resource's Create request message, taken
 // from Create{X} or, failing that, from BatchCreate{Plural}.requests. Nil when
 // the service creates the resource through neither. Creates must carry a
@@ -470,6 +527,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		return mc.generateUpdate()
 	case mi.rpc.Delete:
 		return mc.generateDelete()
+	case mi.rpc.Undelete:
+		return mc.generateUndelete()
 	case mi.rpc.Get:
 		mc.generateGet()
 	case mi.rpc.BatchGet:
@@ -508,6 +567,7 @@ type methodCtx struct {
 	errEtagChanged    string
 	errAlreadyExists  string
 	errAlreadyDeleted string
+	errNotDeleted     string
 	errHasChildren    string
 
 	softDeletable bool
@@ -589,6 +649,7 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		errEtagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 		errAlreadyExists:  gen.modelIdent("Err" + goType + "AlreadyExists"),
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
+		errNotDeleted:     gen.modelIdent("Err" + goType + "NotDeleted"),
 		errHasChildren:    gen.modelIdent("Err" + goType + "HasChildren"),
 
 		softDeletable: mi.rpc.Message.Desc.Fields().ByName("delete_time") != nil,

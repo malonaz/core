@@ -45,6 +45,7 @@ type aiService_ChatStore interface {
 	BatchInsertChats(ctx context.Context, requestIDs []string, chats []*model.Chat) ([]*model.Chat, error)
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)
 	SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Chat, error)
+	UndeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string) (*model.Chat, error)
 	GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error)
 	BatchGetChats(ctx context.Context, organizationIds []string, userIds []string, chatIds []string) ([]*model.Chat, error)
 	ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Chat, error)
@@ -278,12 +279,12 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getChatRequest := &v1.GetChatRequest{Name: request.Name}
-	Chat, err := s.GetChat(ctx, getChatRequest)
+	existingChat, err := s.GetChat(ctx, getChatRequest)
 	if err != nil {
 		return nil, err
 	}
-	Chat.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Chat)
+	existingChat.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingChat)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -312,6 +313,53 @@ func (s *aiService_ChatServer) DeleteChat(ctx context.Context, request *v1.Delet
 			return nil, status.Errorf(codes.NotFound, "chat already deleted").Err()
 		}
 		return nil, status.FromError(err, "soft deleting chat").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	chat, err := dbChatModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting chat from model to pb: %v", err).Err()
+	}
+
+	return chat, nil
+}
+
+func (s *aiService_ChatServer) UndeleteChat(ctx context.Context, request *v1.UndeleteChatRequest) (*v11.Chat, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, chatId, err := model.ParseChatName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getChatRequest := &v1.GetChatRequest{Name: request.Name}
+	existingChat, err := s.GetChat(ctx, getChatRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingChat.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingChat)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbChatModel, err := s.store.UndeleteChat(ctx, organizationId, userId, chatId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrChatNotExist) {
+			return nil, status.Errorf(codes.NotFound, "chat does not exist").Err()
+		}
+		if errors.Is(err, model.ErrChatNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "chat is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrChatETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting chat").Err()
 	}
 
 	// STEP 3: Convert to protobuf and return.
@@ -430,6 +478,7 @@ type aiService_MessageStore interface {
 	BatchInsertMessages(ctx context.Context, requestIDs []string, messages []*model.Message) ([]*model.Message, error)
 	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
 	SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error)
+	UndeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string) (*model.Message, error)
 	GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error)
 	BatchGetMessages(ctx context.Context, organizationIds []string, userIds []string, chatIds []string, messageIds []string) ([]*model.Message, error)
 	ListMessages(ctx context.Context, organizationId, userId, chatId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Message, error)
@@ -663,12 +712,12 @@ func (s *aiService_MessageServer) DeleteMessage(ctx context.Context, request *v1
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
-	Message, err := s.GetMessage(ctx, getMessageRequest)
+	existingMessage, err := s.GetMessage(ctx, getMessageRequest)
 	if err != nil {
 		return nil, err
 	}
-	Message.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Message)
+	existingMessage.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingMessage)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -694,6 +743,53 @@ func (s *aiService_MessageServer) DeleteMessage(ctx context.Context, request *v1
 			return nil, status.Errorf(codes.NotFound, "message already deleted").Err()
 		}
 		return nil, status.FromError(err, "soft deleting message").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	message, err := dbMessageModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting message from model to pb: %v", err).Err()
+	}
+
+	return message, nil
+}
+
+func (s *aiService_MessageServer) UndeleteMessage(ctx context.Context, request *v1.UndeleteMessageRequest) (*v11.Message, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, chatId, messageId, err := model.ParseMessageName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getMessageRequest := &v1.GetMessageRequest{Name: request.Name}
+	existingMessage, err := s.GetMessage(ctx, getMessageRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingMessage.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingMessage)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbMessageModel, err := s.store.UndeleteMessage(ctx, organizationId, userId, chatId, messageId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrMessageNotExist) {
+			return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+		}
+		if errors.Is(err, model.ErrMessageNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "message is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrMessageETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting message").Err()
 	}
 
 	// STEP 3: Convert to protobuf and return.

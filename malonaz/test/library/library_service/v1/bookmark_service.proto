@@ -48,6 +48,18 @@ service BookmarkService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
   }
 
+  // Undeletes a bookmark.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteBookmark(UndeleteBookmarkRequest) returns (malonaz.test.library.v1.Bookmark) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
   // Lists bookmarks.
   rpc ListBookmarks(ListBookmarksRequest) returns (ListBookmarksResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks"};

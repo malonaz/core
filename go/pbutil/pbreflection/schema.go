@@ -38,6 +38,7 @@ const (
 	StandardMethodTypeBatchGet    StandardMethodType = "BatchGet"
 	StandardMethodTypeUpdate      StandardMethodType = "Update"
 	StandardMethodTypeDelete      StandardMethodType = "Delete"
+	StandardMethodTypeUndelete    StandardMethodType = "Undelete"
 	StandardMethodTypeList        StandardMethodType = "List"
 	StandardMethodTypeSearch      StandardMethodType = "Search"
 )
@@ -458,6 +459,8 @@ func (s *Schema) buildStandardMethodTypes() error {
 					methodType = StandardMethodTypeUpdate
 				case string(StandardMethodTypeDelete) + singular:
 					methodType = StandardMethodTypeDelete
+				case string(StandardMethodTypeUndelete) + singular:
+					methodType = StandardMethodTypeUndelete
 				case string(StandardMethodTypeList) + plural:
 					methodType = StandardMethodTypeList
 				case string(StandardMethodTypeSearch) + plural:

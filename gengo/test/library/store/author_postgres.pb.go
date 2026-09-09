@@ -22,13 +22,20 @@ func New(client *postgres.Client) *Store {
 	return &Store{client: client}
 }
 
+// querier is what reads go through: the pool, or the open transaction so
+// that a probe never waits on a second pool connection while holding one.
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (v5.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) v5.Row
+}
+
 var (
 	AuthorPostgresColumns = postgres.GetDBColumns(model.Author{})
 )
 
-func (s *Store) getAuthorETag(ctx context.Context, organizationId, authorId string) (string, error) {
+func (s *Store) getAuthorETag(ctx context.Context, q querier, organizationId, authorId string) (string, error) {
 	query := `SELECT etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
-	rows, err := s.client.Query(ctx, query, organizationId, authorId)
+	rows, err := q.Query(ctx, query, organizationId, authorId)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +168,7 @@ func (s *Store) UpdateAuthor(ctx context.Context, _author *model.Author, updateC
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorETag(ctx, _author.OrganizationID, _author.AuthorID)
+				currentEtag, getEtagErr := s.getAuthorETag(ctx, s.client, _author.OrganizationID, _author.AuthorID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -207,7 +214,7 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 		if err != nil {
 			if err == v5.ErrNoRows {
 				if etag != "" {
-					currentEtag, getEtagErr := s.getAuthorETag(ctx, organizationId, authorId)
+					currentEtag, getEtagErr := s.getAuthorETag(ctx, tx, organizationId, authorId)
 					switch getEtagErr {
 					case nil:
 						if currentEtag == etag {
@@ -245,6 +252,62 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 			return fmt.Errorf("cascading author delete to library.note: %w", err)
 		}
 
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *Store) undeleteAuthorNoRows(ctx context.Context, q querier, organizationId, authorId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
+	params := []any{organizationId, authorId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrAuthorNotExist
+		}
+		return fmt.Errorf("probing author: %w", err)
+	}
+	if live {
+		return model.ErrAuthorNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrAuthorETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but author is deleted")
+}
+
+var undeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", AuthorPostgresColumns)
+
+func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string) (*model.Author, error) {
+	query := undeleteAuthorPostgresQuery
+	params := []any{organizationId, authorId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	var result *model.Author
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("undeleting author: %w", err)
+		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Author])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				return s.undeleteAuthorNoRows(ctx, tx, organizationId, authorId, etag)
+			}
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE library.author_profile SET delete_time = NULL WHERE organization_id = $1 AND author_id = $2`, organizationId, authorId); err != nil {
+			return fmt.Errorf("restoring library.author_profile with author: %w", err)
+		}
 		return nil
 	}
 

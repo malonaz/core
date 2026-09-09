@@ -20,9 +20,9 @@ var bookJoinSubqueryExpr = `,(SELECT shelf.ext_id FROM library.shelf AS shelf WH
 var bookJoinSelectExprs = `,shelf.ext_id AS shelf_external_id,shelf.genre AS shelf_genre,latest_bookmark.name AS latest_bookmark,latest_bookmark.color AS latest_bookmark_color,first_bookmark.name AS first_bookmark,first_bookmark.color AS first_bookmark_color`
 var bookJoinClause = `INNER JOIN library.shelf AS shelf ON shelf.organization_id = book.organization_id AND shelf.shelf_id = book.shelf_id LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time DESC NULLS LAST LIMIT 1) AS latest_bookmark ON TRUE LEFT JOIN LATERAL (SELECT bookmark.*, 'organizations/' || bookmark.organization_id || '/shelves/' || bookmark.shelf_id || '/books/' || bookmark.book_id || '/bookmarks/' || bookmark.bookmark_id AS name FROM library.bookmark AS bookmark WHERE bookmark.organization_id = book.organization_id AND bookmark.shelf_id = book.shelf_id AND bookmark.book_id = book.book_id ORDER BY bookmark.create_time ASC NULLS LAST LIMIT 1) AS first_bookmark ON TRUE`
 
-func (s *Store) getBookETag(ctx context.Context, organizationId, shelfId, bookId string) (string, error) {
+func (s *Store) getBookETag(ctx context.Context, q querier, organizationId, shelfId, bookId string) (string, error) {
 	query := `SELECT etag FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
-	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId)
+	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId)
 	if err != nil {
 		return "", err
 	}
@@ -157,7 +157,7 @@ func (s *Store) UpdateBook(ctx context.Context, _book *model.Book, updateClause 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getBookETag(ctx, _book.OrganizationID, _book.ShelfID, _book.BookID)
+				currentEtag, getEtagErr := s.getBookETag(ctx, s.client, _book.OrganizationID, _book.ShelfID, _book.BookID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -214,7 +214,7 @@ func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId 
 		if err != nil {
 			if err == v5.ErrNoRows {
 				if etag != "" {
-					currentEtag, getEtagErr := s.getBookETag(ctx, organizationId, shelfId, bookId)
+					currentEtag, getEtagErr := s.getBookETag(ctx, tx, organizationId, shelfId, bookId)
 					switch getEtagErr {
 					case nil:
 						if currentEtag == etag {

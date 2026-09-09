@@ -79,6 +79,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		g.P("  return &Store{client: client}")
 		g.P("}")
 		g.P()
+		g.P("// querier is what reads go through: the pool, or the open transaction so")
+		g.P("// that a probe never waits on a second pool connection while holding one.")
+		g.P("type querier interface {")
+		g.P("  Query(ctx context.Context, sql string, args ...any) (", pgxPkg.Ident("Rows"), ", error)")
+		g.P("  QueryRow(ctx context.Context, sql string, args ...any) ", pgxPkg.Ident("Row"))
+		g.P("}")
+		g.P()
 	}
 
 	var msgCtxs []*msgCtx
@@ -110,6 +117,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		mc.generateBatchInsert()
 		mc.generateUpdate()
 		mc.generateDelete()
+		mc.generateUndelete()
 		mc.generateGet()
 		mc.generateBatchGet()
 		mc.generateList()
@@ -208,6 +216,7 @@ type msgCtx struct {
 	errNotExist       string
 	errAlreadyExists  string
 	errAlreadyDeleted string
+	errNotDeleted     string
 	errETagChanged    string
 	errHasChildren    string
 
@@ -337,6 +346,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errNotExist:       gen.modelIdent("Err" + goType + "NotExist"),
 		errAlreadyExists:  gen.modelIdent("Err" + goType + "AlreadyExists"),
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
+		errNotDeleted:     gen.modelIdent("Err" + goType + "NotDeleted"),
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
 		errHasChildren:    gen.modelIdent("Err" + goType + "HasChildren"),
 
@@ -546,17 +556,17 @@ func (mc *msgCtx) generateETagGetter() {
 		return
 	}
 	g := mc.g
-	g.P(fmt.Sprintf("func (s *Store) get%sETag(ctx context.Context, %s string) (string, error) {", mc.goType, mc.patternVarIDsGoTrue()))
+	g.P(fmt.Sprintf("func (s *Store) get%sETag(ctx context.Context, q querier, %s string) (string, error) {", mc.goType, mc.patternVarIDsGoTrue()))
 	if mc.multiPattern {
 		g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 		g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)))
 		mc.emitIDConditionAppends("  ", idParamName)
 		g.P(fmt.Sprintf("  query := %s(\"SELECT etag FROM %s WHERE %%s\", %s(conditions, \" AND \"))",
 			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join")))
-		g.P("  rows, err := s.client.Query(ctx, query, params...)")
+		g.P("  rows, err := q.Query(ctx, query, params...)")
 	} else {
 		g.P(fmt.Sprintf("  query := `SELECT etag FROM %s WHERE %s`", mc.tableName, mc.placeholderDecls))
-		g.P(fmt.Sprintf("  rows, err := s.client.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
+		g.P(fmt.Sprintf("  rows, err := q.Query(ctx, query, %s)", mc.patternVarIDsGoTrue()))
 	}
 	g.P("  if err != nil {")
 	g.P("    return \"\", err")
@@ -566,6 +576,47 @@ func (mc *msgCtx) generateETagGetter() {
 	g.P()
 }
 
+// etagMatchParam is the client's etag to match, on every write of an etag'd
+// resource.
+func (mc *msgCtx) etagMatchParam() string {
+	if mc.hasEtag {
+		return ", etag string"
+	}
+	return ""
+}
+
+// etagWriteParams adds the recomputed etag stored when the row survives the
+// write.
+func (mc *msgCtx) etagWriteParams() string {
+	if mc.hasEtag {
+		return ", etag, newEtag string"
+	}
+	return ""
+}
+
+// emitEtagFilter narrows a write to the client's etag when one is supplied.
+// The clause is spliced in ahead of RETURNING so the etag-less query stays a
+// single constant.
+func (mc *msgCtx) emitEtagFilter() {
+	if !mc.hasEtag {
+		return
+	}
+	g := mc.g
+	g.P("  if etag != \"\" {")
+	g.P(fmt.Sprintf("    query = %s(query, \"RETURNING\", %s(\"AND etag = $%%d RETURNING\", len(params)+1), 1)",
+		mc.stringsI("Replace"), mc.fmtI("Sprintf")))
+	g.P("    params = append(params, etag)")
+	g.P("  }")
+}
+
+// querierVar names the connection a probe reads through at the call site.
+func querierVar(inTransaction bool) string {
+	if inTransaction {
+		return "tx"
+	}
+	return "s.client"
+}
+
 func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string, inTransaction bool) {
 	g := mc.g
 	retPrefix := "return nil, "
@@ -573,7 +624,7 @@ func (mc *msgCtx) generateETagCheck(operation string, patternVarArgs string, inT
 		retPrefix = "return "
 	}
 	g.P("      if etag != \"\" {")
-	g.P(fmt.Sprintf("        currentEtag, getEtagErr := s.get%sETag(ctx, %s)", mc.goType, patternVarArgs))
+	g.P(fmt.Sprintf("        currentEtag, getEtagErr := s.get%sETag(ctx, %s, %s)", mc.goType, querierVar(inTransaction), patternVarArgs))
 	g.P("        switch getEtagErr {")
 	g.P("        case nil:")
 	g.P("          if currentEtag == etag {")

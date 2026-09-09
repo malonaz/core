@@ -41,6 +41,10 @@ class UserServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def UndeleteOrganization(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.organization_pb2.UndeleteOrganizationRequest, malonaz.test.user.v1.organization_pb2.Organization]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListOrganizations(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.organization_pb2.ListOrganizationsRequest, malonaz.test.user.user_service.v1.organization_pb2.ListOrganizationsResponse]') -> None:
         pass
 
@@ -62,6 +66,10 @@ class UserServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def DeleteUser(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_pb2.DeleteUserRequest, malonaz.test.user.v1.user_pb2.User]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UndeleteUser(self, stream: 'grpclib.server.Stream[malonaz.test.user.user_service.v1.user_pb2.UndeleteUserRequest, malonaz.test.user.v1.user_pb2.User]') -> None:
         pass
 
     @abc.abstractmethod
@@ -114,6 +122,12 @@ class UserServiceBase(abc.ABC):
                 malonaz.test.user.user_service.v1.organization_pb2.DeleteOrganizationRequest,
                 malonaz.test.user.v1.organization_pb2.Organization,
             ),
+            '/malonaz.test.user.user_service.v1.UserService/UndeleteOrganization': grpclib.const.Handler(
+                self.UndeleteOrganization,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.organization_pb2.UndeleteOrganizationRequest,
+                malonaz.test.user.v1.organization_pb2.Organization,
+            ),
             '/malonaz.test.user.user_service.v1.UserService/ListOrganizations': grpclib.const.Handler(
                 self.ListOrganizations,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -148,6 +162,12 @@ class UserServiceBase(abc.ABC):
                 self.DeleteUser,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.user.user_service.v1.user_pb2.DeleteUserRequest,
+                malonaz.test.user.v1.user_pb2.User,
+            ),
+            '/malonaz.test.user.user_service.v1.UserService/UndeleteUser': grpclib.const.Handler(
+                self.UndeleteUser,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.user.user_service.v1.user_pb2.UndeleteUserRequest,
                 malonaz.test.user.v1.user_pb2.User,
             ),
             '/malonaz.test.user.user_service.v1.UserService/ListUsers': grpclib.const.Handler(
@@ -216,6 +236,12 @@ class UserServiceStub:
             malonaz.test.user.user_service.v1.organization_pb2.DeleteOrganizationRequest,
             malonaz.test.user.v1.organization_pb2.Organization,
         )
+        self.UndeleteOrganization = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/UndeleteOrganization',
+            malonaz.test.user.user_service.v1.organization_pb2.UndeleteOrganizationRequest,
+            malonaz.test.user.v1.organization_pb2.Organization,
+        )
         self.ListOrganizations = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.test.user.user_service.v1.UserService/ListOrganizations',
@@ -250,6 +276,12 @@ class UserServiceStub:
             channel,
             '/malonaz.test.user.user_service.v1.UserService/DeleteUser',
             malonaz.test.user.user_service.v1.user_pb2.DeleteUserRequest,
+            malonaz.test.user.v1.user_pb2.User,
+        )
+        self.UndeleteUser = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.user.user_service.v1.UserService/UndeleteUser',
+            malonaz.test.user.user_service.v1.user_pb2.UndeleteUserRequest,
             malonaz.test.user.v1.user_pb2.User,
         )
         self.ListUsers = grpclib.client.UnaryUnaryMethod(

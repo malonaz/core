@@ -18,6 +18,7 @@ import (
 var ErrJobAlreadyExists = errors.New("job already exists")
 var ErrJobNotExist = errors.New("job does not exist")
 var ErrJobAlreadyDeleted = errors.New("job already deleted")
+var ErrJobNotDeleted = errors.New("job is not deleted")
 var ErrJobHasChildren = errors.New("job has child resources")
 var ErrJobETagChanged = errors.New("job etag changed")
 

@@ -20,9 +20,9 @@ var bookReviewJoinSubqueryExpr = `,(SELECT book.title FROM library.book AS book 
 var bookReviewJoinSelectExprs = `,book.title AS book_title,book.publication_year AS book_publication_year`
 var bookReviewJoinClause = `INNER JOIN library.book AS book ON book.organization_id = book_review.organization_id AND book.shelf_id = book_review.shelf_id AND book.book_id = book_review.book_id`
 
-func (s *Store) getBookReviewETag(ctx context.Context, organizationId, shelfId, bookId string) (string, error) {
+func (s *Store) getBookReviewETag(ctx context.Context, q querier, organizationId, shelfId, bookId string) (string, error) {
 	query := `SELECT etag FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`
-	rows, err := s.client.Query(ctx, query, organizationId, shelfId, bookId)
+	rows, err := q.Query(ctx, query, organizationId, shelfId, bookId)
 	if err != nil {
 		return "", err
 	}
@@ -152,7 +152,7 @@ func (s *Store) UpdateBookReview(ctx context.Context, _bookReview *model.BookRev
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getBookReviewETag(ctx, _bookReview.OrganizationID, _bookReview.ShelfID, _bookReview.BookID)
+				currentEtag, getEtagErr := s.getBookReviewETag(ctx, s.client, _bookReview.OrganizationID, _bookReview.ShelfID, _bookReview.BookID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -190,7 +190,7 @@ func (s *Store) DeleteBookReview(ctx context.Context, organizationId, shelfId, b
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getBookReviewETag(ctx, organizationId, shelfId, bookId)
+				currentEtag, getEtagErr := s.getBookReviewETag(ctx, s.client, organizationId, shelfId, bookId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

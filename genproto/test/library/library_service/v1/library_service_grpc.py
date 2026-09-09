@@ -49,6 +49,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def UndeleteAuthor(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.UndeleteAuthorRequest, malonaz.test.library.v1.author_pb2.Author]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListAuthors(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.ListAuthorsRequest, malonaz.test.library.library_service.v1.author_pb2.ListAuthorsResponse]') -> None:
         pass
 
@@ -94,6 +98,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def DeleteShelf(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.DeleteShelfRequest, malonaz.test.library.v1.shelf_pb2.Shelf]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UndeleteShelf(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.UndeleteShelfRequest, malonaz.test.library.v1.shelf_pb2.Shelf]') -> None:
         pass
 
     @abc.abstractmethod
@@ -169,6 +177,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def UndeleteNote(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.UndeleteNoteRequest, malonaz.test.library.v1.note_pb2.Note]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest, malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse]') -> None:
         pass
 
@@ -204,6 +216,12 @@ class LibraryServiceBase(abc.ABC):
                 self.DeleteAuthor,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.author_pb2.DeleteAuthorRequest,
+                malonaz.test.library.v1.author_pb2.Author,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteAuthor': grpclib.const.Handler(
+                self.UndeleteAuthor,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_pb2.UndeleteAuthorRequest,
                 malonaz.test.library.v1.author_pb2.Author,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/ListAuthors': grpclib.const.Handler(
@@ -276,6 +294,12 @@ class LibraryServiceBase(abc.ABC):
                 self.DeleteShelf,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.shelf_pb2.DeleteShelfRequest,
+                malonaz.test.library.v1.shelf_pb2.Shelf,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteShelf': grpclib.const.Handler(
+                self.UndeleteShelf,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.shelf_pb2.UndeleteShelfRequest,
                 malonaz.test.library.v1.shelf_pb2.Shelf,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/ListShelves': grpclib.const.Handler(
@@ -386,6 +410,12 @@ class LibraryServiceBase(abc.ABC):
                 malonaz.test.library.library_service.v1.note_pb2.DeleteNoteRequest,
                 malonaz.test.library.v1.note_pb2.Note,
             ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteNote': grpclib.const.Handler(
+                self.UndeleteNote,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.UndeleteNoteRequest,
+                malonaz.test.library.v1.note_pb2.Note,
+            ),
             '/malonaz.test.library.library_service.v1.LibraryService/ListNotes': grpclib.const.Handler(
                 self.ListNotes,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -432,6 +462,12 @@ class LibraryServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/DeleteAuthor',
             malonaz.test.library.library_service.v1.author_pb2.DeleteAuthorRequest,
+            malonaz.test.library.v1.author_pb2.Author,
+        )
+        self.UndeleteAuthor = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteAuthor',
+            malonaz.test.library.library_service.v1.author_pb2.UndeleteAuthorRequest,
             malonaz.test.library.v1.author_pb2.Author,
         )
         self.ListAuthors = grpclib.client.UnaryUnaryMethod(
@@ -504,6 +540,12 @@ class LibraryServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/DeleteShelf',
             malonaz.test.library.library_service.v1.shelf_pb2.DeleteShelfRequest,
+            malonaz.test.library.v1.shelf_pb2.Shelf,
+        )
+        self.UndeleteShelf = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteShelf',
+            malonaz.test.library.library_service.v1.shelf_pb2.UndeleteShelfRequest,
             malonaz.test.library.v1.shelf_pb2.Shelf,
         )
         self.ListShelves = grpclib.client.UnaryUnaryMethod(
@@ -612,6 +654,12 @@ class LibraryServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/DeleteNote',
             malonaz.test.library.library_service.v1.note_pb2.DeleteNoteRequest,
+            malonaz.test.library.v1.note_pb2.Note,
+        )
+        self.UndeleteNote = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteNote',
+            malonaz.test.library.library_service.v1.note_pb2.UndeleteNoteRequest,
             malonaz.test.library.v1.note_pb2.Note,
         )
         self.ListNotes = grpclib.client.UnaryUnaryMethod(

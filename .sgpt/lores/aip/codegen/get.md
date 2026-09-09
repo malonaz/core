@@ -16,6 +16,7 @@ Generated for `Get{Singular}` (`rpc/get.go`, `postgres/get.go`).
   `NotFound`).
 - **Soft-deleted resources are returned**, `delete_time` set. Callers that
   need "live only" must check `delete_time` themselves; `Update` does.
+  `Undelete` clears it again.
 - Joined fields (`field_opts.join` — ancestor, reference and query joins)
   are resolved in the same SELECT, so `Get` never issues a second query.
 - Multi-pattern resources match unset pattern identifiers against `IS NULL`,

@@ -196,6 +196,7 @@ func (m *Model) ErrorVarsDef() string {
 	fmt.Fprintf(&b, "var Err%sAlreadyExists = %s(\"%s already exists\")\n", goName, errorsNew, snakeName)
 	fmt.Fprintf(&b, "var Err%sNotExist = %s(\"%s does not exist\")\n", goName, errorsNew, snakeName)
 	fmt.Fprintf(&b, "var Err%sAlreadyDeleted = %s(\"%s already deleted\")\n", goName, errorsNew, snakeName)
+	fmt.Fprintf(&b, "var Err%sNotDeleted = %s(\"%s is not deleted\")\n", goName, errorsNew, snakeName)
 	fmt.Fprintf(&b, "var Err%sHasChildren = %s(\"%s has child resources\")\n", goName, errorsNew, snakeName)
 	if m.HasEtag() {
 		fmt.Fprintf(&b, "var Err%sETagChanged = %s(\"%s etag changed\")\n", goName, errorsNew, snakeName)

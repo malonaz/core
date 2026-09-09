@@ -39,7 +39,7 @@ labels:
 
 ### Codegen Options (resource messages)
 - **`malonaz.codegen.aip.v1.uuid_namespace`**: A fixed UUID per resource message — deterministic resource IDs.
-- **`malonaz.codegen.nats.v1.event`**: Declares the NATS event stream: `stream`, `resource_segments`, and `created`/`updated`/`deleted` subjects (optionally with `subject_fields` like `["state"]`).
+- **`malonaz.codegen.nats.v1.event`**: Declares the NATS event stream: `stream`, `resource_segments`, and `created`/`updated`/`deleted`/`undeleted` subjects (optionally with `subject_fields` like `["state"]`).
 - Option order after the message declaration: `google.api.resource`, then nats event, then model opts, then uuid namespace.
 
 ### Field Behaviors
@@ -70,6 +70,7 @@ labels:
 
 ### Service Methods
 - **Standard methods**: Follow AIP-13x; every RPC comment cites its AIP (e.g., `// See: https://google.aip.dev/133 (Standard methods: Create).`).
+- **Soft delete**: a resource with `delete_time` and a `Delete` RPC **must** also declare `Undelete{Resource}` (AIP-164: `post: "/v1/{name=...}:undelete"`, `body: "*"`, returns the resource; request has `name` + `etag` only) — codegen refuses otherwise. See `lores/aip/codegen/undelete`.
 - **`google.api.http`**: Every RPC declares its HTTP binding (`post`/`patch`/`get`/`delete` with resource-name path templates, `body` for Create/Update).
 - **`google.api.method_signature`**: Always set (`"parent,project"`, `"project,update_mask"`, `"name"`, `"parent"`, ...).
 - **`malonaz.codegen.aip.v1.standard_method`**: `.resource = "<domain>.onikisu.com/<Resource>"` on every standard method — drives codegen.

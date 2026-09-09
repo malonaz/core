@@ -15,6 +15,7 @@ import (
 var ErrBookmarkAlreadyExists = errors.New("bookmark already exists")
 var ErrBookmarkNotExist = errors.New("bookmark does not exist")
 var ErrBookmarkAlreadyDeleted = errors.New("bookmark already deleted")
+var ErrBookmarkNotDeleted = errors.New("bookmark is not deleted")
 var ErrBookmarkHasChildren = errors.New("bookmark has child resources")
 var ErrBookmarkETagChanged = errors.New("bookmark etag changed")
 

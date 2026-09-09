@@ -90,6 +90,10 @@ class AiServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def UndeleteChat(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.chat_pb2.UndeleteChatRequest, malonaz.ai.v1.chat_pb2.Chat]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ListChats(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.chat_pb2.ListChatsRequest, malonaz.ai.ai_service.v1.chat_pb2.ListChatsResponse]') -> None:
         pass
 
@@ -111,6 +115,10 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def DeleteMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UndeleteMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.UndeleteMessageRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
         pass
 
     @abc.abstractmethod
@@ -233,6 +241,12 @@ class AiServiceBase(abc.ABC):
                 malonaz.ai.ai_service.v1.chat_pb2.DeleteChatRequest,
                 malonaz.ai.v1.chat_pb2.Chat,
             ),
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteChat': grpclib.const.Handler(
+                self.UndeleteChat,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.chat_pb2.UndeleteChatRequest,
+                malonaz.ai.v1.chat_pb2.Chat,
+            ),
             '/malonaz.ai.ai_service.v1.AiService/ListChats': grpclib.const.Handler(
                 self.ListChats,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -267,6 +281,12 @@ class AiServiceBase(abc.ABC):
                 self.DeleteMessage,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest,
+                malonaz.ai.v1.message_pb2.Message,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteMessage': grpclib.const.Handler(
+                self.UndeleteMessage,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.message_pb2.UndeleteMessageRequest,
                 malonaz.ai.v1.message_pb2.Message,
             ),
             '/malonaz.ai.ai_service.v1.AiService/ListMessages': grpclib.const.Handler(
@@ -407,6 +427,12 @@ class AiServiceStub:
             malonaz.ai.ai_service.v1.chat_pb2.DeleteChatRequest,
             malonaz.ai.v1.chat_pb2.Chat,
         )
+        self.UndeleteChat = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteChat',
+            malonaz.ai.ai_service.v1.chat_pb2.UndeleteChatRequest,
+            malonaz.ai.v1.chat_pb2.Chat,
+        )
         self.ListChats = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.ai.ai_service.v1.AiService/ListChats',
@@ -441,6 +467,12 @@ class AiServiceStub:
             channel,
             '/malonaz.ai.ai_service.v1.AiService/DeleteMessage',
             malonaz.ai.ai_service.v1.message_pb2.DeleteMessageRequest,
+            malonaz.ai.v1.message_pb2.Message,
+        )
+        self.UndeleteMessage = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteMessage',
+            malonaz.ai.ai_service.v1.message_pb2.UndeleteMessageRequest,
             malonaz.ai.v1.message_pb2.Message,
         )
         self.ListMessages = grpclib.client.UnaryUnaryMethod(

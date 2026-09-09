@@ -52,6 +52,10 @@ message Shelf {
         "correlation_id_2"
       ]
     }
+    undeleted: {
+      subject: "undeleted"
+      subject_fields: ["genre"]
+    }
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
 

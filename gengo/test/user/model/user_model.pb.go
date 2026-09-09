@@ -18,6 +18,7 @@ import (
 var ErrUserAlreadyExists = errors.New("user already exists")
 var ErrUserNotExist = errors.New("user does not exist")
 var ErrUserAlreadyDeleted = errors.New("user already deleted")
+var ErrUserNotDeleted = errors.New("user is not deleted")
 var ErrUserHasChildren = errors.New("user has child resources")
 var ErrUserETagChanged = errors.New("user etag changed")
 

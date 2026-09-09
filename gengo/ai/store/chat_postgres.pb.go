@@ -22,13 +22,20 @@ func New(client *postgres.Client) *Store {
 	return &Store{client: client}
 }
 
+// querier is what reads go through: the pool, or the open transaction so
+// that a probe never waits on a second pool connection while holding one.
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (v5.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) v5.Row
+}
+
 var (
 	ChatPostgresColumns = postgres.GetDBColumns(model.Chat{})
 )
 
-func (s *Store) getChatETag(ctx context.Context, organizationId, userId, chatId string) (string, error) {
+func (s *Store) getChatETag(ctx context.Context, q querier, organizationId, userId, chatId string) (string, error) {
 	query := `SELECT etag FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
-	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId)
+	rows, err := q.Query(ctx, query, organizationId, userId, chatId)
 	if err != nil {
 		return "", err
 	}
@@ -155,7 +162,7 @@ func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause 
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getChatETag(ctx, _chat.OrganizationID, _chat.UserID, _chat.ChatID)
+				currentEtag, getEtagErr := s.getChatETag(ctx, s.client, _chat.OrganizationID, _chat.UserID, _chat.ChatID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -201,7 +208,7 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 		if err != nil {
 			if err == v5.ErrNoRows {
 				if etag != "" {
-					currentEtag, getEtagErr := s.getChatETag(ctx, organizationId, userId, chatId)
+					currentEtag, getEtagErr := s.getChatETag(ctx, tx, organizationId, userId, chatId)
 					switch getEtagErr {
 					case nil:
 						if currentEtag == etag {
@@ -243,6 +250,50 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 		return nil, err
 	}
 	return result, nil
+}
+
+func (s *Store) undeleteChatNoRows(ctx context.Context, q querier, organizationId, userId, chatId string, etag string) error {
+	query := `SELECT delete_time IS NULL, etag FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
+	params := []any{organizationId, userId, chatId}
+	var live bool
+	var currentEtag string
+	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
+		if err == v5.ErrNoRows {
+			return model.ErrChatNotExist
+		}
+		return fmt.Errorf("probing chat: %w", err)
+	}
+	if live {
+		return model.ErrChatNotDeleted
+	}
+	if etag != "" && currentEtag != etag {
+		return model.ErrChatETagChanged
+	}
+	return fmt.Errorf("undelete matched no rows but chat is deleted")
+}
+
+var undeleteChatPostgresQuery = `UPDATE chat SET delete_time = NULL, etag = $4 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND delete_time IS NOT NULL RETURNING ` +
+	postgres.SelectQuery("%s", ChatPostgresColumns)
+
+func (s *Store) UndeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string) (*model.Chat, error) {
+	query := undeleteChatPostgresQuery
+	params := []any{organizationId, userId, chatId, newEtag}
+	if etag != "" {
+		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
+		params = append(params, etag)
+	}
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("undeleting chat: %w", err)
+	}
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			return nil, s.undeleteChatNoRows(ctx, s.client, organizationId, userId, chatId, etag)
+		}
+		return nil, err
+	}
+	return row, nil
 }
 
 func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error) {

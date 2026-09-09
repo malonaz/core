@@ -8,6 +8,7 @@ go_library(
         "list.go",
         "postgres.go",
         "search.go",
+        "undelete.go",
         "update.go",
     ],
     visibility = ["//..."],

@@ -211,6 +211,18 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
+  // Undelete a chat.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteChat(UndeleteChatRequest) returns (ai.v1.Chat) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/chats/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
   // List chats for a user.
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
@@ -280,6 +292,20 @@ service AiService {
   // See: https://google.aip.dev/164 (Soft delete).
   rpc DeleteMessage(DeleteMessageRequest) returns (ai.v1.Message) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/chats/*/messages/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Undelete a message.
+  //
+  // Restored messages rejoin the conversation history sent to ai providers.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteMessage(UndeleteMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/chats/*/messages/*}:undelete"
+      body: "*"
+    };
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }

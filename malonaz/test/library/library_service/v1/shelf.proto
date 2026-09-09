@@ -102,6 +102,17 @@ message DeleteShelfRequest {
   bool force = 3;
 }
 
+// Request message for LibraryService.UndeleteShelf.
+message UndeleteShelfRequest {
+  // The resource name of the deleted shelf to restore.
+  // Format: organizations/{organization}/shelves/{shelf}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Shelf"
+  ];
+}
+
 // Request message for LibraryService.ListShelves.
 message ListShelvesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

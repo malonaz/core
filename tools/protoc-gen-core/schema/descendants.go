@@ -24,6 +24,10 @@ type Descendant struct {
 	// unless it is forced (AIP-135). Singletons share their parent's
 	// lifecycle and never gate, nor do resources beneath a gating one.
 	Gating bool
+	// Lifecycle is true for singletons reached from the ancestor through
+	// singletons only: they have no Delete of their own, so their tombstone is
+	// always the ancestor's and undeleting the ancestor restores them.
+	Lifecycle bool
 	// SoftDelete is true when a cascade from the ancestor tombstones the
 	// descendant instead of removing its rows: the ancestor and every
 	// resource on the path down must be soft-deletable, or the rows would
@@ -63,22 +67,24 @@ func AnyGating(descendants []Descendant) bool {
 	return false
 }
 
-func collectDescendants(parentPattern *resource.ParsedPattern, parentSoft, gating bool, out *[]Descendant) error {
+// viaSingletons is true while the walk from the ancestor has only crossed
+// singleton patterns.
+func collectDescendants(parentPattern *resource.ParsedPattern, parentSoft, viaSingletons bool, out *[]Descendant) error {
 	for _, child := range parentPattern.Resource.Children {
 		for _, pattern := range child.Patterns {
 			if pattern.Parent == nil || pattern.Parent.Value != parentPattern.Value {
 				continue
 			}
-			descendant, err := resolveDescendant(child, pattern, parentSoft, gating)
+			descendant, err := resolveDescendant(child, pattern, parentSoft, viaSingletons)
 			if err != nil {
 				return err
 			}
-			childSoft, childGating := parentSoft, gating
+			childSoft, childViaSingletons := parentSoft, viaSingletons
 			if descendant != nil {
 				childSoft = descendant.SoftDelete
-				childGating = pattern.Singleton && gating
+				childViaSingletons = descendant.Lifecycle
 			}
-			if err := collectDescendants(pattern, childSoft, childGating, out); err != nil {
+			if err := collectDescendants(pattern, childSoft, childViaSingletons, out); err != nil {
 				return err
 			}
 			if descendant != nil {
@@ -90,7 +96,7 @@ func collectDescendants(parentPattern *resource.ParsedPattern, parentSoft, gatin
 }
 
 // resolveDescendant returns nil for silent resources.
-func resolveDescendant(child *resource.ParsedResource, pattern *resource.ParsedPattern, parentSoft, gating bool) (*Descendant, error) {
+func resolveDescendant(child *resource.ParsedResource, pattern *resource.ParsedPattern, parentSoft, viaSingletons bool) (*Descendant, error) {
 	message, err := resource.GetMessageByResourceType(child.Desc.Type)
 	if err != nil {
 		return nil, nil
@@ -107,7 +113,8 @@ func resolveDescendant(child *resource.ParsedResource, pattern *resource.ParsedP
 		Pattern:       pattern,
 		Message:       message,
 		ModelOpts:     modelOpts,
-		Gating:        gating && !pattern.Singleton,
+		Gating:        viaSingletons && !pattern.Singleton,
+		Lifecycle:     viaSingletons && pattern.Singleton,
 		SoftDelete:    parentSoft && hasDeleteTime(message),
 		HasDeleteTime: hasDeleteTime(message),
 	}, nil

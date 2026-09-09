@@ -21,11 +21,18 @@ func New(client *postgres.Client) *Store {
 	return &Store{client: client}
 }
 
+// querier is what reads go through: the pool, or the open transaction so
+// that a probe never waits on a second pool connection while holding one.
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (v5.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) v5.Row
+}
+
 var (
 	JobPostgresColumns = postgres.GetDBColumns(model.Job{})
 )
 
-func (s *Store) getJobETag(ctx context.Context, organizationId, userId, jobId string) (string, error) {
+func (s *Store) getJobETag(ctx context.Context, q querier, organizationId, userId, jobId string) (string, error) {
 	conditions := make([]string, 0, 3)
 	params := make([]any, 0, 3)
 	if organizationId != "" {
@@ -43,7 +50,7 @@ func (s *Store) getJobETag(ctx context.Context, organizationId, userId, jobId st
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
 	query := fmt.Sprintf("SELECT etag FROM job WHERE %s", strings.Join(conditions, " AND "))
-	rows, err := s.client.Query(ctx, query, params...)
+	rows, err := q.Query(ctx, query, params...)
 	if err != nil {
 		return "", err
 	}
@@ -187,7 +194,7 @@ func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause str
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, organizationId, userId, jobId)
+				currentEtag, getEtagErr := s.getJobETag(ctx, s.client, organizationId, userId, jobId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -237,7 +244,7 @@ func (s *Store) DeleteJob(ctx context.Context, organizationId, userId, jobId str
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getJobETag(ctx, organizationId, userId, jobId)
+				currentEtag, getEtagErr := s.getJobETag(ctx, s.client, organizationId, userId, jobId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

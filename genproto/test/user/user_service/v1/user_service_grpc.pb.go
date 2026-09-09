@@ -24,12 +24,14 @@ const (
 	UserService_GetOrganization_FullMethodName       = "/malonaz.test.user.user_service.v1.UserService/GetOrganization"
 	UserService_UpdateOrganization_FullMethodName    = "/malonaz.test.user.user_service.v1.UserService/UpdateOrganization"
 	UserService_DeleteOrganization_FullMethodName    = "/malonaz.test.user.user_service.v1.UserService/DeleteOrganization"
+	UserService_UndeleteOrganization_FullMethodName  = "/malonaz.test.user.user_service.v1.UserService/UndeleteOrganization"
 	UserService_ListOrganizations_FullMethodName     = "/malonaz.test.user.user_service.v1.UserService/ListOrganizations"
 	UserService_BatchGetOrganizations_FullMethodName = "/malonaz.test.user.user_service.v1.UserService/BatchGetOrganizations"
 	UserService_CreateUser_FullMethodName            = "/malonaz.test.user.user_service.v1.UserService/CreateUser"
 	UserService_GetUser_FullMethodName               = "/malonaz.test.user.user_service.v1.UserService/GetUser"
 	UserService_UpdateUser_FullMethodName            = "/malonaz.test.user.user_service.v1.UserService/UpdateUser"
 	UserService_DeleteUser_FullMethodName            = "/malonaz.test.user.user_service.v1.UserService/DeleteUser"
+	UserService_UndeleteUser_FullMethodName          = "/malonaz.test.user.user_service.v1.UserService/UndeleteUser"
 	UserService_ListUsers_FullMethodName             = "/malonaz.test.user.user_service.v1.UserService/ListUsers"
 	UserService_BatchGetUsers_FullMethodName         = "/malonaz.test.user.user_service.v1.UserService/BatchGetUsers"
 	UserService_GetUserProfile_FullMethodName        = "/malonaz.test.user.user_service.v1.UserService/GetUserProfile"
@@ -52,6 +54,10 @@ type UserServiceClient interface {
 	UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*v1.Organization, error)
 	// Deletes an organization.
 	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*v1.Organization, error)
+	// Undeletes a organization.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteOrganization(ctx context.Context, in *UndeleteOrganizationRequest, opts ...grpc.CallOption) (*v1.Organization, error)
 	// Lists organizations.
 	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
 	// Gets multiple organizations in a single request.
@@ -66,6 +72,10 @@ type UserServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*v1.User, error)
 	// Deletes a user.
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*v1.User, error)
+	// Undeletes a user.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteUser(ctx context.Context, in *UndeleteUserRequest, opts ...grpc.CallOption) (*v1.User, error)
 	// Lists users.
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	// Gets multiple users in a single request.
@@ -130,6 +140,16 @@ func (c *userServiceClient) DeleteOrganization(ctx context.Context, in *DeleteOr
 	return out, nil
 }
 
+func (c *userServiceClient) UndeleteOrganization(ctx context.Context, in *UndeleteOrganizationRequest, opts ...grpc.CallOption) (*v1.Organization, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Organization)
+	err := c.cc.Invoke(ctx, UserService_UndeleteOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOrganizationsResponse)
@@ -184,6 +204,16 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.User)
 	err := c.cc.Invoke(ctx, UserService_DeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UndeleteUser(ctx context.Context, in *UndeleteUserRequest, opts ...grpc.CallOption) (*v1.User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.User)
+	err := c.cc.Invoke(ctx, UserService_UndeleteUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -264,6 +294,10 @@ type UserServiceServer interface {
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*v1.Organization, error)
 	// Deletes an organization.
 	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*v1.Organization, error)
+	// Undeletes a organization.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteOrganization(context.Context, *UndeleteOrganizationRequest) (*v1.Organization, error)
 	// Lists organizations.
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
 	// Gets multiple organizations in a single request.
@@ -278,6 +312,10 @@ type UserServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*v1.User, error)
 	// Deletes a user.
 	DeleteUser(context.Context, *DeleteUserRequest) (*v1.User, error)
+	// Undeletes a user.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteUser(context.Context, *UndeleteUserRequest) (*v1.User, error)
 	// Lists users.
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	// Gets multiple users in a single request.
@@ -313,6 +351,9 @@ func (UnimplementedUserServiceServer) UpdateOrganization(context.Context, *Updat
 func (UnimplementedUserServiceServer) DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*v1.Organization, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteOrganization not implemented")
 }
+func (UnimplementedUserServiceServer) UndeleteOrganization(context.Context, *UndeleteOrganizationRequest) (*v1.Organization, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteOrganization not implemented")
+}
 func (UnimplementedUserServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOrganizations not implemented")
 }
@@ -330,6 +371,9 @@ func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserReq
 }
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*v1.User, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserServiceServer) UndeleteUser(context.Context, *UndeleteUserRequest) (*v1.User, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteUser not implemented")
 }
 func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
@@ -441,6 +485,24 @@ func _UserService_DeleteOrganization_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UndeleteOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UndeleteOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UndeleteOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UndeleteOrganization(ctx, req.(*UndeleteOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_ListOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationsRequest)
 	if err := dec(in); err != nil {
@@ -545,6 +607,24 @@ func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UndeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UndeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UndeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UndeleteUser(ctx, req.(*UndeleteUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -681,6 +761,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_DeleteOrganization_Handler,
 		},
 		{
+			MethodName: "UndeleteOrganization",
+			Handler:    _UserService_UndeleteOrganization_Handler,
+		},
+		{
 			MethodName: "ListOrganizations",
 			Handler:    _UserService_ListOrganizations_Handler,
 		},
@@ -703,6 +787,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _UserService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "UndeleteUser",
+			Handler:    _UserService_UndeleteUser_Handler,
 		},
 		{
 			MethodName: "ListUsers",

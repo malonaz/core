@@ -405,6 +405,81 @@ func (b0 DeleteBookmarkRequest_builder) Build() *DeleteBookmarkRequest {
 	return m0
 }
 
+// Request message for BookmarkService.UndeleteBookmark.
+type UndeleteBookmarkRequest struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Etag string                 `protobuf:"bytes,2,opt,name=etag,proto3"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UndeleteBookmarkRequest) Reset() {
+	*x = UndeleteBookmarkRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UndeleteBookmarkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UndeleteBookmarkRequest) ProtoMessage() {}
+
+func (x *UndeleteBookmarkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UndeleteBookmarkRequest) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *UndeleteBookmarkRequest) GetEtag() string {
+	if x != nil {
+		return x.xxx_hidden_Etag
+	}
+	return ""
+}
+
+func (x *UndeleteBookmarkRequest) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *UndeleteBookmarkRequest) SetEtag(v string) {
+	x.xxx_hidden_Etag = v
+}
+
+type UndeleteBookmarkRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the deleted bookmark to restore.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+	Name string
+	// If set, the request will only succeed if the current etag matches this value.
+	Etag string
+}
+
+func (b0 UndeleteBookmarkRequest_builder) Build() *UndeleteBookmarkRequest {
+	m0 := &UndeleteBookmarkRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Etag = b.Etag
+	return m0
+}
+
 // Request message for BookmarkService.ListBookmarks.
 type ListBookmarksRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
@@ -420,7 +495,7 @@ type ListBookmarksRequest struct {
 
 func (x *ListBookmarksRequest) Reset() {
 	*x = ListBookmarksRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -432,7 +507,7 @@ func (x *ListBookmarksRequest) String() string {
 func (*ListBookmarksRequest) ProtoMessage() {}
 
 func (x *ListBookmarksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[4]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +626,7 @@ type ListBookmarksResponse struct {
 
 func (x *ListBookmarksResponse) Reset() {
 	*x = ListBookmarksResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +638,7 @@ func (x *ListBookmarksResponse) String() string {
 func (*ListBookmarksResponse) ProtoMessage() {}
 
 func (x *ListBookmarksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[5]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +702,7 @@ type BatchGetBookmarksRequest struct {
 
 func (x *BatchGetBookmarksRequest) Reset() {
 	*x = BatchGetBookmarksRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +714,7 @@ func (x *BatchGetBookmarksRequest) String() string {
 func (*BatchGetBookmarksRequest) ProtoMessage() {}
 
 func (x *BatchGetBookmarksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -703,7 +778,7 @@ type BatchGetBookmarksResponse struct {
 
 func (x *BatchGetBookmarksResponse) Reset() {
 	*x = BatchGetBookmarksResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -715,7 +790,7 @@ func (x *BatchGetBookmarksResponse) String() string {
 func (*BatchGetBookmarksResponse) ProtoMessage() {}
 
 func (x *BatchGetBookmarksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +859,11 @@ const file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
 	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xd3\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"r\n" +
+	"\x17UndeleteBookmarkRequest\x12C\n" +
+	"\x04name\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
+	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xd3\x02\n" +
 	"\x14ListBookmarksRequest\x12C\n" +
 	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -811,30 +890,31 @@ const file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc = "" +
 	"\x19BatchGetBookmarksResponse\x12?\n" +
 	"\tbookmarks\x18\x01 \x03(\v2!.malonaz.test.library.v1.BookmarkR\tbookmarksBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_test_library_library_service_v1_bookmark_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_malonaz_test_library_library_service_v1_bookmark_proto_goTypes = []any{
 	(*CreateBookmarkRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateBookmarkRequest
 	(*GetBookmarkRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetBookmarkRequest
 	(*UpdateBookmarkRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateBookmarkRequest
 	(*DeleteBookmarkRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteBookmarkRequest
-	(*ListBookmarksRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListBookmarksRequest
-	(*ListBookmarksResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListBookmarksResponse
-	(*BatchGetBookmarksRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
-	(*BatchGetBookmarksResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
-	(*v1.Bookmark)(nil),               // 8: malonaz.test.library.v1.Bookmark
-	(*fieldmaskpb.FieldMask)(nil),     // 9: google.protobuf.FieldMask
+	(*UndeleteBookmarkRequest)(nil),   // 4: malonaz.test.library.library_service.v1.UndeleteBookmarkRequest
+	(*ListBookmarksRequest)(nil),      // 5: malonaz.test.library.library_service.v1.ListBookmarksRequest
+	(*ListBookmarksResponse)(nil),     // 6: malonaz.test.library.library_service.v1.ListBookmarksResponse
+	(*BatchGetBookmarksRequest)(nil),  // 7: malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
+	(*BatchGetBookmarksResponse)(nil), // 8: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
+	(*v1.Bookmark)(nil),               // 9: malonaz.test.library.v1.Bookmark
+	(*fieldmaskpb.FieldMask)(nil),     // 10: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_bookmark_proto_depIdxs = []int32{
-	8, // 0: malonaz.test.library.library_service.v1.CreateBookmarkRequest.bookmark:type_name -> malonaz.test.library.v1.Bookmark
-	8, // 1: malonaz.test.library.library_service.v1.UpdateBookmarkRequest.bookmark:type_name -> malonaz.test.library.v1.Bookmark
-	9, // 2: malonaz.test.library.library_service.v1.UpdateBookmarkRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.test.library.library_service.v1.ListBookmarksResponse.bookmarks:type_name -> malonaz.test.library.v1.Bookmark
-	8, // 4: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse.bookmarks:type_name -> malonaz.test.library.v1.Bookmark
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	9,  // 0: malonaz.test.library.library_service.v1.CreateBookmarkRequest.bookmark:type_name -> malonaz.test.library.v1.Bookmark
+	9,  // 1: malonaz.test.library.library_service.v1.UpdateBookmarkRequest.bookmark:type_name -> malonaz.test.library.v1.Bookmark
+	10, // 2: malonaz.test.library.library_service.v1.UpdateBookmarkRequest.update_mask:type_name -> google.protobuf.FieldMask
+	9,  // 3: malonaz.test.library.library_service.v1.ListBookmarksResponse.bookmarks:type_name -> malonaz.test.library.v1.Bookmark
+	9,  // 4: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse.bookmarks:type_name -> malonaz.test.library.v1.Bookmark
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_bookmark_proto_init() }
@@ -848,7 +928,7 @@ func file_malonaz_test_library_library_service_v1_bookmark_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

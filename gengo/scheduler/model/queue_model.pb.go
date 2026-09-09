@@ -15,6 +15,7 @@ import (
 var ErrQueueAlreadyExists = errors.New("queue already exists")
 var ErrQueueNotExist = errors.New("queue does not exist")
 var ErrQueueAlreadyDeleted = errors.New("queue already deleted")
+var ErrQueueNotDeleted = errors.New("queue is not deleted")
 var ErrQueueHasChildren = errors.New("queue has child resources")
 var ErrQueueETagChanged = errors.New("queue etag changed")
 

@@ -29,7 +29,7 @@ var File_malonaz_test_library_library_service_v1_bookmark_service_proto protoref
 
 const file_malonaz_test_library_library_service_v1_bookmark_service_proto_rawDesc = "" +
 	"\n" +
-	">malonaz/test/library/library_service/v1/bookmark_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a6malonaz/test/library/library_service/v1/bookmark.proto\x1a&malonaz/test/library/v1/bookmark.proto2\x9b\f\n" +
+	">malonaz/test/library/library_service/v1/bookmark_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a6malonaz/test/library/library_service/v1/bookmark.proto\x1a&malonaz/test/library/v1/bookmark.proto2\x91\x0e\n" +
 	"\x0fBookmarkService\x12\xf9\x01\n" +
 	"\x0eCreateBookmark\x12>.malonaz.test.library.library_service.v1.CreateBookmarkRequest\x1a!.malonaz.test.library.v1.Bookmark\"\x83\x01\xdaA\x0fparent,bookmark´-#\n" +
 	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02D:\bbookmark\"8/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks\x12\xdd\x01\n" +
@@ -38,7 +38,9 @@ const file_malonaz_test_library_library_service_v1_bookmark_service_proto_rawDes
 	"\x0eUpdateBookmark\x12>.malonaz.test.library.library_service.v1.UpdateBookmarkRequest\x1a!.malonaz.test.library.v1.Bookmark\"\x91\x01\xdaA\x14bookmark,update_mask´-#\n" +
 	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02M:\bbookmark2A/v1/{bookmark.name=organizations/*/shelves/*/books/*/bookmarks/*}\x12\xe3\x01\n" +
 	"\x0eDeleteBookmark\x12>.malonaz.test.library.library_service.v1.DeleteBookmarkRequest\x1a!.malonaz.test.library.v1.Bookmark\"n\xdaA\x04name´-#\n" +
-	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02:*8/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}\x12\x80\x02\n" +
+	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02:*8/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}\x12\xf3\x01\n" +
+	"\x10UndeleteBookmark\x12@.malonaz.test.library.library_service.v1.UndeleteBookmarkRequest\x1a!.malonaz.test.library.v1.Bookmark\"z\xdaA\x04name´-#\n" +
+	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/{name=organizations/*/shelves/*/books/*/bookmarks/*}:undelete\x12\x80\x02\n" +
 	"\rListBookmarks\x12=.malonaz.test.library.library_service.v1.ListBookmarksRequest\x1a>.malonaz.test.library.library_service.v1.ListBookmarksResponse\"p\xdaA\x06parent´-#\n" +
 	"!library.test.malonaz.com/Bookmark\x82\xd3\xe4\x93\x02:\x128/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks\x12\x9b\x02\n" +
 	"\x11BatchGetBookmarks\x12A.malonaz.test.library.library_service.v1.BatchGetBookmarksRequest\x1aB.malonaz.test.library.library_service.v1.BatchGetBookmarksResponse\"\x7f\xdaA\fparent,names´-#\n" +
@@ -49,27 +51,30 @@ var file_malonaz_test_library_library_service_v1_bookmark_service_proto_goTypes 
 	(*GetBookmarkRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetBookmarkRequest
 	(*UpdateBookmarkRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateBookmarkRequest
 	(*DeleteBookmarkRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteBookmarkRequest
-	(*ListBookmarksRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListBookmarksRequest
-	(*BatchGetBookmarksRequest)(nil),  // 5: malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
-	(*v1.Bookmark)(nil),               // 6: malonaz.test.library.v1.Bookmark
-	(*ListBookmarksResponse)(nil),     // 7: malonaz.test.library.library_service.v1.ListBookmarksResponse
-	(*BatchGetBookmarksResponse)(nil), // 8: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
+	(*UndeleteBookmarkRequest)(nil),   // 4: malonaz.test.library.library_service.v1.UndeleteBookmarkRequest
+	(*ListBookmarksRequest)(nil),      // 5: malonaz.test.library.library_service.v1.ListBookmarksRequest
+	(*BatchGetBookmarksRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
+	(*v1.Bookmark)(nil),               // 7: malonaz.test.library.v1.Bookmark
+	(*ListBookmarksResponse)(nil),     // 8: malonaz.test.library.library_service.v1.ListBookmarksResponse
+	(*BatchGetBookmarksResponse)(nil), // 9: malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
 }
 var file_malonaz_test_library_library_service_v1_bookmark_service_proto_depIdxs = []int32{
 	0, // 0: malonaz.test.library.library_service.v1.BookmarkService.CreateBookmark:input_type -> malonaz.test.library.library_service.v1.CreateBookmarkRequest
 	1, // 1: malonaz.test.library.library_service.v1.BookmarkService.GetBookmark:input_type -> malonaz.test.library.library_service.v1.GetBookmarkRequest
 	2, // 2: malonaz.test.library.library_service.v1.BookmarkService.UpdateBookmark:input_type -> malonaz.test.library.library_service.v1.UpdateBookmarkRequest
 	3, // 3: malonaz.test.library.library_service.v1.BookmarkService.DeleteBookmark:input_type -> malonaz.test.library.library_service.v1.DeleteBookmarkRequest
-	4, // 4: malonaz.test.library.library_service.v1.BookmarkService.ListBookmarks:input_type -> malonaz.test.library.library_service.v1.ListBookmarksRequest
-	5, // 5: malonaz.test.library.library_service.v1.BookmarkService.BatchGetBookmarks:input_type -> malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
-	6, // 6: malonaz.test.library.library_service.v1.BookmarkService.CreateBookmark:output_type -> malonaz.test.library.v1.Bookmark
-	6, // 7: malonaz.test.library.library_service.v1.BookmarkService.GetBookmark:output_type -> malonaz.test.library.v1.Bookmark
-	6, // 8: malonaz.test.library.library_service.v1.BookmarkService.UpdateBookmark:output_type -> malonaz.test.library.v1.Bookmark
-	6, // 9: malonaz.test.library.library_service.v1.BookmarkService.DeleteBookmark:output_type -> malonaz.test.library.v1.Bookmark
-	7, // 10: malonaz.test.library.library_service.v1.BookmarkService.ListBookmarks:output_type -> malonaz.test.library.library_service.v1.ListBookmarksResponse
-	8, // 11: malonaz.test.library.library_service.v1.BookmarkService.BatchGetBookmarks:output_type -> malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
-	6, // [6:12] is the sub-list for method output_type
-	0, // [0:6] is the sub-list for method input_type
+	4, // 4: malonaz.test.library.library_service.v1.BookmarkService.UndeleteBookmark:input_type -> malonaz.test.library.library_service.v1.UndeleteBookmarkRequest
+	5, // 5: malonaz.test.library.library_service.v1.BookmarkService.ListBookmarks:input_type -> malonaz.test.library.library_service.v1.ListBookmarksRequest
+	6, // 6: malonaz.test.library.library_service.v1.BookmarkService.BatchGetBookmarks:input_type -> malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
+	7, // 7: malonaz.test.library.library_service.v1.BookmarkService.CreateBookmark:output_type -> malonaz.test.library.v1.Bookmark
+	7, // 8: malonaz.test.library.library_service.v1.BookmarkService.GetBookmark:output_type -> malonaz.test.library.v1.Bookmark
+	7, // 9: malonaz.test.library.library_service.v1.BookmarkService.UpdateBookmark:output_type -> malonaz.test.library.v1.Bookmark
+	7, // 10: malonaz.test.library.library_service.v1.BookmarkService.DeleteBookmark:output_type -> malonaz.test.library.v1.Bookmark
+	7, // 11: malonaz.test.library.library_service.v1.BookmarkService.UndeleteBookmark:output_type -> malonaz.test.library.v1.Bookmark
+	8, // 12: malonaz.test.library.library_service.v1.BookmarkService.ListBookmarks:output_type -> malonaz.test.library.library_service.v1.ListBookmarksResponse
+	9, // 13: malonaz.test.library.library_service.v1.BookmarkService.BatchGetBookmarks:output_type -> malonaz.test.library.library_service.v1.BatchGetBookmarksResponse
+	7, // [7:14] is the sub-list for method output_type
+	0, // [0:7] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

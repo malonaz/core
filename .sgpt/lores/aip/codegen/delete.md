@@ -29,7 +29,8 @@ A resource's **descendants** are every persisted resource beneath it in the
 same proto package, walked deepest-first. Two flags decide their fate:
 
 - **Gating** — a collection resource reached from the parent through
-  singletons only. Its live rows (`delete_time IS NULL` if it has the
+  singletons only (its singleton counterpart is **Lifecycle**: a singleton
+  reached through singletons only, restored by `Undelete`). Its live rows (`delete_time IS NULL` if it has the
   column, any row otherwise) block the delete with `FailedPrecondition`
   unless `force` is set. Singletons never gate (they share the parent's
   lifecycle); nothing beneath a gating resource gates either.
@@ -55,6 +56,8 @@ Codegen consequences, all in one transaction:
   idempotent and never depends on `ON DELETE CASCADE`.
 - Cascaded rows keep their `etag`; only `delete_time` is stamped.
 - Cascaded descendants publish **no** NATS events and run no hooks.
+- `Undelete` reverses only the singleton part of the cascade; forced-away
+  collection children stay tombstoned (see `lores/aip/codegen/undelete`).
 
 Multi-pattern resources cannot have descendants (codegen error).
 

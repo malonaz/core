@@ -21,9 +21,9 @@ var authorProfileJoinSubqueryExpr = `,(SELECT author.display_name FROM library.a
 var authorProfileJoinSelectExprs = `,author.display_name AS author_display_name,author.email_address AS author_email_address`
 var authorProfileJoinClause = `INNER JOIN library.author AS author ON author.organization_id = author_profile.organization_id AND author.author_id = author_profile.author_id`
 
-func (s *Store) getAuthorProfileETag(ctx context.Context, organizationId, authorId string) (string, error) {
+func (s *Store) getAuthorProfileETag(ctx context.Context, q querier, organizationId, authorId string) (string, error) {
 	query := `SELECT etag FROM library.author_profile WHERE organization_id = $1 AND author_id = $2`
-	rows, err := s.client.Query(ctx, query, organizationId, authorId)
+	rows, err := q.Query(ctx, query, organizationId, authorId)
 	if err != nil {
 		return "", err
 	}
@@ -152,7 +152,7 @@ func (s *Store) UpdateAuthorProfile(ctx context.Context, _authorProfile *model.A
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, _authorProfile.OrganizationID, _authorProfile.AuthorID)
+				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, s.client, _authorProfile.OrganizationID, _authorProfile.AuthorID)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {
@@ -195,7 +195,7 @@ func (s *Store) SoftDeleteAuthorProfile(ctx context.Context, organizationId, aut
 	if err != nil {
 		if err == v5.ErrNoRows {
 			if etag != "" {
-				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, organizationId, authorId)
+				currentEtag, getEtagErr := s.getAuthorProfileETag(ctx, s.client, organizationId, authorId)
 				switch getEtagErr {
 				case nil:
 					if currentEtag == etag {

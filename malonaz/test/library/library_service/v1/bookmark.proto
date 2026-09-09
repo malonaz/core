@@ -96,6 +96,20 @@ message DeleteBookmarkRequest {
   string etag = 3;
 }
 
+// Request message for BookmarkService.UndeleteBookmark.
+message UndeleteBookmarkRequest {
+  // The resource name of the deleted bookmark to restore.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Bookmark"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
 // Request message for BookmarkService.ListBookmarks.
 message ListBookmarksRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};

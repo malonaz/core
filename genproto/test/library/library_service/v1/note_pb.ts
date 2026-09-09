@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/note.proto.
  */
 export const file_malonaz_test_library_library_service_v1_note: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKuAQoXQmF0Y2hDcmVhdGVOb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEl8KCHJlcXVlc3RzGAIgAygLMjoubWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxLkNyZWF0ZU5vdGVSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBASJIChhCYXRjaENyZWF0ZU5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlIpABChRCYXRjaEdldE5vdGVzUmVxdWVzdBIyCgZwYXJlbnQYASABKAlCIvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGUSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Tm90ZXNSZXNwb25zZRIsCgVub3RlcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvbm90ZS5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvUBChFDcmVhdGVOb3RlUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESNgoHbm90ZV9pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIzCgRub3RlGAMgASgLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuTm90ZUIGukgDyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBEhUKDXZhbGlkYXRlX29ubHkYBSABKAgiSwoOR2V0Tm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBASLsAQoRVXBkYXRlTm90ZVJlcXVlc3QSMwoEbm90ZRgBIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhCGkAKEm5vdGUubmFtZV9yZXF1aXJlZBIVbm90ZS5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ub3RlLm5hbWUp6pzBAx8KDGRpc3BsYXlfbmFtZQoHY29udGVudAoGbGFiZWxzInMKEURlbGV0ZU5vdGVSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJIl4KE1VuZGVsZXRlTm90ZVJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIMCgRldGFnGAIgASgJIocCChBMaXN0Tm90ZXNSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfEh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vTm90ZbpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOkuC8y0CCGSK8y06CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKDGRpc3BsYXlfbmFtZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWgoRTGlzdE5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKuAQoXQmF0Y2hDcmVhdGVOb3Rlc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8SHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Ob3RlEl8KCHJlcXVlc3RzGAIgAygLMjoubWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxLkNyZWF0ZU5vdGVSZXF1ZXN0QhHgQQK6SAuSAQUIARDoB8gBASJIChhCYXRjaENyZWF0ZU5vdGVzUmVzcG9uc2USLAoFbm90ZXMYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Ob3RlIpABChRCYXRjaEdldE5vdGVzUmVxdWVzdBIyCgZwYXJlbnQYASABKAlCIvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGUSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL05vdGW6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Tm90ZXNSZXNwb25zZRIsCgVub3RlcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLk5vdGVCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_note]);
 
 /**
  * Request message for LibraryService.CreateNote.
@@ -273,6 +273,61 @@ export const DeleteNoteRequestSchema: GenMessage<DeleteNoteRequest, {validType: 
   messageDesc(file_malonaz_test_library_library_service_v1_note, 3);
 
 /**
+ * Request message for LibraryService.UndeleteNote.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteNoteRequest
+ */
+export type UndeleteNoteRequest = Message<"malonaz.test.library.library_service.v1.UndeleteNoteRequest"> & {
+  /**
+   * The resource name of the deleted note to restore.
+   * Format: organizations/{organization}/notes/{note}
+   *         organizations/{organization}/authors/{author}/notes/{note}
+   *         organizations/{organization}/shelves/{shelf}/notes/{note}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Request message for LibraryService.UndeleteNote.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.UndeleteNoteRequest
+ */
+export type UndeleteNoteRequestValid = Message<"malonaz.test.library.library_service.v1.UndeleteNoteRequest"> & {
+  /**
+   * The resource name of the deleted note to restore.
+   * Format: organizations/{organization}/notes/{note}
+   *         organizations/{organization}/authors/{author}/notes/{note}
+   *         organizations/{organization}/shelves/{shelf}/notes/{note}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * If set, the request will only succeed if the current etag matches this value.
+   *
+   * @generated from field: string etag = 2;
+   */
+  etag: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.UndeleteNoteRequest.
+ * Use `create(UndeleteNoteRequestSchema)` to create a new message.
+ */
+export const UndeleteNoteRequestSchema: GenMessage<UndeleteNoteRequest, {validType: UndeleteNoteRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 4);
+
+/**
  * Request message for LibraryService.ListNotes.
  *
  * @generated from message malonaz.test.library.library_service.v1.ListNotesRequest
@@ -379,7 +434,7 @@ export type ListNotesRequestValid = Message<"malonaz.test.library.library_servic
  * Use `create(ListNotesRequestSchema)` to create a new message.
  */
 export const ListNotesRequestSchema: GenMessage<ListNotesRequest, {validType: ListNotesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 4);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 5);
 
 /**
  * Response message for LibraryService.ListNotes.
@@ -409,7 +464,7 @@ export type ListNotesResponseValid = ListNotesResponse;
  * Use `create(ListNotesResponseSchema)` to create a new message.
  */
 export const ListNotesResponseSchema: GenMessage<ListNotesResponse, {validType: ListNotesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 5);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 6);
 
 /**
  * Request message for LibraryService.BatchCreateNotes.
@@ -470,7 +525,7 @@ export type BatchCreateNotesRequestValid = Message<"malonaz.test.library.library
  * Use `create(BatchCreateNotesRequestSchema)` to create a new message.
  */
 export const BatchCreateNotesRequestSchema: GenMessage<BatchCreateNotesRequest, {validType: BatchCreateNotesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 6);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 7);
 
 /**
  * Response message for LibraryService.BatchCreateNotes.
@@ -493,7 +548,7 @@ export type BatchCreateNotesResponseValid = BatchCreateNotesResponse;
  * Use `create(BatchCreateNotesResponseSchema)` to create a new message.
  */
 export const BatchCreateNotesResponseSchema: GenMessage<BatchCreateNotesResponse, {validType: BatchCreateNotesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 8);
 
 /**
  * Request message for LibraryService.BatchGetNotes.
@@ -528,7 +583,7 @@ export type BatchGetNotesRequestValid = BatchGetNotesRequest;
  * Use `create(BatchGetNotesRequestSchema)` to create a new message.
  */
 export const BatchGetNotesRequestSchema: GenMessage<BatchGetNotesRequest, {validType: BatchGetNotesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 8);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 9);
 
 /**
  * Response message for LibraryService.BatchGetNotes.
@@ -551,5 +606,5 @@ export type BatchGetNotesResponseValid = BatchGetNotesResponse;
  * Use `create(BatchGetNotesResponseSchema)` to create a new message.
  */
 export const BatchGetNotesResponseSchema: GenMessage<BatchGetNotesResponse, {validType: BatchGetNotesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_note, 9);
+  messageDesc(file_malonaz_test_library_library_service_v1_note, 10);
 

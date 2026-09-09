@@ -64,6 +64,7 @@ type userService_OrganizationStore interface {
 	BatchInsertOrganizations(ctx context.Context, requestIDs []string, organizations []*model.Organization) ([]*model.Organization, error)
 	UpdateOrganization(ctx context.Context, organization *model.Organization, updateClause string, columns []string, etag string) (*model.Organization, error)
 	SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Organization, error)
+	UndeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string) (*model.Organization, error)
 	GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error)
 	BatchGetOrganizations(ctx context.Context, organizationIds []string) ([]*model.Organization, error)
 	ListOrganizations(ctx context.Context, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Organization, error)
@@ -315,12 +316,12 @@ func (s *userService_OrganizationServer) DeleteOrganization(ctx context.Context,
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getOrganizationRequest := &v11.GetOrganizationRequest{Name: request.Name}
-	Organization, err := s.GetOrganization(ctx, getOrganizationRequest)
+	existingOrganization, err := s.GetOrganization(ctx, getOrganizationRequest)
 	if err != nil {
 		return nil, err
 	}
-	Organization.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(Organization)
+	existingOrganization.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingOrganization)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -363,6 +364,53 @@ func (s *userService_OrganizationServer) DeleteOrganization(ctx context.Context,
 	// STEP 4: Publish event.
 	if err := s.publishResourceDeletedEvent(ctx, organization); err != nil {
 		return nil, err
+	}
+
+	return organization, nil
+}
+
+func (s *userService_OrganizationServer) UndeleteOrganization(ctx context.Context, request *v11.UndeleteOrganizationRequest) (*v13.Organization, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, err := model.ParseOrganizationName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getOrganizationRequest := &v11.GetOrganizationRequest{Name: request.Name}
+	existingOrganization, err := s.GetOrganization(ctx, getOrganizationRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingOrganization.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingOrganization)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbOrganizationModel, err := s.store.UndeleteOrganization(ctx, organizationId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrOrganizationNotExist) {
+			return nil, status.Errorf(codes.NotFound, "organization does not exist").Err()
+		}
+		if errors.Is(err, model.ErrOrganizationNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "organization is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrOrganizationETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting organization").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	organization, err := dbOrganizationModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting organization from model to pb: %v", err).Err()
 	}
 
 	return organization, nil
@@ -455,6 +503,7 @@ type userService_UserStore interface {
 	BatchInsertUsers(ctx context.Context, requestIDs []string, users []*model.User, userProfiles []*model.UserProfile) ([]*model.User, error)
 	UpdateUser(ctx context.Context, user *model.User, updateClause string, columns []string, etag string) (*model.User, error)
 	SoftDeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string, deleteTime time.Time) (*model.User, error)
+	UndeleteUser(ctx context.Context, organizationId, userId string, etag, newEtag string) (*model.User, error)
 	GetUser(ctx context.Context, organizationId, userId string) (*model.User, error)
 	BatchGetUsers(ctx context.Context, organizationIds []string, userIds []string) ([]*model.User, error)
 	ListUsers(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.User, error)
@@ -731,12 +780,12 @@ func (s *userService_UserServer) DeleteUser(ctx context.Context, request *v11.De
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
 	getUserRequest := &v11.GetUserRequest{Name: request.Name}
-	User, err := s.GetUser(ctx, getUserRequest)
+	existingUser, err := s.GetUser(ctx, getUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	User.DeleteTime = timestamppb.New(deleteTime)
-	newEtag, err := aip.ComputeETag(User)
+	existingUser.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingUser)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
@@ -776,6 +825,53 @@ func (s *userService_UserServer) DeleteUser(ctx context.Context, request *v11.De
 	// STEP 4: Publish event.
 	if err := s.publishResourceDeletedEvent(ctx, user); err != nil {
 		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *userService_UserServer) UndeleteUser(ctx context.Context, request *v11.UndeleteUserRequest) (*v13.User, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, err := model.ParseUserName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getUserRequest := &v11.GetUserRequest{Name: request.Name}
+	existingUser, err := s.GetUser(ctx, getUserRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingUser.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingUser)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbUserModel, err := s.store.UndeleteUser(ctx, organizationId, userId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrUserNotExist) {
+			return nil, status.Errorf(codes.NotFound, "user does not exist").Err()
+		}
+		if errors.Is(err, model.ErrUserNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "user is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrUserETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting user").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	user, err := dbUserModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting user from model to pb: %v", err).Err()
 	}
 
 	return user, nil

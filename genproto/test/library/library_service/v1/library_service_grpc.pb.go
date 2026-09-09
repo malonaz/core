@@ -25,6 +25,7 @@ const (
 	LibraryService_GetAuthor_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/GetAuthor"
 	LibraryService_UpdateAuthor_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthor"
 	LibraryService_DeleteAuthor_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/DeleteAuthor"
+	LibraryService_UndeleteAuthor_FullMethodName         = "/malonaz.test.library.library_service.v1.LibraryService/UndeleteAuthor"
 	LibraryService_ListAuthors_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListAuthors"
 	LibraryService_BatchGetAuthors_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors"
 	LibraryService_BatchCreateAuthors_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateAuthors"
@@ -37,6 +38,7 @@ const (
 	LibraryService_GetShelf_FullMethodName               = "/malonaz.test.library.library_service.v1.LibraryService/GetShelf"
 	LibraryService_UpdateShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/UpdateShelf"
 	LibraryService_DeleteShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/DeleteShelf"
+	LibraryService_UndeleteShelf_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/UndeleteShelf"
 	LibraryService_ListShelves_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListShelves"
 	LibraryService_BatchCreateShelves_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves"
 	LibraryService_BatchGetShelves_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetShelves"
@@ -55,6 +57,7 @@ const (
 	LibraryService_GetNote_FullMethodName                = "/malonaz.test.library.library_service.v1.LibraryService/GetNote"
 	LibraryService_UpdateNote_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/UpdateNote"
 	LibraryService_DeleteNote_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/DeleteNote"
+	LibraryService_UndeleteNote_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/UndeleteNote"
 	LibraryService_ListNotes_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListNotes"
 	LibraryService_BatchCreateNotes_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes"
 	LibraryService_BatchGetNotes_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes"
@@ -74,6 +77,10 @@ type LibraryServiceClient interface {
 	UpdateAuthor(ctx context.Context, in *UpdateAuthorRequest, opts ...grpc.CallOption) (*v1.Author, error)
 	// Deletes an author.
 	DeleteAuthor(ctx context.Context, in *DeleteAuthorRequest, opts ...grpc.CallOption) (*v1.Author, error)
+	// Undeletes a author.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteAuthor(ctx context.Context, in *UndeleteAuthorRequest, opts ...grpc.CallOption) (*v1.Author, error)
 	// Lists authors.
 	ListAuthors(ctx context.Context, in *ListAuthorsRequest, opts ...grpc.CallOption) (*ListAuthorsResponse, error)
 	// Gets multiple authors in a single request.
@@ -104,6 +111,10 @@ type LibraryServiceClient interface {
 	UpdateShelf(ctx context.Context, in *UpdateShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Deletes a shelf.
 	DeleteShelf(ctx context.Context, in *DeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
+	// Undeletes a shelf.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteShelf(ctx context.Context, in *UndeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(ctx context.Context, in *ListShelvesRequest, opts ...grpc.CallOption) (*ListShelvesResponse, error)
 	// Creates multiple shelves in a single atomic request.
@@ -148,6 +159,10 @@ type LibraryServiceClient interface {
 	UpdateNote(ctx context.Context, in *UpdateNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
 	// Deletes a note.
 	DeleteNote(ctx context.Context, in *DeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
+	// Undeletes a note.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteNote(ctx context.Context, in *UndeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
 	// Lists notes.
 	ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error)
 	// Creates multiple notes in a single atomic request.
@@ -202,6 +217,16 @@ func (c *libraryServiceClient) DeleteAuthor(ctx context.Context, in *DeleteAutho
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Author)
 	err := c.cc.Invoke(ctx, LibraryService_DeleteAuthor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UndeleteAuthor(ctx context.Context, in *UndeleteAuthorRequest, opts ...grpc.CallOption) (*v1.Author, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Author)
+	err := c.cc.Invoke(ctx, LibraryService_UndeleteAuthor_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -322,6 +347,16 @@ func (c *libraryServiceClient) DeleteShelf(ctx context.Context, in *DeleteShelfR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Shelf)
 	err := c.cc.Invoke(ctx, LibraryService_DeleteShelf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UndeleteShelf(ctx context.Context, in *UndeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Shelf)
+	err := c.cc.Invoke(ctx, LibraryService_UndeleteShelf_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -508,6 +543,16 @@ func (c *libraryServiceClient) DeleteNote(ctx context.Context, in *DeleteNoteReq
 	return out, nil
 }
 
+func (c *libraryServiceClient) UndeleteNote(ctx context.Context, in *UndeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Note)
+	err := c.cc.Invoke(ctx, LibraryService_UndeleteNote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListNotesResponse)
@@ -552,6 +597,10 @@ type LibraryServiceServer interface {
 	UpdateAuthor(context.Context, *UpdateAuthorRequest) (*v1.Author, error)
 	// Deletes an author.
 	DeleteAuthor(context.Context, *DeleteAuthorRequest) (*v1.Author, error)
+	// Undeletes a author.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteAuthor(context.Context, *UndeleteAuthorRequest) (*v1.Author, error)
 	// Lists authors.
 	ListAuthors(context.Context, *ListAuthorsRequest) (*ListAuthorsResponse, error)
 	// Gets multiple authors in a single request.
@@ -582,6 +631,10 @@ type LibraryServiceServer interface {
 	UpdateShelf(context.Context, *UpdateShelfRequest) (*v1.Shelf, error)
 	// Deletes a shelf.
 	DeleteShelf(context.Context, *DeleteShelfRequest) (*v1.Shelf, error)
+	// Undeletes a shelf.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteShelf(context.Context, *UndeleteShelfRequest) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error)
 	// Creates multiple shelves in a single atomic request.
@@ -626,6 +679,10 @@ type LibraryServiceServer interface {
 	UpdateNote(context.Context, *UpdateNoteRequest) (*v1.Note, error)
 	// Deletes a note.
 	DeleteNote(context.Context, *DeleteNoteRequest) (*v1.Note, error)
+	// Undeletes a note.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteNote(context.Context, *UndeleteNoteRequest) (*v1.Note, error)
 	// Lists notes.
 	ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error)
 	// Creates multiple notes in a single atomic request.
@@ -656,6 +713,9 @@ func (UnimplementedLibraryServiceServer) UpdateAuthor(context.Context, *UpdateAu
 }
 func (UnimplementedLibraryServiceServer) DeleteAuthor(context.Context, *DeleteAuthorRequest) (*v1.Author, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAuthor not implemented")
+}
+func (UnimplementedLibraryServiceServer) UndeleteAuthor(context.Context, *UndeleteAuthorRequest) (*v1.Author, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteAuthor not implemented")
 }
 func (UnimplementedLibraryServiceServer) ListAuthors(context.Context, *ListAuthorsRequest) (*ListAuthorsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAuthors not implemented")
@@ -692,6 +752,9 @@ func (UnimplementedLibraryServiceServer) UpdateShelf(context.Context, *UpdateShe
 }
 func (UnimplementedLibraryServiceServer) DeleteShelf(context.Context, *DeleteShelfRequest) (*v1.Shelf, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteShelf not implemented")
+}
+func (UnimplementedLibraryServiceServer) UndeleteShelf(context.Context, *UndeleteShelfRequest) (*v1.Shelf, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteShelf not implemented")
 }
 func (UnimplementedLibraryServiceServer) ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListShelves not implemented")
@@ -746,6 +809,9 @@ func (UnimplementedLibraryServiceServer) UpdateNote(context.Context, *UpdateNote
 }
 func (UnimplementedLibraryServiceServer) DeleteNote(context.Context, *DeleteNoteRequest) (*v1.Note, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteNote not implemented")
+}
+func (UnimplementedLibraryServiceServer) UndeleteNote(context.Context, *UndeleteNoteRequest) (*v1.Note, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteNote not implemented")
 }
 func (UnimplementedLibraryServiceServer) ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNotes not implemented")
@@ -844,6 +910,24 @@ func _LibraryService_DeleteAuthor_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).DeleteAuthor(ctx, req.(*DeleteAuthorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UndeleteAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteAuthorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UndeleteAuthor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UndeleteAuthor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UndeleteAuthor(ctx, req.(*UndeleteAuthorRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1060,6 +1144,24 @@ func _LibraryService_DeleteShelf_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).DeleteShelf(ctx, req.(*DeleteShelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UndeleteShelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteShelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UndeleteShelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UndeleteShelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UndeleteShelf(ctx, req.(*UndeleteShelfRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1388,6 +1490,24 @@ func _LibraryService_DeleteNote_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_UndeleteNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UndeleteNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UndeleteNote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UndeleteNote(ctx, req.(*UndeleteNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_ListNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNotesRequest)
 	if err := dec(in); err != nil {
@@ -1466,6 +1586,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibraryService_DeleteAuthor_Handler,
 		},
 		{
+			MethodName: "UndeleteAuthor",
+			Handler:    _LibraryService_UndeleteAuthor_Handler,
+		},
+		{
 			MethodName: "ListAuthors",
 			Handler:    _LibraryService_ListAuthors_Handler,
 		},
@@ -1512,6 +1636,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteShelf",
 			Handler:    _LibraryService_DeleteShelf_Handler,
+		},
+		{
+			MethodName: "UndeleteShelf",
+			Handler:    _LibraryService_UndeleteShelf_Handler,
 		},
 		{
 			MethodName: "ListShelves",
@@ -1584,6 +1712,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteNote",
 			Handler:    _LibraryService_DeleteNote_Handler,
+		},
+		{
+			MethodName: "UndeleteNote",
+			Handler:    _LibraryService_UndeleteNote_Handler,
 		},
 		{
 			MethodName: "ListNotes",
