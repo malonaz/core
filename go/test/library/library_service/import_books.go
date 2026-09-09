@@ -2,8 +2,10 @@ package library_service
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -23,14 +25,18 @@ func (s *Service) RunImportBooks(ctx context.Context, request *libraryservicepb.
 	total := int32(len(request.GetTitles()))
 	books := make([]*librarypb.Book, 0, total)
 	for _, title := range request.GetTitles() {
-		if request.GetFailAfter() > 0 && int32(len(books)) == request.GetFailAfter() {
-			return nil, status.Errorf(codes.Internal, "failing after %d books as requested", request.GetFailAfter()).Err()
+		if err := wait(ctx, request.GetDelay().AsDuration()); err != nil {
+			return nil, err
 		}
-		book, err := s.importBook(ctx, request, title)
+		book, created, err := s.importBook(ctx, request, title)
 		if err != nil {
 			return nil, err
 		}
 		books = append(books, book)
+		// Only a fresh import trips the hook, so the retry finds the book and carries on.
+		if created && int32(len(books)) == request.GetFailAfter() {
+			return nil, status.Errorf(codes.Internal, "failing after %d books as requested", request.GetFailAfter()).Err()
+		}
 		metadata := &libraryservicepb.ImportBooksMetadata{Imported: int32(len(books)), Total: total}
 		if err := longrunning.ReportProgress(ctx, s.schedulerServiceClient, metadata); err != nil {
 			// The job left RUNNING (cancelled or reaped): stop. Any other failure is a lost progress update, not a lost import.
@@ -43,21 +49,40 @@ func (s *Service) RunImportBooks(ctx context.Context, request *libraryservicepb.
 	return &libraryservicepb.ImportBooksResponse{Books: books}, nil
 }
 
-// importBook creates the titled book, or returns it when an earlier attempt already did.
-func (s *Service) importBook(ctx context.Context, request *libraryservicepb.ImportBooksRequest, title string) (*librarypb.Book, error) {
+// importBook creates the titled book, or returns it when an earlier attempt
+// already did, reporting which.
+func (s *Service) importBook(ctx context.Context, request *libraryservicepb.ImportBooksRequest, title string) (*librarypb.Book, bool, error) {
 	createBookRequest := &libraryservicepb.CreateBookRequest{
 		Parent: request.GetParent(),
 		BookId: aip.NewDeterministicBase32ResourceID(importedBookNamespace, title),
-		Book:   &librarypb.Book{Title: title, Author: request.GetAuthor()},
+		// The book table stores duration and metadata in non-null columns.
+		Book: &librarypb.Book{Title: title, Author: request.GetAuthor(), Duration: durationpb.New(0), Metadata: &librarypb.BookMetadata{}},
 	}
 	book, err := s.LibraryServiceServer.CreateBook(ctx, createBookRequest)
-	if err == nil || !status.HasCode(err, codes.AlreadyExists) {
-		return book, err
+	if err == nil {
+		return book, true, nil
+	}
+	if !status.HasCode(err, codes.AlreadyExists) {
+		return nil, false, err
 	}
 	shelf := &librarypb.ShelfResourceName{}
 	if err := shelf.UnmarshalString(request.GetParent()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
+		return nil, false, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
 	}
 	getBookRequest := &libraryservicepb.GetBookRequest{Name: shelf.BookResourceName(createBookRequest.GetBookId()).String()}
-	return s.LibraryServiceServer.GetBook(ctx, getBookRequest)
+	book, err = s.LibraryServiceServer.GetBook(ctx, getBookRequest)
+	return book, false, err
+}
+
+// wait sleeps for the duration unless the call is cancelled first.
+func wait(ctx context.Context, duration time.Duration) error {
+	if duration == 0 {
+		return nil
+	}
+	select {
+	case <-ctx.Done():
+		return status.FromError(ctx.Err(), "waiting between imports").Err()
+	case <-time.After(duration):
+		return nil
+	}
 }

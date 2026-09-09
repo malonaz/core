@@ -36,5 +36,6 @@ go_library(
         "//malonaz/test/library/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
     ],
 )

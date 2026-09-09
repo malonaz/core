@@ -5,6 +5,7 @@ package malonaz.test.library.library_service.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -277,9 +278,14 @@ message ImportBooksRequest {
     (buf.validate.field).string.uuid = true
   ];
 
-  // Test hook: fail with INTERNAL once this many books have been imported.
+  // Test hook: fail with INTERNAL right after importing this many books, when
+  // this attempt created the last of them; a retry finds it and carries on.
   // 0 disables it.
   int32 fail_after = 5 [(buf.validate.field).int32.gte = 0];
+
+  // Test hook: wait this long before importing each book, so progress and
+  // cancellation can be observed.
+  google.protobuf.Duration delay = 6 [(buf.validate.field).duration.gte = {}];
 }
 
 // Response message for LibraryService.ImportBooks, the operation's response.

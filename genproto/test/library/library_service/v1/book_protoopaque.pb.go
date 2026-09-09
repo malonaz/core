@@ -16,6 +16,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -1008,6 +1009,7 @@ type ImportBooksRequest struct {
 	xxx_hidden_Titles    []string               `protobuf:"bytes,3,rep,name=titles,proto3"`
 	xxx_hidden_RequestId string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
 	xxx_hidden_FailAfter int32                  `protobuf:"varint,5,opt,name=fail_after,json=failAfter,proto3"`
+	xxx_hidden_Delay     *durationpb.Duration   `protobuf:"bytes,6,opt,name=delay,proto3"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -1072,6 +1074,13 @@ func (x *ImportBooksRequest) GetFailAfter() int32 {
 	return 0
 }
 
+func (x *ImportBooksRequest) GetDelay() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_Delay
+	}
+	return nil
+}
+
 func (x *ImportBooksRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
@@ -1092,6 +1101,21 @@ func (x *ImportBooksRequest) SetFailAfter(v int32) {
 	x.xxx_hidden_FailAfter = v
 }
 
+func (x *ImportBooksRequest) SetDelay(v *durationpb.Duration) {
+	x.xxx_hidden_Delay = v
+}
+
+func (x *ImportBooksRequest) HasDelay() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Delay != nil
+}
+
+func (x *ImportBooksRequest) ClearDelay() {
+	x.xxx_hidden_Delay = nil
+}
+
 type ImportBooksRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -1107,9 +1131,13 @@ type ImportBooksRequest_builder struct {
 	// A unique identifier for this request. Must be a UUID. Repeating a request
 	// with the same ID returns the operation it started instead of starting another.
 	RequestId string
-	// Test hook: fail with INTERNAL once this many books have been imported.
+	// Test hook: fail with INTERNAL right after importing this many books, when
+	// this attempt created the last of them; a retry finds it and carries on.
 	// 0 disables it.
 	FailAfter int32
+	// Test hook: wait this long before importing each book, so progress and
+	// cancellation can be observed.
+	Delay *durationpb.Duration
 }
 
 func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
@@ -1121,6 +1149,7 @@ func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
 	x.xxx_hidden_Titles = b.Titles
 	x.xxx_hidden_RequestId = b.RequestId
 	x.xxx_hidden_FailAfter = b.FailAfter
+	x.xxx_hidden_Delay = b.Delay
 	return m0
 }
 
@@ -1263,7 +1292,7 @@ var File_malonaz_test_library_library_service_v1_book_proto protoreflect.FileDes
 
 const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"2malonaz/test/library/library_service/v1/book.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xa5\x02\n" +
+	"2malonaz/test/library/library_service/v1/book.proto\x12'malonaz.test.library.library_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/test/library/v1/book.proto\"\xa5\x02\n" +
 	"\x11CreateBookRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12>\n" +
@@ -1341,7 +1370,7 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB5\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"L\n" +
 	"\x15BatchGetBooksResponse\x123\n" +
-	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\x9a\x02\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xd5\x02\n" +
 	"\x12ImportBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12B\n" +
@@ -1351,7 +1380,8 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12&\n" +
 	"\n" +
-	"fail_after\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tfailAfter\"J\n" +
+	"fail_after\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tfailAfter\x129\n" +
+	"\x05delay\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\x05delay\"J\n" +
 	"\x13ImportBooksResponse\x123\n" +
 	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"G\n" +
 	"\x13ImportBooksMetadata\x12\x1a\n" +
@@ -1376,6 +1406,7 @@ var file_malonaz_test_library_library_service_v1_book_proto_goTypes = []any{
 	(*v1.Book)(nil),               // 13: malonaz.test.library.v1.Book
 	(*fieldmaskpb.FieldMask)(nil), // 14: google.protobuf.FieldMask
 	(*v11.SearchSnippet)(nil),     // 15: malonaz.aip.v1.SearchSnippet
+	(*durationpb.Duration)(nil),   // 16: google.protobuf.Duration
 }
 var file_malonaz_test_library_library_service_v1_book_proto_depIdxs = []int32{
 	13, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
@@ -1385,12 +1416,13 @@ var file_malonaz_test_library_library_service_v1_book_proto_depIdxs = []int32{
 	15, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
 	13, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
 	13, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	13, // 7: malonaz.test.library.library_service.v1.ImportBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	16, // 7: malonaz.test.library.library_service.v1.ImportBooksRequest.delay:type_name -> google.protobuf.Duration
+	13, // 8: malonaz.test.library.library_service.v1.ImportBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_book_proto_init() }
