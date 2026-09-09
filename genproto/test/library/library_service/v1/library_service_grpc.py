@@ -57,6 +57,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def BatchCreateAuthors(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsRequest, malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def SearchAuthors(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsRequest, malonaz.test.library.library_service.v1.author_pb2.SearchAuthorsResponse]') -> None:
         pass
 
@@ -94,6 +98,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesRequest, malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchCreateShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesRequest, malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -165,6 +173,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def BatchCreateNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def BatchGetNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse]') -> None:
         pass
 
@@ -205,6 +217,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
                 malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateAuthors': grpclib.const.Handler(
+                self.BatchCreateAuthors,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsRequest,
+                malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsResponse,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/SearchAuthors': grpclib.const.Handler(
                 self.SearchAuthors,
@@ -265,6 +283,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesRequest,
                 malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves': grpclib.const.Handler(
+                self.BatchCreateShelves,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesRequest,
+                malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesResponse,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetShelves': grpclib.const.Handler(
                 self.BatchGetShelves,
@@ -368,6 +392,12 @@ class LibraryServiceBase(abc.ABC):
                 malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest,
                 malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse,
             ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes': grpclib.const.Handler(
+                self.BatchCreateNotes,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesRequest,
+                malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesResponse,
+            ),
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes': grpclib.const.Handler(
                 self.BatchGetNotes,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -415,6 +445,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors',
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsRequest,
             malonaz.test.library.library_service.v1.author_pb2.BatchGetAuthorsResponse,
+        )
+        self.BatchCreateAuthors = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateAuthors',
+            malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsRequest,
+            malonaz.test.library.library_service.v1.author_pb2.BatchCreateAuthorsResponse,
         )
         self.SearchAuthors = grpclib.client.UnaryUnaryMethod(
             channel,
@@ -475,6 +511,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/ListShelves',
             malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesRequest,
             malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesResponse,
+        )
+        self.BatchCreateShelves = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves',
+            malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesRequest,
+            malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesResponse,
         )
         self.BatchGetShelves = grpclib.client.UnaryUnaryMethod(
             channel,
@@ -577,6 +619,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/ListNotes',
             malonaz.test.library.library_service.v1.note_pb2.ListNotesRequest,
             malonaz.test.library.library_service.v1.note_pb2.ListNotesResponse,
+        )
+        self.BatchCreateNotes = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes',
+            malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesRequest,
+            malonaz.test.library.library_service.v1.note_pb2.BatchCreateNotesResponse,
         )
         self.BatchGetNotes = grpclib.client.UnaryUnaryMethod(
             channel,

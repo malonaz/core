@@ -25,71 +25,73 @@ func (s *Store) getUserETag(ctx context.Context, organizationId, userId string) 
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	UserWithRequestIDPostgresColumns     = postgres.GetDBColumns(UserWithRequestID{})
-	_userInsertPostgresQuery             = `INSERT INTO user_ %s VALUES %s ON CONFLICT(organization_id, id) DO UPDATE SET id = EXCLUDED.id RETURNING `
-	userWithRequestIDInsertPostgresQuery = _userInsertPostgresQuery + postgres.SelectQuery("%s", UserWithRequestIDPostgresColumns)
-	userInsertPostgresQuery              = _userInsertPostgresQuery + postgres.SelectQuery("%s", UserPostgresColumns)
-)
-
-func (s *Store) InsertUser(ctx context.Context, _user *model.User, userProfile *model.UserProfile) (*model.User, error) {
-	query, params := postgres.InsertQuery(userInsertPostgresQuery, _user)
-	query2, params2 := postgres.InsertQuery(UserProfileInsertSingletonPostgresQuery, userProfile, UserProfileWritePostgresColumns...)
-
-	var inserted *model.User
-	transactionFN := func(tx postgres.Tx) error {
-		inserted = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return err
-		}
-		inserted, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
-		if err != nil {
-			return err
-		}
-
-		if _, err := tx.Exec(ctx, query2, params2...); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
-		return nil, err
-	}
-	return inserted, nil
-}
-
 type UserWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.User
 }
 
-var userGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", UserPostgresColumns) + ` FROM user_ WHERE request_id = $1`
+var (
+	UserWithRequestIDPostgresColumns = postgres.GetDBColumns(UserWithRequestID{})
+	userInsertPostgresQuery          = `INSERT INTO user_ %s VALUES %s ON CONFLICT(organization_id, id) DO UPDATE SET id = EXCLUDED.id RETURNING ` + postgres.SelectQuery("%s", UserWithRequestIDPostgresColumns)
+	userGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", UserWithRequestIDPostgresColumns) + ` FROM user_ WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertUserIdempotently(ctx context.Context, requestID string, raw_user *model.User, userProfile *model.UserProfile) (*model.User, error) {
-	_user := &UserWithRequestID{
-		RequestID: requestID,
-		User:      *raw_user,
+func orderUsersByRequestID(requestIDs []string, rows []*UserWithRequestID) ([]*model.User, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(userWithRequestIDInsertPostgresQuery, _user)
-	query2, params2 := postgres.InsertQuery(UserProfileInsertSingletonPostgresQuery, userProfile, UserProfileWritePostgresColumns...)
+	ordered := make([]*model.User, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrUserAlreadyExists
+		}
+		ordered[i] = &row.User
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted user with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.User
+func (s *Store) BatchInsertUsers(ctx context.Context, requestIDs []string, users []*model.User, userProfiles []*model.UserProfile) ([]*model.User, error) {
+	n := len(users)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if len(userProfiles) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*UserWithRequestID, n)
+	for i, _user := range users {
+		withRequestIDs[i] = &UserWithRequestID{RequestID: requestIDs[i], User: *_user}
+	}
+	query, params := postgres.BatchInsertQuery(userInsertPostgresQuery, withRequestIDs)
+	query2, params2 := postgres.BatchInsertQuery(UserProfileInsertSingletonPostgresQuery, userProfiles, UserProfileWritePostgresColumns...)
+
+	var inserted []*model.User
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[UserWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrUserAlreadyExists
+		inserted, err = orderUsersByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.User
 
 		if _, err := tx.Exec(ctx, query2, params2...); err != nil {
 			return err
@@ -98,18 +100,22 @@ func (s *Store) InsertUserIdempotently(ctx context.Context, requestID string, ra
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, userGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, userGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.User])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrUserAlreadyExists
+			if len(existing) == n {
+				return orderUsersByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrUserAlreadyExists
 		}
 		return nil, err
 	}

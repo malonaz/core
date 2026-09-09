@@ -27,6 +27,7 @@ const (
 	LibraryService_DeleteAuthor_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/DeleteAuthor"
 	LibraryService_ListAuthors_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListAuthors"
 	LibraryService_BatchGetAuthors_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthors"
+	LibraryService_BatchCreateAuthors_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateAuthors"
 	LibraryService_SearchAuthors_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/SearchAuthors"
 	LibraryService_GetAuthorProfile_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/GetAuthorProfile"
 	LibraryService_UpdateAuthorProfile_FullMethodName    = "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile"
@@ -37,6 +38,7 @@ const (
 	LibraryService_UpdateShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/UpdateShelf"
 	LibraryService_DeleteShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/DeleteShelf"
 	LibraryService_ListShelves_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListShelves"
+	LibraryService_BatchCreateShelves_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves"
 	LibraryService_BatchGetShelves_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetShelves"
 	LibraryService_CreateBook_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/CreateBook"
 	LibraryService_GetBook_FullMethodName                = "/malonaz.test.library.library_service.v1.LibraryService/GetBook"
@@ -54,6 +56,7 @@ const (
 	LibraryService_UpdateNote_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/UpdateNote"
 	LibraryService_DeleteNote_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/DeleteNote"
 	LibraryService_ListNotes_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListNotes"
+	LibraryService_BatchCreateNotes_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes"
 	LibraryService_BatchGetNotes_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes"
 )
 
@@ -77,6 +80,10 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(ctx context.Context, in *BatchGetAuthorsRequest, opts ...grpc.CallOption) (*BatchGetAuthorsResponse, error)
+	// Creates multiple authors in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateAuthors(ctx context.Context, in *BatchCreateAuthorsRequest, opts ...grpc.CallOption) (*BatchCreateAuthorsResponse, error)
 	// Search authors.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -99,6 +106,10 @@ type LibraryServiceClient interface {
 	DeleteShelf(ctx context.Context, in *DeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(ctx context.Context, in *ListShelvesRequest, opts ...grpc.CallOption) (*ListShelvesResponse, error)
+	// Creates multiple shelves in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateShelves(ctx context.Context, in *BatchCreateShelvesRequest, opts ...grpc.CallOption) (*BatchCreateShelvesResponse, error)
 	// Gets multiple shelves in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -139,6 +150,10 @@ type LibraryServiceClient interface {
 	DeleteNote(ctx context.Context, in *DeleteNoteRequest, opts ...grpc.CallOption) (*v1.Note, error)
 	// Lists notes.
 	ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error)
+	// Creates multiple notes in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateNotes(ctx context.Context, in *BatchCreateNotesRequest, opts ...grpc.CallOption) (*BatchCreateNotesResponse, error)
 	// Gets multiple notes in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -207,6 +222,16 @@ func (c *libraryServiceClient) BatchGetAuthors(ctx context.Context, in *BatchGet
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetAuthorsResponse)
 	err := c.cc.Invoke(ctx, LibraryService_BatchGetAuthors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchCreateAuthors(ctx context.Context, in *BatchCreateAuthorsRequest, opts ...grpc.CallOption) (*BatchCreateAuthorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCreateAuthorsResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchCreateAuthors_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -307,6 +332,16 @@ func (c *libraryServiceClient) ListShelves(ctx context.Context, in *ListShelvesR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListShelvesResponse)
 	err := c.cc.Invoke(ctx, LibraryService_ListShelves_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchCreateShelves(ctx context.Context, in *BatchCreateShelvesRequest, opts ...grpc.CallOption) (*BatchCreateShelvesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCreateShelvesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchCreateShelves_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -483,6 +518,16 @@ func (c *libraryServiceClient) ListNotes(ctx context.Context, in *ListNotesReque
 	return out, nil
 }
 
+func (c *libraryServiceClient) BatchCreateNotes(ctx context.Context, in *BatchCreateNotesRequest, opts ...grpc.CallOption) (*BatchCreateNotesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCreateNotesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchCreateNotes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetNotesResponse)
@@ -513,6 +558,10 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error)
+	// Creates multiple authors in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateAuthors(context.Context, *BatchCreateAuthorsRequest) (*BatchCreateAuthorsResponse, error)
 	// Search authors.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -535,6 +584,10 @@ type LibraryServiceServer interface {
 	DeleteShelf(context.Context, *DeleteShelfRequest) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error)
+	// Creates multiple shelves in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateShelves(context.Context, *BatchCreateShelvesRequest) (*BatchCreateShelvesResponse, error)
 	// Gets multiple shelves in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -575,6 +628,10 @@ type LibraryServiceServer interface {
 	DeleteNote(context.Context, *DeleteNoteRequest) (*v1.Note, error)
 	// Lists notes.
 	ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error)
+	// Creates multiple notes in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateNotes(context.Context, *BatchCreateNotesRequest) (*BatchCreateNotesResponse, error)
 	// Gets multiple notes in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -606,6 +663,9 @@ func (UnimplementedLibraryServiceServer) ListAuthors(context.Context, *ListAutho
 func (UnimplementedLibraryServiceServer) BatchGetAuthors(context.Context, *BatchGetAuthorsRequest) (*BatchGetAuthorsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetAuthors not implemented")
 }
+func (UnimplementedLibraryServiceServer) BatchCreateAuthors(context.Context, *BatchCreateAuthorsRequest) (*BatchCreateAuthorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCreateAuthors not implemented")
+}
 func (UnimplementedLibraryServiceServer) SearchAuthors(context.Context, *SearchAuthorsRequest) (*SearchAuthorsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchAuthors not implemented")
 }
@@ -635,6 +695,9 @@ func (UnimplementedLibraryServiceServer) DeleteShelf(context.Context, *DeleteShe
 }
 func (UnimplementedLibraryServiceServer) ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListShelves not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchCreateShelves(context.Context, *BatchCreateShelvesRequest) (*BatchCreateShelvesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCreateShelves not implemented")
 }
 func (UnimplementedLibraryServiceServer) BatchGetShelves(context.Context, *BatchGetShelvesRequest) (*BatchGetShelvesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetShelves not implemented")
@@ -686,6 +749,9 @@ func (UnimplementedLibraryServiceServer) DeleteNote(context.Context, *DeleteNote
 }
 func (UnimplementedLibraryServiceServer) ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNotes not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchCreateNotes(context.Context, *BatchCreateNotesRequest) (*BatchCreateNotesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCreateNotes not implemented")
 }
 func (UnimplementedLibraryServiceServer) BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetNotes not implemented")
@@ -814,6 +880,24 @@ func _LibraryService_BatchGetAuthors_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).BatchGetAuthors(ctx, req.(*BatchGetAuthorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchCreateAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateAuthorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchCreateAuthors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchCreateAuthors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchCreateAuthors(ctx, req.(*BatchCreateAuthorsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -994,6 +1078,24 @@ func _LibraryService_ListShelves_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).ListShelves(ctx, req.(*ListShelvesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchCreateShelves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateShelvesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchCreateShelves(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchCreateShelves_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchCreateShelves(ctx, req.(*BatchCreateShelvesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1304,6 +1406,24 @@ func _LibraryService_ListNotes_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_BatchCreateNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateNotesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchCreateNotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchCreateNotes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchCreateNotes(ctx, req.(*BatchCreateNotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_BatchGetNotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BatchGetNotesRequest)
 	if err := dec(in); err != nil {
@@ -1354,6 +1474,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibraryService_BatchGetAuthors_Handler,
 		},
 		{
+			MethodName: "BatchCreateAuthors",
+			Handler:    _LibraryService_BatchCreateAuthors_Handler,
+		},
+		{
 			MethodName: "SearchAuthors",
 			Handler:    _LibraryService_SearchAuthors_Handler,
 		},
@@ -1392,6 +1516,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListShelves",
 			Handler:    _LibraryService_ListShelves_Handler,
+		},
+		{
+			MethodName: "BatchCreateShelves",
+			Handler:    _LibraryService_BatchCreateShelves_Handler,
 		},
 		{
 			MethodName: "BatchGetShelves",
@@ -1460,6 +1588,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListNotes",
 			Handler:    _LibraryService_ListNotes_Handler,
+		},
+		{
+			MethodName: "BatchCreateNotes",
+			Handler:    _LibraryService_BatchCreateNotes_Handler,
 		},
 		{
 			MethodName: "BatchGetNotes",

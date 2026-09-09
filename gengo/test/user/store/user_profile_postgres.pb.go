@@ -32,74 +32,91 @@ func (s *Store) getUserProfileETag(ctx context.Context, organizationId, userId s
 
 const UserProfileInsertSingletonPostgresQuery = `INSERT INTO user_profile %s VALUES %s ON CONFLICT(organization_id, user_id) DO NOTHING`
 
-var (
-	UserProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(UserProfileWithRequestID{})
-	UserProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(UserProfileWithRequestID{}, postgres.ExceptColumns("user_display_name", "user_email_address", "organization_display_name"))
-	_userProfileInsertPostgresQuery              = `INSERT INTO user_profile %s VALUES %s ON CONFLICT(organization_id, user_id) DO UPDATE SET  = EXCLUDED. RETURNING `
-	userProfileWithRequestIDInsertPostgresQuery  = _userProfileInsertPostgresQuery + postgres.SelectQuery("%s", UserProfileWithRequestIDWritePostgresColumns) + userProfileJoinSubqueryExpr
-	userProfileInsertPostgresQuery               = _userProfileInsertPostgresQuery + postgres.SelectQuery("%s", UserProfileWritePostgresColumns) + userProfileJoinSubqueryExpr
-)
-
-func (s *Store) InsertUserProfile(ctx context.Context, _userProfile *model.UserProfile) (*model.UserProfile, error) {
-	query, params := postgres.InsertQuery(userProfileInsertPostgresQuery, _userProfile, UserProfileWritePostgresColumns...)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.UserProfile])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type UserProfileWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.UserProfile
 }
 
-var userProfileGetByRequestIDQuery = fmt.Sprintf(`SELECT %s FROM user_profile `+userProfileJoinClause+` WHERE user_profile.request_id = $1`, postgres.QualifyColumns(UserProfileWritePostgresColumns, "user_profile")+userProfileJoinSelectExprs)
+var (
+	UserProfileWithRequestIDPostgresColumns      = postgres.GetDBColumns(UserProfileWithRequestID{})
+	UserProfileWithRequestIDWritePostgresColumns = postgres.GetDBColumns(UserProfileWithRequestID{}, postgres.ExceptColumns("user_display_name", "user_email_address", "organization_display_name"))
+	userProfileInsertPostgresQuery               = `INSERT INTO user_profile %s VALUES %s ON CONFLICT(organization_id, user_id) DO UPDATE SET  = EXCLUDED. RETURNING ` + postgres.SelectQuery("%s", UserProfileWithRequestIDWritePostgresColumns) + userProfileJoinSubqueryExpr
+	userProfileGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM user_profile `+userProfileJoinClause+` WHERE user_profile.request_id = ANY($1)`, postgres.QualifyColumns(UserProfileWithRequestIDWritePostgresColumns, "user_profile")+userProfileJoinSelectExprs)
+)
 
-func (s *Store) InsertUserProfileIdempotently(ctx context.Context, requestID string, raw_userProfile *model.UserProfile) (*model.UserProfile, error) {
-	_userProfile := &UserProfileWithRequestID{
-		RequestID:   requestID,
-		UserProfile: *raw_userProfile,
+func orderUserProfilesByRequestID(requestIDs []string, rows []*UserProfileWithRequestID) ([]*model.UserProfile, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(userProfileWithRequestIDInsertPostgresQuery, _userProfile, UserProfileWithRequestIDWritePostgresColumns...)
+	ordered := make([]*model.UserProfile, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrUserProfileAlreadyExists
+		}
+		ordered[i] = &row.UserProfile
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted userProfile with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.UserProfile
+func (s *Store) BatchInsertUserProfiles(ctx context.Context, requestIDs []string, userProfiles []*model.UserProfile) ([]*model.UserProfile, error) {
+	n := len(userProfiles)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*UserProfileWithRequestID, n)
+	for i, _userProfile := range userProfiles {
+		withRequestIDs[i] = &UserProfileWithRequestID{RequestID: requestIDs[i], UserProfile: *_userProfile}
+	}
+	query, params := postgres.BatchInsertQuery(userProfileInsertPostgresQuery, withRequestIDs, UserProfileWithRequestIDWritePostgresColumns...)
+
+	var inserted []*model.UserProfile
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[UserProfileWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserProfileWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrUserProfileAlreadyExists
+		inserted, err = orderUserProfilesByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.UserProfile
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, userProfileGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, userProfileGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.UserProfile])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[UserProfileWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrUserProfileAlreadyExists
+			if len(existing) == n {
+				return orderUserProfilesByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrUserProfileAlreadyExists
 		}
 		return nil, err
 	}

@@ -241,7 +241,7 @@ func (b *CommandBuilder) addFlagWithPrefix(
 
 	var isRequired bool
 	switch standardMethodType {
-	case pbreflection.StandardMethodTypeCreate:
+	case pbreflection.StandardMethodTypeCreate, pbreflection.StandardMethodTypeBatchCreate:
 		if fieldBehavior.Identifier {
 			return nil
 		}

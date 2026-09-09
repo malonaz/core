@@ -22,10 +22,11 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/aip/codegen/overview` — protoc-gen-core: the three plugins and their
   annotations, resource-tree semantics (singletons, multi-pattern, silent
   resources), contracts shared by every generated RPC, customizing.
-- `lores/aip/codegen/{create,get,batch-get,list,update,delete}` — per-RPC
-  behaviour beyond the AIPs: request_id idempotency, tombstone visibility,
-  all-or-nothing BatchGet, list options and offset tokens, update allow-list
-  and etag retry, the children guard and `force` cascade.
+- `lores/aip/codegen/{create,batch-create,get,batch-get,list,update,delete}`
+  — per-RPC behaviour beyond the AIPs: mandatory request_id idempotency,
+  atomic request-ordered BatchCreate, tombstone visibility, all-or-nothing
+  BatchGet, list options and offset tokens, update allow-list and etag
+  retry, the children guard and `force` cascade.
 - `lores/domain/agent` — Agent/Task/Memory ontology, durable runners,
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI

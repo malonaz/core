@@ -269,39 +269,21 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	serverName := fmt.Sprintf("%s_%sServer", svcName, resourceGoName)
 	goTypeQgi := gen.modelIdent(mi.rpc.Message.GoIdent.GoName)
 
-	// Determine hasRequestID by scanning all create methods for this resource.
-	hasRequestID := false
-	for _, method := range si.service.Methods {
-		rpc, err := resource.ParseRPC(method)
-		if err != nil {
-			return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
-		}
-		if rpc == nil {
-			continue
-		}
-		if rpc.Create && rpc.ParsedResource.Desc.Singular == pr.Desc.Singular {
-			hasRequestID = method.Input.Desc.Fields().ByName("request_id") != nil
-			break
-		}
+	createRequest, err := createRequestMessage(si, pr)
+	if err != nil {
+		return err
 	}
 
 	// Store interface.
 	g.P(fmt.Sprintf("type %s interface {", storeIface))
 
-	// Insert
-	insertSig := fmt.Sprintf("  Insert%s", resourceGoName)
-	if hasRequestID {
-		insertSig += "Idempotently"
-	}
-	insertSig += fmt.Sprintf("(ctx %s, ", gen.ident(contextPkg, "Context"))
-	if hasRequestID {
-		insertSig += "requestID string, "
-	}
-	insertSig += fmt.Sprintf("%s *%s", xstrings.ToCamelCase(resourceGoName), goTypeQgi)
+	// BatchInsert: Create is a single-element batch.
+	insertSig := fmt.Sprintf("  BatchInsert%s(ctx %s, requestIDs []string, %s []*%s",
+		pr.PluralGoName(), gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(pr.PluralGoName()), goTypeQgi)
 	for _, child := range mc.singletonChildren {
-		insertSig += fmt.Sprintf(", %s *%s", xstrings.ToCamelCase(child.Resource.SingularGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
+		insertSig += fmt.Sprintf(", %s []*%s", xstrings.ToCamelCase(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
 	}
-	insertSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
+	insertSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
 	g.P(insertSig)
 
 	// Update
@@ -423,7 +405,50 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	g.P("}")
 	g.P()
 
+	if createRequest != nil {
+		return mc.generatePrepareCreate(gen.qgi(createRequest.GoIdent))
+	}
 	return nil
+}
+
+// createRequestMessage returns the resource's Create request message, taken
+// from Create{X} or, failing that, from BatchCreate{Plural}.requests. Nil when
+// the service creates the resource through neither. Creates must carry a
+// request_id: idempotent replay (AIP-155) and ALREADY_EXISTS on collision
+// (AIP-133) are both keyed on it.
+func createRequestMessage(si *serviceInfo, pr *resource.ParsedResource) (*protogen.Message, error) {
+	var createRequest *protogen.Message
+	var batchCreate *protogen.Method
+	for _, method := range si.service.Methods {
+		rpc, err := resource.ParseRPC(method)
+		if err != nil {
+			return nil, fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
+		}
+		if rpc == nil || rpc.ParsedResource.Desc.Singular != pr.Desc.Singular {
+			continue
+		}
+		if rpc.Create {
+			createRequest = method.Input
+			break
+		}
+		if rpc.BatchCreate {
+			batchCreate = method
+		}
+	}
+	if createRequest == nil && batchCreate != nil {
+		for _, field := range batchCreate.Input.Fields {
+			if field.Desc.Name() == "requests" && field.Message != nil {
+				createRequest = field.Message
+			}
+		}
+		if createRequest == nil {
+			return nil, fmt.Errorf("%s must declare a `requests` message field", batchCreate.Input.GoIdent.GoName)
+		}
+	}
+	if createRequest != nil && createRequest.Desc.Fields().ByName("request_id") == nil {
+		return nil, fmt.Errorf("%s must declare a `request_id` field", createRequest.GoIdent.GoName)
+	}
+	return createRequest, nil
 }
 
 // generateMethod dispatches to the appropriate per-RPC generator.
@@ -435,6 +460,12 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 	switch {
 	case mi.rpc.Create:
 		return mc.generateCreate()
+	case mi.rpc.BatchCreate:
+		createRequest, err := createRequestMessage(si, mc.pr)
+		if err != nil {
+			return err
+		}
+		return mc.generateBatchCreate(createRequest)
 	case mi.rpc.Update:
 		return mc.generateUpdate()
 	case mi.rpc.Delete:

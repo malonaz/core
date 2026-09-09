@@ -91,6 +91,18 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
   }
 
+  // Creates multiple authors in a single atomic request.
+  //
+  // See: https://google.aip.dev/233 (Batch methods: Create).
+  rpc BatchCreateAuthors(BatchCreateAuthorsRequest) returns (BatchCreateAuthorsResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/authors:batchCreate"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,requests";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Author";
+  }
+
   // Search authors.
   //
   // See: https://google.aip.dev/136 (Custom methods).
@@ -173,6 +185,18 @@ service LibraryService {
   rpc ListShelves(ListShelvesRequest) returns (ListShelvesResponse) {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/shelves"};
     option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+  }
+
+  // Creates multiple shelves in a single atomic request.
+  //
+  // See: https://google.aip.dev/233 (Batch methods: Create).
+  rpc BatchCreateShelves(BatchCreateShelvesRequest) returns (BatchCreateShelvesResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/shelves:batchCreate"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,requests";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
   }
 
@@ -348,6 +372,26 @@ service LibraryService {
       additional_bindings: {get: "/v1/{parent=organizations/*/shelves/*}/notes"}
     };
     option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // Creates multiple notes in a single atomic request.
+  //
+  // See: https://google.aip.dev/233 (Batch methods: Create).
+  rpc BatchCreateNotes(BatchCreateNotesRequest) returns (BatchCreateNotesResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/notes:batchCreate"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/authors/*}/notes:batchCreate"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/shelves/*}/notes:batchCreate"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "parent,requests";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
   }
 

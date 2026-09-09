@@ -1,6 +1,7 @@
 go_library(
     name = "rpc",
     srcs = [
+        "batch_create.go",
         "batch_get.go",
         "create.go",
         "delete.go",

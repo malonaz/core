@@ -16,11 +16,11 @@ here — this documents what our implementation decides on top of them.
 | Plugin | Emits | Driven by |
 |---|---|---|
 | `model` | `gengo/.../model`: struct per resource with `db` tags, `FromPb`/`ToPb`, `Parse{Resource}Name`, `Err{Resource}{AlreadyExists,NotExist,AlreadyDeleted,HasChildren,ETagChanged}` | `google.api.resource` + `malonaz.codegen.model.v1.model_opts` (see `lores/style/protobuf`) |
-| `postgres` | `gengo/.../store`: one `Store` per proto package, `Insert/Update/Get/BatchGet/List/Delete/Search` per resource, raw SQL | same, plus `field_opts` joins |
+| `postgres` | `gengo/.../store`: one `Store` per proto package, `BatchInsert/Update/Get/BatchGet/List/Delete/Search` per resource, raw SQL | same, plus `field_opts` joins |
 | `rpc` | `gengo/.../{service}/rpc`: `{Service}Server` embedding one `{service}_{Resource}Server` per resource, each over a `{service}_{Resource}Store` interface | `malonaz.codegen.aip.v1.standard_method` on each RPC, `pagination`/`ordering`/`filtering`/`update` on requests, `malonaz.codegen.nats.v1.event` on resources |
 
 A method is generated iff it carries `standard_method.resource` **and** is
-named `{Create,Get,Update,Delete}{Singular}` / `{List,BatchGet,Search}{Plural}`;
+named `{Create,Get,Update,Delete}{Singular}` / `{BatchCreate,List,BatchGet,Search}{Plural}`;
 anything else is a codegen error. Wiring (`manifest.yaml` → `service.tmpl.go`)
 is `build_defs/codegen/go_service`; the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
@@ -66,7 +66,7 @@ registry is per package — cross-package parent/child links do not exist):
   `{service}_{Resource}Store` interface, so a hand-written store can replace
   the Postgres one.
 - **Events**: with `malonaz.codegen.nats.v1.event` on the resource,
-  `Create`/`Update`/`Delete` publish typed JetStream events after the write
+  `Create`/`BatchCreate`/`Update`/`Delete` publish typed JetStream events after the write
   (subject = `resource_segments… . subject . subject_fields…`, optional CEL
   gate). Cascaded descendants and singleton children publish nothing.
 
@@ -81,5 +81,5 @@ registry is per package — cross-package parent/child links do not exist):
 - **Extra store methods**: add them on a hand-written type that embeds the
   generated `store.Store`.
 
-Per-RPC lores: `lores/aip/codegen/{create,get,batch-get,list,update,delete}`;
+Per-RPC lores: `lores/aip/codegen/{create,batch-create,get,batch-get,list,update,delete}`;
 search is `lores/aip/search`.

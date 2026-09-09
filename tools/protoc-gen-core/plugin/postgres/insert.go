@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"fmt"
+
+	"github.com/huandu/xstrings"
 )
 
 func (mc *msgCtx) generateInsertVars() {
@@ -12,178 +14,145 @@ func (mc *msgCtx) generateInsertVars() {
 		g.P()
 	}
 
-	writeColumns := mc.writeColumns()
-
-	g.P("var (")
-	g.P(fmt.Sprintf("  %sWithRequestIDPostgresColumns = %s(%sWithRequestID{})", mc.goType, mc.postgres("GetDBColumns"), mc.goType))
-	if mc.hasJoins {
-		exceptArgs := mc.exceptColumnsArgs()
-		g.P(fmt.Sprintf("  %sWithRequestIDWritePostgresColumns = %s(%sWithRequestID{}, %s(%s))",
-			mc.goType, mc.postgres("GetDBColumns"), mc.goType, mc.postgres("ExceptColumns"), exceptArgs))
-	}
-	g.P(fmt.Sprintf("  _%sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s RETURNING `",
-		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier))
-
-	withReqIDWriteCols := mc.goType + "WithRequestIDPostgresColumns"
-	if mc.hasJoins {
-		withReqIDWriteCols = mc.goType + "WithRequestIDWritePostgresColumns"
-	}
-	withReqIDReturning := mc.returningExpr(withReqIDWriteCols)
-	g.P(fmt.Sprintf("  %sWithRequestIDInsertPostgresQuery = _%sInsertPostgresQuery + %s",
-		mc.goName, mc.goName, withReqIDReturning))
-
-	returning := mc.returningExpr(writeColumns)
-	g.P(fmt.Sprintf("  %sInsertPostgresQuery = _%sInsertPostgresQuery + %s",
-		mc.goName, mc.goName, returning))
-
-	g.P(")")
-	g.P()
-}
-
-func (mc *msgCtx) generateSingletonInsertQuery(idx int, cc *childCtx) {
-	g := mc.g
-	insertQuery := mc.postgres("InsertQuery")
-	if cc.writeColumnsVar != "" {
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s, %s...)", idx, idx, insertQuery, cc.goType, cc.paramName, cc.writeColumnsVar))
-	} else {
-		g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", idx, idx, insertQuery, cc.goType, cc.paramName))
-	}
-}
-
-func (mc *msgCtx) generateInsert() {
-	g := mc.g
-	insertQuery := mc.postgres("InsertQuery")
-
-	sig := fmt.Sprintf("func (s *Store) Insert%s(ctx context.Context, %s *%s", mc.goType, mc.goParam, mc.goTypeFqi)
-	for _, cc := range mc.singletonChildren {
-		sig += fmt.Sprintf(", %s *%s", cc.paramName, mc.gen.modelIdent(cc.goType))
-	}
-	sig += fmt.Sprintf(") (*%s, error) {", mc.goTypeFqi)
-	g.P(sig)
-
-	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s, %s...)", insertQuery, mc.goName, mc.goParam, mc.writeColumns()))
-	} else {
-		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
-	}
-	for i, cc := range mc.singletonChildren {
-		mc.generateSingletonInsertQuery(i+2, cc)
-	}
-	g.P()
-
-	if len(mc.singletonChildren) == 0 {
-		g.P("  rows, err := s.client.Query(ctx, query, params...)")
-		g.P("  if err != nil {")
-		g.P("    return nil, err")
-		g.P("  }")
-		g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
-		g.P("  if err != nil {")
-		g.P("    return nil, err")
-		g.P("  }")
-		g.P("  return row, nil")
-	} else {
-		mc.generateInsertWithTransaction()
-	}
-
-	g.P("}")
-	g.P()
-}
-
-func (mc *msgCtx) generateInsertWithTransaction() {
-	g := mc.g
-	g.P(fmt.Sprintf("  var inserted *%s", mc.goTypeFqi))
-	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
-	g.P("    inserted = nil")
-	g.P("    rows, err := tx.Query(ctx, query, params...)")
-	g.P("    if err != nil {")
-	g.P("      return err")
-	g.P("    }")
-	g.P(fmt.Sprintf("    inserted, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
-	g.P("    if err != nil {")
-	g.P("      return err")
-	g.P("    }")
-	g.P()
-	for i := range mc.singletonChildren {
-		g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, query%d, params%d...); err != nil {", i+2, i+2))
-		g.P("      return err")
-		g.P("    }")
-	}
-	g.P("    return nil")
-	g.P("  }")
-	g.P()
-	g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("ReadCommitted")))
-	g.P("    return nil, err")
-	g.P("  }")
-	g.P("  return inserted, nil")
-}
-
-func (mc *msgCtx) generateWithRequestIDStruct() {
-	g := mc.g
 	g.P(fmt.Sprintf("type %sWithRequestID struct {", mc.goType))
 	g.P("  RequestID string `db:\"request_id\"`")
 	g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
 	g.P("}")
 	g.P()
 
+	g.P("var (")
+	g.P(fmt.Sprintf("  %sWithRequestIDPostgresColumns = %s(%sWithRequestID{})", mc.goType, mc.postgres("GetDBColumns"), mc.goType))
 	if mc.hasJoins {
-		g.P(fmt.Sprintf("var %sGetByRequestIDQuery = %s(`SELECT %%s FROM %s ` + %sJoinClause + ` WHERE %s.request_id = $1`, %s(%s, %q) + %sJoinSelectExprs)",
-			mc.goName, mc.fmtI("Sprintf"), mc.tableName, mc.goName, mc.bareTableName, mc.postgres("QualifyColumns"), mc.writeColumns(), mc.bareTableName, mc.goName))
+		g.P(fmt.Sprintf("  %sWithRequestIDWritePostgresColumns = %s(%sWithRequestID{}, %s(%s))",
+			mc.goType, mc.postgres("GetDBColumns"), mc.goType, mc.postgres("ExceptColumns"), mc.exceptColumnsArgs()))
+	}
+	// The no-op upsert makes RETURNING yield the existing row on conflict, so
+	// the caller can tell a replay (same request id) from a true collision.
+	g.P(fmt.Sprintf("  %sInsertPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO UPDATE SET %s = EXCLUDED.%s RETURNING ` + %s",
+		mc.goName, mc.tableName, mc.columnNames, mc.identifier, mc.identifier, mc.returningExpr(mc.withRequestIDWriteColumns())))
+	if mc.hasJoins {
+		g.P(fmt.Sprintf("  %sGetByRequestIDsQuery = %s(`SELECT %%s FROM %s ` + %sJoinClause + ` WHERE %s.request_id = ANY($1)`, %s(%s, %q) + %sJoinSelectExprs)",
+			mc.goName, mc.fmtI("Sprintf"), mc.tableName, mc.goName, mc.bareTableName, mc.postgres("QualifyColumns"), mc.withRequestIDWriteColumns(), mc.bareTableName, mc.goName))
 	} else {
-		g.P(fmt.Sprintf("var %sGetByRequestIDQuery = `SELECT ` + %s(\"%%s\", %sPostgresColumns) + ` FROM %s WHERE request_id = $1`",
+		g.P(fmt.Sprintf("  %sGetByRequestIDsQuery = `SELECT ` + %s(\"%%s\", %sWithRequestIDPostgresColumns) + ` FROM %s WHERE request_id = ANY($1)`",
 			mc.goName, mc.postgres("SelectQuery"), mc.goType, mc.tableName))
 	}
+	g.P(")")
 	g.P()
 }
 
-func (mc *msgCtx) generateInsertIdempotently() {
-	g := mc.g
-	insertQuery := mc.postgres("InsertQuery")
-	collectOneRow := mc.pgx("CollectOneRow")
-	rowToAddrLax := mc.pgx("RowToAddrOfStructByNameLax")
-
-	withReqIDWriteCols := mc.goType + "WithRequestIDPostgresColumns"
+func (mc *msgCtx) withRequestIDWriteColumns() string {
 	if mc.hasJoins {
-		withReqIDWriteCols = mc.goType + "WithRequestIDWritePostgresColumns"
+		return mc.goType + "WithRequestIDWritePostgresColumns"
 	}
+	return mc.goType + "WithRequestIDPostgresColumns"
+}
 
-	sig := fmt.Sprintf("func (s *Store) Insert%sIdempotently(ctx context.Context, requestID string, raw%s *%s",
-		mc.goType, title(mc.goParam), mc.goTypeFqi)
+// pluralParam returns the Go parameter name of a slice of the resource, e.g. "authors".
+func (mc *msgCtx) pluralParam() string {
+	return untitle(xstrings.ToCamelCase(mc.pr.PluralGoName()))
+}
+
+// pluralParam returns the Go parameter name of a slice of the child, e.g. "authorProfiles".
+func (cc *childCtx) pluralParam() string {
+	return untitle(xstrings.ToCamelCase(cc.Resource.PluralGoName()))
+}
+
+// generateBatchInsert emits BatchInsert{Plural}: one multi-row INSERT, with
+// singleton children inserted in the same transaction. The batch is atomic and
+// idempotent on request id: a row that already exists under a request id
+// outside this batch fails the whole insert with ErrAlreadyExists, while a
+// replay of a previously committed batch returns the existing rows. Rows are
+// returned in request order, matched on request id since RETURNING order is
+// not guaranteed.
+func (mc *msgCtx) generateBatchInsert() {
+	g := mc.g
+	batchInsertQuery := mc.postgres("BatchInsertQuery")
+	collectRows := mc.pgx("CollectRows")
+	rowToAddrLax := mc.pgx("RowToAddrOfStructByNameLax")
+	withRequestID := mc.goType + "WithRequestID"
+	orderFn := fmt.Sprintf("order%sByRequestID", mc.pr.PluralGoName())
+
+	g.P(fmt.Sprintf("func %s(requestIDs []string, rows []*%s) ([]*%s, error) {", orderFn, withRequestID, mc.goTypeFqi))
+	g.P("  indexByRequestID := make(map[string]int, len(requestIDs))")
+	g.P("  for i, requestID := range requestIDs {")
+	g.P("    indexByRequestID[requestID] = i")
+	g.P("  }")
+	g.P(fmt.Sprintf("  ordered := make([]*%s, len(requestIDs))", mc.goTypeFqi))
+	g.P("  for _, row := range rows {")
+	g.P("    // A returned request id outside this batch is a pre-existing row.")
+	g.P("    i, ok := indexByRequestID[row.RequestID]")
+	g.P("    if !ok {")
+	g.P(fmt.Sprintf("      return nil, %s", mc.errAlreadyExists))
+	g.P("    }")
+	g.P(fmt.Sprintf("    ordered[i] = &row.%s", mc.goType))
+	g.P("  }")
+	g.P("  for i, row := range ordered {")
+	g.P("    if row == nil {")
+	g.P(fmt.Sprintf("      return nil, %s(\"inserted %s with request id %%q was not returned\", requestIDs[i])", mc.fmtI("Errorf"), mc.goName))
+	g.P("    }")
+	g.P("  }")
+	g.P("  return ordered, nil")
+	g.P("}")
+	g.P()
+
+	sig := fmt.Sprintf("func (s *Store) BatchInsert%s(ctx context.Context, requestIDs []string, %s []*%s",
+		mc.pr.PluralGoName(), mc.pluralParam(), mc.goTypeFqi)
 	for _, cc := range mc.singletonChildren {
-		sig += fmt.Sprintf(", %s *%s", cc.paramName, mc.gen.modelIdent(cc.goType))
+		sig += fmt.Sprintf(", %s []*%s", cc.pluralParam(), mc.gen.modelIdent(cc.goType))
 	}
-	sig += fmt.Sprintf(") (*%s, error) {", mc.goTypeFqi)
+	sig += fmt.Sprintf(") ([]*%s, error) {", mc.goTypeFqi)
 	g.P(sig)
 
-	g.P(fmt.Sprintf("  %s := &%sWithRequestID{", mc.goParam, mc.goType))
-	g.P("    RequestID: requestID,")
-	g.P(fmt.Sprintf("    %s: *raw%s,", mc.goType, title(mc.goParam)))
+	g.P(fmt.Sprintf("  n := len(%s)", mc.pluralParam()))
+	slices := []string{"requestIDs"}
+	for _, cc := range mc.singletonChildren {
+		slices = append(slices, cc.pluralParam())
+	}
+	for _, slice := range slices {
+		g.P(fmt.Sprintf("  if len(%s) != n {", slice))
+		g.P(fmt.Sprintf("    return nil, %s(\"mismatched slice lengths\")", mc.fmtI("Errorf")))
+		g.P("  }")
+	}
+	g.P("  if n == 0 {")
+	g.P("    return nil, nil")
+	g.P("  }")
+	g.P()
+
+	g.P(fmt.Sprintf("  withRequestIDs := make([]*%s, n)", withRequestID))
+	g.P(fmt.Sprintf("  for i, %s := range %s {", mc.goParam, mc.pluralParam()))
+	g.P(fmt.Sprintf("    withRequestIDs[i] = &%s{RequestID: requestIDs[i], %s: *%s}", withRequestID, mc.goType, mc.goParam))
 	g.P("  }")
 	if mc.hasJoins {
-		g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s, %s...)", insertQuery, mc.goName, mc.goParam, withReqIDWriteCols))
+		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, withRequestIDs, %s...)", batchInsertQuery, mc.goName, mc.withRequestIDWriteColumns()))
 	} else {
-		g.P(fmt.Sprintf("  query, params := %s(%sWithRequestIDInsertPostgresQuery, %s)", insertQuery, mc.goName, mc.goParam))
+		g.P(fmt.Sprintf("  query, params := %s(%sInsertPostgresQuery, withRequestIDs)", batchInsertQuery, mc.goName))
 	}
-
 	for i, cc := range mc.singletonChildren {
-		mc.generateSingletonInsertQuery(i+2, cc)
+		idx := i + 2
+		if cc.writeColumnsVar != "" {
+			g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s, %s...)", idx, idx, batchInsertQuery, cc.goType, cc.pluralParam(), cc.writeColumnsVar))
+		} else {
+			g.P(fmt.Sprintf("  query%d, params%d := %s(%sInsertSingletonPostgresQuery, %s)", idx, idx, batchInsertQuery, cc.goType, cc.pluralParam()))
+		}
 	}
 	g.P()
 
-	g.P(fmt.Sprintf("  var inserted *%s", mc.goTypeFqi))
+	g.P(fmt.Sprintf("  var inserted []*%s", mc.goTypeFqi))
 	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
 	g.P("    inserted = nil")
 	g.P("    rows, err := tx.Query(ctx, query, params...)")
 	g.P("    if err != nil {")
 	g.P("      return err")
 	g.P("    }")
-	g.P(fmt.Sprintf("    row, err := %s(rows, %s[%sWithRequestID])", collectOneRow, rowToAddrLax, mc.goType))
+	g.P(fmt.Sprintf("    upserted, err := %s(rows, %s[%s])", collectRows, rowToAddrLax, withRequestID))
 	g.P("    if err != nil {")
 	g.P("      return err")
 	g.P("    }")
-	g.P("    if row.RequestID != requestID {")
-	g.P(fmt.Sprintf("      return %s", mc.errAlreadyExists))
+	g.P(fmt.Sprintf("    inserted, err = %s(requestIDs, upserted)", orderFn))
+	g.P("    if err != nil {")
+	g.P("      return err")
 	g.P("    }")
-	g.P(fmt.Sprintf("    inserted = &row.%s", mc.goType))
 	g.P()
 	for i := range mc.singletonChildren {
 		g.P(fmt.Sprintf("    if _, err := tx.Exec(ctx, query%d, params%d...); err != nil {", i+2, i+2))
@@ -195,19 +164,22 @@ func (mc *msgCtx) generateInsertIdempotently() {
 	g.P()
 
 	g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("ReadCommitted")))
+	g.P("    // A replay with server-generated ids collides on request_id rather than")
+	g.P("    // on the primary key; return the committed batch if it is whole.")
 	g.P(fmt.Sprintf("    if %s(err) {", mc.postgres("IsUniqueViolation")))
-	g.P(fmt.Sprintf("      rows, err := s.client.Query(ctx, %sGetByRequestIDQuery, requestID)", mc.goName))
-	g.P("      if err != nil {")
-	g.P("        return nil, err")
+	g.P(fmt.Sprintf("      rows, lookupErr := s.client.Query(ctx, %sGetByRequestIDsQuery, requestIDs)", mc.goName))
+	g.P("      if lookupErr != nil {")
+	g.P("        return nil, lookupErr")
 	g.P("      }")
-	g.P(fmt.Sprintf("      existing, lookupErr := %s(rows, %s[%s])", collectOneRow, rowToAddrLax, mc.goTypeFqi))
-	g.P("      if lookupErr == nil {")
-	g.P("        return existing, nil")
+	g.P(fmt.Sprintf("      existing, lookupErr := %s(rows, %s[%s])", collectRows, rowToAddrLax, withRequestID))
+	g.P("      if lookupErr != nil {")
+	g.P("        return nil, lookupErr")
 	g.P("      }")
-	// No row carries the request ID: another unique constraint of the table fired.
-	g.P(fmt.Sprintf("      if lookupErr == %s {", mc.pgx("ErrNoRows")))
-	g.P(fmt.Sprintf("        return nil, %s", mc.errAlreadyExists))
+	g.P("      if len(existing) == n {")
+	g.P(fmt.Sprintf("        return %s(requestIDs, existing)", orderFn))
 	g.P("      }")
+	g.P("      // Not a whole replay: another unique constraint of the table fired.")
+	g.P(fmt.Sprintf("      return nil, %s", mc.errAlreadyExists))
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")

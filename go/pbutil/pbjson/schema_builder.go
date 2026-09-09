@@ -406,7 +406,8 @@ func (b *SchemaBuilder) buildFieldSchema(so *schemaOptions, fieldDescriptor prot
 
 	var isRequired bool
 	switch methodType {
-	case pbreflection.StandardMethodTypeCreate:
+	// BatchCreate nests Create requests, so the resource fields follow Create's rules.
+	case pbreflection.StandardMethodTypeCreate, pbreflection.StandardMethodTypeBatchCreate:
 		if fieldBehavior.Identifier && !mustIncludeFieldSchema {
 			return nil, false, nil
 		}

@@ -21,74 +21,91 @@ var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS 
 var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count,latest_book.name AS latest_book,latest_book.title AS latest_book_title`
 var shelfJoinClause = `LEFT JOIN library.book AS best_book ON best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6) LEFT JOIN LATERAL (SELECT book.*, 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id AS name FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST LIMIT 1) AS latest_book ON TRUE`
 
-var (
-	ShelfWithRequestIDPostgresColumns      = postgres.GetDBColumns(ShelfWithRequestID{})
-	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
-	_shelfInsertPostgresQuery              = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING `
-	shelfWithRequestIDInsertPostgresQuery  = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWithRequestIDWritePostgresColumns) + shelfJoinSubqueryExpr
-	shelfInsertPostgresQuery               = _shelfInsertPostgresQuery + postgres.SelectQuery("%s", ShelfWritePostgresColumns) + shelfJoinSubqueryExpr
-)
-
-func (s *Store) InsertShelf(ctx context.Context, _shelf *model.Shelf) (*model.Shelf, error) {
-	query, params := postgres.InsertQuery(shelfInsertPostgresQuery, _shelf, ShelfWritePostgresColumns...)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type ShelfWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Shelf
 }
 
-var shelfGetByRequestIDQuery = fmt.Sprintf(`SELECT %s FROM library.shelf `+shelfJoinClause+` WHERE shelf.request_id = $1`, postgres.QualifyColumns(ShelfWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
+var (
+	ShelfWithRequestIDPostgresColumns      = postgres.GetDBColumns(ShelfWithRequestID{})
+	ShelfWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ShelfWithRequestID{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title"))
+	shelfInsertPostgresQuery               = `INSERT INTO library.shelf %s VALUES %s ON CONFLICT(organization_id, shelf_id) DO UPDATE SET shelf_id = EXCLUDED.shelf_id RETURNING ` + postgres.SelectQuery("%s", ShelfWithRequestIDWritePostgresColumns) + shelfJoinSubqueryExpr
+	shelfGetByRequestIDsQuery              = fmt.Sprintf(`SELECT %s FROM library.shelf `+shelfJoinClause+` WHERE shelf.request_id = ANY($1)`, postgres.QualifyColumns(ShelfWithRequestIDWritePostgresColumns, "shelf")+shelfJoinSelectExprs)
+)
 
-func (s *Store) InsertShelfIdempotently(ctx context.Context, requestID string, raw_shelf *model.Shelf) (*model.Shelf, error) {
-	_shelf := &ShelfWithRequestID{
-		RequestID: requestID,
-		Shelf:     *raw_shelf,
+func orderShelvesByRequestID(requestIDs []string, rows []*ShelfWithRequestID) ([]*model.Shelf, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(shelfWithRequestIDInsertPostgresQuery, _shelf, ShelfWithRequestIDWritePostgresColumns...)
+	ordered := make([]*model.Shelf, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrShelfAlreadyExists
+		}
+		ordered[i] = &row.Shelf
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted shelf with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Shelf
+func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf) ([]*model.Shelf, error) {
+	n := len(shelves)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*ShelfWithRequestID, n)
+	for i, _shelf := range shelves {
+		withRequestIDs[i] = &ShelfWithRequestID{RequestID: requestIDs[i], Shelf: *_shelf}
+	}
+	query, params := postgres.BatchInsertQuery(shelfInsertPostgresQuery, withRequestIDs, ShelfWithRequestIDWritePostgresColumns...)
+
+	var inserted []*model.Shelf
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[ShelfWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[ShelfWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrShelfAlreadyExists
+		inserted, err = orderShelvesByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Shelf
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, shelfGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, shelfGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[ShelfWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrShelfAlreadyExists
+			if len(existing) == n {
+				return orderShelvesByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrShelfAlreadyExists
 		}
 		return nil, err
 	}

@@ -646,6 +646,154 @@ func (b0 ListNotesResponse_builder) Build() *ListNotesResponse {
 	return m0
 }
 
+// Request message for LibraryService.BatchCreateNotes.
+type BatchCreateNotesRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent that will own the notes. When set, each request's parent must
+	// either be omitted or match it. Omit it to create notes under different
+	// parents in one batch.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/authors/{author}
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The requests specifying the notes to create.
+	// A maximum of 1000 notes can be created in a batch.
+	Requests      []*CreateNoteRequest `protobuf:"bytes,2,rep,name=requests,proto3" json:"requests,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchCreateNotesRequest) Reset() {
+	*x = BatchCreateNotesRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateNotesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateNotesRequest) ProtoMessage() {}
+
+func (x *BatchCreateNotesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateNotesRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *BatchCreateNotesRequest) GetRequests() []*CreateNoteRequest {
+	if x != nil {
+		return x.Requests
+	}
+	return nil
+}
+
+func (x *BatchCreateNotesRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *BatchCreateNotesRequest) SetRequests(v []*CreateNoteRequest) {
+	x.Requests = v
+}
+
+type BatchCreateNotesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent that will own the notes. When set, each request's parent must
+	// either be omitted or match it. Omit it to create notes under different
+	// parents in one batch.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/authors/{author}
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string
+	// The requests specifying the notes to create.
+	// A maximum of 1000 notes can be created in a batch.
+	Requests []*CreateNoteRequest
+}
+
+func (b0 BatchCreateNotesRequest_builder) Build() *BatchCreateNotesRequest {
+	m0 := &BatchCreateNotesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Requests = b.Requests
+	return m0
+}
+
+// Response message for LibraryService.BatchCreateNotes.
+type BatchCreateNotesResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Notes created, in request order.
+	Notes         []*v1.Note `protobuf:"bytes,1,rep,name=notes,proto3" json:"notes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchCreateNotesResponse) Reset() {
+	*x = BatchCreateNotesResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateNotesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateNotesResponse) ProtoMessage() {}
+
+func (x *BatchCreateNotesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateNotesResponse) GetNotes() []*v1.Note {
+	if x != nil {
+		return x.Notes
+	}
+	return nil
+}
+
+func (x *BatchCreateNotesResponse) SetNotes(v []*v1.Note) {
+	x.Notes = v
+}
+
+type BatchCreateNotesResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Notes created, in request order.
+	Notes []*v1.Note
+}
+
+func (b0 BatchCreateNotesResponse_builder) Build() *BatchCreateNotesResponse {
+	m0 := &BatchCreateNotesResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Notes = b.Notes
+	return m0
+}
+
 // Request message for LibraryService.BatchGetNotes.
 type BatchGetNotesRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -664,7 +812,7 @@ type BatchGetNotesRequest struct {
 
 func (x *BatchGetNotesRequest) Reset() {
 	*x = BatchGetNotesRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -676,7 +824,7 @@ func (x *BatchGetNotesRequest) String() string {
 func (*BatchGetNotesRequest) ProtoMessage() {}
 
 func (x *BatchGetNotesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[6]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -743,7 +891,7 @@ type BatchGetNotesResponse struct {
 
 func (x *BatchGetNotesResponse) Reset() {
 	*x = BatchGetNotesResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -755,7 +903,7 @@ func (x *BatchGetNotesResponse) String() string {
 func (*BatchGetNotesResponse) ProtoMessage() {}
 
 func (x *BatchGetNotesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[7]
+	mi := &file_malonaz_test_library_library_service_v1_note_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +983,12 @@ const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
 	"\x01*\"p\n" +
 	"\x11ListNotesResponse\x123\n" +
 	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notes\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x9f\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc0\x01\n" +
+	"\x17BatchCreateNotesRequest\x12:\n" +
+	"\x06parent\x18\x01 \x01(\tB\"\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/NoteR\x06parent\x12i\n" +
+	"\brequests\x18\x02 \x03(\v2:.malonaz.test.library.library_service.v1.CreateNoteRequestB\x11\xe0A\x02\xbaH\v\xc8\x01\x01\x92\x01\x05\b\x01\x10\xe8\aR\brequests\"O\n" +
+	"\x18BatchCreateNotesResponse\x123\n" +
+	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notes\"\x9f\x01\n" +
 	"\x14BatchGetNotesRequest\x12:\n" +
 	"\x06parent\x18\x01 \x01(\tB\"\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/NoteR\x06parent\x12K\n" +
 	"\x05names\x18\x02 \x03(\tB5\xfaA\x1f\n" +
@@ -843,30 +996,34 @@ const file_malonaz_test_library_library_service_v1_note_proto_rawDesc = "" +
 	"\x15BatchGetNotesResponse\x123\n" +
 	"\x05notes\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.NoteR\x05notesBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_malonaz_test_library_library_service_v1_note_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_test_library_library_service_v1_note_proto_goTypes = []any{
-	(*CreateNoteRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateNoteRequest
-	(*GetNoteRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetNoteRequest
-	(*UpdateNoteRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest
-	(*DeleteNoteRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteNoteRequest
-	(*ListNotesRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListNotesRequest
-	(*ListNotesResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListNotesResponse
-	(*BatchGetNotesRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetNotesRequest
-	(*BatchGetNotesResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetNotesResponse
-	(*v1.Note)(nil),               // 8: malonaz.test.library.v1.Note
-	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
+	(*CreateNoteRequest)(nil),        // 0: malonaz.test.library.library_service.v1.CreateNoteRequest
+	(*GetNoteRequest)(nil),           // 1: malonaz.test.library.library_service.v1.GetNoteRequest
+	(*UpdateNoteRequest)(nil),        // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest
+	(*DeleteNoteRequest)(nil),        // 3: malonaz.test.library.library_service.v1.DeleteNoteRequest
+	(*ListNotesRequest)(nil),         // 4: malonaz.test.library.library_service.v1.ListNotesRequest
+	(*ListNotesResponse)(nil),        // 5: malonaz.test.library.library_service.v1.ListNotesResponse
+	(*BatchCreateNotesRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchCreateNotesRequest
+	(*BatchCreateNotesResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchCreateNotesResponse
+	(*BatchGetNotesRequest)(nil),     // 8: malonaz.test.library.library_service.v1.BatchGetNotesRequest
+	(*BatchGetNotesResponse)(nil),    // 9: malonaz.test.library.library_service.v1.BatchGetNotesResponse
+	(*v1.Note)(nil),                  // 10: malonaz.test.library.v1.Note
+	(*fieldmaskpb.FieldMask)(nil),    // 11: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_note_proto_depIdxs = []int32{
-	8, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	8, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
-	9, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
-	8, // 4: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	10, // 0: malonaz.test.library.library_service.v1.CreateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	10, // 1: malonaz.test.library.library_service.v1.UpdateNoteRequest.note:type_name -> malonaz.test.library.v1.Note
+	11, // 2: malonaz.test.library.library_service.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
+	10, // 3: malonaz.test.library.library_service.v1.ListNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	0,  // 4: malonaz.test.library.library_service.v1.BatchCreateNotesRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateNoteRequest
+	10, // 5: malonaz.test.library.library_service.v1.BatchCreateNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	10, // 6: malonaz.test.library.library_service.v1.BatchGetNotesResponse.notes:type_name -> malonaz.test.library.v1.Note
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_note_proto_init() }
@@ -880,7 +1037,7 @@ func file_malonaz_test_library_library_service_v1_note_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_note_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_note_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

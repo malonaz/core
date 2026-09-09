@@ -150,6 +150,34 @@ message ListNotesResponse {
   string next_page_token = 2;
 }
 
+// Request message for LibraryService.BatchCreateNotes.
+message BatchCreateNotesRequest {
+  // The parent that will own the notes. When set, each request's parent must
+  // either be omitted or match it. Omit it to create notes under different
+  // parents in one batch.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/authors/{author}
+  // Format: organizations/{organization}/shelves/{shelf}
+  string parent = 1 [(google.api.resource_reference).child_type = "library.test.malonaz.com/Note"];
+
+  // The requests specifying the notes to create.
+  // A maximum of 1000 notes can be created in a batch.
+  repeated CreateNoteRequest requests = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    }
+  ];
+}
+
+// Response message for LibraryService.BatchCreateNotes.
+message BatchCreateNotesResponse {
+  // Notes created, in request order.
+  repeated malonaz.test.library.v1.Note notes = 1;
+}
+
 // Request message for LibraryService.BatchGetNotes.
 message BatchGetNotesRequest {
   // The parent resource that owns the notes. Either an author or a shelf.

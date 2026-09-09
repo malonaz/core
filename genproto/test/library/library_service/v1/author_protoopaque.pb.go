@@ -771,6 +771,161 @@ func (b0 BatchGetAuthorsResponse_builder) Build() *BatchGetAuthorsResponse {
 	return m0
 }
 
+// Request message for LibraryService.BatchCreateAuthors.
+type BatchCreateAuthorsRequest struct {
+	state                   protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Parent       string                  `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Requests     *[]*CreateAuthorRequest `protobuf:"bytes,2,rep,name=requests,proto3"`
+	xxx_hidden_ValidateOnly bool                    `protobuf:"varint,3,opt,name=validate_only,json=validateOnly,proto3"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *BatchCreateAuthorsRequest) Reset() {
+	*x = BatchCreateAuthorsRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateAuthorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateAuthorsRequest) ProtoMessage() {}
+
+func (x *BatchCreateAuthorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateAuthorsRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *BatchCreateAuthorsRequest) GetRequests() []*CreateAuthorRequest {
+	if x != nil {
+		if x.xxx_hidden_Requests != nil {
+			return *x.xxx_hidden_Requests
+		}
+	}
+	return nil
+}
+
+func (x *BatchCreateAuthorsRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.xxx_hidden_ValidateOnly
+	}
+	return false
+}
+
+func (x *BatchCreateAuthorsRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *BatchCreateAuthorsRequest) SetRequests(v []*CreateAuthorRequest) {
+	x.xxx_hidden_Requests = &v
+}
+
+func (x *BatchCreateAuthorsRequest) SetValidateOnly(v bool) {
+	x.xxx_hidden_ValidateOnly = v
+}
+
+type BatchCreateAuthorsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent organization that will own the authors. When set, each
+	// request's parent must either be omitted or match it.
+	// Format: organizations/{organization}
+	Parent string
+	// The requests specifying the authors to create.
+	// A maximum of 1000 authors can be created in a batch.
+	Requests []*CreateAuthorRequest
+	// If set, validate the request and preview the response, but do not actually create the resources.
+	ValidateOnly bool
+}
+
+func (b0 BatchCreateAuthorsRequest_builder) Build() *BatchCreateAuthorsRequest {
+	m0 := &BatchCreateAuthorsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Requests = &b.Requests
+	x.xxx_hidden_ValidateOnly = b.ValidateOnly
+	return m0
+}
+
+// Response message for LibraryService.BatchCreateAuthors.
+type BatchCreateAuthorsResponse struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Authors *[]*v1.Author          `protobuf:"bytes,1,rep,name=authors,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *BatchCreateAuthorsResponse) Reset() {
+	*x = BatchCreateAuthorsResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateAuthorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateAuthorsResponse) ProtoMessage() {}
+
+func (x *BatchCreateAuthorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCreateAuthorsResponse) GetAuthors() []*v1.Author {
+	if x != nil {
+		if x.xxx_hidden_Authors != nil {
+			return *x.xxx_hidden_Authors
+		}
+	}
+	return nil
+}
+
+func (x *BatchCreateAuthorsResponse) SetAuthors(v []*v1.Author) {
+	x.xxx_hidden_Authors = &v
+}
+
+type BatchCreateAuthorsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Authors created, in request order.
+	Authors []*v1.Author
+}
+
+func (b0 BatchCreateAuthorsResponse_builder) Build() *BatchCreateAuthorsResponse {
+	m0 := &BatchCreateAuthorsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Authors = &b.Authors
+	return m0
+}
+
 // Request message for LibraryService.SearchAuthors.
 type SearchAuthorsRequest struct {
 	state                      protoimpl.MessageState `protogen:"opaque.v1"`
@@ -787,7 +942,7 @@ type SearchAuthorsRequest struct {
 
 func (x *SearchAuthorsRequest) Reset() {
 	*x = SearchAuthorsRequest{}
-	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -799,7 +954,7 @@ func (x *SearchAuthorsRequest) String() string {
 func (*SearchAuthorsRequest) ProtoMessage() {}
 
 func (x *SearchAuthorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[8]
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -934,7 +1089,7 @@ type SearchAuthorsResponse struct {
 
 func (x *SearchAuthorsResponse) Reset() {
 	*x = SearchAuthorsResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -946,7 +1101,7 @@ func (x *SearchAuthorsResponse) String() string {
 func (*SearchAuthorsResponse) ProtoMessage() {}
 
 func (x *SearchAuthorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[9]
+	mi := &file_malonaz_test_library_library_service_v1_author_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,6 +1226,13 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB7\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"T\n" +
 	"\x17BatchGetAuthorsResponse\x129\n" +
+	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\"\xf1\x01\n" +
+	"\x19BatchCreateAuthorsRequest\x12B\n" +
+	"\x06parent\x18\x01 \x01(\tB*\xfaA'\n" +
+	"%library.test.malonaz.com/OrganizationR\x06parent\x12k\n" +
+	"\brequests\x18\x02 \x03(\v2<.malonaz.test.library.library_service.v1.CreateAuthorRequestB\x11\xe0A\x02\xbaH\v\xc8\x01\x01\x92\x01\x05\b\x01\x10\xe8\aR\brequests\x12#\n" +
+	"\rvalidate_only\x18\x03 \x01(\bR\fvalidateOnly\"W\n" +
+	"\x1aBatchCreateAuthorsResponse\x129\n" +
 	"\aauthors\x18\x01 \x03(\v2\x1f.malonaz.test.library.v1.AuthorR\aauthors\"\xc3\x02\n" +
 	"\x14SearchAuthorsRequest\x12K\n" +
 	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
@@ -1089,35 +1251,39 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\bsnippets\x18\x02 \x03(\v2\x1d.malonaz.aip.v1.SearchSnippetR\bsnippets\x12&\n" +
 	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageTokenBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_test_library_library_service_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_test_library_library_service_v1_author_proto_goTypes = []any{
-	(*CreateAuthorRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest
-	(*GetAuthorRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetAuthorRequest
-	(*UpdateAuthorRequest)(nil),     // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest
-	(*DeleteAuthorRequest)(nil),     // 3: malonaz.test.library.library_service.v1.DeleteAuthorRequest
-	(*ListAuthorsRequest)(nil),      // 4: malonaz.test.library.library_service.v1.ListAuthorsRequest
-	(*ListAuthorsResponse)(nil),     // 5: malonaz.test.library.library_service.v1.ListAuthorsResponse
-	(*BatchGetAuthorsRequest)(nil),  // 6: malonaz.test.library.library_service.v1.BatchGetAuthorsRequest
-	(*BatchGetAuthorsResponse)(nil), // 7: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse
-	(*SearchAuthorsRequest)(nil),    // 8: malonaz.test.library.library_service.v1.SearchAuthorsRequest
-	(*SearchAuthorsResponse)(nil),   // 9: malonaz.test.library.library_service.v1.SearchAuthorsResponse
-	(*v1.Author)(nil),               // 10: malonaz.test.library.v1.Author
-	(*fieldmaskpb.FieldMask)(nil),   // 11: google.protobuf.FieldMask
-	(*v11.SearchSnippet)(nil),       // 12: malonaz.aip.v1.SearchSnippet
+	(*CreateAuthorRequest)(nil),        // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest
+	(*GetAuthorRequest)(nil),           // 1: malonaz.test.library.library_service.v1.GetAuthorRequest
+	(*UpdateAuthorRequest)(nil),        // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest
+	(*DeleteAuthorRequest)(nil),        // 3: malonaz.test.library.library_service.v1.DeleteAuthorRequest
+	(*ListAuthorsRequest)(nil),         // 4: malonaz.test.library.library_service.v1.ListAuthorsRequest
+	(*ListAuthorsResponse)(nil),        // 5: malonaz.test.library.library_service.v1.ListAuthorsResponse
+	(*BatchGetAuthorsRequest)(nil),     // 6: malonaz.test.library.library_service.v1.BatchGetAuthorsRequest
+	(*BatchGetAuthorsResponse)(nil),    // 7: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse
+	(*BatchCreateAuthorsRequest)(nil),  // 8: malonaz.test.library.library_service.v1.BatchCreateAuthorsRequest
+	(*BatchCreateAuthorsResponse)(nil), // 9: malonaz.test.library.library_service.v1.BatchCreateAuthorsResponse
+	(*SearchAuthorsRequest)(nil),       // 10: malonaz.test.library.library_service.v1.SearchAuthorsRequest
+	(*SearchAuthorsResponse)(nil),      // 11: malonaz.test.library.library_service.v1.SearchAuthorsResponse
+	(*v1.Author)(nil),                  // 12: malonaz.test.library.v1.Author
+	(*fieldmaskpb.FieldMask)(nil),      // 13: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),          // 14: malonaz.aip.v1.SearchSnippet
 }
 var file_malonaz_test_library_library_service_v1_author_proto_depIdxs = []int32{
-	10, // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
-	10, // 1: malonaz.test.library.library_service.v1.UpdateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
-	11, // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 3: malonaz.test.library.library_service.v1.ListAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
-	10, // 4: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
-	10, // 5: malonaz.test.library.library_service.v1.SearchAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
-	12, // 6: malonaz.test.library.library_service.v1.SearchAuthorsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	12, // 0: malonaz.test.library.library_service.v1.CreateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
+	12, // 1: malonaz.test.library.library_service.v1.UpdateAuthorRequest.author:type_name -> malonaz.test.library.v1.Author
+	13, // 2: malonaz.test.library.library_service.v1.UpdateAuthorRequest.update_mask:type_name -> google.protobuf.FieldMask
+	12, // 3: malonaz.test.library.library_service.v1.ListAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	12, // 4: malonaz.test.library.library_service.v1.BatchGetAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	0,  // 5: malonaz.test.library.library_service.v1.BatchCreateAuthorsRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateAuthorRequest
+	12, // 6: malonaz.test.library.library_service.v1.BatchCreateAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	12, // 7: malonaz.test.library.library_service.v1.SearchAuthorsResponse.authors:type_name -> malonaz.test.library.v1.Author
+	14, // 8: malonaz.test.library.library_service.v1.SearchAuthorsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_author_proto_init() }
@@ -1131,7 +1297,7 @@ func file_malonaz_test_library_library_service_v1_author_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_author_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_author_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

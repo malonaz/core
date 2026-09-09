@@ -107,9 +107,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 		mc.generateETagGetter()
 		mc.generateInsertVars()
-		mc.generateInsert()
-		mc.generateWithRequestIDStruct()
-		mc.generateInsertIdempotently()
+		mc.generateBatchInsert()
 		mc.generateUpdate()
 		mc.generateDelete()
 		mc.generateGet()
@@ -595,11 +593,4 @@ func untitle(s string) string {
 		return s
 	}
 	return strings.ToLower(s[:1]) + s[1:]
-}
-
-func title(s string) string {
-	if s == "" {
-		return s
-	}
-	return strings.ToUpper(s[:1]) + s[1:]
 }

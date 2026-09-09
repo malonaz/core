@@ -3,6 +3,7 @@ go_test(
     srcs = [
         "aip_paginate_test.go",
         "author_test.go",
+        "batch_create_test.go",
         "batch_get_test.go",
         "book_test.go",
         "cascade_delete_test.go",

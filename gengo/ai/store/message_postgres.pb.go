@@ -25,73 +25,90 @@ func (s *Store) getMessageETag(ctx context.Context, organizationId, userId, chat
 	return v5.CollectOneRow(rows, v5.RowTo[string])
 }
 
-var (
-	MessageWithRequestIDPostgresColumns     = postgres.GetDBColumns(MessageWithRequestID{})
-	_messageInsertPostgresQuery             = `INSERT INTO message %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id) DO UPDATE SET message_id = EXCLUDED.message_id RETURNING `
-	messageWithRequestIDInsertPostgresQuery = _messageInsertPostgresQuery + postgres.SelectQuery("%s", MessageWithRequestIDPostgresColumns)
-	messageInsertPostgresQuery              = _messageInsertPostgresQuery + postgres.SelectQuery("%s", MessagePostgresColumns)
-)
-
-func (s *Store) InsertMessage(ctx context.Context, _message *model.Message) (*model.Message, error) {
-	query, params := postgres.InsertQuery(messageInsertPostgresQuery, _message)
-
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
-	if err != nil {
-		return nil, err
-	}
-	return row, nil
-}
-
 type MessageWithRequestID struct {
 	RequestID string `db:"request_id"`
 	model.Message
 }
 
-var messageGetByRequestIDQuery = `SELECT ` + postgres.SelectQuery("%s", MessagePostgresColumns) + ` FROM message WHERE request_id = $1`
+var (
+	MessageWithRequestIDPostgresColumns = postgres.GetDBColumns(MessageWithRequestID{})
+	messageInsertPostgresQuery          = `INSERT INTO message %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id) DO UPDATE SET message_id = EXCLUDED.message_id RETURNING ` + postgres.SelectQuery("%s", MessageWithRequestIDPostgresColumns)
+	messageGetByRequestIDsQuery         = `SELECT ` + postgres.SelectQuery("%s", MessageWithRequestIDPostgresColumns) + ` FROM message WHERE request_id = ANY($1)`
+)
 
-func (s *Store) InsertMessageIdempotently(ctx context.Context, requestID string, raw_message *model.Message) (*model.Message, error) {
-	_message := &MessageWithRequestID{
-		RequestID: requestID,
-		Message:   *raw_message,
+func orderMessagesByRequestID(requestIDs []string, rows []*MessageWithRequestID) ([]*model.Message, error) {
+	indexByRequestID := make(map[string]int, len(requestIDs))
+	for i, requestID := range requestIDs {
+		indexByRequestID[requestID] = i
 	}
-	query, params := postgres.InsertQuery(messageWithRequestIDInsertPostgresQuery, _message)
+	ordered := make([]*model.Message, len(requestIDs))
+	for _, row := range rows {
+		// A returned request id outside this batch is a pre-existing row.
+		i, ok := indexByRequestID[row.RequestID]
+		if !ok {
+			return nil, model.ErrMessageAlreadyExists
+		}
+		ordered[i] = &row.Message
+	}
+	for i, row := range ordered {
+		if row == nil {
+			return nil, fmt.Errorf("inserted message with request id %q was not returned", requestIDs[i])
+		}
+	}
+	return ordered, nil
+}
 
-	var inserted *model.Message
+func (s *Store) BatchInsertMessages(ctx context.Context, requestIDs []string, messages []*model.Message) ([]*model.Message, error) {
+	n := len(messages)
+	if len(requestIDs) != n {
+		return nil, fmt.Errorf("mismatched slice lengths")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	withRequestIDs := make([]*MessageWithRequestID, n)
+	for i, _message := range messages {
+		withRequestIDs[i] = &MessageWithRequestID{RequestID: requestIDs[i], Message: *_message}
+	}
+	query, params := postgres.BatchInsertQuery(messageInsertPostgresQuery, withRequestIDs)
+
+	var inserted []*model.Message
 	transactionFN := func(tx postgres.Tx) error {
 		inserted = nil
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err
 		}
-		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[MessageWithRequestID])
+		upserted, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[MessageWithRequestID])
 		if err != nil {
 			return err
 		}
-		if row.RequestID != requestID {
-			return model.ErrMessageAlreadyExists
+		inserted, err = orderMessagesByRequestID(requestIDs, upserted)
+		if err != nil {
+			return err
 		}
-		inserted = &row.Message
 
 		return nil
 	}
 
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		// A replay with server-generated ids collides on request_id rather than
+		// on the primary key; return the committed batch if it is whole.
 		if postgres.IsUniqueViolation(err) {
-			rows, err := s.client.Query(ctx, messageGetByRequestIDQuery, requestID)
-			if err != nil {
-				return nil, err
+			rows, lookupErr := s.client.Query(ctx, messageGetByRequestIDsQuery, requestIDs)
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			existing, lookupErr := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
-			if lookupErr == nil {
-				return existing, nil
+			existing, lookupErr := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[MessageWithRequestID])
+			if lookupErr != nil {
+				return nil, lookupErr
 			}
-			if lookupErr == v5.ErrNoRows {
-				return nil, model.ErrMessageAlreadyExists
+			if len(existing) == n {
+				return orderMessagesByRequestID(requestIDs, existing)
 			}
+			// Not a whole replay: another unique constraint of the table fired.
+			return nil, model.ErrMessageAlreadyExists
 		}
 		return nil, err
 	}
