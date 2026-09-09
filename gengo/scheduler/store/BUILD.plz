@@ -1,0 +1,14 @@
+go_library(
+    name = "store",
+    srcs = [
+        "job_postgres.pb.go",
+        "queue.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/postgres",
+        "//go/scheduler/model",
+        "//malonaz/scheduler/v1",
+        "//third_party/go:github.com__jackc__pgx__v5",
+    ],
+)

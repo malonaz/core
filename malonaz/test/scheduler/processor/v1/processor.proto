@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package malonaz.test.scheduler.processor.v1;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/scheduler/processor/v1";
+
+// A scriptable processor the scheduler sats route jobs to. Each request type
+// is one job type, so the scheduler configuration can give each its own
+// timeout and retry policy.
+service Processor {
+  // Returns the value it was given.
+  rpc Echo(EchoRequest) returns (EchoResponse);
+
+  // Fails the first `failures` calls sharing a key, then succeeds.
+  rpc Flaky(FlakyRequest) returns (FlakyResponse);
+
+  // Sleeps for the given duration, or until the call is cancelled.
+  rpc Sleep(SleepRequest) returns (SleepResponse);
+
+  // Same as Sleep; the sats configure it with a short timeout to exercise
+  // attempt deadlines.
+  rpc Deadline(DeadlineRequest) returns (DeadlineResponse);
+
+  // Reports `steps` progress updates to the scheduler before returning.
+  rpc Progress(ProgressRequest) returns (ProgressResponse);
+
+  // Never routed: the sats configure the scheduler to ignore this job type.
+  rpc Ignored(IgnoredRequest) returns (IgnoredResponse);
+}
+
+// Request message for Processor.Echo.
+message EchoRequest {
+  // The value to echo.
+  string value = 1;
+}
+
+// Response message for Processor.Echo.
+message EchoResponse {
+  // The echoed value.
+  string value = 1;
+}
+
+// Request message for Processor.Flaky.
+message FlakyRequest {
+  // Groups calls whose failures are counted together.
+  string key = 1;
+
+  // The number of calls to fail before succeeding.
+  int32 failures = 2;
+
+  // The gRPC code failures are returned with.
+  int32 code = 3;
+}
+
+// Response message for Processor.Flaky.
+message FlakyResponse {
+  // The number of calls made with this key, including this one.
+  int32 calls = 1;
+}
+
+// Request message for Processor.Sleep.
+message SleepRequest {
+  // Groups calls for the sat's bookkeeping.
+  string key = 1;
+
+  // How long to sleep.
+  google.protobuf.Duration duration = 2;
+}
+
+// Response message for Processor.Sleep.
+message SleepResponse {}
+
+// Request message for Processor.Deadline.
+message DeadlineRequest {
+  // Groups calls for the sat's bookkeeping.
+  string key = 1;
+
+  // How long to sleep.
+  google.protobuf.Duration duration = 2;
+}
+
+// Response message for Processor.Deadline.
+message DeadlineResponse {}
+
+// Request message for Processor.Progress.
+message ProgressRequest {
+  // The number of progress updates to report.
+  int32 steps = 1;
+}
+
+// Response message for Processor.Progress.
+message ProgressResponse {}
+
+// A progress update reported to the scheduler.
+message Step {
+  // The 1-based index of the step.
+  int32 index = 1;
+}
+
+// Request message for Processor.Ignored.
+message IgnoredRequest {}
+
+// Response message for Processor.Ignored.
+message IgnoredResponse {}

@@ -1,0 +1,52 @@
+package scheduler_service
+
+import (
+	"context"
+	"fmt"
+	"github.com/malonaz/core/gengo/scheduler/scheduler_service/rpc"
+	"github.com/malonaz/core/gengo/scheduler/store"
+	"log/slog"
+)
+
+type Service struct {
+	*runtime
+	*rpc.SchedulerServiceServer
+	log                    *slog.Logger
+	opts                   *Opts
+	withServiceAccount     func(context.Context) context.Context
+	schedulerPostgresStore *store.Store
+}
+
+func (s *Service) WithLogger(logger *slog.Logger) *Service {
+	s.log = logger
+	return s
+}
+
+func New(
+	opts *Opts,
+	schedulerPostgresStore *store.Store,
+
+) (*Service, error) {
+	runtime, err := newRuntime(opts)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating runtime: %w", err)
+	}
+	return &Service{
+		runtime:                runtime,
+		SchedulerServiceServer: rpc.NewSchedulerServiceServer(schedulerPostgresStore),
+		log:                    slog.Default(),
+		opts:                   opts,
+		schedulerPostgresStore: schedulerPostgresStore,
+	}, nil
+}
+
+func (s *Service) Start(ctx context.Context, withServiceAccount func(context.Context) context.Context) (func(), error) {
+	if withServiceAccount != nil {
+		s.withServiceAccount = withServiceAccount
+		ctx = withServiceAccount(ctx)
+	}
+	if err := s.SchedulerServiceServer.Start(ctx); err != nil {
+		return nil, fmt.Errorf("starting scheduler-service server: %w", err)
+	}
+	return s.start(ctx)
+}

@@ -1,0 +1,194 @@
+syntax = "proto3";
+
+package malonaz.scheduler.scheduler_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/scheduler/v1/job.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
+
+// Request message for SchedulerService.CreateJob.
+message CreateJobRequest {
+  // The job to create. Only `payload`, `labels` and `schedule_time` are read.
+  scheduler.v1.Job job = 1 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string job_id = 2 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the job it created instead of creating another.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 4;
+}
+
+// Request message for SchedulerService.GetJob.
+message GetJobRequest {
+  // The resource name of the job to retrieve.
+  // Format: jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+}
+
+// Request message for SchedulerService.UpdateJob.
+message UpdateJobRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "schedule_time"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "job.name_required"
+    message: "job.name must be set"
+    expression: "has(this.job.name)"
+  };
+
+  // The job to update. `schedule_time` may only be updated on a PENDING job.
+  scheduler.v1.Job job = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for SchedulerService.DeleteJob.
+message DeleteJobRequest {
+  // The resource name of the job to delete.
+  // Format: jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+
+  // If true, and the job is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for SchedulerService.ListJobs.
+message ListJobsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time",
+      "schedule_time",
+      "complete_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // @autogen.
+  string filter = 1;
+
+  // @autogen.
+  string order_by = 2;
+
+  // Maximum number of jobs to return (max 1000).
+  int32 page_size = 3 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListJobs` call.
+  string page_token = 4;
+}
+
+// Response message for SchedulerService.ListJobs.
+message ListJobsResponse {
+  // The list of jobs.
+  repeated scheduler.v1.Job jobs = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// Request message for SchedulerService.BatchGetJobs.
+message BatchGetJobsRequest {
+  // The resource names of the jobs to retrieve.
+  // Format: jobs/{job}
+  // A maximum of 1000 jobs can be retrieved in a batch.
+  repeated string names = 1 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+}
+
+// Response message for SchedulerService.BatchGetJobs.
+message BatchGetJobsResponse {
+  // Jobs requested.
+  repeated scheduler.v1.Job jobs = 1;
+}
+
+// Request message for SchedulerService.RetryJob.
+message RetryJobRequest {
+  // The resource name of the job to retry.
+  // Format: jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+}
+
+// Request message for SchedulerService.CancelJob.
+message CancelJobRequest {
+  // The resource name of the job to cancel.
+  // Format: jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+}
+
+// Request message for SchedulerService.ReportJobProgress.
+message ReportJobProgressRequest {
+  // The resource name of the running job.
+  // Format: jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+
+  // The progress to record, replacing any previously reported progress.
+  google.protobuf.Any progress = 2 [(buf.validate.field).required = true];
+}

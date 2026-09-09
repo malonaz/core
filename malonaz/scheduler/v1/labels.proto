@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package malonaz.scheduler.v1;
+
+import "malonaz/codegen/aip/v1/label.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+option (malonaz.codegen.aip.v1.label) = {
+  key: "scheduler.malonaz.com/retried"
+  values: ["true"]
+  description: "Set by RetryJob when a terminal job is manually returned to PENDING. Distinguishes operator intervention from the scheduler's own attempt retries, which never set it. Filter `labels.\"scheduler.malonaz.com/retried\" = \"true\"` lists every job that needed a hand."
+};
