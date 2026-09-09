@@ -33,6 +33,7 @@ const (
 
 	StandardMethodTypeUnspecified StandardMethodType = ""
 	StandardMethodTypeCreate      StandardMethodType = "Create"
+	StandardMethodTypeBatchCreate StandardMethodType = "BatchCreate"
 	StandardMethodTypeGet         StandardMethodType = "Get"
 	StandardMethodTypeBatchGet    StandardMethodType = "BatchGet"
 	StandardMethodTypeUpdate      StandardMethodType = "Update"
@@ -427,6 +428,8 @@ func (s *Schema) buildStandardMethodTypes() error {
 				switch methodName {
 				case string(StandardMethodTypeCreate) + singular:
 					methodType = StandardMethodTypeCreate
+				case string(StandardMethodTypeBatchCreate) + plural:
+					methodType = StandardMethodTypeBatchCreate
 				case string(StandardMethodTypeGet) + singular:
 					methodType = StandardMethodTypeGet
 				case string(StandardMethodTypeBatchGet) + plural:
