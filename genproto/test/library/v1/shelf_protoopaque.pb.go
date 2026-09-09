@@ -936,7 +936,8 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x17SHELF_GENRE_NON_FICTION\x10\x02\x12\x1f\n" +
 	"\x1bSHELF_GENRE_SCIENCE_FICTION\x10\x03\x12\x17\n" +
 	"\x13SHELF_GENRE_HISTORY\x10\x04\x12\x19\n" +
-	"\x15SHELF_GENRE_BIOGRAPHY\x10\x05B2Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\x15SHELF_GENRE_BIOGRAPHY\x10\x05B\xa6\x01\xeaAq\n" +
+	"!library.test.malonaz.com/ShelfTag\x127organizations/{organization}/shelves/{shelf}/tags/{tag}*\tshelfTags2\bshelfTagZ0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
 var file_malonaz_test_library_v1_shelf_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_test_library_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 7)

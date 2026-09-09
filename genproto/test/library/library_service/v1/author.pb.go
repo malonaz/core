@@ -335,7 +335,10 @@ type DeleteAuthorRequest struct {
 	// but no action will be taken on the server.
 	AllowMissing bool `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
 	// If set, the request will only succeed if the current etag matches this value.
-	Etag          string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	Etag string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	// If true, any notes under this author are deleted too.
+	// Otherwise the request fails if the author has any.
+	Force         bool `protobuf:"varint,4,opt,name=force,proto3" json:"force,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -386,6 +389,13 @@ func (x *DeleteAuthorRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteAuthorRequest) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
 func (x *DeleteAuthorRequest) SetName(v string) {
 	x.Name = v
 }
@@ -396,6 +406,10 @@ func (x *DeleteAuthorRequest) SetAllowMissing(v bool) {
 
 func (x *DeleteAuthorRequest) SetEtag(v string) {
 	x.Etag = v
+}
+
+func (x *DeleteAuthorRequest) SetForce(v bool) {
+	x.Force = v
 }
 
 type DeleteAuthorRequest_builder struct {
@@ -409,6 +423,9 @@ type DeleteAuthorRequest_builder struct {
 	AllowMissing bool
 	// If set, the request will only succeed if the current etag matches this value.
 	Etag string
+	// If true, any notes under this author are deleted too.
+	// Otherwise the request fails if the author has any.
+	Force bool
 }
 
 func (b0 DeleteAuthorRequest_builder) Build() *DeleteAuthorRequest {
@@ -418,6 +435,7 @@ func (b0 DeleteAuthorRequest_builder) Build() *DeleteAuthorRequest {
 	x.Name = b.Name
 	x.AllowMissing = b.AllowMissing
 	x.Etag = b.Etag
+	x.Force = b.Force
 	return m0
 }
 
@@ -1059,12 +1077,13 @@ const file_malonaz_test_library_library_service_v1_author_proto_rawDesc = "" +
 	"\remail_address\n" +
 	"\fphone_number\n" +
 	"\x06labels\n" +
-	"\bmetadata\"\x91\x01\n" +
+	"\bmetadata\"\xa7\x01\n" +
 	"\x13DeleteAuthorRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xcc\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\x12\x14\n" +
+	"\x05force\x18\x04 \x01(\bR\x05force\"\xcc\x02\n" +
 	"\x12ListAuthorsRequest\x12K\n" +
 	"\x06parent\x18\x01 \x01(\tB3\xe0A\x02\xfaA'\n" +
 	"%library.test.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +

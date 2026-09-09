@@ -5,6 +5,7 @@ go_test(
         "author_test.go",
         "batch_get_test.go",
         "book_test.go",
+        "cascade_delete_test.go",
         "create_test.go",
         "delete_test.go",
         "etag_test.go",

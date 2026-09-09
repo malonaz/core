@@ -143,23 +143,12 @@ func (gen *generator) modelIdent(name string) string {
 // childCtx precomputes the codegen inputs for a persisted singleton child.
 type childCtx struct {
 	schema.SingletonChild
-	goType           string // Go type of the child model.
-	paramName        string // Go parameter name for the child model.
-	tableName        string // Qualified table name.
-	placeholderDecls string // WHERE conditions binding the child to its parent's identifiers.
-	writeColumnsVar  string // Columns var to use when the child has joined columns; empty otherwise.
+	goType          string // Go type of the child model.
+	paramName       string // Go parameter name for the child model.
+	writeColumnsVar string // Columns var to use when the child has joined columns; empty otherwise.
 }
 
 func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error) {
-	bindings, err := schema.ColumnBindings(child.Pattern, child.ModelOpts)
-	if err != nil {
-		return nil, err
-	}
-	conditions := make([]string, len(bindings))
-	for i, binding := range bindings {
-		conditions[i] = fmt.Sprintf("%s = $%d", binding.Column, i+1)
-	}
-
 	joins, err := schema.ParseJoins(child.Message)
 	if err != nil {
 		return nil, fmt.Errorf("parsing joins for singleton child %s: %w", child.Message.GoIdent.GoName, err)
@@ -170,12 +159,35 @@ func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error
 	}
 
 	return &childCtx{
-		SingletonChild:   child,
-		goType:           child.Message.GoIdent.GoName,
-		paramName:        untitle(xstrings.ToCamelCase(child.Resource.Desc.Singular)),
-		tableName:        child.Table().Qualified(),
-		placeholderDecls: strings.Join(conditions, " AND "),
-		writeColumnsVar:  writeColumnsVar,
+		SingletonChild:  child,
+		goType:          child.Message.GoIdent.GoName,
+		paramName:       untitle(xstrings.ToCamelCase(child.Resource.Desc.Singular)),
+		writeColumnsVar: writeColumnsVar,
+	}, nil
+}
+
+// descendantCtx precomputes the codegen inputs for a persisted descendant.
+type descendantCtx struct {
+	schema.Descendant
+	tableName string
+	// whereClause binds the descendant to the deleted resource's identifiers,
+	// which prefix its own, as $1..$N in the resource's identifier order.
+	whereClause string
+}
+
+func newDescendantCtx(descendant schema.Descendant, parentBindings []schema.ColumnBinding) (*descendantCtx, error) {
+	bindings, err := schema.ColumnBindings(descendant.Pattern, descendant.ModelOpts)
+	if err != nil {
+		return nil, err
+	}
+	conditions := make([]string, len(parentBindings))
+	for i := range parentBindings {
+		conditions[i] = fmt.Sprintf("%s = $%d", bindings[i].Column, i+1)
+	}
+	return &descendantCtx{
+		Descendant:  descendant,
+		tableName:   descendant.Table().Qualified(),
+		whereClause: strings.Join(conditions, " AND "),
 	}, nil
 }
 
@@ -199,6 +211,7 @@ type msgCtx struct {
 	errAlreadyExists  string
 	errAlreadyDeleted string
 	errETagChanged    string
+	errHasChildren    string
 
 	columnBindings   []schema.ColumnBinding
 	parentBindings   []schema.ColumnBinding
@@ -213,6 +226,10 @@ type msgCtx struct {
 	hasDeleteTime bool
 
 	singletonChildren []*childCtx
+	// descendants are deleted alongside the resource, deepest first.
+	descendants []*descendantCtx
+	// gated is true when live descendants block deletion unless forced.
+	gated bool
 
 	hasJoins bool
 	joins    []schema.Join
@@ -271,6 +288,19 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		singletonChildren = append(singletonChildren, cc)
 	}
 
+	allDescendants, err := schema.Descendants(message, pr)
+	if err != nil {
+		return nil, err
+	}
+	descendants := make([]*descendantCtx, 0, len(allDescendants))
+	for _, descendant := range allDescendants {
+		dc, err := newDescendantCtx(descendant, bindings)
+		if err != nil {
+			return nil, err
+		}
+		descendants = append(descendants, dc)
+	}
+
 	joins, err := schema.ParseJoins(message)
 	if err != nil {
 		return nil, fmt.Errorf("parsing joins for %s: %w", goType, err)
@@ -281,8 +311,8 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		if hasJoins {
 			return nil, fmt.Errorf("multi-pattern resource %s cannot declare joins", goType)
 		}
-		if len(singletonChildren) > 0 {
-			return nil, fmt.Errorf("multi-pattern resource %s cannot have singleton children", goType)
+		if len(descendants) > 0 {
+			return nil, fmt.Errorf("multi-pattern resource %s cannot have descendants", goType)
 		}
 	}
 
@@ -310,6 +340,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		errAlreadyExists:  gen.modelIdent("Err" + goType + "AlreadyExists"),
 		errAlreadyDeleted: gen.modelIdent("Err" + goType + "AlreadyDeleted"),
 		errETagChanged:    gen.modelIdent("Err" + goType + "ETagChanged"),
+		errHasChildren:    gen.modelIdent("Err" + goType + "HasChildren"),
 
 		columnBindings:   bindings,
 		parentBindings:   parentBindings,
@@ -324,6 +355,8 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
 
 		singletonChildren: singletonChildren,
+		descendants:       descendants,
+		gated:             schema.AnyGating(allDescendants),
 
 		hasJoins:         hasJoins,
 		joins:            joins,

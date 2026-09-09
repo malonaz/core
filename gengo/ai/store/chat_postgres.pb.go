@@ -163,42 +163,66 @@ type softDeleteChatResult struct {
 	model.Chat
 }
 
-func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, deleteTime time.Time) (*model.Chat, error) {
+func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Chat, error) {
 	query := softDeleteChatPostgresQuery
 	params := []any{organizationId, userId, chatId, deleteTime, newEtag}
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
 	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting chat: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteChatResult])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			if etag != "" {
-				currentEtag, getEtagErr := s.getChatETag(ctx, organizationId, userId, chatId)
-				switch getEtagErr {
-				case nil:
-					if currentEtag == etag {
-						return nil, fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
-					}
-					return nil, model.ErrChatETagChanged
-				case v5.ErrNoRows:
-					return nil, model.ErrChatNotExist
-				default:
-					return nil, fmt.Errorf("getting etag: %v", getEtagErr)
-				}
-			}
-			return nil, model.ErrChatNotExist
+	var result *model.Chat
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("soft deleting chat: %w", err)
 		}
+		row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[softDeleteChatResult])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				if etag != "" {
+					currentEtag, getEtagErr := s.getChatETag(ctx, organizationId, userId, chatId)
+					switch getEtagErr {
+					case nil:
+						if currentEtag == etag {
+							return fmt.Errorf("soft delete matched no rows but etag unchanged: expected etag mismatch")
+						}
+						return model.ErrChatETagChanged
+					case v5.ErrNoRows:
+						return model.ErrChatNotExist
+					default:
+						return fmt.Errorf("getting etag: %v", getEtagErr)
+					}
+				}
+				return model.ErrChatNotExist
+			}
+			return err
+		}
+		if row.WasAlreadyDeleted {
+			return model.ErrChatAlreadyDeleted
+		}
+		result = &row.Chat
+
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM message WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND delete_time IS NULL)`, organizationId, userId, chatId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking chat children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrChatHasChildren
+			}
+		}
+		if _, err := tx.Exec(ctx, `UPDATE message SET delete_time = COALESCE(delete_time, $4) WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`, organizationId, userId, chatId, deleteTime); err != nil {
+			return fmt.Errorf("cascading chat delete to message: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	if row.WasAlreadyDeleted {
-		return nil, model.ErrChatAlreadyDeleted
-	}
-	return &row.Chat, nil
+	return result, nil
 }
 
 func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error) {

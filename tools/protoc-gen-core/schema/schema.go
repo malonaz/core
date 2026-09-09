@@ -708,11 +708,6 @@ type SingletonChild struct {
 	ModelOpts *modelpb.ModelOpts
 }
 
-// Table resolves the child's table.
-func (c SingletonChild) Table() Table {
-	return TableOf(c.Resource, c.ModelOpts)
-}
-
 // SingletonChildren returns the persisted singleton children of a resource.
 // Children without model options are not persisted and are skipped; any other
 // resolution failure — or a soft-deletability mismatch with the parent — is an error.

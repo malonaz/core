@@ -63,7 +63,7 @@ func (s *UserServiceServer) Start(ctx context.Context) error {
 type userService_OrganizationStore interface {
 	InsertOrganizationIdempotently(ctx context.Context, requestID string, organization *model.Organization) (*model.Organization, error)
 	UpdateOrganization(ctx context.Context, organization *model.Organization, updateClause string, columns []string, etag string) (*model.Organization, error)
-	SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, deleteTime time.Time) (*model.Organization, error)
+	SoftDeleteOrganization(ctx context.Context, organizationId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Organization, error)
 	GetOrganization(ctx context.Context, organizationId string) (*model.Organization, error)
 	BatchGetOrganizations(ctx context.Context, organizationIds []string) ([]*model.Organization, error)
 	ListOrganizations(ctx context.Context, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Organization, error)
@@ -314,10 +314,13 @@ func (s *userService_OrganizationServer) DeleteOrganization(ctx context.Context,
 	}
 
 	// STEP 2: Soft delete the resource.
-	dbOrganizationModel, err := s.store.SoftDeleteOrganization(ctx, organizationId, request.GetEtag(), newEtag, deleteTime)
+	dbOrganizationModel, err := s.store.SoftDeleteOrganization(ctx, organizationId, request.GetEtag(), newEtag, request.GetForce(), deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrOrganizationNotExist) {
 			return nil, status.Errorf(codes.NotFound, "organization does not exist").Err()
+		}
+		if errors.Is(err, model.ErrOrganizationHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "organization has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrOrganizationETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()

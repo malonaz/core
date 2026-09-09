@@ -16,6 +16,7 @@ import (
 var ErrUserProfileAlreadyExists = errors.New("user_profile already exists")
 var ErrUserProfileNotExist = errors.New("user_profile does not exist")
 var ErrUserProfileAlreadyDeleted = errors.New("user_profile already deleted")
+var ErrUserProfileHasChildren = errors.New("user_profile has child resources")
 var ErrUserProfileETagChanged = errors.New("user_profile etag changed")
 
 type UserProfile struct {

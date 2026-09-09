@@ -180,7 +180,7 @@ type softDeleteAuthorResult struct {
 	model.Author
 }
 
-func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, deleteTime time.Time) (*model.Author, error) {
+func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error) {
 	query := softDeleteAuthorPostgresQuery
 	params := []any{organizationId, authorId, deleteTime, newEtag}
 	if etag != "" {
@@ -220,9 +220,22 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 		}
 		result = &row.Author
 
-		if _, err := tx.Exec(ctx, `UPDATE library.author_profile SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND author_id = $2`, organizationId, authorId, deleteTime); err != nil {
-			return fmt.Errorf("soft deleting singleton child AuthorProfile: %w", err)
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM library.note WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NULL)`, organizationId, authorId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking author children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrAuthorHasChildren
+			}
 		}
+		if _, err := tx.Exec(ctx, `UPDATE library.author_profile SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND author_id = $2`, organizationId, authorId, deleteTime); err != nil {
+			return fmt.Errorf("cascading author delete to library.author_profile: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `UPDATE library.note SET delete_time = COALESCE(delete_time, $3) WHERE organization_id = $1 AND author_id = $2`, organizationId, authorId, deleteTime); err != nil {
+			return fmt.Errorf("cascading author delete to library.note: %w", err)
+		}
+
 		return nil
 	}
 

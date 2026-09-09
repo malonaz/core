@@ -171,7 +171,7 @@ func (s *Store) UpdateBook(ctx context.Context, _book *model.Book, updateClause 
 var deleteBookPostgresQuery = `DELETE FROM library.book WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 RETURNING ` +
 	postgres.SelectQuery("%s", BookWritePostgresColumns) + bookJoinSubqueryExpr
 
-func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string) (*model.Book, error) {
+func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId string, etag string, force bool) (*model.Book, error) {
 	query := deleteBookPostgresQuery
 	params := []any{organizationId, shelfId, bookId}
 	if etag != "" {
@@ -181,9 +181,22 @@ func (s *Store) DeleteBook(ctx context.Context, organizationId, shelfId, bookId 
 	var deleted *model.Book
 	transactionFN := func(tx postgres.Tx) error {
 		deleted = nil
-		if _, err := tx.Exec(ctx, `DELETE FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`, organizationId, shelfId, bookId); err != nil {
-			return fmt.Errorf("deleting singleton child BookReview: %w", err)
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3 AND delete_time IS NULL)`, organizationId, shelfId, bookId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking book children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrBookHasChildren
+			}
 		}
+		if _, err := tx.Exec(ctx, `DELETE FROM library.book_review WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`, organizationId, shelfId, bookId); err != nil {
+			return fmt.Errorf("cascading book delete to library.book_review: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM library.bookmark WHERE organization_id = $1 AND shelf_id = $2 AND book_id = $3`, organizationId, shelfId, bookId); err != nil {
+			return fmt.Errorf("cascading book delete to library.bookmark: %w", err)
+		}
+
 		rows, err := tx.Query(ctx, query, params...)
 		if err != nil {
 			return err

@@ -100,6 +100,10 @@ message DeleteBookRequest {
 
   // If set, the request will only succeed if the current etag matches this value.
   string etag = 3;
+
+  // If true, any bookmarks under this book are deleted too.
+  // Otherwise the request fails if the book has any.
+  bool force = 4;
 }
 
 // Request message for LibraryService.SearchBooks.

@@ -12,6 +12,10 @@ func (mc *methodCtx) generateDelete() error {
 	method := mc.mi.method
 	resourceGoName := mc.resourceGoName
 
+	if mc.gated && method.Input.Desc.Fields().ByName("force") == nil {
+		return fmt.Errorf("%s has child resources: %s must declare `bool force` (AIP-135)", mc.pr.Desc.Type, method.Input.Desc.FullName())
+	}
+
 	// Publish helper for deleted events.
 	if mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0 {
 		mc.generateDeletedEventPublisher()
@@ -80,6 +84,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	if mc.hasEtag {
 		deleteArgs += ", request.GetEtag(), newEtag"
 	}
+	deleteArgs += mc.forceArg()
 	deleteArgs += ", deleteTime"
 	g.P(fmt.Sprintf("  db%s, err := s.store.SoftDelete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))
 	g.P("  if err != nil {")
@@ -87,6 +92,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
 		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
 	g.P("    }")
+	mc.generateHasChildrenCheck()
 	if mc.hasEtag {
 		g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errEtagChanged))
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"ETag changed\").Err()",
@@ -152,6 +158,7 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	if mc.hasEtag {
 		deleteArgs += ", request.GetEtag()"
 	}
+	deleteArgs += mc.forceArg()
 
 	if hasDeletedEvents {
 		g.P(fmt.Sprintf("  db%s, err := s.store.Delete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))
@@ -166,6 +173,7 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
 		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
 	g.P("    }")
+	mc.generateHasChildrenCheck()
 	if mc.hasEtag {
 		g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errEtagChanged))
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"ETag changed\").Err()",
@@ -191,6 +199,25 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	}
 
 	g.P(fmt.Sprintf("  return &%s{}, nil", mc.gen.ident(emptypbPkg, "Empty")))
+}
+
+// forceArg forwards the request's AIP-135 force flag to a gated store delete.
+func (mc *methodCtx) forceArg() string {
+	if !mc.gated {
+		return ""
+	}
+	return ", request.GetForce()"
+}
+
+func (mc *methodCtx) generateHasChildrenCheck() {
+	if !mc.gated {
+		return
+	}
+	g := mc.g
+	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errHasChildren))
+	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s has child resources; set force to delete them too\").Err()",
+		mc.statusErrorf(), mc.codes("FailedPrecondition"), mc.pr.Desc.Singular))
+	g.P("    }")
 }
 
 func (mc *methodCtx) generateDeletedEventPublisher() {

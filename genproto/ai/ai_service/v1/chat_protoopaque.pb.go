@@ -323,6 +323,7 @@ type DeleteChatRequest struct {
 	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_AllowMissing bool                   `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3"`
 	xxx_hidden_Etag         string                 `protobuf:"bytes,3,opt,name=etag,proto3"`
+	xxx_hidden_Force        bool                   `protobuf:"varint,4,opt,name=force,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -373,6 +374,13 @@ func (x *DeleteChatRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteChatRequest) GetForce() bool {
+	if x != nil {
+		return x.xxx_hidden_Force
+	}
+	return false
+}
+
 func (x *DeleteChatRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -383,6 +391,10 @@ func (x *DeleteChatRequest) SetAllowMissing(v bool) {
 
 func (x *DeleteChatRequest) SetEtag(v string) {
 	x.xxx_hidden_Etag = v
+}
+
+func (x *DeleteChatRequest) SetForce(v bool) {
+	x.xxx_hidden_Force = v
 }
 
 type DeleteChatRequest_builder struct {
@@ -397,6 +409,9 @@ type DeleteChatRequest_builder struct {
 	// If set, the request will only succeed if the current etag matches this value.
 	// This ensures the client has an up-to-date value before proceeding with deletion.
 	Etag string
+	// If true, any messages under this chat are deleted too.
+	// Otherwise the request fails if the chat has any.
+	Force bool
 }
 
 func (b0 DeleteChatRequest_builder) Build() *DeleteChatRequest {
@@ -406,6 +421,7 @@ func (b0 DeleteChatRequest_builder) Build() *DeleteChatRequest {
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_AllowMissing = b.AllowMissing
 	x.xxx_hidden_Etag = b.Etag
+	x.xxx_hidden_Force = b.Force
 	return m0
 }
 
@@ -786,12 +802,13 @@ const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\x05title\n" +
 	"\vannotations\n" +
 	"\x05price\n" +
-	"\x11last_user_message\"\x83\x01\n" +
+	"\x11last_user_message\"\x99\x01\n" +
 	"\x11DeleteChatRequest\x125\n" +
 	"\x04name\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xa9\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\x12\x14\n" +
+	"\x05force\x18\x04 \x01(\bR\x05force\"\xa9\x02\n" +
 	"\x10ListChatsRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +

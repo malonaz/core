@@ -17,6 +17,7 @@ import (
 var ErrShelfAlreadyExists = errors.New("shelf already exists")
 var ErrShelfNotExist = errors.New("shelf does not exist")
 var ErrShelfAlreadyDeleted = errors.New("shelf already deleted")
+var ErrShelfHasChildren = errors.New("shelf has child resources")
 
 type Shelf struct {
 	OrganizationID    string         `db:"organization_id" schema:"library" table:"shelf"`

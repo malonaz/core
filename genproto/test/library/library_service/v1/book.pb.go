@@ -351,7 +351,10 @@ type DeleteBookRequest struct {
 	// but no action will be taken on the server.
 	AllowMissing bool `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
 	// If set, the request will only succeed if the current etag matches this value.
-	Etag          string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	Etag string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	// If true, any bookmarks under this book are deleted too.
+	// Otherwise the request fails if the book has any.
+	Force         bool `protobuf:"varint,4,opt,name=force,proto3" json:"force,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -402,6 +405,13 @@ func (x *DeleteBookRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteBookRequest) GetForce() bool {
+	if x != nil {
+		return x.Force
+	}
+	return false
+}
+
 func (x *DeleteBookRequest) SetName(v string) {
 	x.Name = v
 }
@@ -412,6 +422,10 @@ func (x *DeleteBookRequest) SetAllowMissing(v bool) {
 
 func (x *DeleteBookRequest) SetEtag(v string) {
 	x.Etag = v
+}
+
+func (x *DeleteBookRequest) SetForce(v bool) {
+	x.Force = v
 }
 
 type DeleteBookRequest_builder struct {
@@ -425,6 +439,9 @@ type DeleteBookRequest_builder struct {
 	AllowMissing bool
 	// If set, the request will only succeed if the current etag matches this value.
 	Etag string
+	// If true, any bookmarks under this book are deleted too.
+	// Otherwise the request fails if the book has any.
+	Force bool
 }
 
 func (b0 DeleteBookRequest_builder) Build() *DeleteBookRequest {
@@ -434,6 +451,7 @@ func (b0 DeleteBookRequest_builder) Build() *DeleteBookRequest {
 	x.Name = b.Name
 	x.AllowMissing = b.AllowMissing
 	x.Etag = b.Etag
+	x.Force = b.Force
 	return m0
 }
 
@@ -1045,12 +1063,13 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x10publication_year\n" +
 	"\n" +
 	"page_count\n" +
-	"\bmetadata\"\x8d\x01\n" +
+	"\bmetadata\"\xa3\x01\n" +
 	"\x11DeleteBookRequest\x12?\n" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x97\x02\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\x12\x14\n" +
+	"\x05force\x18\x04 \x01(\bR\x05force\"\x97\x02\n" +
 	"\x12SearchBooksRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +

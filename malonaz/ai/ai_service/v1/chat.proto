@@ -99,6 +99,10 @@ message DeleteChatRequest {
   // If set, the request will only succeed if the current etag matches this value.
   // This ensures the client has an up-to-date value before proceeding with deletion.
   string etag = 3;
+
+  // If true, any messages under this chat are deleted too.
+  // Otherwise the request fails if the chat has any.
+  bool force = 4;
 }
 
 // Request message for AiService.ListChats.
