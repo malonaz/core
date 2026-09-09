@@ -173,13 +173,26 @@ func jobType(message proto.Message) string {
 	return payload.GetTypeUrl()
 }
 
+// createJob creates a system job (no parent).
 func createJob(t *testing.T, message proto.Message, options ...scheduler.CreateJobOption) *schedulerpb.Job {
 	t.Helper()
-	createJobRequest, err := scheduler.NewCreateJobRequest(message, options...)
+	return createJobUnder(t, "", message, options...)
+}
+
+func createJobUnder(t *testing.T, parent string, message proto.Message, options ...scheduler.CreateJobOption) *schedulerpb.Job {
+	t.Helper()
+	createJobRequest, err := scheduler.NewCreateJobRequest(parent, message, options...)
 	require.NoError(t, err)
 	job, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
 	return job
+}
+
+func cancelJob(t *testing.T, name string) {
+	t.Helper()
+	cancelJobRequest := &schedulerservicepb.CancelJobRequest{Name: name}
+	_, err := schedulerServiceClient.CancelJob(ctx, cancelJobRequest)
+	require.NoError(t, err)
 }
 
 func getJob(t *testing.T, name string) *schedulerpb.Job {

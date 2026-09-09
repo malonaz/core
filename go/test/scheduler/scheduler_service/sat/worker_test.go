@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
@@ -32,7 +34,7 @@ func TestProcess_Succeeds(t *testing.T) {
 	require.NotNil(t, job.GetStartTime())
 	require.NotNil(t, job.GetCompleteTime())
 	require.False(t, job.GetCompleteTime().AsTime().Before(job.GetStartTime().AsTime()))
-	require.NotNil(t, job.GetExpireTime(), "retention stamps terminal jobs")
+	require.NotNil(t, job.GetPurgeTime(), "retention stamps terminal jobs")
 	require.NotEqual(t, created.GetEtag(), job.GetEtag())
 
 	// The response is stored under the configured type.
@@ -196,6 +198,13 @@ func TestProcess_LapsedLeaseIsReaped(t *testing.T) {
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
 	require.Equal(t, int32(2), job.GetAttemptCount(), "the reaped attempt counts")
 	require.Len(t, testProcessor.calls(value), 1)
+
+	// The history shows the lapsed attempt, then the successful one.
+	attempts := job.GetMetadata().GetAttempts()
+	require.Len(t, attempts, 2)
+	require.Equal(t, int32(codes.Unavailable), attempts[0].GetError().GetCode())
+	require.Equal(t, "lease lapsed", attempts[0].GetError().GetMessage())
+	require.Nil(t, attempts[1].GetError())
 }
 
 func TestCancelJob(t *testing.T) {
@@ -210,7 +219,7 @@ func TestCancelJob(t *testing.T) {
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_CANCELLED, cancelled.GetState())
 		require.Equal(t, int32(codes.Canceled), cancelled.GetError().GetCode())
 		require.NotNil(t, cancelled.GetCompleteTime())
-		require.NotNil(t, cancelled.GetExpireTime())
+		require.NotNil(t, cancelled.GetPurgeTime())
 		grpcrequire.Equal(t, cancelled, getJob(t, created.GetName()))
 
 		// Terminal: cancelling again is refused.
@@ -265,7 +274,7 @@ func TestRetryJob(t *testing.T) {
 		require.Zero(t, retried.GetAttemptCount())
 		require.Nil(t, retried.GetError())
 		require.Nil(t, retried.GetCompleteTime())
-		require.Nil(t, retried.GetExpireTime())
+		require.Nil(t, retried.GetPurgeTime())
 		require.Nil(t, retried.GetStartTime())
 		require.Equal(t, schedulerpb.Labels.Retried.True, retried.GetLabels()[schedulerpb.Labels.Retried.GetKey()])
 
@@ -377,7 +386,7 @@ func TestProcess_UnknownJobTypeFails(t *testing.T) {
 	require.Contains(t, job.GetError().GetMessage(), "no configuration for job type")
 }
 
-func TestRetention_SweepsExpiredJobs(t *testing.T) {
+func TestRetention_PurgesJobs(t *testing.T) {
 	t.Parallel()
 	value := uuid.MustNewV7().String()
 	created := createJob(t, &processorpb.EchoRequest{Value: value})
@@ -385,7 +394,7 @@ func TestRetention_SweepsExpiredJobs(t *testing.T) {
 
 	postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
 	require.NoError(t, err)
-	_, err = postgresClient.Exec(ctx, "UPDATE job SET expire_time = $2 WHERE job_id = $1",
+	_, err = postgresClient.Exec(ctx, "UPDATE job SET purge_time = $2 WHERE job_id = $1",
 		created.GetName()[len("jobs/"):], time.Now().UTC().Add(-time.Minute))
 	require.NoError(t, err)
 
@@ -393,4 +402,119 @@ func TestRetention_SweepsExpiredJobs(t *testing.T) {
 		_, err := schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: created.GetName()})
 		return err != nil && codes.NotFound == grpcCode(err)
 	}, waitTimeout, 50*time.Millisecond)
+}
+
+func TestProcess_ExpireTime(t *testing.T) {
+	t.Parallel()
+
+	t.Run("pending job past its expiry fails", func(t *testing.T) {
+		t.Parallel()
+		// Already past: never claimable, so the reaper fails it without a processor call.
+		value := uuid.MustNewV7().String()
+		created := createJob(t, &processorpb.EchoRequest{Value: value}, scheduler.WithExpireTime(time.Now().Add(-time.Second)))
+		job := waitForTerminal(t, created.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
+		require.Equal(t, int32(codes.DeadlineExceeded), job.GetError().GetCode())
+		require.Contains(t, job.GetError().GetMessage(), "expired before starting")
+		require.Zero(t, job.GetAttemptCount())
+		require.NotNil(t, job.GetCompleteTime())
+		require.NotNil(t, job.GetPurgeTime())
+		require.Empty(t, testProcessor.calls(value))
+
+		// A retry drops the expiry, so the job now runs.
+		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
+		require.NoError(t, err)
+		require.Nil(t, retried.GetExpireTime())
+		job = waitForTerminal(t, created.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
+		require.Len(t, testProcessor.calls(value), 1)
+	})
+
+	t.Run("must follow schedule_time", func(t *testing.T) {
+		t.Parallel()
+		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"},
+			scheduler.WithScheduleTime(farFuture), scheduler.WithExpireTime(farFuture.Add(-time.Minute)))
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+
+		// Rescheduling past it is refused too.
+		job := createJob(t, &processorpb.EchoRequest{Value: "x"}, scheduler.WithScheduleTime(farFuture), scheduler.WithExpireTime(farFuture.Add(time.Minute)))
+		updateJobRequest := &schedulerservicepb.UpdateJobRequest{
+			Job:        &schedulerpb.Job{Name: job.GetName(), ScheduleTime: timestamppb.New(farFuture.Add(time.Hour))},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"schedule_time"}},
+		}
+		_, err = schedulerServiceClient.UpdateJob(ctx, updateJobRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("retry past the expiry fails at once", func(t *testing.T) {
+		t.Parallel()
+		// The attempt times out at 1s and the retry would wait another 200ms:
+		// an expiry 1.2s out is never reachable by the second attempt.
+		key := uuid.MustNewV7().String()
+		expireTime := time.Now().Add(deadlineTimeout + 200*time.Millisecond)
+		created := createJob(t, &processorpb.DeadlineRequest{Key: key, Duration: durationpb.New(sleepTimeout)}, scheduler.WithExpireTime(expireTime))
+
+		job := waitForTerminal(t, created.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
+		require.Equal(t, int32(1), job.GetAttemptCount(), "no second attempt is scheduled")
+		require.Equal(t, int32(codes.DeadlineExceeded), job.GetError().GetCode())
+		require.Len(t, testProcessor.calls(key), 1)
+		require.Len(t, job.GetMetadata().GetAttempts(), 1)
+		// Failed as soon as the attempt ended, not after waiting out a backoff.
+		require.Less(t, job.GetCompleteTime().AsTime().Sub(job.GetStartTime().AsTime()), deadlineTimeout+500*time.Millisecond)
+	})
+}
+
+func TestProcess_Metadata(t *testing.T) {
+	t.Parallel()
+
+	t.Run("attempt history", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		created := createJob(t, &processorpb.FlakyRequest{Key: key, Failures: 2, Code: int32(codes.Internal)})
+		require.Nil(t, created.GetMetadata())
+
+		job := waitForTerminal(t, created.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
+		require.Empty(t, job.GetMetadata().GetWorker(), "the worker is released with the job")
+		attempts := job.GetMetadata().GetAttempts()
+		require.Len(t, attempts, 3)
+		for i, attempt := range attempts {
+			require.Equal(t, int32(i+1), attempt.GetAttempt())
+			require.NotEmpty(t, attempt.GetWorker())
+			require.False(t, attempt.GetEndTime().AsTime().Before(attempt.GetStartTime().AsTime()))
+			if i > 0 {
+				require.True(t, attempt.GetStartTime().AsTime().After(attempts[i-1].GetStartTime().AsTime()))
+			}
+		}
+		require.Equal(t, int32(codes.Internal), attempts[0].GetError().GetCode())
+		require.Contains(t, attempts[0].GetError().GetMessage(), "flaky failure 1/2")
+		require.Equal(t, int32(codes.Internal), attempts[1].GetError().GetCode())
+		require.Nil(t, attempts[2].GetError())
+		require.True(t, attempts[2].GetStartTime().AsTime().Equal(job.GetStartTime().AsTime()))
+
+		// RetryJob wipes the history.
+		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
+		require.NoError(t, err)
+		require.Nil(t, retried.GetMetadata())
+		waitForTerminal(t, created.GetName())
+	})
+
+	t.Run("worker is recorded while running", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		created := createJob(t, &processorpb.SleepRequest{Key: key, Duration: durationpb.New(sleepTimeout)})
+		running := waitForState(t, created.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
+		require.NotEmpty(t, running.GetMetadata().GetWorker())
+		require.Empty(t, running.GetMetadata().GetAttempts(), "an attempt is recorded once it ends")
+
+		cancelled, err := schedulerServiceClient.CancelJob(ctx, &schedulerservicepb.CancelJobRequest{Name: created.GetName()})
+		require.NoError(t, err)
+		require.Empty(t, cancelled.GetMetadata().GetWorker())
+		require.Len(t, cancelled.GetMetadata().GetAttempts(), 1)
+		require.Equal(t, int32(codes.Canceled), cancelled.GetMetadata().GetAttempts()[0].GetError().GetCode())
+		require.Equal(t, running.GetMetadata().GetWorker(), cancelled.GetMetadata().GetAttempts()[0].GetWorker())
+	})
 }
