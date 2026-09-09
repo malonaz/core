@@ -3,8 +3,6 @@ go_library(
     srcs = ["scheduler.go"],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/aip",
-        "//go/uuid",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:google.golang.org__grpc__metadata",

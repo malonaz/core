@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -13,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
+	"github.com/malonaz/core/gengo/scheduler/store"
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
@@ -36,7 +38,12 @@ func isTerminal(state schedulerpb.JobState) bool {
 	return false
 }
 
-// CreateJob accepts only the producer-owned fields and stamps the job type.
+// uniqueKeyCreateAttempts bounds the passes a keyed create makes when the
+// key's PENDING job keeps being claimed between the lookup and the insert.
+const uniqueKeyCreateAttempts = 3
+
+// CreateJob accepts only the producer-owned fields and stamps the job type. A
+// keyed job coalesces onto the key's PENDING job when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
 	job := request.GetJob()
 	jobType := job.GetPayload().GetTypeUrl()
@@ -46,31 +53,71 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 	request.Job = &schedulerpb.Job{
 		Labels:       job.GetLabels(),
 		Payload:      job.GetPayload(),
+		Priority:     job.GetPriority(),
+		UniqueKey:    job.GetUniqueKey(),
 		ScheduleTime: job.GetScheduleTime(),
+		ExpireTime:   job.GetExpireTime(),
 		JobType:      jobType,
 		State:        schedulerpb.JobState_JOB_STATE_PENDING,
 	}
-	created, err := s.SchedulerServiceServer.CreateJob(ctx, request)
-	if err != nil {
-		return nil, err
+	uniqueKey := job.GetUniqueKey()
+	for attempt := 1; ; attempt++ {
+		if uniqueKey != "" {
+			pending, err := s.pendingJobByUniqueKey(ctx, uniqueKey)
+			if err != nil {
+				return nil, err
+			}
+			if pending != nil {
+				return pending, nil
+			}
+		}
+		created, err := s.SchedulerServiceServer.CreateJob(ctx, request)
+		if err == nil {
+			if !request.GetValidateOnly() && !created.GetScheduleTime().AsTime().After(time.Now()) {
+				s.wakeClaim()
+			}
+			return created, nil
+		}
+		// A keyed insert conflicts when a PENDING job appeared since the lookup: pick it up on the next pass.
+		if uniqueKey == "" || !status.HasCode(err, codes.AlreadyExists) || attempt == uniqueKeyCreateAttempts {
+			return nil, err
+		}
 	}
-	if !request.GetValidateOnly() && !created.GetScheduleTime().AsTime().After(time.Now()) {
-		s.wakeClaim()
-	}
-	return created, nil
 }
 
-// UpdateJob only lets `schedule_time` change while the job is PENDING; the
-// etag pins that check against a concurrent claim.
+// pendingJobByUniqueKey returns the PENDING job holding the key, or nil.
+func (s *Service) pendingJobByUniqueKey(ctx context.Context, uniqueKey string) (*schedulerpb.Job, error) {
+	jobModel, err := s.schedulerPostgresStore.GetPendingJobByUniqueKey(ctx, uniqueKey)
+	if err != nil {
+		if errors.Is(err, model.ErrJobNotExist) {
+			return nil, nil
+		}
+		return nil, status.FromError(err, "looking up unique key").Err()
+	}
+	job, err := jobModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting job from model to pb: %v", err).Err()
+	}
+	return job, nil
+}
+
+// pendingOnlyPaths are the update paths that only make sense before the first claim.
+var pendingOnlyPaths = []string{"schedule_time", "priority"}
+
+// UpdateJob only lets the scheduling fields change while the job is PENDING;
+// the etag pins that check against a concurrent claim.
 func (s *Service) UpdateJob(ctx context.Context, request *pb.UpdateJobRequest) (*schedulerpb.Job, error) {
-	if slices.Contains(request.GetUpdateMask().GetPaths(), "schedule_time") {
+	if slices.ContainsFunc(request.GetUpdateMask().GetPaths(), func(path string) bool { return slices.Contains(pendingOnlyPaths, path) }) {
 		getJobRequest := &pb.GetJobRequest{Name: request.GetJob().GetName()}
 		job, err := s.GetJob(ctx, getJobRequest)
 		if err != nil {
 			return nil, err
 		}
 		if job.GetState() != schedulerpb.JobState_JOB_STATE_PENDING {
-			return nil, status.Errorf(codes.FailedPrecondition, "schedule_time can only be updated on a PENDING job, job is %s", job.GetState()).Err()
+			return nil, status.Errorf(codes.FailedPrecondition, "%s can only be updated on a PENDING job, job is %s", strings.Join(pendingOnlyPaths, " and "), job.GetState()).Err()
+		}
+		if slices.Contains(request.GetUpdateMask().GetPaths(), "schedule_time") && job.GetExpireTime() != nil && !request.GetJob().GetScheduleTime().AsTime().Before(job.GetExpireTime().AsTime()) {
+			return nil, status.Errorf(codes.InvalidArgument, "schedule_time must be before expire_time %s", job.GetExpireTime().AsTime().Format(time.RFC3339)).Err()
 		}
 		if request.GetJob().GetEtag() == "" {
 			request.Job.Etag = job.GetEtag()
@@ -105,7 +152,9 @@ func (s *Service) DeleteJob(ctx context.Context, request *pb.DeleteJobRequest) (
 	return s.SchedulerServiceServer.DeleteJob(ctx, request)
 }
 
-// RetryJob returns a terminal job to PENDING with a clean slate.
+// RetryJob returns a terminal job to PENDING with a clean slate. The expiry is
+// dropped: a retry asks for the job to run regardless. A keyed job whose key
+// already has a PENDING job is refused: that job is the retry.
 func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*schedulerpb.Job, error) {
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		if !isTerminal(job.GetState()) {
@@ -118,9 +167,11 @@ func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*s
 		job.CompleteTime = nil
 		job.LockTime = nil
 		job.ExpireTime = nil
+		job.PurgeTime = nil
 		job.Error = nil
 		job.Response = nil
 		job.Progress = nil
+		job.Metadata = nil
 		aip.SetLabel(job, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True)
 		return nil
 	})
@@ -139,18 +190,22 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 		if isTerminal(job.GetState()) {
 			return &statePreconditionError{state: job.GetState()}
 		}
+		cancelled := grpcstatus.New(codes.Canceled, "cancelled by client")
+		if job.GetState() == schedulerpb.JobState_JOB_STATE_RUNNING {
+			recordAttempt(job, now, cancelled.Err())
+		}
 		job.State = schedulerpb.JobState_JOB_STATE_CANCELLED
 		job.CompleteTime = timestamppb.New(now)
 		job.LockTime = nil
-		job.ExpireTime = s.expireTime(now)
-		job.Error = grpcstatus.New(codes.Canceled, "cancelled by client").Proto()
+		job.PurgeTime = s.purgeTime(now)
+		job.Error = cancelled.Proto()
 		observeTransition(job.GetJobType(), job.State)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	jobID, _ := model.ParseJobName(job.GetName())
+	_, _, jobID, _ := model.ParseJobName(job.GetName())
 	s.inflight.cancel(jobID)
 	return job, nil
 }
@@ -169,7 +224,7 @@ func (s *Service) ReportJobProgress(ctx context.Context, request *pb.ReportJobPr
 // transitionJob applies fn to the named job under a row lock, translating
 // store and precondition errors to gRPC statuses.
 func (s *Service) transitionJob(ctx context.Context, name string, fn func(*schedulerpb.Job) error) (*schedulerpb.Job, error) {
-	jobID, err := model.ParseJobName(name)
+	_, _, jobID, err := model.ParseJobName(name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
@@ -184,6 +239,8 @@ func (s *Service) transitionJob(ctx context.Context, name string, fn func(*sched
 			return nil, status.Errorf(codes.NotFound, "job does not exist").Err()
 		case errors.As(err, &preconditionErr):
 			return nil, status.Errorf(codes.FailedPrecondition, "%v", preconditionErr).Err()
+		case store.IsUniqueKeyConflict(err):
+			return nil, status.Errorf(codes.AlreadyExists, "unique key already has a pending job").Err()
 		}
 		return nil, status.FromError(err, "transitioning job").Err()
 	}
