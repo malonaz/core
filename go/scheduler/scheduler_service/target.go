@@ -3,6 +3,7 @@ package scheduler_service
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 
 	"google.golang.org/grpc/codes"
@@ -14,22 +15,31 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
+// validateURL rejects what buf.validate's scheme check lets through, e.g. a
+// bad port.
+func validateURL(url string) error {
+	if _, err := grpc.ParseOpts(url); err != nil {
+		return status.Errorf(codes.InvalidArgument, "parsing url: %v", err).Err()
+	}
+	return nil
+}
+
 // CreateTarget accepts only the producer-owned fields.
 func (s *Service) CreateTarget(ctx context.Context, request *pb.CreateTargetRequest) (*schedulerpb.Target, error) {
 	target := request.GetTarget()
-	if _, err := grpc.ParseOpts(target.GetUrl()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing url: %v", err).Err()
+	if err := validateURL(target.GetUrl()); err != nil {
+		return nil, err
 	}
 	request.Target = &schedulerpb.Target{Url: target.GetUrl(), Headers: target.GetHeaders()}
 	return s.SchedulerServiceServer.CreateTarget(ctx, request)
 }
 
-// UpdateTarget re-validates the url; workers pick the change up through the
+// UpdateTarget validates a new url; workers pick the change up through the
 // new etag on their next call.
 func (s *Service) UpdateTarget(ctx context.Context, request *pb.UpdateTargetRequest) (*schedulerpb.Target, error) {
-	if url := request.GetTarget().GetUrl(); url != "" {
-		if _, err := grpc.ParseOpts(url); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "parsing url: %v", err).Err()
+	if slices.Contains(request.GetUpdateMask().GetPaths(), "url") {
+		if err := validateURL(request.GetTarget().GetUrl()); err != nil {
+			return nil, err
 		}
 	}
 	return s.SchedulerServiceServer.UpdateTarget(ctx, request)
