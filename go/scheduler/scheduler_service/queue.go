@@ -52,25 +52,30 @@ func normalizePolicy(policy *schedulerpb.QueuePolicy) *schedulerpb.QueuePolicy {
 	return policy
 }
 
-// resolveHandlers checks every handler routes to a known method on an
-// existing target and stamps the method's request and response types.
+// resolveHandlers checks every handler routes to a method its target serves
+// and stamps the method's request and response types.
 func (s *Service) resolveHandlers(ctx context.Context, handlers []*schedulerpb.Handler) ([]*schedulerpb.Handler, error) {
 	resolved := make([]*schedulerpb.Handler, 0, len(handlers))
 	requestTypeToMethod := map[string]string{}
 	for _, handler := range handlers {
-		method, err := s.resolveMethod(handler.GetMethod())
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "handler %s: %v", handler.GetMethod(), err).Err()
-		}
 		targetID, err := model.ParseTargetName(handler.GetTarget())
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "handler %s: parsing target: %v", handler.GetMethod(), err).Err()
 		}
-		if _, err := s.schedulerPostgresStore.GetTarget(ctx, targetID); err != nil {
+		targetModel, err := s.schedulerPostgresStore.GetTarget(ctx, targetID)
+		if err != nil {
 			if errors.Is(err, model.ErrTargetNotExist) {
 				return nil, status.Errorf(codes.InvalidArgument, "handler %s: target %q does not exist", handler.GetMethod(), handler.GetTarget()).Err()
 			}
 			return nil, status.FromError(err, "getting target").Err()
+		}
+		target, err := targetModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
+		}
+		method, err := s.resolveMethod(ctx, target, handler.GetMethod())
+		if err != nil {
+			return nil, err
 		}
 		requestType := typeURLPrefix + string(method.Input().FullName())
 		if other, ok := requestTypeToMethod[requestType]; ok {

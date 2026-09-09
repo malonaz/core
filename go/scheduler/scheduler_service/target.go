@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
@@ -59,7 +60,17 @@ func (s *Service) DeleteTarget(ctx context.Context, request *pb.DeleteTargetRequ
 		return nil, err
 	}
 	s.targets.evict(request.GetName())
+	s.schemas.evict(request.GetName())
 	return deleted, nil
+}
+
+// outgoingContext carries the target's headers on every call made to it,
+// reflection included.
+func outgoingContext(ctx context.Context, target *schedulerpb.Target) context.Context {
+	for key, value := range target.GetHeaders() {
+		ctx = metadata.AppendToOutgoingContext(ctx, key, value)
+	}
+	return ctx
 }
 
 // targetConnection is a dialled target. Once its target is updated it is

@@ -15,7 +15,7 @@ import (
 // claimAdvisoryLockKey serializes claim transactions across scheduler
 // instances, making every queue's max_concurrency exact rather than eventual.
 // "schedule" in ASCII; any constant shared by every instance would do.
-const claimAdvisoryLockKey int64 = 0x736368656475_6c65
+const claimAdvisoryLockKey int64 = 0x7363_6865_6475_6c65
 
 // ClaimedJob is a job selected by the claim scan, carrying the policy and
 // handlers of its queue as of the claim. Both are nil when the queue row is

@@ -268,10 +268,7 @@ func (s *Service) invoke(ctx context.Context, handler *schedulerpb.Handler, job 
 	if err := pbutil.Unmarshal(job.Payload, payload); err != nil {
 		return nil, grpcstatus.Errorf(codes.FailedPrecondition, "unmarshaling payload: %v", err)
 	}
-	ctx = metadata.AppendToOutgoingContext(ctx, scheduler.JobMetadataKey, jobName(job))
-	for key, value := range target.GetHeaders() {
-		ctx = metadata.AppendToOutgoingContext(ctx, key, value)
-	}
+	ctx = metadata.AppendToOutgoingContext(outgoingContext(ctx, target), scheduler.JobMetadataKey, jobName(job))
 	// Attempts are the scheduler's to account for: no transparent retries.
 	var response []byte
 	if err := connection.Get().Invoke(ctx, handler.GetMethod(), payload.GetValue(), &response, grpc.WithRawCodec(), grpc_retry.Disable()); err != nil {
