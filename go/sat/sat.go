@@ -31,12 +31,22 @@ type SUT struct {
 	Args []string
 }
 
+// Database is a database the SUTs use: the initializer creates its role and
+// database, the migrator applies its migrations. Both run before any SUT starts.
+type Database struct {
+	Initializer SUT
+	Migrator    SUT
+}
+
 // Config holds all configuration needed to set up a SAT environment,
 // including the services to test, database setup binaries, and environment variables.
 type Config struct {
-	SUTS                 []SUT
+	SUTS []SUT
+	// Initializer and Migrator set up a single database; Databases sets up
+	// several. Either form brings up the Postgres server.
 	Initializer          SUT
 	Migrator             SUT
+	Databases            []Database
 	PostgresServerConfig PostgresServerConfig
 	EnvironmentVariables map[string]string
 	Nats                 bool
@@ -46,6 +56,14 @@ type Config struct {
 	// can assert on events the RPCs triggering them do not wait for. They may contain the NATS
 	// wildcards `*` and `>`. Requires Nats.
 	NatsSubjects []string
+}
+
+// databases returns every database to set up, the single-database fields first.
+func (c *Config) databases() []Database {
+	if c.Migrator.Name == "" {
+		return c.Databases
+	}
+	return append([]Database{{Initializer: c.Initializer, Migrator: c.Migrator}}, c.Databases...)
 }
 
 // PostgresServerConfig holds connection details for the test Postgres instance.
@@ -119,7 +137,7 @@ func (s *SAT) GetNatsClient(ctx context.Context) (*nats.Client, error) {
 // Clients are cached per database and closed by [SAT.Cleanup], so callers need not close them.
 func (s *SAT) GetPostgresClient(ctx context.Context, database string) (*postgres.Client, error) {
 	if s.PostgresServer == nil {
-		return nil, fmt.Errorf("no postgres server: this SAT was configured without a migrator")
+		return nil, fmt.Errorf("no postgres server: this SAT was configured without a database")
 	}
 
 	s.postgresClientsMutex.Lock()
@@ -191,8 +209,8 @@ func (s *SAT) Start(ctx context.Context) error {
 		}
 	}
 
-	// If a migrator is configured, we need a Postgres server, an initializer, and a migrator.
-	if s.config.Migrator.Name != "" {
+	// Any database needs the Postgres server, then its initializer and migrator in turn.
+	if databases := s.config.databases(); len(databases) > 0 {
 		serverConfig := postgrestestserver.Config{
 			Host:     s.config.PostgresServerConfig.Host,
 			Port:     s.config.PostgresServerConfig.Port,
@@ -200,27 +218,19 @@ func (s *SAT) Start(ctx context.Context) error {
 			Password: s.config.PostgresServerConfig.Password,
 		}
 		s.PostgresServer = postgrestestserver.NewServer(serverConfig).WithLogger(rawLogger)
-
-		databaseInitializerBinary, err := binary.New(s.config.Initializer.Path, s.config.Initializer.Args...)
-		if err != nil {
-			return fmt.Errorf("instantiate database initializer binary: %w", err)
-		}
-		databaseInitializerBinary.WithLogger(rawLogger).WithName(s.config.Initializer.Name)
-
-		databaseMigratorBinary, err := binary.New(s.config.Migrator.Path, s.config.Migrator.Args...)
-		if err != nil {
-			return fmt.Errorf("instantiate database migrator binary: %w", err)
-		}
-		databaseMigratorBinary.WithLogger(rawLogger).WithName(s.config.Migrator.Name)
-
 		if err := s.PostgresServer.Start(ctx); err != nil {
 			return fmt.Errorf("running postgres server: %w", err)
 		}
-		if err := databaseInitializerBinary.Run(); err != nil {
-			return fmt.Errorf("running database initializer: %w", err)
-		}
-		if err := databaseMigratorBinary.Run(); err != nil {
-			return fmt.Errorf("running database migrator: %w", err)
+		for _, database := range databases {
+			for _, job := range []SUT{database.Initializer, database.Migrator} {
+				jobBinary, err := binary.New(job.Path, job.Args...)
+				if err != nil {
+					return fmt.Errorf("instantiating %s: %w", job.Name, err)
+				}
+				if err := jobBinary.WithLogger(rawLogger).WithName(job.Name).Run(); err != nil {
+					return fmt.Errorf("running %s: %w", job.Name, err)
+				}
+			}
 		}
 	}
 
