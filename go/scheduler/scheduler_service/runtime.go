@@ -4,42 +4,34 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
-	"buf.build/go/protovalidate"
-	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/descriptorpb"
 
-	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
-	"github.com/malonaz/core/go/grpc"
-	"github.com/malonaz/core/go/jsonnet"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbreflection"
 	"github.com/malonaz/core/go/routine"
 )
 
 type Opts struct {
-	Configuration     string        `long:"configuration" env:"CONFIGURATION" description:"Path to the jsonnet configuration"`
-	IgnoreJobTypeURLs []string      `long:"ignore-job" env:"IGNORE_JOB" env-delim:"," description:"Job type URLs this instance leaves unclaimed"`
-	MaxParallelJobs   int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
-	PollInterval      time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
-	LeaseDuration     time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its processor call is in flight; a lapsed lease returns the job to PENDING"`
-	Retention         time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
-	SweepInterval     time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
-	WorkerID          string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
-}
-
-var defaultRetryBackoff = &pb.RetryBackoff{
-	Initial:    durationpb.New(10 * time.Second),
-	Max:        durationpb.New(10 * time.Minute),
-	Multiplier: 2,
+	FileDescriptorSets []string      `long:"file-descriptor-set" env:"FILE_DESCRIPTOR_SET" env-delim:"," description:"Path to a file descriptor set holding the methods queue handlers may route to; repeatable. A ':services' suffix, as accepted by ai-engine, is ignored"`
+	MaxParallelJobs    int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
+	PollInterval       time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
+	LeaseDuration      time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its handler call is in flight; a lapsed lease returns the job to PENDING"`
+	Retention          time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
+	SweepInterval      time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
+	WorkerID           string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
 }
 
 type runtime struct {
-	configuration               *pb.Configuration
-	ignoredJobTypes             []string
-	jobTypeToConfiguration      map[string]*pb.JobTypeConfiguration
-	processorIDToProcessor      map[string]*pb.Processor
-	processorIDToGRPCConnection map[string]*grpc.Connection
+	// The only source of method and message type information: what handlers may route to.
+	files   *protoregistry.Files
+	targets *targetConnections
 
 	// Workers in flight on this instance, so CancelJob can cut a local call short.
 	inflight *inflight
@@ -64,65 +56,86 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		}
 		opts.WorkerID = fmt.Sprintf("%s:%d", hostname, os.Getpid())
 	}
-
-	bytes, err := jsonnet.EvaluateFile(opts.Configuration)
+	files, err := loadFileDescriptorSets(opts.FileDescriptorSets)
 	if err != nil {
-		return nil, fmt.Errorf("evaluating configuration: %w", err)
+		return nil, fmt.Errorf("loading file descriptor sets: %w", err)
 	}
-	configuration := &pb.Configuration{}
-	if err := pbutil.JSONUnmarshalStrict(bytes, configuration); err != nil {
-		return nil, fmt.Errorf("parsing configuration: %w", err)
+	if err := registerGlobalTypes(files); err != nil {
+		return nil, fmt.Errorf("registering descriptor set types: %w", err)
 	}
-	if err := protovalidate.Validate(configuration); err != nil {
-		return nil, fmt.Errorf("validating configuration: %w", err)
-	}
-
-	processorIDToProcessor := map[string]*pb.Processor{}
-	for _, processor := range configuration.GetProcessors() {
-		if _, ok := processorIDToProcessor[processor.GetId()]; ok {
-			return nil, fmt.Errorf("duplicate processor %q", processor.GetId())
-		}
-		processorIDToProcessor[processor.GetId()] = processor
-	}
-	jobTypeToConfiguration := map[string]*pb.JobTypeConfiguration{}
-	for _, jobTypeConfiguration := range configuration.GetJobTypeConfigurations() {
-		jobType := jobTypeConfiguration.GetJobTypeUrl()
-		if _, ok := jobTypeToConfiguration[jobType]; ok {
-			return nil, fmt.Errorf("duplicate job type %q", jobType)
-		}
-		if _, ok := processorIDToProcessor[jobTypeConfiguration.GetProcessorId()]; !ok {
-			return nil, fmt.Errorf("job type %q targets unknown processor %q", jobType, jobTypeConfiguration.GetProcessorId())
-		}
-		if jobTypeConfiguration.RetryBackoff == nil {
-			jobTypeConfiguration.RetryBackoff = defaultRetryBackoff
-		}
-		jobTypeToConfiguration[jobType] = jobTypeConfiguration
-	}
-
-	// An empty array (never NULL) keeps the claim query's `job_type = ANY($n)` well-defined.
-	ignoredJobTypes := append([]string{}, opts.IgnoreJobTypeURLs...)
-
 	return &runtime{
-		configuration:               configuration,
-		ignoredJobTypes:             ignoredJobTypes,
-		jobTypeToConfiguration:      jobTypeToConfiguration,
-		processorIDToProcessor:      processorIDToProcessor,
-		processorIDToGRPCConnection: map[string]*grpc.Connection{},
-		inflight:                    newInflight(),
-		slots:                       make(chan struct{}, opts.MaxParallelJobs),
-		claimSignal:                 make(chan struct{}, 1),
+		files:       files,
+		targets:     newTargetConnections(),
+		inflight:    newInflight(),
+		slots:       make(chan struct{}, opts.MaxParallelJobs),
+		claimSignal: make(chan struct{}, 1),
 	}, nil
 }
 
-func (s *Service) start(ctx context.Context) (func(), error) {
-	for processorID, processor := range s.processorIDToProcessor {
-		connection, err := s.connectProcessor(ctx, processor)
-		if err != nil {
-			return nil, fmt.Errorf("connecting to processor %q: %w", processorID, err)
-		}
-		s.processorIDToGRPCConnection[processorID] = connection
+// loadFileDescriptorSets reads and merges the descriptor sets into one registry.
+func loadFileDescriptorSets(configs []string) (*protoregistry.Files, error) {
+	if len(configs) == 0 {
+		return nil, fmt.Errorf("at least one --file-descriptor-set is required")
 	}
+	aggregate := &descriptorpb.FileDescriptorSet{}
+	fileNameSet := map[string]struct{}{}
+	for _, config := range configs {
+		// The ai-engine form 'path:service,...' is accepted; the whole set is taken regardless.
+		path, _, _ := strings.Cut(config, ":")
+		bytes, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("reading %q: %w", path, err)
+		}
+		fileDescriptorSet := &descriptorpb.FileDescriptorSet{}
+		if err := pbutil.Unmarshal(bytes, fileDescriptorSet); err != nil {
+			return nil, fmt.Errorf("parsing %q: %w", path, err)
+		}
+		for _, file := range fileDescriptorSet.GetFile() {
+			if _, ok := fileNameSet[file.GetName()]; ok {
+				continue
+			}
+			fileNameSet[file.GetName()] = struct{}{}
+			aggregate.File = append(aggregate.File, file)
+		}
+	}
+	return protodesc.NewFiles(aggregate)
+}
 
+// registerGlobalTypes makes the descriptor set's messages resolvable through
+// the global type registry, which protojson consults: without it, payloads and
+// responses of types this binary does not link would render as opaque Any.
+func registerGlobalTypes(files *protoregistry.Files) error {
+	types, err := pbreflection.NewTypesFromFiles(files)
+	if err != nil {
+		return err
+	}
+	var registrationErr error
+	types.RangeMessages(func(messageType protoreflect.MessageType) bool {
+		if _, err := protoregistry.GlobalTypes.FindMessageByName(messageType.Descriptor().FullName()); err == nil {
+			return true
+		}
+		registrationErr = protoregistry.GlobalTypes.RegisterMessage(messageType)
+		return registrationErr == nil
+	})
+	return registrationErr
+}
+
+// resolveMethod returns the descriptor of a "/package.Service/Method" gRPC
+// method from the descriptor set.
+func (r *runtime) resolveMethod(method string) (protoreflect.MethodDescriptor, error) {
+	fullName := protoreflect.FullName(strings.ReplaceAll(strings.TrimPrefix(method, "/"), "/", "."))
+	descriptor, err := r.files.FindDescriptorByName(fullName)
+	if err != nil {
+		return nil, fmt.Errorf("method %q is not in the descriptor set", method)
+	}
+	methodDescriptor, ok := descriptor.(protoreflect.MethodDescriptor)
+	if !ok {
+		return nil, fmt.Errorf("%q is not a method", method)
+	}
+	return methodDescriptor, nil
+}
+
+func (s *Service) start(ctx context.Context) (func(), error) {
 	// Workers outlive the routines that spawn them: they are cancelled and drained last.
 	workerCtx, cancelWorkers := context.WithCancel(ctx)
 
@@ -143,25 +156,8 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		}
 		cancelWorkers()
 		s.workers.Wait()
-		for _, connection := range s.processorIDToGRPCConnection {
-			connection.Close()
-		}
+		s.targets.close()
 	}, nil
-}
-
-func (s *Service) connectProcessor(ctx context.Context, processor *pb.Processor) (*grpc.Connection, error) {
-	opts, err := grpc.ParseOpts(processor.GetUrl())
-	if err != nil {
-		return nil, fmt.Errorf("parsing url %q: %w", processor.GetUrl(), err)
-	}
-	connection, err := grpc.NewConnection(opts, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("creating connection: %w", err)
-	}
-	if err := connection.Connect(ctx); err != nil {
-		return nil, fmt.Errorf("connecting: %w", err)
-	}
-	return connection, nil
 }
 
 // inflight tracks the cancel function of every job this instance is processing.
@@ -186,7 +182,7 @@ func (i *inflight) remove(jobID string) {
 	delete(i.jobIDToCancel, jobID)
 }
 
-// cancel cuts the job's processor call short if it runs on this instance.
+// cancel cuts the job's handler call short if it runs on this instance.
 func (i *inflight) cancel(jobID string) {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()

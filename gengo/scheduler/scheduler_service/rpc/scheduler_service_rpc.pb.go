@@ -21,21 +21,673 @@ import (
 )
 
 type schedulerServiceStore interface {
+	schedulerService_TargetStore
+	schedulerService_QueueStore
 	schedulerService_JobStore
 }
 
 type SchedulerServiceServer struct {
+	*schedulerService_TargetServer
+	*schedulerService_QueueServer
 	*schedulerService_JobServer
 }
 
 func NewSchedulerServiceServer(store schedulerServiceStore) *SchedulerServiceServer {
 	return &SchedulerServiceServer{
-		schedulerService_JobServer: newSchedulerService_JobServer(store),
+		schedulerService_TargetServer: newSchedulerService_TargetServer(store),
+		schedulerService_QueueServer:  newSchedulerService_QueueServer(store),
+		schedulerService_JobServer:    newSchedulerService_JobServer(store),
 	}
 }
 
 func (s *SchedulerServiceServer) Start(ctx context.Context) error {
 	return nil
+}
+
+type schedulerService_TargetStore interface {
+	BatchInsertTargets(ctx context.Context, requestIDs []string, targets []*model.Target) ([]*model.Target, error)
+	UpdateTarget(ctx context.Context, target *model.Target, updateClause string, columns []string, etag string) (*model.Target, error)
+	DeleteTarget(ctx context.Context, targetId string, etag string) (*model.Target, error)
+	GetTarget(ctx context.Context, targetId string) (*model.Target, error)
+	BatchGetTargets(ctx context.Context, targetIds []string) ([]*model.Target, error)
+	ListTargets(ctx context.Context, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Target, error)
+}
+
+type schedulerService_TargetServer struct {
+	store schedulerService_TargetStore
+}
+
+func newSchedulerService_TargetServer(store schedulerService_TargetStore) *schedulerService_TargetServer {
+	return &schedulerService_TargetServer{
+		store: store,
+	}
+}
+
+func (s *schedulerService_TargetServer) prepareCreateTarget(ctx context.Context, request *v1.CreateTargetRequest) (*model.Target, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	targetId := request.TargetId
+	if targetId == "" {
+		targetId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	request.Target.Name = resourcename.Sprint("targets/{target}", targetId)
+
+	// STEP 2: Instantiate timestamps.
+	// Check for x-migration-request header
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+		if request.Target.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else {
+		request.Target.CreateTime = timestamppb.Now()
+	}
+	request.Target.UpdateTime = request.Target.CreateTime
+
+	{ // Capture the Etag.
+		var err error
+		request.Target.Etag, err = aip.ComputeETag(request.Target)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	targetModel, err := model.TargetFromPb(request.Target)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting target from pb to model: %v", err).Err()
+	}
+
+	return targetModel, nil
+}
+
+func (s *schedulerService_TargetServer) CreateTarget(ctx context.Context, request *v1.CreateTargetRequest) (*v11.Target, error) {
+	targetModel, err := s.prepareCreateTarget(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.ValidateOnly {
+		return request.Target, nil
+	}
+
+	// STEP 4: Insert the resource.
+	dbTargets, err := s.store.BatchInsertTargets(ctx, []string{request.RequestId}, []*model.Target{targetModel})
+	if err != nil {
+		if errors.Is(err, model.ErrTargetAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "target already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting targets").Err()
+	}
+	if len(dbTargets) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted target, got %d", len(dbTargets)).Err()
+	}
+
+	target, err := dbTargets[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
+	}
+
+	return target, nil
+}
+
+func (s *schedulerService_TargetServer) GetTarget(ctx context.Context, request *v1.GetTargetRequest) (*v11.Target, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	targetId, err := model.ParseTargetName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbTargetModel, err := s.store.GetTarget(ctx, targetId)
+	if err != nil {
+		if errors.Is(err, model.ErrTargetNotExist) {
+			return nil, status.Errorf(codes.NotFound, "target does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting target").Err()
+	}
+
+	target, err := dbTargetModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
+	}
+	return target, nil
+}
+
+var updateTargetRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateTargetRequest, *v11.Target]()
+
+func (s *schedulerService_TargetServer) UpdateTarget(ctx context.Context, request *v1.UpdateTargetRequest) (*v11.Target, error) {
+	for {
+		response, err := s.updateTarget(ctx, request)
+		if err != nil {
+			if request.GetTarget().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *schedulerService_TargetServer) updateTarget(ctx context.Context, request *v1.UpdateTargetRequest) (*v11.Target, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Target.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateTargetRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getTargetRequest := &v1.GetTargetRequest{Name: request.Target.Name}
+	existingTarget, err := s.GetTarget(ctx, getTargetRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetTarget().GetEtag()
+	if etag == "" {
+		etag = existingTarget.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedTarget := proto.CloneOf(existingTarget)
+	parsedRequest.ApplyFieldMask(patchedTarget, request.Target)
+	if err := protovalidate.Validate(patchedTarget); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedTarget.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedTarget.Etag, err = aip.ComputeETag(patchedTarget)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	targetModel, err := model.TargetFromPb(patchedTarget)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting target from pb to model: %v", err).Err()
+	}
+	dbTargetModel, err := s.store.UpdateTarget(ctx, targetModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrTargetNotExist) {
+			return nil, status.Errorf(codes.NotFound, "target does not exist").Err()
+		}
+		if errors.Is(err, model.ErrTargetETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating target").Err()
+	}
+
+	target, err := dbTargetModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
+	}
+
+	return target, nil
+}
+
+func (s *schedulerService_TargetServer) DeleteTarget(ctx context.Context, request *v1.DeleteTargetRequest) (*emptypb.Empty, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	targetId, err := model.ParseTargetName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// STEP 2: Hard delete the resource.
+	_, err = s.store.DeleteTarget(ctx, targetId, request.GetEtag())
+	if err != nil {
+		if errors.Is(err, model.ErrTargetNotExist) {
+			if request.AllowMissing {
+				return &emptypb.Empty{}, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "target does not exist").Err()
+		}
+		if errors.Is(err, model.ErrTargetETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "deleting target").Err()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+var listTargetsRequestParser = aip.MustNewListRequestParser[*v1.ListTargetsRequest, *v11.Target](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *schedulerService_TargetServer) ListTargets(ctx context.Context, request *v1.ListTargetsRequest) (*v1.ListTargetsResponse, error) {
+	// Parse request
+	parsedRequest, err := listTargetsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbTargets, err := s.store.ListTargets(ctx, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing targets").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbTargets))
+	if nextPageToken != "" {
+		dbTargets = dbTargets[:len(dbTargets)-1]
+	}
+
+	// Convert back to proto.
+	targets := make([]*v11.Target, 0, len(dbTargets))
+	for _, dbTarget := range dbTargets {
+		target, err := dbTarget.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Target to Target: %v", err).Err()
+		}
+		targets = append(targets, target)
+	}
+
+	// Create and return response.
+	return &v1.ListTargetsResponse{
+		Targets:       targets,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *schedulerService_TargetServer) BatchGetTargets(ctx context.Context, request *v1.BatchGetTargetsRequest) (*v1.BatchGetTargetsResponse, error) {
+	targetIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		targetId, err := model.ParseTargetName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		targetIds[i] = targetId
+	}
+
+	dbTargets, err := s.store.BatchGetTargets(ctx, targetIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting target").Err()
+	}
+	if len(dbTargets) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d targets, found %d", len(request.Names), len(dbTargets)).Err()
+	}
+
+	targetNameToTarget := make(map[string]*v11.Target, len(request.Names))
+	for _, dbTargetModel := range dbTargets {
+		target, err := dbTargetModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
+		}
+		targetNameToTarget[target.Name] = target
+	}
+
+	targets := make([]*v11.Target, 0, len(dbTargets))
+	for _, name := range request.Names {
+		target, ok := targetNameToTarget[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		targets = append(targets, target)
+	}
+
+	return &v1.BatchGetTargetsResponse{
+		Targets: targets,
+	}, nil
+}
+
+type schedulerService_QueueStore interface {
+	BatchInsertQueues(ctx context.Context, requestIDs []string, queues []*model.Queue) ([]*model.Queue, error)
+	UpdateQueue(ctx context.Context, queue *model.Queue, updateClause string, columns []string, etag string) (*model.Queue, error)
+	DeleteQueue(ctx context.Context, queueId string, etag string) (*model.Queue, error)
+	GetQueue(ctx context.Context, queueId string) (*model.Queue, error)
+	BatchGetQueues(ctx context.Context, queueIds []string) ([]*model.Queue, error)
+	ListQueues(ctx context.Context, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Queue, error)
+}
+
+type schedulerService_QueueServer struct {
+	store schedulerService_QueueStore
+}
+
+func newSchedulerService_QueueServer(store schedulerService_QueueStore) *schedulerService_QueueServer {
+	return &schedulerService_QueueServer{
+		store: store,
+	}
+}
+
+func (s *schedulerService_QueueServer) prepareCreateQueue(ctx context.Context, request *v1.CreateQueueRequest) (*model.Queue, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	queueId := request.QueueId
+	if queueId == "" {
+		queueId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	request.Queue.Name = resourcename.Sprint("queues/{queue}", queueId)
+
+	// STEP 2: Instantiate timestamps.
+	// Check for x-migration-request header
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+		if request.Queue.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else {
+		request.Queue.CreateTime = timestamppb.Now()
+	}
+	request.Queue.UpdateTime = request.Queue.CreateTime
+
+	{ // Capture the Etag.
+		var err error
+		request.Queue.Etag, err = aip.ComputeETag(request.Queue)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	queueModel, err := model.QueueFromPb(request.Queue)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from pb to model: %v", err).Err()
+	}
+
+	return queueModel, nil
+}
+
+func (s *schedulerService_QueueServer) CreateQueue(ctx context.Context, request *v1.CreateQueueRequest) (*v11.Queue, error) {
+	queueModel, err := s.prepareCreateQueue(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.ValidateOnly {
+		return request.Queue, nil
+	}
+
+	// STEP 4: Insert the resource.
+	dbQueues, err := s.store.BatchInsertQueues(ctx, []string{request.RequestId}, []*model.Queue{queueModel})
+	if err != nil {
+		if errors.Is(err, model.ErrQueueAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "queue already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting queues").Err()
+	}
+	if len(dbQueues) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted queue, got %d", len(dbQueues)).Err()
+	}
+
+	queue, err := dbQueues[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+	}
+
+	return queue, nil
+}
+
+func (s *schedulerService_QueueServer) GetQueue(ctx context.Context, request *v1.GetQueueRequest) (*v11.Queue, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	queueId, err := model.ParseQueueName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbQueueModel, err := s.store.GetQueue(ctx, queueId)
+	if err != nil {
+		if errors.Is(err, model.ErrQueueNotExist) {
+			return nil, status.Errorf(codes.NotFound, "queue does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting queue").Err()
+	}
+
+	queue, err := dbQueueModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+	}
+	return queue, nil
+}
+
+var updateQueueRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateQueueRequest, *v11.Queue]()
+
+func (s *schedulerService_QueueServer) UpdateQueue(ctx context.Context, request *v1.UpdateQueueRequest) (*v11.Queue, error) {
+	for {
+		response, err := s.updateQueue(ctx, request)
+		if err != nil {
+			if request.GetQueue().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *schedulerService_QueueServer) updateQueue(ctx context.Context, request *v1.UpdateQueueRequest) (*v11.Queue, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Queue.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateQueueRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getQueueRequest := &v1.GetQueueRequest{Name: request.Queue.Name}
+	existingQueue, err := s.GetQueue(ctx, getQueueRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetQueue().GetEtag()
+	if etag == "" {
+		etag = existingQueue.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedQueue := proto.CloneOf(existingQueue)
+	parsedRequest.ApplyFieldMask(patchedQueue, request.Queue)
+	if err := protovalidate.Validate(patchedQueue); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedQueue.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedQueue.Etag, err = aip.ComputeETag(patchedQueue)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	queueModel, err := model.QueueFromPb(patchedQueue)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from pb to model: %v", err).Err()
+	}
+	dbQueueModel, err := s.store.UpdateQueue(ctx, queueModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrQueueNotExist) {
+			return nil, status.Errorf(codes.NotFound, "queue does not exist").Err()
+		}
+		if errors.Is(err, model.ErrQueueETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating queue").Err()
+	}
+
+	queue, err := dbQueueModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+	}
+
+	return queue, nil
+}
+
+func (s *schedulerService_QueueServer) DeleteQueue(ctx context.Context, request *v1.DeleteQueueRequest) (*emptypb.Empty, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	queueId, err := model.ParseQueueName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// STEP 2: Hard delete the resource.
+	_, err = s.store.DeleteQueue(ctx, queueId, request.GetEtag())
+	if err != nil {
+		if errors.Is(err, model.ErrQueueNotExist) {
+			if request.AllowMissing {
+				return &emptypb.Empty{}, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "queue does not exist").Err()
+		}
+		if errors.Is(err, model.ErrQueueETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "deleting queue").Err()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+var listQueuesRequestParser = aip.MustNewListRequestParser[*v1.ListQueuesRequest, *v11.Queue](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *schedulerService_QueueServer) ListQueues(ctx context.Context, request *v1.ListQueuesRequest) (*v1.ListQueuesResponse, error) {
+	// Parse request
+	parsedRequest, err := listQueuesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbQueues, err := s.store.ListQueues(ctx, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing queues").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbQueues))
+	if nextPageToken != "" {
+		dbQueues = dbQueues[:len(dbQueues)-1]
+	}
+
+	// Convert back to proto.
+	queues := make([]*v11.Queue, 0, len(dbQueues))
+	for _, dbQueue := range dbQueues {
+		queue, err := dbQueue.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Queue to Queue: %v", err).Err()
+		}
+		queues = append(queues, queue)
+	}
+
+	// Create and return response.
+	return &v1.ListQueuesResponse{
+		Queues:        queues,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *schedulerService_QueueServer) BatchGetQueues(ctx context.Context, request *v1.BatchGetQueuesRequest) (*v1.BatchGetQueuesResponse, error) {
+	queueIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		queueId, err := model.ParseQueueName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		queueIds[i] = queueId
+	}
+
+	dbQueues, err := s.store.BatchGetQueues(ctx, queueIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting queue").Err()
+	}
+	if len(dbQueues) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d queues, found %d", len(request.Names), len(dbQueues)).Err()
+	}
+
+	queueNameToQueue := make(map[string]*v11.Queue, len(request.Names))
+	for _, dbQueueModel := range dbQueues {
+		queue, err := dbQueueModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+		}
+		queueNameToQueue[queue.Name] = queue
+	}
+
+	queues := make([]*v11.Queue, 0, len(dbQueues))
+	for _, name := range request.Names {
+		queue, ok := queueNameToQueue[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		queues = append(queues, queue)
+	}
+
+	return &v1.BatchGetQueuesResponse{
+		Queues: queues,
+	}, nil
 }
 
 type schedulerService_JobStore interface {

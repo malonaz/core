@@ -1,8 +1,12 @@
 go_library(
     name = "store",
     srcs = [
+        "claim.go",
+        "job.go",
         "job_postgres.pb.go",
         "queue.go",
+        "queue_postgres.pb.go",
+        "target_postgres.pb.go",
     ],
     visibility = ["//..."],
     deps = [

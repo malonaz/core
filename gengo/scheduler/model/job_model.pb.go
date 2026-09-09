@@ -30,7 +30,8 @@ type Job struct {
 	Etag           string     `db:"etag" schema:"public" table:"job"`
 	Labels         []byte     `db:"labels" schema:"public" table:"job"`
 	Payload        []byte     `db:"payload" schema:"public" table:"job"`
-	JobType        string     `db:"job_type" schema:"public" table:"job"`
+	Queue          string     `db:"queue" schema:"public" table:"job"`
+	Method         string     `db:"method" schema:"public" table:"job"`
 	State          int16      `db:"state" schema:"public" table:"job"`
 	Priority       int32      `db:"priority" schema:"public" table:"job"`
 	UniqueKey      *string    `db:"unique_key" schema:"public" table:"job"`
@@ -179,7 +180,8 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
 		Payload:        PayloadBytes,
-		JobType:        m.JobType,
+		Queue:          m.Queue,
+		Method:         m.Method,
 		State:          int16(m.State),
 		Priority:       m.Priority,
 		UniqueKey:      UniqueKey,
@@ -312,7 +314,8 @@ func (m *Job) ToPb() (*v1.Job, error) {
 		Etag:         m.Etag,
 		Labels:       Labels,
 		Payload:      Payload,
-		JobType:      m.JobType,
+		Queue:        m.Queue,
+		Method:       m.Method,
 		State:        v1.JobState(m.State),
 		Priority:     m.Priority,
 		UniqueKey:    UniqueKey,
