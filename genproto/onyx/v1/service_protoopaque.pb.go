@@ -732,12 +732,13 @@ func (b0 Codegen_Rpc_builder) Build() *Codegen_Rpc {
 // A gRPC client. Dialed through the hosting server's own opts when the binary serves the service,
 // through its own `{service}-grpc` client flags otherwise.
 type Dependency_GrpcClient struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Proto   string                 `protobuf:"bytes,1,opt,name=proto,proto3"`
-	xxx_hidden_Service string                 `protobuf:"bytes,2,opt,name=service,proto3"`
-	xxx_hidden_Name    string                 `protobuf:"bytes,3,opt,name=name,proto3"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Proto      string                 `protobuf:"bytes,1,opt,name=proto,proto3"`
+	xxx_hidden_Service    string                 `protobuf:"bytes,2,opt,name=service,proto3"`
+	xxx_hidden_Name       string                 `protobuf:"bytes,3,opt,name=name,proto3"`
+	xxx_hidden_Operations bool                   `protobuf:"varint,4,opt,name=operations,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Dependency_GrpcClient) Reset() {
@@ -786,6 +787,13 @@ func (x *Dependency_GrpcClient) GetName() string {
 	return ""
 }
 
+func (x *Dependency_GrpcClient) GetOperations() bool {
+	if x != nil {
+		return x.xxx_hidden_Operations
+	}
+	return false
+}
+
 func (x *Dependency_GrpcClient) SetProto(v string) {
 	x.xxx_hidden_Proto = v
 }
@@ -796,6 +804,10 @@ func (x *Dependency_GrpcClient) SetService(v string) {
 
 func (x *Dependency_GrpcClient) SetName(v string) {
 	x.xxx_hidden_Name = v
+}
+
+func (x *Dependency_GrpcClient) SetOperations(v bool) {
+	x.xxx_hidden_Operations = v
 }
 
 type Dependency_GrpcClient_builder struct {
@@ -809,6 +821,10 @@ type Dependency_GrpcClient_builder struct {
 	// `{name}-grpc` flags. Defaults to service; set it when a binary hosts two services of the
 	// same name on different protos.
 	Name string
+	// Also inject the `google.longrunning.Operations` client of the server serving the service,
+	// on the same connection, as `{name}OperationsClient`: how a caller waits on the operations
+	// the service's long-running methods return. The service must have such methods.
+	Operations bool
 }
 
 func (b0 Dependency_GrpcClient_builder) Build() *Dependency_GrpcClient {
@@ -818,6 +834,7 @@ func (b0 Dependency_GrpcClient_builder) Build() *Dependency_GrpcClient {
 	x.xxx_hidden_Proto = b.Proto
 	x.xxx_hidden_Service = b.Service
 	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Operations = b.Operations
 	return m0
 }
 
@@ -1122,7 +1139,7 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x06target\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12\x12\n" +
 	"\x04nats\x18\x04 \x01(\bR\x04nats\x12 \n" +
 	"\vlongrunning\x18\x05 \x01(\bR\vlongrunningB\r\n" +
-	"\x04kind\x12\x05\xbaH\x02\b\x01\"\xa4\a\n" +
+	"\x04kind\x12\x05\xbaH\x02\b\x01\"\xc4\a\n" +
 	"\n" +
 	"Dependency\x12I\n" +
 	"\vgrpc_client\x18\x01 \x01(\v2&.malonaz.onyx.v1.Dependency.GrpcClientH\x00R\n" +
@@ -1130,12 +1147,15 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x12postgres_db_client\x18\x02 \x01(\v2,.malonaz.onyx.v1.Dependency.PostgresDbClientH\x00R\x10postgresDbClient\x12U\n" +
 	"\x0fpostgres_client\x18\x03 \x01(\v2*.malonaz.onyx.v1.Dependency.PostgresClientH\x00R\x0epostgresClient\x126\n" +
 	"\x04nats\x18\x04 \x01(\v2 .malonaz.onyx.v1.Dependency.NatsH\x00R\x04nats\x12?\n" +
-	"\aservice\x18\x05 \x01(\v2#.malonaz.onyx.v1.Dependency.ServiceH\x00R\aservice\x1a\x9e\x01\n" +
+	"\aservice\x18\x05 \x01(\v2#.malonaz.onyx.v1.Dependency.ServiceH\x00R\aservice\x1a\xbe\x01\n" +
 	"\n" +
 	"GrpcClient\x12\x1d\n" +
 	"\x05proto\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05proto\x129\n" +
 	"\aservice\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\aservice\x126\n" +
-	"\x04name\x18\x03 \x01(\tB\"\xbaH\x1f\xd8\x01\x01r\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x1a\x92\x01\n" +
+	"\x04name\x18\x03 \x01(\tB\"\xbaH\x1f\xd8\x01\x01r\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1e\n" +
+	"\n" +
+	"operations\x18\x04 \x01(\bR\n" +
+	"operations\x1a\x92\x01\n" +
 	"\x10PostgresDbClient\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f2\r^[a-z0-9_-]+$R\x04name\x123\n" +
 	"\bdatabase\x18\x02 \x01(\tB\x17\xbaH\x14\xd8\x01\x01r\x0f2\r^[a-z0-9_-]+$R\bdatabase\x12\x1f\n" +

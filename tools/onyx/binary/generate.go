@@ -64,13 +64,14 @@ func (g *generator) internalServiceAuthentication() bool {
 }
 
 // Identifiers.
-func serviceVar(s *Service) string        { return gen.Camel(s.GetName()) }
-func serviceOpts(s *Service) string       { return "opts." + gen.Pascal(s.GetName()) }
-func clientVar(c *GRPCClient) string      { return gen.Camel(c.Name) + "Client" }
-func healthCheckVar(c *GRPCClient) string { return gen.Camel(c.Name) + "HealthCheck" }
-func storeVar(s *Store) string            { return gen.Camel(s.Name) + "Store" }
-func psqlVar(d *Database) string          { return gen.Camel(d.Name) + "PsqlClient" }
-func componentVar(c *Component) string    { return gen.Camel(c.Name) + "Service" }
+func serviceVar(s *Service) string             { return gen.Camel(s.GetName()) }
+func serviceOpts(s *Service) string            { return "opts." + gen.Pascal(s.GetName()) }
+func clientVar(c *GRPCClient) string           { return gen.Camel(c.Name) + "Client" }
+func healthCheckVar(c *GRPCClient) string      { return gen.Camel(c.Name) + "HealthCheck" }
+func operationsClientVar(c *GRPCClient) string { return gen.Camel(c.Name) + "OperationsClient" }
+func storeVar(s *Store) string                 { return gen.Camel(s.Name) + "Store" }
+func psqlVar(d *Database) string               { return gen.Camel(d.Name) + "PsqlClient" }
+func componentVar(c *Component) string         { return gen.Camel(c.Name) + "Service" }
 func serverVar(s *Server, kind string) string {
 	return gen.Camel(s.GetName()) + kind
 }
@@ -305,6 +306,9 @@ func (g *generator) grpcClients() {
 		g.P("return ", fmt_, `.Errorf("connecting to `, client.Name, `: %w", err)`)
 		g.P("}")
 		g.P(clientVar(client), " := ", pb, ".New", client.GoName, "Client(", connection, ".Get())")
+		if client.Operations {
+			g.P(operationsClientVar(client), " := ", g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "NewOperationsClient"), "(", connection, ".Get())")
+		}
 		if client.HealthChecked {
 			g.P(healthCheckVar(client), " := ", connection, ".HealthCheckFn(", pb, ".", client.GoName, "_ServiceDesc.ServiceName)")
 		}
@@ -419,6 +423,9 @@ func (g *generator) service(s *Service) {
 		switch {
 		case dep.GRPCClient != nil:
 			args = append(args, clientVar(dep.GRPCClient))
+			if dep.Operations {
+				args = append(args, operationsClientVar(dep.GRPCClient))
+			}
 		case dep.Store != nil:
 			args = append(args, storeVar(dep.Store))
 		case dep.Database != nil:

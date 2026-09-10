@@ -62,6 +62,13 @@ func (g *generator) dependencies() ([]dependency, error) {
 			}
 			param := gen.Camel(svc.Name) + "Client"
 			deps = append(deps, dependency{g.field(param), gen.PB(g.File, svc) + "." + svc.GoName + "Client", param})
+			if kind.GrpcClient.GetOperations() {
+				if len(svc.LongrunningMethods) == 0 {
+					return nil, fmt.Errorf("grpc_client %s asks for operations but %s has no method returning google.longrunning.Operation", svc.Name, svc.FullName)
+				}
+				param := gen.Camel(svc.Name) + "OperationsClient"
+				deps = append(deps, dependency{g.field(param), g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "OperationsClient"), param})
+			}
 		case *onyxpb.Dependency_PostgresDbClient_:
 			param := kind.PostgresDbClient.GetName() + "PostgresStore"
 			deps = append(deps, dependency{g.field(param), "*" + g.Qual(g.goPath(kind.PostgresDbClient.GetTarget()), "Store"), param})

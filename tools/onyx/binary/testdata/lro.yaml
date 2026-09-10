@@ -6,3 +6,6 @@ servers:
         - service: lro-service
           proto: //lro/v1(tools/onyx/binary/testdata/lro.proto)
           manifest: //lro/lro_service:manifest(tools/onyx/binary/testdata/lro_service.yaml)
+  - name: lro-client
+    processor:
+      manifest: //lro/lro_client:manifest(tools/onyx/binary/testdata/lro_client_service.yaml)

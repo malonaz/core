@@ -99,6 +99,15 @@ external server is just proxying the LRO method in a gateway proto.
 - `ListOperations.name` is a job parent (organization, user, or empty for
   system jobs); the only filter supported is `done` / `NOT done`.
 
+## Waiting on an operation
+
+A caller declares the service's Operations client as a facet of its
+`grpc_client` — `operations: true` injects `{name}OperationsClient` on the same
+connection, i.e. the Operations of the server serving that service — and waits
+with `WaitOperation`; a wait is capped by
+`--scheduler-service.wait-job-max-timeout` (5m), so loop on `done` for longer
+ones. The response is an `Any` of the method's `response_type`.
+
 ## Traps
 
 - A gateway that proxies an LRO needs a `grpc_client` on the scheduler
