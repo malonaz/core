@@ -43,8 +43,8 @@ type Server struct {
 	// gRPC registrations, for grpc servers.
 	GRPC []*Registration
 	// The job methods of the long-running methods (AIP-151) the registrations expose, which the
-	// server serves as google.longrunning.Operations; SchedulerClient is the client they are read
-	// through, and is set exactly when there are any.
+	// server serves as google.longrunning.Operations; SchedulerClient is the binary's scheduler
+	// client they are read through, and is set exactly when there are any.
 	LongrunningMethods []string
 	SchedulerClient    *GRPCClient
 }
@@ -210,9 +210,9 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 				server.GRPC = append(server.GRPC, &Registration{Server_Grpc_Service: entry.grpc, Service: service, GRPC: grpc})
 			}
 		}
-		if err := l.resolveLongrunning(server); err != nil {
-			return nil, fmt.Errorf("server %s: %w", server.GetName(), err)
-		}
+	}
+	if err := l.resolveLongrunning(servers); err != nil {
+		return nil, err
 	}
 
 	// A gRPC dependency served in this binary is implemented by the service registering it.
@@ -259,32 +259,36 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 // schedulerServiceFullName is the scheduler running long-running operations.
 const schedulerServiceFullName = "malonaz.scheduler.scheduler_service.v1.SchedulerService"
 
-// resolveLongrunning collects the long-running methods a grpc server exposes and the scheduler
-// client its Operations server reads them through: the one a hosted service depends on.
-func (l *loader) resolveLongrunning(server *Server) error {
-	for _, registration := range server.GRPC {
-		for _, method := range registration.GRPC.LongrunningMethods {
-			if !slices.Contains(server.LongrunningMethods, method) {
-				server.LongrunningMethods = append(server.LongrunningMethods, method)
+// resolveLongrunning collects the long-running methods each grpc server exposes and the scheduler
+// client their Operations servers read them through. A method's service holds such a client to
+// start its jobs, so the binary has one; it must have only one, since the Operations of a server
+// answer for whatever its methods enqueued.
+func (l *loader) resolveLongrunning(servers []*Server) error {
+	var schedulerClient *GRPCClient
+	for _, client := range l.binary.GRPCClients {
+		if client.FullName != schedulerServiceFullName {
+			continue
+		}
+		if schedulerClient != nil {
+			return fmt.Errorf("long-running methods are served through both scheduler clients %s and %s; a binary reads its operations through one", schedulerClient.Name, client.Name)
+		}
+		schedulerClient = client
+	}
+	for _, server := range servers {
+		for _, registration := range server.GRPC {
+			for _, method := range registration.GRPC.LongrunningMethods {
+				if !slices.Contains(server.LongrunningMethods, method) {
+					server.LongrunningMethods = append(server.LongrunningMethods, method)
+				}
 			}
 		}
-	}
-	if len(server.LongrunningMethods) == 0 {
-		return nil
-	}
-	for _, service := range server.Services {
-		for _, dep := range service.Dependencies {
-			if dep.GRPCClient == nil || dep.GRPCClient.FullName != schedulerServiceFullName {
-				continue
-			}
-			if server.SchedulerClient != nil && server.SchedulerClient != dep.GRPCClient {
-				return fmt.Errorf("serves long-running methods through both scheduler clients %s and %s", server.SchedulerClient.Name, dep.GRPCClient.Name)
-			}
-			server.SchedulerClient = dep.GRPCClient
+		if len(server.LongrunningMethods) == 0 {
+			continue
 		}
-	}
-	if server.SchedulerClient == nil {
-		return fmt.Errorf("serves long-running methods (%s) but none of its services has a grpc_client on %s, which its google.longrunning.Operations server reads them through", strings.Join(server.LongrunningMethods, ", "), schedulerServiceFullName)
+		if schedulerClient == nil {
+			return fmt.Errorf("server %s serves long-running methods (%s) but no service of the binary has a grpc_client on %s, which its google.longrunning.Operations server reads them through", server.GetName(), strings.Join(server.LongrunningMethods, ", "), schedulerServiceFullName)
+		}
+		server.SchedulerClient = schedulerClient
 	}
 	return nil
 }

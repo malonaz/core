@@ -91,6 +91,6 @@ between any two of these fail generation naming both owners.
 A grpc server whose registered protos have methods returning
 `google.longrunning.Operation` also gets one
 `longrunningpb.RegisterOperationsServer` (AIP-151), scoped to those methods —
-a gateway method's `proxy` target stands in for it — and reading jobs through
-the scheduler `grpc_client` one of its services declares; none, or two
-different ones, fails generation (`lores/scheduler/longrunning`).
+a gateway method's `proxy` target stands in for it — reading jobs through the
+binary's scheduler `grpc_client` (the one the long-running service declares);
+none, or two different ones, fails generation (`lores/scheduler/longrunning`).

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package test.lro.gateway.v1;
+
+import "google/longrunning/operations.proto";
+import "malonaz/codegen/gateway/v1/gateway.proto";
+
+option go_package = "example.com/repo/genproto/lro/gateway/v1";
+service LroGateway {
+  rpc Import(Empty) returns (google.longrunning.Operation) {
+    option (malonaz.codegen.gateway.v1.opts).proxy = "test.lro.v1.LroService.Import";
+  }
+}
+message Empty {}

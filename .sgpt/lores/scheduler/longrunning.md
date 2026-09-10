@@ -86,10 +86,11 @@ sharing a scheduler never see each other's operations — a job of another
 method under the same parent is `NOT_FOUND` through it. Every job of a scoped
 method is an operation, however it was enqueued.
 
-The scheduler client is one a hosted service declares (`grpc_client` on the
-`malonaz.scheduler.scheduler_service.v1.SchedulerService` proto, whatever its
-`name`); a server exposing operations with no such client, or two different
-ones, fails generation. Calls forward the caller's context, so the scheduler
+The scheduler client is the binary's: the `grpc_client` on the
+`malonaz.scheduler.scheduler_service.v1.SchedulerService` proto that the
+long-running service itself declares to start its jobs (whatever its `name`),
+so gateways declare nothing. Two different scheduler clients in one binary, or
+none, fail generation. Calls forward the caller's context, so the scheduler
 authorizes `GetJob`/`ListJobs` as the caller — exposing Operations on an
 external server is just proxying the LRO method in a gateway proto.
 
@@ -109,9 +110,8 @@ polls `GetOperation`. The response is an `Any` of the method's `response_type`.
 
 ## Traps
 
-- A gateway that proxies an LRO needs a `grpc_client` on the scheduler
-  service in its manifest even though its handler never calls it: the server's
-  Operations server reads jobs through it.
+- A binary reads all its operations through one scheduler client: hosting two
+  services on different scheduler deployments in one binary is rejected.
 - A runner handing back an unfinished operation is a bug: the dispatcher fails
   the job `FAILED_PRECONDITION` without retry.
 - Stock `operations.proto` binds `GET /v1/{name=operations/**}`; a REST

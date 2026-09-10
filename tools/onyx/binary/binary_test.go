@@ -110,7 +110,18 @@ func TestLoadRejectsOperationsWithoutLongrunning(t *testing.T) {
 	require.ErrorContains(t, err, "asks for operations but test.c.v1.CService has no method returning google.longrunning.Operation")
 }
 
+func TestLoadLongrunningGateway(t *testing.T) {
+	b, err := load(t, "lro_gateway.yaml")
+	require.NoError(t, err)
+	gateway := b.Servers[1]
+	require.Equal(t, "lro-gateway", gateway.GetName())
+	// The gateway proxies lro-service's method and reads its operations through the binary's
+	// scheduler client, which only lro-service declares.
+	require.Equal(t, []string{"/test.lro.v1.LroService/Import"}, gateway.LongrunningMethods)
+	require.Equal(t, "scheduler-service", gateway.SchedulerClient.Name)
+}
+
 func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {
 	_, err := load(t, "lro_unscheduled.yaml")
-	require.ErrorContains(t, err, "none of its services has a grpc_client on malonaz.scheduler.scheduler_service.v1.SchedulerService")
+	require.ErrorContains(t, err, "no service of the binary has a grpc_client on malonaz.scheduler.scheduler_service.v1.SchedulerService")
 }
