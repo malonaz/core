@@ -2,12 +2,10 @@
     "explicit_sources": true,
     "gofmt": {
         "codegen_rule_formatting": {
-            "go_admin_api_main_src": "{{ name }}",
             "go_copy": "{{ name }}",
-            "go_main_src": "{{ name }}",
-            "go_service_src": "{{ name }}",
-            "go_src": "{{ name }}",
-            "go_template": "{{ name }}"
+            "go_template": "{{ name }}",
+            "onyx_main_src": "{{ name }}",
+            "onyx_service_src": "{{ name }}"
         },
         "import_path_remapping": {
             "github.com/malonaz/core/gengo": "github.com/malonaz/core/go",

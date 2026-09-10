@@ -1,5 +1,8 @@
 syntax = "proto3";
 package test.c.v1;
+
 option go_package = "example.com/repo/genproto/c/v1";
-service CService { rpc Ping(Empty) returns (Empty); }
+service CService {
+  rpc Ping(Empty) returns (Empty);
+}
 message Empty {}
