@@ -31,14 +31,14 @@ func TestLoad(t *testing.T) {
 	require.NoError(t, err)
 
 	// b-service is dialed by a-service, so it starts first; the rest keep manifest order.
-	require.Equal(t, []string{"b-service", "a-service", "a-processor"}, names(b.Servers))
+	require.Equal(t, []string{"b-service", "a-service", "a-processor", "d-processor"}, names(b.Servers))
 
 	// One a-service instance is shared by the grpc server and the processor.
-	require.Len(t, b.Services, 2)
+	require.Len(t, b.Services, 3)
 	require.Equal(t, []string{"a-service", "a-processor"}, names(b.Services[0].Servers))
 
-	require.Len(t, b.GRPCClients, 2)
-	inProcess, remote := b.GRPCClients[0], b.GRPCClients[1]
+	require.Len(t, b.GRPCClients, 3)
+	inProcess, remote, processorOnly := b.GRPCClients[0], b.GRPCClients[1], b.GRPCClients[2]
 	require.Equal(t, "b-service", inProcess.Name)
 	require.Equal(t, "b-service", inProcess.Server.GetName())
 	require.Equal(t, "b-service", inProcess.Service.GetName())
@@ -46,6 +46,9 @@ func TestLoad(t *testing.T) {
 	require.True(t, inProcess.HealthChecked)
 	require.Equal(t, "c-service", remote.Name)
 	require.Nil(t, remote.Server)
+	// d-processor alone holds it, and a processor reports its own health, not its dependencies'.
+	require.Equal(t, "a-service", processorOnly.Name)
+	require.False(t, processorOnly.HealthChecked)
 
 	source, err := Generate(b)
 	require.NoError(t, err)

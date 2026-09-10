@@ -213,11 +213,18 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 			}
 		}
 	}
-	for _, service := range l.binary.Services {
-		for _, dep := range service.Dependencies {
-			// A service's health does not gate on itself.
-			if dep.GRPCClient != nil && dep.GRPCClient.Service != service {
-				dep.GRPCClient.HealthChecked = true
+	// Only grpc and http servers report a service's dependencies; a processor reports the
+	// service's own HealthCheck, so a client it alone holds is not health-checked.
+	for _, server := range servers {
+		if server.GetProcessor() != nil {
+			continue
+		}
+		for _, service := range server.Services {
+			for _, dep := range service.Dependencies {
+				// A service's health does not gate on itself.
+				if dep.GRPCClient != nil && dep.GRPCClient.Service != service {
+					dep.GRPCClient.HealthChecked = true
+				}
 			}
 		}
 	}

@@ -1,0 +1,6 @@
+name: d-processor
+target: //d/d_processor
+dependencies:
+  - grpc_client:
+      service: a-service
+      proto: //a/v1(tools/onyx/binary/testdata/a.proto)

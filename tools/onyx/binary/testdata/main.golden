@@ -11,6 +11,7 @@ import (
 
 	aservice "example.com/repo/a/a_service"
 	bservice "example.com/repo/b/b_service"
+	dprocessor "example.com/repo/d/d_processor"
 	"example.com/repo/gengo/a/store"
 	aservicepb "example.com/repo/genproto/a/v1"
 	bservicepb "example.com/repo/genproto/b/v1"
@@ -43,8 +44,9 @@ var opts struct {
 	AServiceGRPC *grpc.ServerOpts `group:"AService GRPC (Server)" namespace:"a-service-grpc" env-namespace:"A_SERVICE_GRPC"`
 
 	// Services.
-	AService *aservice.Opts `group:"AService" namespace:"a-service" env-namespace:"A_SERVICE"`
-	BService *bservice.Opts `group:"BService" namespace:"b-service" env-namespace:"B_SERVICE"`
+	AService   *aservice.Opts   `group:"AService" namespace:"a-service" env-namespace:"A_SERVICE"`
+	BService   *bservice.Opts   `group:"BService" namespace:"b-service" env-namespace:"B_SERVICE"`
+	DProcessor *dprocessor.Opts `group:"DProcessor" namespace:"d-processor" env-namespace:"D_PROCESSOR"`
 }
 
 func main() {
@@ -113,6 +115,12 @@ func run(ctx context.Context) error {
 	}
 	cServiceClient := cservicepb.NewCServiceClient(cServiceConnection.Get())
 	cServiceHealthCheck := cServiceConnection.HealthCheckFn(cservicepb.CService_ServiceDesc.ServiceName)
+
+	aServiceConnection, err := connect(opts.AServiceGRPC.ClientOpts())
+	if err != nil {
+		return fmt.Errorf("connecting to a-service: %w", err)
+	}
+	aServiceClient := aservicepb.NewAServiceClient(aServiceConnection.Get())
 
 	// Postgres connections, one per endpoint.
 	endpointToPostgresClient := map[string]*postgres.Client{}
@@ -198,6 +206,18 @@ func run(ctx context.Context) error {
 
 	// a-processor
 	healthServer.RegisterService("a-processor", aService.HealthCheck)
+
+	// d-processor
+	dProcessor, err := dprocessor.New(opts.DProcessor, aServiceClient)
+	if err != nil {
+		return fmt.Errorf("instantiating d-processor: %w", err)
+	}
+	dProcessorCleanup, err := dProcessor.Start(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("starting d-processor: %w", err)
+	}
+	defer dProcessorCleanup()
+	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
 	go healthServer.Serve(ctx)
 	gracefulStopFns = append(gracefulStopFns, func() error {
