@@ -4,6 +4,7 @@ filegroup(
         "job.proto",
         "labels.proto",
         "queue.proto",
+        "schedule.proto",
     ],
     visibility = ["PUBLIC"],
 )
@@ -14,6 +15,7 @@ proto_library(
         "job.proto",
         "labels.proto",
         "queue.proto",
+        "schedule.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/scheduler/v1",

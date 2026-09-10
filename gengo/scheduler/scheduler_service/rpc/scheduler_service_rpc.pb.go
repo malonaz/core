@@ -23,17 +23,20 @@ import (
 type schedulerServiceStore interface {
 	schedulerService_QueueStore
 	schedulerService_JobStore
+	schedulerService_ScheduleStore
 }
 
 type SchedulerServiceServer struct {
 	*schedulerService_QueueServer
 	*schedulerService_JobServer
+	*schedulerService_ScheduleServer
 }
 
 func NewSchedulerServiceServer(store schedulerServiceStore) *SchedulerServiceServer {
 	return &SchedulerServiceServer{
-		schedulerService_QueueServer: newSchedulerService_QueueServer(store),
-		schedulerService_JobServer:   newSchedulerService_JobServer(store),
+		schedulerService_QueueServer:    newSchedulerService_QueueServer(store),
+		schedulerService_JobServer:      newSchedulerService_JobServer(store),
+		schedulerService_ScheduleServer: newSchedulerService_ScheduleServer(store),
 	}
 }
 
@@ -743,5 +746,387 @@ func (s *schedulerService_JobServer) BatchGetJobs(ctx context.Context, request *
 
 	return &v1.BatchGetJobsResponse{
 		Jobs: jobs,
+	}, nil
+}
+
+type schedulerService_ScheduleStore interface {
+	BatchInsertSchedules(ctx context.Context, requestIDs []string, schedules []*model.Schedule) ([]*model.Schedule, error)
+	UpdateSchedule(ctx context.Context, schedule *model.Schedule, updateClause string, columns []string, etag string) (*model.Schedule, error)
+	DeleteSchedule(ctx context.Context, organizationId, userId, scheduleId string, etag string) (*model.Schedule, error)
+	GetSchedule(ctx context.Context, organizationId, userId, scheduleId string) (*model.Schedule, error)
+	BatchGetSchedules(ctx context.Context, organizationIds []string, userIds []string, scheduleIds []string) ([]*model.Schedule, error)
+	ListSchedules(ctx context.Context, organizationId, userId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Schedule, error)
+}
+
+type schedulerService_ScheduleServer struct {
+	store schedulerService_ScheduleStore
+}
+
+func newSchedulerService_ScheduleServer(store schedulerService_ScheduleStore) *schedulerService_ScheduleServer {
+	return &schedulerService_ScheduleServer{
+		store: store,
+	}
+}
+
+func (s *schedulerService_ScheduleServer) prepareCreateSchedule(ctx context.Context, request *v1.CreateScheduleRequest) (*model.Schedule, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	scheduleId := request.ScheduleId
+	if scheduleId == "" {
+		scheduleId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId, userId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	switch {
+	case request.Parent == "":
+		request.Schedule.Name = resourcename.Sprint("schedules/{schedule}", scheduleId)
+	case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Schedule.Name = resourcename.Sprint("organizations/{organization}/users/{user}/schedules/{schedule}", organizationId, userId, scheduleId)
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Schedule.Name = resourcename.Sprint("organizations/{organization}/schedules/{schedule}", organizationId, scheduleId)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// STEP 2: Instantiate timestamps.
+	// Check for x-migration-request header
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+		if request.Schedule.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else {
+		request.Schedule.CreateTime = timestamppb.Now()
+	}
+	request.Schedule.UpdateTime = request.Schedule.CreateTime
+
+	{ // Capture the Etag.
+		var err error
+		request.Schedule.Etag, err = aip.ComputeETag(request.Schedule)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	scheduleModel, err := model.ScheduleFromPb(request.Schedule)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting schedule from pb to model: %v", err).Err()
+	}
+
+	return scheduleModel, nil
+}
+
+func (s *schedulerService_ScheduleServer) CreateSchedule(ctx context.Context, request *v1.CreateScheduleRequest) (*v11.Schedule, error) {
+	scheduleModel, err := s.prepareCreateSchedule(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.ValidateOnly {
+		return request.Schedule, nil
+	}
+
+	// STEP 4: Insert the resource.
+	dbSchedules, err := s.store.BatchInsertSchedules(ctx, []string{request.RequestId}, []*model.Schedule{scheduleModel})
+	if err != nil {
+		if errors.Is(err, model.ErrScheduleAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "schedule already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting schedules").Err()
+	}
+	if len(dbSchedules) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted schedule, got %d", len(dbSchedules)).Err()
+	}
+
+	schedule, err := dbSchedules[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting schedule from model to pb: %v", err).Err()
+	}
+
+	return schedule, nil
+}
+
+func (s *schedulerService_ScheduleServer) GetSchedule(ctx context.Context, request *v1.GetScheduleRequest) (*v11.Schedule, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, userId, scheduleId, err := model.ParseScheduleName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbScheduleModel, err := s.store.GetSchedule(ctx, organizationId, userId, scheduleId)
+	if err != nil {
+		if errors.Is(err, model.ErrScheduleNotExist) {
+			return nil, status.Errorf(codes.NotFound, "schedule does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting schedule").Err()
+	}
+
+	schedule, err := dbScheduleModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting schedule from model to pb: %v", err).Err()
+	}
+	return schedule, nil
+}
+
+var updateScheduleRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateScheduleRequest, *v11.Schedule]()
+
+func (s *schedulerService_ScheduleServer) UpdateSchedule(ctx context.Context, request *v1.UpdateScheduleRequest) (*v11.Schedule, error) {
+	for {
+		response, err := s.updateSchedule(ctx, request)
+		if err != nil {
+			if request.GetSchedule().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *schedulerService_ScheduleServer) updateSchedule(ctx context.Context, request *v1.UpdateScheduleRequest) (*v11.Schedule, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Schedule.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateScheduleRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getScheduleRequest := &v1.GetScheduleRequest{Name: request.Schedule.Name}
+	existingSchedule, err := s.GetSchedule(ctx, getScheduleRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetSchedule().GetEtag()
+	if etag == "" {
+		etag = existingSchedule.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedSchedule := proto.CloneOf(existingSchedule)
+	parsedRequest.ApplyFieldMask(patchedSchedule, request.Schedule)
+	if err := protovalidate.Validate(patchedSchedule); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedSchedule.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedSchedule.Etag, err = aip.ComputeETag(patchedSchedule)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	scheduleModel, err := model.ScheduleFromPb(patchedSchedule)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting schedule from pb to model: %v", err).Err()
+	}
+	dbScheduleModel, err := s.store.UpdateSchedule(ctx, scheduleModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrScheduleNotExist) {
+			return nil, status.Errorf(codes.NotFound, "schedule does not exist").Err()
+		}
+		if errors.Is(err, model.ErrScheduleETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating schedule").Err()
+	}
+
+	schedule, err := dbScheduleModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting schedule from model to pb: %v", err).Err()
+	}
+
+	return schedule, nil
+}
+
+func (s *schedulerService_ScheduleServer) DeleteSchedule(ctx context.Context, request *v1.DeleteScheduleRequest) (*emptypb.Empty, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, scheduleId, err := model.ParseScheduleName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// STEP 2: Hard delete the resource.
+	_, err = s.store.DeleteSchedule(ctx, organizationId, userId, scheduleId, request.GetEtag())
+	if err != nil {
+		if errors.Is(err, model.ErrScheduleNotExist) {
+			if request.AllowMissing {
+				return &emptypb.Empty{}, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "schedule does not exist").Err()
+		}
+		if errors.Is(err, model.ErrScheduleETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "deleting schedule").Err()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+var listSchedulesRequestParser = aip.MustNewListRequestParser[*v1.ListSchedulesRequest, *v11.Schedule](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *schedulerService_ScheduleServer) ListSchedules(ctx context.Context, request *v1.ListSchedulesRequest) (*v1.ListSchedulesResponse, error) {
+	// Parse parent names
+	var organizationId, userId string
+	switch {
+	case request.Parent == "":
+	case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listSchedulesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbSchedules, err := s.store.ListSchedules(ctx, organizationId, userId, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing schedules").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbSchedules))
+	if nextPageToken != "" {
+		dbSchedules = dbSchedules[:len(dbSchedules)-1]
+	}
+
+	// Convert back to proto.
+	schedules := make([]*v11.Schedule, 0, len(dbSchedules))
+	for _, dbSchedule := range dbSchedules {
+		schedule, err := dbSchedule.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Schedule to Schedule: %v", err).Err()
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	// Create and return response.
+	return &v1.ListSchedulesResponse{
+		Schedules:     schedules,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *schedulerService_ScheduleServer) BatchGetSchedules(ctx context.Context, request *v1.BatchGetSchedulesRequest) (*v1.BatchGetSchedulesResponse, error) {
+	var parentPatternValue string
+	if request.Parent != "" {
+		switch {
+		case resourcename.Match("organizations/{organization}/users/{user}", request.Parent):
+			parentPatternValue = "organizations/{organization}/users/{user}/schedules/{schedule}"
+		case resourcename.Match("organizations/{organization}", request.Parent):
+			parentPatternValue = "organizations/{organization}/schedules/{schedule}"
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
+	scheduleIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" {
+			if !resourcename.HasParent(name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+			}
+			if !resourcename.Match(parentPatternValue, name) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q is not a direct child of parent %q", name, request.Parent).Err()
+			}
+		}
+		organizationId, userId, scheduleId, err := model.ParseScheduleName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
+		scheduleIds[i] = scheduleId
+	}
+
+	dbSchedules, err := s.store.BatchGetSchedules(ctx, organizationIds, userIds, scheduleIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting schedule").Err()
+	}
+	if len(dbSchedules) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d schedules, found %d", len(request.Names), len(dbSchedules)).Err()
+	}
+
+	scheduleNameToSchedule := make(map[string]*v11.Schedule, len(request.Names))
+	for _, dbScheduleModel := range dbSchedules {
+		schedule, err := dbScheduleModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting schedule from model to pb: %v", err).Err()
+		}
+		scheduleNameToSchedule[schedule.Name] = schedule
+	}
+
+	schedules := make([]*v11.Schedule, 0, len(dbSchedules))
+	for _, name := range request.Names {
+		schedule, ok := scheduleNameToSchedule[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	return &v1.BatchGetSchedulesResponse{
+		Schedules: schedules,
 	}, nil
 }

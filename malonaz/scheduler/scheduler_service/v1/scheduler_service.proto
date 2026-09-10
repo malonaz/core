@@ -8,8 +8,10 @@ import "google/protobuf/empty.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/scheduler/scheduler_service/v1/job.proto";
 import "malonaz/scheduler/scheduler_service/v1/queue.proto";
+import "malonaz/scheduler/scheduler_service/v1/schedule.proto";
 import "malonaz/scheduler/v1/job.proto";
 import "malonaz/scheduler/v1/queue.proto";
+import "malonaz/scheduler/v1/schedule.proto";
 
 option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1";
 
@@ -28,6 +30,12 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 //   Format: jobs/{job}
 //   Format: organizations/{organization}/jobs/{job}
 //   Format: organizations/{organization}/users/{user}/jobs/{job}
+// - [Schedule][malonaz.scheduler.v1.Schedule] resources declare recurring
+//   work: a cron expression and a payload template from which one job is
+//   created per tick, under the schedule's parent.
+//   Format: schedules/{schedule}
+//   Format: organizations/{organization}/schedules/{schedule}
+//   Format: organizations/{organization}/users/{user}/schedules/{schedule}
 //
 // # Scheduling
 //
@@ -53,6 +61,17 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 //
 // Every call carries the job's resource name in the `x-scheduler-job` request
 // metadata, which methods pass to ReportJobProgress.
+//
+// # Recurrence
+//
+// An ENABLED schedule is due at its `next_schedule_time`. At each tick the
+// scheduler creates the job the schedule describes — `schedule_time` the
+// tick, `expire_time` the tick plus the schedule's `run_window` (the next
+// tick when unset), labelled `scheduler.malonaz.com/schedule` — and advances
+// `next_schedule_time` to the first cron occurrence after now. A tick reached
+// after its run window closed is skipped and counted in `missed_tick_count`:
+// downtime is never caught up. A tick's job is created idempotently, so a
+// pass interrupted after the insert replays into the same job.
 //
 // # Long-running operations
 //
@@ -348,5 +367,149 @@ service SchedulerService {
       }
     };
     option (google.api.method_signature) = "name,progress";
+  }
+
+  // ===================== Schedule Management =====================
+
+  // Create a schedule in the queue its payload type selects. Fails with
+  // INVALID_ARGUMENT when no queue accepts the payload type, when `cron` is
+  // not a five-field cron expression, or when `time_zone` is not an IANA
+  // zone. The schedule starts ENABLED with `next_schedule_time` at the first
+  // occurrence after now.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateSchedule(CreateScheduleRequest) returns (scheduler.v1.Schedule) {
+    option (google.api.http) = {
+      post: "/v1/schedules"
+      body: "schedule"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/schedules"
+        body: "schedule"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/users/*}/schedules"
+        body: "schedule"
+      }
+    };
+    option (google.api.method_signature) = "parent,schedule";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // Get a schedule.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetSchedule(GetScheduleRequest) returns (scheduler.v1.Schedule) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/{name=schedules/*}"
+      additional_bindings: {get: "/v1/{name=organizations/*/schedules/*}"}
+      additional_bindings: {get: "/v1/{name=organizations/*/users/*/schedules/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // Update a schedule. Changing `cron` or `time_zone` recomputes
+  // `next_schedule_time` from now; jobs already created are untouched.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateSchedule(UpdateScheduleRequest) returns (scheduler.v1.Schedule) {
+    option (google.api.http) = {
+      patch: "/v1/{schedule.name=schedules/*}"
+      body: "schedule"
+      additional_bindings: {
+        patch: "/v1/{schedule.name=organizations/*/schedules/*}"
+        body: "schedule"
+      }
+      additional_bindings: {
+        patch: "/v1/{schedule.name=organizations/*/users/*/schedules/*}"
+        body: "schedule"
+      }
+    };
+    option (google.api.method_signature) = "schedule,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // Delete a schedule. Jobs it already created are untouched.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteSchedule(DeleteScheduleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/{name=schedules/*}"
+      additional_bindings: {delete: "/v1/{name=organizations/*/schedules/*}"}
+      additional_bindings: {delete: "/v1/{name=organizations/*/users/*/schedules/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // List schedules.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/schedules"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/schedules"}
+      additional_bindings: {get: "/v1/{parent=organizations/*/users/*}/schedules"}
+    };
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // Get multiple schedules in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetSchedules(BatchGetSchedulesRequest) returns (BatchGetSchedulesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/schedules:batchGet"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/schedules:batchGet"}
+      additional_bindings: {get: "/v1/{parent=organizations/*/users/*}/schedules:batchGet"}
+    };
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Schedule";
+  }
+
+  // Pause a schedule: no tick is materialized until it is resumed, and
+  // `next_schedule_time` is cleared. Jobs already created are untouched.
+  // Idempotent on a PAUSED schedule.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc PauseSchedule(PauseScheduleRequest) returns (scheduler.v1.Schedule) {
+    option (google.api.http) = {
+      post: "/v1/{name=schedules/*}:pause"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/schedules/*}:pause"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/schedules/*}:pause"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Resume a paused schedule from the first occurrence after now: ticks that
+  // fell within the pause are not caught up. Idempotent on an ENABLED
+  // schedule.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ResumeSchedule(ResumeScheduleRequest) returns (scheduler.v1.Schedule) {
+    option (google.api.http) = {
+      post: "/v1/{name=schedules/*}:resume"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/schedules/*}:resume"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/schedules/*}:resume"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "name";
   }
 }

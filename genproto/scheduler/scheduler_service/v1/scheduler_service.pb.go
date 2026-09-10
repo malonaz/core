@@ -30,7 +30,7 @@ var File_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto protoref
 
 const file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_rawDesc = "" +
 	"\n" +
-	">malonaz/scheduler/scheduler_service/v1/scheduler_service.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a0malonaz/scheduler/scheduler_service/v1/job.proto\x1a2malonaz/scheduler/scheduler_service/v1/queue.proto\x1a\x1emalonaz/scheduler/v1/job.proto\x1a malonaz/scheduler/v1/queue.proto2\x94 \n" +
+	">malonaz/scheduler/scheduler_service/v1/scheduler_service.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a0malonaz/scheduler/scheduler_service/v1/job.proto\x1a2malonaz/scheduler/scheduler_service/v1/queue.proto\x1a5malonaz/scheduler/scheduler_service/v1/schedule.proto\x1a\x1emalonaz/scheduler/v1/job.proto\x1a malonaz/scheduler/v1/queue.proto\x1a#malonaz/scheduler/v1/schedule.proto2\x953\n" +
 	"\x10SchedulerService\x12\xaa\x01\n" +
 	"\vCreateQueue\x12:.malonaz.scheduler.scheduler_service.v1.CreateQueueRequest\x1a\x1b.malonaz.scheduler.v1.Queue\"B\xdaA\x05queue´-\x1d\n" +
 	"\x1bscheduler.malonaz.com/Queue\x82\xd3\xe4\x93\x02\x13:\x05queue\"\n" +
@@ -66,34 +66,59 @@ const file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_rawDes
 	"\bRetryJob\x127.malonaz.scheduler.scheduler_service.v1.RetryJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x8e\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x80\x01:\x01*Z,:\x01*\"'/v1/{name=organizations/*/jobs/*}:retryZ4:\x01*\"//v1/{name=organizations/*/users/*/jobs/*}:retry\"\x17/v1/{name=jobs/*}:retry\x12\xf4\x01\n" +
 	"\tCancelJob\x128.malonaz.scheduler.scheduler_service.v1.CancelJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x91\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x83\x01:\x01*Z-:\x01*\"(/v1/{name=organizations/*/jobs/*}:cancelZ5:\x01*\"0/v1/{name=organizations/*/users/*/jobs/*}:cancel\"\x18/v1/{name=jobs/*}:cancel\x12\xf1\x01\n" +
 	"\aWaitJob\x126.malonaz.scheduler.scheduler_service.v1.WaitJobRequest\x1a\x19.malonaz.scheduler.v1.Job\"\x92\x01\xdaA\fname,timeout\x82\xd3\xe4\x93\x02}:\x01*Z+:\x01*\"&/v1/{name=organizations/*/jobs/*}:waitZ3:\x01*\"./v1/{name=organizations/*/users/*/jobs/*}:wait\"\x16/v1/{name=jobs/*}:wait\x12\xa5\x02\n" +
-	"\x11ReportJobProgress\x12@.malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest\x1a\x19.malonaz.scheduler.v1.Job\"\xb2\x01\xdaA\rname,progress\x82\xd3\xe4\x93\x02\x9b\x01:\x01*Z5:\x01*\"0/v1/{name=organizations/*/jobs/*}:reportProgressZ=:\x01*\"8/v1/{name=organizations/*/users/*/jobs/*}:reportProgress\" /v1/{name=jobs/*}:reportProgress\x1a\x18\xcaA\x15scheduler.malonaz.comBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
+	"\x11ReportJobProgress\x12@.malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest\x1a\x19.malonaz.scheduler.v1.Job\"\xb2\x01\xdaA\rname,progress\x82\xd3\xe4\x93\x02\x9b\x01:\x01*Z5:\x01*\"0/v1/{name=organizations/*/jobs/*}:reportProgressZ=:\x01*\"8/v1/{name=organizations/*/users/*/jobs/*}:reportProgress\" /v1/{name=jobs/*}:reportProgress\x12\xb8\x02\n" +
+	"\x0eCreateSchedule\x12=.malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest\x1a\x1e.malonaz.scheduler.v1.Schedule\"\xc6\x01\xdaA\x0fparent,schedule´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02\x89\x01:\bscheduleZ2:\bschedule\"&/v1/{parent=organizations/*}/schedulesZ::\bschedule\"./v1/{parent=organizations/*/users/*}/schedules\"\r/v1/schedules\x12\x94\x02\n" +
+	"\vGetSchedule\x12:.malonaz.scheduler.scheduler_service.v1.GetScheduleRequest\x1a\x1e.malonaz.scheduler.v1.Schedule\"\xa8\x01\xdaA\x04name´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02tZ(\x12&/v1/{name=organizations/*/schedules/*}Z0\x12./v1/{name=organizations/*/users/*/schedules/*}\x12\x16/v1/{name=schedules/*}\x90\x02\x01\x12\xe1\x02\n" +
+	"\x0eUpdateSchedule\x12=.malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest\x1a\x1e.malonaz.scheduler.v1.Schedule\"\xef\x01\xdaA\x14schedule,update_mask´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02\xad\x01:\bscheduleZ;:\bschedule2//v1/{schedule.name=organizations/*/schedules/*}ZC:\bschedule27/v1/{schedule.name=organizations/*/users/*/schedules/*}2\x1f/v1/{schedule.name=schedules/*}\x12\x8f\x02\n" +
+	"\x0eDeleteSchedule\x12=.malonaz.scheduler.scheduler_service.v1.DeleteScheduleRequest\x1a\x16.google.protobuf.Empty\"\xa5\x01\xdaA\x04name´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02tZ(*&/v1/{name=organizations/*/schedules/*}Z0*./v1/{name=organizations/*/users/*/schedules/*}*\x16/v1/{name=schedules/*}\x12\xb0\x02\n" +
+	"\rListSchedules\x12<.malonaz.scheduler.scheduler_service.v1.ListSchedulesRequest\x1a=.malonaz.scheduler.scheduler_service.v1.ListSchedulesResponse\"\xa1\x01\xdaA\x06parent´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02kZ(\x12&/v1/{parent=organizations/*}/schedulesZ0\x12./v1/{parent=organizations/*/users/*}/schedules\x12\r/v1/schedules\x90\x02\x01\x12\xde\x02\n" +
+	"\x11BatchGetSchedules\x12@.malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesRequest\x1aA.malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse\"\xc3\x01\xdaA\fparent,names´- \n" +
+	"\x1escheduler.malonaz.com/Schedule\x82\xd3\xe4\x93\x02\x86\x01Z1\x12//v1/{parent=organizations/*}/schedules:batchGetZ9\x127/v1/{parent=organizations/*/users/*}/schedules:batchGet\x12\x16/v1/schedules:batchGet\x90\x02\x01\x12\x8d\x02\n" +
+	"\rPauseSchedule\x12<.malonaz.scheduler.scheduler_service.v1.PauseScheduleRequest\x1a\x1e.malonaz.scheduler.v1.Schedule\"\x9d\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x8f\x01:\x01*Z1:\x01*\",/v1/{name=organizations/*/schedules/*}:pauseZ9:\x01*\"4/v1/{name=organizations/*/users/*/schedules/*}:pause\"\x1c/v1/{name=schedules/*}:pause\x12\x92\x02\n" +
+	"\x0eResumeSchedule\x12=.malonaz.scheduler.scheduler_service.v1.ResumeScheduleRequest\x1a\x1e.malonaz.scheduler.v1.Schedule\"\xa0\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\x92\x01:\x01*Z2:\x01*\"-/v1/{name=organizations/*/schedules/*}:resumeZ::\x01*\"5/v1/{name=organizations/*/users/*/schedules/*}:resume\"\x1d/v1/{name=schedules/*}:resume\x1a\x18\xcaA\x15scheduler.malonaz.comBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
 var file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_goTypes = []any{
-	(*CreateQueueRequest)(nil),       // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest
-	(*GetQueueRequest)(nil),          // 1: malonaz.scheduler.scheduler_service.v1.GetQueueRequest
-	(*UpdateQueueRequest)(nil),       // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest
-	(*DeleteQueueRequest)(nil),       // 3: malonaz.scheduler.scheduler_service.v1.DeleteQueueRequest
-	(*ListQueuesRequest)(nil),        // 4: malonaz.scheduler.scheduler_service.v1.ListQueuesRequest
-	(*BatchGetQueuesRequest)(nil),    // 5: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesRequest
-	(*PauseQueueRequest)(nil),        // 6: malonaz.scheduler.scheduler_service.v1.PauseQueueRequest
-	(*ResumeQueueRequest)(nil),       // 7: malonaz.scheduler.scheduler_service.v1.ResumeQueueRequest
-	(*CreateJobRequest)(nil),         // 8: malonaz.scheduler.scheduler_service.v1.CreateJobRequest
-	(*GetJobRequest)(nil),            // 9: malonaz.scheduler.scheduler_service.v1.GetJobRequest
-	(*UpdateJobRequest)(nil),         // 10: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest
-	(*DeleteJobRequest)(nil),         // 11: malonaz.scheduler.scheduler_service.v1.DeleteJobRequest
-	(*ListJobsRequest)(nil),          // 12: malonaz.scheduler.scheduler_service.v1.ListJobsRequest
-	(*BatchGetJobsRequest)(nil),      // 13: malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest
-	(*RetryJobRequest)(nil),          // 14: malonaz.scheduler.scheduler_service.v1.RetryJobRequest
-	(*CancelJobRequest)(nil),         // 15: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
-	(*WaitJobRequest)(nil),           // 16: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
-	(*ReportJobProgressRequest)(nil), // 17: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
-	(*v1.Queue)(nil),                 // 18: malonaz.scheduler.v1.Queue
-	(*emptypb.Empty)(nil),            // 19: google.protobuf.Empty
-	(*ListQueuesResponse)(nil),       // 20: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
-	(*BatchGetQueuesResponse)(nil),   // 21: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
-	(*v1.Job)(nil),                   // 22: malonaz.scheduler.v1.Job
-	(*ListJobsResponse)(nil),         // 23: malonaz.scheduler.scheduler_service.v1.ListJobsResponse
-	(*BatchGetJobsResponse)(nil),     // 24: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse
+	(*CreateQueueRequest)(nil),        // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest
+	(*GetQueueRequest)(nil),           // 1: malonaz.scheduler.scheduler_service.v1.GetQueueRequest
+	(*UpdateQueueRequest)(nil),        // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest
+	(*DeleteQueueRequest)(nil),        // 3: malonaz.scheduler.scheduler_service.v1.DeleteQueueRequest
+	(*ListQueuesRequest)(nil),         // 4: malonaz.scheduler.scheduler_service.v1.ListQueuesRequest
+	(*BatchGetQueuesRequest)(nil),     // 5: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesRequest
+	(*PauseQueueRequest)(nil),         // 6: malonaz.scheduler.scheduler_service.v1.PauseQueueRequest
+	(*ResumeQueueRequest)(nil),        // 7: malonaz.scheduler.scheduler_service.v1.ResumeQueueRequest
+	(*CreateJobRequest)(nil),          // 8: malonaz.scheduler.scheduler_service.v1.CreateJobRequest
+	(*GetJobRequest)(nil),             // 9: malonaz.scheduler.scheduler_service.v1.GetJobRequest
+	(*UpdateJobRequest)(nil),          // 10: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest
+	(*DeleteJobRequest)(nil),          // 11: malonaz.scheduler.scheduler_service.v1.DeleteJobRequest
+	(*ListJobsRequest)(nil),           // 12: malonaz.scheduler.scheduler_service.v1.ListJobsRequest
+	(*BatchGetJobsRequest)(nil),       // 13: malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest
+	(*RetryJobRequest)(nil),           // 14: malonaz.scheduler.scheduler_service.v1.RetryJobRequest
+	(*CancelJobRequest)(nil),          // 15: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
+	(*WaitJobRequest)(nil),            // 16: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+	(*ReportJobProgressRequest)(nil),  // 17: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
+	(*CreateScheduleRequest)(nil),     // 18: malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest
+	(*GetScheduleRequest)(nil),        // 19: malonaz.scheduler.scheduler_service.v1.GetScheduleRequest
+	(*UpdateScheduleRequest)(nil),     // 20: malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest
+	(*DeleteScheduleRequest)(nil),     // 21: malonaz.scheduler.scheduler_service.v1.DeleteScheduleRequest
+	(*ListSchedulesRequest)(nil),      // 22: malonaz.scheduler.scheduler_service.v1.ListSchedulesRequest
+	(*BatchGetSchedulesRequest)(nil),  // 23: malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesRequest
+	(*PauseScheduleRequest)(nil),      // 24: malonaz.scheduler.scheduler_service.v1.PauseScheduleRequest
+	(*ResumeScheduleRequest)(nil),     // 25: malonaz.scheduler.scheduler_service.v1.ResumeScheduleRequest
+	(*v1.Queue)(nil),                  // 26: malonaz.scheduler.v1.Queue
+	(*emptypb.Empty)(nil),             // 27: google.protobuf.Empty
+	(*ListQueuesResponse)(nil),        // 28: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
+	(*BatchGetQueuesResponse)(nil),    // 29: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
+	(*v1.Job)(nil),                    // 30: malonaz.scheduler.v1.Job
+	(*ListJobsResponse)(nil),          // 31: malonaz.scheduler.scheduler_service.v1.ListJobsResponse
+	(*BatchGetJobsResponse)(nil),      // 32: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse
+	(*v1.Schedule)(nil),               // 33: malonaz.scheduler.v1.Schedule
+	(*ListSchedulesResponse)(nil),     // 34: malonaz.scheduler.scheduler_service.v1.ListSchedulesResponse
+	(*BatchGetSchedulesResponse)(nil), // 35: malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse
 }
 var file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateQueue:input_type -> malonaz.scheduler.scheduler_service.v1.CreateQueueRequest
@@ -114,26 +139,42 @@ var file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_depIdxs 
 	15, // 15: malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob:input_type -> malonaz.scheduler.scheduler_service.v1.CancelJobRequest
 	16, // 16: malonaz.scheduler.scheduler_service.v1.SchedulerService.WaitJob:input_type -> malonaz.scheduler.scheduler_service.v1.WaitJobRequest
 	17, // 17: malonaz.scheduler.scheduler_service.v1.SchedulerService.ReportJobProgress:input_type -> malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
-	18, // 18: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateQueue:output_type -> malonaz.scheduler.v1.Queue
-	18, // 19: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetQueue:output_type -> malonaz.scheduler.v1.Queue
-	18, // 20: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateQueue:output_type -> malonaz.scheduler.v1.Queue
-	19, // 21: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteQueue:output_type -> google.protobuf.Empty
-	20, // 22: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListQueues:output_type -> malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
-	21, // 23: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetQueues:output_type -> malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
-	18, // 24: malonaz.scheduler.scheduler_service.v1.SchedulerService.PauseQueue:output_type -> malonaz.scheduler.v1.Queue
-	18, // 25: malonaz.scheduler.scheduler_service.v1.SchedulerService.ResumeQueue:output_type -> malonaz.scheduler.v1.Queue
-	22, // 26: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateJob:output_type -> malonaz.scheduler.v1.Job
-	22, // 27: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetJob:output_type -> malonaz.scheduler.v1.Job
-	22, // 28: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateJob:output_type -> malonaz.scheduler.v1.Job
-	19, // 29: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteJob:output_type -> google.protobuf.Empty
-	23, // 30: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListJobs:output_type -> malonaz.scheduler.scheduler_service.v1.ListJobsResponse
-	24, // 31: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetJobs:output_type -> malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse
-	22, // 32: malonaz.scheduler.scheduler_service.v1.SchedulerService.RetryJob:output_type -> malonaz.scheduler.v1.Job
-	22, // 33: malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob:output_type -> malonaz.scheduler.v1.Job
-	22, // 34: malonaz.scheduler.scheduler_service.v1.SchedulerService.WaitJob:output_type -> malonaz.scheduler.v1.Job
-	22, // 35: malonaz.scheduler.scheduler_service.v1.SchedulerService.ReportJobProgress:output_type -> malonaz.scheduler.v1.Job
-	18, // [18:36] is the sub-list for method output_type
-	0,  // [0:18] is the sub-list for method input_type
+	18, // 18: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest
+	19, // 19: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.GetScheduleRequest
+	20, // 20: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest
+	21, // 21: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.DeleteScheduleRequest
+	22, // 22: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListSchedules:input_type -> malonaz.scheduler.scheduler_service.v1.ListSchedulesRequest
+	23, // 23: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetSchedules:input_type -> malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesRequest
+	24, // 24: malonaz.scheduler.scheduler_service.v1.SchedulerService.PauseSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.PauseScheduleRequest
+	25, // 25: malonaz.scheduler.scheduler_service.v1.SchedulerService.ResumeSchedule:input_type -> malonaz.scheduler.scheduler_service.v1.ResumeScheduleRequest
+	26, // 26: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateQueue:output_type -> malonaz.scheduler.v1.Queue
+	26, // 27: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetQueue:output_type -> malonaz.scheduler.v1.Queue
+	26, // 28: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateQueue:output_type -> malonaz.scheduler.v1.Queue
+	27, // 29: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteQueue:output_type -> google.protobuf.Empty
+	28, // 30: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListQueues:output_type -> malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
+	29, // 31: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetQueues:output_type -> malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
+	26, // 32: malonaz.scheduler.scheduler_service.v1.SchedulerService.PauseQueue:output_type -> malonaz.scheduler.v1.Queue
+	26, // 33: malonaz.scheduler.scheduler_service.v1.SchedulerService.ResumeQueue:output_type -> malonaz.scheduler.v1.Queue
+	30, // 34: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateJob:output_type -> malonaz.scheduler.v1.Job
+	30, // 35: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetJob:output_type -> malonaz.scheduler.v1.Job
+	30, // 36: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateJob:output_type -> malonaz.scheduler.v1.Job
+	27, // 37: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteJob:output_type -> google.protobuf.Empty
+	31, // 38: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListJobs:output_type -> malonaz.scheduler.scheduler_service.v1.ListJobsResponse
+	32, // 39: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetJobs:output_type -> malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse
+	30, // 40: malonaz.scheduler.scheduler_service.v1.SchedulerService.RetryJob:output_type -> malonaz.scheduler.v1.Job
+	30, // 41: malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob:output_type -> malonaz.scheduler.v1.Job
+	30, // 42: malonaz.scheduler.scheduler_service.v1.SchedulerService.WaitJob:output_type -> malonaz.scheduler.v1.Job
+	30, // 43: malonaz.scheduler.scheduler_service.v1.SchedulerService.ReportJobProgress:output_type -> malonaz.scheduler.v1.Job
+	33, // 44: malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateSchedule:output_type -> malonaz.scheduler.v1.Schedule
+	33, // 45: malonaz.scheduler.scheduler_service.v1.SchedulerService.GetSchedule:output_type -> malonaz.scheduler.v1.Schedule
+	33, // 46: malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateSchedule:output_type -> malonaz.scheduler.v1.Schedule
+	27, // 47: malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteSchedule:output_type -> google.protobuf.Empty
+	34, // 48: malonaz.scheduler.scheduler_service.v1.SchedulerService.ListSchedules:output_type -> malonaz.scheduler.scheduler_service.v1.ListSchedulesResponse
+	35, // 49: malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetSchedules:output_type -> malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse
+	33, // 50: malonaz.scheduler.scheduler_service.v1.SchedulerService.PauseSchedule:output_type -> malonaz.scheduler.v1.Schedule
+	33, // 51: malonaz.scheduler.scheduler_service.v1.SchedulerService.ResumeSchedule:output_type -> malonaz.scheduler.v1.Schedule
+	26, // [26:52] is the sub-list for method output_type
+	0,  // [0:26] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -146,6 +187,7 @@ func file_malonaz_scheduler_scheduler_service_v1_scheduler_service_proto_init() 
 	}
 	file_malonaz_scheduler_scheduler_service_v1_job_proto_init()
 	file_malonaz_scheduler_scheduler_service_v1_queue_proto_init()
+	file_malonaz_scheduler_scheduler_service_v1_schedule_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
