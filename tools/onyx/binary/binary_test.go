@@ -72,3 +72,20 @@ func TestLoadRejectsIdentifierCollision(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "opts.CServiceGRPC"), err.Error())
 }
+
+func TestLoadRejectsSameNameClients(t *testing.T) {
+	// Two c-service clients on different protos would both be cServiceClient.
+	_, err := load(t, "same_name_clients.yaml")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "cServiceClient"), err.Error())
+}
+
+func TestLoadNamedClient(t *testing.T) {
+	// Naming one of them tells the two apart.
+	b, err := load(t, "named_clients.yaml")
+	require.NoError(t, err)
+	require.Len(t, b.GRPCClients, 2)
+	require.Equal(t, "c-service", b.GRPCClients[0].Name)
+	require.Equal(t, "c2-service", b.GRPCClients[1].Name)
+	require.Equal(t, "CService", b.GRPCClients[1].GoName)
+}

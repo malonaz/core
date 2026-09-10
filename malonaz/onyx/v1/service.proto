@@ -87,6 +87,14 @@ message Dependency {
 
     // Kebab-case name of the proto service.
     string service = 2 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+    // Kebab-case name of the client: the constructor argument and, for a remote client, its
+    // `{name}-grpc` flags. Defaults to service; set it when a binary hosts two services of the
+    // same name on different protos.
+    string name = 3 [
+      (buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$",
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
   }
 
   // A generated store over a postgres database.

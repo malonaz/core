@@ -93,7 +93,20 @@ func (g *generator) grpcService(client *onyxpb.Dependency_GrpcClient) (*manifest
 	if err != nil {
 		return nil, err
 	}
-	return manifest.ResolveGRPCService(proto, client.GetService(), g.goImportPath)
+	svc, err := manifest.ResolveGRPCService(proto, client.GetService(), g.goImportPath)
+	if err != nil {
+		return nil, err
+	}
+	svc.Name = clientName(client)
+	return svc, nil
+}
+
+// clientName is what a gRPC client dependency is called: its name, else its service.
+func clientName(client *onyxpb.Dependency_GrpcClient) string {
+	if client.GetName() != "" {
+		return client.GetName()
+	}
+	return client.GetService()
 }
 
 func (g *generator) generate() error {
@@ -108,7 +121,7 @@ func (g *generator) generate() error {
 	var longrunning bool
 	for _, dep := range g.m.GetDependencies() {
 		if client := dep.GetGrpcClient(); client != nil && client.GetService() == "scheduler-service" {
-			schedulerClient = gen.Camel(client.GetService()) + "Client"
+			schedulerClient = gen.Camel(clientName(client)) + "Client"
 		}
 	}
 	for _, codegen := range g.m.GetCodegens() {

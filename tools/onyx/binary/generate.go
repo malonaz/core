@@ -239,7 +239,7 @@ func (g *generator) opts() {
 		g.P()
 		g.P("// gRPC clients of services outside this binary.")
 		for _, client := range remote {
-			g.P(client.GoName, "GRPC *", grpc, ".ClientOpts ", gen.Tag(gen.Human(client.Name)+" GRPC (Client)", gen.Kebab(client.Name)+"-grpc"))
+			g.P(gen.Pascal(client.Name), "GRPC *", grpc, ".ClientOpts ", gen.Tag(gen.Human(client.Name)+" GRPC (Client)", gen.Kebab(client.Name)+"-grpc"))
 		}
 	}
 

@@ -289,7 +289,9 @@ func (l *loader) dependency(m *onyxpb.ServiceManifest, dep *onyxpb.Dependency, s
 	switch kind := dep.GetKind().(type) {
 	case *onyxpb.Dependency_GrpcClient_:
 		key := grpcKey(kind.GrpcClient.GetProto(), kind.GrpcClient.GetService())
-		client, ok := l.grpcClients[key]
+		name := orDefault(kind.GrpcClient.GetName(), kind.GrpcClient.GetService())
+		// Two names for one service are two clients: the name is the identifier.
+		client, ok := l.grpcClients[key+":"+name]
 		if !ok {
 			proto, err := manifest.ParseLabel(kind.GrpcClient.GetProto())
 			if err != nil {
@@ -299,8 +301,9 @@ func (l *loader) dependency(m *onyxpb.ServiceManifest, dep *onyxpb.Dependency, s
 			if err != nil {
 				return nil, err
 			}
+			grpc.Name = name
 			client = &GRPCClient{GRPCService: grpc, Proto: proto, key: key, Server: served[key]}
-			l.grpcClients[key] = client
+			l.grpcClients[key+":"+name] = client
 			l.binary.GRPCClients = append(l.binary.GRPCClients, client)
 		}
 		return &Dependency{GRPCClient: client}, nil
@@ -486,11 +489,12 @@ func (l *loader) checkIdentifiers() error {
 		}
 	}
 	for _, client := range l.binary.GRPCClients {
-		if err := claim(gen.Camel(client.Name)+"Client", "gRPC client "+client.Name); err != nil {
+		owner := fmt.Sprintf("gRPC client %s (%s)", client.Name, client.key)
+		if err := claim(gen.Camel(client.Name)+"Client", owner); err != nil {
 			return err
 		}
 		if client.Server == nil {
-			if err := claim("opts."+client.GoName+"GRPC", "gRPC client "+client.Name); err != nil {
+			if err := claim("opts."+gen.Pascal(client.Name)+"GRPC", owner); err != nil {
 				return err
 			}
 		}

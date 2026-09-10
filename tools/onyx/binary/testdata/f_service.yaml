@@ -1,0 +1,10 @@
+name: f-service
+target: //f/f_service
+dependencies:
+  - grpc_client:
+      service: c-service
+      proto: //c/v1(tools/onyx/binary/testdata/c.proto)
+  - grpc_client:
+      service: c-service
+      name: c2-service
+      proto: //c2/v1(tools/onyx/binary/testdata/c2.proto)
