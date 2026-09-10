@@ -20,13 +20,13 @@ var ErrQueueHasChildren = errors.New("queue has child resources")
 var ErrQueueETagChanged = errors.New("queue etag changed")
 
 type Queue struct {
-	QueueID    string    `db:"queue_id" schema:"public" table:"queue"`
-	CreateTime time.Time `db:"create_time" schema:"public" table:"queue"`
-	UpdateTime time.Time `db:"update_time" schema:"public" table:"queue"`
-	Etag       string    `db:"etag" schema:"public" table:"queue"`
-	State      int16     `db:"state" schema:"public" table:"queue"`
-	Policy     []byte    `db:"policy" schema:"public" table:"queue"`
-	Handlers   []byte    `db:"handlers" schema:"public" table:"queue"`
+	QueueID    string    `db:"queue_id" schema:"scheduler" table:"queue"`
+	CreateTime time.Time `db:"create_time" schema:"scheduler" table:"queue"`
+	UpdateTime time.Time `db:"update_time" schema:"scheduler" table:"queue"`
+	Etag       string    `db:"etag" schema:"scheduler" table:"queue"`
+	State      int16     `db:"state" schema:"scheduler" table:"queue"`
+	Policy     []byte    `db:"policy" schema:"scheduler" table:"queue"`
+	Handlers   []byte    `db:"handlers" schema:"scheduler" table:"queue"`
 }
 
 func QueueFromPb(m *v1.Queue) (*Queue, error) {

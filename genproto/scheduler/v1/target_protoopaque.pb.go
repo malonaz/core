@@ -196,7 +196,7 @@ var File_malonaz_scheduler_v1_target_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_target_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/scheduler/v1/target.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xee\x03\n" +
+	"!malonaz/scheduler/v1/target.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf9\x03\n" +
 	"\x06Target\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -208,8 +208,9 @@ const file_malonaz_scheduler_v1_target_proto_rawDesc = "" +
 	"\aheaders\x18\x06 \x03(\v2).malonaz.scheduler.v1.Target.HeadersEntryB\b\xba\xea\x0f\x04\x10\x01 \x01R\aheaders\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:p\xeaAA\n" +
-	"\x1cscheduler.malonaz.com/Target\x12\x10targets/{target}*\atargets2\x06targetҦ\x04\x00\x82\xf6,$08144269-a867-4ab0-9605-5fe82afe5725B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:{\xeaAA\n" +
+	"\x1cscheduler.malonaz.com/Target\x12\x10targets/{target}*\atargets2\x06targetҦ\x04\v\n" +
+	"\tscheduler\x82\xf6,$08144269-a867-4ab0-9605-5fe82afe5725B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var file_malonaz_scheduler_v1_target_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_scheduler_v1_target_proto_goTypes = []any{

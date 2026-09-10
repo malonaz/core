@@ -49,7 +49,7 @@ func (s *Store) probeJob(ctx context.Context, q querier, organizationId, userId,
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := "SELECT TRUE, etag FROM job WHERE " + strings.Join(conditions, " AND ")
+	query := "SELECT TRUE, etag FROM scheduler.job WHERE " + strings.Join(conditions, " AND ")
 	var live bool
 	var currentEtag string
 	if err := q.QueryRow(ctx, query, params...).Scan(&live, &currentEtag); err != nil {
@@ -68,9 +68,9 @@ type JobWithRequestID struct {
 
 var (
 	JobWithRequestIDPostgresColumns = postgres.GetDBColumns(JobWithRequestID{})
-	jobInsertPostgresQuery          = `INSERT INTO job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id`
+	jobInsertPostgresQuery          = `INSERT INTO scheduler.job %s VALUES %s ON CONFLICT(organization_id, user_id, job_id) DO UPDATE SET job_id = EXCLUDED.job_id`
 	jobInsertReturningClause        = ` RETURNING ` + strings.Join(JobWithRequestIDPostgresColumns, ",")
-	jobGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(JobWithRequestIDPostgresColumns, "job") + " FROM job" + ` WHERE job.request_id = ANY($1)`
+	jobGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(JobWithRequestIDPostgresColumns, "job") + " FROM scheduler.job" + ` WHERE job.request_id = ANY($1)`
 )
 
 func orderJobsByRequestID(requestIDs []string, rows []*JobWithRequestID) ([]*model.Job, error) {
@@ -153,7 +153,7 @@ func (s *Store) BatchInsertJobs(ctx context.Context, requestIDs []string, jobs [
 	return inserted, nil
 }
 
-var updateJobPostgresQuery = `UPDATE job SET #update_clause# WHERE #where_clause# RETURNING ` +
+var updateJobPostgresQuery = `UPDATE scheduler.job SET #update_clause# WHERE #where_clause# RETURNING ` +
 	strings.Join(JobPostgresColumns, ",")
 
 func (s *Store) UpdateJob(ctx context.Context, _job *model.Job, updateClause string, updateColumns []string, etag string) (*model.Job, error) {
@@ -230,7 +230,7 @@ func (s *Store) DeleteJob(ctx context.Context, organizationId, userId, jobId str
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := fmt.Sprintf("DELETE FROM job WHERE %s RETURNING ", strings.Join(conditions, " AND ")) + strings.Join(JobPostgresColumns, ",")
+	query := fmt.Sprintf("DELETE FROM scheduler.job WHERE %s RETURNING ", strings.Join(conditions, " AND ")) + strings.Join(JobPostgresColumns, ",")
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
@@ -273,7 +273,7 @@ func (s *Store) GetJob(ctx context.Context, organizationId, userId, jobId string
 	}
 	params = append(params, jobId)
 	conditions = append(conditions, fmt.Sprintf("job_id = $%d", len(params)))
-	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM job" + " WHERE " + strings.Join(conditions, " AND ")
+	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM scheduler.job" + " WHERE " + strings.Join(conditions, " AND ")
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("getting job: %w", err)
@@ -322,7 +322,7 @@ func (s *Store) BatchGetJobs(ctx context.Context, organizationIds []string, user
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM job" + " " + whereClause
+	query := "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + " FROM scheduler.job" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -353,7 +353,7 @@ func (s *Store) ListJobs(ctx context.Context, organizationId, userId string, whe
 		whereClause = postgres.AddToWhereClause(whereClause, "job.user_id IS NULL")
 	}
 
-	query := "SELECT " + postgres.QualifyColumns(columns, "job") + " FROM job" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + postgres.QualifyColumns(columns, "job") + " FROM scheduler.job" + " " + whereClause + " " + orderByClause + " " + paginationClause
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting jobs: %w", err)

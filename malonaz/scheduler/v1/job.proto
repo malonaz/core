@@ -48,7 +48,7 @@ message Job {
     singular: "job"
     plural: "jobs"
   };
-  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "scheduler"};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "8dba1872-9193-4ddd-a99e-68abf327ead3";
   option (buf.validate.message).cel = {
     id: "job.expire_time_after_schedule_time"

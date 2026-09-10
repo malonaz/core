@@ -804,7 +804,7 @@ var File_malonaz_scheduler_v1_queue_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\n" +
-	" malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x15google/rpc/code.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xc1\x04\n" +
+	" malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x15google/rpc/code.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xcc\x04\n" +
 	"\x05Queue\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -815,8 +815,9 @@ const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\x05state\x18\x05 \x01(\x0e2 .malonaz.scheduler.v1.QueueStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12G\n" +
 	"\x06policy\x18\x06 \x01(\v2!.malonaz.scheduler.v1.QueuePolicyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\x06policy\x12I\n" +
 	"\bhandlers\x18\a \x03(\v2\x1d.malonaz.scheduler.v1.HandlerB\x0e\xbaH\x05\x92\x01\x02\b\x01\xba\xea\x0f\x02\x10\x01R\bhandlers\x12A\n" +
-	"\x05stats\x18\b \x01(\v2 .malonaz.scheduler.v1.QueueStatsB\t\xe0A\x03\xba\xea\x0f\x02(\x01R\x05stats:k\xeaA<\n" +
-	"\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queueҦ\x04\x00\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xd3\x02\n" +
+	"\x05stats\x18\b \x01(\v2 .malonaz.scheduler.v1.QueueStatsB\t\xe0A\x03\xba\xea\x0f\x02(\x01R\x05stats:v\xeaA<\n" +
+	"\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queueҦ\x04\v\n" +
+	"\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xd3\x02\n" +
 	"\vQueuePolicy\x12O\n" +
 	"\x0fattempt_timeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\x0eattemptTimeout\x12*\n" +
 	"\fmax_attempts\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\vmaxAttempts\x12G\n" +

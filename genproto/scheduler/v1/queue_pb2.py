@@ -32,7 +32,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x15google/rpc/code.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfd\x03\n\x05Queue\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12<\n\x05state\x18\x05 \x01(\x0e\x32 .malonaz.scheduler.v1.QueueStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12?\n\x06policy\x18\x06 \x01(\x0b\x32!.malonaz.scheduler.v1.QueuePolicyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01\x12?\n\x08handlers\x18\x07 \x03(\x0b\x32\x1d.malonaz.scheduler.v1.HandlerB\x0e\xbaH\x05\x92\x01\x02\x08\x01\xba\xea\x0f\x02\x10\x01\x12:\n\x05stats\x18\x08 \x01(\x0b\x32 .malonaz.scheduler.v1.QueueStatsB\t\xe0\x41\x03\xba\xea\x0f\x02(\x01:k\xea\x41<\n\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queue\xd2\xa6\x04\x00\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\x88\x02\n\x0bQueuePolicy\x12?\n\x0f\x61ttempt_timeout\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x1d\n\x0cmax_attempts\x18\x02 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12\x39\n\rretry_backoff\x18\x03 \x01(\x0b\x32\".malonaz.scheduler.v1.RetryBackoff\x12 \n\x0fmax_concurrency\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12<\n\x0fretryable_codes\x18\x05 \x03(\x0e\x32\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\x0b\x18\x01\"\x07\x82\x01\x04\x10\x01 \x00\"\xa0\x01\n\x0cRetryBackoff\x12\x37\n\x07initial\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x33\n\x03max\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\"\n\nmultiplier\x18\x03 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\xf0?\"\xa3\x01\n\x07Handler\x12(\n\x06method\x18\x01 \x01(\tB\x18\xbaH\x15r\x10\x32\x0e^/[^/]+/[^/]+$\xc8\x01\x01\x12\x37\n\x06target\x18\x02 \x01(\tB\'\xfa\x41\x1e\n\x1cscheduler.malonaz.com/Target\xbaH\x03\xc8\x01\x01\x12\x19\n\x0crequest_type\x18\x03 \x01(\tB\x03\xe0\x41\x03\x12\x1a\n\rresponse_type\x18\x04 \x01(\tB\x03\xe0\x41\x03\"|\n\nQueueStats\x12\x15\n\rpending_count\x18\x01 \x01(\x05\x12\x15\n\rrunning_count\x18\x02 \x01(\x05\x12@\n\x1coldest_pending_schedule_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp*Z\n\nQueueState\x12\x1b\n\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n\x13QUEUE_STATE_RUNNING\x10\x01\x12\x16\n\x12QUEUE_STATE_PAUSED\x10\x02\x42/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x15google/rpc/code.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x88\x04\n\x05Queue\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12<\n\x05state\x18\x05 \x01(\x0e\x32 .malonaz.scheduler.v1.QueueStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12?\n\x06policy\x18\x06 \x01(\x0b\x32!.malonaz.scheduler.v1.QueuePolicyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01\x12?\n\x08handlers\x18\x07 \x03(\x0b\x32\x1d.malonaz.scheduler.v1.HandlerB\x0e\xbaH\x05\x92\x01\x02\x08\x01\xba\xea\x0f\x02\x10\x01\x12:\n\x05stats\x18\x08 \x01(\x0b\x32 .malonaz.scheduler.v1.QueueStatsB\t\xe0\x41\x03\xba\xea\x0f\x02(\x01:v\xea\x41<\n\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queue\xd2\xa6\x04\x0b\n\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\x88\x02\n\x0bQueuePolicy\x12?\n\x0f\x61ttempt_timeout\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x1d\n\x0cmax_attempts\x18\x02 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12\x39\n\rretry_backoff\x18\x03 \x01(\x0b\x32\".malonaz.scheduler.v1.RetryBackoff\x12 \n\x0fmax_concurrency\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12<\n\x0fretryable_codes\x18\x05 \x03(\x0e\x32\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\x0b\x18\x01\"\x07\x82\x01\x04\x10\x01 \x00\"\xa0\x01\n\x0cRetryBackoff\x12\x37\n\x07initial\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x33\n\x03max\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\"\n\nmultiplier\x18\x03 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\xf0?\"\xa3\x01\n\x07Handler\x12(\n\x06method\x18\x01 \x01(\tB\x18\xbaH\x15r\x10\x32\x0e^/[^/]+/[^/]+$\xc8\x01\x01\x12\x37\n\x06target\x18\x02 \x01(\tB\'\xfa\x41\x1e\n\x1cscheduler.malonaz.com/Target\xbaH\x03\xc8\x01\x01\x12\x19\n\x0crequest_type\x18\x03 \x01(\tB\x03\xe0\x41\x03\x12\x1a\n\rresponse_type\x18\x04 \x01(\tB\x03\xe0\x41\x03\"|\n\nQueueStats\x12\x15\n\rpending_count\x18\x01 \x01(\x05\x12\x15\n\rrunning_count\x18\x02 \x01(\x05\x12@\n\x1coldest_pending_schedule_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp*Z\n\nQueueState\x12\x1b\n\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n\x13QUEUE_STATE_RUNNING\x10\x01\x12\x16\n\x12QUEUE_STATE_PAUSED\x10\x02\x42/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -55,7 +55,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_QUEUE'].fields_by_name['stats']._loaded_options = None
   _globals['_QUEUE'].fields_by_name['stats']._serialized_options = b'\340A\003\272\352\017\002(\001'
   _globals['_QUEUE']._loaded_options = None
-  _globals['_QUEUE']._serialized_options = b'\352A<\n\033scheduler.malonaz.com/Queue\022\016queues/{queue}*\006queues2\005queue\322\246\004\000\202\366,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec'
+  _globals['_QUEUE']._serialized_options = b'\352A<\n\033scheduler.malonaz.com/Queue\022\016queues/{queue}*\006queues2\005queue\322\246\004\013\n\tscheduler\202\366,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec'
   _globals['_QUEUEPOLICY'].fields_by_name['attempt_timeout']._loaded_options = None
   _globals['_QUEUEPOLICY'].fields_by_name['attempt_timeout']._serialized_options = b'\272H\010\252\001\002*\000\310\001\001'
   _globals['_QUEUEPOLICY'].fields_by_name['max_attempts']._loaded_options = None
@@ -78,16 +78,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_HANDLER'].fields_by_name['request_type']._serialized_options = b'\340A\003'
   _globals['_HANDLER'].fields_by_name['response_type']._loaded_options = None
   _globals['_HANDLER'].fields_by_name['response_type']._serialized_options = b'\340A\003'
-  _globals['_QUEUESTATE']._serialized_start=1541
-  _globals['_QUEUESTATE']._serialized_end=1631
+  _globals['_QUEUESTATE']._serialized_start=1552
+  _globals['_QUEUESTATE']._serialized_end=1642
   _globals['_QUEUE']._serialized_start=308
-  _globals['_QUEUE']._serialized_end=817
-  _globals['_QUEUEPOLICY']._serialized_start=820
-  _globals['_QUEUEPOLICY']._serialized_end=1084
-  _globals['_RETRYBACKOFF']._serialized_start=1087
-  _globals['_RETRYBACKOFF']._serialized_end=1247
-  _globals['_HANDLER']._serialized_start=1250
-  _globals['_HANDLER']._serialized_end=1413
-  _globals['_QUEUESTATS']._serialized_start=1415
-  _globals['_QUEUESTATS']._serialized_end=1539
+  _globals['_QUEUE']._serialized_end=828
+  _globals['_QUEUEPOLICY']._serialized_start=831
+  _globals['_QUEUEPOLICY']._serialized_end=1095
+  _globals['_RETRYBACKOFF']._serialized_start=1098
+  _globals['_RETRYBACKOFF']._serialized_end=1258
+  _globals['_HANDLER']._serialized_start=1261
+  _globals['_HANDLER']._serialized_end=1424
+  _globals['_QUEUESTATS']._serialized_start=1426
+  _globals['_QUEUESTATS']._serialized_end=1550
 # @@protoc_insertion_point(module_scope)
