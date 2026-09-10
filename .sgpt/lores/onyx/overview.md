@@ -32,7 +32,7 @@ export_service_fields: false     # true: exported struct fields, for embedding
 codegens:
   - rpc:                         # a protoc-gen-core rpc server the Service embeds
       name: library-service
-      store: library             # the postgres_db_client that backs it
+      store: library             # the postgres_db_client that backs it; omit for a resource-less service
       target: //gengo/test/library/library_service/rpc
       nats: true                 # needs a `nats` dependency
       longrunning: true          # runs Operations on the scheduler; needs a grpc_client on it

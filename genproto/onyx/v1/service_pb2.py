@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1b\x62uf/validate/validate.proto\"\xf0\x01\n\x0fServiceManifest\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x17\n\x06target\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x17\n\x0finclude_runtime\x18\x03 \x01(\x08\x12\x1d\n\x15\x65xport_service_fields\x18\x04 \x01(\x08\x12*\n\x08\x63odegens\x18\x05 \x03(\x0b\x32\x18.malonaz.onyx.v1.Codegen\x12\x31\n\x0c\x64\x65pendencies\x18\x06 \x03(\x0b\x32\x1b.malonaz.onyx.v1.Dependency\"\xdd\x01\n\x07\x43odegen\x12+\n\x03rpc\x18\x01 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Codegen.RpcH\x00\x1a\x95\x01\n\x03Rpc\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12#\n\x05store\x18\x02 \x01(\tB\x14\xbaH\x11r\x0f\x32\r^[a-z0-9_-]+$\x12\x17\n\x06target\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x0c\n\x04nats\x18\x04 \x01(\x08\x12\x13\n\x0blongrunning\x18\x05 \x01(\x08\x42\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\"\xae\x06\n\nDependency\x12=\n\x0bgrpc_client\x18\x01 \x01(\x0b\x32&.malonaz.onyx.v1.Dependency.GrpcClientH\x00\x12J\n\x12postgres_db_client\x18\x02 \x01(\x0b\x32,.malonaz.onyx.v1.Dependency.PostgresDbClientH\x00\x12\x45\n\x0fpostgres_client\x18\x03 \x01(\x0b\x32*.malonaz.onyx.v1.Dependency.PostgresClientH\x00\x12\x30\n\x04nats\x18\x04 \x01(\x0b\x32 .malonaz.onyx.v1.Dependency.NatsH\x00\x12\x36\n\x07service\x18\x05 \x01(\x0b\x32#.malonaz.onyx.v1.Dependency.ServiceH\x00\x1a\x9c\x01\n\nGrpcClient\x12\x16\n\x05proto\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x07service\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x30\n\x04name\x18\x03 \x01(\tB\"\xbaH\x1fr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\xd8\x01\x01\x12\x12\n\noperations\x18\x04 \x01(\x08\x1az\n\x10PostgresDbClient\x12\"\n\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f\x32\r^[a-z0-9_-]+$\x12)\n\x08\x64\x61tabase\x18\x02 \x01(\tB\x17\xbaH\x14r\x0f\x32\r^[a-z0-9_-]+$\xd8\x01\x01\x12\x17\n\x06target\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x1a_\n\x0ePostgresClient\x12\"\n\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f\x32\r^[a-z0-9_-]+$\x12)\n\x08\x64\x61tabase\x18\x02 \x01(\tB\x17\xbaH\x14r\x0f\x32\r^[a-z0-9_-]+$\xd8\x01\x01\x1a\x06\n\x04Nats\x1aQ\n\x07Service\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x17\n\x06target\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x42\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\x42*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1b\x62uf/validate/validate.proto\"\xf0\x01\n\x0fServiceManifest\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x17\n\x06target\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x17\n\x0finclude_runtime\x18\x03 \x01(\x08\x12\x1d\n\x15\x65xport_service_fields\x18\x04 \x01(\x08\x12*\n\x08\x63odegens\x18\x05 \x03(\x0b\x32\x18.malonaz.onyx.v1.Codegen\x12\x31\n\x0c\x64\x65pendencies\x18\x06 \x03(\x0b\x32\x1b.malonaz.onyx.v1.Dependency\"\xe0\x01\n\x07\x43odegen\x12+\n\x03rpc\x18\x01 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Codegen.RpcH\x00\x1a\x98\x01\n\x03Rpc\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12&\n\x05store\x18\x02 \x01(\tB\x17\xbaH\x14r\x0f\x32\r^[a-z0-9_-]+$\xd8\x01\x01\x12\x17\n\x06target\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x0c\n\x04nats\x18\x04 \x01(\x08\x12\x13\n\x0blongrunning\x18\x05 \x01(\x08\x42\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\"\xae\x06\n\nDependency\x12=\n\x0bgrpc_client\x18\x01 \x01(\x0b\x32&.malonaz.onyx.v1.Dependency.GrpcClientH\x00\x12J\n\x12postgres_db_client\x18\x02 \x01(\x0b\x32,.malonaz.onyx.v1.Dependency.PostgresDbClientH\x00\x12\x45\n\x0fpostgres_client\x18\x03 \x01(\x0b\x32*.malonaz.onyx.v1.Dependency.PostgresClientH\x00\x12\x30\n\x04nats\x18\x04 \x01(\x0b\x32 .malonaz.onyx.v1.Dependency.NatsH\x00\x12\x36\n\x07service\x18\x05 \x01(\x0b\x32#.malonaz.onyx.v1.Dependency.ServiceH\x00\x1a\x9c\x01\n\nGrpcClient\x12\x16\n\x05proto\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x07service\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x30\n\x04name\x18\x03 \x01(\tB\"\xbaH\x1fr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\xd8\x01\x01\x12\x12\n\noperations\x18\x04 \x01(\x08\x1az\n\x10PostgresDbClient\x12\"\n\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f\x32\r^[a-z0-9_-]+$\x12)\n\x08\x64\x61tabase\x18\x02 \x01(\tB\x17\xbaH\x14r\x0f\x32\r^[a-z0-9_-]+$\xd8\x01\x01\x12\x17\n\x06target\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x1a_\n\x0ePostgresClient\x12\"\n\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f\x32\r^[a-z0-9_-]+$\x12)\n\x08\x64\x61tabase\x18\x02 \x01(\tB\x17\xbaH\x14r\x0f\x32\r^[a-z0-9_-]+$\xd8\x01\x01\x1a\x06\n\x04Nats\x1aQ\n\x07Service\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x17\n\x06target\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x42\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\x42*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,7 +40,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CODEGEN_RPC'].fields_by_name['name']._loaded_options = None
   _globals['_CODEGEN_RPC'].fields_by_name['name']._serialized_options = b'\272H\034r\0322\030^[a-z0-9]+(-[a-z0-9]+)*$'
   _globals['_CODEGEN_RPC'].fields_by_name['store']._loaded_options = None
-  _globals['_CODEGEN_RPC'].fields_by_name['store']._serialized_options = b'\272H\021r\0172\r^[a-z0-9_-]+$'
+  _globals['_CODEGEN_RPC'].fields_by_name['store']._serialized_options = b'\272H\024r\0172\r^[a-z0-9_-]+$\330\001\001'
   _globals['_CODEGEN_RPC'].fields_by_name['target']._loaded_options = None
   _globals['_CODEGEN_RPC'].fields_by_name['target']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_CODEGEN'].oneofs_by_name['kind']._loaded_options = None
@@ -70,19 +70,19 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SERVICEMANIFEST']._serialized_start=80
   _globals['_SERVICEMANIFEST']._serialized_end=320
   _globals['_CODEGEN']._serialized_start=323
-  _globals['_CODEGEN']._serialized_end=544
+  _globals['_CODEGEN']._serialized_end=547
   _globals['_CODEGEN_RPC']._serialized_start=380
-  _globals['_CODEGEN_RPC']._serialized_end=529
-  _globals['_DEPENDENCY']._serialized_start=547
-  _globals['_DEPENDENCY']._serialized_end=1361
-  _globals['_DEPENDENCY_GRPCCLIENT']._serialized_start=878
-  _globals['_DEPENDENCY_GRPCCLIENT']._serialized_end=1034
-  _globals['_DEPENDENCY_POSTGRESDBCLIENT']._serialized_start=1036
-  _globals['_DEPENDENCY_POSTGRESDBCLIENT']._serialized_end=1158
-  _globals['_DEPENDENCY_POSTGRESCLIENT']._serialized_start=1160
-  _globals['_DEPENDENCY_POSTGRESCLIENT']._serialized_end=1255
-  _globals['_DEPENDENCY_NATS']._serialized_start=1257
-  _globals['_DEPENDENCY_NATS']._serialized_end=1263
-  _globals['_DEPENDENCY_SERVICE']._serialized_start=1265
-  _globals['_DEPENDENCY_SERVICE']._serialized_end=1346
+  _globals['_CODEGEN_RPC']._serialized_end=532
+  _globals['_DEPENDENCY']._serialized_start=550
+  _globals['_DEPENDENCY']._serialized_end=1364
+  _globals['_DEPENDENCY_GRPCCLIENT']._serialized_start=881
+  _globals['_DEPENDENCY_GRPCCLIENT']._serialized_end=1037
+  _globals['_DEPENDENCY_POSTGRESDBCLIENT']._serialized_start=1039
+  _globals['_DEPENDENCY_POSTGRESDBCLIENT']._serialized_end=1161
+  _globals['_DEPENDENCY_POSTGRESCLIENT']._serialized_start=1163
+  _globals['_DEPENDENCY_POSTGRESCLIENT']._serialized_end=1258
+  _globals['_DEPENDENCY_NATS']._serialized_start=1260
+  _globals['_DEPENDENCY_NATS']._serialized_end=1266
+  _globals['_DEPENDENCY_SERVICE']._serialized_start=1268
+  _globals['_DEPENDENCY_SERVICE']._serialized_end=1349
 # @@protoc_insertion_point(module_scope)

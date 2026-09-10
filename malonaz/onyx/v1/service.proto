@@ -42,8 +42,11 @@ message Codegen {
     // Kebab-case name of the proto service.
     string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
 
-    // The postgres_db_client dependency backing it.
-    string store = 2 [(buf.validate.field).string.pattern = "^[a-z0-9_-]+$"];
+    // The postgres_db_client dependency backing it; empty for a service without resources.
+    string store = 2 [
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+      (buf.validate.field).string.pattern = "^[a-z0-9_-]+$"
+    ];
 
     // Please label of the generated rpc package.
     string target = 3 [(buf.validate.field).string.min_len = 1];

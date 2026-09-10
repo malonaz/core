@@ -644,7 +644,7 @@ type Codegen_Rpc struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Kebab-case name of the proto service.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The postgres_db_client dependency backing it.
+	// The postgres_db_client dependency backing it; empty for a service without resources.
 	Store string `protobuf:"bytes,2,opt,name=store,proto3" json:"store,omitempty"`
 	// Please label of the generated rpc package.
 	Target string `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
@@ -742,7 +742,7 @@ type Codegen_Rpc_builder struct {
 
 	// Kebab-case name of the proto service.
 	Name string
-	// The postgres_db_client dependency backing it.
+	// The postgres_db_client dependency backing it; empty for a service without resources.
 	Store string
 	// Please label of the generated rpc package.
 	Target string
@@ -1181,12 +1181,12 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8a\x02\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
-	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xbd\x01\n" +
+	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
 	"\x03Rpc\x123\n" +
-	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12*\n" +
-	"\x05store\x18\x02 \x01(\tB\x14\xbaH\x11r\x0f2\r^[a-z0-9_-]+$R\x05store\x12\x1f\n" +
+	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12-\n" +
+	"\x05store\x18\x02 \x01(\tB\x17\xbaH\x14\xd8\x01\x01r\x0f2\r^[a-z0-9_-]+$R\x05store\x12\x1f\n" +
 	"\x06target\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12\x12\n" +
 	"\x04nats\x18\x04 \x01(\bR\x04nats\x12 \n" +
 	"\vlongrunning\x18\x05 \x01(\bR\vlongrunningB\r\n" +
