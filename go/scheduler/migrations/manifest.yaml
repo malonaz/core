@@ -2,7 +2,7 @@
 # Append-only: never reorder or edit an entry whose migration has been applied.
 migrations:
   - path: job/001_init.sql
-    hash: beaa814a605fff60827d4e5605a41fff
+    hash: a691203150b6960a683f8bdb293c4341
   - path: target/001_init.sql
     hash: 17e4f885e2073a035a9cadf868a37a12
   - path: queue/001_init.sql

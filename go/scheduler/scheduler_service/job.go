@@ -61,16 +61,16 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 		return nil, status.Errorf(codes.InvalidArgument, "no handler of %s accepts %s", queue.GetName(), requestType).Err()
 	}
 	request.Job = &schedulerpb.Job{
-		Labels:        job.GetLabels(),
-		Payload:       job.GetPayload(),
-		Queue:         queue.GetName(),
-		Method:        handler.GetMethod(),
-		Priority:      job.GetPriority(),
-		UniqueKey:     job.GetUniqueKey(),
-		ScheduleTime:  job.GetScheduleTime(),
-		ExpireTime:    job.GetExpireTime(),
-		OperationName: job.GetOperationName(),
-		State:         schedulerpb.JobState_JOB_STATE_PENDING,
+		Labels:       job.GetLabels(),
+		Payload:      job.GetPayload(),
+		Queue:        queue.GetName(),
+		Method:       handler.GetMethod(),
+		Priority:     job.GetPriority(),
+		UniqueKey:    job.GetUniqueKey(),
+		ScheduleTime: job.GetScheduleTime(),
+		ExpireTime:   job.GetExpireTime(),
+		Operation:    job.GetOperation(),
+		State:        schedulerpb.JobState_JOB_STATE_PENDING,
 	}
 	uniqueKey := job.GetUniqueKey()
 	for attempt := 1; ; attempt++ {

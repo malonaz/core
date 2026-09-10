@@ -97,7 +97,7 @@ const (
 // # Long-running operations
 //
 // A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
-// sets `operation_name` at creation, with the job's ID as the operation's ID.
+// sets `operation` at creation, with the job's ID as the operation's ID.
 // A handler whose response type is `google.longrunning.Operation` must return
 // it done: its `response` or `error` is recorded as the job's outcome, and an
 // unfinished operation fails the job with FAILED_PRECONDITION without retry.
@@ -528,7 +528,7 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // # Long-running operations
 //
 // A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
-// sets `operation_name` at creation, with the job's ID as the operation's ID.
+// sets `operation` at creation, with the job's ID as the operation's ID.
 // A handler whose response type is `google.longrunning.Operation` must return
 // it done: its `response` or `error` is recorded as the job's outcome, and an
 // unfinished operation fails the job with FAILED_PRECONDITION without retry.

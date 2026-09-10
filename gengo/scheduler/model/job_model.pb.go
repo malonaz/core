@@ -33,7 +33,7 @@ type Job struct {
 	Payload        []byte     `db:"payload" schema:"scheduler" table:"job"`
 	Queue          string     `db:"queue" schema:"scheduler" table:"job"`
 	Method         string     `db:"method" schema:"scheduler" table:"job"`
-	OperationName  *string    `db:"operation_name" schema:"scheduler" table:"job"`
+	Operation      *string    `db:"operation" schema:"scheduler" table:"job"`
 	State          int16      `db:"state" schema:"scheduler" table:"job"`
 	Priority       int32      `db:"priority" schema:"scheduler" table:"job"`
 	UniqueKey      *string    `db:"unique_key" schema:"scheduler" table:"job"`
@@ -89,9 +89,9 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Payload: %w", err)
 	}
-	var OperationName *string
-	if m.OperationName != "" {
-		OperationName = &m.OperationName
+	var Operation *string
+	if m.Operation != "" {
+		Operation = &m.Operation
 	}
 	var UniqueKey *string
 	if m.UniqueKey != "" {
@@ -188,7 +188,7 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		Payload:        PayloadBytes,
 		Queue:          m.Queue,
 		Method:         m.Method,
-		OperationName:  OperationName,
+		Operation:      Operation,
 		State:          int16(m.State),
 		Priority:       m.Priority,
 		UniqueKey:      UniqueKey,
@@ -228,9 +228,9 @@ func (m *Job) ToPb() (*v1.Job, error) {
 	if err := pbutil.Unmarshal(m.Payload, Payload); err != nil {
 		return nil, fmt.Errorf("unmarshaling Payload: %w", err)
 	}
-	var OperationName string
-	if m.OperationName != nil {
-		OperationName = *m.OperationName
+	var Operation string
+	if m.Operation != nil {
+		Operation = *m.Operation
 	}
 	var UniqueKey string
 	if m.UniqueKey != nil {
@@ -319,29 +319,29 @@ func (m *Job) ToPb() (*v1.Job, error) {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Job{
-		Name:          name,
-		CreateTime:    CreateTime,
-		UpdateTime:    UpdateTime,
-		Etag:          m.Etag,
-		Labels:        Labels,
-		Payload:       Payload,
-		Queue:         m.Queue,
-		Method:        m.Method,
-		OperationName: OperationName,
-		State:         v1.JobState(m.State),
-		Priority:      m.Priority,
-		UniqueKey:     UniqueKey,
-		ScheduleTime:  ScheduleTime,
-		ExpireTime:    ExpireTime,
-		StartTime:     StartTime,
-		CompleteTime:  CompleteTime,
-		LockTime:      LockTime,
-		PurgeTime:     PurgeTime,
-		AttemptCount:  m.AttemptCount,
-		Error:         Error,
-		Response:      Response,
-		Progress:      Progress,
-		Metadata:      Metadata,
+		Name:         name,
+		CreateTime:   CreateTime,
+		UpdateTime:   UpdateTime,
+		Etag:         m.Etag,
+		Labels:       Labels,
+		Payload:      Payload,
+		Queue:        m.Queue,
+		Method:       m.Method,
+		Operation:    Operation,
+		State:        v1.JobState(m.State),
+		Priority:     m.Priority,
+		UniqueKey:    UniqueKey,
+		ScheduleTime: ScheduleTime,
+		ExpireTime:   ExpireTime,
+		StartTime:    StartTime,
+		CompleteTime: CompleteTime,
+		LockTime:     LockTime,
+		PurgeTime:    PurgeTime,
+		AttemptCount: m.AttemptCount,
+		Error:        Error,
+		Response:     Response,
+		Progress:     Progress,
+		Metadata:     Metadata,
 	}, nil
 }
 

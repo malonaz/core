@@ -224,7 +224,7 @@ func TestImportBooks_ListOperations(t *testing.T) {
 	// on the shelf: not this service's, so invisible through its Operations server.
 	foreignName := fixture.shelf.GetName() + "/operations/" + uuid.MustNewV7().String()
 	createJobRequest, err := scheduler.NewCreateJobRequest(fixture.organization, foreignQueueName, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
-		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)), scheduler.WithOperationName(foreignName))
+		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)), scheduler.WithOperation(foreignName))
 	require.NoError(t, err)
 	foreign, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)

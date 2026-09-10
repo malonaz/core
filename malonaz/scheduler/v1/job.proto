@@ -34,7 +34,7 @@ option (google.api.resource_definition) = {
 // The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
 // `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
 // `payload`, `labels`, `priority`, `unique_key`, `schedule_time`,
-// `expire_time` and `operation_name`. The outcome mirrors a long-running operation: a terminal job
+// `expire_time` and `operation`. The outcome mirrors a long-running operation: a terminal job
 // carries either a `response` or an `error`.
 //
 // A job belongs to the organization or user it runs on behalf of; system-wide
@@ -110,15 +110,15 @@ message Job {
   // the payload type against the queue's handlers.
   string method = 22 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The name of the long-running operation this job backs, when the producer
-  // exposes the job as one (AIP-151). Unique across jobs. The operation's ID
-  // is the job's ID, so the operation name alone locates the job: the job's
-  // parent is derived from the operation's resource, and the last segment is
-  // the job ID.
+  // The long-running operation this job backs, when the producer exposes the
+  // job as one (AIP-151). Unique across jobs. The operation's ID is the job's
+  // ID, so the operation alone locates the job: the job's parent is derived
+  // from the operation's resource, and the last segment is the job ID.
   // Format: {resource}/operations/{job}
-  string operation_name = 23 [
+  string operation = 23 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "longrunning.googleapis.com/Operation",
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.pattern = "^.+/operations/[^/]+$"
   ];

@@ -19,7 +19,7 @@ CREATE TABLE scheduler.job (
     queue TEXT NOT NULL,
     method TEXT NOT NULL,
     -- The long-running operation the job backs, when its producer exposes one.
-    operation_name TEXT,
+    operation TEXT,
     state SMALLINT NOT NULL,
     priority INTEGER NOT NULL DEFAULT 0,
     unique_key TEXT,
@@ -51,7 +51,7 @@ CREATE INDEX job_live_idx ON scheduler.job (queue, state) WHERE state IN (1, 2);
 -- At most one PENDING (1) and one RUNNING (2) job per unique key.
 CREATE UNIQUE INDEX job_unique_key_live_idx ON scheduler.job (unique_key, state) WHERE state IN (1, 2);
 -- One job per operation; the Operations server resolves an operation to its job.
-CREATE UNIQUE INDEX job_operation_name_idx ON scheduler.job (operation_name) WHERE operation_name IS NOT NULL;
+CREATE UNIQUE INDEX job_operation_idx ON scheduler.job (operation) WHERE operation IS NOT NULL;
 -- Expiry reaper: PENDING (1) jobs by expiry.
 CREATE INDEX job_expire_idx ON scheduler.job (expire_time) WHERE state = 1 AND expire_time IS NOT NULL;
 -- Lease reaper: RUNNING (2) jobs by lease expiry.
