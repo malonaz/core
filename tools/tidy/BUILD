@@ -56,7 +56,11 @@ sh_binary(
 def echo_message(message):
     return f'echo "###### {message} ######"'
 
+# Shadow any system go: dep resolution must use the toolchain we compile with.
+_export_go_path = "export PATH=\\\\$PWD/\\\\$(dirname $(out_exe //tools/go:toolchain|go)):\\\\$PATH"
+
 _lint_cmds = [
+    _export_go_path,
     "export GOROOT=\\\\$($(out_exe //tools/go:toolchain|go) env GOROOT)",
     echo_message("Building codegen"),
     "plz build --include codegen > /dev/null 2>&1 || echo 'Codegen build failed'",
@@ -89,6 +93,7 @@ sh_cmd(
 sh_cmd(
     name = "tidy",
     cmd = [
+        _export_go_path,
         echo_message("Running 'go mod tidy'"),
         "$(out_exe :quiet_symlink_warnings) $(out_exe //tools/go:toolchain|go) mod tidy",
         echo_message("Running 'go deps'"),
