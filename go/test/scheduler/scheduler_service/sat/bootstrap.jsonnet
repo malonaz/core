@@ -32,6 +32,8 @@ local queue(id, name, policy) = {
     }),
     queue('progress', 'Progress', { attempt_timeout: '5s', max_attempts: 1 }),
     queue('limited', 'Sleep', { attempt_timeout: '10s', max_attempts: 1, max_concurrency: 2 }),
+    // Serialised so the order jobs are claimed in is observable as the order they run in.
+    queue('serial', 'Echo', { attempt_timeout: '5s', max_attempts: 1, max_concurrency: 1 }),
     queue('operate', 'Operate', {
       attempt_timeout: '5s',
       max_attempts: 3,

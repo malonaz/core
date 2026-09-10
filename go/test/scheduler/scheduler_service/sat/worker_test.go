@@ -65,11 +65,11 @@ func TestProcess_ScheduleTime(t *testing.T) {
 
 	t.Run("due jobs run in schedule order", func(t *testing.T) {
 		t.Parallel()
-		// Both are created while a short backlog blocks claiming, so the order they are claimed in is the schedule order.
+		// The serial queue runs one job at a time, so invocation order is claim order rather than a goroutine race.
 		run := uuid.MustNewV7().String()
 		base := time.Now().Add(1500 * time.Millisecond)
-		late := createJob(t, &processorpb.EchoRequest{Value: run + "-late"}, scheduler.WithScheduleTime(base.Add(200*time.Millisecond)))
-		early := createJob(t, &processorpb.EchoRequest{Value: run + "-early"}, scheduler.WithScheduleTime(base))
+		late := createJobIn(t, "", serialQueue, &processorpb.EchoRequest{Value: run + "-late"}, scheduler.WithScheduleTime(base.Add(200*time.Millisecond)))
+		early := createJobIn(t, "", serialQueue, &processorpb.EchoRequest{Value: run + "-early"}, scheduler.WithScheduleTime(base))
 
 		waitForTerminal(t, late.GetName())
 		waitForTerminal(t, early.GetName())

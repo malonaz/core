@@ -71,6 +71,7 @@ const (
 	deadlineQueue        = "queues/deadline"
 	progressQueue        = "queues/progress"
 	limitedQueue         = "queues/limited"
+	serialQueue          = "queues/serial"
 	operateQueue         = "queues/operate"
 	bootstrapPausedQueue = "queues/bootstrap-paused"
 
