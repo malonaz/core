@@ -97,7 +97,10 @@ service Processor {
         max: {seconds: 1}
         multiplier: 1
       }
-      retryable_codes: [FAILED_PRECONDITION, INTERNAL]
+      retryable_codes: [
+        FAILED_PRECONDITION,
+        INTERNAL
+      ]
     };
   }
 
