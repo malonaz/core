@@ -35,7 +35,7 @@ var (
 	// job_id identifies the row; every other column is written by a transition.
 	jobTransitionColumns = postgres.GetDBColumns(model.Job{}, postgres.ExceptColumns("job_id"))
 	jobTransitionQuery   = updateQuery("job", jobTransitionColumns) + fmt.Sprintf(" WHERE job_id = $%d", len(jobTransitionColumns)+1)
-	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE SKIP LOCKED", JobPostgresColumns)
+	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE #locking#", JobPostgresColumns)
 )
 
 func updateQuery(table string, columns []string) string {
@@ -51,10 +51,19 @@ func updateQuery(table string, columns []string) string {
 // lets concurrent workers claim disjoint sets without contending. Rows are
 // selected in orderBy order (e.g. "ORDER BY schedule_time NULLS FIRST").
 func (s *Store) TransitionJobs(ctx context.Context, whereClause, orderBy string, limit int, params []any, transition func(*model.Job) error) ([]*model.Job, error) {
+	return s.transitionJobs(ctx, whereClause, orderBy, limit, true, params, transition)
+}
+
+func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string, limit int, skipLocked bool, params []any, transition func(*model.Job) error) ([]*model.Job, error) {
+	locking := ""
+	if skipLocked {
+		locking = "SKIP LOCKED"
+	}
 	query := strings.NewReplacer(
 		"#where#", whereClause,
 		"#order_by#", orderBy,
 		"#limit#", fmt.Sprint(limit),
+		"#locking#", locking,
 	).Replace(jobSelectForUpdate)
 
 	var jobs []*model.Job
@@ -88,9 +97,11 @@ func (s *Store) TransitionJobs(ctx context.Context, whereClause, orderBy string,
 }
 
 // TransitionJob locks one job and applies transition to it. The transition
-// may return an error to refuse the change (e.g. a state precondition).
+// may return an error to refuse the change (e.g. a state precondition). The
+// row is waited for, not skipped: a lease renewal holding it must not turn a
+// cancel into NotFound.
 func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func(*model.Job) error) (*model.Job, error) {
-	jobs, err := s.TransitionJobs(ctx, "job_id = $1", "", 1, []any{jobID}, transition)
+	jobs, err := s.transitionJobs(ctx, "job_id = $1", "", 1, false, []any{jobID}, transition)
 	if err != nil {
 		return nil, err
 	}
