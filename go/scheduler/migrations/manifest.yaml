@@ -2,14 +2,8 @@
 # Append-only: never reorder or edit an entry whose migration has been applied.
 migrations:
   - path: job/001_init.sql
-    hash: 59c05d321e470df80c3da58b8bb63926
+    hash: a691203150b6960a683f8bdb293c4341
   - path: target/001_init.sql
-    hash: eb18f0e9c69cfce108c96b1a4bb58fd2
+    hash: 17e4f885e2073a035a9cadf868a37a12
   - path: queue/001_init.sql
-    hash: 4d1eec7832524ab96ba2f7b86c79c75a
-  - path: job/002_queue.sql
-    hash: b009b42896af54bf1b624da8b1a5fcaa
-  - path: job/003_operation_name.sql
-    hash: d446a475dfef69580e3f3879562c8343
-  - path: schema/001_scheduler.sql
-    hash: bd6d9281dc62fab91dead76c8159d8a4
+    hash: 8f6a632fab81cec42899b06dd20cc05f

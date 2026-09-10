@@ -36,7 +36,7 @@ type StartRequest struct {
 func Start(ctx context.Context, client schedulerservicepb.SchedulerServiceClient, request *StartRequest) (*longrunningpb.Operation, error) {
 	jobID := aip.NewSystemGeneratedBase32ResourceID()
 	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Queue, request.Request,
-		scheduler.WithOperationName(OperationName(request.Resource, jobID)))
+		scheduler.WithOperation(OperationName(request.Resource, jobID)))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job: %v", err).Err()
 	}

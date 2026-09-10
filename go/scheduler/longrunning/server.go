@@ -56,7 +56,7 @@ func (s *Server) job(ctx context.Context, operationName string) (*schedulerpb.Jo
 		}
 		return nil, status.FromError(err, "getting job").Err()
 	}
-	if job.GetOperationName() != operationName || !slices.Contains(s.methods, job.GetMethod()) {
+	if job.GetOperation() != operationName || !slices.Contains(s.methods, job.GetMethod()) {
 		return nil, status.Errorf(codes.NotFound, "operation %q does not exist", operationName).Err()
 	}
 	return job, nil
@@ -85,7 +85,7 @@ func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.List
 	}
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{
 		Parent:    JobParentOf(request.GetName()),
-		Filter:    fmt.Sprintf("operation_name = %q AND %s%s", OperationName(request.GetName(), "*"), s.methodsFilter, filter),
+		Filter:    fmt.Sprintf("operation = %q AND %s%s", OperationName(request.GetName(), "*"), s.methodsFilter, filter),
 		PageSize:  request.GetPageSize(),
 		PageToken: request.GetPageToken(),
 	}

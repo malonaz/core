@@ -1,4 +1,4 @@
-CREATE TABLE target (
+CREATE TABLE scheduler.target (
     request_id UUID NOT NULL,
     target_id TEXT NOT NULL,
     create_time TIMESTAMP NOT NULL,

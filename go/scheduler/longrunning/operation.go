@@ -1,5 +1,5 @@
 // Package longrunning serves google.longrunning.Operations (AIP-151) over the
-// scheduler: an operation is a scheduler job whose `operation_name` is set, and
+// scheduler: an operation is a scheduler job whose `operation` is set, and
 // whose ID is the job's ID. It holds the three pieces a service returning
 // Operations needs: the embeddable Operations server, the producer that hands
 // a request to the scheduler as a job, and the runner-side helpers the
@@ -70,7 +70,7 @@ func jobNameOf(operationName string) (string, bool) {
 // progress as metadata. A cancelled job is a done operation with a CANCELLED error.
 func OperationFromJob(job *schedulerpb.Job) *longrunningpb.Operation {
 	operation := &longrunningpb.Operation{
-		Name:     job.GetOperationName(),
+		Name:     job.GetOperation(),
 		Metadata: job.GetProgress(),
 	}
 	switch job.GetState() {

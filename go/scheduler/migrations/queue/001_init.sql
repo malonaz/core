@@ -1,4 +1,4 @@
-CREATE TABLE queue (
+CREATE TABLE scheduler.queue (
     request_id UUID NOT NULL,
     queue_id TEXT NOT NULL,
     create_time TIMESTAMP NOT NULL,
@@ -12,4 +12,4 @@ CREATE TABLE queue (
 );
 
 -- Target delete guard: handlers referencing a target.
-CREATE INDEX queue_handlers_idx ON queue USING GIN (handlers);
+CREATE INDEX queue_handlers_idx ON scheduler.queue USING GIN (handlers);

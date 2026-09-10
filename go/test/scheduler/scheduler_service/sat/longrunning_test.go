@@ -88,13 +88,13 @@ func TestCreateJob_OperationName(t *testing.T) {
 	operationName := resource + "/operations/" + uuid.MustNewV7().String()
 
 	job := createJobUnder(t, organization, &processorpb.EchoRequest{Value: uuid.MustNewV7().String()},
-		scheduler.WithScheduleTime(farFuture), scheduler.WithOperationName(operationName))
-	require.Equal(t, operationName, job.GetOperationName())
+		scheduler.WithScheduleTime(farFuture), scheduler.WithOperation(operationName))
+	require.Equal(t, operationName, job.GetOperation())
 	grpcrequire.Equal(t, job, getJob(t, job.GetName()))
 
 	t.Run("unique", func(t *testing.T) {
 		createJobRequest, err := scheduler.NewCreateJobRequest(organization, echoQueue, &processorpb.EchoRequest{Value: "x"},
-			scheduler.WithScheduleTime(farFuture), scheduler.WithOperationName(operationName))
+			scheduler.WithScheduleTime(farFuture), scheduler.WithOperation(operationName))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.AlreadyExists, err)
@@ -102,7 +102,7 @@ func TestCreateJob_OperationName(t *testing.T) {
 
 	t.Run("invalid", func(t *testing.T) {
 		createJobRequest, err := scheduler.NewCreateJobRequest(organization, echoQueue, &processorpb.EchoRequest{Value: "x"},
-			scheduler.WithOperationName("not-an-operation"))
+			scheduler.WithOperation("not-an-operation"))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
@@ -120,10 +120,10 @@ func TestCreateJob_OperationName(t *testing.T) {
 			}
 			return names
 		}
-		require.Equal(t, []string{job.GetName()}, names("operation_name:*"))
-		require.Equal(t, []string{plain.GetName()}, names("NOT operation_name:*"))
-		require.Equal(t, []string{job.GetName()}, names(fmt.Sprintf(`operation_name = "%s/operations/*"`, resource)))
-		require.Empty(t, names(fmt.Sprintf(`operation_name = "%s/operations/*"`, organization+"/shelves/other")))
+		require.Equal(t, []string{job.GetName()}, names("operation:*"))
+		require.Equal(t, []string{plain.GetName()}, names("NOT operation:*"))
+		require.Equal(t, []string{job.GetName()}, names(fmt.Sprintf(`operation = "%s/operations/*"`, resource)))
+		require.Empty(t, names(fmt.Sprintf(`operation = "%s/operations/*"`, organization+"/shelves/other")))
 	})
 }
 

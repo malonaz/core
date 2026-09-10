@@ -5,7 +5,6 @@ postgres_migrations(
     dirs = [
         "job",
         "queue",
-        "schema",
         "target",
     ],
     visibility = ["PUBLIC"],
