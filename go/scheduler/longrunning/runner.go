@@ -18,7 +18,7 @@ import (
 // StartRequest describes the operation a producer starts.
 type StartRequest struct {
 	// Resource is the resource the operation hangs off; the job's parent is
-	// derived from it (see JobParentOf).
+	// derived from it (see jobParentOf).
 	Resource string
 	// Request is the payload the scheduler delivers back to the runner.
 	Request proto.Message
@@ -30,12 +30,7 @@ type StartRequest struct {
 // Start hands the request to the scheduler as a job under the parent the
 // resource derives to, and returns it as an operation, not done.
 func Start(ctx context.Context, client schedulerservicepb.SchedulerServiceClient, request *StartRequest) (*longrunningpb.Operation, error) {
-	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Request)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "building job: %v", err).Err()
-	}
-	createJobRequest.RequestId = request.RequestID
-	job, err := client.CreateJob(ctx, createJobRequest)
+	job, err := scheduler.CreateJob(ctx, client, jobParentOf(request.Resource), request.Request, scheduler.WithRequestID(request.RequestID))
 	if err != nil {
 		return nil, status.FromError(err, "creating job").Err()
 	}

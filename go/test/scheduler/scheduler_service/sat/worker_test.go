@@ -414,10 +414,8 @@ func TestProcess_ExpireTime(t *testing.T) {
 
 	t.Run("must follow schedule_time", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"},
+		_, err := scheduler.CreateJob(ctx, schedulerServiceClient, "", &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithScheduleTime(farFuture), scheduler.WithExpireTime(farFuture.Add(-time.Minute)))
-		require.NoError(t, err)
-		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 
 		// Rescheduling past it is refused too.

@@ -300,11 +300,26 @@ func createJob(t *testing.T, message proto.Message, options ...scheduler.CreateJ
 
 func createJobUnder(t *testing.T, parent string, message proto.Message, options ...scheduler.CreateJobOption) *schedulerpb.Job {
 	t.Helper()
-	createJobRequest, err := scheduler.NewCreateJobRequest(parent, message, options...)
-	require.NoError(t, err)
-	job, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
+	job, err := scheduler.CreateJob(ctx, schedulerServiceClient, parent, message, options...)
 	require.NoError(t, err)
 	return job
+}
+
+// newCreateJobRequest builds the request scheduler.CreateJob would send, for
+// tests that tamper with it before sending.
+func newCreateJobRequest(t *testing.T, parent string, message proto.Message, options ...scheduler.CreateJobOption) *schedulerservicepb.CreateJobRequest {
+	t.Helper()
+	payload, err := anypb.New(message)
+	require.NoError(t, err)
+	request := &schedulerservicepb.CreateJobRequest{
+		Parent:    parent,
+		Job:       &schedulerpb.Job{Payload: payload},
+		RequestId: uuid.MustNewV7().String(),
+	}
+	for _, option := range options {
+		option(request)
+	}
+	return request
 }
 
 func cancelJob(t *testing.T, name string) {
