@@ -48,6 +48,9 @@ if err != nil {
 "is *this work* already queued". A retrying webhook wants the former; a
 "re-run once whatever happens" trigger wants the latter.
 
+Recurring work is not a job re-enqueuing its successor: declare a `Schedule`
+(`lores/scheduler/schedules`) and let the scheduler create one job per tick.
+
 ## On the processor side
 
 `scheduler.JobFromIncomingContext(ctx)` returns the job name the dispatcher
