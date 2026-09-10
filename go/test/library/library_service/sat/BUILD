@@ -53,6 +53,7 @@ go_test(
         "//go/prometheus",
         "//go/sat",
         "//go/scheduler",
+        "//go/scheduler/longrunning",
         "//go/test/library/library_service",
         "//go/uuid",
         "//malonaz/aip/v1",

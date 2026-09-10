@@ -2,7 +2,6 @@ package sat
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	processorpb "github.com/malonaz/core/genproto/test/scheduler/processor/v1"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
-	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -78,52 +76,6 @@ func TestWaitJob(t *testing.T) {
 		waitJobRequest := &schedulerservicepb.WaitJobRequest{Name: "jobs/does-not-exist"}
 		_, err := schedulerServiceClient.WaitJob(ctx, waitJobRequest)
 		grpcrequire.Error(t, codes.NotFound, err)
-	})
-}
-
-func TestCreateJob_OperationName(t *testing.T) {
-	t.Parallel()
-	organization := "organizations/" + uuid.MustNewV7().String()
-	resource := organization + "/shelves/" + uuid.MustNewV7().String()
-	operationName := resource + "/operations/" + uuid.MustNewV7().String()
-
-	job := createJobUnder(t, organization, &processorpb.EchoRequest{Value: uuid.MustNewV7().String()},
-		scheduler.WithScheduleTime(farFuture), scheduler.WithOperation(operationName))
-	require.Equal(t, operationName, job.GetOperation())
-	grpcrequire.Equal(t, job, getJob(t, job.GetName()))
-
-	t.Run("unique", func(t *testing.T) {
-		createJobRequest, err := scheduler.NewCreateJobRequest(organization, &processorpb.EchoRequest{Value: "x"},
-			scheduler.WithScheduleTime(farFuture), scheduler.WithOperation(operationName))
-		require.NoError(t, err)
-		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
-		grpcrequire.Error(t, codes.AlreadyExists, err)
-	})
-
-	t.Run("invalid", func(t *testing.T) {
-		createJobRequest, err := scheduler.NewCreateJobRequest(organization, &processorpb.EchoRequest{Value: "x"},
-			scheduler.WithOperation("not-an-operation"))
-		require.NoError(t, err)
-		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
-		grpcrequire.Error(t, codes.InvalidArgument, err)
-	})
-
-	t.Run("filterable", func(t *testing.T) {
-		plain := createJobUnder(t, organization, &processorpb.EchoRequest{Value: uuid.MustNewV7().String()}, scheduler.WithScheduleTime(farFuture))
-		names := func(filter string) []string {
-			listJobsRequest := &schedulerservicepb.ListJobsRequest{Parent: organization, Filter: filter}
-			listJobsResponse, err := schedulerServiceClient.ListJobs(ctx, listJobsRequest)
-			require.NoError(t, err)
-			var names []string
-			for _, job := range listJobsResponse.GetJobs() {
-				names = append(names, job.GetName())
-			}
-			return names
-		}
-		require.Equal(t, []string{job.GetName()}, names("operation:*"))
-		require.Equal(t, []string{plain.GetName()}, names("NOT operation:*"))
-		require.Equal(t, []string{job.GetName()}, names(fmt.Sprintf(`operation = "%s/operations/*"`, resource)))
-		require.Empty(t, names(fmt.Sprintf(`operation = "%s/operations/*"`, organization+"/shelves/other")))
 	})
 }
 

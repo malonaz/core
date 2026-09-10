@@ -60,14 +60,6 @@ func WithUniqueKey(uniqueKey string) CreateJobOption {
 	}
 }
 
-// WithOperation exposes the job as the named long-running operation. The
-// operation's ID must be the job's ID; see Job.operation.
-func WithOperation(operation string) CreateJobOption {
-	return func(request *pb.CreateJobRequest) {
-		request.Job.Operation = operation
-	}
-}
-
 // WithLabels sets the job's labels.
 func WithLabels(labels map[string]string) CreateJobOption {
 	return func(request *pb.CreateJobRequest) {

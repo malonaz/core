@@ -33,7 +33,6 @@ type Job struct {
 	Payload        []byte     `db:"payload" schema:"scheduler" table:"job"`
 	Queue          string     `db:"queue" schema:"scheduler" table:"job"`
 	Method         string     `db:"method" schema:"scheduler" table:"job"`
-	Operation      *string    `db:"operation" schema:"scheduler" table:"job"`
 	State          int16      `db:"state" schema:"scheduler" table:"job"`
 	Priority       int32      `db:"priority" schema:"scheduler" table:"job"`
 	UniqueKey      *string    `db:"unique_key" schema:"scheduler" table:"job"`
@@ -88,10 +87,6 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 	PayloadBytes, err := pbutil.Marshal(m.Payload)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Payload: %w", err)
-	}
-	var Operation *string
-	if m.Operation != "" {
-		Operation = &m.Operation
 	}
 	var UniqueKey *string
 	if m.UniqueKey != "" {
@@ -188,7 +183,6 @@ func JobFromPb(m *v1.Job) (*Job, error) {
 		Payload:        PayloadBytes,
 		Queue:          m.Queue,
 		Method:         m.Method,
-		Operation:      Operation,
 		State:          int16(m.State),
 		Priority:       m.Priority,
 		UniqueKey:      UniqueKey,
@@ -227,10 +221,6 @@ func (m *Job) ToPb() (*v1.Job, error) {
 	Payload := &anypb.Any{}
 	if err := pbutil.Unmarshal(m.Payload, Payload); err != nil {
 		return nil, fmt.Errorf("unmarshaling Payload: %w", err)
-	}
-	var Operation string
-	if m.Operation != nil {
-		Operation = *m.Operation
 	}
 	var UniqueKey string
 	if m.UniqueKey != nil {
@@ -327,7 +317,6 @@ func (m *Job) ToPb() (*v1.Job, error) {
 		Payload:      Payload,
 		Queue:        m.Queue,
 		Method:       m.Method,
-		Operation:    Operation,
 		State:        v1.JobState(m.State),
 		Priority:     m.Priority,
 		UniqueKey:    UniqueKey,

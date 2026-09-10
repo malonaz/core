@@ -129,12 +129,6 @@ type Job struct {
 	// The gRPC method the payload is delivered to, e.g.
 	// `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
 	Method string `protobuf:"bytes,22,opt,name=method,proto3" json:"method,omitempty"`
-	// The long-running operation this job backs, when the producer exposes the
-	// job as one (AIP-151). Unique across jobs. The operation's ID is the job's
-	// ID, so the operation alone locates the job: the job's parent is derived
-	// from the operation's resource, and the last segment is the job ID.
-	// Format: {resource}/operations/{job}
-	Operation string `protobuf:"bytes,23,opt,name=operation,proto3" json:"operation,omitempty"`
 	// The lifecycle state of the job.
 	State JobState `protobuf:"varint,8,opt,name=state,proto3,enum=malonaz.scheduler.v1.JobState" json:"state,omitempty"`
 	// The claim priority among due jobs: higher runs first, ties run in due
@@ -257,13 +251,6 @@ func (x *Job) GetQueue() string {
 func (x *Job) GetMethod() string {
 	if x != nil {
 		return x.Method
-	}
-	return ""
-}
-
-func (x *Job) GetOperation() string {
-	if x != nil {
-		return x.Operation
 	}
 	return ""
 }
@@ -396,10 +383,6 @@ func (x *Job) SetQueue(v string) {
 
 func (x *Job) SetMethod(v string) {
 	x.Method = v
-}
-
-func (x *Job) SetOperation(v string) {
-	x.Operation = v
 }
 
 func (x *Job) SetState(v JobState) {
@@ -628,12 +611,6 @@ type Job_builder struct {
 	// The gRPC method the payload is delivered to, e.g.
 	// `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
 	Method string
-	// The long-running operation this job backs, when the producer exposes the
-	// job as one (AIP-151). Unique across jobs. The operation's ID is the job's
-	// ID, so the operation alone locates the job: the job's parent is derived
-	// from the operation's resource, and the last segment is the job ID.
-	// Format: {resource}/operations/{job}
-	Operation string
 	// The lifecycle state of the job.
 	State JobState
 	// The claim priority among due jobs: higher runs first, ties run in due
@@ -689,7 +666,6 @@ func (b0 Job_builder) Build() *Job {
 	x.Payload = b.Payload
 	x.Queue = b.Queue
 	x.Method = b.Method
-	x.Operation = b.Operation
 	x.State = b.State
 	x.Priority = b.Priority
 	x.UniqueKey = b.UniqueKey
@@ -979,7 +955,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xc6\x0f\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd5\x0e\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -991,9 +967,7 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x129\n" +
 	"\x05queue\x18\a \x01(\tB#\xe0A\x03\xfaA\x1d\n" +
 	"\x1bscheduler.malonaz.com/QueueR\x05queue\x12\x1b\n" +
-	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12o\n" +
-	"\toperation\x18\x17 \x01(\tBQ\xe0A\x05\xfaA&\n" +
-	"$longrunning.googleapis.com/Operation\xbaH\x1c\xd8\x01\x01r\x172\x15^.+/operations/[^/]+$\xba\xea\x0f\x02 \x01R\toperation\x12A\n" +
+	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12A\n" +
 	"\x05state\x18\b \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12.\n" +
 	"\bpriority\x18\t \x01(\x05B\x12\xbaH\x0f\x1a\r\x18d(\x9c\xff\xff\xff\xff\xff\xff\xff\xff\x01R\bpriority\x12-\n" +
 	"\n" +

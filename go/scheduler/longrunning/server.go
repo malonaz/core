@@ -41,8 +41,7 @@ func NewServer(client schedulerservicepb.SchedulerServiceClient, methods []strin
 }
 
 // job returns the job backing the named operation, NOT_FOUND when there is
-// none, when the name does not match the job's, or when the job belongs to
-// another service's method.
+// none or when the job belongs to another service's method.
 func (s *Server) job(ctx context.Context, operationName string) (*schedulerpb.Job, error) {
 	jobName, ok := jobNameOf(operationName)
 	if !ok {
@@ -56,7 +55,7 @@ func (s *Server) job(ctx context.Context, operationName string) (*schedulerpb.Jo
 		}
 		return nil, status.FromError(err, "getting job").Err()
 	}
-	if job.GetOperation() != operationName || !slices.Contains(s.methods, job.GetMethod()) {
+	if !slices.Contains(s.methods, job.GetMethod()) {
 		return nil, status.Errorf(codes.NotFound, "operation %q does not exist", operationName).Err()
 	}
 	return job, nil
@@ -68,24 +67,21 @@ func (s *Server) GetOperation(ctx context.Context, request *longrunningpb.GetOpe
 	if err != nil {
 		return nil, err
 	}
-	return OperationFromJob(job), nil
+	return operationFromJob(job)
 }
 
-// ListOperations lists the operations directly on the named resource
-// (`{name}/operations/*`) of this server's methods; their jobs all live under
-// the parent the name derives to. The supported filter subset is `done` and
-// `NOT done`; the page token is the scheduler's.
+// ListOperations lists the operations under the named job parent (an
+// organization, a user, or empty for the root) of this server's methods. The
+// supported filter subset is `done` and `NOT done`; the page token is the
+// scheduler's.
 func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.ListOperationsRequest) (*longrunningpb.ListOperationsResponse, error) {
-	if request.GetName() == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "name must be set").Err()
-	}
 	filter, err := jobsFilter(request.GetFilter())
 	if err != nil {
 		return nil, err
 	}
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{
-		Parent:    JobParentOf(request.GetName()),
-		Filter:    fmt.Sprintf("operation = %q AND %s%s", OperationName(request.GetName(), "*"), s.methodsFilter, filter),
+		Parent:    request.GetName(),
+		Filter:    s.methodsFilter + filter,
 		PageSize:  request.GetPageSize(),
 		PageToken: request.GetPageToken(),
 	}
@@ -95,7 +91,9 @@ func (s *Server) ListOperations(ctx context.Context, request *longrunningpb.List
 	}
 	operations := make([]*longrunningpb.Operation, len(listJobsResponse.GetJobs()))
 	for i, job := range listJobsResponse.GetJobs() {
-		operations[i] = OperationFromJob(job)
+		if operations[i], err = operationFromJob(job); err != nil {
+			return nil, err
+		}
 	}
 	return &longrunningpb.ListOperationsResponse{Operations: operations, NextPageToken: listJobsResponse.GetNextPageToken()}, nil
 }
@@ -170,5 +168,5 @@ func (s *Server) WaitOperation(ctx context.Context, request *longrunningpb.WaitO
 	if err != nil {
 		return nil, status.FromError(err, "waiting for job").Err()
 	}
-	return OperationFromJob(job), nil
+	return operationFromJob(job)
 }

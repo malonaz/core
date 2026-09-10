@@ -9,9 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
-	"github.com/malonaz/core/go/aip"
+	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/scheduler"
 )
@@ -28,23 +27,28 @@ type StartRequest struct {
 	RequestID string
 }
 
-// Start hands the request to the scheduler as a job exposed as an operation
-// on the resource, and returns that operation, not done. The operation's ID is
-// the job's, so the operation name alone locates the job afterwards.
+// Start hands the request to the scheduler as a job under the parent the
+// resource derives to, and returns it as an operation, not done.
 func Start(ctx context.Context, client schedulerservicepb.SchedulerServiceClient, request *StartRequest) (*longrunningpb.Operation, error) {
-	jobID := aip.NewSystemGeneratedBase32ResourceID()
-	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Request,
-		scheduler.WithOperation(OperationName(request.Resource, jobID)))
+	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Request)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job: %v", err).Err()
 	}
-	createJobRequest.JobId = jobID
 	createJobRequest.RequestId = request.RequestID
 	job, err := client.CreateJob(ctx, createJobRequest)
 	if err != nil {
 		return nil, status.FromError(err, "creating job").Err()
 	}
-	return OperationFromJob(job), nil
+	return operationFromJob(job)
+}
+
+// operationFromJob is OperationFromJob with its error as a gRPC status.
+func operationFromJob(job *schedulerpb.Job) (*longrunningpb.Operation, error) {
+	operation, err := OperationFromJob(job)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "naming operation: %v", err).Err()
+	}
+	return operation, nil
 }
 
 // IsRun reports whether the call is the scheduler running a job, as opposed
@@ -73,24 +77,23 @@ func ReportProgress(ctx context.Context, client schedulerservicepb.SchedulerServ
 	return nil
 }
 
-// runningOperationName returns the name of the operation the call is running:
-// the resource it hangs off plus the ID of the job named by the scheduler's
-// metadata, which is the operation's ID.
-func runningOperationName(ctx context.Context, resource string) (string, error) {
+// runningOperationName returns the name of the operation the call is running,
+// from the job the scheduler's metadata names.
+func runningOperationName(ctx context.Context) (string, error) {
 	jobName, ok := scheduler.JobFromIncomingContext(ctx)
 	if !ok {
 		return "", status.Errorf(codes.FailedPrecondition, "not running a job: no %s metadata", scheduler.JobMetadataKey).Err()
 	}
-	_, _, jobID, err := model.ParseJobName(jobName)
+	name, err := OperationName(jobName)
 	if err != nil {
 		return "", status.Errorf(codes.InvalidArgument, "parsing %s metadata: %v", scheduler.JobMetadataKey, err).Err()
 	}
-	return OperationName(resource, jobID), nil
+	return name, nil
 }
 
-// Done wraps a runner's response as the finished operation on the resource.
-func Done(ctx context.Context, resource string, response proto.Message) (*longrunningpb.Operation, error) {
-	name, err := runningOperationName(ctx, resource)
+// Done wraps a runner's response as the finished operation.
+func Done(ctx context.Context, response proto.Message) (*longrunningpb.Operation, error) {
+	name, err := runningOperationName(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -101,11 +104,10 @@ func Done(ctx context.Context, resource string, response proto.Message) (*longru
 	return &longrunningpb.Operation{Name: name, Done: true, Result: &longrunningpb.Operation_Response{Response: packed}}, nil
 }
 
-// Failed wraps a runner's error as the finished operation on the resource; the
-// scheduler applies its retry policy to the error's code as if the call had
-// returned it.
-func Failed(ctx context.Context, resource string, err error) (*longrunningpb.Operation, error) {
-	name, nameErr := runningOperationName(ctx, resource)
+// Failed wraps a runner's error as the finished operation; the scheduler
+// applies its retry policy to the error's code as if the call had returned it.
+func Failed(ctx context.Context, err error) (*longrunningpb.Operation, error) {
+	name, nameErr := runningOperationName(ctx)
 	if nameErr != nil {
 		return nil, nameErr
 	}

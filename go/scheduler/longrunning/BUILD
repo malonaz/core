@@ -7,7 +7,6 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/aip",
         "//go/grpc/status",
         "//go/scheduler",
         "//go/scheduler/model",

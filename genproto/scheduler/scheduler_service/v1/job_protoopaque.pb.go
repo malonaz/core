@@ -141,7 +141,7 @@ type CreateJobRequest_builder struct {
 	Parent string
 	// The job to create. Only the producer-owned fields are read: `payload`,
 	// `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
-	// `expire_time` and `operation`.
+	// `expire_time`.
 	Job *v1.Job
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.

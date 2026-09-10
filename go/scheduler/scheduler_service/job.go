@@ -65,7 +65,6 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 		UniqueKey:    job.GetUniqueKey(),
 		ScheduleTime: job.GetScheduleTime(),
 		ExpireTime:   job.GetExpireTime(),
-		Operation:    job.GetOperation(),
 		State:        schedulerpb.JobState_JOB_STATE_PENDING,
 	}
 	uniqueKey := job.GetUniqueKey()

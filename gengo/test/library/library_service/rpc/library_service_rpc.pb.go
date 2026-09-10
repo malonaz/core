@@ -2707,7 +2707,7 @@ func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.Imp
 	}
 	response, err := s.runner.RunImportBooks(ctx, request)
 	if err != nil {
-		return longrunning.Failed(ctx, request.GetParent(), err)
+		return longrunning.Failed(ctx, err)
 	}
-	return longrunning.Done(ctx, request.GetParent(), response)
+	return longrunning.Done(ctx, response)
 }

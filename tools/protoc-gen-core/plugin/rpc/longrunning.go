@@ -26,7 +26,7 @@ var (
 // request to the scheduler, and the runner the scheduler calls back.
 type longrunningMethod struct {
 	method *protogen.Method
-	// The resource the operation hangs off: the request's `parent` or `name`.
+	// The resource the operation acts on, deriving its job's parent: the request's `parent` or `name`.
 	resourceField *protogen.Field
 	// Set when the request carries a `request_id`, which makes the start idempotent.
 	requestIDField *protogen.Field
@@ -70,7 +70,7 @@ func parseLongrunningMethod(method *protogen.Method) (*longrunningMethod, error)
 		}
 	}
 	if parsed.resourceField == nil {
-		return nil, fmt.Errorf("%s must declare a `parent` or `name` field with a google.api.resource_reference: the operation hangs off it", method.GoName)
+		return nil, fmt.Errorf("%s must declare a `parent` or `name` field with a google.api.resource_reference: its job's parent derives from it", method.GoName)
 	}
 	return parsed, nil
 }
@@ -157,9 +157,9 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 	g.P("  }")
 	g.P(fmt.Sprintf("  response, err := s.runner.Run%s(ctx, request)", method.GoName))
 	g.P("  if err != nil {")
-	g.P(fmt.Sprintf("    return %s(ctx, request.Get%s(), err)", gen.ident(longrunningPkg, "Failed"), lro.resourceField.GoName))
+	g.P(fmt.Sprintf("    return %s(ctx, err)", gen.ident(longrunningPkg, "Failed")))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s(ctx, request.Get%s(), response)", gen.ident(longrunningPkg, "Done"), lro.resourceField.GoName))
+	g.P(fmt.Sprintf("  return %s(ctx, response)", gen.ident(longrunningPkg, "Done")))
 	g.P("}")
 	g.P()
 	return nil
