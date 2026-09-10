@@ -100,6 +100,14 @@ func TestLoadLongrunning(t *testing.T) {
 	source, err := Generate(b)
 	require.NoError(t, err)
 	require.Contains(t, string(source), "longrunningpb.RegisterOperationsServer(server.Raw, longrunning.NewServer(schedulerServiceClient, []string{")
+	// lro-client asked for lro-service's operations: the Operations client shares its connection.
+	require.Contains(t, string(source), "lroServiceOperationsClient := longrunningpb.NewOperationsClient(lroServiceConnection.Get())")
+	require.Contains(t, string(source), "lroclient.New(opts.LroClient, lroServiceClient, lroServiceOperationsClient)")
+}
+
+func TestLoadRejectsOperationsWithoutLongrunning(t *testing.T) {
+	_, err := load(t, "lro_c_client.yaml")
+	require.ErrorContains(t, err, "asks for operations but test.c.v1.CService has no method returning google.longrunning.Operation")
 }
 
 func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {

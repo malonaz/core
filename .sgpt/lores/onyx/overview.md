@@ -51,7 +51,7 @@ Dependency kinds (`Dependency.kind`, a `oneof` — one key per list entry):
 
 | Kind | Constructor argument | Binary provides |
 |---|---|---|
-| `grpc_client {service, proto, name?}` | `{name}Client pb.{Service}Client` (name defaults to service; set it when one binary hosts two same-named services on different protos) | a connection, in-process or remote (see below) |
+| `grpc_client {service, proto, name?, operations?}` | `{name}Client pb.{Service}Client` (name defaults to service; set it when one binary hosts two same-named services on different protos); with `operations: true`, also `{name}OperationsClient longrunningpb.OperationsClient` on the same connection — the Operations of the server serving it, for waiting on the service's long-running methods (which it must have) | a connection, in-process or remote (see below) |
 | `postgres_db_client {name, database?, target}` | `{name}PostgresStore *store.Store` | `target.New(psqlClient)` over `{database}` |
 | `postgres_client {name, database?}` | `{name}PostgresClient *postgres.Client` | the raw client of `{database}` |
 | `nats {}` | `natsClient *nats.Client` | the one NATS client |

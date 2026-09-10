@@ -1,0 +1,5 @@
+name: test
+servers:
+  - name: lro-client
+    processor:
+      manifest: //lro/lro_client:manifest(tools/onyx/binary/testdata/lro_c_client_service.yaml)

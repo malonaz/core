@@ -95,6 +95,11 @@ message Dependency {
       (buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$",
       (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
     ];
+
+    // Also inject the `google.longrunning.Operations` client of the server serving the service,
+    // on the same connection, as `{name}OperationsClient`: how a caller waits on the operations
+    // the service's long-running methods return. The service must have such methods.
+    bool operations = 4;
   }
 
   // A generated store over a postgres database.

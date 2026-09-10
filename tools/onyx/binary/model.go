@@ -72,6 +72,8 @@ type Service struct {
 // Dependency is one resolved constructor argument.
 type Dependency struct {
 	GRPCClient *GRPCClient
+	// The client's Operations client is passed too, right after it.
+	Operations bool
 	Store      *Store
 	Database   *Database
 	Component  *Component
@@ -89,6 +91,9 @@ type GRPCClient struct {
 	Service *Service
 	// A server health-checks it.
 	HealthChecked bool
+	// A service asked for its Operations client: the google.longrunning.Operations of the server
+	// serving it, on the same connection.
+	Operations bool
 }
 
 // Database is a distinct postgres database.
@@ -347,7 +352,13 @@ func (l *loader) dependency(m *onyxpb.ServiceManifest, dep *onyxpb.Dependency, s
 			l.grpcClients[key+":"+name] = client
 			l.binary.GRPCClients = append(l.binary.GRPCClients, client)
 		}
-		return &Dependency{GRPCClient: client}, nil
+		if kind.GrpcClient.GetOperations() {
+			if len(client.LongrunningMethods) == 0 {
+				return nil, fmt.Errorf("grpc_client %s asks for operations but %s has no method returning google.longrunning.Operation", name, client.FullName)
+			}
+			client.Operations = true
+		}
+		return &Dependency{GRPCClient: client, Operations: kind.GrpcClient.GetOperations()}, nil
 
 	case *onyxpb.Dependency_PostgresDbClient_:
 		database := l.database(orDefault(kind.PostgresDbClient.GetDatabase(), kind.PostgresDbClient.GetName()))
@@ -533,6 +544,11 @@ func (l *loader) checkIdentifiers() error {
 		owner := fmt.Sprintf("gRPC client %s (%s)", client.Name, client.key)
 		if err := claim(gen.Camel(client.Name)+"Client", owner); err != nil {
 			return err
+		}
+		if client.Operations {
+			if err := claim(operationsClientVar(client), owner); err != nil {
+				return err
+			}
 		}
 		if client.Server == nil {
 			if err := claim("opts."+gen.Pascal(client.Name)+"GRPC", owner); err != nil {

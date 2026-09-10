@@ -1,0 +1,7 @@
+name: lro-client
+target: //lro/lro_client
+dependencies:
+  - grpc_client:
+      service: lro-service
+      proto: //lro/v1(tools/onyx/binary/testdata/lro.proto)
+      operations: true
