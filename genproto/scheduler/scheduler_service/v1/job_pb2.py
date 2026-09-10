@@ -26,12 +26,13 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
+from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.scheduler.v1 import job_pb2 as malonaz_dot_scheduler_dot_v1_dot_job__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\xe1\x01\n\x10\x43reateJobRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12.\n\x03job\x18\x02 \x01(\x0b\x32\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xc8\x01\x01\x12\x35\n\x06job_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"F\n\rGetJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"\xe5\x01\n\x10UpdateJobRequest\x12.\n\x03job\x18\x01 \x01(\x0b\x32\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:h\xbaH?\x1a=\n\x11job.name_required\x12\x14job.name must be set\x1a\x12has(this.job.name)\xea\x9c\xc1\x03!\n\x06labels\n\rschedule_time\n\x08priority\"n\n\x10\x44\x65leteJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x8a\x02\n\x0fListJobsRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:r\x82\xf3-\x02\x08\x64\x8a\xf3-a\n\x0b\x63reate_time\n\x0bupdate_time\n\rschedule_time\n\x0b\x65xpire_time\n\rcomplete_time\n\x08priority\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"T\n\x10ListJobsResponse\x12\'\n\x04jobs\x18\x01 \x03(\x0b\x32\x19.malonaz.scheduler.v1.Job\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x87\x01\n\x13\x42\x61tchGetJobsRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12@\n\x05names\x18\x02 \x03(\tB1\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"?\n\x14\x42\x61tchGetJobsResponse\x12\'\n\x04jobs\x18\x01 \x03(\x0b\x32\x19.malonaz.scheduler.v1.Job\"H\n\x0fRetryJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"I\n\x10\x43\x61ncelJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"\x81\x01\n\x18ReportJobProgressRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\x12.\n\x08progress\x18\x02 \x01(\x0b\x32\x14.google.protobuf.AnyB\x06\xbaH\x03\xc8\x01\x01\x42\x41Z?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\xe1\x01\n\x10\x43reateJobRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12.\n\x03job\x18\x02 \x01(\x0b\x32\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xc8\x01\x01\x12\x35\n\x06job_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"F\n\rGetJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"\xe5\x01\n\x10UpdateJobRequest\x12.\n\x03job\x18\x01 \x01(\x0b\x32\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:h\xbaH?\x1a=\n\x11job.name_required\x12\x14job.name must be set\x1a\x12has(this.job.name)\xea\x9c\xc1\x03!\n\x06labels\n\rschedule_time\n\x08priority\"n\n\x10\x44\x65leteJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x8a\x02\n\x0fListJobsRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:r\x82\xf3-\x02\x08\x64\x8a\xf3-a\n\x0b\x63reate_time\n\x0bupdate_time\n\rschedule_time\n\x0b\x65xpire_time\n\rcomplete_time\n\x08priority\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"T\n\x10ListJobsResponse\x12\'\n\x04jobs\x18\x01 \x03(\x0b\x32\x19.malonaz.scheduler.v1.Job\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x87\x01\n\x13\x42\x61tchGetJobsRequest\x12.\n\x06parent\x18\x01 \x01(\tB\x1e\xfa\x41\x1b\x12\x19scheduler.malonaz.com/Job\x12@\n\x05names\x18\x02 \x03(\tB1\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"?\n\x14\x42\x61tchGetJobsResponse\x12\'\n\x04jobs\x18\x01 \x03(\x0b\x32\x19.malonaz.scheduler.v1.Job\"H\n\x0fRetryJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"I\n\x10\x43\x61ncelJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\"\x81\x01\n\x18ReportJobProgressRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\x12.\n\x08progress\x18\x02 \x01(\x0b\x32\x14.google.protobuf.AnyB\x06\xbaH\x03\xc8\x01\x01\"}\n\x0eWaitJobRequest\x12\x35\n\x04name\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01\x12\x34\n\x07timeout\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\xbaH\x05\xaa\x01\x02\x32\x00\x42\x41Z?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -75,26 +76,32 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_REPORTJOBPROGRESSREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\033\n\031scheduler.malonaz.com/Job\272H\003\310\001\001'
   _globals['_REPORTJOBPROGRESSREQUEST'].fields_by_name['progress']._loaded_options = None
   _globals['_REPORTJOBPROGRESSREQUEST'].fields_by_name['progress']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_CREATEJOBREQUEST']._serialized_start=309
-  _globals['_CREATEJOBREQUEST']._serialized_end=534
-  _globals['_GETJOBREQUEST']._serialized_start=536
-  _globals['_GETJOBREQUEST']._serialized_end=606
-  _globals['_UPDATEJOBREQUEST']._serialized_start=609
-  _globals['_UPDATEJOBREQUEST']._serialized_end=838
-  _globals['_DELETEJOBREQUEST']._serialized_start=840
-  _globals['_DELETEJOBREQUEST']._serialized_end=950
-  _globals['_LISTJOBSREQUEST']._serialized_start=953
-  _globals['_LISTJOBSREQUEST']._serialized_end=1219
-  _globals['_LISTJOBSRESPONSE']._serialized_start=1221
-  _globals['_LISTJOBSRESPONSE']._serialized_end=1305
-  _globals['_BATCHGETJOBSREQUEST']._serialized_start=1308
-  _globals['_BATCHGETJOBSREQUEST']._serialized_end=1443
-  _globals['_BATCHGETJOBSRESPONSE']._serialized_start=1445
-  _globals['_BATCHGETJOBSRESPONSE']._serialized_end=1508
-  _globals['_RETRYJOBREQUEST']._serialized_start=1510
-  _globals['_RETRYJOBREQUEST']._serialized_end=1582
-  _globals['_CANCELJOBREQUEST']._serialized_start=1584
-  _globals['_CANCELJOBREQUEST']._serialized_end=1657
-  _globals['_REPORTJOBPROGRESSREQUEST']._serialized_start=1660
-  _globals['_REPORTJOBPROGRESSREQUEST']._serialized_end=1789
+  _globals['_WAITJOBREQUEST'].fields_by_name['name']._loaded_options = None
+  _globals['_WAITJOBREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\033\n\031scheduler.malonaz.com/Job\272H\003\310\001\001'
+  _globals['_WAITJOBREQUEST'].fields_by_name['timeout']._loaded_options = None
+  _globals['_WAITJOBREQUEST'].fields_by_name['timeout']._serialized_options = b'\272H\005\252\001\0022\000'
+  _globals['_CREATEJOBREQUEST']._serialized_start=341
+  _globals['_CREATEJOBREQUEST']._serialized_end=566
+  _globals['_GETJOBREQUEST']._serialized_start=568
+  _globals['_GETJOBREQUEST']._serialized_end=638
+  _globals['_UPDATEJOBREQUEST']._serialized_start=641
+  _globals['_UPDATEJOBREQUEST']._serialized_end=870
+  _globals['_DELETEJOBREQUEST']._serialized_start=872
+  _globals['_DELETEJOBREQUEST']._serialized_end=982
+  _globals['_LISTJOBSREQUEST']._serialized_start=985
+  _globals['_LISTJOBSREQUEST']._serialized_end=1251
+  _globals['_LISTJOBSRESPONSE']._serialized_start=1253
+  _globals['_LISTJOBSRESPONSE']._serialized_end=1337
+  _globals['_BATCHGETJOBSREQUEST']._serialized_start=1340
+  _globals['_BATCHGETJOBSREQUEST']._serialized_end=1475
+  _globals['_BATCHGETJOBSRESPONSE']._serialized_start=1477
+  _globals['_BATCHGETJOBSRESPONSE']._serialized_end=1540
+  _globals['_RETRYJOBREQUEST']._serialized_start=1542
+  _globals['_RETRYJOBREQUEST']._serialized_end=1614
+  _globals['_CANCELJOBREQUEST']._serialized_start=1616
+  _globals['_CANCELJOBREQUEST']._serialized_end=1689
+  _globals['_REPORTJOBPROGRESSREQUEST']._serialized_start=1692
+  _globals['_REPORTJOBPROGRESSREQUEST']._serialized_end=1821
+  _globals['_WAITJOBREQUEST']._serialized_start=1823
+  _globals['_WAITJOBREQUEST']._serialized_end=1948
 # @@protoc_insertion_point(module_scope)

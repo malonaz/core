@@ -7,6 +7,7 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -24,6 +25,7 @@ const (
 	Processor_Sleep_FullMethodName    = "/malonaz.test.scheduler.processor.v1.Processor/Sleep"
 	Processor_Deadline_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Deadline"
 	Processor_Progress_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Progress"
+	Processor_Operate_FullMethodName  = "/malonaz.test.scheduler.processor.v1.Processor/Operate"
 	Processor_Unrouted_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Unrouted"
 )
 
@@ -45,6 +47,10 @@ type ProcessorClient interface {
 	Deadline(ctx context.Context, in *DeadlineRequest, opts ...grpc.CallOption) (*DeadlineResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error)
+	// Returns a long-running operation: done with an EchoResponse carrying
+	// `value`, or, when `unfinished` is set, not done, which the scheduler
+	// must reject.
+	Operate(ctx context.Context, in *OperateRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Never routed: no sat queue has a handler for it.
 	Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error)
 }
@@ -107,6 +113,16 @@ func (c *processorClient) Progress(ctx context.Context, in *ProgressRequest, opt
 	return out, nil
 }
 
+func (c *processorClient) Operate(ctx context.Context, in *OperateRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, Processor_Operate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *processorClient) Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnroutedResponse)
@@ -135,6 +151,10 @@ type ProcessorServer interface {
 	Deadline(context.Context, *DeadlineRequest) (*DeadlineResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(context.Context, *ProgressRequest) (*ProgressResponse, error)
+	// Returns a long-running operation: done with an EchoResponse carrying
+	// `value`, or, when `unfinished` is set, not done, which the scheduler
+	// must reject.
+	Operate(context.Context, *OperateRequest) (*longrunningpb.Operation, error)
 	// Never routed: no sat queue has a handler for it.
 	Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error)
 }
@@ -160,6 +180,9 @@ func (UnimplementedProcessorServer) Deadline(context.Context, *DeadlineRequest) 
 }
 func (UnimplementedProcessorServer) Progress(context.Context, *ProgressRequest) (*ProgressResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Progress not implemented")
+}
+func (UnimplementedProcessorServer) Operate(context.Context, *OperateRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method Operate not implemented")
 }
 func (UnimplementedProcessorServer) Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Unrouted not implemented")
@@ -274,6 +297,24 @@ func _Processor_Progress_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Processor_Operate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OperateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Operate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Operate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Operate(ctx, req.(*OperateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Processor_Unrouted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UnroutedRequest)
 	if err := dec(in); err != nil {
@@ -318,6 +359,10 @@ var Processor_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Progress",
 			Handler:    _Processor_Progress_Handler,
+		},
+		{
+			MethodName: "Operate",
+			Handler:    _Processor_Operate_Handler,
 		},
 		{
 			MethodName: "Unrouted",

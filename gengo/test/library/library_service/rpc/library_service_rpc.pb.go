@@ -4,21 +4,24 @@ package rpc
 
 import (
 	protovalidate "buf.build/go/protovalidate"
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	errors "errors"
 	fmt "fmt"
 	cel "github.com/google/cel-go/cel"
 	ext "github.com/google/cel-go/ext"
 	model "github.com/malonaz/core/gengo/test/library/model"
-	v14 "github.com/malonaz/core/genproto/aip/v1"
-	v12 "github.com/malonaz/core/genproto/codegen/nats/v1"
-	v1 "github.com/malonaz/core/genproto/nats/v1"
-	v11 "github.com/malonaz/core/genproto/test/library/library_service/v1"
-	v13 "github.com/malonaz/core/genproto/test/library/v1"
+	v15 "github.com/malonaz/core/genproto/aip/v1"
+	v13 "github.com/malonaz/core/genproto/codegen/nats/v1"
+	v11 "github.com/malonaz/core/genproto/nats/v1"
+	v1 "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
+	v12 "github.com/malonaz/core/genproto/test/library/library_service/v1"
+	v14 "github.com/malonaz/core/genproto/test/library/v1"
 	aip "github.com/malonaz/core/go/aip"
 	status "github.com/malonaz/core/go/grpc/status"
 	nats "github.com/malonaz/core/go/nats"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	longrunning "github.com/malonaz/core/go/scheduler/longrunning"
 	uuid "github.com/malonaz/core/go/uuid"
 	resourcename "go.einride.tech/aip/resourcename"
 	codes "google.golang.org/grpc/codes"
@@ -39,7 +42,9 @@ type libraryServiceStore interface {
 }
 
 type LibraryServiceServer struct {
-	natsClient *nats.Client
+	natsClient             *nats.Client
+	schedulerServiceClient v1.SchedulerServiceClient
+	runner                 LibraryServiceRunner
 	*libraryService_AuthorServer
 	*libraryService_AuthorProfileServer
 	*libraryService_ShelfServer
@@ -48,9 +53,11 @@ type LibraryServiceServer struct {
 	*libraryService_NoteServer
 }
 
-func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client) *LibraryServiceServer {
+func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner) *LibraryServiceServer {
 	return &LibraryServiceServer{
 		natsClient:                         natsClient,
+		schedulerServiceClient:             schedulerServiceClient,
+		runner:                             runner,
 		libraryService_AuthorServer:        newLibraryService_AuthorServer(store),
 		libraryService_AuthorProfileServer: newLibraryService_AuthorProfileServer(store),
 		libraryService_ShelfServer:         newLibraryService_ShelfServer(store, natsClient),
@@ -61,7 +68,7 @@ func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client)
 }
 
 func (s *LibraryServiceServer) Start(ctx context.Context) error {
-	streamOptionsList, err := pbutil.GetServiceOption[[]*v1.StreamOptions](v11.LibraryService_ServiceDesc.ServiceName, v12.E_Stream)
+	streamOptionsList, err := pbutil.GetServiceOption[[]*v11.StreamOptions](v12.LibraryService_ServiceDesc.ServiceName, v13.E_Stream)
 	if err != nil {
 		return fmt.Errorf("getting stream options: %w", err)
 	}
@@ -71,6 +78,18 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// LibraryServiceRunner does the work of LibraryService's long-running operations. The
+// scheduler calls each Run method back with the request the operation was started
+// with; the result is recorded as the operation's response or error.
+type LibraryServiceRunner interface {
+	RunImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*v12.ImportBooksResponse, error)
+}
+
+// LibraryServiceLongrunningMethods are the fully qualified long-running methods of the service.
+var LibraryServiceLongrunningMethods = []string{
+	"/malonaz.test.library.library_service.v1.LibraryService/ImportBooks",
 }
 
 type libraryService_AuthorStore interface {
@@ -94,7 +113,7 @@ func newLibraryService_AuthorServer(store libraryService_AuthorStore) *librarySe
 	}
 }
 
-func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, request *v11.CreateAuthorRequest) (*model.Author, *model.AuthorProfile, error) {
+func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, request *v12.CreateAuthorRequest) (*model.Author, *model.AuthorProfile, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -139,7 +158,7 @@ func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, r
 		return nil, nil, status.Errorf(codes.Internal, "converting author from pb to model: %v", err).Err()
 	}
 
-	authorProfile := &v13.AuthorProfile{
+	authorProfile := &v14.AuthorProfile{
 		Name:       resourcename.Sprint("organizations/{organization}/authors/{author}/profile", organizationId, authorId),
 		CreateTime: request.Author.CreateTime,
 		UpdateTime: request.Author.UpdateTime,
@@ -159,7 +178,7 @@ func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, r
 	return authorModel, authorProfileModel, nil
 }
 
-func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request *v11.CreateAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request *v12.CreateAuthorRequest) (*v14.Author, error) {
 	authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, request)
 	if err != nil {
 		return nil, err
@@ -189,7 +208,7 @@ func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request 
 	return author, nil
 }
 
-func (s *libraryService_AuthorServer) GetAuthor(ctx context.Context, request *v11.GetAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) GetAuthor(ctx context.Context, request *v12.GetAuthorRequest) (*v14.Author, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -215,9 +234,9 @@ func (s *libraryService_AuthorServer) GetAuthor(ctx context.Context, request *v1
 	return author, nil
 }
 
-var updateAuthorRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateAuthorRequest, *v13.Author]()
+var updateAuthorRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateAuthorRequest, *v14.Author]()
 
-func (s *libraryService_AuthorServer) UpdateAuthor(ctx context.Context, request *v11.UpdateAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) UpdateAuthor(ctx context.Context, request *v12.UpdateAuthorRequest) (*v14.Author, error) {
 	for {
 		response, err := s.updateAuthor(ctx, request)
 		if err != nil {
@@ -244,7 +263,7 @@ func (s *libraryService_AuthorServer) UpdateAuthor(ctx context.Context, request 
 	}
 }
 
-func (s *libraryService_AuthorServer) updateAuthor(ctx context.Context, request *v11.UpdateAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) updateAuthor(ctx context.Context, request *v12.UpdateAuthorRequest) (*v14.Author, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -259,7 +278,7 @@ func (s *libraryService_AuthorServer) updateAuthor(ctx context.Context, request 
 	}
 
 	// STEP 2: retrieve existing resource.
-	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Author.Name}
+	getAuthorRequest := &v12.GetAuthorRequest{Name: request.Author.Name}
 	existingAuthor, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
@@ -315,7 +334,7 @@ func (s *libraryService_AuthorServer) updateAuthor(ctx context.Context, request 
 	return author, nil
 }
 
-func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request *v11.DeleteAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request *v12.DeleteAuthorRequest) (*v14.Author, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -328,7 +347,7 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
-	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
+	getAuthorRequest := &v12.GetAuthorRequest{Name: request.Name}
 	existingAuthor, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
@@ -353,7 +372,7 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 		}
 		if errors.Is(err, model.ErrAuthorAlreadyDeleted) {
 			if request.AllowMissing {
-				getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
+				getAuthorRequest := &v12.GetAuthorRequest{Name: request.Name}
 				author, err := s.GetAuthor(ctx, getAuthorRequest)
 				if err != nil {
 					return nil, err
@@ -374,7 +393,7 @@ func (s *libraryService_AuthorServer) DeleteAuthor(ctx context.Context, request 
 	return author, nil
 }
 
-func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, request *v11.UndeleteAuthorRequest) (*v13.Author, error) {
+func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, request *v12.UndeleteAuthorRequest) (*v14.Author, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -386,7 +405,7 @@ func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, reques
 	}
 
 	// Compute the new etag.
-	getAuthorRequest := &v11.GetAuthorRequest{Name: request.Name}
+	getAuthorRequest := &v12.GetAuthorRequest{Name: request.Name}
 	existingAuthor, err := s.GetAuthor(ctx, getAuthorRequest)
 	if err != nil {
 		return nil, err
@@ -421,9 +440,9 @@ func (s *libraryService_AuthorServer) UndeleteAuthor(ctx context.Context, reques
 	return author, nil
 }
 
-var listAuthorsRequestParser = aip.MustNewListRequestParser[*v11.ListAuthorsRequest, *v13.Author](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listAuthorsRequestParser = aip.MustNewListRequestParser[*v12.ListAuthorsRequest, *v14.Author](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_AuthorServer) ListAuthors(ctx context.Context, request *v11.ListAuthorsRequest) (*v11.ListAuthorsResponse, error) {
+func (s *libraryService_AuthorServer) ListAuthors(ctx context.Context, request *v12.ListAuthorsRequest) (*v12.ListAuthorsResponse, error) {
 	// Parse parent names
 	var organizationId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
@@ -449,7 +468,7 @@ func (s *libraryService_AuthorServer) ListAuthors(ctx context.Context, request *
 	}
 
 	// Convert back to proto.
-	authors := make([]*v13.Author, 0, len(dbAuthors))
+	authors := make([]*v14.Author, 0, len(dbAuthors))
 	for _, dbAuthor := range dbAuthors {
 		author, err := dbAuthor.ToPb()
 		if err != nil {
@@ -459,13 +478,13 @@ func (s *libraryService_AuthorServer) ListAuthors(ctx context.Context, request *
 	}
 
 	// Create and return response.
-	return &v11.ListAuthorsResponse{
+	return &v12.ListAuthorsResponse{
 		Authors:       authors,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, request *v11.BatchGetAuthorsRequest) (*v11.BatchGetAuthorsResponse, error) {
+func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, request *v12.BatchGetAuthorsRequest) (*v12.BatchGetAuthorsResponse, error) {
 	var organizationId string
 	if request.Parent != "" {
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
@@ -499,7 +518,7 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 		return nil, status.Errorf(codes.NotFound, "expected %d authors, found %d", len(request.Names), len(dbAuthors)).Err()
 	}
 
-	authorNameToAuthor := make(map[string]*v13.Author, len(request.Names))
+	authorNameToAuthor := make(map[string]*v14.Author, len(request.Names))
 	for _, dbAuthorModel := range dbAuthors {
 		author, err := dbAuthorModel.ToPb()
 		if err != nil {
@@ -508,7 +527,7 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 		authorNameToAuthor[author.Name] = author
 	}
 
-	authors := make([]*v13.Author, 0, len(dbAuthors))
+	authors := make([]*v14.Author, 0, len(dbAuthors))
 	for _, name := range request.Names {
 		author, ok := authorNameToAuthor[name]
 		if !ok {
@@ -517,12 +536,12 @@ func (s *libraryService_AuthorServer) BatchGetAuthors(ctx context.Context, reque
 		authors = append(authors, author)
 	}
 
-	return &v11.BatchGetAuthorsResponse{
+	return &v12.BatchGetAuthorsResponse{
 		Authors: authors,
 	}, nil
 }
 
-func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, request *v11.BatchCreateAuthorsRequest) (*v11.BatchCreateAuthorsResponse, error) {
+func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, request *v12.BatchCreateAuthorsRequest) (*v12.BatchCreateAuthorsResponse, error) {
 	if resourcename.ContainsWildcard(request.Parent) {
 		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
@@ -562,11 +581,11 @@ func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, re
 	}
 
 	if request.ValidateOnly {
-		authors := make([]*v13.Author, n)
+		authors := make([]*v14.Author, n)
 		for i, createRequest := range request.Requests {
 			authors[i] = createRequest.Author
 		}
-		return &v11.BatchCreateAuthorsResponse{Authors: authors}, nil
+		return &v12.BatchCreateAuthorsResponse{Authors: authors}, nil
 	}
 
 	// Insert the whole batch atomically.
@@ -581,7 +600,7 @@ func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, re
 		return nil, status.Errorf(codes.Internal, "expected %d inserted authors, got %d", n, len(dbAuthors)).Err()
 	}
 
-	authors := make([]*v13.Author, n)
+	authors := make([]*v14.Author, n)
 	for i, dbAuthorModel := range dbAuthors {
 		author, err := dbAuthorModel.ToPb()
 		if err != nil {
@@ -590,12 +609,12 @@ func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, re
 		authors[i] = author
 	}
 
-	return &v11.BatchCreateAuthorsResponse{Authors: authors}, nil
+	return &v12.BatchCreateAuthorsResponse{Authors: authors}, nil
 }
 
-var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v11.SearchAuthorsRequest, *v13.Author](aip.WithFQN())
+var searchAuthorsRequestParser = aip.MustNewSearchRequestParser[*v12.SearchAuthorsRequest, *v14.Author](aip.WithFQN())
 
-func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request *v11.SearchAuthorsRequest) (*v11.SearchAuthorsResponse, error) {
+func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request *v12.SearchAuthorsRequest) (*v12.SearchAuthorsResponse, error) {
 	// Parse parent names
 	var organizationId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
@@ -623,35 +642,35 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 		}
 	}
 
-	var snippets []*v14.SearchSnippet
+	var snippets []*v15.SearchSnippet
 	if request.IncludeSnippets {
-		snippets = make([]*v14.SearchSnippet, len(dbAuthors))
+		snippets = make([]*v15.SearchSnippet, len(dbAuthors))
 		for i := range snippets {
-			snippet := &v14.SearchSnippet{}
+			snippet := &v15.SearchSnippet{}
 			if dbSnippets != nil {
 				if match, ok := dbSnippets[i]["display_name"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "display_name", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "display_name", Match: match})
 				}
 				if match, ok := dbSnippets[i]["email_address"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "email_address", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "email_address", Match: match})
 				}
 				if match, ok := dbSnippets[i]["phone_number"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "phone_number", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "phone_number", Match: match})
 				}
 				if match, ok := dbSnippets[i]["metadata.country"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.country", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "metadata.country", Match: match})
 				}
 				if match, ok := dbSnippets[i]["email_addresses"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "email_addresses", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "email_addresses", Match: match})
 				}
 				if match, ok := dbSnippets[i]["phone_numbers"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "phone_numbers", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "phone_numbers", Match: match})
 				}
 				if match, ok := dbSnippets[i]["metadata.email_addresses"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.email_addresses", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "metadata.email_addresses", Match: match})
 				}
 				if match, ok := dbSnippets[i]["biography"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "biography", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "biography", Match: match})
 				}
 			}
 			snippets[i] = snippet
@@ -659,7 +678,7 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 	}
 
 	// Convert back to proto.
-	authors := make([]*v13.Author, 0, len(dbAuthors))
+	authors := make([]*v14.Author, 0, len(dbAuthors))
 	for _, dbAuthor := range dbAuthors {
 		author, err := dbAuthor.ToPb()
 		if err != nil {
@@ -669,7 +688,7 @@ func (s *libraryService_AuthorServer) SearchAuthors(ctx context.Context, request
 	}
 
 	// Create and return response.
-	return &v11.SearchAuthorsResponse{
+	return &v12.SearchAuthorsResponse{
 		Authors:       authors,
 		Snippets:      snippets,
 		NextPageToken: nextPageToken,
@@ -693,7 +712,7 @@ func newLibraryService_AuthorProfileServer(store libraryService_AuthorProfileSto
 	}
 }
 
-func (s *libraryService_AuthorProfileServer) GetAuthorProfile(ctx context.Context, request *v11.GetAuthorProfileRequest) (*v13.AuthorProfile, error) {
+func (s *libraryService_AuthorProfileServer) GetAuthorProfile(ctx context.Context, request *v12.GetAuthorProfileRequest) (*v14.AuthorProfile, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -719,9 +738,9 @@ func (s *libraryService_AuthorProfileServer) GetAuthorProfile(ctx context.Contex
 	return authorProfile, nil
 }
 
-var updateAuthorProfileRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateAuthorProfileRequest, *v13.AuthorProfile]()
+var updateAuthorProfileRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateAuthorProfileRequest, *v14.AuthorProfile]()
 
-func (s *libraryService_AuthorProfileServer) UpdateAuthorProfile(ctx context.Context, request *v11.UpdateAuthorProfileRequest) (*v13.AuthorProfile, error) {
+func (s *libraryService_AuthorProfileServer) UpdateAuthorProfile(ctx context.Context, request *v12.UpdateAuthorProfileRequest) (*v14.AuthorProfile, error) {
 	for {
 		response, err := s.updateAuthorProfile(ctx, request)
 		if err != nil {
@@ -748,7 +767,7 @@ func (s *libraryService_AuthorProfileServer) UpdateAuthorProfile(ctx context.Con
 	}
 }
 
-func (s *libraryService_AuthorProfileServer) updateAuthorProfile(ctx context.Context, request *v11.UpdateAuthorProfileRequest) (*v13.AuthorProfile, error) {
+func (s *libraryService_AuthorProfileServer) updateAuthorProfile(ctx context.Context, request *v12.UpdateAuthorProfileRequest) (*v14.AuthorProfile, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -763,7 +782,7 @@ func (s *libraryService_AuthorProfileServer) updateAuthorProfile(ctx context.Con
 	}
 
 	// STEP 2: retrieve existing resource.
-	getAuthorProfileRequest := &v11.GetAuthorProfileRequest{Name: request.AuthorProfile.Name}
+	getAuthorProfileRequest := &v12.GetAuthorProfileRequest{Name: request.AuthorProfile.Name}
 	existingAuthorProfile, err := s.GetAuthorProfile(ctx, getAuthorProfileRequest)
 	if err != nil {
 		return nil, err
@@ -819,9 +838,9 @@ func (s *libraryService_AuthorProfileServer) updateAuthorProfile(ctx context.Con
 	return authorProfile, nil
 }
 
-var listAuthorProfilesRequestParser = aip.MustNewListRequestParser[*v11.ListAuthorProfilesRequest, *v13.AuthorProfile](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listAuthorProfilesRequestParser = aip.MustNewListRequestParser[*v12.ListAuthorProfilesRequest, *v14.AuthorProfile](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_AuthorProfileServer) ListAuthorProfiles(ctx context.Context, request *v11.ListAuthorProfilesRequest) (*v11.ListAuthorProfilesResponse, error) {
+func (s *libraryService_AuthorProfileServer) ListAuthorProfiles(ctx context.Context, request *v12.ListAuthorProfilesRequest) (*v12.ListAuthorProfilesResponse, error) {
 	// Parse parent names
 	var organizationId, authorId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
@@ -847,7 +866,7 @@ func (s *libraryService_AuthorProfileServer) ListAuthorProfiles(ctx context.Cont
 	}
 
 	// Convert back to proto.
-	authorProfiles := make([]*v13.AuthorProfile, 0, len(dbAuthorProfiles))
+	authorProfiles := make([]*v14.AuthorProfile, 0, len(dbAuthorProfiles))
 	for _, dbAuthorProfile := range dbAuthorProfiles {
 		authorProfile, err := dbAuthorProfile.ToPb()
 		if err != nil {
@@ -857,13 +876,13 @@ func (s *libraryService_AuthorProfileServer) ListAuthorProfiles(ctx context.Cont
 	}
 
 	// Create and return response.
-	return &v11.ListAuthorProfilesResponse{
+	return &v12.ListAuthorProfilesResponse{
 		AuthorProfiles: authorProfiles,
 		NextPageToken:  nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.Context, request *v11.BatchGetAuthorProfilesRequest) (*v11.BatchGetAuthorProfilesResponse, error) {
+func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.Context, request *v12.BatchGetAuthorProfilesRequest) (*v12.BatchGetAuthorProfilesResponse, error) {
 	var organizationId, authorId string
 	if request.Parent != "" {
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/authors/{author}", &organizationId, &authorId); err != nil {
@@ -897,7 +916,7 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 		return nil, status.Errorf(codes.NotFound, "expected %d authorProfiles, found %d", len(request.Names), len(dbAuthorProfiles)).Err()
 	}
 
-	authorProfileNameToAuthorProfile := make(map[string]*v13.AuthorProfile, len(request.Names))
+	authorProfileNameToAuthorProfile := make(map[string]*v14.AuthorProfile, len(request.Names))
 	for _, dbAuthorProfileModel := range dbAuthorProfiles {
 		authorProfile, err := dbAuthorProfileModel.ToPb()
 		if err != nil {
@@ -906,7 +925,7 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 		authorProfileNameToAuthorProfile[authorProfile.Name] = authorProfile
 	}
 
-	authorProfiles := make([]*v13.AuthorProfile, 0, len(dbAuthorProfiles))
+	authorProfiles := make([]*v14.AuthorProfile, 0, len(dbAuthorProfiles))
 	for _, name := range request.Names {
 		authorProfile, ok := authorProfileNameToAuthorProfile[name]
 		if !ok {
@@ -915,7 +934,7 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 		authorProfiles = append(authorProfiles, authorProfile)
 	}
 
-	return &v11.BatchGetAuthorProfilesResponse{
+	return &v12.BatchGetAuthorProfilesResponse{
 		AuthorProfiles: authorProfiles,
 	}, nil
 }
@@ -942,7 +961,7 @@ func newLibraryService_ShelfServer(store libraryService_ShelfStore, natsClient *
 	}
 }
 
-func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v11.CreateShelfRequest) (*model.Shelf, error) {
+func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v12.CreateShelfRequest) (*model.Shelf, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -982,7 +1001,7 @@ func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, req
 	return shelfModel, nil
 }
 
-func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v11.CreateShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v12.CreateShelfRequest) (*v14.Shelf, error) {
 	shelfModel, err := s.prepareCreateShelf(ctx, request)
 	if err != nil {
 		return nil, err
@@ -1011,7 +1030,7 @@ func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v
 
 	// STEP 5: Publish events.
 	{
-		subject := v13.GetShelfStream().GetCreatedSubject()
+		subject := v14.GetShelfStream().GetCreatedSubject()
 		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
 			return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
 		}
@@ -1019,7 +1038,7 @@ func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v
 	return shelf, nil
 }
 
-func (s *libraryService_ShelfServer) GetShelf(ctx context.Context, request *v11.GetShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) GetShelf(ctx context.Context, request *v12.GetShelfRequest) (*v14.Shelf, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1045,9 +1064,9 @@ func (s *libraryService_ShelfServer) GetShelf(ctx context.Context, request *v11.
 	return shelf, nil
 }
 
-var updateShelfRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateShelfRequest, *v13.Shelf]()
+var updateShelfRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateShelfRequest, *v14.Shelf]()
 
-func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v11.UpdateShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v12.UpdateShelfRequest) (*v14.Shelf, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -1062,7 +1081,7 @@ func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v
 	}
 
 	// STEP 2: retrieve existing resource.
-	getShelfRequest := &v11.GetShelfRequest{Name: request.Shelf.Name}
+	getShelfRequest := &v12.GetShelfRequest{Name: request.Shelf.Name}
 	existingShelf, err := s.GetShelf(ctx, getShelfRequest)
 	if err != nil {
 		return nil, err
@@ -1101,13 +1120,13 @@ func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v
 
 	// STEP 5: Publish events.
 	{
-		subject := v13.GetShelfStream().GetUpdatedSubject()
+		subject := v14.GetShelfStream().GetUpdatedSubject()
 		if err := subject.Publish(ctx, s.natsClient, shelf, existingShelf, request.GetUpdateMask()); err != nil {
 			return nil, status.Errorf(codes.Internal, "publishing updated event: %v", err).Err()
 		}
 	}
 	{
-		subject := v13.GetShelfStream().GetGenreChangeSubject()
+		subject := v14.GetShelfStream().GetGenreChangeSubject()
 		if err := subject.Publish(ctx, s.natsClient, shelf, existingShelf, request.GetUpdateMask()); err != nil {
 			return nil, status.Errorf(codes.Internal, "publishing genre_change event: %v", err).Err()
 		}
@@ -1115,9 +1134,9 @@ func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v
 	return shelf, nil
 }
 
-func (s *libraryService_ShelfServer) publishResourceDeletedEvent(ctx context.Context, shelf *v13.Shelf) error {
+func (s *libraryService_ShelfServer) publishResourceDeletedEvent(ctx context.Context, shelf *v14.Shelf) error {
 	{
-		subject := v13.GetShelfStream().GetDeletedSubject()
+		subject := v14.GetShelfStream().GetDeletedSubject()
 		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
 			return status.Errorf(codes.Internal, "publishing deleted event: %v", err).Err()
 		}
@@ -1125,7 +1144,7 @@ func (s *libraryService_ShelfServer) publishResourceDeletedEvent(ctx context.Con
 	return nil
 }
 
-func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v11.DeleteShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v12.DeleteShelfRequest) (*v14.Shelf, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1148,7 +1167,7 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 		}
 		if errors.Is(err, model.ErrShelfAlreadyDeleted) {
 			if request.AllowMissing {
-				getShelfRequest := &v11.GetShelfRequest{Name: request.Name}
+				getShelfRequest := &v12.GetShelfRequest{Name: request.Name}
 				shelf, err := s.GetShelf(ctx, getShelfRequest)
 				if err != nil {
 					return nil, err
@@ -1177,9 +1196,9 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 	return shelf, nil
 }
 
-func (s *libraryService_ShelfServer) publishResourceUndeletedEvent(ctx context.Context, shelf *v13.Shelf) error {
+func (s *libraryService_ShelfServer) publishResourceUndeletedEvent(ctx context.Context, shelf *v14.Shelf) error {
 	{
-		subject := v13.GetShelfStream().GetUndeletedSubject()
+		subject := v14.GetShelfStream().GetUndeletedSubject()
 		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
 			return status.Errorf(codes.Internal, "publishing undeleted event: %v", err).Err()
 		}
@@ -1187,7 +1206,7 @@ func (s *libraryService_ShelfServer) publishResourceUndeletedEvent(ctx context.C
 	return nil
 }
 
-func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request *v11.UndeleteShelfRequest) (*v13.Shelf, error) {
+func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request *v12.UndeleteShelfRequest) (*v14.Shelf, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1224,9 +1243,9 @@ func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request 
 	return shelf, nil
 }
 
-var listShelvesRequestParser = aip.MustNewListRequestParser[*v11.ListShelvesRequest, *v13.Shelf](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listShelvesRequestParser = aip.MustNewListRequestParser[*v12.ListShelvesRequest, *v14.Shelf](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_ShelfServer) ListShelves(ctx context.Context, request *v11.ListShelvesRequest) (*v11.ListShelvesResponse, error) {
+func (s *libraryService_ShelfServer) ListShelves(ctx context.Context, request *v12.ListShelvesRequest) (*v12.ListShelvesResponse, error) {
 	// Parse parent names
 	var organizationId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
@@ -1252,7 +1271,7 @@ func (s *libraryService_ShelfServer) ListShelves(ctx context.Context, request *v
 	}
 
 	// Convert back to proto.
-	shelves := make([]*v13.Shelf, 0, len(dbShelfs))
+	shelves := make([]*v14.Shelf, 0, len(dbShelfs))
 	for _, dbShelf := range dbShelfs {
 		shelf, err := dbShelf.ToPb()
 		if err != nil {
@@ -1262,13 +1281,13 @@ func (s *libraryService_ShelfServer) ListShelves(ctx context.Context, request *v
 	}
 
 	// Create and return response.
-	return &v11.ListShelvesResponse{
+	return &v12.ListShelvesResponse{
 		Shelves:       shelves,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, request *v11.BatchCreateShelvesRequest) (*v11.BatchCreateShelvesResponse, error) {
+func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, request *v12.BatchCreateShelvesRequest) (*v12.BatchCreateShelvesResponse, error) {
 	if resourcename.ContainsWildcard(request.Parent) {
 		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
@@ -1317,7 +1336,7 @@ func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, req
 		return nil, status.Errorf(codes.Internal, "expected %d inserted shelves, got %d", n, len(dbShelves)).Err()
 	}
 
-	shelves := make([]*v13.Shelf, n)
+	shelves := make([]*v14.Shelf, n)
 	for i, dbShelfModel := range dbShelves {
 		shelf, err := dbShelfModel.ToPb()
 		if err != nil {
@@ -1329,17 +1348,17 @@ func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, req
 	for _, shelf := range shelves {
 		// STEP 5: Publish events.
 		{
-			subject := v13.GetShelfStream().GetCreatedSubject()
+			subject := v14.GetShelfStream().GetCreatedSubject()
 			if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
 				return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
 			}
 		}
 	}
 
-	return &v11.BatchCreateShelvesResponse{Shelves: shelves}, nil
+	return &v12.BatchCreateShelvesResponse{Shelves: shelves}, nil
 }
 
-func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, request *v11.BatchGetShelvesRequest) (*v11.BatchGetShelvesResponse, error) {
+func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, request *v12.BatchGetShelvesRequest) (*v12.BatchGetShelvesResponse, error) {
 	var organizationId string
 	if request.Parent != "" {
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
@@ -1373,7 +1392,7 @@ func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, reques
 		return nil, status.Errorf(codes.NotFound, "expected %d shelves, found %d", len(request.Names), len(dbShelves)).Err()
 	}
 
-	shelfNameToShelf := make(map[string]*v13.Shelf, len(request.Names))
+	shelfNameToShelf := make(map[string]*v14.Shelf, len(request.Names))
 	for _, dbShelfModel := range dbShelves {
 		shelf, err := dbShelfModel.ToPb()
 		if err != nil {
@@ -1382,7 +1401,7 @@ func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, reques
 		shelfNameToShelf[shelf.Name] = shelf
 	}
 
-	shelves := make([]*v13.Shelf, 0, len(dbShelves))
+	shelves := make([]*v14.Shelf, 0, len(dbShelves))
 	for _, name := range request.Names {
 		shelf, ok := shelfNameToShelf[name]
 		if !ok {
@@ -1391,7 +1410,7 @@ func (s *libraryService_ShelfServer) BatchGetShelves(ctx context.Context, reques
 		shelves = append(shelves, shelf)
 	}
 
-	return &v11.BatchGetShelvesResponse{
+	return &v12.BatchGetShelvesResponse{
 		Shelves: shelves,
 	}, nil
 }
@@ -1418,7 +1437,7 @@ func newLibraryService_BookServer(store libraryService_BookStore, natsClient *na
 	}
 }
 
-func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, request *v11.CreateBookRequest) (*model.Book, *model.BookReview, error) {
+func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, request *v12.CreateBookRequest) (*model.Book, *model.BookReview, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -1463,7 +1482,7 @@ func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, reque
 		return nil, nil, status.Errorf(codes.Internal, "converting book from pb to model: %v", err).Err()
 	}
 
-	bookReview := &v13.BookReview{
+	bookReview := &v14.BookReview{
 		Name:       resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}/review", organizationId, shelfId, bookId),
 		CreateTime: request.Book.CreateTime,
 		UpdateTime: request.Book.UpdateTime,
@@ -1483,7 +1502,7 @@ func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, reque
 	return bookModel, bookReviewModel, nil
 }
 
-func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11.CreateBookRequest) (*v13.Book, error) {
+func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v12.CreateBookRequest) (*v14.Book, error) {
 	bookModel, bookReviewModel, err := s.prepareCreateBook(ctx, request)
 	if err != nil {
 		return nil, err
@@ -1513,7 +1532,7 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v11
 	return book, nil
 }
 
-func (s *libraryService_BookServer) GetBook(ctx context.Context, request *v11.GetBookRequest) (*v13.Book, error) {
+func (s *libraryService_BookServer) GetBook(ctx context.Context, request *v12.GetBookRequest) (*v14.Book, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1539,12 +1558,12 @@ func (s *libraryService_BookServer) GetBook(ctx context.Context, request *v11.Ge
 	return book, nil
 }
 
-var updateBookRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateBookRequest, *v13.Book]()
+var updateBookRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateBookRequest, *v14.Book]()
 
 var updateBookCELEnv = func() *cel.Env {
 	env, err := cel.NewEnv(
 		ext.Protos(),
-		cel.Types(&v13.Book{}),
+		cel.Types(&v14.Book{}),
 		cel.Variable("previous_book", cel.ObjectType("malonaz.test.library.v1.Book")),
 		cel.Variable("book", cel.ObjectType("malonaz.test.library.v1.Book")),
 	)
@@ -1554,7 +1573,7 @@ var updateBookCELEnv = func() *cel.Env {
 	return env
 }()
 
-func (s *libraryService_BookServer) UpdateBook(ctx context.Context, request *v11.UpdateBookRequest) (*v13.Book, error) {
+func (s *libraryService_BookServer) UpdateBook(ctx context.Context, request *v12.UpdateBookRequest) (*v14.Book, error) {
 	for {
 		response, err := s.updateBook(ctx, request)
 		if err != nil {
@@ -1581,7 +1600,7 @@ func (s *libraryService_BookServer) UpdateBook(ctx context.Context, request *v11
 	}
 }
 
-func (s *libraryService_BookServer) updateBook(ctx context.Context, request *v11.UpdateBookRequest) (*v13.Book, error) {
+func (s *libraryService_BookServer) updateBook(ctx context.Context, request *v12.UpdateBookRequest) (*v14.Book, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -1596,7 +1615,7 @@ func (s *libraryService_BookServer) updateBook(ctx context.Context, request *v11
 	}
 
 	// STEP 2: retrieve existing resource.
-	getBookRequest := &v11.GetBookRequest{Name: request.Book.Name}
+	getBookRequest := &v12.GetBookRequest{Name: request.Book.Name}
 	existingBook, err := s.GetBook(ctx, getBookRequest)
 	if err != nil {
 		return nil, err
@@ -1675,7 +1694,7 @@ func (s *libraryService_BookServer) updateBook(ctx context.Context, request *v11
 
 	// STEP 5: Publish events.
 	{
-		subject := v13.GetBookStream().GetUpdatedSubject()
+		subject := v14.GetBookStream().GetUpdatedSubject()
 		if err := subject.Publish(ctx, s.natsClient, book, existingBook, request.GetUpdateMask()); err != nil {
 			return nil, status.Errorf(codes.Internal, "publishing updated event: %v", err).Err()
 		}
@@ -1683,9 +1702,9 @@ func (s *libraryService_BookServer) updateBook(ctx context.Context, request *v11
 	return book, nil
 }
 
-func (s *libraryService_BookServer) publishResourceDeletedEvent(ctx context.Context, book *v13.Book) error {
+func (s *libraryService_BookServer) publishResourceDeletedEvent(ctx context.Context, book *v14.Book) error {
 	{
-		subject := v13.GetBookStream().GetDeletedSubject()
+		subject := v14.GetBookStream().GetDeletedSubject()
 		if err := subject.Publish(ctx, s.natsClient, book); err != nil {
 			return status.Errorf(codes.Internal, "publishing deleted event: %v", err).Err()
 		}
@@ -1693,7 +1712,7 @@ func (s *libraryService_BookServer) publishResourceDeletedEvent(ctx context.Cont
 	return nil
 }
 
-func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11.DeleteBookRequest) (*emptypb.Empty, error) {
+func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v12.DeleteBookRequest) (*emptypb.Empty, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1734,9 +1753,9 @@ func (s *libraryService_BookServer) DeleteBook(ctx context.Context, request *v11
 	return &emptypb.Empty{}, nil
 }
 
-var searchBooksRequestParser = aip.MustNewSearchRequestParser[*v11.SearchBooksRequest, *v13.Book](aip.WithFQN())
+var searchBooksRequestParser = aip.MustNewSearchRequestParser[*v12.SearchBooksRequest, *v14.Book](aip.WithFQN())
 
-func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v11.SearchBooksRequest) (*v11.SearchBooksResponse, error) {
+func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v12.SearchBooksRequest) (*v12.SearchBooksResponse, error) {
 	// Parse parent names
 	var organizationId, shelfId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
@@ -1764,17 +1783,17 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 		}
 	}
 
-	var snippets []*v14.SearchSnippet
+	var snippets []*v15.SearchSnippet
 	if request.IncludeSnippets {
-		snippets = make([]*v14.SearchSnippet, len(dbBooks))
+		snippets = make([]*v15.SearchSnippet, len(dbBooks))
 		for i := range snippets {
-			snippet := &v14.SearchSnippet{}
+			snippet := &v15.SearchSnippet{}
 			if dbSnippets != nil {
 				if match, ok := dbSnippets[i]["title"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "title", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "title", Match: match})
 				}
 				if match, ok := dbSnippets[i]["metadata.summary"]; ok {
-					snippet.Matches = append(snippet.Matches, &v14.SearchSnippetMatch{Path: "metadata.summary", Match: match})
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "metadata.summary", Match: match})
 				}
 			}
 			snippets[i] = snippet
@@ -1782,7 +1801,7 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 	}
 
 	// Convert back to proto.
-	books := make([]*v13.Book, 0, len(dbBooks))
+	books := make([]*v14.Book, 0, len(dbBooks))
 	for _, dbBook := range dbBooks {
 		book, err := dbBook.ToPb()
 		if err != nil {
@@ -1792,16 +1811,16 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 	}
 
 	// Create and return response.
-	return &v11.SearchBooksResponse{
+	return &v12.SearchBooksResponse{
 		Books:         books,
 		Snippets:      snippets,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-var listBooksRequestParser = aip.MustNewListRequestParser[*v11.ListBooksRequest, *v13.Book](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listBooksRequestParser = aip.MustNewListRequestParser[*v12.ListBooksRequest, *v14.Book](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_BookServer) ListBooks(ctx context.Context, request *v11.ListBooksRequest) (*v11.ListBooksResponse, error) {
+func (s *libraryService_BookServer) ListBooks(ctx context.Context, request *v12.ListBooksRequest) (*v12.ListBooksResponse, error) {
 	// Parse parent names
 	var organizationId, shelfId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
@@ -1827,7 +1846,7 @@ func (s *libraryService_BookServer) ListBooks(ctx context.Context, request *v11.
 	}
 
 	// Convert back to proto.
-	books := make([]*v13.Book, 0, len(dbBooks))
+	books := make([]*v14.Book, 0, len(dbBooks))
 	for _, dbBook := range dbBooks {
 		book, err := dbBook.ToPb()
 		if err != nil {
@@ -1837,13 +1856,13 @@ func (s *libraryService_BookServer) ListBooks(ctx context.Context, request *v11.
 	}
 
 	// Create and return response.
-	return &v11.ListBooksResponse{
+	return &v12.ListBooksResponse{
 		Books:         books,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *v11.BatchGetBooksRequest) (*v11.BatchGetBooksResponse, error) {
+func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *v12.BatchGetBooksRequest) (*v12.BatchGetBooksResponse, error) {
 	var organizationId, shelfId string
 	if request.Parent != "" {
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}", &organizationId, &shelfId); err != nil {
@@ -1879,7 +1898,7 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 		return nil, status.Errorf(codes.NotFound, "expected %d books, found %d", len(request.Names), len(dbBooks)).Err()
 	}
 
-	bookNameToBook := make(map[string]*v13.Book, len(request.Names))
+	bookNameToBook := make(map[string]*v14.Book, len(request.Names))
 	for _, dbBookModel := range dbBooks {
 		book, err := dbBookModel.ToPb()
 		if err != nil {
@@ -1888,7 +1907,7 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 		bookNameToBook[book.Name] = book
 	}
 
-	books := make([]*v13.Book, 0, len(dbBooks))
+	books := make([]*v14.Book, 0, len(dbBooks))
 	for _, name := range request.Names {
 		book, ok := bookNameToBook[name]
 		if !ok {
@@ -1897,7 +1916,7 @@ func (s *libraryService_BookServer) BatchGetBooks(ctx context.Context, request *
 		books = append(books, book)
 	}
 
-	return &v11.BatchGetBooksResponse{
+	return &v12.BatchGetBooksResponse{
 		Books: books,
 	}, nil
 }
@@ -1919,7 +1938,7 @@ func newLibraryService_BookReviewServer(store libraryService_BookReviewStore) *l
 	}
 }
 
-func (s *libraryService_BookReviewServer) GetBookReview(ctx context.Context, request *v11.GetBookReviewRequest) (*v13.BookReview, error) {
+func (s *libraryService_BookReviewServer) GetBookReview(ctx context.Context, request *v12.GetBookReviewRequest) (*v14.BookReview, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -1945,9 +1964,9 @@ func (s *libraryService_BookReviewServer) GetBookReview(ctx context.Context, req
 	return bookReview, nil
 }
 
-var updateBookReviewRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateBookReviewRequest, *v13.BookReview]()
+var updateBookReviewRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateBookReviewRequest, *v14.BookReview]()
 
-func (s *libraryService_BookReviewServer) UpdateBookReview(ctx context.Context, request *v11.UpdateBookReviewRequest) (*v13.BookReview, error) {
+func (s *libraryService_BookReviewServer) UpdateBookReview(ctx context.Context, request *v12.UpdateBookReviewRequest) (*v14.BookReview, error) {
 	for {
 		response, err := s.updateBookReview(ctx, request)
 		if err != nil {
@@ -1974,7 +1993,7 @@ func (s *libraryService_BookReviewServer) UpdateBookReview(ctx context.Context, 
 	}
 }
 
-func (s *libraryService_BookReviewServer) updateBookReview(ctx context.Context, request *v11.UpdateBookReviewRequest) (*v13.BookReview, error) {
+func (s *libraryService_BookReviewServer) updateBookReview(ctx context.Context, request *v12.UpdateBookReviewRequest) (*v14.BookReview, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -1989,7 +2008,7 @@ func (s *libraryService_BookReviewServer) updateBookReview(ctx context.Context, 
 	}
 
 	// STEP 2: retrieve existing resource.
-	getBookReviewRequest := &v11.GetBookReviewRequest{Name: request.BookReview.Name}
+	getBookReviewRequest := &v12.GetBookReviewRequest{Name: request.BookReview.Name}
 	existingBookReview, err := s.GetBookReview(ctx, getBookReviewRequest)
 	if err != nil {
 		return nil, err
@@ -2041,9 +2060,9 @@ func (s *libraryService_BookReviewServer) updateBookReview(ctx context.Context, 
 	return bookReview, nil
 }
 
-var listBookReviewsRequestParser = aip.MustNewListRequestParser[*v11.ListBookReviewsRequest, *v13.BookReview](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listBookReviewsRequestParser = aip.MustNewListRequestParser[*v12.ListBookReviewsRequest, *v14.BookReview](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_BookReviewServer) ListBookReviews(ctx context.Context, request *v11.ListBookReviewsRequest) (*v11.ListBookReviewsResponse, error) {
+func (s *libraryService_BookReviewServer) ListBookReviews(ctx context.Context, request *v12.ListBookReviewsRequest) (*v12.ListBookReviewsResponse, error) {
 	// Parse parent names
 	var organizationId, shelfId, bookId string
 	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}/books/{book}", &organizationId, &shelfId, &bookId); err != nil {
@@ -2069,7 +2088,7 @@ func (s *libraryService_BookReviewServer) ListBookReviews(ctx context.Context, r
 	}
 
 	// Convert back to proto.
-	bookReviews := make([]*v13.BookReview, 0, len(dbBookReviews))
+	bookReviews := make([]*v14.BookReview, 0, len(dbBookReviews))
 	for _, dbBookReview := range dbBookReviews {
 		bookReview, err := dbBookReview.ToPb()
 		if err != nil {
@@ -2079,13 +2098,13 @@ func (s *libraryService_BookReviewServer) ListBookReviews(ctx context.Context, r
 	}
 
 	// Create and return response.
-	return &v11.ListBookReviewsResponse{
+	return &v12.ListBookReviewsResponse{
 		BookReviews:   bookReviews,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Context, request *v11.BatchGetBookReviewsRequest) (*v11.BatchGetBookReviewsResponse, error) {
+func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Context, request *v12.BatchGetBookReviewsRequest) (*v12.BatchGetBookReviewsResponse, error) {
 	var organizationId, shelfId, bookId string
 	if request.Parent != "" {
 		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}/books/{book}", &organizationId, &shelfId, &bookId); err != nil {
@@ -2121,7 +2140,7 @@ func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Contex
 		return nil, status.Errorf(codes.NotFound, "expected %d bookReviews, found %d", len(request.Names), len(dbBookReviews)).Err()
 	}
 
-	bookReviewNameToBookReview := make(map[string]*v13.BookReview, len(request.Names))
+	bookReviewNameToBookReview := make(map[string]*v14.BookReview, len(request.Names))
 	for _, dbBookReviewModel := range dbBookReviews {
 		bookReview, err := dbBookReviewModel.ToPb()
 		if err != nil {
@@ -2130,7 +2149,7 @@ func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Contex
 		bookReviewNameToBookReview[bookReview.Name] = bookReview
 	}
 
-	bookReviews := make([]*v13.BookReview, 0, len(dbBookReviews))
+	bookReviews := make([]*v14.BookReview, 0, len(dbBookReviews))
 	for _, name := range request.Names {
 		bookReview, ok := bookReviewNameToBookReview[name]
 		if !ok {
@@ -2139,7 +2158,7 @@ func (s *libraryService_BookReviewServer) BatchGetBookReviews(ctx context.Contex
 		bookReviews = append(bookReviews, bookReview)
 	}
 
-	return &v11.BatchGetBookReviewsResponse{
+	return &v12.BatchGetBookReviewsResponse{
 		BookReviews: bookReviews,
 	}, nil
 }
@@ -2164,7 +2183,7 @@ func newLibraryService_NoteServer(store libraryService_NoteStore) *libraryServic
 	}
 }
 
-func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*model.Note, error) {
+func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, request *v12.CreateNoteRequest) (*model.Note, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -2226,7 +2245,7 @@ func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, reque
 	return noteModel, nil
 }
 
-func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11.CreateNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v12.CreateNoteRequest) (*v14.Note, error) {
 	noteModel, err := s.prepareCreateNote(ctx, request)
 	if err != nil {
 		return nil, err
@@ -2256,7 +2275,7 @@ func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v11
 	return note, nil
 }
 
-func (s *libraryService_NoteServer) GetNote(ctx context.Context, request *v11.GetNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) GetNote(ctx context.Context, request *v12.GetNoteRequest) (*v14.Note, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -2282,9 +2301,9 @@ func (s *libraryService_NoteServer) GetNote(ctx context.Context, request *v11.Ge
 	return note, nil
 }
 
-var updateNoteRequestParser = aip.MustNewUpdateRequestParser[*v11.UpdateNoteRequest, *v13.Note]()
+var updateNoteRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateNoteRequest, *v14.Note]()
 
-func (s *libraryService_NoteServer) UpdateNote(ctx context.Context, request *v11.UpdateNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) UpdateNote(ctx context.Context, request *v12.UpdateNoteRequest) (*v14.Note, error) {
 	for {
 		response, err := s.updateNote(ctx, request)
 		if err != nil {
@@ -2311,7 +2330,7 @@ func (s *libraryService_NoteServer) UpdateNote(ctx context.Context, request *v11
 	}
 }
 
-func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v11.UpdateNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v12.UpdateNoteRequest) (*v14.Note, error) {
 	if len(request.GetUpdateMask().GetPaths()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
 	}
@@ -2326,7 +2345,7 @@ func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v11
 	}
 
 	// STEP 2: retrieve existing resource.
-	getNoteRequest := &v11.GetNoteRequest{Name: request.Note.Name}
+	getNoteRequest := &v12.GetNoteRequest{Name: request.Note.Name}
 	existingNote, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
@@ -2382,7 +2401,7 @@ func (s *libraryService_NoteServer) updateNote(ctx context.Context, request *v11
 	return note, nil
 }
 
-func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11.DeleteNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v12.DeleteNoteRequest) (*v14.Note, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -2395,7 +2414,7 @@ func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11
 
 	deleteTime := time.Now().UTC()
 	// Compute the new Etag.
-	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+	getNoteRequest := &v12.GetNoteRequest{Name: request.Name}
 	existingNote, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
@@ -2417,7 +2436,7 @@ func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11
 		}
 		if errors.Is(err, model.ErrNoteAlreadyDeleted) {
 			if request.AllowMissing {
-				getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+				getNoteRequest := &v12.GetNoteRequest{Name: request.Name}
 				note, err := s.GetNote(ctx, getNoteRequest)
 				if err != nil {
 					return nil, err
@@ -2438,7 +2457,7 @@ func (s *libraryService_NoteServer) DeleteNote(ctx context.Context, request *v11
 	return note, nil
 }
 
-func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v11.UndeleteNoteRequest) (*v13.Note, error) {
+func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v12.UndeleteNoteRequest) (*v14.Note, error) {
 	if resourcename.ContainsWildcard(request.Name) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
 	}
@@ -2450,7 +2469,7 @@ func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v
 	}
 
 	// Compute the new etag.
-	getNoteRequest := &v11.GetNoteRequest{Name: request.Name}
+	getNoteRequest := &v12.GetNoteRequest{Name: request.Name}
 	existingNote, err := s.GetNote(ctx, getNoteRequest)
 	if err != nil {
 		return nil, err
@@ -2485,9 +2504,9 @@ func (s *libraryService_NoteServer) UndeleteNote(ctx context.Context, request *v
 	return note, nil
 }
 
-var listNotesRequestParser = aip.MustNewListRequestParser[*v11.ListNotesRequest, *v13.Note](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+var listNotesRequestParser = aip.MustNewListRequestParser[*v12.ListNotesRequest, *v14.Note](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
 
-func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.ListNotesRequest) (*v11.ListNotesResponse, error) {
+func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v12.ListNotesRequest) (*v12.ListNotesResponse, error) {
 	// Parse parent names
 	var organizationId, authorId, shelfId string
 	switch {
@@ -2526,7 +2545,7 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 	}
 
 	// Convert back to proto.
-	notes := make([]*v13.Note, 0, len(dbNotes))
+	notes := make([]*v14.Note, 0, len(dbNotes))
 	for _, dbNote := range dbNotes {
 		note, err := dbNote.ToPb()
 		if err != nil {
@@ -2536,13 +2555,13 @@ func (s *libraryService_NoteServer) ListNotes(ctx context.Context, request *v11.
 	}
 
 	// Create and return response.
-	return &v11.ListNotesResponse{
+	return &v12.ListNotesResponse{
 		Notes:         notes,
 		NextPageToken: nextPageToken,
 	}, nil
 }
 
-func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, request *v11.BatchCreateNotesRequest) (*v11.BatchCreateNotesResponse, error) {
+func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, request *v12.BatchCreateNotesRequest) (*v12.BatchCreateNotesResponse, error) {
 	if resourcename.ContainsWildcard(request.Parent) {
 		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
 	}
@@ -2591,7 +2610,7 @@ func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, reques
 		return nil, status.Errorf(codes.Internal, "expected %d inserted notes, got %d", n, len(dbNotes)).Err()
 	}
 
-	notes := make([]*v13.Note, n)
+	notes := make([]*v14.Note, n)
 	for i, dbNoteModel := range dbNotes {
 		note, err := dbNoteModel.ToPb()
 		if err != nil {
@@ -2600,10 +2619,10 @@ func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, reques
 		notes[i] = note
 	}
 
-	return &v11.BatchCreateNotesResponse{Notes: notes}, nil
+	return &v12.BatchCreateNotesResponse{Notes: notes}, nil
 }
 
-func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v11.BatchGetNotesRequest) (*v11.BatchGetNotesResponse, error) {
+func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *v12.BatchGetNotesRequest) (*v12.BatchGetNotesResponse, error) {
 	var parentPatternValue string
 	if request.Parent != "" {
 		switch {
@@ -2653,7 +2672,7 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 		return nil, status.Errorf(codes.NotFound, "expected %d notes, found %d", len(request.Names), len(dbNotes)).Err()
 	}
 
-	noteNameToNote := make(map[string]*v13.Note, len(request.Names))
+	noteNameToNote := make(map[string]*v14.Note, len(request.Names))
 	for _, dbNoteModel := range dbNotes {
 		note, err := dbNoteModel.ToPb()
 		if err != nil {
@@ -2662,7 +2681,7 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 		noteNameToNote[note.Name] = note
 	}
 
-	notes := make([]*v13.Note, 0, len(dbNotes))
+	notes := make([]*v14.Note, 0, len(dbNotes))
 	for _, name := range request.Names {
 		note, ok := noteNameToNote[name]
 		if !ok {
@@ -2671,7 +2690,25 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 		notes = append(notes, note)
 	}
 
-	return &v11.BatchGetNotesResponse{
+	return &v12.BatchGetNotesResponse{
 		Notes: notes,
 	}, nil
+}
+
+// ImportBooks starts the operation, or runs it when called by the scheduler (AIP-151).
+func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*longrunningpb.Operation, error) {
+	if !longrunning.IsRun(ctx) {
+		startRequest := &longrunning.StartRequest{
+			Queue:     "queues/library",
+			Resource:  request.GetParent(),
+			Request:   request,
+			RequestID: request.GetRequestId(),
+		}
+		return longrunning.Start(ctx, s.schedulerServiceClient, startRequest)
+	}
+	response, err := s.runner.RunImportBooks(ctx, request)
+	if err != nil {
+		return longrunning.Failed(ctx, request.GetParent(), err)
+	}
+	return longrunning.Done(ctx, request.GetParent(), response)
 }

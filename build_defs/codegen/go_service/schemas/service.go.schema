@@ -18,7 +18,36 @@
             "type": "boolean"
         },
         "codegens": {
-            "type": "array"
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["type", "name", "store", "implementation"],
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["rpc"]
+                    },
+                    "name": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "store": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_-]+$"
+                    },
+                    "implementation": {
+                        "type": "string"
+                    },
+                    "nats": {
+                        "type": "boolean"
+                    },
+                    "longrunning": {
+                        "type": "boolean",
+                        "description": "The service returns google.longrunning.Operation from some methods; requires a grpc_client dependency on scheduler-service."
+                    }
+                }
+            }
         },
         "dependencies": {
             "type": "array",

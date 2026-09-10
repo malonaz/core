@@ -16,6 +16,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -36,7 +37,8 @@ type CreateJobRequest struct {
 	// Format: organizations/{organization}/users/{user}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The job to create. Only the producer-owned fields are read: `payload`,
-	// `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+	// `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
+	// `expire_time` and `operation_name`.
 	Job *v1.Job `protobuf:"bytes,2,opt,name=job,proto3" json:"job,omitempty"`
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -151,7 +153,8 @@ type CreateJobRequest_builder struct {
 	// Format: organizations/{organization}/users/{user}
 	Parent string
 	// The job to create. Only the producer-owned fields are read: `payload`,
-	// `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+	// `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
+	// `expire_time` and `operation_name`.
 	Job *v1.Job
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -1026,11 +1029,112 @@ func (b0 ReportJobProgressRequest_builder) Build() *ReportJobProgressRequest {
 	return m0
 }
 
+// Request message for SchedulerService.WaitJob.
+type WaitJobRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the job to wait for.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The longest time to wait for the job to reach a terminal state. The
+	// server caps it at its `--wait-job-max-timeout` (5m by default) without
+	// error; unset means the cap. The job is returned in whatever state it is
+	// in once either elapses, so callers inspect `state`, as with
+	// `google.longrunning.Operations.WaitOperation`.
+	Timeout       *durationpb.Duration `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WaitJobRequest) Reset() {
+	*x = WaitJobRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WaitJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WaitJobRequest) ProtoMessage() {}
+
+func (x *WaitJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *WaitJobRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *WaitJobRequest) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
+func (x *WaitJobRequest) SetName(v string) {
+	x.Name = v
+}
+
+func (x *WaitJobRequest) SetTimeout(v *durationpb.Duration) {
+	x.Timeout = v
+}
+
+func (x *WaitJobRequest) HasTimeout() bool {
+	if x == nil {
+		return false
+	}
+	return x.Timeout != nil
+}
+
+func (x *WaitJobRequest) ClearTimeout() {
+	x.Timeout = nil
+}
+
+type WaitJobRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the job to wait for.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	Name string
+	// The longest time to wait for the job to reach a terminal state. The
+	// server caps it at its `--wait-job-max-timeout` (5m by default) without
+	// error; unset means the cap. The job is returned in whatever state it is
+	// in once either elapses, so callers inspect `state`, as with
+	// `google.longrunning.Operations.WaitOperation`.
+	Timeout *durationpb.Duration
+}
+
+func (b0 WaitJobRequest_builder) Build() *WaitJobRequest {
+	m0 := &WaitJobRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	x.Timeout = b.Timeout
+	return m0
+}
+
 var File_malonaz_scheduler_scheduler_service_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\x8e\x02\n" +
+	"0malonaz/scheduler/scheduler_service/v1/job.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\x8e\x02\n" +
 	"\x10CreateJobRequest\x126\n" +
 	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x123\n" +
 	"\x03job\x18\x02 \x01(\v2\x19.malonaz.scheduler.v1.JobB\x06\xbaH\x03\xc8\x01\x01R\x03job\x12<\n" +
@@ -1087,9 +1191,13 @@ const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\x18ReportJobProgressRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x128\n" +
-	"\bprogress\x18\x02 \x01(\v2\x14.google.protobuf.AnyB\x06\xbaH\x03\xc8\x01\x01R\bprogressBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
+	"\bprogress\x18\x02 \x01(\v2\x14.google.protobuf.AnyB\x06\xbaH\x03\xc8\x01\x01R\bprogress\"\x8c\x01\n" +
+	"\x0eWaitJobRequest\x12;\n" +
+	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
+	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\atimeoutBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
-var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*CreateJobRequest)(nil),         // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest
 	(*GetJobRequest)(nil),            // 1: malonaz.scheduler.scheduler_service.v1.GetJobRequest
@@ -1102,22 +1210,25 @@ var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*RetryJobRequest)(nil),          // 8: malonaz.scheduler.scheduler_service.v1.RetryJobRequest
 	(*CancelJobRequest)(nil),         // 9: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
 	(*ReportJobProgressRequest)(nil), // 10: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
-	(*v1.Job)(nil),                   // 11: malonaz.scheduler.v1.Job
-	(*fieldmaskpb.FieldMask)(nil),    // 12: google.protobuf.FieldMask
-	(*anypb.Any)(nil),                // 13: google.protobuf.Any
+	(*WaitJobRequest)(nil),           // 11: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+	(*v1.Job)(nil),                   // 12: malonaz.scheduler.v1.Job
+	(*fieldmaskpb.FieldMask)(nil),    // 13: google.protobuf.FieldMask
+	(*anypb.Any)(nil),                // 14: google.protobuf.Any
+	(*durationpb.Duration)(nil),      // 15: google.protobuf.Duration
 }
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_depIdxs = []int32{
-	11, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	11, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	12, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
-	11, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	11, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	13, // 5: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	12, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	12, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	13, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
+	12, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	12, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	14, // 5: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
+	15, // 6: malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout:type_name -> google.protobuf.Duration
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_scheduler_service_v1_job_proto_init() }
@@ -1131,7 +1242,7 @@ func file_malonaz_scheduler_scheduler_service_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc), len(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

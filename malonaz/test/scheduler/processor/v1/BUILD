@@ -14,4 +14,5 @@ grpc_library(
     labels = ["copy_generated_code:malonaz:genproto"],
     test_only = True,
     visibility = ["PUBLIC"],
+    deps = ["//third_party/proto:google__longrunning__operations"],
 )

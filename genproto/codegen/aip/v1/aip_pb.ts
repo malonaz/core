@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/aip/v1/aip.proto.
  */
 export const file_malonaz_codegen_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIrUDCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEasQEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAFKBAgEEAUiWAoGV2VpZ2h0EhYKEldFSUdIVF9VTlNQRUNJRklFRBAAEgwKCFdFSUdIVF9BEAESDAoIV0VJR0hUX0IQAhIMCghXRUlHSFRfQxADEgwKCFdFSUdIVF9EEAQiTwoFU3BsaXQSFQoRU1BMSVRfVU5TUEVDSUZJRUQQABIXChNTUExJVF9FTUFJTF9BRERSRVNTEAESFgoSU1BMSVRfUEhPTkVfTlVNQkVSEAIiNwoRUGFnaW5hdGlvbk9wdGlvbnMSIgoRZGVmYXVsdF9wYWdlX3NpemUYASABKAVCB7pIBBoCIAAiQQoPT3JkZXJpbmdPcHRpb25zEhUKBXBhdGhzGAEgAygJQga6SAPIAQESFwoHZGVmYXVsdBgCIAEoCUIGukgDyAEBIh4KDVVwZGF0ZU9wdGlvbnMSDQoFcGF0aHMYASADKAkiagoOU3RhbmRhcmRNZXRob2QSRAoIcmVzb3VyY2UYASABKAlCMrpIL3IqMiheW2EtejAtOV0rKFwuW2EtejAtOV0rKSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOkgKDnV1aWRfbmFtZXNwYWNlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGODOBSABKAlSDXV1aWROYW1lc3BhY2U6YAoGdXBkYXRlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGM2TOCABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlVwZGF0ZU9wdGlvbnNSBnVwZGF0ZTpsCgpwYWdpbmF0aW9uEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLDeBSABKAsyKS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlBhZ2luYXRpb25PcHRpb25zUgpwYWdpbmF0aW9uOmYKCG9yZGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLHeBSABKAsyJy5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLk9yZGVyaW5nT3B0aW9uc1IIb3JkZXJpbmc6aQoJZmlsdGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLLeBSABKAsyKC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLkZpbHRlcmluZ09wdGlvbnNSCWZpbHRlcmluZzpgCgZzZWFyY2gSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYs94FIAEoCzIlLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9uc1IGc2VhcmNoQjFaL2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor]);
+  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIrUDCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEasQEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAFKBAgEEAUiWAoGV2VpZ2h0EhYKEldFSUdIVF9VTlNQRUNJRklFRBAAEgwKCFdFSUdIVF9BEAESDAoIV0VJR0hUX0IQAhIMCghXRUlHSFRfQxADEgwKCFdFSUdIVF9EEAQiTwoFU3BsaXQSFQoRU1BMSVRfVU5TUEVDSUZJRUQQABIXChNTUExJVF9FTUFJTF9BRERSRVNTEAESFgoSU1BMSVRfUEhPTkVfTlVNQkVSEAIiNwoRUGFnaW5hdGlvbk9wdGlvbnMSIgoRZGVmYXVsdF9wYWdlX3NpemUYASABKAVCB7pIBBoCIAAiQQoPT3JkZXJpbmdPcHRpb25zEhUKBXBhdGhzGAEgAygJQga6SAPIAQESFwoHZGVmYXVsdBgCIAEoCUIGukgDyAEBIh4KDVVwZGF0ZU9wdGlvbnMSDQoFcGF0aHMYASADKAkiPQoSTG9uZ3J1bm5pbmdPcHRpb25zEicKBXF1ZXVlGAEgASgJQhi6SBVyEDIOXnF1ZXVlcy9bXi9dKyTIAQEiagoOU3RhbmRhcmRNZXRob2QSRAoIcmVzb3VyY2UYASABKAlCMrpIL3IqMiheW2EtejAtOV0rKFwuW2EtejAtOV0rKSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOm4KC2xvbmdydW5uaW5nEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYydYFIAEoCzIqLm1hbG9uYXouY29kZWdlbi5haXAudjEuTG9uZ3J1bm5pbmdPcHRpb25zUgtsb25ncnVubmluZzpICg51dWlkX25hbWVzcGFjZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjgzgUgASgJUg11dWlkTmFtZXNwYWNlOmAKBnVwZGF0ZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjNkzggASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5VcGRhdGVPcHRpb25zUgZ1cGRhdGU6bAoKcGFnaW5hdGlvbhIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiw3gUgASgLMikubWFsb25hei5jb2RlZ2VuLmFpcC52MS5QYWdpbmF0aW9uT3B0aW9uc1IKcGFnaW5hdGlvbjpmCghvcmRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxix3gUgASgLMicubWFsb25hei5jb2RlZ2VuLmFpcC52MS5PcmRlcmluZ09wdGlvbnNSCG9yZGVyaW5nOmkKCWZpbHRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiy3gUgASgLMigubWFsb25hei5jb2RlZ2VuLmFpcC52MS5GaWx0ZXJpbmdPcHRpb25zUglmaWx0ZXJpbmc6YAoGc2VhcmNoEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLPeBSABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnNSBnNlYXJjaEIxWi9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor]);
 
 /**
  * Options for filtering.
@@ -339,6 +339,49 @@ export const UpdateOptionsSchema: GenMessage<UpdateOptions, {validType: UpdateOp
   messageDesc(file_malonaz_codegen_aip_v1_aip, 4);
 
 /**
+ * Options for a method returning `google.longrunning.Operation` (AIP-151).
+ * The rpc codegen turns such a method into two roles behind one RPC: a
+ * producer that hands the request to the scheduler as a job, and a runner
+ * the scheduler calls back with the same request to do the work.
+ *
+ * @generated from message malonaz.codegen.aip.v1.LongrunningOptions
+ */
+export type LongrunningOptions = Message<"malonaz.codegen.aip.v1.LongrunningOptions"> & {
+  /**
+   * The scheduler queue the method's jobs run in.
+   * Format: queues/{queue}
+   *
+   * @generated from field: string queue = 1;
+   */
+  queue: string;
+};
+
+/**
+ * Options for a method returning `google.longrunning.Operation` (AIP-151).
+ * The rpc codegen turns such a method into two roles behind one RPC: a
+ * producer that hands the request to the scheduler as a job, and a runner
+ * the scheduler calls back with the same request to do the work.
+ *
+ * @generated from message malonaz.codegen.aip.v1.LongrunningOptions
+ */
+export type LongrunningOptionsValid = Message<"malonaz.codegen.aip.v1.LongrunningOptions"> & {
+  /**
+   * The scheduler queue the method's jobs run in.
+   * Format: queues/{queue}
+   *
+   * @generated from field: string queue = 1;
+   */
+  queue: string;
+};
+
+/**
+ * Describes the message malonaz.codegen.aip.v1.LongrunningOptions.
+ * Use `create(LongrunningOptionsSchema)` to create a new message.
+ */
+export const LongrunningOptionsSchema: GenMessage<LongrunningOptions, {validType: LongrunningOptionsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 5);
+
+/**
  * Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
  * The protoc-gen-api plugin uses this to generate appropriate server and client code.
  *
@@ -393,7 +436,7 @@ export type StandardMethodValid = Message<"malonaz.codegen.aip.v1.StandardMethod
  * Use `create(StandardMethodSchema)` to create a new message.
  */
 export const StandardMethodSchema: GenMessage<StandardMethod, {validType: StandardMethodValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_codegen_aip_v1_aip, 5);
+  messageDesc(file_malonaz_codegen_aip_v1_aip, 6);
 
 /**
  * Extension for standard method.
@@ -404,12 +447,21 @@ export const standard_method: GenExtension<MethodOptions, StandardMethod> = /*@_
   extDesc(file_malonaz_codegen_aip_v1_aip, 0);
 
 /**
+ * Extension for long-running operation methods: those returning
+ * `google.longrunning.Operation`.
+ *
+ * @generated from extension: malonaz.codegen.aip.v1.LongrunningOptions longrunning = 93001;
+ */
+export const longrunning: GenExtension<MethodOptions, LongrunningOptions> = /*@__PURE__*/
+  extDesc(file_malonaz_codegen_aip_v1_aip, 1);
+
+/**
  *  The uuid namespace for a resource.
  *
  * @generated from extension: string uuid_namespace = 92000;
  */
 export const uuid_namespace: GenExtension<MessageOptions, string> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 1);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 2);
 
 /**
  * Configuration for AIP Update RPCs, including field mask handling and authorization.
@@ -417,7 +469,7 @@ export const uuid_namespace: GenExtension<MessageOptions, string> = /*@__PURE__*
  * @generated from extension: malonaz.codegen.aip.v1.UpdateOptions update = 920013;
  */
 export const update: GenExtension<MessageOptions, UpdateOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 2);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 3);
 
 /**
  * Option for pagination.
@@ -425,7 +477,7 @@ export const update: GenExtension<MessageOptions, UpdateOptions> = /*@__PURE__*/
  * @generated from extension: malonaz.codegen.aip.v1.PaginationOptions pagination = 94000;
  */
 export const pagination: GenExtension<MessageOptions, PaginationOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 3);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 4);
 
 /**
  * Option for ordering.
@@ -433,7 +485,7 @@ export const pagination: GenExtension<MessageOptions, PaginationOptions> = /*@__
  * @generated from extension: malonaz.codegen.aip.v1.OrderingOptions ordering = 94001;
  */
 export const ordering: GenExtension<MessageOptions, OrderingOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 4);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 5);
 
 /**
  * Option for ordering.
@@ -441,7 +493,7 @@ export const ordering: GenExtension<MessageOptions, OrderingOptions> = /*@__PURE
  * @generated from extension: malonaz.codegen.aip.v1.FilteringOptions filtering = 94002;
  */
 export const filtering: GenExtension<MessageOptions, FilteringOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 5);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 6);
 
 /**
  * Option for search. Set on a resource message to make it searchable.
@@ -449,5 +501,5 @@ export const filtering: GenExtension<MessageOptions, FilteringOptions> = /*@__PU
  * @generated from extension: malonaz.codegen.aip.v1.SearchOptions search = 94003;
  */
 export const search: GenExtension<MessageOptions, SearchOptions> = /*@__PURE__*/
-  extDesc(file_malonaz_codegen_aip_v1_aip, 6);
+  extDesc(file_malonaz_codegen_aip_v1_aip, 7);
 

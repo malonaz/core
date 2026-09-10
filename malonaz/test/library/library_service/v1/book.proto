@@ -5,6 +5,7 @@ package malonaz.test.library.library_service.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -242,4 +243,62 @@ message BatchGetBooksRequest {
 message BatchGetBooksResponse {
   // Books requested.
   repeated malonaz.test.library.v1.Book books = 1;
+}
+
+// Request message for LibraryService.ImportBooks.
+message ImportBooksRequest {
+  // The shelf to import the books onto; the operation hangs off it.
+  // Format: organizations/{organization}/shelves/{shelf}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Shelf"
+  ];
+
+  // The author of every imported book.
+  // Format: organizations/{organization}/authors/{author}
+  string author = 2 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Author"
+  ];
+
+  // The titles to import, one book each. A retry does not duplicate a title
+  // already imported: book IDs are derived from the title.
+  repeated string titles = 3 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {min_len: 1}
+    }
+  }];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the operation it started instead of starting another.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // Test hook: fail with INTERNAL right after importing this many books, when
+  // this attempt created the last of them; a retry finds it and carries on.
+  // 0 disables it.
+  int32 fail_after = 5 [(buf.validate.field).int32.gte = 0];
+
+  // Test hook: wait this long before importing each book, so progress and
+  // cancellation can be observed.
+  google.protobuf.Duration delay = 6 [(buf.validate.field).duration.gte = {}];
+}
+
+// Response message for LibraryService.ImportBooks, the operation's response.
+message ImportBooksResponse {
+  // The imported books, in title order.
+  repeated malonaz.test.library.v1.Book books = 1;
+}
+
+// Metadata of an ImportBooks operation: its progress.
+message ImportBooksMetadata {
+  // The number of books imported so far.
+  int32 imported = 1;
+
+  // The number of books to import.
+  int32 total = 2;
 }

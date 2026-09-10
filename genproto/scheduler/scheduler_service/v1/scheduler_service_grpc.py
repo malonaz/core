@@ -113,6 +113,10 @@ class SchedulerServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def WaitJob(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.WaitJobRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def ReportJobProgress(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.ReportJobProgressRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
         pass
 
@@ -248,6 +252,12 @@ class SchedulerServiceBase(abc.ABC):
                 self.CancelJob,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest,
+                malonaz.scheduler.v1.job_pb2.Job,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob': grpclib.const.Handler(
+                self.WaitJob,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.WaitJobRequest,
                 malonaz.scheduler.v1.job_pb2.Job,
             ),
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress': grpclib.const.Handler(
@@ -392,6 +402,12 @@ class SchedulerServiceStub:
             channel,
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob',
             malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest,
+            malonaz.scheduler.v1.job_pb2.Job,
+        )
+        self.WaitJob = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob',
+            malonaz.scheduler.scheduler_service.v1.job_pb2.WaitJobRequest,
             malonaz.scheduler.v1.job_pb2.Job,
         )
         self.ReportJobProgress = grpclib.client.UnaryUnaryMethod(

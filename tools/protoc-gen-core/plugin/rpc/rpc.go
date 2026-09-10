@@ -47,7 +47,13 @@ type serviceInfo struct {
 	resources     []*resource.ParsedResource
 	natsStream    bool
 	natsResources map[string]bool // resource types that require nats client
+	// Methods returning google.longrunning.Operation, in declaration order.
+	lroMethods []*longrunningMethod
 }
+
+// longrunning reports whether the service has long-running methods, which give
+// its server a scheduler client and a runner.
+func (si *serviceInfo) longrunning() bool { return len(si.lroMethods) > 0 }
 
 // methodInfo holds the collected info for a single RPC method.
 type methodInfo struct {
@@ -59,7 +65,7 @@ type methodInfo struct {
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
 	modelImportPath := opts.AdditionalGoImportPaths["model"]
 
-	gen := &generator{g: g, modelImportPath: modelImportPath, file: file}
+	gen := &generator{g: g, modelImportPath: modelImportPath, file: file, files: opts.Files}
 	// Force context import.
 	_ = gen.ident(contextPkg, "Context")
 
@@ -84,6 +90,14 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 
 		resourceSet := map[string]bool{}
 		for _, method := range svc.Methods {
+			lro, err := parseLongrunningMethod(method)
+			if err != nil {
+				return err
+			}
+			if lro != nil {
+				si.lroMethods = append(si.lroMethods, lro)
+				continue
+			}
 			rpc, err := resource.ParseRPC(method)
 			if err != nil {
 				return fmt.Errorf("parsing rpc %s: %w", method.GoName, err)
@@ -115,7 +129,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if err := requireUndelete(si); err != nil {
 			return err
 		}
-		if len(si.resources) > 0 {
+		if len(si.resources) > 0 || si.longrunning() {
 			services = append(services, si)
 		}
 	}
@@ -133,6 +147,11 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	// Phase 2: Generate service-level code.
 	for _, si := range services {
 		gen.generateServiceLevel(si)
+		if si.longrunning() {
+			if err := gen.generateLongrunningServiceLevel(si); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Phase 3: Generate per-resource interfaces, server structs, and per-method implementations.
@@ -154,6 +173,15 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 	}
 
+	// Phase 4: Generate the long-running handlers.
+	for _, si := range services {
+		for _, lro := range si.lroMethods {
+			if err := gen.generateLongrunning(si, lro); err != nil {
+				return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -161,6 +189,8 @@ type generator struct {
 	g               *protogen.GeneratedFile
 	modelImportPath protogen.GoImportPath
 	file            *protogen.File
+	// Every file of the compilation unit, for cross-file message lookups.
+	files []*protogen.File
 }
 
 func (gen *generator) ident(path protogen.GoImportPath, name string) string {
@@ -202,6 +232,10 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	if si.natsStream {
 		g.P(fmt.Sprintf("  natsClient *%s", gen.ident(natsPkg, "Client")))
 	}
+	if si.longrunning() {
+		g.P(fmt.Sprintf("  schedulerServiceClient %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient")))
+		g.P(fmt.Sprintf("  runner %s", runnerGoName(si)))
+	}
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  *%s_%sServer", svcNameUntitled, pr.SingularGoName()))
 	}
@@ -209,14 +243,21 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	g.P()
 
 	// Constructor.
-	natsParam := ""
+	params := fmt.Sprintf("store %sStore", svcNameUntitled)
 	if si.natsStream {
-		natsParam = fmt.Sprintf(", natsClient *%s", gen.ident(natsPkg, "Client"))
+		params += fmt.Sprintf(", natsClient *%s", gen.ident(natsPkg, "Client"))
 	}
-	g.P(fmt.Sprintf("func New%sServer(store %sStore%s) *%sServer {", svcName, svcNameUntitled, natsParam, svcName))
+	if si.longrunning() {
+		params += fmt.Sprintf(", schedulerServiceClient %s, runner %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient"), runnerGoName(si))
+	}
+	g.P(fmt.Sprintf("func New%sServer(%s) *%sServer {", svcName, params, svcName))
 	g.P(fmt.Sprintf("  return &%sServer{", svcName))
 	if si.natsStream {
 		g.P("    natsClient: natsClient,")
+	}
+	if si.longrunning() {
+		g.P("    schedulerServiceClient: schedulerServiceClient,")
+		g.P("    runner: runner,")
 	}
 	for _, pr := range si.resources {
 		natsArg := ""

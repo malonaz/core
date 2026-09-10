@@ -13,6 +13,10 @@ type Opts struct {
 	// Configuration holds the parsed JSON configuration file contents,
 	// supplied via the --configuration flag.
 	Configuration map[any]any
+
+	// Files is every file of the compilation unit, generated or not, for
+	// lookups of messages declared outside the file being generated.
+	Files []*protogen.File
 }
 
 // GenerateFunc is the signature that all native Go generators must implement.

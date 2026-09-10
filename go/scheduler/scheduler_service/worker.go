@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"cloud.google.com/go/longrunning/autogen/longrunningpb"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	codepb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -171,8 +172,38 @@ func (s *Service) process(ctx context.Context, claimed *store.ClaimedJob) {
 	var responseAny *anypb.Any
 	if err == nil {
 		responseAny = &anypb.Any{TypeUrl: handler.GetResponseType(), Value: response}
+		if responseAny.GetTypeUrl() == operationTypeURL {
+			responseAny, err = unwrapOperation(responseAny)
+			if errors.Is(err, errUnfinishedOperation) {
+				// A runner that hands back an unfinished operation will do so again: no retry.
+				policy = &schedulerpb.QueuePolicy{MaxAttempts: 1}
+			}
+		}
 	}
 	s.complete(ctx, log, job, policy, responseAny, err)
+}
+
+// operationTypeURL is the response type of long-running operation handlers.
+var operationTypeURL = typeURLPrefix + string((&longrunningpb.Operation{}).ProtoReflect().Descriptor().FullName())
+
+// errUnfinishedOperation is a handler bug: a long-running operation handler
+// must do the work and return the operation done.
+var errUnfinishedOperation = grpcstatus.Error(codes.FailedPrecondition, "runner returned an unfinished operation")
+
+// unwrapOperation records a done operation's outcome as if the handler had
+// returned it directly: its response as the job's, its error as the attempt's.
+func unwrapOperation(envelope *anypb.Any) (*anypb.Any, error) {
+	operation := &longrunningpb.Operation{}
+	if err := envelope.UnmarshalTo(operation); err != nil {
+		return nil, grpcstatus.Errorf(codes.Internal, "unmarshaling operation: %v", err)
+	}
+	if !operation.GetDone() {
+		return nil, errUnfinishedOperation
+	}
+	if operation.GetError() != nil {
+		return nil, grpcstatus.ErrorProto(operation.GetError())
+	}
+	return operation.GetResponse(), nil
 }
 
 // routing decodes the queue policy and handler the job was claimed with. A

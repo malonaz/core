@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import google.api.annotations_pb2
 import google.api.client_pb2
+import google.longrunning.operations_pb2
 import google.protobuf.empty_pb2
 import malonaz.canonicalize.v1.canonicalize_pb2
 import malonaz.codegen.aip.v1.aip_pb2
@@ -142,6 +143,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest, malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ImportBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -361,6 +366,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
                 malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportBooks': grpclib.const.Handler(
+                self.ImportBooks,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview': grpclib.const.Handler(
                 self.GetBookReview,
@@ -607,6 +618,12 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetBooks',
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksRequest,
             malonaz.test.library.library_service.v1.book_pb2.BatchGetBooksResponse,
+        )
+        self.ImportBooks = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportBooks',
+            malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+            google.longrunning.operations_pb2.Operation,
         )
         self.GetBookReview = grpclib.client.UnaryUnaryMethod(
             channel,

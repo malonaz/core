@@ -61,15 +61,16 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 		return nil, status.Errorf(codes.InvalidArgument, "no handler of %s accepts %s", queue.GetName(), requestType).Err()
 	}
 	request.Job = &schedulerpb.Job{
-		Labels:       job.GetLabels(),
-		Payload:      job.GetPayload(),
-		Queue:        queue.GetName(),
-		Method:       handler.GetMethod(),
-		Priority:     job.GetPriority(),
-		UniqueKey:    job.GetUniqueKey(),
-		ScheduleTime: job.GetScheduleTime(),
-		ExpireTime:   job.GetExpireTime(),
-		State:        schedulerpb.JobState_JOB_STATE_PENDING,
+		Labels:        job.GetLabels(),
+		Payload:       job.GetPayload(),
+		Queue:         queue.GetName(),
+		Method:        handler.GetMethod(),
+		Priority:      job.GetPriority(),
+		UniqueKey:     job.GetUniqueKey(),
+		ScheduleTime:  job.GetScheduleTime(),
+		ExpireTime:    job.GetExpireTime(),
+		OperationName: job.GetOperationName(),
+		State:         schedulerpb.JobState_JOB_STATE_PENDING,
 	}
 	uniqueKey := job.GetUniqueKey()
 	for attempt := 1; ; attempt++ {
@@ -229,6 +230,38 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 	_, _, jobID, _ := model.ParseJobName(job.GetName())
 	s.inflight.cancel(jobID)
 	return job, nil
+}
+
+// waitJobPollInterval is how often WaitJob re-reads the job. Terminal
+// transitions are written by workers on any instance, so the row is the only
+// place to observe them from.
+const waitJobPollInterval = 250 * time.Millisecond
+
+// WaitJob polls the job until it is terminal or the timeout elapses and
+// returns it either way: timing out is the caller's to detect from `state`.
+// The timeout is silently capped so a client cannot pin a server goroutine.
+func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*schedulerpb.Job, error) {
+	timeout := s.opts.WaitJobMaxTimeout
+	if request.GetTimeout() != nil && request.GetTimeout().AsDuration() < timeout {
+		timeout = request.GetTimeout().AsDuration()
+	}
+	deadline := time.Now().Add(timeout)
+	getJobRequest := &pb.GetJobRequest{Name: request.GetName()}
+	for {
+		job, err := s.GetJob(ctx, getJobRequest)
+		if err != nil {
+			return nil, err
+		}
+		remaining := time.Until(deadline)
+		if isTerminal(job.GetState()) || remaining <= 0 {
+			return job, nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil, status.FromError(ctx.Err(), "waiting for job").Err()
+		case <-time.After(min(waitJobPollInterval, remaining)):
+		}
+	}
 }
 
 // ReportJobProgress records a RUNNING job's latest progress.

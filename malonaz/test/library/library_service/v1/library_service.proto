@@ -4,6 +4,7 @@ package malonaz.test.library.library_service.v1;
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
+import "google/longrunning/operations.proto";
 import "google/protobuf/empty.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -293,6 +294,24 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*}/books:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+  }
+
+  // Imports books onto a shelf, one per title, as a long-running operation
+  // (AIP-151) run by the scheduler on `queues/library`. The operation's
+  // metadata reports progress; its response lists the books.
+  //
+  // See: https://google.aip.dev/151 (Long-running operations).
+  rpc ImportBooks(ImportBooksRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*}/books:import"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,author,titles";
+    option (google.longrunning.operation_info) = {
+      response_type: "ImportBooksResponse"
+      metadata_type: "ImportBooksMetadata"
+    };
+    option (malonaz.codegen.aip.v1.longrunning) = {queue: "queues/library"};
   }
 
   // ===================== BookReview (Singleton) =====================

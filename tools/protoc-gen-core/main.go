@@ -27,6 +27,8 @@ import (
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	// Registers google.longrunning.operation_info, which the rpc plugin reads.
+	_ "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 var (
@@ -127,6 +129,7 @@ func main() {
 		pluginOpts := &plugin.Opts{
 			Configuration:           configuration,
 			AdditionalGoImportPaths: keyToGoImportPath,
+			Files:                   gen.Files,
 		}
 		var generateFunc plugin.GenerateFunc
 		switch *opts.Plugin {

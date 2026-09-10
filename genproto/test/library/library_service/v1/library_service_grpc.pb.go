@@ -7,6 +7,7 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	grpc "google.golang.org/grpc"
@@ -49,6 +50,7 @@ const (
 	LibraryService_SearchBooks_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/SearchBooks"
 	LibraryService_ListBooks_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListBooks"
 	LibraryService_BatchGetBooks_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetBooks"
+	LibraryService_ImportBooks_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ImportBooks"
 	LibraryService_GetBookReview_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/GetBookReview"
 	LibraryService_UpdateBookReview_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/UpdateBookReview"
 	LibraryService_ListBookReviews_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/ListBookReviews"
@@ -143,6 +145,12 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
+	// Imports books onto a shelf, one per title, as a long-running operation
+	// (AIP-151) run by the scheduler on `queues/library`. The operation's
+	// metadata reports progress; its response lists the books.
+	//
+	// See: https://google.aip.dev/151 (Long-running operations).
+	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Gets a book review.
 	GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error)
 	// Updates a book review.
@@ -463,6 +471,16 @@ func (c *libraryServiceClient) BatchGetBooks(ctx context.Context, in *BatchGetBo
 	return out, nil
 }
 
+func (c *libraryServiceClient) ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, LibraryService_ImportBooks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *libraryServiceClient) GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.BookReview)
@@ -663,6 +681,12 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
+	// Imports books onto a shelf, one per title, as a long-running operation
+	// (AIP-151) run by the scheduler on `queues/library`. The operation's
+	// metadata reports progress; its response lists the books.
+	//
+	// See: https://google.aip.dev/151 (Long-running operations).
+	ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error)
 	// Gets a book review.
 	GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error)
 	// Updates a book review.
@@ -785,6 +809,9 @@ func (UnimplementedLibraryServiceServer) ListBooks(context.Context, *ListBooksRe
 }
 func (UnimplementedLibraryServiceServer) BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetBooks not implemented")
+}
+func (UnimplementedLibraryServiceServer) ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportBooks not implemented")
 }
 func (UnimplementedLibraryServiceServer) GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBookReview not implemented")
@@ -1346,6 +1373,24 @@ func _LibraryService_BatchGetBooks_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_ImportBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ImportBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_ImportBooks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ImportBooks(ctx, req.(*ImportBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LibraryService_GetBookReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetBookReviewRequest)
 	if err := dec(in); err != nil {
@@ -1680,6 +1725,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetBooks",
 			Handler:    _LibraryService_BatchGetBooks_Handler,
+		},
+		{
+			MethodName: "ImportBooks",
+			Handler:    _LibraryService_ImportBooks_Handler,
 		},
 		{
 			MethodName: "GetBookReview",

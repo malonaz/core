@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/scheduler/v1/job.proto";
@@ -20,7 +21,8 @@ message CreateJobRequest {
   string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
 
   // The job to create. Only the producer-owned fields are read: `payload`,
-  // `labels`, `priority`, `unique_key`, `schedule_time` and `expire_time`.
+  // `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
+  // `expire_time` and `operation_name`.
   scheduler.v1.Job job = 2 [(buf.validate.field).required = true];
 
   // The ID to use for the resource, which will become the final component of
@@ -225,4 +227,24 @@ message ReportJobProgressRequest {
 
   // The progress to record, replacing any previously reported progress.
   google.protobuf.Any progress = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for SchedulerService.WaitJob.
+message WaitJobRequest {
+  // The resource name of the job to wait for.
+  // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+
+  // The longest time to wait for the job to reach a terminal state. The
+  // server caps it at its `--wait-job-max-timeout` (5m by default) without
+  // error; unset means the cap. The job is returned in whatever state it is
+  // in once either elapses, so callers inspect `state`, as with
+  // `google.longrunning.Operations.WaitOperation`.
+  google.protobuf.Duration timeout = 2 [(buf.validate.field).duration.gte = {}];
 }

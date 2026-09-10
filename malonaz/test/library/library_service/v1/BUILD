@@ -43,6 +43,7 @@ grpc_library(
         "//malonaz/nats/v1",
         "//malonaz/test/library/v1",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__longrunning__operations",
         "//third_party/proto:validate",
     ],
 )

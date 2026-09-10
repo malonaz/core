@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package malonaz.test.scheduler.processor.v1;
 
+import "google/longrunning/operations.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/scheduler/processor/v1";
@@ -25,8 +26,25 @@ service Processor {
   // Reports `steps` progress updates to the scheduler before returning.
   rpc Progress(ProgressRequest) returns (ProgressResponse);
 
+  // Returns a long-running operation: done with an EchoResponse carrying
+  // `value`, or, when `unfinished` is set, not done, which the scheduler
+  // must reject.
+  rpc Operate(OperateRequest) returns (google.longrunning.Operation);
+
   // Never routed: no sat queue has a handler for it.
   rpc Unrouted(UnroutedRequest) returns (UnroutedResponse);
+}
+
+// Request message for Processor.Operate.
+message OperateRequest {
+  // The value echoed in the operation's response.
+  string value = 1;
+
+  // Return the operation not done.
+  bool unfinished = 2;
+
+  // Return the operation done with this gRPC code as its error, when non-zero.
+  int32 code = 3;
 }
 
 // Request message for Processor.Echo.

@@ -340,6 +340,12 @@ func run(ctx {{ goImport "context" }}.Context) error {
                     {{- $serviceName := $serviceManifest.name | camelcase | untitle }}
                     {{ $grpc := parseGRPC $service.proto $service.service -}}
                     {{ $grpc.Register $serviceName }}
+                    {{- $longrunning := false }}
+                    {{- range $codegen := $serviceManifest.codegens }}{{ if $codegen.longrunning }}{{ $longrunning = true }}{{ end }}{{ end }}
+                    {{- if and $longrunning (doOnce (printf "operations_%s_%s" $server.name $serviceName)) }}
+                    // AIP-151: a service returning Operations also serves google.longrunning.Operations.
+                    {{ goImport "cloud.google.com/go/longrunning/autogen/longrunningpb" }}.RegisterOperationsServer(server.Raw, {{ $serviceName }})
+                    {{- end }}
                 {{- end }}
             }
 
