@@ -192,7 +192,7 @@ func TestProcess_LapsedLeaseIsReaped(t *testing.T) {
 	postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
 	require.NoError(t, err)
 	_, err = postgresClient.Exec(ctx,
-		"UPDATE job SET state = $2, schedule_time = NULL, start_time = $3, lock_time = $3, attempt_count = 1 WHERE job_id = $1",
+		"UPDATE scheduler.job SET state = $2, schedule_time = NULL, start_time = $3, lock_time = $3, attempt_count = 1 WHERE job_id = $1",
 		created.GetName()[len("jobs/"):], int16(schedulerpb.JobState_JOB_STATE_RUNNING), time.Now().UTC().Add(-time.Hour))
 	require.NoError(t, err)
 
@@ -377,7 +377,7 @@ func TestRetention_PurgesJobs(t *testing.T) {
 
 	postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
 	require.NoError(t, err)
-	_, err = postgresClient.Exec(ctx, "UPDATE job SET purge_time = $2 WHERE job_id = $1",
+	_, err = postgresClient.Exec(ctx, "UPDATE scheduler.job SET purge_time = $2 WHERE job_id = $1",
 		created.GetName()[len("jobs/"):], time.Now().UTC().Add(-time.Minute))
 	require.NoError(t, err)
 

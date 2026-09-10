@@ -16,7 +16,7 @@ var (
 )
 
 func (s *Store) probeQueue(ctx context.Context, q querier, queueId string) (bool, string, error) {
-	query := `SELECT TRUE, etag FROM queue WHERE queue_id = $1`
+	query := `SELECT TRUE, etag FROM scheduler.queue WHERE queue_id = $1`
 	params := []any{queueId}
 	var live bool
 	var currentEtag string
@@ -36,9 +36,9 @@ type QueueWithRequestID struct {
 
 var (
 	QueueWithRequestIDPostgresColumns = postgres.GetDBColumns(QueueWithRequestID{})
-	queueInsertPostgresQuery          = `INSERT INTO queue %s VALUES %s ON CONFLICT(queue_id) DO UPDATE SET queue_id = EXCLUDED.queue_id`
+	queueInsertPostgresQuery          = `INSERT INTO scheduler.queue %s VALUES %s ON CONFLICT(queue_id) DO UPDATE SET queue_id = EXCLUDED.queue_id`
 	queueInsertReturningClause        = ` RETURNING ` + strings.Join(QueueWithRequestIDPostgresColumns, ",")
-	queueGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(QueueWithRequestIDPostgresColumns, "queue") + " FROM queue" + ` WHERE queue.request_id = ANY($1)`
+	queueGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(QueueWithRequestIDPostgresColumns, "queue") + " FROM scheduler.queue" + ` WHERE queue.request_id = ANY($1)`
 )
 
 func orderQueuesByRequestID(requestIDs []string, rows []*QueueWithRequestID) ([]*model.Queue, error) {
@@ -121,7 +121,7 @@ func (s *Store) BatchInsertQueues(ctx context.Context, requestIDs []string, queu
 	return inserted, nil
 }
 
-var updateQueuePostgresQuery = `UPDATE queue SET #update_clause# WHERE #where_clause# RETURNING ` +
+var updateQueuePostgresQuery = `UPDATE scheduler.queue SET #update_clause# WHERE #where_clause# RETURNING ` +
 	strings.Join(QueuePostgresColumns, ",")
 
 func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClause string, updateColumns []string, etag string) (*model.Queue, error) {
@@ -162,7 +162,7 @@ func (s *Store) UpdateQueue(ctx context.Context, _queue *model.Queue, updateClau
 	return row, nil
 }
 
-var deleteQueuePostgresQuery = `DELETE FROM queue WHERE queue_id = $1 RETURNING ` +
+var deleteQueuePostgresQuery = `DELETE FROM scheduler.queue WHERE queue_id = $1 RETURNING ` +
 	strings.Join(QueuePostgresColumns, ",")
 
 func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*model.Queue, error) {
@@ -194,7 +194,7 @@ func (s *Store) DeleteQueue(ctx context.Context, queueId string, etag string) (*
 }
 
 func (s *Store) GetQueue(ctx context.Context, queueId string) (*model.Queue, error) {
-	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM queue" + ` WHERE queue.queue_id = $1`
+	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM scheduler.queue" + ` WHERE queue.queue_id = $1`
 	rows, err := s.client.Query(ctx, query, queueId)
 	if err != nil {
 		return nil, fmt.Errorf("getting queue: %w", err)
@@ -226,7 +226,7 @@ func (s *Store) BatchGetQueues(ctx context.Context, queueIds []string) ([]*model
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM queue" + " " + whereClause
+	query := "SELECT " + postgres.QualifyColumns(QueuePostgresColumns, "queue") + " FROM scheduler.queue" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -240,7 +240,7 @@ func (s *Store) ListQueues(ctx context.Context, whereClause, orderByClause, pagi
 		columns = QueuePostgresColumns
 	}
 
-	query := "SELECT " + postgres.QualifyColumns(columns, "queue") + " FROM queue" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + postgres.QualifyColumns(columns, "queue") + " FROM scheduler.queue" + " " + whereClause + " " + orderByClause + " " + paginationClause
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting queues: %w", err)

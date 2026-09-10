@@ -34,8 +34,8 @@ func IsUniqueKeyConflict(err error) bool {
 var (
 	// job_id identifies the row; every other column is written by a transition.
 	jobTransitionColumns = postgres.GetDBColumns(model.Job{}, postgres.ExceptColumns("job_id"))
-	jobTransitionQuery   = updateQuery("job", jobTransitionColumns) + fmt.Sprintf(" WHERE job_id = $%d", len(jobTransitionColumns)+1)
-	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE #locking#", JobPostgresColumns)
+	jobTransitionQuery   = updateQuery("scheduler.job", jobTransitionColumns) + fmt.Sprintf(" WHERE job_id = $%d", len(jobTransitionColumns)+1)
+	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM scheduler.job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE #locking#", JobPostgresColumns)
 )
 
 func updateQuery(table string, columns []string) string {
@@ -117,7 +117,7 @@ func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func
 // ErrJobNotRunning.
 func (s *Store) UpdateRunningJob(ctx context.Context, job *model.Job, columns ...string) (*model.Job, error) {
 	params := append(postgres.GetParams(job, columns...), job.JobID, int16(schedulerpb.JobState_JOB_STATE_RUNNING))
-	query := updateQuery("job", columns) + fmt.Sprintf(" WHERE job_id = $%d AND state = $%d RETURNING ", len(columns)+1, len(columns)+2) +
+	query := updateQuery("scheduler.job", columns) + fmt.Sprintf(" WHERE job_id = $%d AND state = $%d RETURNING ", len(columns)+1, len(columns)+2) +
 		postgres.SelectQuery("%s", JobPostgresColumns)
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -133,7 +133,7 @@ func (s *Store) UpdateRunningJob(ctx context.Context, job *model.Job, columns ..
 	return row, nil
 }
 
-var jobGetPendingByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM job WHERE unique_key = $1 AND state = $2", JobPostgresColumns)
+var jobGetPendingByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM scheduler.job WHERE unique_key = $1 AND state = $2", JobPostgresColumns)
 
 // GetPendingJobByUniqueKey returns the PENDING job holding the unique key, the
 // one a keyed create coalesces onto. Returns model.ErrJobNotExist when there is
@@ -155,7 +155,7 @@ func (s *Store) GetPendingJobByUniqueKey(ctx context.Context, uniqueKey string) 
 
 // PurgeJobs deletes jobs whose retention lapsed before now.
 func (s *Store) PurgeJobs(ctx context.Context, now time.Time) (int64, error) {
-	tag, err := s.client.Exec(ctx, "DELETE FROM job WHERE purge_time < $1", now)
+	tag, err := s.client.Exec(ctx, "DELETE FROM scheduler.job WHERE purge_time < $1", now)
 	if err != nil {
 		return 0, fmt.Errorf("purging jobs: %w", err)
 	}

@@ -981,7 +981,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa1\x0f\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xac\x0f\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1016,10 +1016,11 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\bmetadata\x18\x15 \x01(\v2!.malonaz.scheduler.v1.JobMetadataB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf3\x02\xeaA\x91\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xfe\x02\xeaA\x91\x01\n" +
 	"\x19scheduler.malonaz.com/Job\x12\n" +
 	"jobs/{job}\x12'organizations/{organization}/jobs/{job}\x124organizations/{organization}/users/{user}/jobs/{job}*\x04jobs2\x03job\xbaH\xae\x01\x1a\xab\x01\n" +
-	"#job.expire_time_after_schedule_time\x12'expire_time must be after schedule_time\x1a[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_timeҦ\x04\x00\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"c\n" +
+	"#job.expire_time_after_schedule_time\x12'expire_time must be after schedule_time\x1a[!has(this.expire_time) || !has(this.schedule_time) || this.expire_time > this.schedule_timeҦ\x04\v\n" +
+	"\tscheduler\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"c\n" +
 	"\vJobMetadata\x12<\n" +
 	"\battempts\x18\x01 \x03(\v2 .malonaz.scheduler.v1.JobAttemptR\battempts\x12\x16\n" +
 	"\x06worker\x18\x02 \x01(\tR\x06worker\"\x96\x02\n" +

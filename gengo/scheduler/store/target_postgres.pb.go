@@ -16,7 +16,7 @@ var (
 )
 
 func (s *Store) probeTarget(ctx context.Context, q querier, targetId string) (bool, string, error) {
-	query := `SELECT TRUE, etag FROM target WHERE target_id = $1`
+	query := `SELECT TRUE, etag FROM scheduler.target WHERE target_id = $1`
 	params := []any{targetId}
 	var live bool
 	var currentEtag string
@@ -36,9 +36,9 @@ type TargetWithRequestID struct {
 
 var (
 	TargetWithRequestIDPostgresColumns = postgres.GetDBColumns(TargetWithRequestID{})
-	targetInsertPostgresQuery          = `INSERT INTO target %s VALUES %s ON CONFLICT(target_id) DO UPDATE SET target_id = EXCLUDED.target_id`
+	targetInsertPostgresQuery          = `INSERT INTO scheduler.target %s VALUES %s ON CONFLICT(target_id) DO UPDATE SET target_id = EXCLUDED.target_id`
 	targetInsertReturningClause        = ` RETURNING ` + strings.Join(TargetWithRequestIDPostgresColumns, ",")
-	targetGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(TargetWithRequestIDPostgresColumns, "target") + " FROM target" + ` WHERE target.request_id = ANY($1)`
+	targetGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(TargetWithRequestIDPostgresColumns, "target") + " FROM scheduler.target" + ` WHERE target.request_id = ANY($1)`
 )
 
 func orderTargetsByRequestID(requestIDs []string, rows []*TargetWithRequestID) ([]*model.Target, error) {
@@ -121,7 +121,7 @@ func (s *Store) BatchInsertTargets(ctx context.Context, requestIDs []string, tar
 	return inserted, nil
 }
 
-var updateTargetPostgresQuery = `UPDATE target SET #update_clause# WHERE #where_clause# RETURNING ` +
+var updateTargetPostgresQuery = `UPDATE scheduler.target SET #update_clause# WHERE #where_clause# RETURNING ` +
 	strings.Join(TargetPostgresColumns, ",")
 
 func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateClause string, updateColumns []string, etag string) (*model.Target, error) {
@@ -162,7 +162,7 @@ func (s *Store) UpdateTarget(ctx context.Context, _target *model.Target, updateC
 	return row, nil
 }
 
-var deleteTargetPostgresQuery = `DELETE FROM target WHERE target_id = $1 RETURNING ` +
+var deleteTargetPostgresQuery = `DELETE FROM scheduler.target WHERE target_id = $1 RETURNING ` +
 	strings.Join(TargetPostgresColumns, ",")
 
 func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) (*model.Target, error) {
@@ -194,7 +194,7 @@ func (s *Store) DeleteTarget(ctx context.Context, targetId string, etag string) 
 }
 
 func (s *Store) GetTarget(ctx context.Context, targetId string) (*model.Target, error) {
-	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM target" + ` WHERE target.target_id = $1`
+	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM scheduler.target" + ` WHERE target.target_id = $1`
 	rows, err := s.client.Query(ctx, query, targetId)
 	if err != nil {
 		return nil, fmt.Errorf("getting target: %w", err)
@@ -226,7 +226,7 @@ func (s *Store) BatchGetTargets(ctx context.Context, targetIds []string) ([]*mod
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM target" + " " + whereClause
+	query := "SELECT " + postgres.QualifyColumns(TargetPostgresColumns, "target") + " FROM scheduler.target" + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -240,7 +240,7 @@ func (s *Store) ListTargets(ctx context.Context, whereClause, orderByClause, pag
 		columns = TargetPostgresColumns
 	}
 
-	query := "SELECT " + postgres.QualifyColumns(columns, "target") + " FROM target" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + postgres.QualifyColumns(columns, "target") + " FROM scheduler.target" + " " + whereClause + " " + orderByClause + " " + paginationClause
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting targets: %w", err)

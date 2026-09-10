@@ -11,3 +11,5 @@ migrations:
     hash: b009b42896af54bf1b624da8b1a5fcaa
   - path: job/003_operation_name.sql
     hash: d446a475dfef69580e3f3879562c8343
+  - path: schema/001_scheduler.sql
+    hash: bd6d9281dc62fab91dead76c8159d8a4

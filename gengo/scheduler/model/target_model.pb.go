@@ -20,12 +20,12 @@ var ErrTargetHasChildren = errors.New("target has child resources")
 var ErrTargetETagChanged = errors.New("target etag changed")
 
 type Target struct {
-	TargetID   string    `db:"target_id" schema:"public" table:"target"`
-	CreateTime time.Time `db:"create_time" schema:"public" table:"target"`
-	UpdateTime time.Time `db:"update_time" schema:"public" table:"target"`
-	Etag       string    `db:"etag" schema:"public" table:"target"`
-	Url        string    `db:"url" schema:"public" table:"target"`
-	Headers    []byte    `db:"headers" schema:"public" table:"target"`
+	TargetID   string    `db:"target_id" schema:"scheduler" table:"target"`
+	CreateTime time.Time `db:"create_time" schema:"scheduler" table:"target"`
+	UpdateTime time.Time `db:"update_time" schema:"scheduler" table:"target"`
+	Etag       string    `db:"etag" schema:"scheduler" table:"target"`
+	Url        string    `db:"url" schema:"scheduler" table:"target"`
+	Headers    []byte    `db:"headers" schema:"scheduler" table:"target"`
 }
 
 func TargetFromPb(m *v1.Target) (*Target, error) {

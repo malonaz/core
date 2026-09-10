@@ -28,7 +28,7 @@ message Queue {
     singular: "queue"
     plural: "queues"
   };
-  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "scheduler"};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "0b0bf9b6-d8ee-40c0-8483-7b245c19afec";
 
   // The resource name of the queue.

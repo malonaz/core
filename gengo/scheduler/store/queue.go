@@ -16,8 +16,8 @@ import (
 var (
 	// queue_id identifies the row; every other column is written by a transition.
 	queueTransitionColumns = postgres.GetDBColumns(model.Queue{}, postgres.ExceptColumns("queue_id"))
-	queueTransitionQuery   = updateQuery("queue", queueTransitionColumns) + fmt.Sprintf(" WHERE queue_id = $%d", len(queueTransitionColumns)+1)
-	queueSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM queue WHERE queue_id = $1 FOR UPDATE", QueuePostgresColumns)
+	queueTransitionQuery   = updateQuery("scheduler.queue", queueTransitionColumns) + fmt.Sprintf(" WHERE queue_id = $%d", len(queueTransitionColumns)+1)
+	queueSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM scheduler.queue WHERE queue_id = $1 FOR UPDATE", QueuePostgresColumns)
 )
 
 // TransitionQueue locks one queue and applies transition to it, persisting the
@@ -66,8 +66,8 @@ SELECT queue.queue_id,
     count(job.job_id) FILTER (WHERE job.state = $1) AS pending_count,
     count(job.job_id) FILTER (WHERE job.state = $2) AS running_count,
     min(COALESCE(job.schedule_time, job.create_time)) FILTER (WHERE job.state = $1) AS oldest_pending_schedule_time
-FROM queue
-LEFT JOIN job ON job.queue = 'queues/' || queue.queue_id AND job.state IN ($1, $2)
+FROM scheduler.queue
+LEFT JOIN scheduler.job ON job.queue = 'queues/' || queue.queue_id AND job.state IN ($1, $2)
 WHERE $3::text[] IS NULL OR queue.queue_id = ANY($3)
 GROUP BY queue.queue_id`
 
@@ -89,7 +89,7 @@ func (s *Store) ListQueueStats(ctx context.Context, queueIDs []string) ([]*Queue
 // queue, which is what refuses its deletion.
 func (s *Store) QueueHasLiveJobs(ctx context.Context, queueName string) (bool, error) {
 	var exists bool
-	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM job WHERE queue = $1 AND state IN ($2, $3))",
+	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM scheduler.job WHERE queue = $1 AND state IN ($2, $3))",
 		queueName, int16(schedulerpb.JobState_JOB_STATE_PENDING), int16(schedulerpb.JobState_JOB_STATE_RUNNING)).Scan(&exists); err != nil {
 		return false, fmt.Errorf("checking queue jobs: %w", err)
 	}
@@ -100,7 +100,7 @@ func (s *Store) QueueHasLiveJobs(ctx context.Context, queueName string) (bool, e
 // which is what refuses its deletion.
 func (s *Store) TargetIsReferenced(ctx context.Context, targetName string) (bool, error) {
 	var exists bool
-	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM queue WHERE handlers @> jsonb_build_array(jsonb_build_object('target', $1::text)))", targetName).Scan(&exists); err != nil {
+	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM scheduler.queue WHERE handlers @> jsonb_build_array(jsonb_build_object('target', $1::text)))", targetName).Scan(&exists); err != nil {
 		return false, fmt.Errorf("checking target references: %w", err)
 	}
 	return exists, nil

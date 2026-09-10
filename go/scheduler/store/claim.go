@@ -33,14 +33,14 @@ type ClaimedJob struct {
 // locked by a second statement.
 const jobClaimCandidatesQuery = `
 WITH running AS (
-    SELECT queue, count(*) AS count FROM job WHERE state = $2 GROUP BY queue
+    SELECT queue, count(*) AS count FROM scheduler.job WHERE state = $2 GROUP BY queue
 ), candidate AS (
     SELECT job.job_id, job.priority, COALESCE(job.schedule_time, job.create_time) AS due_time, job.create_time,
         row_number() OVER (PARTITION BY job.queue ORDER BY job.priority DESC, COALESCE(job.schedule_time, job.create_time), job.create_time) AS rank,
         COALESCE((queue.policy->>'max_concurrency')::int, 0) AS max_concurrency,
         COALESCE(running.count, 0) AS running_count
-    FROM job
-    LEFT JOIN queue ON 'queues/' || queue.queue_id = job.queue
+    FROM scheduler.job
+    LEFT JOIN scheduler.queue ON 'queues/' || queue.queue_id = job.queue
     LEFT JOIN running ON running.queue = job.queue
     WHERE job.state = $1
         AND (job.schedule_time IS NULL OR job.schedule_time <= $3)
@@ -53,7 +53,7 @@ ORDER BY priority DESC, due_time, create_time
 LIMIT $5`
 
 var jobClaimLockQuery = "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + `, queue.policy AS queue_policy, queue.handlers AS queue_handlers
-FROM job LEFT JOIN queue ON 'queues/' || queue.queue_id = job.queue
+FROM scheduler.job LEFT JOIN scheduler.queue ON 'queues/' || queue.queue_id = job.queue
 WHERE job.job_id = ANY($1) AND job.state = $2
 ORDER BY array_position($1, job.job_id)
 FOR UPDATE OF job SKIP LOCKED`

@@ -30,7 +30,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/scheduler/v1/target.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xb0\x03\n\x06Target\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\x31\n\x03url\x18\x05 \x01(\tB$\xbaH!r\x1c\x32\x1a^(https://|http://|unix:).\xc8\x01\x01\x12\x44\n\x07headers\x18\x06 \x03(\x0b\x32).malonaz.scheduler.v1.Target.HeadersEntryB\x08\xba\xea\x0f\x04\x10\x01 \x01\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:p\xea\x41\x41\n\x1cscheduler.malonaz.com/Target\x12\x10targets/{target}*\x07targets2\x06target\xd2\xa6\x04\x00\x82\xf6,$08144269-a867-4ab0-9605-5fe82afe5725B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/scheduler/v1/target.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xbb\x03\n\x06Target\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\x31\n\x03url\x18\x05 \x01(\tB$\xbaH!r\x1c\x32\x1a^(https://|http://|unix:).\xc8\x01\x01\x12\x44\n\x07headers\x18\x06 \x03(\x0b\x32).malonaz.scheduler.v1.Target.HeadersEntryB\x08\xba\xea\x0f\x04\x10\x01 \x01\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:{\xea\x41\x41\n\x1cscheduler.malonaz.com/Target\x12\x10targets/{target}*\x07targets2\x06target\xd2\xa6\x04\x0b\n\tscheduler\x82\xf6,$08144269-a867-4ab0-9605-5fe82afe5725B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -51,9 +51,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TARGET'].fields_by_name['headers']._loaded_options = None
   _globals['_TARGET'].fields_by_name['headers']._serialized_options = b'\272\352\017\004\020\001 \001'
   _globals['_TARGET']._loaded_options = None
-  _globals['_TARGET']._serialized_options = b'\352AA\n\034scheduler.malonaz.com/Target\022\020targets/{target}*\007targets2\006target\322\246\004\000\202\366,$08144269-a867-4ab0-9605-5fe82afe5725'
+  _globals['_TARGET']._serialized_options = b'\352AA\n\034scheduler.malonaz.com/Target\022\020targets/{target}*\007targets2\006target\322\246\004\013\n\tscheduler\202\366,$08144269-a867-4ab0-9605-5fe82afe5725'
   _globals['_TARGET']._serialized_start=254
-  _globals['_TARGET']._serialized_end=686
+  _globals['_TARGET']._serialized_end=697
   _globals['_TARGET_HEADERSENTRY']._serialized_start=526
   _globals['_TARGET_HEADERSENTRY']._serialized_end=572
 # @@protoc_insertion_point(module_scope)

@@ -24,7 +24,7 @@ message Target {
     singular: "target"
     plural: "targets"
   };
-  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "scheduler"};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "08144269-a867-4ab0-9605-5fe82afe5725";
 
   // The resource name of the target.

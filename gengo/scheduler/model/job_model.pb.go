@@ -23,31 +23,31 @@ var ErrJobHasChildren = errors.New("job has child resources")
 var ErrJobETagChanged = errors.New("job etag changed")
 
 type Job struct {
-	OrganizationID *string    `db:"organization_id" schema:"public" table:"job"`
-	UserID         *string    `db:"user_id" schema:"public" table:"job"`
-	JobID          string     `db:"job_id" schema:"public" table:"job"`
-	CreateTime     time.Time  `db:"create_time" schema:"public" table:"job"`
-	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"job"`
-	Etag           string     `db:"etag" schema:"public" table:"job"`
-	Labels         []byte     `db:"labels" schema:"public" table:"job"`
-	Payload        []byte     `db:"payload" schema:"public" table:"job"`
-	Queue          string     `db:"queue" schema:"public" table:"job"`
-	Method         string     `db:"method" schema:"public" table:"job"`
-	OperationName  *string    `db:"operation_name" schema:"public" table:"job"`
-	State          int16      `db:"state" schema:"public" table:"job"`
-	Priority       int32      `db:"priority" schema:"public" table:"job"`
-	UniqueKey      *string    `db:"unique_key" schema:"public" table:"job"`
-	ScheduleTime   *time.Time `db:"schedule_time" schema:"public" table:"job"`
-	ExpireTime     *time.Time `db:"expire_time" schema:"public" table:"job"`
-	StartTime      *time.Time `db:"start_time" schema:"public" table:"job"`
-	CompleteTime   *time.Time `db:"complete_time" schema:"public" table:"job"`
-	LockTime       *time.Time `db:"lock_time" schema:"public" table:"job"`
-	PurgeTime      *time.Time `db:"purge_time" schema:"public" table:"job"`
-	AttemptCount   int32      `db:"attempt_count" schema:"public" table:"job"`
-	Error          []byte     `db:"error" schema:"public" table:"job"`
-	Response       []byte     `db:"response" schema:"public" table:"job"`
-	Progress       []byte     `db:"progress" schema:"public" table:"job"`
-	Metadata       []byte     `db:"metadata" schema:"public" table:"job"`
+	OrganizationID *string    `db:"organization_id" schema:"scheduler" table:"job"`
+	UserID         *string    `db:"user_id" schema:"scheduler" table:"job"`
+	JobID          string     `db:"job_id" schema:"scheduler" table:"job"`
+	CreateTime     time.Time  `db:"create_time" schema:"scheduler" table:"job"`
+	UpdateTime     time.Time  `db:"update_time" schema:"scheduler" table:"job"`
+	Etag           string     `db:"etag" schema:"scheduler" table:"job"`
+	Labels         []byte     `db:"labels" schema:"scheduler" table:"job"`
+	Payload        []byte     `db:"payload" schema:"scheduler" table:"job"`
+	Queue          string     `db:"queue" schema:"scheduler" table:"job"`
+	Method         string     `db:"method" schema:"scheduler" table:"job"`
+	OperationName  *string    `db:"operation_name" schema:"scheduler" table:"job"`
+	State          int16      `db:"state" schema:"scheduler" table:"job"`
+	Priority       int32      `db:"priority" schema:"scheduler" table:"job"`
+	UniqueKey      *string    `db:"unique_key" schema:"scheduler" table:"job"`
+	ScheduleTime   *time.Time `db:"schedule_time" schema:"scheduler" table:"job"`
+	ExpireTime     *time.Time `db:"expire_time" schema:"scheduler" table:"job"`
+	StartTime      *time.Time `db:"start_time" schema:"scheduler" table:"job"`
+	CompleteTime   *time.Time `db:"complete_time" schema:"scheduler" table:"job"`
+	LockTime       *time.Time `db:"lock_time" schema:"scheduler" table:"job"`
+	PurgeTime      *time.Time `db:"purge_time" schema:"scheduler" table:"job"`
+	AttemptCount   int32      `db:"attempt_count" schema:"scheduler" table:"job"`
+	Error          []byte     `db:"error" schema:"scheduler" table:"job"`
+	Response       []byte     `db:"response" schema:"scheduler" table:"job"`
+	Progress       []byte     `db:"progress" schema:"scheduler" table:"job"`
+	Metadata       []byte     `db:"metadata" schema:"scheduler" table:"job"`
 }
 
 func JobFromPb(m *v1.Job) (*Job, error) {
