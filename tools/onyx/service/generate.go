@@ -194,7 +194,11 @@ func (g *generator) generate() error {
 	g.P("}")
 	for _, codegen := range g.m.GetCodegens() {
 		rpc := codegen.GetRpc()
-		args := []string{gen.Camel(rpc.GetStore()) + "PostgresStore"}
+		// A resource-less service has no store; the generated store interface is empty.
+		args := []string{"nil"}
+		if rpc.GetStore() != "" {
+			args[0] = gen.Camel(rpc.GetStore()) + "PostgresStore"
+		}
 		if rpc.GetNats() {
 			args = append(args, "natsClient")
 		}
