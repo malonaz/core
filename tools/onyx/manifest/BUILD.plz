@@ -8,6 +8,9 @@ go_library(
     visibility = ["//tools/onyx/..."],
     deps = [
         "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:github.com__bufbuild__protocompile__ast",
+        "//third_party/go:github.com__bufbuild__protocompile__parser",
+        "//third_party/go:github.com__bufbuild__protocompile__reporter",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",

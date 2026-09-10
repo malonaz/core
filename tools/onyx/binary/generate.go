@@ -1,6 +1,7 @@
 package binary
 
 import (
+	"strconv"
 	"strings"
 
 	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
@@ -56,16 +57,6 @@ func (g *generator) sessionManager() bool {
 func (g *generator) internalServiceAuthentication() bool {
 	for _, i := range g.b.Interceptors {
 		if i == onyxpb.Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION {
-			return true
-		}
-	}
-	return false
-}
-
-// longrunning reports whether a service returns google.longrunning.Operation from some method.
-func longrunning(s *Service) bool {
-	for _, codegen := range s.GetCodegens() {
-		if codegen.GetRpc().GetLongrunning() {
 			return true
 		}
 	}
@@ -471,14 +462,16 @@ func (g *generator) grpcServer(s *Server) {
 	fmt_ := g.Import("fmt")
 	v := serverVar(s, "GRPCServer")
 	g.P(v, " := ", grpc, ".NewServer(", serverOpts(s, "GRPC"), ", opts.Certs, opts.Prometheus, \"", s.GetName(), "\", func(server *", grpc, ".Server) {")
-	operations := map[*Service]bool{}
 	for _, registration := range s.GRPC {
 		g.P(gen.PB(g.File, registration.GRPC), ".Register", registration.GRPC.GoName, "Server(server.Raw, ", serviceVar(registration.Service), ")")
-		if longrunning(registration.Service) && !operations[registration.Service] {
-			operations[registration.Service] = true
-			g.P("// AIP-151: a service returning Operations also serves google.longrunning.Operations.")
-			g.P(g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "RegisterOperationsServer"), "(server.Raw, ", serviceVar(registration.Service), ")")
+	}
+	if len(s.LongrunningMethods) > 0 {
+		g.P("// AIP-151: the long-running methods served here are exposed as google.longrunning.Operations.")
+		g.P(g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "RegisterOperationsServer"), "(server.Raw, ", g.Qual(core+"/scheduler/longrunning", "NewServer"), "(", clientVar(s.SchedulerClient), ", []string{")
+		for _, method := range s.LongrunningMethods {
+			g.P(strconv.Quote(method), ",")
 		}
+		g.P("}))")
 	}
 	g.P("})")
 	if s.GetGrpc().GetDescriptorSet() != "" {

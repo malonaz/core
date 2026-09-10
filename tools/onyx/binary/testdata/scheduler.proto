@@ -1,0 +1,8 @@
+syntax = "proto3";
+package malonaz.scheduler.scheduler_service.v1;
+
+option go_package = "example.com/repo/genproto/scheduler/scheduler_service/v1";
+service SchedulerService {
+  rpc Ping(Empty) returns (Empty);
+}
+message Empty {}

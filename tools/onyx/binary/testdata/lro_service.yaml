@@ -1,0 +1,6 @@
+name: lro-service
+target: //lro/lro_service
+dependencies:
+  - grpc_client:
+      service: scheduler-service
+      proto: //scheduler/v1(tools/onyx/binary/testdata/scheduler.proto)

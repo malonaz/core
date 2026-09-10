@@ -928,6 +928,93 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__bufbuild__protocompile",
+    _tag = "download",
+    module = "github.com/bufbuild/protocompile",
+    version = "v0.14.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__ast",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["ast"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__internal",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["internal"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:github.com__bufbuild__protocompile__ast",
+    ],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__internal__editions",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["internal/editions"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__encoding__prototext",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__reflect__protoregistry",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        ":google.golang.org__protobuf__types__dynamicpb",
+    ],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__parser",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["parser"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__bufbuild__protocompile__reporter",
+        ":github.com__bufbuild__protocompile__walk",
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:github.com__bufbuild__protocompile__ast",
+        "//third_party/go:github.com__bufbuild__protocompile__internal",
+        "//third_party/go:github.com__bufbuild__protocompile__internal__editions",
+    ],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__reporter",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["reporter"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__bufbuild__protocompile__ast"],
+)
+
+go_module(
+    name = "github.com__bufbuild__protocompile__walk",
+    download = ":_github.com__bufbuild__protocompile#download",
+    install = ["walk"],
+    module = "github.com/bufbuild/protocompile",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__proto",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:github.com__bufbuild__protocompile__internal",
+    ],
+)
+
+go_mod_download(
     name = "github.com__buger__jsonparser",
     _tag = "download",
     module = "github.com/buger/jsonparser",
@@ -6147,8 +6234,8 @@ go_mod_download(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -6156,8 +6243,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -6165,8 +6252,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):

@@ -116,7 +116,7 @@ func (g *generator) generate() error {
 		return err
 	}
 
-	// Long-running servers hand their operations to the scheduler.
+	// Long-running methods hand their operations to the scheduler.
 	var schedulerClient string
 	var longrunning bool
 	for _, dep := range g.m.GetDependencies() {
@@ -151,10 +151,6 @@ func (g *generator) generate() error {
 	for _, codegen := range g.m.GetCodegens() {
 		rpc := codegen.GetRpc()
 		g.P("*", g.Qual(g.goPath(rpc.GetTarget()), gen.Pascal(rpc.GetName())+"Server"))
-	}
-	if longrunning {
-		g.P("// Serves google.longrunning.Operations for the long-running methods above.")
-		g.P("*", g.Qual(core+"/scheduler/longrunning", "Server"))
 	}
 	g.P("log *", g.Qual("log/slog", "Logger"))
 	g.P(g.field("opts"), " *Opts")
@@ -201,15 +197,6 @@ func (g *generator) generate() error {
 		}
 		server := gen.Pascal(rpc.GetName()) + "Server"
 		g.P("service.", server, " = ", g.Qual(g.goPath(rpc.GetTarget()), "New"+server), "(", strings.Join(args, ", "), ")")
-	}
-	if longrunning {
-		g.P("service.Server = ", g.Qual(core+"/scheduler/longrunning", "NewServer"), "(", schedulerClient, ", ", g.Qual("slices", "Concat"), "(")
-		for _, codegen := range g.m.GetCodegens() {
-			if rpc := codegen.GetRpc(); rpc.GetLongrunning() {
-				g.P(g.Qual(g.goPath(rpc.GetTarget()), gen.Pascal(rpc.GetName())+"LongrunningMethods"), ",")
-			}
-		}
-		g.P("))")
 	}
 	g.P("return service, nil")
 	g.P("}")

@@ -89,3 +89,20 @@ func TestLoadNamedClient(t *testing.T) {
 	require.Equal(t, "c2-service", b.GRPCClients[1].Name)
 	require.Equal(t, "CService", b.GRPCClients[1].GoName)
 }
+
+func TestLoadLongrunning(t *testing.T) {
+	b, err := load(t, "lro.yaml")
+	require.NoError(t, err)
+	server := b.Servers[0]
+	// A gateway method's jobs are the proxied method's.
+	require.Equal(t, []string{"/test.lro.v1.LroService/Import", "/test.other.v1.OtherService/Import"}, server.LongrunningMethods)
+	require.Equal(t, "scheduler-service", server.SchedulerClient.Name)
+	source, err := Generate(b)
+	require.NoError(t, err)
+	require.Contains(t, string(source), "longrunningpb.RegisterOperationsServer(server.Raw, longrunning.NewServer(schedulerServiceClient, []string{")
+}
+
+func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {
+	_, err := load(t, "lro_unscheduled.yaml")
+	require.ErrorContains(t, err, "none of its services has a grpc_client on malonaz.scheduler.scheduler_service.v1.SchedulerService")
+}

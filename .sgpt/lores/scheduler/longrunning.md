@@ -1,6 +1,6 @@
 ---
 title: Long-running operations on the scheduler
-description: How an AIP-151 rpc returning google.longrunning.Operation is run as a scheduler job — the annotations, the generated producer/runner split, the operation name ({job parent}/operations/{job}) and why it is not nested under the acted-on resource, the per-service Operations server and its method scope, request_id idempotency, traps.
+description: How an AIP-151 rpc returning google.longrunning.Operation is run as a scheduler job — the annotations, the generated producer/runner split, the operation name ({job parent}/operations/{job}) and why it is not nested under the acted-on resource, the per-server Operations server onyx derives from the protos (gateways included) and its method scope, request_id idempotency, traps.
 labels:
     lang: go, protobuf
     repo: core
@@ -74,14 +74,24 @@ The acted-on resource stays visible in the job's request payload.
 
 ## The Operations server
 
-Onyx embeds `*longrunning.Server` in every service with a `longrunning`
-codegen and registers `google.longrunning.Operations` on each grpc server
-hosting it (`lores/onyx/binary`). The server is **scoped by method**:
-`NewServer(client, slices.Concat(rpc.{Service}LongrunningMethods...))` only
-surfaces jobs whose `method` is in the list, so services sharing a scheduler
-never see each other's operations — a job of another method under the same
-parent is `NOT_FOUND` through it. Every job of a scoped method is an
-operation, however it was enqueued.
+`google.longrunning.Operations` is a **server** concern: one registration per
+grpc server, which onyx derives from the protos of the services it hosts
+(`lores/onyx/binary`) — no manifest flag. Every rpc returning
+`google.longrunning.Operation` contributes its job method: the method itself,
+or, for a gateway method carrying `(malonaz.codegen.gateway.v1.opts).proxy`,
+the internal method it proxies to (that is what the job row carries). The
+server is `longrunning.NewServer(schedulerClient, methods)` and is **scoped by
+method**: only jobs whose `method` is in the list are visible, so services
+sharing a scheduler never see each other's operations — a job of another
+method under the same parent is `NOT_FOUND` through it. Every job of a scoped
+method is an operation, however it was enqueued.
+
+The scheduler client is one a hosted service declares (`grpc_client` on the
+`malonaz.scheduler.scheduler_service.v1.SchedulerService` proto, whatever its
+`name`); a server exposing operations with no such client, or two different
+ones, fails generation. Calls forward the caller's context, so the scheduler
+authorizes `GetJob`/`ListJobs` as the caller — exposing Operations on an
+external server is just proxying the LRO method in a gateway proto.
 
 - `GetOperation`/`WaitOperation`/`CancelOperation`/`DeleteOperation` map to
   the job RPCs; `WaitOperation`'s timeout is capped by
@@ -91,9 +101,9 @@ operation, however it was enqueued.
 
 ## Traps
 
-- `google.longrunning.Operations` is a single service name: a grpc server can
-  register it once. Hosting two longrunning services on one server needs one
-  aggregated Operations server, not two registrations.
+- A gateway that proxies an LRO needs a `grpc_client` on the scheduler
+  service in its manifest even though its handler never calls it: the server's
+  Operations server reads jobs through it.
 - A runner handing back an unfinished operation is a bug: the dispatcher fails
   the job `FAILED_PRECONDITION` without retry.
 - Stock `operations.proto` binds `GET /v1/{name=operations/**}`; a REST
