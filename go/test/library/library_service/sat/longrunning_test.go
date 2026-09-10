@@ -22,6 +22,7 @@ import (
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/scheduler/longrunning"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -62,7 +63,7 @@ func (f *importFixture) importBooks(t *testing.T, request *libraryservicepb.Impo
 	request.Author = f.author.GetName()
 	operation, err := libraryServiceClient.ImportBooks(ctx, request)
 	require.NoError(t, err)
-	require.Regexp(t, "^"+f.shelf.GetName()+"/operations/[a-z0-9]+$", operation.GetName())
+	require.Regexp(t, "^"+f.organization+"/operations/[a-z0-9]+$", operation.GetName())
 	require.False(t, operation.GetDone())
 	require.Nil(t, operation.GetResult())
 	return operation
@@ -221,11 +222,10 @@ func TestImportBooks_ListOperations(t *testing.T) {
 	other, err := libraryServiceClient.ImportBooks(ctx, otherRequest)
 	require.NoError(t, err)
 
-	// A job of another method under the same organization, naming an operation
-	// on the shelf: not this service's, so invisible through its Operations server.
-	foreignName := fixture.shelf.GetName() + "/operations/" + uuid.MustNewV7().String()
+	// A job of another method under the same organization: not this service's,
+	// so invisible through its Operations server.
 	createJobRequest, err := scheduler.NewCreateJobRequest(fixture.organization, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
-		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)), scheduler.WithOperation(foreignName))
+		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)))
 	require.NoError(t, err)
 	foreign, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
@@ -233,21 +233,22 @@ func TestImportBooks_ListOperations(t *testing.T) {
 		cancelJobRequest := &schedulerservicepb.CancelJobRequest{Name: foreign.GetName()}
 		_, _ = schedulerServiceClient.CancelJob(ctx, cancelJobRequest)
 	})
+	foreignName, err := longrunning.OperationName(foreign.GetName())
+	require.NoError(t, err)
 
 	waitOperation(t, first.GetName(), operationWaitTimeout)
 	waitOperation(t, other.GetName(), operationWaitTimeout)
 
-	// Direct children of the shelf only: not the other shelf's, not the foreign job.
-	require.ElementsMatch(t, []string{first.GetName(), second.GetName()}, listOperations(t, fixture.shelf.GetName(), ""))
-	require.Equal(t, []string{other.GetName()}, listOperations(t, otherShelf.GetName(), ""))
-	require.Empty(t, listOperations(t, fixture.organization, ""), "operations hang off shelves, not the organization")
+	// Every import of the organization, whichever shelf; not the foreign job, not another organization's.
+	require.ElementsMatch(t, []string{first.GetName(), second.GetName(), other.GetName()}, listOperations(t, fixture.organization, ""))
+	require.Empty(t, listOperations(t, getOrganizationParent(), ""))
 
-	require.Equal(t, []string{first.GetName()}, listOperations(t, fixture.shelf.GetName(), "done"))
-	require.Equal(t, []string{first.GetName()}, listOperations(t, fixture.shelf.GetName(), "done = true"))
-	require.Equal(t, []string{second.GetName()}, listOperations(t, fixture.shelf.GetName(), "NOT done"))
-	require.Equal(t, []string{second.GetName()}, listOperations(t, fixture.shelf.GetName(), "-done"))
+	require.ElementsMatch(t, []string{first.GetName(), other.GetName()}, listOperations(t, fixture.organization, "done"))
+	require.ElementsMatch(t, []string{first.GetName(), other.GetName()}, listOperations(t, fixture.organization, "done = true"))
+	require.Equal(t, []string{second.GetName()}, listOperations(t, fixture.organization, "NOT done"))
+	require.Equal(t, []string{second.GetName()}, listOperations(t, fixture.organization, "-done"))
 
-	listOperationsRequest := &longrunningpb.ListOperationsRequest{Name: fixture.shelf.GetName(), Filter: `name = "x"`}
+	listOperationsRequest := &longrunningpb.ListOperationsRequest{Name: fixture.organization, Filter: `name = "x"`}
 	_, err = operationsClient.ListOperations(ctx, listOperationsRequest)
 	grpcrequire.Error(t, codes.InvalidArgument, err)
 
@@ -324,7 +325,7 @@ func TestImportBooks_RequestID(t *testing.T) {
 	repeated, err := libraryServiceClient.ImportBooks(ctx, repeatedRequest)
 	require.NoError(t, err)
 	require.Equal(t, first.GetName(), repeated.GetName())
-	require.Len(t, listOperations(t, fixture.shelf.GetName(), ""), 1)
+	require.Len(t, listOperations(t, fixture.organization, ""), 1)
 }
 
 func TestImportBooks_RunInline(t *testing.T) {
@@ -339,7 +340,7 @@ func TestImportBooks_RunInline(t *testing.T) {
 	importBooksRequest := &libraryservicepb.ImportBooksRequest{Parent: fixture.shelf.GetName(), Author: fixture.author.GetName(), Titles: titles}
 	operation, err := libraryServiceClient.ImportBooks(runCtx, importBooksRequest)
 	require.NoError(t, err)
-	require.Equal(t, fixture.shelf.GetName()+"/operations/"+jobID, operation.GetName())
+	require.Equal(t, "operations/"+jobID, operation.GetName())
 	require.True(t, operation.GetDone())
 	require.Len(t, unpackAny[*libraryservicepb.ImportBooksResponse](t, operation.GetResponse()).GetBooks(), len(titles))
 	require.Len(t, fixture.books(t), len(titles))

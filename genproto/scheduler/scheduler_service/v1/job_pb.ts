@@ -38,7 +38,7 @@ export type CreateJobRequest = Message<"malonaz.scheduler.scheduler_service.v1.C
   /**
    * The job to create. Only the producer-owned fields are read: `payload`,
    * `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
-   * `expire_time` and `operation`.
+   * `expire_time`.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */
@@ -88,7 +88,7 @@ export type CreateJobRequestValid = Message<"malonaz.scheduler.scheduler_service
   /**
    * The job to create. Only the producer-owned fields are read: `payload`,
    * `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
-   * `expire_time` and `operation`.
+   * `expire_time`.
    *
    * @generated from field: malonaz.scheduler.v1.Job job = 2;
    */

@@ -38,7 +38,7 @@ type CreateJobRequest struct {
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The job to create. Only the producer-owned fields are read: `payload`,
 	// `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
-	// `expire_time` and `operation`.
+	// `expire_time`.
 	Job *v1.Job `protobuf:"bytes,2,opt,name=job,proto3" json:"job,omitempty"`
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -154,7 +154,7 @@ type CreateJobRequest_builder struct {
 	Parent string
 	// The job to create. Only the producer-owned fields are read: `payload`,
 	// `queue`, `labels`, `priority`, `unique_key`, `schedule_time`,
-	// `expire_time` and `operation`.
+	// `expire_time`.
 	Job *v1.Job
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
