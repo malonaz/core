@@ -1,6 +1,6 @@
-subinclude("//build_defs/codegen/go_service:build_defs")
+subinclude("//build_defs/codegen/onyx:build_defs")
 
-go_service_manifest(
+onyx_manifest(
     name = "manifest",
     visibility = ["PUBLIC"],
     deps = [
@@ -8,7 +8,7 @@ go_service_manifest(
     ],
 )
 
-go_service_src(
+onyx_service_src(
     name = "service.tmpl.go",
     labels = ["copy_generated_code::"],
     manifest = ":manifest",

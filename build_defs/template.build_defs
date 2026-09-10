@@ -121,27 +121,3 @@ def go_template(
         visibility = visibility,
         test_only=test_only,
     )
-
-def validated_file(
-        name:str,
-        src:str,
-        schema:str,
-        format:str="json",
-        exported_deps:list=[],
-        visibility:list=[],
-        test_only:bool=False,
-):
-    return genrule(
-        name = name,
-        srcs = [src],
-        exported_deps = exported_deps,
-        cmd = [
-            f"$TOOLS --file $SRCS --format {format} --schema $(location {schema})",
-            "mv $SRCS $OUTS"
-        ],
-        deps = [schema],
-        out = name,
-        tools = [CONFIG.CORE.VALIDATE_SCHEMA],
-        visibility=visibility,
-        test_only=test_only,
-    )

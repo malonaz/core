@@ -1,0 +1,14 @@
+name: test
+servers:
+  - name: a-service
+    grpc:
+      services:
+        - service: a-service
+          proto: //a/v1(tools/onyx/binary/testdata/a.proto)
+          manifest: //a/a_service:manifest(tools/onyx/binary/testdata/a_service.yaml)
+  - name: b-service
+    grpc:
+      services:
+        - service: b-service
+          proto: //a/v1(tools/onyx/binary/testdata/b.proto)
+          manifest: //b/b_service:manifest(tools/onyx/binary/testdata/b_cyclic_service.yaml)

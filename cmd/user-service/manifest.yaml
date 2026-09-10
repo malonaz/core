@@ -1,8 +1,8 @@
 name: user-service
 servers:
-  - type: grpc
-    name: user-service-external
-    services:
-      - service: user-service
-        proto: //malonaz/test/user/user_service/v1
-        manifest: //go/test/user/user_service:manifest
+  - name: user-service-external
+    grpc:
+      services:
+        - service: user-service
+          proto: //malonaz/test/user/user_service/v1
+          manifest: //go/test/user/user_service:manifest

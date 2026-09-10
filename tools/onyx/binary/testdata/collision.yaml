@@ -1,0 +1,8 @@
+name: test
+servers:
+  - name: c-service
+    grpc:
+      services:
+        - service: a-service
+          proto: //a/v1(tools/onyx/binary/testdata/a.proto)
+          manifest: //a/a_service:manifest(tools/onyx/binary/testdata/a_service.yaml)

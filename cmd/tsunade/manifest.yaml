@@ -1,16 +1,16 @@
 name: tsunade
 setup: true
 servers:
-  - type: grpc
-    name: tsunade-external
-    interceptors:
-      - type: session_local_context_injector
-      - type: external_api_key_authentication
-      - type: internal_service_authentication
-      - type: permission_authentication
-      - type: session_log_injector
-      - type: session_outgoing_context_injector
-    services:
-      - proto: //malonaz/ai/ai_service/v1
-        service: ai-service
-        manifest: //go/ai/ai_service:manifest
+  - name: tsunade-external
+    grpc:
+      interceptors:
+        - INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR
+        - INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION
+        - INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION
+        - INTERCEPTOR_PERMISSION_AUTHENTICATION
+        - INTERCEPTOR_SESSION_LOG_INJECTOR
+        - INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR
+      services:
+        - service: ai-service
+          proto: //malonaz/ai/ai_service/v1
+          manifest: //go/ai/ai_service:manifest

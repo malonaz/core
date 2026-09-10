@@ -1,0 +1,10 @@
+go_library(
+    name = "service",
+    srcs = ["generate.go"],
+    visibility = ["//tools/onyx/..."],
+    deps = [
+        "//malonaz/onyx/v1",
+        "//tools/onyx/gen",
+        "//tools/onyx/manifest",
+    ],
+)

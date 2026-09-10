@@ -1,13 +1,13 @@
-subinclude("//build_defs/codegen/go_service:build_defs")
+subinclude("//build_defs/codegen/onyx:build_defs")
 
-go_service_manifest(
+onyx_manifest(
     name = "manifest",
     test_only = True,
     visibility = ["//cmd/..."],
     deps = ["//malonaz/scheduler/scheduler_service/v1"],
 )
 
-go_service_src(
+onyx_service_src(
     name = "service.tmpl.go",
     manifest = ":manifest",
     test_only = True,
