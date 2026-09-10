@@ -30,7 +30,7 @@ const (
 // Request message for SchedulerService.CreateQueue.
 type CreateQueueRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The queue to create. Only `policy` and `handlers` are read.
+	// The queue to create. Only `service`, `method`, `endpoint`, `request_type`, `response_type` and `policy` are read.
 	Queue *v1.Queue `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -129,7 +129,7 @@ func (x *CreateQueueRequest) ClearQueue() {
 type CreateQueueRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The queue to create. Only `policy` and `handlers` are read.
+	// The queue to create. Only `service`, `method`, `endpoint`, `request_type`, `response_type` and `policy` are read.
 	Queue *v1.Queue
 	// The ID to use for the resource, which will become the final component of
 	// the resource name.
@@ -889,14 +889,15 @@ const file_malonaz_scheduler_scheduler_service_v1_queue_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x04 \x01(\bR\fvalidateOnly\"P\n" +
 	"\x0fGetQueueRequest\x12=\n" +
 	"\x04name\x18\x01 \x01(\tB)\xe0A\x02\xfaA\x1d\n" +
-	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x04name\"\xf5\x01\n" +
+	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x04name\"\x84\x02\n" +
 	"\x12UpdateQueueRequest\x129\n" +
 	"\x05queue\x18\x01 \x01(\v2\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xd8\x01\x03R\x05queue\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:_\xbaHE\x1aC\n" +
-	"\x13queue.name_required\x12\x16queue.name must be set\x1a\x14has(this.queue.name)\xea\x9c\xc1\x03\x12\n" +
-	"\x06policy\n" +
-	"\bhandlers\"\x8c\x01\n" +
+	"updateMask:n\xbaHE\x1aC\n" +
+	"\x13queue.name_required\x12\x16queue.name must be set\x1a\x14has(this.queue.name)\xea\x9c\xc1\x03!\n" +
+	"\bendpoint\n" +
+	"\rresponse_type\n" +
+	"\x06policy\"\x8c\x01\n" +
 	"\x12DeleteQueueRequest\x12=\n" +
 	"\x04name\x18\x01 \x01(\tB)\xe0A\x02\xfaA\x1d\n" +
 	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +

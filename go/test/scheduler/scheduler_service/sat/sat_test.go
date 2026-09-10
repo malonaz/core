@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	processorpb "github.com/malonaz/core/genproto/test/scheduler/processor/v1"
@@ -22,6 +23,7 @@ import (
 	"github.com/malonaz/core/go/prometheus"
 	"github.com/malonaz/core/go/sat"
 	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/uuid"
 )
 
 var (
@@ -35,7 +37,6 @@ const (
 	schedulerServiceName = "scheduler-service"
 	schedulerServicePath = "cmd/scheduler-service/scheduler-service"
 	// The fixtures every replica converges onto at boot.
-	bootstrapPath        = "go/test/scheduler/scheduler_service/sat/bootstrap.jsonnet"
 	schedulerServiceHost = "localhost"
 	schedulerServicePort = 9090
 	// A second replica claiming from the same database.
@@ -55,27 +56,14 @@ const (
 	maxParallelJobs = 16
 	replicaCount    = 2
 
-	// The in-process processor every sat queue routes to.
-	targetName      = "targets/test-processor"
-	bootstrapTarget = "targets/bootstrap-target"
-	processorURL    = "http://localhost:9091"
-	deadURL         = "http://localhost:9093"
-	bareURL         = "http://localhost:9094"
-	testHeader      = "x-test-header"
-	processorPath   = "/malonaz.test.scheduler.processor.v1.Processor/"
+	// The in-process processor the dispatcher discovers and delivers to.
+	processorURL     = "http://localhost:9091"
+	deadURL          = "http://localhost:9093"
+	bareURL          = "http://localhost:9094"
+	processorService = "malonaz.test.scheduler.processor.v1.Processor"
+	processorPath    = "/" + processorService + "/"
 
-	// The sat queues; see bootstrap.jsonnet for their policies.
-	echoQueue            = "queues/echo"
-	flakyQueue           = "queues/flaky"
-	sleepQueue           = "queues/sleep"
-	deadlineQueue        = "queues/deadline"
-	progressQueue        = "queues/progress"
-	limitedQueue         = "queues/limited"
-	serialQueue          = "queues/serial"
-	operateQueue         = "queues/operate"
-	bootstrapPausedQueue = "queues/bootstrap-paused"
-
-	// Policies as declared in bootstrap.jsonnet.
+	// Policies as declared on the processor's methods (processor.proto).
 	flakyBackoffInitial = 300 * time.Millisecond
 	flakyMaxAttempts    = 3
 	deadlineTimeout     = 1 * time.Second
@@ -88,6 +76,13 @@ const (
 
 	// Generous ceiling for polling assertions.
 	waitTimeout = 30 * time.Second
+)
+
+// The queues the dispatcher created for the processor's methods, resolved once
+// the scheduler is up.
+var (
+	echoQueue, flakyQueue, sleepQueue, deadlineQueue, progressQueue, limitedQueue, serialQueue, operateQueue string
+	pausableQueue, tunableQueue, redialQueue                                                                 string
 )
 
 var environmentVariables = map[string]string{
@@ -113,13 +108,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// schedulerSUT describes one scheduler replica converging onto the bootstrap
-// files. Every replica needs its own health and metrics ports or the second
-// dies at boot.
-func schedulerSUT(name string, port, healthPort, prometheusPort int, bootstrapPaths ...string) sat.SUT {
-	args := make([]string, 0, 2*len(bootstrapPaths))
-	for _, path := range bootstrapPaths {
-		args = append(args, "--scheduler-service.bootstrap", path)
+// schedulerSUT describes one scheduler replica dispatching to the endpoints.
+// Every replica needs its own health and metrics ports or the second dies at boot.
+func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints ...string) sat.SUT {
+	args := make([]string, 0, 2*len(endpoints))
+	for _, endpoint := range endpoints {
+		args = append(args, "--scheduler-dispatcher.endpoint", endpoint)
 	}
 	return sat.SUT{
 		Name: name,
@@ -130,12 +124,13 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, bootstrapPa
 			"--scheduler-service-external-grpc.disable-tls",
 			"--health.port", strconv.Itoa(healthPort),
 			"--prometheus.port", strconv.Itoa(prometheusPort),
-			"--scheduler-service.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
-			"--scheduler-service.poll-interval", pollInterval.String(),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
 			"--scheduler-service.sweep-interval", "500ms",
 			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
-			"--scheduler-service.worker-id", name,
+			"--scheduler-dispatcher.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
+			"--scheduler-dispatcher.poll-interval", pollInterval.String(),
+			"--scheduler-dispatcher.lease-duration", leaseDuration.String(),
+			"--scheduler-dispatcher.worker-id", name,
 		),
 	}
 }
@@ -163,8 +158,8 @@ func run(ctx context.Context) (func(), error) {
 
 	config := &sat.Config{
 		SUTS: []sat.SUT{
-			schedulerSUT(schedulerServiceName, schedulerServicePort, 4040, 13434, bootstrapPath),
-			schedulerSUT(schedulerServiceName+"-replica", schedulerReplicaPort, 4041, 13435, bootstrapPath),
+			schedulerSUT(schedulerServiceName, schedulerServicePort, 4040, 13434, processorURL),
+			schedulerSUT(schedulerServiceName+"-replica", schedulerReplicaPort, 4041, 13435, processorURL),
 		},
 		PostgresServerConfig: sat.PostgresServerConfig{
 			Host:     postgresHost,
@@ -213,12 +208,44 @@ func run(ctx context.Context) (func(), error) {
 	cleanupFns = append(cleanupFns, func() { connection.Close() })
 	schedulerServiceClient = schedulerservicepb.NewSchedulerServiceClient(connection.Get())
 	testProcessor.schedulerServiceClient = schedulerServiceClient
+	if err := resolveQueues(ctx); err != nil {
+		return cleanup, err
+	}
 	return cleanup, nil
 }
 
-// handler routes a processor method to the shared target.
-func handler(method string) *schedulerpb.Handler {
-	return &schedulerpb.Handler{Method: processorPath + method, Target: targetName}
+// resolveQueues looks up the queue the dispatcher created for each processor method.
+func resolveQueues(ctx context.Context) error {
+	for method, queue := range map[string]*string{
+		"Echo": &echoQueue, "Flaky": &flakyQueue, "Sleep": &sleepQueue, "Deadline": &deadlineQueue,
+		"Progress": &progressQueue, "Limited": &limitedQueue, "Serial": &serialQueue, "Operate": &operateQueue,
+		"Pausable": &pausableQueue, "Tunable": &tunableQueue, "Redial": &redialQueue,
+	} {
+		name, err := queueNameOf(ctx, processorService, method)
+		if err != nil {
+			return err
+		}
+		*queue = name
+	}
+	return nil
+}
+
+// queueNameOf returns the name of the queue serving the method.
+func queueNameOf(ctx context.Context, service, method string) (string, error) {
+	listQueuesRequest := &schedulerservicepb.ListQueuesRequest{Filter: fmt.Sprintf("service = %q AND method = %q", service, method)}
+	listQueuesResponse, err := schedulerServiceClient.ListQueues(ctx, listQueuesRequest)
+	if err != nil {
+		return "", fmt.Errorf("listing queues: %w", err)
+	}
+	if len(listQueuesResponse.GetQueues()) != 1 {
+		return "", fmt.Errorf("expected one queue of %s.%s, got %d", service, method, len(listQueuesResponse.GetQueues()))
+	}
+	return listQueuesResponse.GetQueues()[0].GetName(), nil
+}
+
+// requestType is the type URL of a processor method's request.
+func requestType(method string) string {
+	return "type.googleapis.com/malonaz.test.scheduler.processor.v1." + method + "Request"
 }
 
 // resourceID returns the last segment of a resource name.
@@ -249,6 +276,16 @@ func queueFor(message proto.Message) string {
 		return deadlineQueue
 	case *processorpb.ProgressRequest:
 		return progressQueue
+	case *processorpb.LimitedRequest:
+		return limitedQueue
+	case *processorpb.SerialRequest:
+		return serialQueue
+	case *processorpb.PausableRequest:
+		return pausableQueue
+	case *processorpb.TunableRequest:
+		return tunableQueue
+	case *processorpb.RedialRequest:
+		return redialQueue
 	case *processorpb.OperateRequest:
 		return operateQueue
 	}
@@ -263,12 +300,7 @@ func createJob(t *testing.T, message proto.Message, options ...scheduler.CreateJ
 
 func createJobUnder(t *testing.T, parent string, message proto.Message, options ...scheduler.CreateJobOption) *schedulerpb.Job {
 	t.Helper()
-	return createJobIn(t, parent, queueFor(message), message, options...)
-}
-
-func createJobIn(t *testing.T, parent, queue string, message proto.Message, options ...scheduler.CreateJobOption) *schedulerpb.Job {
-	t.Helper()
-	createJobRequest, err := scheduler.NewCreateJobRequest(parent, queue, message, options...)
+	createJobRequest, err := scheduler.NewCreateJobRequest(parent, message, options...)
 	require.NoError(t, err)
 	job, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
@@ -298,22 +330,29 @@ func getQueue(t *testing.T, name string) *schedulerpb.Queue {
 	return queue
 }
 
-// createQueue creates a queue private to a test, routing the given processor
-// methods to the shared target, and deletes it once the test ends.
-func createQueue(t *testing.T, policy *schedulerpb.QueuePolicy, methods ...string) *schedulerpb.Queue {
+// declareQueue creates a queue as the dispatcher would, for a fake method on
+// the given endpoint, and deletes it once the test ends.
+func declareQueue(t *testing.T, endpoint string, policy *policypb.QueuePolicy) *schedulerpb.Queue {
 	t.Helper()
-	handlers := make([]*schedulerpb.Handler, len(methods))
-	for i, method := range methods {
-		handlers[i] = handler(method)
-	}
-	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{Policy: policy, Handlers: handlers}}
-	queue, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest)
+	method := "Method" + strings.ReplaceAll(uuid.MustNewV7().String(), "-", "")
+	queue, err := schedulerServiceClient.CreateQueue(ctx, &schedulerservicepb.CreateQueueRequest{Queue: fakeQueue(method, endpoint, policy)})
 	require.NoError(t, err)
 	t.Cleanup(func() { deleteQueueOnceIdle(t, queue.GetName()) })
 	return queue
 }
 
-// deleteQueueOnceIdle cancels the queue's live jobs, then deletes it.
+// fakeQueue declares a queue for a method of a service that exists nowhere.
+func fakeQueue(method, endpoint string, policy *policypb.QueuePolicy) *schedulerpb.Queue {
+	return &schedulerpb.Queue{
+		Service:      "test.fake.v1.Fake",
+		Method:       method,
+		Endpoint:     endpoint,
+		RequestType:  "type.googleapis.com/test.fake.v1." + method + "Request",
+		ResponseType: "type.googleapis.com/test.fake.v1." + method + "Response",
+		Policy:       policy,
+	}
+}
+
 func deleteQueueOnceIdle(t *testing.T, name string) {
 	t.Helper()
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{Filter: fmt.Sprintf(`queue = "%s" AND (state = JOB_STATE_PENDING OR state = JOB_STATE_RUNNING)`, name)}

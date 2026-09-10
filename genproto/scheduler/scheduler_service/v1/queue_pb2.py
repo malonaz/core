@@ -30,7 +30,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.scheduler.v1 import queue_pb2 as malonaz_dot_scheduler_dot_v1_dot_queue__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/scheduler/scheduler_service/v1/queue.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a malonaz/scheduler/v1/queue.proto\"\xb9\x01\n\x12\x43reateQueueRequest\x12\x32\n\x05queue\x18\x01 \x01(\x0b\x32\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xc8\x01\x01\x12\x37\n\x08queue_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x04 \x01(\x08\"J\n\x0fGetQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\"\xe2\x01\n\x12UpdateQueueRequest\x12\x32\n\x05queue\x18\x01 \x01(\x0b\x32\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:_\xbaHE\x1a\x43\n\x13queue.name_required\x12\x16queue.name must be set\x1a\x14has(this.queue.name)\xea\x9c\xc1\x03\x12\n\x06policy\n\x08handlers\"r\n\x12\x44\x65leteQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xa6\x01\n\x11ListQueuesRequest\x12\x0e\n\x06\x66ilter\x18\x01 \x01(\t\x12\x10\n\x08order_by\x18\x02 \x01(\t\x12\x1d\n\tpage_size\x18\x03 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x04 \x01(\t:<\x82\xf3-\x02\x08\x64\x8a\xf3-+\n\x0b\x63reate_time\n\x0bupdate_time\x12\x0f\x63reate_time asc\x92\xf3-\x03\n\x01*\"Z\n\x12ListQueuesResponse\x12+\n\x06queues\x18\x01 \x03(\x0b\x32\x1b.malonaz.scheduler.v1.Queue\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"[\n\x15\x42\x61tchGetQueuesRequest\x12\x42\n\x05names\x18\x01 \x03(\tB3\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"E\n\x16\x42\x61tchGetQueuesResponse\x12+\n\x06queues\x18\x01 \x03(\x0b\x32\x1b.malonaz.scheduler.v1.Queue\"Z\n\x11PauseQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"[\n\x12ResumeQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\tBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/scheduler/scheduler_service/v1/queue.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a malonaz/scheduler/v1/queue.proto\"\xb9\x01\n\x12\x43reateQueueRequest\x12\x32\n\x05queue\x18\x01 \x01(\x0b\x32\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xc8\x01\x01\x12\x37\n\x08queue_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x04 \x01(\x08\"J\n\x0fGetQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\"\xf1\x01\n\x12UpdateQueueRequest\x12\x32\n\x05queue\x18\x01 \x01(\x0b\x32\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:n\xbaHE\x1a\x43\n\x13queue.name_required\x12\x16queue.name must be set\x1a\x14has(this.queue.name)\xea\x9c\xc1\x03!\n\x08\x65ndpoint\n\rresponse_type\n\x06policy\"r\n\x12\x44\x65leteQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\xa6\x01\n\x11ListQueuesRequest\x12\x0e\n\x06\x66ilter\x18\x01 \x01(\t\x12\x10\n\x08order_by\x18\x02 \x01(\t\x12\x1d\n\tpage_size\x18\x03 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x04 \x01(\t:<\x82\xf3-\x02\x08\x64\x8a\xf3-+\n\x0b\x63reate_time\n\x0bupdate_time\x12\x0f\x63reate_time asc\x92\xf3-\x03\n\x01*\"Z\n\x12ListQueuesResponse\x12+\n\x06queues\x18\x01 \x03(\x0b\x32\x1b.malonaz.scheduler.v1.Queue\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"[\n\x15\x42\x61tchGetQueuesRequest\x12\x42\n\x05names\x18\x01 \x03(\tB3\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"E\n\x16\x42\x61tchGetQueuesResponse\x12+\n\x06queues\x18\x01 \x03(\x0b\x32\x1b.malonaz.scheduler.v1.Queue\"Z\n\x11PauseQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"[\n\x12ResumeQueueRequest\x12\x37\n\x04name\x18\x01 \x01(\tB)\xe0\x41\x02\xfa\x41\x1d\n\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\tBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -51,7 +51,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATEQUEUEREQUEST'].fields_by_name['update_mask']._loaded_options = None
   _globals['_UPDATEQUEUEREQUEST'].fields_by_name['update_mask']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATEQUEUEREQUEST']._loaded_options = None
-  _globals['_UPDATEQUEUEREQUEST']._serialized_options = b'\272HE\032C\n\023queue.name_required\022\026queue.name must be set\032\024has(this.queue.name)\352\234\301\003\022\n\006policy\n\010handlers'
+  _globals['_UPDATEQUEUEREQUEST']._serialized_options = b'\272HE\032C\n\023queue.name_required\022\026queue.name must be set\032\024has(this.queue.name)\352\234\301\003!\n\010endpoint\n\rresponse_type\n\006policy'
   _globals['_DELETEQUEUEREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETEQUEUEREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\035\n\033scheduler.malonaz.com/Queue\272H\003\310\001\001'
   _globals['_LISTQUEUESREQUEST'].fields_by_name['page_size']._loaded_options = None
@@ -69,19 +69,19 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETQUEUEREQUEST']._serialized_start=473
   _globals['_GETQUEUEREQUEST']._serialized_end=547
   _globals['_UPDATEQUEUEREQUEST']._serialized_start=550
-  _globals['_UPDATEQUEUEREQUEST']._serialized_end=776
-  _globals['_DELETEQUEUEREQUEST']._serialized_start=778
-  _globals['_DELETEQUEUEREQUEST']._serialized_end=892
-  _globals['_LISTQUEUESREQUEST']._serialized_start=895
-  _globals['_LISTQUEUESREQUEST']._serialized_end=1061
-  _globals['_LISTQUEUESRESPONSE']._serialized_start=1063
-  _globals['_LISTQUEUESRESPONSE']._serialized_end=1153
-  _globals['_BATCHGETQUEUESREQUEST']._serialized_start=1155
-  _globals['_BATCHGETQUEUESREQUEST']._serialized_end=1246
-  _globals['_BATCHGETQUEUESRESPONSE']._serialized_start=1248
-  _globals['_BATCHGETQUEUESRESPONSE']._serialized_end=1317
-  _globals['_PAUSEQUEUEREQUEST']._serialized_start=1319
-  _globals['_PAUSEQUEUEREQUEST']._serialized_end=1409
-  _globals['_RESUMEQUEUEREQUEST']._serialized_start=1411
-  _globals['_RESUMEQUEUEREQUEST']._serialized_end=1502
+  _globals['_UPDATEQUEUEREQUEST']._serialized_end=791
+  _globals['_DELETEQUEUEREQUEST']._serialized_start=793
+  _globals['_DELETEQUEUEREQUEST']._serialized_end=907
+  _globals['_LISTQUEUESREQUEST']._serialized_start=910
+  _globals['_LISTQUEUESREQUEST']._serialized_end=1076
+  _globals['_LISTQUEUESRESPONSE']._serialized_start=1078
+  _globals['_LISTQUEUESRESPONSE']._serialized_end=1168
+  _globals['_BATCHGETQUEUESREQUEST']._serialized_start=1170
+  _globals['_BATCHGETQUEUESREQUEST']._serialized_end=1261
+  _globals['_BATCHGETQUEUESRESPONSE']._serialized_start=1263
+  _globals['_BATCHGETQUEUESRESPONSE']._serialized_end=1332
+  _globals['_PAUSEQUEUEREQUEST']._serialized_start=1334
+  _globals['_PAUSEQUEUEREQUEST']._serialized_end=1424
+  _globals['_RESUMEQUEUEREQUEST']._serialized_start=1426
+  _globals['_RESUMEQUEUEREQUEST']._serialized_end=1517
 # @@protoc_insertion_point(module_scope)

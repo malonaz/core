@@ -19,11 +19,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/v1/job.proto.
  */
 export const file_malonaz_scheduler_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxItoNCgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEjgKBXF1ZXVlGAcgASgJQingQQX6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARITCgZtZXRob2QYFiABKAlCA+BBAxJkCglvcGVyYXRpb24YFyABKAlCUeBBBfpBJgokbG9uZ3J1bm5pbmcuZ29vZ2xlYXBpcy5jb20vT3BlcmF0aW9uukgcchcyFV4uKy9vcGVyYXRpb25zL1teL10rJNgBAbrqDwIgARI6CgVzdGF0ZRgIIAEoDjIeLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYlN0YXRlQgvgQQO6SAWCAQIQARIkCghwcmlvcml0eRgJIAEoBUISukgPGg0YZCic//////////8BEiIKCnVuaXF1ZV9rZXkYCiABKAlCDrpIBXIDGIACuuoPAiABEjkKDXNjaGVkdWxlX3RpbWUYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESNwoLZXhwaXJlX3RpbWUYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESOQoKc3RhcnRfdGltZRgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI8Cg1jb21wbGV0ZV90aW1lGA4gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEjgKCWxvY2tfdGltZRgPIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI5CgpwdXJnZV90aW1lGBAgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEhoKDWF0dGVtcHRfY291bnQYESABKAVCA+BBAxIuCgVlcnJvchgSIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzQgvgQQO66g8EGAEgARIzCghyZXNwb25zZRgTIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEjMKCHByb2dyZXNzGBQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIL4EEDuuoPBBgBIAESQAoIbWV0YWRhdGEYFSABKAsyIS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JNZXRhZGF0YUIL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATr+AupBkQEKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2ISCmpvYnMve2pvYn0SJ29yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vam9icy97am9ifRI0b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vam9icy97am9ifSoEam9iczIDam9iukiuARqrAQojam9iLmV4cGlyZV90aW1lX2FmdGVyX3NjaGVkdWxlX3RpbWUSJ2V4cGlyZV90aW1lIG11c3QgYmUgYWZ0ZXIgc2NoZWR1bGVfdGltZRpbIWhhcyh0aGlzLmV4cGlyZV90aW1lKSB8fCAhaGFzKHRoaXMuc2NoZWR1bGVfdGltZSkgfHwgdGhpcy5leHBpcmVfdGltZSA+IHRoaXMuc2NoZWR1bGVfdGltZdKmBAsKCXNjaGVkdWxlcoL2LCQ4ZGJhMTg3Mi05MTkzLTRkZGQtYTk5ZS02OGFiZjMyN2VhZDMiUQoLSm9iTWV0YWRhdGESMgoIYXR0ZW1wdHMYASADKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JBdHRlbXB0Eg4KBndvcmtlchgCIAEoCSLeAQoKSm9iQXR0ZW1wdBIPCgdhdHRlbXB0GAEgASgFEi4KCnN0YXJ0X3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZ3b3JrZXIYBCABKAkSIQoFZXJyb3IYBSABKAsyEi5nb29nbGUucnBjLlN0YXR1cxIuCgtyZXRyeV9kZWxheRgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiqbAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFQoRSk9CX1NUQVRFX1BFTkRJTkcQARIVChFKT0JfU1RBVEVfUlVOTklORxACEhcKE0pPQl9TVEFURV9TVUNDRUVERUQQAxIUChBKT0JfU1RBVEVfRkFJTEVEEAQSFwoTSk9CX1NUQVRFX0NBTkNFTExFRBAFQugBWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjHqQV8KInNjaGVkdWxlci5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBVAoac2NoZWR1bGVyLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxItQNCgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEjIKBXF1ZXVlGAcgASgJQiPgQQP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRITCgZtZXRob2QYFiABKAlCA+BBAxJkCglvcGVyYXRpb24YFyABKAlCUeBBBfpBJgokbG9uZ3J1bm5pbmcuZ29vZ2xlYXBpcy5jb20vT3BlcmF0aW9uukgcchcyFV4uKy9vcGVyYXRpb25zL1teL10rJNgBAbrqDwIgARI6CgVzdGF0ZRgIIAEoDjIeLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYlN0YXRlQgvgQQO6SAWCAQIQARIkCghwcmlvcml0eRgJIAEoBUISukgPGg0YZCic//////////8BEiIKCnVuaXF1ZV9rZXkYCiABKAlCDrpIBXIDGIACuuoPAiABEjkKDXNjaGVkdWxlX3RpbWUYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESNwoLZXhwaXJlX3RpbWUYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESOQoKc3RhcnRfdGltZRgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI8Cg1jb21wbGV0ZV90aW1lGA4gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEjgKCWxvY2tfdGltZRgPIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI5CgpwdXJnZV90aW1lGBAgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEhoKDWF0dGVtcHRfY291bnQYESABKAVCA+BBAxIuCgVlcnJvchgSIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzQgvgQQO66g8EGAEgARIzCghyZXNwb25zZRgTIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEjMKCHByb2dyZXNzGBQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIL4EEDuuoPBBgBIAESQAoIbWV0YWRhdGEYFSABKAsyIS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JNZXRhZGF0YUIL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATr+AupBkQEKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2ISCmpvYnMve2pvYn0SJ29yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vam9icy97am9ifRI0b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vam9icy97am9ifSoEam9iczIDam9iukiuARqrAQojam9iLmV4cGlyZV90aW1lX2FmdGVyX3NjaGVkdWxlX3RpbWUSJ2V4cGlyZV90aW1lIG11c3QgYmUgYWZ0ZXIgc2NoZWR1bGVfdGltZRpbIWhhcyh0aGlzLmV4cGlyZV90aW1lKSB8fCAhaGFzKHRoaXMuc2NoZWR1bGVfdGltZSkgfHwgdGhpcy5leHBpcmVfdGltZSA+IHRoaXMuc2NoZWR1bGVfdGltZdKmBAsKCXNjaGVkdWxlcoL2LCQ4ZGJhMTg3Mi05MTkzLTRkZGQtYTk5ZS02OGFiZjMyN2VhZDMiUQoLSm9iTWV0YWRhdGESMgoIYXR0ZW1wdHMYASADKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JBdHRlbXB0Eg4KBndvcmtlchgCIAEoCSLeAQoKSm9iQXR0ZW1wdBIPCgdhdHRlbXB0GAEgASgFEi4KCnN0YXJ0X3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZ3b3JrZXIYBCABKAkSIQoFZXJyb3IYBSABKAsyEi5nb29nbGUucnBjLlN0YXR1cxIuCgtyZXRyeV9kZWxheRgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiqbAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFQoRSk9CX1NUQVRFX1BFTkRJTkcQARIVChFKT0JfU1RBVEVfUlVOTklORxACEhcKE0pPQl9TVEFURV9TVUNDRUVERUQQAxIUChBKT0JfU1RBVEVfRkFJTEVEEAQSFwoTSk9CX1NUQVRFX0NBTkNFTExFRBAFQugBWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjHqQV8KInNjaGVkdWxlci5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBVAoac2NoZWR1bGVyLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Job is a unit of deferred work: a request payload the scheduler delivers
- * to the handler its [Queue][malonaz.scheduler.v1.Queue] routes it to, at or
+ * to the method of the [Queue][malonaz.scheduler.v1.Queue] its payload type selects, at or
  * after its schedule time, retrying under the queue's policy until it succeeds
  * or exhausts its attempts.
  *
@@ -80,15 +80,15 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   labels: { [key: string]: string };
 
   /**
-   * The request delivered to the handler. Its type URL selects the handler
-   * among the queue's.
+   * The request delivered to the method. Its type URL selects the queue.
    *
    * @generated from field: google.protobuf.Any payload = 6;
    */
   payload?: Any;
 
   /**
-   * The queue the job runs in: its policy and handlers apply to the job.
+   * The queue the job runs in, resolved at creation from the payload type:
+   * its method, endpoint and policy apply to the job.
    * Format: queues/{queue}
    *
    * @generated from field: string queue = 7;
@@ -96,8 +96,8 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   queue: string;
 
   /**
-   * The gRPC method the payload is delivered to, resolved at creation from
-   * the payload type against the queue's handlers.
+   * The gRPC method the payload is delivered to, e.g.
+   * `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
    *
    * @generated from field: string method = 22;
    */
@@ -205,7 +205,7 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   error?: Status;
 
   /**
-   * The handler's response, set on SUCCEEDED jobs.
+   * The method's response, set on SUCCEEDED jobs.
    *
    * @generated from field: google.protobuf.Any response = 19;
    */
@@ -228,7 +228,7 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
 
 /**
  * A Job is a unit of deferred work: a request payload the scheduler delivers
- * to the handler its [Queue][malonaz.scheduler.v1.Queue] routes it to, at or
+ * to the method of the [Queue][malonaz.scheduler.v1.Queue] its payload type selects, at or
  * after its schedule time, retrying under the queue's policy until it succeeds
  * or exhausts its attempts.
  *
@@ -285,15 +285,15 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   labels: { [key: string]: string };
 
   /**
-   * The request delivered to the handler. Its type URL selects the handler
-   * among the queue's.
+   * The request delivered to the method. Its type URL selects the queue.
    *
    * @generated from field: google.protobuf.Any payload = 6;
    */
   payload: Any;
 
   /**
-   * The queue the job runs in: its policy and handlers apply to the job.
+   * The queue the job runs in, resolved at creation from the payload type:
+   * its method, endpoint and policy apply to the job.
    * Format: queues/{queue}
    *
    * @generated from field: string queue = 7;
@@ -301,8 +301,8 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   queue: string;
 
   /**
-   * The gRPC method the payload is delivered to, resolved at creation from
-   * the payload type against the queue's handlers.
+   * The gRPC method the payload is delivered to, e.g.
+   * `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
    *
    * @generated from field: string method = 22;
    */
@@ -410,7 +410,7 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   error?: StatusValid;
 
   /**
-   * The handler's response, set on SUCCEEDED jobs.
+   * The method's response, set on SUCCEEDED jobs.
    *
    * @generated from field: google.protobuf.Any response = 19;
    */
@@ -512,9 +512,9 @@ export type JobAttempt = Message<"malonaz.scheduler.v1.JobAttempt"> & {
   error?: Status;
 
   /**
-   * The wait before the next attempt requested by the handler through a
+   * The wait before the next attempt requested by the method through a
    * `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
-   * Unset when the handler requested none.
+   * Unset when the method requested none.
    *
    * @generated from field: google.protobuf.Duration retry_delay = 6;
    */

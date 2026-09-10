@@ -7,26 +7,27 @@ import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../google/api/resource_pb";
-import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Code } from "../../../google/rpc/code_pb";
-import { file_google_rpc_code } from "../../../google/rpc/code_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
+import type { QueuePolicy, QueuePolicyValid } from "../policy/v1/policy_pb";
+import { file_malonaz_scheduler_policy_v1_policy } from "../policy/v1/policy_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/scheduler/v1/queue.proto.
  */
 export const file_malonaz_scheduler_v1_queue: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEiiAQKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESPwoGcG9saWN5GAYgASgLMiEubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVQb2xpY3lCDLpIA8gBAbrqDwIQARI/CghoYW5kbGVycxgHIAMoCzIdLm1hbG9uYXouc2NoZWR1bGVyLnYxLkhhbmRsZXJCDrpIBZIBAggBuuoPAhABEjoKBXN0YXRzGAggASgLMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0c0IJ4EEDuuoPAigBOnbqQTwKG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRIOcXVldWVzL3txdWV1ZX0qBnF1ZXVlczIFcXVldWXSpgQLCglzY2hlZHVsZXKC9iwkMGIwYmY5YjYtZDhlZS00MGMwLTg0ODMtN2IyNDVjMTlhZmVjIogCCgtRdWV1ZVBvbGljeRI/Cg9hdHRlbXB0X3RpbWVvdXQYASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CC7pICKoBAioAyAEBEh0KDG1heF9hdHRlbXB0cxgCIAEoBUIHukgEGgIoARI5Cg1yZXRyeV9iYWNrb2ZmGAMgASgLMiIubWFsb25hei5zY2hlZHVsZXIudjEuUmV0cnlCYWNrb2ZmEiAKD21heF9jb25jdXJyZW5jeRgEIAEoBUIHukgEGgIoABI8Cg9yZXRyeWFibGVfY29kZXMYBSADKA4yEC5nb29nbGUucnBjLkNvZGVCEbpIDpIBCxgBIgeCAQQQASAAIqABCgxSZXRyeUJhY2tvZmYSNwoHaW5pdGlhbBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESMwoDbWF4GAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgu6SAiqAQIqAMgBARIiCgptdWx0aXBsaWVyGAMgASgBQg66SAsSCSkAAAAAAADwPyKjAQoHSGFuZGxlchIoCgZtZXRob2QYASABKAlCGLpIFXIQMg5eL1teL10rL1teL10rJMgBARI3CgZ0YXJnZXQYAiABKAlCJ/pBHgocc2NoZWR1bGVyLm1hbG9uYXouY29tL1RhcmdldLpIA8gBARIZCgxyZXF1ZXN0X3R5cGUYAyABKAlCA+BBAxIaCg1yZXNwb25zZV90eXBlGAQgASgJQgPgQQMifAoKUXVldWVTdGF0cxIVCg1wZW5kaW5nX2NvdW50GAEgASgFEhUKDXJ1bm5pbmdfY291bnQYAiABKAUSQAocb2xkZXN0X3BlbmRpbmdfc2NoZWR1bGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAqWgoKUXVldWVTdGF0ZRIbChdRVUVVRV9TVEFURV9VTlNQRUNJRklFRBAAEhcKE1FVRVVFX1NUQVRFX1JVTk5JTkcQARIWChJRVUVVRV9TVEFURV9QQVVTRUQQAkIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_rpc_code, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi6wUKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESTgoHc2VydmljZRgGIAEoCUI9ukg6cjUyM15bYS16QS1aX11bYS16QS1aMC05X10qKFwuW2EtekEtWl9dW2EtekEtWjAtOV9dKikrJMgBARIyCgZtZXRob2QYByABKAlCIrpIH3IaMhheW2EtekEtWl9dW2EtekEtWjAtOV9dKiTIAQESGAoIZW5kcG9pbnQYCCABKAlCBrpIA8gBARI9CgxyZXF1ZXN0X3R5cGUYCSABKAlCJ7pIJHIfMh1edHlwZVwuZ29vZ2xlYXBpc1wuY29tL1teL10rJMgBARI+Cg1yZXNwb25zZV90eXBlGAogASgJQie6SCRyHzIdXnR5cGVcLmdvb2dsZWFwaXNcLmNvbS9bXi9dKyTIAQESRgoGcG9saWN5GAsgASgLMigubWFsb25hei5zY2hlZHVsZXIucG9saWN5LnYxLlF1ZXVlUG9saWN5Qgy6SAPIAQG66g8CEAESOgoFc3RhdHMYDCABKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzQgngQQO66g8CKAE6dupBPAobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlEg5xdWV1ZXMve3F1ZXVlfSoGcXVldWVzMgVxdWV1ZdKmBAsKCXNjaGVkdWxlcoL2LCQwYjBiZjliNi1kOGVlLTQwYzAtODQ4My03YjI0NWMxOWFmZWMifAoKUXVldWVTdGF0cxIVCg1wZW5kaW5nX2NvdW50GAEgASgFEhUKDXJ1bm5pbmdfY291bnQYAiABKAUSQAocb2xkZXN0X3BlbmRpbmdfc2NoZWR1bGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAqWgoKUXVldWVTdGF0ZRIbChdRVUVVRV9TVEFURV9VTlNQRUNJRklFRBAAEhcKE1FVRVVFX1NUQVRFX1JVTk5JTkcQARIWChJRVUVVRV9TVEFURV9QQVVTRUQQAkIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_policy_v1_policy]);
 
 /**
- * A Queue groups jobs sharing an execution policy and the handlers they are
- * routed to. A job's payload type selects, among its queue's handlers, the
- * gRPC method and [Target][malonaz.scheduler.v1.Target] it is delivered to; the
- * queue's policy governs the attempt timeout, retries and concurrency of every
- * job in it.
+ * A Queue is one gRPC method the scheduler delivers jobs to, with the policy
+ * its jobs run under. Queues are not declared by hand: the dispatcher reflects
+ * every endpoint it is given and creates or updates a queue for each method
+ * carrying a `malonaz.codegen.scheduler.v1.method` annotation, so the policy
+ * lives next to the method. A job is routed to the queue whose
+ * `request_type` is its payload's type.
  *
  * Pausing a queue stops new claims: running jobs finish, pending jobs wait.
  * A queue cannot be deleted while a non-terminal job references it.
@@ -74,34 +75,67 @@ export type Queue = Message<"malonaz.scheduler.v1.Queue"> & {
   state: QueueState;
 
   /**
+   * The fully qualified name of the gRPC service serving the method, e.g.
+   * `engine.engine_service.v1.EngineService`.
+   *
+   * @generated from field: string service = 6;
+   */
+  service: string;
+
+  /**
+   * The name of the method within the service, e.g. `AnalyzeBook`. One queue
+   * per (service, method).
+   *
+   * @generated from field: string method = 7;
+   */
+  method: string;
+
+  /**
+   * The gRPC endpoint serving the method: `unix:` path, `http(s)://` or
+   * `host:port`, as the dispatcher dials it.
+   *
+   * @generated from field: string endpoint = 8;
+   */
+  endpoint: string;
+
+  /**
+   * The type URL of the method's request, e.g.
+   * `type.googleapis.com/engine.engine_service.v1.AnalyzeBookRequest`. Jobs
+   * whose payload has this type URL are routed here; no two queues share one.
+   *
+   * @generated from field: string request_type = 9;
+   */
+  requestType: string;
+
+  /**
+   * The type URL of the method's response, which job responses are stored under.
+   *
+   * @generated from field: string response_type = 10;
+   */
+  responseType: string;
+
+  /**
    * The execution policy of every job in the queue.
    *
-   * @generated from field: malonaz.scheduler.v1.QueuePolicy policy = 6;
+   * @generated from field: malonaz.scheduler.policy.v1.QueuePolicy policy = 11;
    */
   policy?: QueuePolicy;
 
   /**
-   * The handlers jobs are routed to. A job's payload type selects the handler
-   * whose `request_type` matches; no two handlers may share a request type.
-   *
-   * @generated from field: repeated malonaz.scheduler.v1.Handler handlers = 7;
-   */
-  handlers: Handler[];
-
-  /**
    * The queue's backlog, computed when the queue is read.
    *
-   * @generated from field: malonaz.scheduler.v1.QueueStats stats = 8;
+   * @generated from field: malonaz.scheduler.v1.QueueStats stats = 12;
    */
   stats?: QueueStats;
 };
 
 /**
- * A Queue groups jobs sharing an execution policy and the handlers they are
- * routed to. A job's payload type selects, among its queue's handlers, the
- * gRPC method and [Target][malonaz.scheduler.v1.Target] it is delivered to; the
- * queue's policy governs the attempt timeout, retries and concurrency of every
- * job in it.
+ * A Queue is one gRPC method the scheduler delivers jobs to, with the policy
+ * its jobs run under. Queues are not declared by hand: the dispatcher reflects
+ * every endpoint it is given and creates or updates a queue for each method
+ * carrying a `malonaz.codegen.scheduler.v1.method` annotation, so the policy
+ * lives next to the method. A job is routed to the queue whose
+ * `request_type` is its payload's type.
  *
  * Pausing a queue stops new claims: running jobs finish, pending jobs wait.
  * A queue cannot be deleted while a non-terminal job references it.
@@ -149,24 +183,56 @@ export type QueueValid = Message<"malonaz.scheduler.v1.Queue"> & {
   state: QueueState;
 
   /**
+   * The fully qualified name of the gRPC service serving the method, e.g.
+   * `engine.engine_service.v1.EngineService`.
+   *
+   * @generated from field: string service = 6;
+   */
+  service: string;
+
+  /**
+   * The name of the method within the service, e.g. `AnalyzeBook`. One queue
+   * per (service, method).
+   *
+   * @generated from field: string method = 7;
+   */
+  method: string;
+
+  /**
+   * The gRPC endpoint serving the method: `unix:` path, `http(s)://` or
+   * `host:port`, as the dispatcher dials it.
+   *
+   * @generated from field: string endpoint = 8;
+   */
+  endpoint: string;
+
+  /**
+   * The type URL of the method's request, e.g.
+   * `type.googleapis.com/engine.engine_service.v1.AnalyzeBookRequest`. Jobs
+   * whose payload has this type URL are routed here; no two queues share one.
+   *
+   * @generated from field: string request_type = 9;
+   */
+  requestType: string;
+
+  /**
+   * The type URL of the method's response, which job responses are stored under.
+   *
+   * @generated from field: string response_type = 10;
+   */
+  responseType: string;
+
+  /**
    * The execution policy of every job in the queue.
    *
-   * @generated from field: malonaz.scheduler.v1.QueuePolicy policy = 6;
+   * @generated from field: malonaz.scheduler.policy.v1.QueuePolicy policy = 11;
    */
   policy: QueuePolicyValid;
 
   /**
-   * The handlers jobs are routed to. A job's payload type selects the handler
-   * whose `request_type` matches; no two handlers may share a request type.
-   *
-   * @generated from field: repeated malonaz.scheduler.v1.Handler handlers = 7;
-   */
-  handlers: HandlerValid[];
-
-  /**
    * The queue's backlog, computed when the queue is read.
    *
-   * @generated from field: malonaz.scheduler.v1.QueueStats stats = 8;
+   * @generated from field: malonaz.scheduler.v1.QueueStats stats = 12;
    */
   stats?: QueueStatsValid;
 };
@@ -177,255 +243,6 @@ export type QueueValid = Message<"malonaz.scheduler.v1.Queue"> & {
  */
 export const QueueSchema: GenMessage<Queue, {validType: QueueValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_v1_queue, 0);
-
-/**
- * The execution policy of a queue's jobs.
- *
- * @generated from message malonaz.scheduler.v1.QueuePolicy
- */
-export type QueuePolicy = Message<"malonaz.scheduler.v1.QueuePolicy"> & {
-  /**
-   * The deadline of a single attempt. An attempt exceeding it fails with
-   * DEADLINE_EXCEEDED and is retried like any other retryable failure.
-   *
-   * @generated from field: google.protobuf.Duration attempt_timeout = 1;
-   */
-  attemptTimeout?: Duration;
-
-  /**
-   * The total number of attempts, including the first. 1 disables retries.
-   *
-   * @generated from field: int32 max_attempts = 2;
-   */
-  maxAttempts: number;
-
-  /**
-   * The backoff between attempts. Defaults to 10s, doubling, capped at 10m.
-   *
-   * @generated from field: malonaz.scheduler.v1.RetryBackoff retry_backoff = 3;
-   */
-  retryBackoff?: RetryBackoff;
-
-  /**
-   * The number of jobs of this queue that may run at once across every
-   * scheduler instance. 0 means unlimited.
-   *
-   * @generated from field: int32 max_concurrency = 4;
-   */
-  maxConcurrency: number;
-
-  /**
-   * The gRPC codes an attempt is retried on; any other code fails the job at
-   * once regardless of the attempts left. Defaults to UNAVAILABLE, INTERNAL,
-   * UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
-   *
-   * @generated from field: repeated google.rpc.Code retryable_codes = 5;
-   */
-  retryableCodes: Code[];
-};
-
-/**
- * The execution policy of a queue's jobs.
- *
- * @generated from message malonaz.scheduler.v1.QueuePolicy
- */
-export type QueuePolicyValid = Message<"malonaz.scheduler.v1.QueuePolicy"> & {
-  /**
-   * The deadline of a single attempt. An attempt exceeding it fails with
-   * DEADLINE_EXCEEDED and is retried like any other retryable failure.
-   *
-   * @generated from field: google.protobuf.Duration attempt_timeout = 1;
-   */
-  attemptTimeout: Duration;
-
-  /**
-   * The total number of attempts, including the first. 1 disables retries.
-   *
-   * @generated from field: int32 max_attempts = 2;
-   */
-  maxAttempts: number;
-
-  /**
-   * The backoff between attempts. Defaults to 10s, doubling, capped at 10m.
-   *
-   * @generated from field: malonaz.scheduler.v1.RetryBackoff retry_backoff = 3;
-   */
-  retryBackoff?: RetryBackoffValid;
-
-  /**
-   * The number of jobs of this queue that may run at once across every
-   * scheduler instance. 0 means unlimited.
-   *
-   * @generated from field: int32 max_concurrency = 4;
-   */
-  maxConcurrency: number;
-
-  /**
-   * The gRPC codes an attempt is retried on; any other code fails the job at
-   * once regardless of the attempts left. Defaults to UNAVAILABLE, INTERNAL,
-   * UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
-   *
-   * @generated from field: repeated google.rpc.Code retryable_codes = 5;
-   */
-  retryableCodes: Code[];
-};
-
-/**
- * Describes the message malonaz.scheduler.v1.QueuePolicy.
- * Use `create(QueuePolicySchema)` to create a new message.
- */
-export const QueuePolicySchema: GenMessage<QueuePolicy, {validType: QueuePolicyValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_v1_queue, 1);
-
-/**
- * An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
- *
- * @generated from message malonaz.scheduler.v1.RetryBackoff
- */
-export type RetryBackoff = Message<"malonaz.scheduler.v1.RetryBackoff"> & {
-  /**
-   * The wait before the second attempt.
-   *
-   * @generated from field: google.protobuf.Duration initial = 1;
-   */
-  initial?: Duration;
-
-  /**
-   * The longest wait between two attempts.
-   *
-   * @generated from field: google.protobuf.Duration max = 2;
-   */
-  max?: Duration;
-
-  /**
-   * The factor applied to the wait after each failed attempt.
-   *
-   * @generated from field: double multiplier = 3;
-   */
-  multiplier: number;
-};
-
-/**
- * An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
- *
- * @generated from message malonaz.scheduler.v1.RetryBackoff
- */
-export type RetryBackoffValid = Message<"malonaz.scheduler.v1.RetryBackoff"> & {
-  /**
-   * The wait before the second attempt.
-   *
-   * @generated from field: google.protobuf.Duration initial = 1;
-   */
-  initial: Duration;
-
-  /**
-   * The longest wait between two attempts.
-   *
-   * @generated from field: google.protobuf.Duration max = 2;
-   */
-  max: Duration;
-
-  /**
-   * The factor applied to the wait after each failed attempt.
-   *
-   * @generated from field: double multiplier = 3;
-   */
-  multiplier: number;
-};
-
-/**
- * Describes the message malonaz.scheduler.v1.RetryBackoff.
- * Use `create(RetryBackoffSchema)` to create a new message.
- */
-export const RetryBackoffSchema: GenMessage<RetryBackoff, {validType: RetryBackoffValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_v1_queue, 2);
-
-/**
- * A handler is a gRPC method on a target that jobs of one payload type are
- * delivered to.
- *
- * @generated from message malonaz.scheduler.v1.Handler
- */
-export type Handler = Message<"malonaz.scheduler.v1.Handler"> & {
-  /**
-   * The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-   * Must be served by the target, which the scheduler checks over gRPC reflection.
-   *
-   * @generated from field: string method = 1;
-   */
-  method: string;
-
-  /**
-   * The target the method is invoked on.
-   * Format: targets/{target}
-   *
-   * @generated from field: string target = 2;
-   */
-  target: string;
-
-  /**
-   * The type URL of the method's request, as the target describes it. Jobs
-   * whose payload has this type URL are routed here.
-   *
-   * @generated from field: string request_type = 3;
-   */
-  requestType: string;
-
-  /**
-   * The type URL of the method's response, as the target describes it. Job
-   * responses are stored under it.
-   *
-   * @generated from field: string response_type = 4;
-   */
-  responseType: string;
-};
-
-/**
- * A handler is a gRPC method on a target that jobs of one payload type are
- * delivered to.
- *
- * @generated from message malonaz.scheduler.v1.Handler
- */
-export type HandlerValid = Message<"malonaz.scheduler.v1.Handler"> & {
-  /**
-   * The fully qualified gRPC method, e.g. `/engine.engine_service.v1.EngineService/AnalyzeBook`.
-   * Must be served by the target, which the scheduler checks over gRPC reflection.
-   *
-   * @generated from field: string method = 1;
-   */
-  method: string;
-
-  /**
-   * The target the method is invoked on.
-   * Format: targets/{target}
-   *
-   * @generated from field: string target = 2;
-   */
-  target: string;
-
-  /**
-   * The type URL of the method's request, as the target describes it. Jobs
-   * whose payload has this type URL are routed here.
-   *
-   * @generated from field: string request_type = 3;
-   */
-  requestType: string;
-
-  /**
-   * The type URL of the method's response, as the target describes it. Job
-   * responses are stored under it.
-   *
-   * @generated from field: string response_type = 4;
-   */
-  responseType: string;
-};
-
-/**
- * Describes the message malonaz.scheduler.v1.Handler.
- * Use `create(HandlerSchema)` to create a new message.
- */
-export const HandlerSchema: GenMessage<Handler, {validType: HandlerValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_v1_queue, 3);
 
 /**
  * The backlog of a queue.
@@ -463,7 +280,7 @@ export type QueueStatsValid = QueueStats;
  * Use `create(QueueStatsSchema)` to create a new message.
  */
 export const QueueStatsSchema: GenMessage<QueueStats, {validType: QueueStatsValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_v1_queue, 4);
+  messageDesc(file_malonaz_scheduler_v1_queue, 1);
 
 /**
  * Whether a queue's jobs are being claimed.

@@ -5,6 +5,7 @@ package model
 import (
 	errors "errors"
 	fmt "fmt"
+	v11 "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	v1 "github.com/malonaz/core/genproto/scheduler/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
@@ -20,13 +21,17 @@ var ErrQueueHasChildren = errors.New("queue has child resources")
 var ErrQueueETagChanged = errors.New("queue etag changed")
 
 type Queue struct {
-	QueueID    string    `db:"queue_id" schema:"scheduler" table:"queue"`
-	CreateTime time.Time `db:"create_time" schema:"scheduler" table:"queue"`
-	UpdateTime time.Time `db:"update_time" schema:"scheduler" table:"queue"`
-	Etag       string    `db:"etag" schema:"scheduler" table:"queue"`
-	State      int16     `db:"state" schema:"scheduler" table:"queue"`
-	Policy     []byte    `db:"policy" schema:"scheduler" table:"queue"`
-	Handlers   []byte    `db:"handlers" schema:"scheduler" table:"queue"`
+	QueueID      string    `db:"queue_id" schema:"scheduler" table:"queue"`
+	CreateTime   time.Time `db:"create_time" schema:"scheduler" table:"queue"`
+	UpdateTime   time.Time `db:"update_time" schema:"scheduler" table:"queue"`
+	Etag         string    `db:"etag" schema:"scheduler" table:"queue"`
+	State        int16     `db:"state" schema:"scheduler" table:"queue"`
+	Service      string    `db:"service" schema:"scheduler" table:"queue"`
+	Method       string    `db:"method" schema:"scheduler" table:"queue"`
+	Endpoint     string    `db:"endpoint" schema:"scheduler" table:"queue"`
+	RequestType  string    `db:"request_type" schema:"scheduler" table:"queue"`
+	ResponseType string    `db:"response_type" schema:"scheduler" table:"queue"`
+	Policy       []byte    `db:"policy" schema:"scheduler" table:"queue"`
 }
 
 func QueueFromPb(m *v1.Queue) (*Queue, error) {
@@ -52,18 +57,18 @@ func QueueFromPb(m *v1.Queue) (*Queue, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Policy: %w", err)
 	}
-	HandlersBytes, err := pbutil.JSONMarshalSlice(pbutil.JsonMarshalOptions, m.Handlers)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling Handlers: %w", err)
-	}
 	return &Queue{
-		QueueID:    QueueID,
-		CreateTime: m.CreateTime.AsTime(),
-		UpdateTime: m.UpdateTime.AsTime(),
-		Etag:       m.Etag,
-		State:      int16(m.State),
-		Policy:     PolicyBytes,
-		Handlers:   HandlersBytes,
+		QueueID:      QueueID,
+		CreateTime:   m.CreateTime.AsTime(),
+		UpdateTime:   m.UpdateTime.AsTime(),
+		Etag:         m.Etag,
+		State:        int16(m.State),
+		Service:      m.Service,
+		Method:       m.Method,
+		Endpoint:     m.Endpoint,
+		RequestType:  m.RequestType,
+		ResponseType: m.ResponseType,
+		Policy:       PolicyBytes,
 	}, nil
 }
 
@@ -78,26 +83,26 @@ func (m *Queue) ToPb() (*v1.Queue, error) {
 	if err := UpdateTime.CheckValid(); err != nil {
 		return nil, fmt.Errorf("validating update_time: %w", err)
 	}
-	Policy := &v1.QueuePolicy{}
+	Policy := &v11.QueuePolicy{}
 	if err := pbutil.JSONUnmarshal(m.Policy, Policy); err != nil {
 		return nil, fmt.Errorf("unmarshaling Policy: %w", err)
-	}
-	Handlers, err := pbutil.JSONUnmarshalSlice[v1.Handler](pbutil.JsonUnmarshalOptions, m.Handlers)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshaling Handlers: %w", err)
 	}
 	name := resourcename.Sprint("queues/{queue}", m.QueueID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Queue{
-		Name:       name,
-		CreateTime: CreateTime,
-		UpdateTime: UpdateTime,
-		Etag:       m.Etag,
-		State:      v1.QueueState(m.State),
-		Policy:     Policy,
-		Handlers:   Handlers,
+		Name:         name,
+		CreateTime:   CreateTime,
+		UpdateTime:   UpdateTime,
+		Etag:         m.Etag,
+		State:        v1.QueueState(m.State),
+		Service:      m.Service,
+		Method:       m.Method,
+		Endpoint:     m.Endpoint,
+		RequestType:  m.RequestType,
+		ResponseType: m.ResponseType,
+		Policy:       Policy,
 	}, nil
 }
 

@@ -75,16 +75,16 @@ func WithLabels(labels map[string]string) CreateJobOption {
 	}
 }
 
-// NewCreateJobRequest builds a CreateJob request delivering message through
-// the queue's handler for its type, under parent (empty for a system job).
-func NewCreateJobRequest(parent, queue string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
+// NewCreateJobRequest builds a CreateJob request delivering message to the
+// method whose request type it is, under parent (empty for a system job).
+func NewCreateJobRequest(parent string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
 	payload, err := anypb.New(message)
 	if err != nil {
 		return nil, err
 	}
 	request := &pb.CreateJobRequest{
 		Parent: parent,
-		Job:    &schedulerpb.Job{Queue: queue, Payload: payload},
+		Job:    &schedulerpb.Job{Payload: payload},
 	}
 	for _, option := range options {
 		option(request)

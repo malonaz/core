@@ -40,11 +40,10 @@ func TestProcess_Succeeds(t *testing.T) {
 	require.Equal(t, typeURL(&processorpb.EchoResponse{}), job.GetResponse().GetTypeUrl())
 	require.Equal(t, value, unpackAny[*processorpb.EchoResponse](t, job.GetResponse()).GetValue())
 
-	// The processor saw exactly one call, carrying the job name and the configured headers.
+	// The processor saw exactly one call, carrying the job name.
 	calls := testProcessor.calls(value)
 	require.Len(t, calls, 1)
 	require.Equal(t, job.GetName(), calls[0].job)
-	require.Equal(t, []string{"hello"}, calls[0].headers.Get(testHeader))
 }
 
 func TestProcess_ScheduleTime(t *testing.T) {
@@ -68,8 +67,8 @@ func TestProcess_ScheduleTime(t *testing.T) {
 		// The serial queue runs one job at a time, so invocation order is claim order rather than a goroutine race.
 		run := uuid.MustNewV7().String()
 		base := time.Now().Add(1500 * time.Millisecond)
-		late := createJobIn(t, "", serialQueue, &processorpb.EchoRequest{Value: run + "-late"}, scheduler.WithScheduleTime(base.Add(200*time.Millisecond)))
-		early := createJobIn(t, "", serialQueue, &processorpb.EchoRequest{Value: run + "-early"}, scheduler.WithScheduleTime(base))
+		late := createJob(t, &processorpb.SerialRequest{Value: run + "-late"}, scheduler.WithScheduleTime(base.Add(200*time.Millisecond)))
+		early := createJob(t, &processorpb.SerialRequest{Value: run + "-early"}, scheduler.WithScheduleTime(base))
 
 		waitForTerminal(t, late.GetName())
 		waitForTerminal(t, early.GetName())
@@ -415,7 +414,7 @@ func TestProcess_ExpireTime(t *testing.T) {
 
 	t.Run("must follow schedule_time", func(t *testing.T) {
 		t.Parallel()
-		createJobRequest, err := scheduler.NewCreateJobRequest("", queueFor(&processorpb.EchoRequest{}), &processorpb.EchoRequest{Value: "x"},
+		createJobRequest, err := scheduler.NewCreateJobRequest("", &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithScheduleTime(farFuture), scheduler.WithExpireTime(farFuture.Add(-time.Minute)))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)

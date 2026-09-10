@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -51,13 +52,9 @@ const (
 	// Short enough for a sat to observe the cap on an absurd WaitOperation timeout.
 	schedulerWaitJobMaxTimeout = 2 * time.Second
 
-	// The library service as a scheduler target, and the queue ImportBooks declares.
-	libraryTargetName = "targets/library-service"
-	libraryQueueName  = "queues/library"
-	importBooksMethod = "/malonaz.test.library.library_service.v1.LibraryService/ImportBooks"
-	// A queue routing an ordinary method, standing in for another service's jobs.
-	foreignQueueName = "queues/library-foreign"
-	getShelfMethod   = "/malonaz.test.library.library_service.v1.LibraryService/GetShelf"
+	// The methods the dispatcher discovers on the library service: ImportBooks,
+	// and GetShelf standing in for another service's jobs.
+	libraryServiceFullName = "malonaz.test.library.library_service.v1.LibraryService"
 
 	postgresHost = "localhost"
 	postgresPort = 5432
@@ -119,7 +116,7 @@ func run(ctx context.Context) (func(), error) {
 				Args: []string{
 					"--library-service-external-grpc.port", strconv.Itoa(libraryServicePort),
 					"--library-service-external-grpc.disable-tls",
-					// The scheduler resolves ImportBooks against the library over reflection.
+					// The dispatcher discovers the library's scheduler-run methods over reflection.
 					"--library-service-external-grpc.enable-reflection",
 					"--scheduler-service-grpc.host", libraryServiceHost,
 					"--scheduler-service-grpc.port", strconv.Itoa(schedulerServicePort),
@@ -135,7 +132,8 @@ func run(ctx context.Context) (func(), error) {
 					"--scheduler-service-external-grpc.disable-tls",
 					"--health.port", strconv.Itoa(schedulerServiceHealthPort),
 					"--prometheus.port", strconv.Itoa(schedulerServicePrometheusPort),
-					"--scheduler-service.poll-interval", schedulerPollInterval.String(),
+					"--scheduler-dispatcher.poll-interval", schedulerPollInterval.String(),
+					"--scheduler-dispatcher.endpoint", fmt.Sprintf("http://%s:%d", libraryServiceHost, libraryServicePort),
 					"--scheduler-service.wait-job-max-timeout", schedulerWaitJobMaxTimeout.String(),
 				},
 			},
@@ -198,47 +196,15 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, func() { schedulerConnection.Close() })
 	schedulerServiceClient = schedulerservicepb.NewSchedulerServiceClient(schedulerConnection.Get())
-
-	if err := createSchedulerFixtures(ctx); err != nil {
-		return cleanup, err
-	}
 	return cleanup, nil
 }
 
-// createSchedulerFixtures registers the library service as a scheduler target
-// and creates the queue ImportBooks runs on. Retries are on so a failed attempt
-// runs again quickly; individual tests adjust max_attempts.
-func createSchedulerFixtures(ctx context.Context) error {
-	createTargetRequest := &schedulerservicepb.CreateTargetRequest{
-		TargetId: "library-service",
-		Target:   &schedulerpb.Target{Url: fmt.Sprintf("http://%s:%d", libraryServiceHost, libraryServicePort)},
-	}
-	if _, err := schedulerServiceClient.CreateTarget(ctx, createTargetRequest); err != nil {
-		return fmt.Errorf("creating target: %w", err)
-	}
-	createQueueRequest := &schedulerservicepb.CreateQueueRequest{
-		QueueId: "library",
-		Queue: &schedulerpb.Queue{
-			Policy: &schedulerpb.QueuePolicy{
-				AttemptTimeout: durationpb.New(30 * time.Second),
-				MaxAttempts:    2,
-				RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(200 * time.Millisecond), Max: durationpb.New(time.Second), Multiplier: 1},
-			},
-			Handlers: []*schedulerpb.Handler{{Method: importBooksMethod, Target: libraryTargetName}},
-		},
-	}
-	if _, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest); err != nil {
-		return fmt.Errorf("creating queue: %w", err)
-	}
-	createForeignQueueRequest := &schedulerservicepb.CreateQueueRequest{
-		QueueId: "library-foreign",
-		Queue: &schedulerpb.Queue{
-			Policy:   &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1},
-			Handlers: []*schedulerpb.Handler{{Method: getShelfMethod, Target: libraryTargetName}},
-		},
-	}
-	if _, err := schedulerServiceClient.CreateQueue(ctx, createForeignQueueRequest); err != nil {
-		return fmt.Errorf("creating foreign queue: %w", err)
-	}
-	return nil
+// queueOf returns the queue the dispatcher created for a library method.
+func queueOf(t *testing.T, method string) *schedulerpb.Queue {
+	t.Helper()
+	listQueuesRequest := &schedulerservicepb.ListQueuesRequest{Filter: fmt.Sprintf("service = %q AND method = %q", libraryServiceFullName, method)}
+	listQueuesResponse, err := schedulerServiceClient.ListQueues(ctx, listQueuesRequest)
+	require.NoError(t, err)
+	require.Len(t, listQueuesResponse.GetQueues(), 1, "queue of %s", method)
+	return listQueuesResponse.GetQueues()[0]
 }

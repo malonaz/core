@@ -1,0 +1,9 @@
+name: scheduler-dispatcher
+target: //go/scheduler/scheduler_dispatcher
+dependencies:
+  - postgres_db_client:
+      name: scheduler
+      target: //gengo/scheduler/store
+  - grpc_client:
+      service: scheduler-service
+      proto: //malonaz/scheduler/scheduler_service/v1

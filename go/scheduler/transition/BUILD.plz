@@ -1,0 +1,16 @@
+go_library(
+    name = "transition",
+    srcs = ["transition.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/aip",
+        "//go/scheduler/model",
+        "//malonaz/scheduler/v1",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus",
+        "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__rpc__status",
+    ],
+)

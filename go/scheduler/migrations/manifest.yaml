@@ -3,7 +3,5 @@
 migrations:
   - path: job/001_init.sql
     hash: a691203150b6960a683f8bdb293c4341
-  - path: target/001_init.sql
-    hash: 17e4f885e2073a035a9cadf868a37a12
   - path: queue/001_init.sql
-    hash: 8f6a632fab81cec42899b06dd20cc05f
+    hash: 07cac9dbda07255331965ab459740c5f

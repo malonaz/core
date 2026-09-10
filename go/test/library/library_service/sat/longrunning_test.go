@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
@@ -139,7 +140,7 @@ func importMetadata(t *testing.T, operation *longrunningpb.Operation) *libraryse
 func setImportMaxAttempts(t *testing.T, maxAttempts int32) {
 	t.Helper()
 	updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: libraryQueueName, Policy: &schedulerpb.QueuePolicy{MaxAttempts: maxAttempts}},
+		Queue:      &schedulerpb.Queue{Name: queueOf(t, "ImportBooks").GetName(), Policy: &policypb.QueuePolicy{MaxAttempts: maxAttempts}},
 		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
 	}
 	_, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
@@ -223,7 +224,7 @@ func TestImportBooks_ListOperations(t *testing.T) {
 	// A job of another method under the same organization, naming an operation
 	// on the shelf: not this service's, so invisible through its Operations server.
 	foreignName := fixture.shelf.GetName() + "/operations/" + uuid.MustNewV7().String()
-	createJobRequest, err := scheduler.NewCreateJobRequest(fixture.organization, foreignQueueName, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
+	createJobRequest, err := scheduler.NewCreateJobRequest(fixture.organization, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
 		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)), scheduler.WithOperation(foreignName))
 	require.NoError(t, err)
 	foreign, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)

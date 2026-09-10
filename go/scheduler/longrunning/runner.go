@@ -18,8 +18,6 @@ import (
 
 // StartRequest describes the operation a producer starts.
 type StartRequest struct {
-	// Queue is the scheduler queue the job runs in.
-	Queue string
 	// Resource is the resource the operation hangs off; the job's parent is
 	// derived from it (see JobParentOf).
 	Resource string
@@ -35,7 +33,7 @@ type StartRequest struct {
 // the job's, so the operation name alone locates the job afterwards.
 func Start(ctx context.Context, client schedulerservicepb.SchedulerServiceClient, request *StartRequest) (*longrunningpb.Operation, error) {
 	jobID := aip.NewSystemGeneratedBase32ResourceID()
-	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Queue, request.Request,
+	createJobRequest, err := scheduler.NewCreateJobRequest(JobParentOf(request.Resource), request.Request,
 		scheduler.WithOperation(OperationName(request.Resource, jobID)))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job: %v", err).Err()

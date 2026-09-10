@@ -24,8 +24,13 @@ const (
 	Processor_Flaky_FullMethodName    = "/malonaz.test.scheduler.processor.v1.Processor/Flaky"
 	Processor_Sleep_FullMethodName    = "/malonaz.test.scheduler.processor.v1.Processor/Sleep"
 	Processor_Deadline_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Deadline"
+	Processor_Limited_FullMethodName  = "/malonaz.test.scheduler.processor.v1.Processor/Limited"
+	Processor_Serial_FullMethodName   = "/malonaz.test.scheduler.processor.v1.Processor/Serial"
 	Processor_Progress_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Progress"
 	Processor_Operate_FullMethodName  = "/malonaz.test.scheduler.processor.v1.Processor/Operate"
+	Processor_Pausable_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Pausable"
+	Processor_Tunable_FullMethodName  = "/malonaz.test.scheduler.processor.v1.Processor/Tunable"
+	Processor_Redial_FullMethodName   = "/malonaz.test.scheduler.processor.v1.Processor/Redial"
 	Processor_Unrouted_FullMethodName = "/malonaz.test.scheduler.processor.v1.Processor/Unrouted"
 )
 
@@ -33,8 +38,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// A scriptable processor the scheduler sats route jobs to. The sats give each
-// method its own queue, so each can have its own timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. Each method
+// declares its own policy, so each gets its own queue, timeout and retries.
+// Timings mirror the constants in sat_test.go, which the tests derive their
+// expectations from.
 type ProcessorClient interface {
 	// Returns the value it was given.
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
@@ -42,16 +49,28 @@ type ProcessorClient interface {
 	Flaky(ctx context.Context, in *FlakyRequest, opts ...grpc.CallOption) (*FlakyResponse, error)
 	// Sleeps for the given duration, or until the call is cancelled.
 	Sleep(ctx context.Context, in *SleepRequest, opts ...grpc.CallOption) (*SleepResponse, error)
-	// Same as Sleep; the sats configure it with a short timeout to exercise
-	// attempt deadlines.
+	// Same as Sleep, with a short timeout to exercise attempt deadlines and a
+	// concurrency cap of two.
 	Deadline(ctx context.Context, in *DeadlineRequest, opts ...grpc.CallOption) (*DeadlineResponse, error)
+	// Same as Sleep, capped at two concurrent jobs.
+	Limited(ctx context.Context, in *LimitedRequest, opts ...grpc.CallOption) (*LimitedResponse, error)
+	// Same as Echo, serialised: the order jobs are claimed in is observable as
+	// the order they run in.
+	Serial(ctx context.Context, in *SerialRequest, opts ...grpc.CallOption) (*SerialResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler
-	// must reject.
+	// must reject. FAILED_PRECONDITION is retryable here to prove an unfinished
+	// operation is not retried even so.
 	Operate(ctx context.Context, in *OperateRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
-	// Never routed: no sat queue has a handler for it.
+	// Same as Sleep; its queue is the one the sats pause, resume and count.
+	Pausable(ctx context.Context, in *PausableRequest, opts ...grpc.CallOption) (*PausableResponse, error)
+	// Same as Flaky; its queue is the one whose policy the sats update.
+	Tunable(ctx context.Context, in *TunableRequest, opts ...grpc.CallOption) (*TunableResponse, error)
+	// Same as Echo; its queue is the one whose endpoint the sats move.
+	Redial(ctx context.Context, in *RedialRequest, opts ...grpc.CallOption) (*RedialResponse, error)
+	// Not scheduler-run: no annotation, so no queue routes its request type.
 	Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error)
 }
 
@@ -103,6 +122,26 @@ func (c *processorClient) Deadline(ctx context.Context, in *DeadlineRequest, opt
 	return out, nil
 }
 
+func (c *processorClient) Limited(ctx context.Context, in *LimitedRequest, opts ...grpc.CallOption) (*LimitedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LimitedResponse)
+	err := c.cc.Invoke(ctx, Processor_Limited_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *processorClient) Serial(ctx context.Context, in *SerialRequest, opts ...grpc.CallOption) (*SerialResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SerialResponse)
+	err := c.cc.Invoke(ctx, Processor_Serial_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *processorClient) Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProgressResponse)
@@ -123,6 +162,36 @@ func (c *processorClient) Operate(ctx context.Context, in *OperateRequest, opts 
 	return out, nil
 }
 
+func (c *processorClient) Pausable(ctx context.Context, in *PausableRequest, opts ...grpc.CallOption) (*PausableResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PausableResponse)
+	err := c.cc.Invoke(ctx, Processor_Pausable_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *processorClient) Tunable(ctx context.Context, in *TunableRequest, opts ...grpc.CallOption) (*TunableResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TunableResponse)
+	err := c.cc.Invoke(ctx, Processor_Tunable_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *processorClient) Redial(ctx context.Context, in *RedialRequest, opts ...grpc.CallOption) (*RedialResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RedialResponse)
+	err := c.cc.Invoke(ctx, Processor_Redial_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *processorClient) Unrouted(ctx context.Context, in *UnroutedRequest, opts ...grpc.CallOption) (*UnroutedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnroutedResponse)
@@ -137,8 +206,10 @@ func (c *processorClient) Unrouted(ctx context.Context, in *UnroutedRequest, opt
 // All implementations should embed UnimplementedProcessorServer
 // for forward compatibility.
 //
-// A scriptable processor the scheduler sats route jobs to. The sats give each
-// method its own queue, so each can have its own timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. Each method
+// declares its own policy, so each gets its own queue, timeout and retries.
+// Timings mirror the constants in sat_test.go, which the tests derive their
+// expectations from.
 type ProcessorServer interface {
 	// Returns the value it was given.
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
@@ -146,16 +217,28 @@ type ProcessorServer interface {
 	Flaky(context.Context, *FlakyRequest) (*FlakyResponse, error)
 	// Sleeps for the given duration, or until the call is cancelled.
 	Sleep(context.Context, *SleepRequest) (*SleepResponse, error)
-	// Same as Sleep; the sats configure it with a short timeout to exercise
-	// attempt deadlines.
+	// Same as Sleep, with a short timeout to exercise attempt deadlines and a
+	// concurrency cap of two.
 	Deadline(context.Context, *DeadlineRequest) (*DeadlineResponse, error)
+	// Same as Sleep, capped at two concurrent jobs.
+	Limited(context.Context, *LimitedRequest) (*LimitedResponse, error)
+	// Same as Echo, serialised: the order jobs are claimed in is observable as
+	// the order they run in.
+	Serial(context.Context, *SerialRequest) (*SerialResponse, error)
 	// Reports `steps` progress updates to the scheduler before returning.
 	Progress(context.Context, *ProgressRequest) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler
-	// must reject.
+	// must reject. FAILED_PRECONDITION is retryable here to prove an unfinished
+	// operation is not retried even so.
 	Operate(context.Context, *OperateRequest) (*longrunningpb.Operation, error)
-	// Never routed: no sat queue has a handler for it.
+	// Same as Sleep; its queue is the one the sats pause, resume and count.
+	Pausable(context.Context, *PausableRequest) (*PausableResponse, error)
+	// Same as Flaky; its queue is the one whose policy the sats update.
+	Tunable(context.Context, *TunableRequest) (*TunableResponse, error)
+	// Same as Echo; its queue is the one whose endpoint the sats move.
+	Redial(context.Context, *RedialRequest) (*RedialResponse, error)
+	// Not scheduler-run: no annotation, so no queue routes its request type.
 	Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error)
 }
 
@@ -178,11 +261,26 @@ func (UnimplementedProcessorServer) Sleep(context.Context, *SleepRequest) (*Slee
 func (UnimplementedProcessorServer) Deadline(context.Context, *DeadlineRequest) (*DeadlineResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Deadline not implemented")
 }
+func (UnimplementedProcessorServer) Limited(context.Context, *LimitedRequest) (*LimitedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Limited not implemented")
+}
+func (UnimplementedProcessorServer) Serial(context.Context, *SerialRequest) (*SerialResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Serial not implemented")
+}
 func (UnimplementedProcessorServer) Progress(context.Context, *ProgressRequest) (*ProgressResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Progress not implemented")
 }
 func (UnimplementedProcessorServer) Operate(context.Context, *OperateRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method Operate not implemented")
+}
+func (UnimplementedProcessorServer) Pausable(context.Context, *PausableRequest) (*PausableResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Pausable not implemented")
+}
+func (UnimplementedProcessorServer) Tunable(context.Context, *TunableRequest) (*TunableResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Tunable not implemented")
+}
+func (UnimplementedProcessorServer) Redial(context.Context, *RedialRequest) (*RedialResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Redial not implemented")
 }
 func (UnimplementedProcessorServer) Unrouted(context.Context, *UnroutedRequest) (*UnroutedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Unrouted not implemented")
@@ -279,6 +377,42 @@ func _Processor_Deadline_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Processor_Limited_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LimitedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Limited(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Limited_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Limited(ctx, req.(*LimitedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Processor_Serial_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SerialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Serial(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Serial_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Serial(ctx, req.(*SerialRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Processor_Progress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProgressRequest)
 	if err := dec(in); err != nil {
@@ -311,6 +445,60 @@ func _Processor_Operate_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProcessorServer).Operate(ctx, req.(*OperateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Processor_Pausable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PausableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Pausable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Pausable_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Pausable(ctx, req.(*PausableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Processor_Tunable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TunableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Tunable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Tunable_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Tunable(ctx, req.(*TunableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Processor_Redial_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).Redial(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_Redial_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).Redial(ctx, req.(*RedialRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -357,12 +545,32 @@ var Processor_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Processor_Deadline_Handler,
 		},
 		{
+			MethodName: "Limited",
+			Handler:    _Processor_Limited_Handler,
+		},
+		{
+			MethodName: "Serial",
+			Handler:    _Processor_Serial_Handler,
+		},
+		{
 			MethodName: "Progress",
 			Handler:    _Processor_Progress_Handler,
 		},
 		{
 			MethodName: "Operate",
 			Handler:    _Processor_Operate_Handler,
+		},
+		{
+			MethodName: "Pausable",
+			Handler:    _Processor_Pausable_Handler,
+		},
+		{
+			MethodName: "Tunable",
+			Handler:    _Processor_Tunable_Handler,
+		},
+		{
+			MethodName: "Redial",
+			Handler:    _Processor_Redial_Handler,
 		},
 		{
 			MethodName: "Unrouted",

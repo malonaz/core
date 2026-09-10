@@ -6,7 +6,6 @@ go_library(
         "job_postgres.pb.go",
         "queue.go",
         "queue_postgres.pb.go",
-        "target_postgres.pb.go",
     ],
     visibility = ["//..."],
     deps = [

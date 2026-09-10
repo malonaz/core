@@ -15,6 +15,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/pbutil",
+        "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",

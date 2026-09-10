@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	codegenaippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	codegenschedulerpb "github.com/malonaz/core/genproto/codegen/scheduler/v1"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -30,13 +30,13 @@ type longrunningMethod struct {
 	resourceField *protogen.Field
 	// Set when the request carries a `request_id`, which makes the start idempotent.
 	requestIDField *protogen.Field
-	queue          string
 	responseType   protoreflect.FullName
 }
 
 // parseLongrunningMethod returns nil when the method does not return an
 // Operation. One that does must carry `google.longrunning.operation_info`
-// (AIP-151) and the codegen's `longrunning.queue`.
+// (AIP-151) and the scheduler's `malonaz.scheduler.v1.method` annotation, which
+// is what makes the scheduler run it.
 func parseLongrunningMethod(method *protogen.Method) (*longrunningMethod, error) {
 	if method.Output.Desc.FullName() != operationFullName {
 		return nil, nil
@@ -51,18 +51,14 @@ func parseLongrunningMethod(method *protogen.Method) (*longrunningMethod, error)
 	if operationInfo.GetResponseType() == "" || operationInfo.GetMetadataType() == "" {
 		return nil, fmt.Errorf("%s: operation_info must set response_type and metadata_type", method.GoName)
 	}
-	options, err := pbutil.GetExtension[*codegenaippb.LongrunningOptions](method.Desc.Options(), codegenaippb.E_Longrunning)
-	if err != nil {
-		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return nil, fmt.Errorf("%s returns google.longrunning.Operation but declares no (malonaz.codegen.aip.v1.longrunning).queue", method.GoName)
-		}
-		return nil, fmt.Errorf("getting longrunning options of %s: %w", method.GoName, err)
+	if !proto.HasExtension(method.Desc.Options(), codegenschedulerpb.E_Method) {
+		return nil, fmt.Errorf("%s returns google.longrunning.Operation but declares no (malonaz.scheduler.v1.method) annotation", method.GoName)
 	}
 	responseType, err := resolveResponseType(method, operationInfo.GetResponseType())
 	if err != nil {
 		return nil, err
 	}
-	parsed := &longrunningMethod{method: method, queue: options.GetQueue(), responseType: responseType}
+	parsed := &longrunningMethod{method: method, responseType: responseType}
 	for _, field := range method.Input.Fields {
 		switch field.Desc.Name() {
 		case "parent", "name":
@@ -151,7 +147,6 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 		serverGoName, method.GoName, gen.ident(contextPkg, "Context"), gen.qgi(method.Input.GoIdent), gen.ident(longrunningpbPkg, "Operation")))
 	g.P(fmt.Sprintf("  if !%s(ctx) {", gen.ident(longrunningPkg, "IsRun")))
 	g.P(fmt.Sprintf("    startRequest := &%s{", gen.ident(longrunningPkg, "StartRequest")))
-	g.P(fmt.Sprintf("      Queue:    %q,", lro.queue))
 	g.P(fmt.Sprintf("      Resource: request.Get%s(),", lro.resourceField.GoName))
 	g.P("      Request:  request,")
 	if lro.requestIDField != nil {
