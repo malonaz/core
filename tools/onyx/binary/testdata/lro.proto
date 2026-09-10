@@ -1,0 +1,16 @@
+syntax = "proto3";
+package test.lro.v1;
+
+import "google/longrunning/operations.proto";
+import "malonaz/codegen/gateway/v1/gateway.proto";
+
+option go_package = "example.com/repo/genproto/lro/v1";
+service LroService {
+  rpc Ping(Empty) returns (Empty);
+  rpc Import(Empty) returns (google.longrunning.Operation);
+  // A gateway method: its jobs are the proxied method's.
+  rpc Proxied(Empty) returns (.google.longrunning.Operation) {
+    option (malonaz.codegen.gateway.v1.opts).proxy = "test.other.v1.OtherService.Import";
+  }
+}
+message Empty {}

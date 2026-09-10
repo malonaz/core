@@ -35,7 +35,7 @@ codegens:
       store: library             # the postgres_db_client that backs it
       target: //gengo/test/library/library_service/rpc
       nats: true                 # needs a `nats` dependency
-      longrunning: true          # needs a grpc_client on scheduler-service
+      longrunning: true          # runs Operations on the scheduler; needs a grpc_client on it
 dependencies:                    # constructor arguments, in this order
   - nats: {}
   - postgres_db_client:

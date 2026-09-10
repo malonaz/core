@@ -38,7 +38,8 @@ updated whenever a lore is added, renamed, or removed.
   start behind Listen(), health entries, shutdown order, cycle/collision errors.
 - `lores/scheduler/longrunning` — AIP-151 operations as scheduler jobs:
   annotations, generated producer/runner split, `{job parent}/operations/{job}`
-  naming and why, the method-scoped Operations server, traps.
+  naming and why, the per-server Operations server onyx derives from the
+  protos (gateways included), traps.
 - `lores/domain/agent` — Agent/Task/Memory ontology, durable runners,
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI

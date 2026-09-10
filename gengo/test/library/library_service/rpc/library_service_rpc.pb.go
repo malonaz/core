@@ -87,11 +87,6 @@ type LibraryServiceRunner interface {
 	RunImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*v12.ImportBooksResponse, error)
 }
 
-// LibraryServiceLongrunningMethods are the fully qualified long-running methods of the service.
-var LibraryServiceLongrunningMethods = []string{
-	"/malonaz.test.library.library_service.v1.LibraryService/ImportBooks",
-}
-
 type libraryService_AuthorStore interface {
 	BatchInsertAuthors(ctx context.Context, requestIDs []string, authors []*model.Author, authorProfiles []*model.AuthorProfile) ([]*model.Author, error)
 	UpdateAuthor(ctx context.Context, author *model.Author, updateClause string, columns []string, etag string) (*model.Author, error)

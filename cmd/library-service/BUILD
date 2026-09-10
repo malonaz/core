@@ -30,6 +30,7 @@ go_binary(
         "//go/nats",
         "//go/postgres",
         "//go/prometheus",
+        "//go/scheduler/longrunning",
         "//go/test/library/library_service",
         "//go/test/library/store",
         "//malonaz/scheduler/scheduler_service/v1",

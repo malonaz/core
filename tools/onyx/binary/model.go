@@ -42,6 +42,11 @@ type Server struct {
 	Services []*Service
 	// gRPC registrations, for grpc servers.
 	GRPC []*Registration
+	// The job methods of the long-running methods (AIP-151) the registrations expose, which the
+	// server serves as google.longrunning.Operations; SchedulerClient is the client they are read
+	// through, and is set exactly when there are any.
+	LongrunningMethods []string
+	SchedulerClient    *GRPCClient
 }
 
 // Registration is a gRPC service registered on a grpc server.
@@ -200,6 +205,9 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 				server.GRPC = append(server.GRPC, &Registration{Server_Grpc_Service: entry.grpc, Service: service, GRPC: grpc})
 			}
 		}
+		if err := l.resolveLongrunning(server); err != nil {
+			return nil, fmt.Errorf("server %s: %w", server.GetName(), err)
+		}
 	}
 
 	// A gRPC dependency served in this binary is implemented by the service registering it.
@@ -241,6 +249,39 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 		return nil, err
 	}
 	return l.binary, nil
+}
+
+// schedulerServiceFullName is the scheduler running long-running operations.
+const schedulerServiceFullName = "malonaz.scheduler.scheduler_service.v1.SchedulerService"
+
+// resolveLongrunning collects the long-running methods a grpc server exposes and the scheduler
+// client its Operations server reads them through: the one a hosted service depends on.
+func (l *loader) resolveLongrunning(server *Server) error {
+	for _, registration := range server.GRPC {
+		for _, method := range registration.GRPC.LongrunningMethods {
+			if !slices.Contains(server.LongrunningMethods, method) {
+				server.LongrunningMethods = append(server.LongrunningMethods, method)
+			}
+		}
+	}
+	if len(server.LongrunningMethods) == 0 {
+		return nil
+	}
+	for _, service := range server.Services {
+		for _, dep := range service.Dependencies {
+			if dep.GRPCClient == nil || dep.GRPCClient.FullName != schedulerServiceFullName {
+				continue
+			}
+			if server.SchedulerClient != nil && server.SchedulerClient != dep.GRPCClient {
+				return fmt.Errorf("serves long-running methods through both scheduler clients %s and %s", server.SchedulerClient.Name, dep.GRPCClient.Name)
+			}
+			server.SchedulerClient = dep.GRPCClient
+		}
+	}
+	if server.SchedulerClient == nil {
+		return fmt.Errorf("serves long-running methods (%s) but none of its services has a grpc_client on %s, which its google.longrunning.Operations server reads them through", strings.Join(server.LongrunningMethods, ", "), schedulerServiceFullName)
+	}
+	return nil
 }
 
 func grpcKey(proto, service string) string {

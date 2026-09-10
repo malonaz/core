@@ -91,13 +91,7 @@ func resolveResponseType(method *protogen.Method, responseType string) (protoref
 // runnerGoName is the interface the embedding service implements.
 func runnerGoName(si *serviceInfo) string { return si.service.GoName + "Runner" }
 
-// longrunningMethodsGoName is the variable listing the service's LRO methods,
-// which scopes its Operations server.
-func longrunningMethodsGoName(si *serviceInfo) string {
-	return si.service.GoName + "LongrunningMethods"
-}
-
-// generateLongrunningServiceLevel emits the runner interface and the method list.
+// generateLongrunningServiceLevel emits the runner interface.
 func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 	g := gen.g
 	g.P("// ", runnerGoName(si), " does the work of ", si.service.GoName, "'s long-running operations. The")
@@ -111,13 +105,6 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 		}
 		g.P(fmt.Sprintf("  Run%s(ctx %s, request *%s) (*%s, error)",
 			lro.method.GoName, gen.ident(contextPkg, "Context"), gen.qgi(lro.method.Input.GoIdent), responseType))
-	}
-	g.P("}")
-	g.P()
-	g.P("// ", longrunningMethodsGoName(si), " are the fully qualified long-running methods of the service.")
-	g.P("var ", longrunningMethodsGoName(si), " = []string{")
-	for _, lro := range si.lroMethods {
-		g.P(fmt.Sprintf("  %q,", fmt.Sprintf("/%s/%s", si.service.Desc.FullName(), lro.method.Desc.Name())))
 	}
 	g.P("}")
 	g.P()

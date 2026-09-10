@@ -88,6 +88,9 @@ Identifiers are derived, so you can predict them: service `twilio-service`
 `onikisuExternalGRPCGateway`, `opts.OnikisuExternalGRPC`. Collisions
 between any two of these fail generation naming both owners.
 
-Services with a `longrunning` codegen also get
-`longrunningpb.RegisterOperationsServer` on every grpc server that
-registers them (AIP-151).
+A grpc server whose registered protos have methods returning
+`google.longrunning.Operation` also gets one
+`longrunningpb.RegisterOperationsServer` (AIP-151), scoped to those methods —
+a gateway method's `proxy` target stands in for it — and reading jobs through
+the scheduler `grpc_client` one of its services declares; none, or two
+different ones, fails generation (`lores/scheduler/longrunning`).
