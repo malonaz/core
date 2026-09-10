@@ -41,20 +41,12 @@ const uniqueKeyCreateAttempts = 3
 // job when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
 	job := request.GetJob()
-	requestType := job.GetPayload().GetTypeUrl()
-	if requestType == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "payload.type_url must be set").Err()
-	}
-	queueModel, err := s.schedulerPostgresStore.GetQueueByRequestType(ctx, requestType)
+	queue, err := s.queueByRequestType(ctx, job.GetPayload().GetTypeUrl())
 	if err != nil {
 		if errors.Is(err, model.ErrQueueNotExist) {
-			return nil, status.Errorf(codes.FailedPrecondition, "no queue accepts %s", requestType).Err()
+			return nil, status.Errorf(codes.FailedPrecondition, "no queue accepts %s", job.GetPayload().GetTypeUrl()).Err()
 		}
-		return nil, status.FromError(err, "getting queue by request type").Err()
-	}
-	queue, err := queueModel.ToPb()
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+		return nil, err
 	}
 	request.Job = &schedulerpb.Job{
 		Labels:       job.GetLabels(),
@@ -87,6 +79,26 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 			return nil, err
 		}
 	}
+}
+
+// queueByRequestType returns the queue routing payloads of the type URL, or
+// model.ErrQueueNotExist when none does; every other failure is a gRPC status.
+func (s *Service) queueByRequestType(ctx context.Context, requestType string) (*schedulerpb.Queue, error) {
+	if requestType == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "payload.type_url must be set").Err()
+	}
+	queueModel, err := s.schedulerPostgresStore.GetQueueByRequestType(ctx, requestType)
+	if err != nil {
+		if errors.Is(err, model.ErrQueueNotExist) {
+			return nil, err
+		}
+		return nil, status.FromError(err, "getting queue by request type").Err()
+	}
+	queue, err := queueModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
+	}
+	return queue, nil
 }
 
 // pendingJobByUniqueKey returns the PENDING job holding the key, or nil.
