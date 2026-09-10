@@ -1,6 +1,6 @@
 ---
 title: Go style guide (core)
-description: 'Go style guide and preferred core libraries: gRPC errors, pbutil marshaling, field masks, AIP pagination, errgroup, resource names.'
+description: 'Go style guide and preferred core libraries: gRPC errors, pbutil marshaling, field masks, AIP pagination, errgroup, resource names, grpc ServerOpts/ClientOpts and Listen.'
 labels:
     lang: go
     repo: core
@@ -166,6 +166,11 @@ if err := contactRn.UnmarshalString(request.GetContact()); err != nil {
     return nil, status.Errorf(codes.InvalidArgument, "unmarshaling contact resource name: %v", err).Err()
 }
 ```
+
+### 7. gRPC servers and clients (`go/grpc`)
+Servers take `*grpc.ServerOpts` (port/socket, TLS, health, graceful stop, reflection), clients `*grpc.ClientOpts` (host, port/socket, TLS). They are distinct types on purpose: a client has no health interval, a server has no host. To dial a server from the same process use `serverOpts.ClientOpts()` — never a second, hand-kept copy of its address. `grpc.ParseClientOpts` turns a `unix:`/`http://`/`https://`/`host:port` string into client opts.
+
+`(*Server).Listen(ctx)` binds the address synchronously; `Serve` calls it if it has not been called. Bind before anything that will dial the server starts, so their calls queue instead of failing — onyx-generated mains do this for every grpc server.
 
 ---
 

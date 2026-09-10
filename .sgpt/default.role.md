@@ -3,7 +3,7 @@
 You are working in malonaz/core: shared Go platform libraries (grpc, aip,
 pbutil, postgres, ai), the Please build system, and protobuf codegen
 plugins. Key areas: `build_defs/` (Please build rules and the
-protoc_gen_core codegen templates), `go/` (platform libraries), and
+protoc_gen_core and onyx codegen), `go/` (platform libraries), and
 generated outputs under `genproto/`/`gengo/` (never edit by hand).
 
 # Lore index
@@ -12,7 +12,8 @@ This repo's durable knowledge, under `.sgpt/lores/`. Keep this list
 updated whenever a lore is added, renamed, or removed.
 
 - `lores/style/go` — Go style guide and preferred core libraries: gRPC
-  errors, pbutil, field masks, AIP pagination, errgroup, resource names.
+  errors, pbutil, field masks, AIP pagination, errgroup, resource names,
+  grpc ServerOpts/ClientOpts + Listen.
 - `lores/style/protobuf` — protobuf style guide: AIP resource patterns,
   naming, codegen model options, field behaviors, buf.validate.
 - `lores/aip/querying` — querying AIP-compliant APIs: AIP-160 filters,
@@ -29,6 +30,12 @@ updated whenever a lore is added, renamed, or removed.
   BatchGet, list options and offset tokens, update allow-list and etag
   retry, the children guard and `force` cascade, mandatory Undelete for
   soft-deletable resources (restores lifecycle singletons only).
+- `lores/onyx/overview` — onyx: ServiceManifest/MainManifest (malonaz/onyx/v1),
+  dependency and server kinds, build rules, generated flag namespaces,
+  add-a-service / add-a-binary checklists, YAML traps.
+- `lores/onyx/binary` — what the generated main does: one instance per
+  service, in-process gRPC deps dial the server's opts, dependency-ordered
+  start behind Listen(), health entries, shutdown order, cycle/collision errors.
 - `lores/domain/agent` — Agent/Task/Memory ontology, durable runners,
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI
