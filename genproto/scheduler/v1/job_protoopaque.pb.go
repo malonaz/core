@@ -91,7 +91,7 @@ func (x JobState) Number() protoreflect.EnumNumber {
 }
 
 // A Job is a unit of deferred work: a request payload the scheduler delivers
-// to the handler its [Queue][malonaz.scheduler.v1.Queue] routes it to, at or
+// to the method of the [Queue][malonaz.scheduler.v1.Queue] its payload type selects, at or
 // after its schedule time, retrying under the queue's policy until it succeeds
 // or exhausts its attempts.
 //
@@ -571,14 +571,14 @@ type Job_builder struct {
 	Etag string
 	// The labels on this job.
 	Labels map[string]string
-	// The request delivered to the handler. Its type URL selects the handler
-	// among the queue's.
+	// The request delivered to the method. Its type URL selects the queue.
 	Payload *anypb.Any
-	// The queue the job runs in: its policy and handlers apply to the job.
+	// The queue the job runs in, resolved at creation from the payload type:
+	// its method, endpoint and policy apply to the job.
 	// Format: queues/{queue}
 	Queue string
-	// The gRPC method the payload is delivered to, resolved at creation from
-	// the payload type against the queue's handlers.
+	// The gRPC method the payload is delivered to, e.g.
+	// `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
 	Method string
 	// The long-running operation this job backs, when the producer exposes the
 	// job as one (AIP-151). Unique across jobs. The operation's ID is the job's
@@ -621,7 +621,7 @@ type Job_builder struct {
 	// The error of the last failed attempt. Cleared when the job is retried.
 	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
 	Error *status.Status
-	// The handler's response, set on SUCCEEDED jobs.
+	// The method's response, set on SUCCEEDED jobs.
 	Response *anypb.Any
 	// The latest progress reported by the processor through ReportJobProgress.
 	Progress *anypb.Any
@@ -898,9 +898,9 @@ type JobAttempt_builder struct {
 	// The attempt's failure; unset when the attempt succeeded. A reaped attempt
 	// (worker lease lapsed) records UNAVAILABLE.
 	Error *status.Status
-	// The wait before the next attempt requested by the handler through a
+	// The wait before the next attempt requested by the method through a
 	// `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
-	// Unset when the handler requested none.
+	// Unset when the method requested none.
 	RetryDelay *durationpb.Duration
 }
 
@@ -921,7 +921,7 @@ var File_malonaz_scheduler_v1_job_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xcc\x0f\n" +
+	"\x1emalonaz/scheduler/v1/job.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xc6\x0f\n" +
 	"\x03Job\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -930,9 +930,9 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"updateTime\x12\x12\n" +
 	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xd3\x01\n" +
 	"\x06labels\x18\x05 \x03(\v2%.malonaz.scheduler.v1.Job.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12<\n" +
-	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x12?\n" +
-	"\x05queue\x18\a \x01(\tB)\xe0A\x05\xfaA\x1d\n" +
-	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x05queue\x12\x1b\n" +
+	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x18\x01R\apayload\x129\n" +
+	"\x05queue\x18\a \x01(\tB#\xe0A\x03\xfaA\x1d\n" +
+	"\x1bscheduler.malonaz.com/QueueR\x05queue\x12\x1b\n" +
 	"\x06method\x18\x16 \x01(\tB\x03\xe0A\x03R\x06method\x12o\n" +
 	"\toperation\x18\x17 \x01(\tBQ\xe0A\x05\xfaA&\n" +
 	"$longrunning.googleapis.com/Operation\xbaH\x1c\xd8\x01\x01r\x172\x15^.+/operations/[^/]+$\xba\xea\x0f\x02 \x01R\toperation\x12A\n" +

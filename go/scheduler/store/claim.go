@@ -17,13 +17,14 @@ import (
 // "schedule" in ASCII; any constant shared by every instance would do.
 const claimAdvisoryLockKey int64 = 0x7363_6865_6475_6c65
 
-// ClaimedJob is a job selected by the claim scan, carrying the policy and
-// handlers of its queue as of the claim. Both are nil when the queue row is
-// gone.
+// ClaimedJob is a job selected by the claim scan, carrying its queue's
+// endpoint, response type and policy as of the claim. All are zero when the
+// queue row is gone.
 type ClaimedJob struct {
 	model.Job
-	QueuePolicy   []byte `db:"queue_policy"`
-	QueueHandlers []byte `db:"queue_handlers"`
+	QueueEndpoint     *string `db:"queue_endpoint"`
+	QueueResponseType *string `db:"queue_response_type"`
+	QueuePolicy       []byte  `db:"queue_policy"`
 }
 
 // jobClaimCandidatesQuery ranks due PENDING jobs within their queue and keeps
@@ -52,7 +53,7 @@ WHERE max_concurrency = 0 OR rank <= max_concurrency - running_count
 ORDER BY priority DESC, due_time, create_time
 LIMIT $5`
 
-var jobClaimLockQuery = "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + `, queue.policy AS queue_policy, queue.handlers AS queue_handlers
+var jobClaimLockQuery = "SELECT " + postgres.QualifyColumns(JobPostgresColumns, "job") + `, queue.endpoint AS queue_endpoint, queue.response_type AS queue_response_type, queue.policy AS queue_policy
 FROM scheduler.job LEFT JOIN scheduler.queue ON 'queues/' || queue.queue_id = job.queue
 WHERE job.job_id = ANY($1) AND job.state = $2
 ORDER BY array_position($1, job.job_id)
@@ -60,7 +61,7 @@ FOR UPDATE OF job SKIP LOCKED`
 
 // ClaimJobs moves up to limit due PENDING jobs to RUNNING through transition,
 // honouring each queue's state and max_concurrency, and returns them with
-// their queue's policy and handlers. Instances claim one at a time under an
+// their queue's endpoint, response type and policy. Instances claim one at a time under an
 // advisory lock so the concurrency limits hold exactly across replicas.
 func (s *Store) ClaimJobs(ctx context.Context, now time.Time, limit int, transition func(*ClaimedJob) error) ([]*ClaimedJob, error) {
 	var jobs []*ClaimedJob

@@ -13,33 +13,27 @@ import type { BatchGetJobsRequestSchema, BatchGetJobsResponseSchema, CancelJobRe
 import { file_malonaz_scheduler_scheduler_service_v1_job } from "./job_pb";
 import type { BatchGetQueuesRequestSchema, BatchGetQueuesResponseSchema, CreateQueueRequestSchema, DeleteQueueRequestSchema, GetQueueRequestSchema, ListQueuesRequestSchema, ListQueuesResponseSchema, PauseQueueRequestSchema, ResumeQueueRequestSchema, UpdateQueueRequestSchema } from "./queue_pb";
 import { file_malonaz_scheduler_scheduler_service_v1_queue } from "./queue_pb";
-import type { BatchGetTargetsRequestSchema, BatchGetTargetsResponseSchema, CreateTargetRequestSchema, DeleteTargetRequestSchema, GetTargetRequestSchema, ListTargetsRequestSchema, ListTargetsResponseSchema, UpdateTargetRequestSchema } from "./target_pb";
-import { file_malonaz_scheduler_scheduler_service_v1_target } from "./target_pb";
 import type { JobSchema } from "../../v1/job_pb";
 import { file_malonaz_scheduler_v1_job } from "../../v1/job_pb";
 import type { QueueSchema } from "../../v1/queue_pb";
 import { file_malonaz_scheduler_v1_queue } from "../../v1/queue_pb";
-import type { TargetSchema } from "../../v1/target_pb";
-import { file_malonaz_scheduler_v1_target } from "../../v1/target_pb";
 
 /**
  * Describes the file malonaz/scheduler/scheduler_service/v1/scheduler_service.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenFile = /*@__PURE__*/
-  fileDesc("Cj5tYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZXJfc2VydmljZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEymCkKEFNjaGVkdWxlclNlcnZpY2USsQEKDENyZWF0ZVRhcmdldBI7Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNyZWF0ZVRhcmdldFJlcXVlc3QaHC5tYWxvbmF6LnNjaGVkdWxlci52MS5UYXJnZXQiRtpBBnRhcmdldMK0LR4KHHNjaGVkdWxlci5tYWxvbmF6LmNvbS9UYXJnZXSC0+STAhUiCy92MS90YXJnZXRzOgZ0YXJnZXQSrQEKCUdldFRhcmdldBI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkdldFRhcmdldFJlcXVlc3QaHC5tYWxvbmF6LnNjaGVkdWxlci52MS5UYXJnZXQiSJACAdpBBG5hbWXCtC0eChxzY2hlZHVsZXIubWFsb25hei5jb20vVGFyZ2V0gtPkkwIWEhQvdjEve25hbWU9dGFyZ2V0cy8qfRLNAQoMVXBkYXRlVGFyZ2V0EjsubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuVXBkYXRlVGFyZ2V0UmVxdWVzdBocLm1hbG9uYXouc2NoZWR1bGVyLnYxLlRhcmdldCJi2kESdGFyZ2V0LHVwZGF0ZV9tYXNrwrQtHgocc2NoZWR1bGVyLm1hbG9uYXouY29tL1RhcmdldILT5JMCJTIbL3YxL3t0YXJnZXQubmFtZT10YXJnZXRzLyp9OgZ0YXJnZXQSqgEKDERlbGV0ZVRhcmdldBI7Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkRlbGV0ZVRhcmdldFJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkiRdpBBG5hbWXCtC0eChxzY2hlZHVsZXIubWFsb25hei5jb20vVGFyZ2V0gtPkkwIWKhQvdjEve25hbWU9dGFyZ2V0cy8qfRLAAQoLTGlzdFRhcmdldHMSOi5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5MaXN0VGFyZ2V0c1JlcXVlc3QaOy5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5MaXN0VGFyZ2V0c1Jlc3BvbnNlIjiQAgHCtC0eChxzY2hlZHVsZXIubWFsb25hei5jb20vVGFyZ2V0gtPkkwINEgsvdjEvdGFyZ2V0cxLdAQoPQmF0Y2hHZXRUYXJnZXRzEj4ubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQmF0Y2hHZXRUYXJnZXRzUmVxdWVzdBo/Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0VGFyZ2V0c1Jlc3BvbnNlIkmQAgHaQQVuYW1lc8K0LR4KHHNjaGVkdWxlci5tYWxvbmF6LmNvbS9UYXJnZXSC0+STAhYSFC92MS90YXJnZXRzOmJhdGNoR2V0EqoBCgtDcmVhdGVRdWV1ZRI6Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNyZWF0ZVF1ZXVlUmVxdWVzdBobLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlIkLaQQVxdWV1ZcK0LR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZYLT5JMCEyIKL3YxL3F1ZXVlczoFcXVldWUSqAEKCEdldFF1ZXVlEjcubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuR2V0UXVldWVSZXF1ZXN0GhsubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWUiRpACAdpBBG5hbWXCtC0dChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWWC0+STAhUSEy92MS97bmFtZT1xdWV1ZXMvKn0SxQEKC1VwZGF0ZVF1ZXVlEjoubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuVXBkYXRlUXVldWVSZXF1ZXN0GhsubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWUiXdpBEXF1ZXVlLHVwZGF0ZV9tYXNrwrQtHQobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlgtPkkwIiMhkvdjEve3F1ZXVlLm5hbWU9cXVldWVzLyp9OgVxdWV1ZRKmAQoLRGVsZXRlUXVldWUSOi5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5EZWxldGVRdWV1ZVJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkiQ9pBBG5hbWXCtC0dChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWWC0+STAhUqEy92MS97bmFtZT1xdWV1ZXMvKn0SuwEKCkxpc3RRdWV1ZXMSOS5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5MaXN0UXVldWVzUmVxdWVzdBo6Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RRdWV1ZXNSZXNwb25zZSI2kAIBwrQtHQobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlgtPkkwIMEgovdjEvcXVldWVzEtgBCg5CYXRjaEdldFF1ZXVlcxI9Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0UXVldWVzUmVxdWVzdBo+Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0UXVldWVzUmVzcG9uc2UiR5ACAdpBBW5hbWVzwrQtHQobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlgtPkkwIVEhMvdjEvcXVldWVzOmJhdGNoR2V0EpEBCgpQYXVzZVF1ZXVlEjkubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuUGF1c2VRdWV1ZVJlcXVlc3QaGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSIr2kEEbmFtZYLT5JMCHiIZL3YxL3tuYW1lPXF1ZXVlcy8qfTpwYXVzZToBKhKUAQoLUmVzdW1lUXVldWUSOi5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXN1bWVRdWV1ZVJlcXVlc3QaGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSIs2kEEbmFtZYLT5JMCHyIaL3YxL3tuYW1lPXF1ZXVlcy8qfTpyZXN1bWU6ASoSgAIKCUNyZWF0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNyZWF0ZUpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IinQHaQQpwYXJlbnQsam9iwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCayIIL3YxL2pvYnM6A2pvYlooIiEvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyp9L2pvYnM6A2pvYlowIikvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vam9iczoDam9iEvEBCgZHZXRKb2ISNS5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5HZXRKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIpQBkAIB2kEEbmFtZcK0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAmUSES92MS97bmFtZT1qb2JzLyp9WiMSIS92MS97bmFtZT1vcmdhbml6YXRpb25zLyovam9icy8qfVorEikvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovam9icy8qfRKbAgoJVXBkYXRlSm9iEjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuVXBkYXRlSm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiK4AdpBD2pvYix1cGRhdGVfbWFza8K0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAoABMhUvdjEve2pvYi5uYW1lPWpvYnMvKn06A2pvYlosMiUvdjEve2pvYi5uYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OgNqb2JaNDItL3YxL3tqb2IubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OgNqb2IS8QEKCURlbGV0ZUpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkRlbGV0ZUpvYlJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkikQHaQQRuYW1lwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCZSoRL3YxL3tuYW1lPWpvYnMvKn1aIyohL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9WisqKS92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9Eo0CCghMaXN0Sm9icxI3Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RKb2JzUmVxdWVzdBo4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RKb2JzUmVzcG9uc2UijQGQAgHaQQZwYXJlbnTCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwJcEggvdjEvam9ic1ojEiEvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyp9L2pvYnNaKxIpL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2pvYnMSugIKDEJhdGNoR2V0Sm9icxI7Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0Sm9ic1JlcXVlc3QaPC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5CYXRjaEdldEpvYnNSZXNwb25zZSKuAZACAdpBDHBhcmVudCxuYW1lc8K0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAncSES92MS9qb2JzOmJhdGNoR2V0WiwSKi92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKn0vam9iczpiYXRjaEdldFo0EjIvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vam9iczpiYXRjaEdldBLvAQoIUmV0cnlKb2ISNy5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXRyeUpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IijgHaQQRuYW1lgtPkkwKAASIXL3YxL3tuYW1lPWpvYnMvKn06cmV0cnk6ASpaLCInL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OnJldHJ5OgEqWjQiLy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OnJldHJ5OgEqEvQBCglDYW5jZWxKb2ISOC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5DYW5jZWxKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIpEB2kEEbmFtZYLT5JMCgwEiGC92MS97bmFtZT1qb2JzLyp9OmNhbmNlbDoBKlotIigvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2pvYnMvKn06Y2FuY2VsOgEqWjUiMC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OmNhbmNlbDoBKhLxAQoHV2FpdEpvYhI2Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLldhaXRKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIpIB2kEMbmFtZSx0aW1lb3V0gtPkkwJ9IhYvdjEve25hbWU9am9icy8qfTp3YWl0OgEqWisiJi92MS97bmFtZT1vcmdhbml6YXRpb25zLyovam9icy8qfTp3YWl0OgEqWjMiLi92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OndhaXQ6ASoSpQIKEVJlcG9ydEpvYlByb2dyZXNzEkAubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuUmVwb3J0Sm9iUHJvZ3Jlc3NSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIrIB2kENbmFtZSxwcm9ncmVzc4LT5JMCmwEiIC92MS97bmFtZT1qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqWjUiMC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovam9icy8qfTpyZXBvcnRQcm9ncmVzczoBKlo9IjgvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovam9icy8qfTpyZXBvcnRQcm9ncmVzczoBKhoYykEVc2NoZWR1bGVyLm1hbG9uYXouY29tQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MWIGcHJvdG8z", [file_google_api_annotations, file_google_api_client, file_google_protobuf_empty, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_scheduler_service_v1_job, file_malonaz_scheduler_scheduler_service_v1_queue, file_malonaz_scheduler_scheduler_service_v1_target, file_malonaz_scheduler_v1_job, file_malonaz_scheduler_v1_queue, file_malonaz_scheduler_v1_target]);
+  fileDesc("Cj5tYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZXJfc2VydmljZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEylCAKEFNjaGVkdWxlclNlcnZpY2USqgEKC0NyZWF0ZVF1ZXVlEjoubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQ3JlYXRlUXVldWVSZXF1ZXN0GhsubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWUiQtpBBXF1ZXVlwrQtHQobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlgtPkkwITIgovdjEvcXVldWVzOgVxdWV1ZRKoAQoIR2V0UXVldWUSNy5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5HZXRRdWV1ZVJlcXVlc3QaGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSJGkAIB2kEEbmFtZcK0LR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZYLT5JMCFRITL3YxL3tuYW1lPXF1ZXVlcy8qfRLFAQoLVXBkYXRlUXVldWUSOi5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5VcGRhdGVRdWV1ZVJlcXVlc3QaGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSJd2kERcXVldWUsdXBkYXRlX21hc2vCtC0dChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWWC0+STAiIyGS92MS97cXVldWUubmFtZT1xdWV1ZXMvKn06BXF1ZXVlEqYBCgtEZWxldGVRdWV1ZRI6Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkRlbGV0ZVF1ZXVlUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSJD2kEEbmFtZcK0LR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZYLT5JMCFSoTL3YxL3tuYW1lPXF1ZXVlcy8qfRK7AQoKTGlzdFF1ZXVlcxI5Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkxpc3RRdWV1ZXNSZXF1ZXN0GjoubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuTGlzdFF1ZXVlc1Jlc3BvbnNlIjaQAgHCtC0dChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWWC0+STAgwSCi92MS9xdWV1ZXMS2AEKDkJhdGNoR2V0UXVldWVzEj0ubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQmF0Y2hHZXRRdWV1ZXNSZXF1ZXN0Gj4ubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQmF0Y2hHZXRRdWV1ZXNSZXNwb25zZSJHkAIB2kEFbmFtZXPCtC0dChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWWC0+STAhUSEy92MS9xdWV1ZXM6YmF0Y2hHZXQSkQEKClBhdXNlUXVldWUSOS5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5QYXVzZVF1ZXVlUmVxdWVzdBobLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlIivaQQRuYW1lgtPkkwIeIhkvdjEve25hbWU9cXVldWVzLyp9OnBhdXNlOgEqEpQBCgtSZXN1bWVRdWV1ZRI6Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLlJlc3VtZVF1ZXVlUmVxdWVzdBobLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlIizaQQRuYW1lgtPkkwIfIhovdjEve25hbWU9cXVldWVzLyp9OnJlc3VtZToBKhKAAgoJQ3JlYXRlSm9iEjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQ3JlYXRlSm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiKdAdpBCnBhcmVudCxqb2LCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwJrIggvdjEvam9iczoDam9iWigiIS92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKn0vam9iczoDam9iWjAiKS92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9qb2JzOgNqb2IS8QEKBkdldEpvYhI1Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkdldEpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IilAGQAgHaQQRuYW1lwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCZRIRL3YxL3tuYW1lPWpvYnMvKn1aIxIhL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9WisSKS92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9EpsCCglVcGRhdGVKb2ISOC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5VcGRhdGVKb2JSZXF1ZXN0GhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIrgB2kEPam9iLHVwZGF0ZV9tYXNrwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCgAEyFS92MS97am9iLm5hbWU9am9icy8qfToDam9iWiwyJS92MS97am9iLm5hbWU9b3JnYW5pemF0aW9ucy8qL2pvYnMvKn06A2pvYlo0Mi0vdjEve2pvYi5uYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2pvYnMvKn06A2pvYhLxAQoJRGVsZXRlSm9iEjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuRGVsZXRlSm9iUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSKRAdpBBG5hbWXCtC0bChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9igtPkkwJlKhEvdjEve25hbWU9am9icy8qfVojKiEvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2pvYnMvKn1aKyopL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2pvYnMvKn0SjQIKCExpc3RKb2JzEjcubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuTGlzdEpvYnNSZXF1ZXN0GjgubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuTGlzdEpvYnNSZXNwb25zZSKNAZACAdpBBnBhcmVudMK0LRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2KC0+STAlwSCC92MS9qb2JzWiMSIS92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKn0vam9ic1orEikvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vam9icxK6AgoMQmF0Y2hHZXRKb2JzEjsubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuQmF0Y2hHZXRKb2JzUmVxdWVzdBo8Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkJhdGNoR2V0Sm9ic1Jlc3BvbnNlIq4BkAIB2kEMcGFyZW50LG5hbWVzwrQtGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYoLT5JMCdxIRL3YxL2pvYnM6YmF0Y2hHZXRaLBIqL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9qb2JzOmJhdGNoR2V0WjQSMi92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9qb2JzOmJhdGNoR2V0Eu8BCghSZXRyeUpvYhI3Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLlJldHJ5Sm9iUmVxdWVzdBoZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYiKOAdpBBG5hbWWC0+STAoABIhcvdjEve25hbWU9am9icy8qfTpyZXRyeToBKlosIicvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2pvYnMvKn06cmV0cnk6ASpaNCIvL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2pvYnMvKn06cmV0cnk6ASoS9AEKCUNhbmNlbEpvYhI4Lm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxLkNhbmNlbEpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IikQHaQQRuYW1lgtPkkwKDASIYL3YxL3tuYW1lPWpvYnMvKn06Y2FuY2VsOgEqWi0iKC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovam9icy8qfTpjYW5jZWw6ASpaNSIwL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2pvYnMvKn06Y2FuY2VsOgEqEvEBCgdXYWl0Sm9iEjYubWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEuV2FpdEpvYlJlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IikgHaQQxuYW1lLHRpbWVvdXSC0+STAn0iFi92MS97bmFtZT1qb2JzLyp9OndhaXQ6ASpaKyImL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OndhaXQ6ASpaMyIuL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2pvYnMvKn06d2FpdDoBKhKlAgoRUmVwb3J0Sm9iUHJvZ3Jlc3MSQC5tYWxvbmF6LnNjaGVkdWxlci5zY2hlZHVsZXJfc2VydmljZS52MS5SZXBvcnRKb2JQcm9ncmVzc1JlcXVlc3QaGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IisgHaQQ1uYW1lLHByb2dyZXNzgtPkkwKbASIgL3YxL3tuYW1lPWpvYnMvKn06cmVwb3J0UHJvZ3Jlc3M6ASpaNSIwL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqWj0iOC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9qb2JzLyp9OnJlcG9ydFByb2dyZXNzOgEqGhjKQRVzY2hlZHVsZXIubWFsb25hei5jb21CQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3NjaGVkdWxlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_google_api_annotations, file_google_api_client, file_google_protobuf_empty, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_scheduler_service_v1_job, file_malonaz_scheduler_scheduler_service_v1_queue, file_malonaz_scheduler_v1_job, file_malonaz_scheduler_v1_queue]);
 
 /**
  * This API represents a scheduler service: a durable, Postgres-backed job
- * queue that delivers each job's payload to a handler over gRPC.
+ * queue that delivers each job's payload to a gRPC method.
  *
  * # Resource model
  *
- * - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
- *   scheduler dials; each must serve gRPC reflection, the scheduler's only
- *   source of method and message type information.
- *   Format: targets/{target}
- * - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
- *   the handlers (method on a target) jobs are routed to.
+ * - [Queue][malonaz.scheduler.v1.Queue] resources are the methods jobs are
+ *   delivered to, each with its endpoint and execution policy. The dispatcher
+ *   creates them from the methods it discovers over its endpoints' gRPC
+ *   reflection; clients read, pause and resume them.
  *   Format: queues/{queue}
  * - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
  *   hang off the organization or user they run on behalf of.
@@ -60,29 +54,29 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  *
  * # Delivery
  *
- * At creation, a job's payload type URL selects the handler of its queue it is
- * delivered to. Workers claim due PENDING jobs, invoke the handler's method on
- * its target with the payload as request body under the queue's attempt
- * timeout, and record the outcome: SUCCEEDED with the response, or PENDING
- * again with the next attempt scheduled after the backoff, or FAILED with the
- * error once attempts are exhausted or the error is not retryable. A handler
- * may attach a `google.rpc.RetryInfo` detail to its error to set the wait
- * before the next attempt. Every attempt is recorded in the job's `metadata`.
+ * At creation, a job's payload type URL selects its queue. The dispatcher
+ * claims due PENDING jobs, invokes the queue's method on its endpoint with the
+ * payload as request body under the queue's attempt timeout, and records the
+ * outcome: SUCCEEDED with the response, or PENDING again with the next attempt
+ * scheduled after the backoff, or FAILED with the error once attempts are
+ * exhausted or the error is not retryable. A method may attach a
+ * `google.rpc.RetryInfo` detail to its error to set the wait before the next
+ * attempt. Every attempt is recorded in the job's `metadata`.
  *
- * Every handler call carries the job's resource name in the `x-scheduler-job`
- * request metadata, which handlers pass to ReportJobProgress.
+ * Every call carries the job's resource name in the `x-scheduler-job` request
+ * metadata, which methods pass to ReportJobProgress.
  *
  * # Long-running operations
  *
  * A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
  * sets `operation` at creation, with the job's ID as the operation's ID.
- * A handler whose response type is `google.longrunning.Operation` must return
+ * A method whose response type is `google.longrunning.Operation` must return
  * it done: its `response` or `error` is recorded as the job's outcome, and an
  * unfinished operation fails the job with FAILED_PRECONDITION without retry.
  * `WaitJob` backs `WaitOperation`.
  *
- * A running job holds a lease that its worker renews while the call is in
- * flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+ * A running job holds a lease that the dispatcher renews while the call is in
+ * flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
  *
  * Terminal jobs are kept for the scheduler's retention and deleted at their
  * `purge_time`.
@@ -91,83 +85,9 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  */
 export const SchedulerService: GenService<{
   /**
-   * Create a target.
-   *
-   * See: https://google.aip.dev/133 (Standard methods: Create).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.CreateTarget
-   */
-  createTarget: {
-    methodKind: "unary";
-    input: typeof CreateTargetRequestSchema;
-    output: typeof TargetSchema;
-  },
-  /**
-   * Get a target.
-   *
-   * See: https://google.aip.dev/131 (Standard methods: Get).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.GetTarget
-   */
-  getTarget: {
-    methodKind: "unary";
-    input: typeof GetTargetRequestSchema;
-    output: typeof TargetSchema;
-  },
-  /**
-   * Update a target. Jobs routed to it after the update use the new
-   * endpoint; calls in flight complete on the old one.
-   *
-   * See: https://google.aip.dev/134 (Standard methods: Update).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.UpdateTarget
-   */
-  updateTarget: {
-    methodKind: "unary";
-    input: typeof UpdateTargetRequestSchema;
-    output: typeof TargetSchema;
-  },
-  /**
-   * Delete a target. Fails with FAILED_PRECONDITION while a queue handler
-   * references it.
-   *
-   * See: https://google.aip.dev/135 (Standard methods: Delete).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.DeleteTarget
-   */
-  deleteTarget: {
-    methodKind: "unary";
-    input: typeof DeleteTargetRequestSchema;
-    output: typeof EmptySchema;
-  },
-  /**
-   * List targets.
-   *
-   * See: https://google.aip.dev/132 (Standard methods: List).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.ListTargets
-   */
-  listTargets: {
-    methodKind: "unary";
-    input: typeof ListTargetsRequestSchema;
-    output: typeof ListTargetsResponseSchema;
-  },
-  /**
-   * Get multiple targets in a single request.
-   *
-   * See: https://google.aip.dev/231 (Batch methods: Get).
-   *
-   * @generated from rpc malonaz.scheduler.scheduler_service.v1.SchedulerService.BatchGetTargets
-   */
-  batchGetTargets: {
-    methodKind: "unary";
-    input: typeof BatchGetTargetsRequestSchema;
-    output: typeof BatchGetTargetsResponseSchema;
-  },
-  /**
-   * Create a queue. Every handler's target must exist and serve the handler's
-   * method, which the scheduler checks over the target's gRPC reflection
-   * service; no two handlers may share a request type. The queue starts RUNNING.
+   * Create a queue. No two queues may share a request type. The queue starts
+   * RUNNING. Meant for the dispatcher, which creates one per method it
+   * discovers; see [Queue][malonaz.scheduler.v1.Queue].
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *
@@ -191,8 +111,8 @@ export const SchedulerService: GenService<{
     output: typeof QueueSchema;
   },
   /**
-   * Update a queue. The new policy applies to attempts claimed after the
-   * update; the new handlers apply to jobs created after it.
+   * Update a queue. The new policy and endpoint apply to attempts claimed
+   * after the update.
    *
    * See: https://google.aip.dev/134 (Standard methods: Update).
    *
@@ -267,11 +187,11 @@ export const SchedulerService: GenService<{
     output: typeof QueueSchema;
   },
   /**
-   * Create a job in its queue. Fails with NOT_FOUND when the queue does not
-   * exist and with INVALID_ARGUMENT when no handler of the queue accepts the
-   * payload type. A job on a PAUSED queue is accepted and waits. When the job
-   * carries a `unique_key` that already has a PENDING job, no job is created
-   * and that job is returned instead.
+   * Create a job in the queue its payload type selects. Fails with
+   * FAILED_PRECONDITION when no queue accepts the payload type. A job on a
+   * PAUSED queue is accepted and waits. When the job carries a `unique_key`
+   * that already has a PENDING job, no job is created and that job is returned
+   * instead.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *

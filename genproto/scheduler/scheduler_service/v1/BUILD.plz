@@ -1,12 +1,10 @@
 go_library(
     name = "v1",
     srcs = [
-        "bootstrap.pb.go",
         "job.pb.go",
         "queue.pb.go",
         "scheduler_service.pb.go",
         "scheduler_service_grpc.pb.go",
-        "target.pb.go",
     ],
     visibility = ["//..."],
     deps = [

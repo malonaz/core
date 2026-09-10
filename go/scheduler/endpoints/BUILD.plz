@@ -1,0 +1,18 @@
+go_library(
+    name = "endpoints",
+    srcs = ["endpoints.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/grpc",
+        "//go/grpc/status",
+        "//go/pbutil",
+        "//go/pbutil/pbreflection",
+        "//malonaz/codegen/scheduler/v1",
+        "//malonaz/scheduler/policy/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+    ],
+)

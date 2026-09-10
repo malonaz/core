@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import google.longrunning.operations_pb2
 import google.protobuf.duration_pb2
+import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.test.scheduler.processor.v1.processor_pb2
 
 
@@ -33,11 +34,31 @@ class ProcessorBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def Limited(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.LimitedRequest, malonaz.test.scheduler.processor.v1.processor_pb2.LimitedResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def Serial(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.SerialRequest, malonaz.test.scheduler.processor.v1.processor_pb2.SerialResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def Progress(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.ProgressRequest, malonaz.test.scheduler.processor.v1.processor_pb2.ProgressResponse]') -> None:
         pass
 
     @abc.abstractmethod
     async def Operate(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest, google.longrunning.operations_pb2.Operation]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def Pausable(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.PausableRequest, malonaz.test.scheduler.processor.v1.processor_pb2.PausableResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def Tunable(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.TunableRequest, malonaz.test.scheduler.processor.v1.processor_pb2.TunableResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def Redial(self, stream: 'grpclib.server.Stream[malonaz.test.scheduler.processor.v1.processor_pb2.RedialRequest, malonaz.test.scheduler.processor.v1.processor_pb2.RedialResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -70,6 +91,18 @@ class ProcessorBase(abc.ABC):
                 malonaz.test.scheduler.processor.v1.processor_pb2.DeadlineRequest,
                 malonaz.test.scheduler.processor.v1.processor_pb2.DeadlineResponse,
             ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Limited': grpclib.const.Handler(
+                self.Limited,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.LimitedRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.LimitedResponse,
+            ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Serial': grpclib.const.Handler(
+                self.Serial,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.SerialRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.SerialResponse,
+            ),
             '/malonaz.test.scheduler.processor.v1.Processor/Progress': grpclib.const.Handler(
                 self.Progress,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -81,6 +114,24 @@ class ProcessorBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest,
                 google.longrunning.operations_pb2.Operation,
+            ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Pausable': grpclib.const.Handler(
+                self.Pausable,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.PausableRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.PausableResponse,
+            ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Tunable': grpclib.const.Handler(
+                self.Tunable,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.TunableRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.TunableResponse,
+            ),
+            '/malonaz.test.scheduler.processor.v1.Processor/Redial': grpclib.const.Handler(
+                self.Redial,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.scheduler.processor.v1.processor_pb2.RedialRequest,
+                malonaz.test.scheduler.processor.v1.processor_pb2.RedialResponse,
             ),
             '/malonaz.test.scheduler.processor.v1.Processor/Unrouted': grpclib.const.Handler(
                 self.Unrouted,
@@ -118,6 +169,18 @@ class ProcessorStub:
             malonaz.test.scheduler.processor.v1.processor_pb2.DeadlineRequest,
             malonaz.test.scheduler.processor.v1.processor_pb2.DeadlineResponse,
         )
+        self.Limited = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Limited',
+            malonaz.test.scheduler.processor.v1.processor_pb2.LimitedRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.LimitedResponse,
+        )
+        self.Serial = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Serial',
+            malonaz.test.scheduler.processor.v1.processor_pb2.SerialRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.SerialResponse,
+        )
         self.Progress = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.test.scheduler.processor.v1.Processor/Progress',
@@ -129,6 +192,24 @@ class ProcessorStub:
             '/malonaz.test.scheduler.processor.v1.Processor/Operate',
             malonaz.test.scheduler.processor.v1.processor_pb2.OperateRequest,
             google.longrunning.operations_pb2.Operation,
+        )
+        self.Pausable = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Pausable',
+            malonaz.test.scheduler.processor.v1.processor_pb2.PausableRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.PausableResponse,
+        )
+        self.Tunable = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Tunable',
+            malonaz.test.scheduler.processor.v1.processor_pb2.TunableRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.TunableResponse,
+        )
+        self.Redial = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.scheduler.processor.v1.Processor/Redial',
+            malonaz.test.scheduler.processor.v1.processor_pb2.RedialRequest,
+            malonaz.test.scheduler.processor.v1.processor_pb2.RedialResponse,
         )
         self.Unrouted = grpclib.client.UnaryUnaryMethod(
             channel,

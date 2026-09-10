@@ -11,10 +11,6 @@ option go_package = "github.com/malonaz/core/genproto/codegen/aip/v1";
 extend google.protobuf.MethodOptions {
   // Extension for standard method.
   StandardMethod standard_method = 93000;
-
-  // Extension for long-running operation methods: those returning
-  // `google.longrunning.Operation`.
-  LongrunningOptions longrunning = 93001;
 }
 
 // Extensions for message options to configure AIP list and update behaviors.
@@ -119,19 +115,6 @@ message UpdateOptions {
   // Only fields listed here (or matching wildcard patterns) can be modified via Update RPCs.
   // This provides fine-grained access control at the field level.
   repeated string paths = 1;
-}
-
-// Options for a method returning `google.longrunning.Operation` (AIP-151).
-// The rpc codegen turns such a method into two roles behind one RPC: a
-// producer that hands the request to the scheduler as a job, and a runner
-// the scheduler calls back with the same request to do the work.
-message LongrunningOptions {
-  // The scheduler queue the method's jobs run in.
-  // Format: queues/{queue}
-  string queue = 1 [
-    (buf.validate.field).required = true,
-    (buf.validate.field).string.pattern = "^queues/[^/]+$"
-  ];
 }
 
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).

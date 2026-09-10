@@ -4,12 +4,9 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
-	codepb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -21,93 +18,40 @@ import (
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
+	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/scheduler/transition"
 )
 
-// typeURLPrefix is the prefix anypb gives type URLs; handler request and
-// response types are recorded in the same form so payloads match them directly.
-const typeURLPrefix = "type.googleapis.com/"
-
-var defaultRetryBackoff = &schedulerpb.RetryBackoff{
-	Initial:    durationpb.New(10 * time.Second),
-	Max:        durationpb.New(10 * time.Minute),
-	Multiplier: 2,
-}
-
-// defaultRetryableCodes are the transient failures worth another attempt;
-// anything else means the request itself is wrong and would fail again.
-var defaultRetryableCodes = []codepb.Code{
-	codepb.Code_UNAVAILABLE, codepb.Code_INTERNAL, codepb.Code_UNKNOWN,
-	codepb.Code_DEADLINE_EXCEEDED, codepb.Code_RESOURCE_EXHAUSTED, codepb.Code_ABORTED,
-}
-
-// normalizePolicy fills the defaults in, so the stored policy is what runs.
-func normalizePolicy(policy *schedulerpb.QueuePolicy) *schedulerpb.QueuePolicy {
-	policy = proto.CloneOf(policy)
-	if policy.RetryBackoff == nil {
-		policy.RetryBackoff = defaultRetryBackoff
-	}
-	if len(policy.RetryableCodes) == 0 {
-		policy.RetryableCodes = defaultRetryableCodes
-	}
-	return policy
-}
-
-// resolveHandlers checks every handler routes to a method its target serves
-// and stamps the method's request and response types.
-func (s *Service) resolveHandlers(ctx context.Context, handlers []*schedulerpb.Handler) ([]*schedulerpb.Handler, error) {
-	resolved := make([]*schedulerpb.Handler, 0, len(handlers))
-	requestTypeToMethod := map[string]string{}
-	for _, handler := range handlers {
-		targetID, err := model.ParseTargetName(handler.GetTarget())
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "handler %s: parsing target: %v", handler.GetMethod(), err).Err()
-		}
-		targetModel, err := s.schedulerPostgresStore.GetTarget(ctx, targetID)
-		if err != nil {
-			if errors.Is(err, model.ErrTargetNotExist) {
-				return nil, status.Errorf(codes.InvalidArgument, "handler %s: target %q does not exist", handler.GetMethod(), handler.GetTarget()).Err()
-			}
-			return nil, status.FromError(err, "getting target").Err()
-		}
-		target, err := targetModel.ToPb()
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting target from model to pb: %v", err).Err()
-		}
-		method, err := s.resolveMethod(ctx, target, handler.GetMethod())
-		if err != nil {
-			return nil, err
-		}
-		requestType := typeURLPrefix + string(method.Input().FullName())
-		if other, ok := requestTypeToMethod[requestType]; ok {
-			return nil, status.Errorf(codes.InvalidArgument, "handlers %s and %s both accept %s", other, handler.GetMethod(), requestType).Err()
-		}
-		requestTypeToMethod[requestType] = handler.GetMethod()
-		resolved = append(resolved, &schedulerpb.Handler{
-			Method:       handler.GetMethod(),
-			Target:       handler.GetTarget(),
-			RequestType:  requestType,
-			ResponseType: typeURLPrefix + string(method.Output().FullName()),
-		})
-	}
-	return resolved, nil
-}
-
-// CreateQueue accepts only the producer-owned fields; the queue starts RUNNING.
+// CreateQueue accepts only the dispatcher-owned fields; the queue starts
+// RUNNING. A queue already serving the method, or already routing the request
+// type, is an ALREADY_EXISTS.
 func (s *Service) CreateQueue(ctx context.Context, request *pb.CreateQueueRequest) (*schedulerpb.Queue, error) {
-	handlers, err := s.resolveHandlers(ctx, request.GetQueue().GetHandlers())
-	if err != nil {
-		return nil, err
-	}
+	declared := request.GetQueue()
 	request.Queue = &schedulerpb.Queue{
-		State:    schedulerpb.QueueState_QUEUE_STATE_RUNNING,
-		Policy:   normalizePolicy(request.GetQueue().GetPolicy()),
-		Handlers: handlers,
+		State:        schedulerpb.QueueState_QUEUE_STATE_RUNNING,
+		Service:      declared.GetService(),
+		Method:       declared.GetMethod(),
+		Endpoint:     declared.GetEndpoint(),
+		RequestType:  declared.GetRequestType(),
+		ResponseType: declared.GetResponseType(),
+		Policy:       scheduler.NormalizePolicy(declared.GetPolicy()),
 	}
 	queue, err := s.SchedulerServiceServer.CreateQueue(ctx, request)
 	if err != nil {
-		return nil, err
+		return nil, queueConflictError(err, declared)
 	}
 	return s.withQueueStats(ctx, queue)
+}
+
+// queueConflictError names the uniqueness a create or update broke.
+func queueConflictError(err error, queue *schedulerpb.Queue) error {
+	switch {
+	case store.IsQueueMethodConflict(err):
+		return status.Errorf(codes.AlreadyExists, "a queue already serves %s.%s", queue.GetService(), queue.GetMethod()).Err()
+	case store.IsQueueRequestTypeConflict(err):
+		return status.Errorf(codes.AlreadyExists, "a queue already routes %s", queue.GetRequestType()).Err()
+	}
+	return err
 }
 
 func (s *Service) GetQueue(ctx context.Context, request *pb.GetQueueRequest) (*schedulerpb.Queue, error) {
@@ -140,8 +84,8 @@ func (s *Service) BatchGetQueues(ctx context.Context, request *pb.BatchGetQueues
 	return batchGetQueuesResponse, nil
 }
 
-// UpdateQueue applies the mask itself so that the whole policy and handler
-// list can be normalized and validated, whichever sub-paths were sent.
+// UpdateQueue applies the mask itself so that the whole policy can be
+// normalized, whichever sub-paths were sent.
 func (s *Service) UpdateQueue(ctx context.Context, request *pb.UpdateQueueRequest) (*schedulerpb.Queue, error) {
 	getQueueRequest := &pb.GetQueueRequest{Name: request.GetQueue().GetName()}
 	existing, err := s.SchedulerServiceServer.GetQueue(ctx, getQueueRequest)
@@ -161,18 +105,13 @@ func (s *Service) UpdateQueue(ctx context.Context, request *pb.UpdateQueueReques
 		rootPathSet[root] = struct{}{}
 	}
 	if _, ok := rootPathSet["policy"]; ok {
-		patched.Policy = normalizePolicy(patched.GetPolicy())
-	}
-	if _, ok := rootPathSet["handlers"]; ok {
-		if patched.Handlers, err = s.resolveHandlers(ctx, patched.GetHandlers()); err != nil {
-			return nil, err
-		}
+		patched.Policy = scheduler.NormalizePolicy(patched.GetPolicy())
 	}
 	etag := request.GetQueue().GetEtag()
 	if etag == "" {
 		etag = existing.GetEtag()
 	}
-	request.Queue = &schedulerpb.Queue{Name: existing.GetName(), Etag: etag, Policy: patched.GetPolicy(), Handlers: patched.GetHandlers()}
+	request.Queue = &schedulerpb.Queue{Name: existing.GetName(), Etag: etag, Endpoint: patched.GetEndpoint(), ResponseType: patched.GetResponseType(), Policy: patched.GetPolicy()}
 	request.UpdateMask = &fieldmaskpb.FieldMask{}
 	for root := range rootPathSet {
 		request.UpdateMask.Paths = append(request.UpdateMask.Paths, root)
@@ -207,7 +146,6 @@ func (s *Service) ResumeQueue(ctx context.Context, request *pb.ResumeQueueReques
 	if err != nil {
 		return nil, err
 	}
-	s.wakeClaim()
 	return queue, nil
 }
 
@@ -218,7 +156,7 @@ func (s *Service) setQueueState(ctx context.Context, name, etag string, state sc
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
-	now := truncatedNow()
+	now := transition.Now()
 	queueModel, err := s.schedulerPostgresStore.TransitionQueue(ctx, queueID, func(queueModel *model.Queue) (bool, error) {
 		if etag != "" && queueModel.Etag != etag {
 			return false, model.ErrQueueETagChanged

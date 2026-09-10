@@ -16,6 +16,7 @@ import google.protobuf.empty_pb2
 import malonaz.canonicalize.v1.canonicalize_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.codegen.nats.v1.nats_pb2
+import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.test.library.library_service.v1.author_pb2
 import malonaz.test.library.library_service.v1.author_profile_pb2
 import malonaz.test.library.library_service.v1.book_pb2

@@ -10,9 +10,12 @@ import (
 	codepb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	processorpb "github.com/malonaz/core/genproto/test/scheduler/processor/v1"
@@ -22,17 +25,42 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-func newPolicy() *schedulerpb.QueuePolicy {
-	return &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}
+func newPolicy() *policypb.QueuePolicy {
+	return &policypb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}
+}
+
+func TestQueue_Discovered(t *testing.T) {
+	t.Parallel()
+	// The dispatcher declared one queue per annotated processor method, with
+	// the method's types and policy; Unrouted has none.
+	queue := getQueue(t, echoQueue)
+	require.Equal(t, processorService, queue.GetService())
+	require.Equal(t, "Echo", queue.GetMethod())
+	require.Equal(t, processorURL, queue.GetEndpoint())
+	require.Equal(t, typeURL(&processorpb.EchoRequest{}), queue.GetRequestType())
+	require.Equal(t, typeURL(&processorpb.EchoResponse{}), queue.GetResponseType())
+	require.Equal(t, schedulerpb.QueueState_QUEUE_STATE_RUNNING, queue.GetState())
+	require.Equal(t, 5*time.Second, queue.GetPolicy().GetAttemptTimeout().AsDuration())
+	require.Equal(t, int32(1), queue.GetPolicy().GetMaxAttempts())
+
+	flaky := getQueue(t, flakyQueue)
+	require.Equal(t, flakyBackoffInitial, flaky.GetPolicy().GetRetryBackoff().GetInitial().AsDuration())
+	require.Equal(t, int32(flakyMaxAttempts), flaky.GetPolicy().GetMaxAttempts())
+
+	listQueuesRequest := &schedulerservicepb.ListQueuesRequest{Filter: fmt.Sprintf("service = %q AND method = %q", processorService, "Unrouted")}
+	listQueuesResponse, err := schedulerServiceClient.ListQueues(ctx, listQueuesRequest)
+	require.NoError(t, err)
+	require.Empty(t, listQueuesResponse.GetQueues())
 }
 
 func TestQueue_CRUD(t *testing.T) {
 	t.Parallel()
-	created := createQueue(t, newPolicy(), "Echo", "Sleep")
+	created := declareQueue(t, deadURL, newPolicy())
 	require.Regexp(t, `^queues/[a-z0-9]+$`, created.GetName())
 	require.NotEmpty(t, created.GetEtag())
 	require.Equal(t, schedulerpb.QueueState_QUEUE_STATE_RUNNING, created.GetState())
 	require.Equal(t, created.GetCreateTime().AsTime(), created.GetUpdateTime().AsTime())
+	require.Equal(t, deadURL, created.GetEndpoint())
 
 	// Defaults are applied server-side and echoed back.
 	policy := created.GetPolicy()
@@ -45,15 +73,6 @@ func TestQueue_CRUD(t *testing.T) {
 		codepb.Code_UNAVAILABLE, codepb.Code_INTERNAL, codepb.Code_UNKNOWN,
 		codepb.Code_DEADLINE_EXCEEDED, codepb.Code_RESOURCE_EXHAUSTED, codepb.Code_ABORTED,
 	}, policy.GetRetryableCodes())
-
-	// Handler types come from the target, over reflection.
-	require.Len(t, created.GetHandlers(), 2)
-	require.Equal(t, processorPath+"Echo", created.GetHandlers()[0].GetMethod())
-	require.Equal(t, targetName, created.GetHandlers()[0].GetTarget())
-	require.Equal(t, typeURL(&processorpb.EchoRequest{}), created.GetHandlers()[0].GetRequestType())
-	require.Equal(t, typeURL(&processorpb.EchoResponse{}), created.GetHandlers()[0].GetResponseType())
-	require.Equal(t, typeURL(&processorpb.SleepRequest{}), created.GetHandlers()[1].GetRequestType())
-	require.Equal(t, typeURL(&processorpb.SleepResponse{}), created.GetHandlers()[1].GetResponseType())
 	grpcrequire.Equal(t, &schedulerpb.QueueStats{}, created.GetStats())
 
 	grpcrequire.Equal(t, created, getQueue(t, created.GetName()))
@@ -73,36 +92,37 @@ func TestQueue_CRUD(t *testing.T) {
 
 	// A sub-path update rewrites just that field of the policy.
 	updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: created.GetName(), Policy: &schedulerpb.QueuePolicy{MaxAttempts: 4}, Etag: created.GetEtag()},
+		Queue:      &schedulerpb.Queue{Name: created.GetName(), Policy: &policypb.QueuePolicy{MaxAttempts: 4}, Etag: created.GetEtag()},
 		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
 	}
 	updated, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
 	require.NoError(t, err)
 	require.Equal(t, int32(4), updated.GetPolicy().GetMaxAttempts())
 	require.NotEqual(t, created.GetEtag(), updated.GetEtag())
-	grpcrequire.Equal(t, created, updated, protocmp.IgnoreFields(&schedulerpb.Queue{}, "etag", "update_time"), protocmp.IgnoreFields(&schedulerpb.QueuePolicy{}, "max_attempts"))
+	grpcrequire.Equal(t, created, updated, protocmp.IgnoreFields(&schedulerpb.Queue{}, "etag", "update_time"), protocmp.IgnoreFields(&policypb.QueuePolicy{}, "max_attempts"))
 
 	// The stale etag is refused.
 	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
 	grpcrequire.Error(t, codes.Aborted, err)
 
-	// Handlers are replaced wholesale and re-resolved.
+	// The endpoint moves.
 	updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: created.GetName(), Handlers: []*schedulerpb.Handler{handler("Flaky")}},
-		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"handlers"}},
+		Queue:      &schedulerpb.Queue{Name: created.GetName(), Endpoint: bareURL},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"endpoint"}},
 	}
 	updated, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
 	require.NoError(t, err)
-	require.Len(t, updated.GetHandlers(), 1)
-	require.Equal(t, typeURL(&processorpb.FlakyRequest{}), updated.GetHandlers()[0].GetRequestType())
+	require.Equal(t, bareURL, updated.GetEndpoint())
 
-	// Output-only fields are not updatable.
-	updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: created.GetName(), State: schedulerpb.QueueState_QUEUE_STATE_PAUSED},
-		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"state"}},
+	// What identifies the queue, and output-only fields, are not updatable.
+	for _, path := range []string{"service", "method", "request_type", "state"} {
+		updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
+			Queue:      &schedulerpb.Queue{Name: created.GetName(), Service: "x.v1.X", Method: "X", RequestType: "type.googleapis.com/x.v1.XRequest", State: schedulerpb.QueueState_QUEUE_STATE_PAUSED},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{path}},
+		}
+		_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
 	}
-	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
-	grpcrequire.Error(t, codes.InvalidArgument, err)
 
 	deleteQueueRequest := &schedulerservicepb.DeleteQueueRequest{Name: created.GetName(), Etag: created.GetEtag()}
 	_, err = schedulerServiceClient.DeleteQueue(ctx, deleteQueueRequest)
@@ -112,29 +132,6 @@ func TestQueue_CRUD(t *testing.T) {
 	require.NoError(t, err)
 	_, err = schedulerServiceClient.GetQueue(ctx, &schedulerservicepb.GetQueueRequest{Name: created.GetName()})
 	grpcrequire.Error(t, codes.NotFound, err)
-
-	// Handlers sharing a target share one schema fetch, cached for later mutations.
-	header := uuid.MustNewV7().String()
-	target := createTarget(t, processorURL, map[string]string{testHeader: header})
-	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{
-		Policy: newPolicy(),
-		Handlers: []*schedulerpb.Handler{
-			{Method: processorPath + "Echo", Target: target.GetName()},
-			{Method: processorPath + "Sleep", Target: target.GetName()},
-		},
-	}}
-	private, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest)
-	require.NoError(t, err)
-	t.Cleanup(func() { deleteQueueOnceIdle(t, private.GetName()) })
-	require.Equal(t, typeURL(&processorpb.SleepRequest{}), private.GetHandlers()[1].GetRequestType())
-	require.Equal(t, 1, testProcessor.reflectionStreams(header))
-	updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: private.GetName(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Flaky", Target: target.GetName()}}},
-		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"handlers"}},
-	}
-	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
-	require.NoError(t, err)
-	require.Equal(t, 1, testProcessor.reflectionStreams(header))
 }
 
 func TestQueue_Validation(t *testing.T) {
@@ -144,57 +141,50 @@ func TestQueue_Validation(t *testing.T) {
 		_, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest)
 		return err
 	}
+	method := "Method" + uuid.MustNewV7().String()[:8]
 	t.Run("missing policy", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Handlers: []*schedulerpb.Handler{handler("Echo")}}))
+		queue := fakeQueue(method, deadURL, nil)
+		grpcrequire.Error(t, codes.InvalidArgument, create(queue))
 	})
 	t.Run("zero attempt timeout", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: &schedulerpb.QueuePolicy{MaxAttempts: 1}, Handlers: []*schedulerpb.Handler{handler("Echo")}}))
+		grpcrequire.Error(t, codes.InvalidArgument, create(fakeQueue(method, deadURL, &policypb.QueuePolicy{MaxAttempts: 1})))
 	})
-	t.Run("no handlers", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy()}))
-	})
-	t.Run("unknown method", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{handler("Nope")}}))
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: "malformed", Target: targetName}}}))
-	})
-	t.Run("unreachable target", func(t *testing.T) {
-		target := createTarget(t, deadURL, nil)
-		err := create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}})
-		grpcrequire.Error(t, codes.FailedPrecondition, err)
-		require.ErrorContains(t, err, target.GetName())
-		require.ErrorContains(t, err, codes.Unavailable.String())
-	})
-	t.Run("target without reflection", func(t *testing.T) {
-		target := createTarget(t, bareURL, nil)
-		err := create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: target.GetName()}}})
-		grpcrequire.Error(t, codes.FailedPrecondition, err)
-		require.ErrorContains(t, err, target.GetName()+" does not serve gRPC reflection")
-	})
-	t.Run("unknown target", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: "targets/does-not-exist"}}}))
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{{Method: processorPath + "Echo", Target: "nonsense"}}}))
-	})
-	t.Run("duplicate request type", func(t *testing.T) {
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{handler("Echo"), handler("Echo")}}))
+	t.Run("malformed identity", func(t *testing.T) {
+		for _, mutate := range []func(*schedulerpb.Queue){
+			func(queue *schedulerpb.Queue) { queue.Service = "" },
+			func(queue *schedulerpb.Queue) { queue.Service = "no-dots" },
+			func(queue *schedulerpb.Queue) { queue.Method = "" },
+			func(queue *schedulerpb.Queue) { queue.Method = "/slash" },
+			func(queue *schedulerpb.Queue) { queue.Endpoint = "" },
+			func(queue *schedulerpb.Queue) { queue.RequestType = "EchoRequest" },
+			func(queue *schedulerpb.Queue) { queue.ResponseType = "" },
+		} {
+			queue := fakeQueue(method, deadURL, newPolicy())
+			mutate(queue)
+			grpcrequire.Error(t, codes.InvalidArgument, create(queue))
+		}
 	})
 	t.Run("bad retryable code", func(t *testing.T) {
 		policy := newPolicy()
 		policy.RetryableCodes = []codepb.Code{codepb.Code_OK}
-		grpcrequire.Error(t, codes.InvalidArgument, create(&schedulerpb.Queue{Policy: policy, Handlers: []*schedulerpb.Handler{handler("Echo")}}))
+		grpcrequire.Error(t, codes.InvalidArgument, create(fakeQueue(method, deadURL, policy)))
+	})
+	t.Run("duplicate method or request type", func(t *testing.T) {
+		existing := declareQueue(t, deadURL, newPolicy())
+		duplicate := fakeQueue(existing.GetMethod(), deadURL, newPolicy())
+		duplicate.RequestType += "Other"
+		grpcrequire.Error(t, codes.AlreadyExists, create(duplicate))
+		duplicate = fakeQueue(existing.GetMethod()+"Other", deadURL, newPolicy())
+		duplicate.RequestType = existing.GetRequestType()
+		grpcrequire.Error(t, codes.AlreadyExists, create(duplicate))
 	})
 	t.Run("invalid update", func(t *testing.T) {
-		queue := createQueue(t, newPolicy(), "Echo")
+		queue := declareQueue(t, deadURL, newPolicy())
 		updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
-			Queue:      &schedulerpb.Queue{Name: queue.GetName(), Handlers: []*schedulerpb.Handler{handler("Nope")}},
-			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"handlers"}},
-		}
-		_, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
-		grpcrequire.Error(t, codes.InvalidArgument, err)
-		updateQueueRequest = &schedulerservicepb.UpdateQueueRequest{
-			Queue:      &schedulerpb.Queue{Name: queue.GetName(), Policy: &schedulerpb.QueuePolicy{}},
+			Queue:      &schedulerpb.Queue{Name: queue.GetName(), Policy: &policypb.QueuePolicy{}},
 			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
 		}
-		_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+		_, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 		updateQueueRequest.UpdateMask = &fieldmaskpb.FieldMask{Paths: []string{"policy.no_such_field"}}
 		_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
@@ -203,35 +193,39 @@ func TestQueue_Validation(t *testing.T) {
 }
 
 func TestQueue_Stats(t *testing.T) {
-	t.Parallel()
-	queue := createQueue(t, newPolicy(), "Echo", "Sleep")
+	// Shares the pausable queue with TestQueue_PauseResume, so not parallel.
 	key := uuid.MustNewV7().String()
-	running := createJobIn(t, "", queue.GetName(), &processorpb.SleepRequest{Key: key, Duration: durationpb.New(sleepTimeout)})
+	running := createJob(t, &processorpb.PausableRequest{Key: key, Duration: durationpb.New(sleepTimeout)})
 	waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
-	later := createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: key}, scheduler.WithScheduleTime(farFuture))
-	sooner := createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: key}, scheduler.WithScheduleTime(farFuture.Add(-time.Hour)))
+	later := createJob(t, &processorpb.PausableRequest{Key: key}, scheduler.WithScheduleTime(farFuture))
+	sooner := createJob(t, &processorpb.PausableRequest{Key: key}, scheduler.WithScheduleTime(farFuture.Add(-time.Hour)))
 
-	stats := getQueue(t, queue.GetName()).GetStats()
+	stats := getQueue(t, pausableQueue).GetStats()
 	require.Equal(t, int32(2), stats.GetPendingCount())
 	require.Equal(t, int32(1), stats.GetRunningCount())
 	require.True(t, sooner.GetScheduleTime().AsTime().Equal(stats.GetOldestPendingScheduleTime().AsTime()))
 
 	cancelJob(t, sooner.GetName())
-	stats = getQueue(t, queue.GetName()).GetStats()
+	stats = getQueue(t, pausableQueue).GetStats()
 	require.Equal(t, int32(1), stats.GetPendingCount())
 	require.True(t, later.GetScheduleTime().AsTime().Equal(stats.GetOldestPendingScheduleTime().AsTime()))
 
 	cancelJob(t, later.GetName())
 	cancelJob(t, running.GetName())
-	grpcrequire.Equal(t, &schedulerpb.QueueStats{}, getQueue(t, queue.GetName()).GetStats())
+	grpcrequire.Equal(t, &schedulerpb.QueueStats{}, getQueue(t, pausableQueue).GetStats())
 }
 
 func TestQueue_DeleteWithJobs(t *testing.T) {
 	t.Parallel()
-	createQueueRequest := &schedulerservicepb.CreateQueueRequest{Queue: &schedulerpb.Queue{Policy: newPolicy(), Handlers: []*schedulerpb.Handler{handler("Echo")}}}
-	queue, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest)
+	queue := declareQueue(t, deadURL, newPolicy())
+	// No Go type exists for the fake request: the payload is built by hand.
+	createJobRequest := &schedulerservicepb.CreateJobRequest{Job: &schedulerpb.Job{
+		Payload:      &anypb.Any{TypeUrl: queue.GetRequestType()},
+		ScheduleTime: timestamppb.New(farFuture),
+	}}
+	pending, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
-	pending := createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: "x"}, scheduler.WithScheduleTime(farFuture))
+	require.Equal(t, queue.GetName(), pending.GetQueue())
 
 	deleteQueueRequest := &schedulerservicepb.DeleteQueueRequest{Name: queue.GetName()}
 	_, err = schedulerServiceClient.DeleteQueue(ctx, deleteQueueRequest)
@@ -251,10 +245,10 @@ func TestQueue_DeleteWithJobs(t *testing.T) {
 }
 
 func TestQueue_PauseResume(t *testing.T) {
-	t.Parallel()
-	queue := createQueue(t, newPolicy(), "Echo", "Sleep")
+	// Shares the pausable queue with TestQueue_Stats, so not parallel.
+	queue := getQueue(t, pausableQueue)
 	key := uuid.MustNewV7().String()
-	running := createJobIn(t, "", queue.GetName(), &processorpb.SleepRequest{Key: key, Duration: durationpb.New(2 * time.Second)})
+	running := createJob(t, &processorpb.PausableRequest{Key: key, Duration: durationpb.New(2 * time.Second)})
 	waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
 
 	pauseQueueRequest := &schedulerservicepb.PauseQueueRequest{Name: queue.GetName(), Etag: "stale"}
@@ -274,18 +268,18 @@ func TestQueue_PauseResume(t *testing.T) {
 	grpcrequire.Equal(t, paused, pausedAgain, protocmp.IgnoreFields(&schedulerpb.Queue{}, "stats"))
 
 	// New jobs are accepted and stay PENDING; the running one finishes.
-	values := make([]string, 3)
+	keys := make([]string, 3)
 	jobs := make([]*schedulerpb.Job, 3)
 	for i := range jobs {
-		values[i] = fmt.Sprintf("%s-%d", key, i)
-		jobs[i] = createJobIn(t, "", queue.GetName(), &processorpb.EchoRequest{Value: values[i]})
+		keys[i] = fmt.Sprintf("%s-%d", key, i)
+		jobs[i] = createJob(t, &processorpb.PausableRequest{Key: keys[i]})
 	}
 	finished := waitForTerminal(t, running.GetName())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, finished.GetState())
 	time.Sleep(5 * pollInterval)
 	for i, job := range jobs {
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, getJob(t, job.GetName()).GetState())
-		require.Empty(t, testProcessor.calls(values[i]))
+		require.Empty(t, testProcessor.calls(keys[i]))
 	}
 	require.Equal(t, int32(3), getQueue(t, queue.GetName()).GetStats().GetPendingCount())
 
@@ -301,7 +295,7 @@ func TestQueue_PauseResume(t *testing.T) {
 	grpcrequire.Equal(t, resumed, resumedAgain, protocmp.IgnoreFields(&schedulerpb.Queue{}, "stats"))
 	for i, job := range jobs {
 		waitForState(t, job.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
-		require.Len(t, testProcessor.calls(values[i]), 1)
+		require.Len(t, testProcessor.calls(keys[i]), 1)
 	}
 
 	_, err = schedulerServiceClient.PauseQueue(ctx, &schedulerservicepb.PauseQueueRequest{Name: "queues/does-not-exist"})

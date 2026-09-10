@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package malonaz.scheduler.policy.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/rpc/code.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/policy/v1";
+
+// The execution policy of a method's jobs.
+message QueuePolicy {
+  // The deadline of a single attempt. An attempt exceeding it fails with
+  // DEADLINE_EXCEEDED and is retried like any other retryable failure.
+  google.protobuf.Duration attempt_timeout = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The total number of attempts, including the first. 1 disables retries.
+  int32 max_attempts = 2 [(buf.validate.field).int32.gte = 1];
+
+  // The backoff between attempts. Defaults to 10s, doubling, capped at 10m.
+  RetryBackoff retry_backoff = 3;
+
+  // The number of jobs of this method that may run at once across every
+  // scheduler instance. 0 means unlimited.
+  int32 max_concurrency = 4 [(buf.validate.field).int32.gte = 0];
+
+  // The gRPC codes an attempt is retried on; any other code fails the job at
+  // once regardless of the attempts left. Defaults to UNAVAILABLE, INTERNAL,
+  // UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
+  repeated google.rpc.Code retryable_codes = 5 [(buf.validate.field).repeated = {
+    unique: true
+    items: {
+      enum: {
+        defined_only: true
+        not_in: [0]
+      }
+    }
+  }];
+}
+
+// An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
+message RetryBackoff {
+  // The wait before the second attempt.
+  google.protobuf.Duration initial = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The longest wait between two attempts.
+  google.protobuf.Duration max = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The factor applied to the wait after each failed attempt.
+  double multiplier = 3 [(buf.validate.field).double.gte = 1];
+}

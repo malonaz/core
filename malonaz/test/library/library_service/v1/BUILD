@@ -40,6 +40,7 @@ grpc_library(
         "//malonaz/canonicalize/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/nats/v1",
+        "//malonaz/codegen/scheduler/v1",
         "//malonaz/nats/v1",
         "//malonaz/test/library/v1",
         "//third_party/proto:google__api__annotations",

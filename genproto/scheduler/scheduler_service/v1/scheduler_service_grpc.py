@@ -15,38 +15,12 @@ import google.protobuf.empty_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.scheduler.scheduler_service.v1.job_pb2
 import malonaz.scheduler.scheduler_service.v1.queue_pb2
-import malonaz.scheduler.scheduler_service.v1.target_pb2
 import malonaz.scheduler.v1.job_pb2
 import malonaz.scheduler.v1.queue_pb2
-import malonaz.scheduler.v1.target_pb2
 import malonaz.scheduler.scheduler_service.v1.scheduler_service_pb2
 
 
 class SchedulerServiceBase(abc.ABC):
-
-    @abc.abstractmethod
-    async def CreateTarget(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.CreateTargetRequest, malonaz.scheduler.v1.target_pb2.Target]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def GetTarget(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.GetTargetRequest, malonaz.scheduler.v1.target_pb2.Target]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def UpdateTarget(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.UpdateTargetRequest, malonaz.scheduler.v1.target_pb2.Target]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def DeleteTarget(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.DeleteTargetRequest, google.protobuf.empty_pb2.Empty]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def ListTargets(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsRequest, malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def BatchGetTargets(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsRequest, malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsResponse]') -> None:
-        pass
 
     @abc.abstractmethod
     async def CreateQueue(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.queue_pb2.CreateQueueRequest, malonaz.scheduler.v1.queue_pb2.Queue]') -> None:
@@ -122,42 +96,6 @@ class SchedulerServiceBase(abc.ABC):
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
         return {
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateTarget': grpclib.const.Handler(
-                self.CreateTarget,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.CreateTargetRequest,
-                malonaz.scheduler.v1.target_pb2.Target,
-            ),
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetTarget': grpclib.const.Handler(
-                self.GetTarget,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.GetTargetRequest,
-                malonaz.scheduler.v1.target_pb2.Target,
-            ),
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateTarget': grpclib.const.Handler(
-                self.UpdateTarget,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.UpdateTargetRequest,
-                malonaz.scheduler.v1.target_pb2.Target,
-            ),
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteTarget': grpclib.const.Handler(
-                self.DeleteTarget,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.DeleteTargetRequest,
-                google.protobuf.empty_pb2.Empty,
-            ),
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListTargets': grpclib.const.Handler(
-                self.ListTargets,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsRequest,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsResponse,
-            ),
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetTargets': grpclib.const.Handler(
-                self.BatchGetTargets,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsRequest,
-                malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsResponse,
-            ),
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateQueue': grpclib.const.Handler(
                 self.CreateQueue,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -272,42 +210,6 @@ class SchedulerServiceBase(abc.ABC):
 class SchedulerServiceStub:
 
     def __init__(self, channel: grpclib.client.Channel) -> None:
-        self.CreateTarget = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateTarget',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.CreateTargetRequest,
-            malonaz.scheduler.v1.target_pb2.Target,
-        )
-        self.GetTarget = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetTarget',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.GetTargetRequest,
-            malonaz.scheduler.v1.target_pb2.Target,
-        )
-        self.UpdateTarget = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateTarget',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.UpdateTargetRequest,
-            malonaz.scheduler.v1.target_pb2.Target,
-        )
-        self.DeleteTarget = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteTarget',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.DeleteTargetRequest,
-            google.protobuf.empty_pb2.Empty,
-        )
-        self.ListTargets = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListTargets',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsRequest,
-            malonaz.scheduler.scheduler_service.v1.target_pb2.ListTargetsResponse,
-        )
-        self.BatchGetTargets = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetTargets',
-            malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsRequest,
-            malonaz.scheduler.scheduler_service.v1.target_pb2.BatchGetTargetsResponse,
-        )
         self.CreateQueue = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateQueue',

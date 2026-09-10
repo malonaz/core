@@ -8,13 +8,14 @@ import type { OperationSchema } from "../../../../../google/longrunning/operatio
 import { file_google_longrunning_operations } from "../../../../../google/longrunning/operations_pb";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_duration } from "@bufbuild/protobuf/wkt";
+import { file_malonaz_codegen_scheduler_v1_scheduler } from "../../../../codegen/scheduler/v1/scheduler_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/test/scheduler/processor/v1/processor.proto.
  */
 export const file_malonaz_test_scheduler_processor_v1_processor: GenFile = /*@__PURE__*/
-  fileDesc("CjNtYWxvbmF6L3Rlc3Qvc2NoZWR1bGVyL3Byb2Nlc3Nvci92MS9wcm9jZXNzb3IucHJvdG8SI21hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxIkEKDk9wZXJhdGVSZXF1ZXN0Eg0KBXZhbHVlGAEgASgJEhIKCnVuZmluaXNoZWQYAiABKAgSDAoEY29kZRgDIAEoBSIcCgtFY2hvUmVxdWVzdBINCgV2YWx1ZRgBIAEoCSIdCgxFY2hvUmVzcG9uc2USDQoFdmFsdWUYASABKAkiawoMRmxha3lSZXF1ZXN0EgsKA2tleRgBIAEoCRIQCghmYWlsdXJlcxgCIAEoBRIMCgRjb2RlGAMgASgFEi4KC3JldHJ5X2RlbGF5GAQgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uIh4KDUZsYWt5UmVzcG9uc2USDQoFY2FsbHMYASABKAUiSAoMU2xlZXBSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiIPCg1TbGVlcFJlc3BvbnNlIksKD0RlYWRsaW5lUmVxdWVzdBILCgNrZXkYASABKAkSKwoIZHVyYXRpb24YAiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24iEgoQRGVhZGxpbmVSZXNwb25zZSIgCg9Qcm9ncmVzc1JlcXVlc3QSDQoFc3RlcHMYASABKAUiEgoQUHJvZ3Jlc3NSZXNwb25zZSIVCgRTdGVwEg0KBWluZGV4GAEgASgFIhEKD1Vucm91dGVkUmVxdWVzdCISChBVbnJvdXRlZFJlc3BvbnNlMqIGCglQcm9jZXNzb3ISawoERWNobxIwLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLkVjaG9SZXF1ZXN0GjEubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRWNob1Jlc3BvbnNlEm4KBUZsYWt5EjEubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRmxha3lSZXF1ZXN0GjIubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRmxha3lSZXNwb25zZRJuCgVTbGVlcBIxLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVxdWVzdBoyLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVzcG9uc2USdwoIRGVhZGxpbmUSNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlcXVlc3QaNS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlc3BvbnNlEncKCFByb2dyZXNzEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXNwb25zZRJdCgdPcGVyYXRlEjMubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuT3BlcmF0ZVJlcXVlc3QaHS5nb29nbGUubG9uZ3J1bm5pbmcuT3BlcmF0aW9uEncKCFVucm91dGVkEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXNwb25zZUI+WjxnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3NjaGVkdWxlci9wcm9jZXNzb3IvdjFiBnByb3RvMw", [file_google_longrunning_operations, file_google_protobuf_duration]);
+  fileDesc("CjNtYWxvbmF6L3Rlc3Qvc2NoZWR1bGVyL3Byb2Nlc3Nvci92MS9wcm9jZXNzb3IucHJvdG8SI21hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxIkEKDk9wZXJhdGVSZXF1ZXN0Eg0KBXZhbHVlGAEgASgJEhIKCnVuZmluaXNoZWQYAiABKAgSDAoEY29kZRgDIAEoBSIcCgtFY2hvUmVxdWVzdBINCgV2YWx1ZRgBIAEoCSIdCgxFY2hvUmVzcG9uc2USDQoFdmFsdWUYASABKAkiawoMRmxha3lSZXF1ZXN0EgsKA2tleRgBIAEoCRIQCghmYWlsdXJlcxgCIAEoBRIMCgRjb2RlGAMgASgFEi4KC3JldHJ5X2RlbGF5GAQgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uIh4KDUZsYWt5UmVzcG9uc2USDQoFY2FsbHMYASABKAUiSAoMU2xlZXBSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiIPCg1TbGVlcFJlc3BvbnNlIkoKDkxpbWl0ZWRSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiIRCg9MaW1pdGVkUmVzcG9uc2UiSwoPUGF1c2FibGVSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiISChBQYXVzYWJsZVJlc3BvbnNlIj0KDlR1bmFibGVSZXF1ZXN0EgsKA2tleRgBIAEoCRIQCghmYWlsdXJlcxgCIAEoBRIMCgRjb2RlGAMgASgFIhEKD1R1bmFibGVSZXNwb25zZSIeCg1SZWRpYWxSZXF1ZXN0Eg0KBXZhbHVlGAEgASgJIh8KDlJlZGlhbFJlc3BvbnNlEg0KBXZhbHVlGAEgASgJIh4KDVNlcmlhbFJlcXVlc3QSDQoFdmFsdWUYASABKAkiHwoOU2VyaWFsUmVzcG9uc2USDQoFdmFsdWUYASABKAkiSwoPRGVhZGxpbmVSZXF1ZXN0EgsKA2tleRgBIAEoCRIrCghkdXJhdGlvbhgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiISChBEZWFkbGluZVJlc3BvbnNlIiAKD1Byb2dyZXNzUmVxdWVzdBINCgVzdGVwcxgBIAEoBSISChBQcm9ncmVzc1Jlc3BvbnNlIhUKBFN0ZXASDQoFaW5kZXgYASABKAUiEQoPVW5yb3V0ZWRSZXF1ZXN0IhIKEFVucm91dGVkUmVzcG9uc2UyjA0KCVByb2Nlc3NvchJ5CgRFY2hvEjAubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuRWNob1JlcXVlc3QaMS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5FY2hvUmVzcG9uc2UiDMLPJAgKBgoCCAUQARKTAQoFRmxha3kSMS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5GbGFreVJlcXVlc3QaMi5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5GbGFreVJlc3BvbnNlIiPCzyQfCh0KAggFEAMaFQoGEIDGho8BEgIIBRkAAAAAAAAAQBJ8CgVTbGVlcBIxLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVxdWVzdBoyLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNsZWVwUmVzcG9uc2UiDMLPJAgKBgoCCAoQARKdAQoIRGVhZGxpbmUSNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlcXVlc3QaNS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5EZWFkbGluZVJlc3BvbnNlIiTCzyQgCh4KAggBEAIaFAoFEICEr18SAggBGQAAAAAAAPA/IAIShAEKB0xpbWl0ZWQSMy5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5MaW1pdGVkUmVxdWVzdBo0Lm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLkxpbWl0ZWRSZXNwb25zZSIOws8kCgoICgIIChABIAISgQEKBlNlcmlhbBIyLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlNlcmlhbFJlcXVlc3QaMy5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5TZXJpYWxSZXNwb25zZSIOws8kCgoICgIIBRABIAEShQEKCFByb2dyZXNzEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUHJvZ3Jlc3NSZXNwb25zZSIMws8kCAoGCgIIBRABEoUBCgdPcGVyYXRlEjMubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuT3BlcmF0ZVJlcXVlc3QaHS5nb29nbGUubG9uZ3J1bm5pbmcuT3BlcmF0aW9uIibCzyQiCiAKAggFEAMaFAoFEIDC1y8SAggBGQAAAAAAAPA/KgIJDRKFAQoIUGF1c2FibGUSNC5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5QYXVzYWJsZVJlcXVlc3QaNS5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5QYXVzYWJsZVJlc3BvbnNlIgzCzyQICgYKAggKEAESmAEKB1R1bmFibGUSMy5tYWxvbmF6LnRlc3Quc2NoZWR1bGVyLnByb2Nlc3Nvci52MS5UdW5hYmxlUmVxdWVzdBo0Lm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlR1bmFibGVSZXNwb25zZSIiws8kHgocCgIIBRABGhQKBRCAhK9fEgIIARkAAAAAAADwPxKYAQoGUmVkaWFsEjIubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuUmVkaWFsUmVxdWVzdBozLm1hbG9uYXoudGVzdC5zY2hlZHVsZXIucHJvY2Vzc29yLnYxLlJlZGlhbFJlc3BvbnNlIiXCzyQhCh8KAggCEGQaFwoFEICEr18SBRCAhK9fGQAAAAAAAPA/EncKCFVucm91dGVkEjQubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXF1ZXN0GjUubWFsb25hei50ZXN0LnNjaGVkdWxlci5wcm9jZXNzb3IudjEuVW5yb3V0ZWRSZXNwb25zZUI+WjxnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L3NjaGVkdWxlci9wcm9jZXNzb3IvdjFiBnByb3RvMw", [file_google_longrunning_operations, file_google_protobuf_duration, file_malonaz_codegen_scheduler_v1_scheduler]);
 
 /**
  * Request message for Processor.Operate.
@@ -215,6 +216,246 @@ export const SleepResponseSchema: GenMessage<SleepResponse, {validType: SleepRes
   messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 6);
 
 /**
+ * Request message for Processor.Limited.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.LimitedRequest
+ */
+export type LimitedRequest = Message<"malonaz.test.scheduler.processor.v1.LimitedRequest"> & {
+  /**
+   * Groups calls for the sat's bookkeeping.
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * How long to sleep.
+   *
+   * @generated from field: google.protobuf.Duration duration = 2;
+   */
+  duration?: Duration;
+};
+
+export type LimitedRequestValid = LimitedRequest;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.LimitedRequest.
+ * Use `create(LimitedRequestSchema)` to create a new message.
+ */
+export const LimitedRequestSchema: GenMessage<LimitedRequest, {validType: LimitedRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 7);
+
+/**
+ * Response message for Processor.Limited.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.LimitedResponse
+ */
+export type LimitedResponse = Message<"malonaz.test.scheduler.processor.v1.LimitedResponse"> & {
+};
+
+export type LimitedResponseValid = LimitedResponse;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.LimitedResponse.
+ * Use `create(LimitedResponseSchema)` to create a new message.
+ */
+export const LimitedResponseSchema: GenMessage<LimitedResponse, {validType: LimitedResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 8);
+
+/**
+ * Request message for Processor.Pausable.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.PausableRequest
+ */
+export type PausableRequest = Message<"malonaz.test.scheduler.processor.v1.PausableRequest"> & {
+  /**
+   * Groups calls for the sat's bookkeeping.
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * How long to sleep.
+   *
+   * @generated from field: google.protobuf.Duration duration = 2;
+   */
+  duration?: Duration;
+};
+
+export type PausableRequestValid = PausableRequest;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.PausableRequest.
+ * Use `create(PausableRequestSchema)` to create a new message.
+ */
+export const PausableRequestSchema: GenMessage<PausableRequest, {validType: PausableRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 9);
+
+/**
+ * Response message for Processor.Pausable.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.PausableResponse
+ */
+export type PausableResponse = Message<"malonaz.test.scheduler.processor.v1.PausableResponse"> & {
+};
+
+export type PausableResponseValid = PausableResponse;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.PausableResponse.
+ * Use `create(PausableResponseSchema)` to create a new message.
+ */
+export const PausableResponseSchema: GenMessage<PausableResponse, {validType: PausableResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 10);
+
+/**
+ * Request message for Processor.Tunable.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.TunableRequest
+ */
+export type TunableRequest = Message<"malonaz.test.scheduler.processor.v1.TunableRequest"> & {
+  /**
+   * Groups calls for the sat's bookkeeping.
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * How many calls sharing the key fail before one succeeds.
+   *
+   * @generated from field: int32 failures = 2;
+   */
+  failures: number;
+
+  /**
+   * The gRPC code failures carry.
+   *
+   * @generated from field: int32 code = 3;
+   */
+  code: number;
+};
+
+export type TunableRequestValid = TunableRequest;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.TunableRequest.
+ * Use `create(TunableRequestSchema)` to create a new message.
+ */
+export const TunableRequestSchema: GenMessage<TunableRequest, {validType: TunableRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 11);
+
+/**
+ * Response message for Processor.Tunable.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.TunableResponse
+ */
+export type TunableResponse = Message<"malonaz.test.scheduler.processor.v1.TunableResponse"> & {
+};
+
+export type TunableResponseValid = TunableResponse;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.TunableResponse.
+ * Use `create(TunableResponseSchema)` to create a new message.
+ */
+export const TunableResponseSchema: GenMessage<TunableResponse, {validType: TunableResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 12);
+
+/**
+ * Request message for Processor.Redial.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.RedialRequest
+ */
+export type RedialRequest = Message<"malonaz.test.scheduler.processor.v1.RedialRequest"> & {
+  /**
+   * The value to echo, and the key calls are recorded under.
+   *
+   * @generated from field: string value = 1;
+   */
+  value: string;
+};
+
+export type RedialRequestValid = RedialRequest;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.RedialRequest.
+ * Use `create(RedialRequestSchema)` to create a new message.
+ */
+export const RedialRequestSchema: GenMessage<RedialRequest, {validType: RedialRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 13);
+
+/**
+ * Response message for Processor.Redial.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.RedialResponse
+ */
+export type RedialResponse = Message<"malonaz.test.scheduler.processor.v1.RedialResponse"> & {
+  /**
+   * The value given.
+   *
+   * @generated from field: string value = 1;
+   */
+  value: string;
+};
+
+export type RedialResponseValid = RedialResponse;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.RedialResponse.
+ * Use `create(RedialResponseSchema)` to create a new message.
+ */
+export const RedialResponseSchema: GenMessage<RedialResponse, {validType: RedialResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 14);
+
+/**
+ * Request message for Processor.Serial.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.SerialRequest
+ */
+export type SerialRequest = Message<"malonaz.test.scheduler.processor.v1.SerialRequest"> & {
+  /**
+   * The value to echo, and the key calls are recorded under.
+   *
+   * @generated from field: string value = 1;
+   */
+  value: string;
+};
+
+export type SerialRequestValid = SerialRequest;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.SerialRequest.
+ * Use `create(SerialRequestSchema)` to create a new message.
+ */
+export const SerialRequestSchema: GenMessage<SerialRequest, {validType: SerialRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 15);
+
+/**
+ * Response message for Processor.Serial.
+ *
+ * @generated from message malonaz.test.scheduler.processor.v1.SerialResponse
+ */
+export type SerialResponse = Message<"malonaz.test.scheduler.processor.v1.SerialResponse"> & {
+  /**
+   * The value given.
+   *
+   * @generated from field: string value = 1;
+   */
+  value: string;
+};
+
+export type SerialResponseValid = SerialResponse;
+
+/**
+ * Describes the message malonaz.test.scheduler.processor.v1.SerialResponse.
+ * Use `create(SerialResponseSchema)` to create a new message.
+ */
+export const SerialResponseSchema: GenMessage<SerialResponse, {validType: SerialResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 16);
+
+/**
  * Request message for Processor.Deadline.
  *
  * @generated from message malonaz.test.scheduler.processor.v1.DeadlineRequest
@@ -242,7 +483,7 @@ export type DeadlineRequestValid = DeadlineRequest;
  * Use `create(DeadlineRequestSchema)` to create a new message.
  */
 export const DeadlineRequestSchema: GenMessage<DeadlineRequest, {validType: DeadlineRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 7);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 17);
 
 /**
  * Response message for Processor.Deadline.
@@ -259,7 +500,7 @@ export type DeadlineResponseValid = DeadlineResponse;
  * Use `create(DeadlineResponseSchema)` to create a new message.
  */
 export const DeadlineResponseSchema: GenMessage<DeadlineResponse, {validType: DeadlineResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 8);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 18);
 
 /**
  * Request message for Processor.Progress.
@@ -282,7 +523,7 @@ export type ProgressRequestValid = ProgressRequest;
  * Use `create(ProgressRequestSchema)` to create a new message.
  */
 export const ProgressRequestSchema: GenMessage<ProgressRequest, {validType: ProgressRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 9);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 19);
 
 /**
  * Response message for Processor.Progress.
@@ -299,7 +540,7 @@ export type ProgressResponseValid = ProgressResponse;
  * Use `create(ProgressResponseSchema)` to create a new message.
  */
 export const ProgressResponseSchema: GenMessage<ProgressResponse, {validType: ProgressResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 10);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 20);
 
 /**
  * A progress update reported to the scheduler.
@@ -322,7 +563,7 @@ export type StepValid = Step;
  * Use `create(StepSchema)` to create a new message.
  */
 export const StepSchema: GenMessage<Step, {validType: StepValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 11);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 21);
 
 /**
  * Request message for Processor.Unrouted.
@@ -339,7 +580,7 @@ export type UnroutedRequestValid = UnroutedRequest;
  * Use `create(UnroutedRequestSchema)` to create a new message.
  */
 export const UnroutedRequestSchema: GenMessage<UnroutedRequest, {validType: UnroutedRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 12);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 22);
 
 /**
  * Response message for Processor.Unrouted.
@@ -356,11 +597,13 @@ export type UnroutedResponseValid = UnroutedResponse;
  * Use `create(UnroutedResponseSchema)` to create a new message.
  */
 export const UnroutedResponseSchema: GenMessage<UnroutedResponse, {validType: UnroutedResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 13);
+  messageDesc(file_malonaz_test_scheduler_processor_v1_processor, 23);
 
 /**
- * A scriptable processor the scheduler sats route jobs to. The sats give each
- * method its own queue, so each can have its own timeout and retry policy.
+ * A scriptable processor the scheduler sats route jobs to. Each method
+ * declares its own policy, so each gets its own queue, timeout and retries.
+ * Timings mirror the constants in sat_test.go, which the tests derive their
+ * expectations from.
  *
  * @generated from service malonaz.test.scheduler.processor.v1.Processor
  */
@@ -396,8 +639,8 @@ export const Processor: GenService<{
     output: typeof SleepResponseSchema;
   },
   /**
-   * Same as Sleep; the sats configure it with a short timeout to exercise
-   * attempt deadlines.
+   * Same as Sleep, with a short timeout to exercise attempt deadlines and a
+   * concurrency cap of two.
    *
    * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Deadline
    */
@@ -405,6 +648,27 @@ export const Processor: GenService<{
     methodKind: "unary";
     input: typeof DeadlineRequestSchema;
     output: typeof DeadlineResponseSchema;
+  },
+  /**
+   * Same as Sleep, capped at two concurrent jobs.
+   *
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Limited
+   */
+  limited: {
+    methodKind: "unary";
+    input: typeof LimitedRequestSchema;
+    output: typeof LimitedResponseSchema;
+  },
+  /**
+   * Same as Echo, serialised: the order jobs are claimed in is observable as
+   * the order they run in.
+   *
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Serial
+   */
+  serial: {
+    methodKind: "unary";
+    input: typeof SerialRequestSchema;
+    output: typeof SerialResponseSchema;
   },
   /**
    * Reports `steps` progress updates to the scheduler before returning.
@@ -419,7 +683,8 @@ export const Processor: GenService<{
   /**
    * Returns a long-running operation: done with an EchoResponse carrying
    * `value`, or, when `unfinished` is set, not done, which the scheduler
-   * must reject.
+   * must reject. FAILED_PRECONDITION is retryable here to prove an unfinished
+   * operation is not retried even so.
    *
    * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Operate
    */
@@ -429,7 +694,37 @@ export const Processor: GenService<{
     output: typeof OperationSchema;
   },
   /**
-   * Never routed: no sat queue has a handler for it.
+   * Same as Sleep; its queue is the one the sats pause, resume and count.
+   *
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Pausable
+   */
+  pausable: {
+    methodKind: "unary";
+    input: typeof PausableRequestSchema;
+    output: typeof PausableResponseSchema;
+  },
+  /**
+   * Same as Flaky; its queue is the one whose policy the sats update.
+   *
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Tunable
+   */
+  tunable: {
+    methodKind: "unary";
+    input: typeof TunableRequestSchema;
+    output: typeof TunableResponseSchema;
+  },
+  /**
+   * Same as Echo; its queue is the one whose endpoint the sats move.
+   *
+   * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Redial
+   */
+  redial: {
+    methodKind: "unary";
+    input: typeof RedialRequestSchema;
+    output: typeof RedialResponseSchema;
+  },
+  /**
+   * Not scheduler-run: no annotation, so no queue routes its request type.
    *
    * @generated from rpc malonaz.test.scheduler.processor.v1.Processor.Unrouted
    */

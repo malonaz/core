@@ -21,12 +21,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SchedulerService_CreateTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateTarget"
-	SchedulerService_GetTarget_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetTarget"
-	SchedulerService_UpdateTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateTarget"
-	SchedulerService_DeleteTarget_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteTarget"
-	SchedulerService_ListTargets_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListTargets"
-	SchedulerService_BatchGetTargets_FullMethodName   = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetTargets"
 	SchedulerService_CreateQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateQueue"
 	SchedulerService_GetQueue_FullMethodName          = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetQueue"
 	SchedulerService_UpdateQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateQueue"
@@ -52,16 +46,14 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // This API represents a scheduler service: a durable, Postgres-backed job
-// queue that delivers each job's payload to a handler over gRPC.
+// queue that delivers each job's payload to a gRPC method.
 //
 // # Resource model
 //
-//   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
-//     scheduler dials; each must serve gRPC reflection, the scheduler's only
-//     source of method and message type information.
-//     Format: targets/{target}
-//   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
-//     the handlers (method on a target) jobs are routed to.
+//   - [Queue][malonaz.scheduler.v1.Queue] resources are the methods jobs are
+//     delivered to, each with its endpoint and execution policy. The dispatcher
+//     creates them from the methods it discovers over its endpoints' gRPC
+//     reflection; clients read, pause and resume them.
 //     Format: queues/{queue}
 //   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
 //     hang off the organization or user they run on behalf of.
@@ -82,62 +74,36 @@ const (
 //
 // # Delivery
 //
-// At creation, a job's payload type URL selects the handler of its queue it is
-// delivered to. Workers claim due PENDING jobs, invoke the handler's method on
-// its target with the payload as request body under the queue's attempt
-// timeout, and record the outcome: SUCCEEDED with the response, or PENDING
-// again with the next attempt scheduled after the backoff, or FAILED with the
-// error once attempts are exhausted or the error is not retryable. A handler
-// may attach a `google.rpc.RetryInfo` detail to its error to set the wait
-// before the next attempt. Every attempt is recorded in the job's `metadata`.
+// At creation, a job's payload type URL selects its queue. The dispatcher
+// claims due PENDING jobs, invokes the queue's method on its endpoint with the
+// payload as request body under the queue's attempt timeout, and records the
+// outcome: SUCCEEDED with the response, or PENDING again with the next attempt
+// scheduled after the backoff, or FAILED with the error once attempts are
+// exhausted or the error is not retryable. A method may attach a
+// `google.rpc.RetryInfo` detail to its error to set the wait before the next
+// attempt. Every attempt is recorded in the job's `metadata`.
 //
-// Every handler call carries the job's resource name in the `x-scheduler-job`
-// request metadata, which handlers pass to ReportJobProgress.
+// Every call carries the job's resource name in the `x-scheduler-job` request
+// metadata, which methods pass to ReportJobProgress.
 //
 // # Long-running operations
 //
 // A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
 // sets `operation` at creation, with the job's ID as the operation's ID.
-// A handler whose response type is `google.longrunning.Operation` must return
+// A method whose response type is `google.longrunning.Operation` must return
 // it done: its `response` or `error` is recorded as the job's outcome, and an
 // unfinished operation fails the job with FAILED_PRECONDITION without retry.
 // `WaitJob` backs `WaitOperation`.
 //
-// A running job holds a lease that its worker renews while the call is in
-// flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+// A running job holds a lease that the dispatcher renews while the call is in
+// flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
 //
 // Terminal jobs are kept for the scheduler's retention and deleted at their
 // `purge_time`.
 type SchedulerServiceClient interface {
-	// Create a target.
-	//
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateTarget(ctx context.Context, in *CreateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
-	// Get a target.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetTarget(ctx context.Context, in *GetTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
-	// Update a target. Jobs routed to it after the update use the new
-	// endpoint; calls in flight complete on the old one.
-	//
-	// See: https://google.aip.dev/134 (Standard methods: Update).
-	UpdateTarget(ctx context.Context, in *UpdateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error)
-	// Delete a target. Fails with FAILED_PRECONDITION while a queue handler
-	// references it.
-	//
-	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteTarget(ctx context.Context, in *DeleteTargetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// List targets.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListTargets(ctx context.Context, in *ListTargetsRequest, opts ...grpc.CallOption) (*ListTargetsResponse, error)
-	// Get multiple targets in a single request.
-	//
-	// See: https://google.aip.dev/231 (Batch methods: Get).
-	BatchGetTargets(ctx context.Context, in *BatchGetTargetsRequest, opts ...grpc.CallOption) (*BatchGetTargetsResponse, error)
-	// Create a queue. Every handler's target must exist and serve the handler's
-	// method, which the scheduler checks over the target's gRPC reflection
-	// service; no two handlers may share a request type. The queue starts RUNNING.
+	// Create a queue. No two queues may share a request type. The queue starts
+	// RUNNING. Meant for the dispatcher, which creates one per method it
+	// discovers; see [Queue][malonaz.scheduler.v1.Queue].
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
@@ -145,8 +111,8 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetQueue(ctx context.Context, in *GetQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
-	// Update a queue. The new policy applies to attempts claimed after the
-	// update; the new handlers apply to jobs created after it.
+	// Update a queue. The new policy and endpoint apply to attempts claimed
+	// after the update.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
@@ -173,11 +139,11 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeQueue(ctx context.Context, in *ResumeQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
-	// Create a job in its queue. Fails with NOT_FOUND when the queue does not
-	// exist and with INVALID_ARGUMENT when no handler of the queue accepts the
-	// payload type. A job on a PAUSED queue is accepted and waits. When the job
-	// carries a `unique_key` that already has a PENDING job, no job is created
-	// and that job is returned instead.
+	// Create a job in the queue its payload type selects. Fails with
+	// FAILED_PRECONDITION when no queue accepts the payload type. A job on a
+	// PAUSED queue is accepted and waits. When the job carries a `unique_key`
+	// that already has a PENDING job, no job is created and that job is returned
+	// instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(ctx context.Context, in *CreateJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
@@ -236,66 +202,6 @@ type schedulerServiceClient struct {
 
 func NewSchedulerServiceClient(cc grpc.ClientConnInterface) SchedulerServiceClient {
 	return &schedulerServiceClient{cc}
-}
-
-func (c *schedulerServiceClient) CreateTarget(ctx context.Context, in *CreateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Target)
-	err := c.cc.Invoke(ctx, SchedulerService_CreateTarget_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *schedulerServiceClient) GetTarget(ctx context.Context, in *GetTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Target)
-	err := c.cc.Invoke(ctx, SchedulerService_GetTarget_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *schedulerServiceClient) UpdateTarget(ctx context.Context, in *UpdateTargetRequest, opts ...grpc.CallOption) (*v1.Target, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Target)
-	err := c.cc.Invoke(ctx, SchedulerService_UpdateTarget_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *schedulerServiceClient) DeleteTarget(ctx context.Context, in *DeleteTargetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, SchedulerService_DeleteTarget_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *schedulerServiceClient) ListTargets(ctx context.Context, in *ListTargetsRequest, opts ...grpc.CallOption) (*ListTargetsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTargetsResponse)
-	err := c.cc.Invoke(ctx, SchedulerService_ListTargets_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *schedulerServiceClient) BatchGetTargets(ctx context.Context, in *BatchGetTargetsRequest, opts ...grpc.CallOption) (*BatchGetTargetsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchGetTargetsResponse)
-	err := c.cc.Invoke(ctx, SchedulerService_BatchGetTargets_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *schedulerServiceClient) CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error) {
@@ -483,16 +389,14 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 // for forward compatibility.
 //
 // This API represents a scheduler service: a durable, Postgres-backed job
-// queue that delivers each job's payload to a handler over gRPC.
+// queue that delivers each job's payload to a gRPC method.
 //
 // # Resource model
 //
-//   - [Target][malonaz.scheduler.v1.Target] resources are the gRPC servers the
-//     scheduler dials; each must serve gRPC reflection, the scheduler's only
-//     source of method and message type information.
-//     Format: targets/{target}
-//   - [Queue][malonaz.scheduler.v1.Queue] resources hold an execution policy and
-//     the handlers (method on a target) jobs are routed to.
+//   - [Queue][malonaz.scheduler.v1.Queue] resources are the methods jobs are
+//     delivered to, each with its endpoint and execution policy. The dispatcher
+//     creates them from the methods it discovers over its endpoints' gRPC
+//     reflection; clients read, pause and resume them.
 //     Format: queues/{queue}
 //   - [Job][malonaz.scheduler.v1.Job] resources are system-wide at the root, or
 //     hang off the organization or user they run on behalf of.
@@ -513,62 +417,36 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // # Delivery
 //
-// At creation, a job's payload type URL selects the handler of its queue it is
-// delivered to. Workers claim due PENDING jobs, invoke the handler's method on
-// its target with the payload as request body under the queue's attempt
-// timeout, and record the outcome: SUCCEEDED with the response, or PENDING
-// again with the next attempt scheduled after the backoff, or FAILED with the
-// error once attempts are exhausted or the error is not retryable. A handler
-// may attach a `google.rpc.RetryInfo` detail to its error to set the wait
-// before the next attempt. Every attempt is recorded in the job's `metadata`.
+// At creation, a job's payload type URL selects its queue. The dispatcher
+// claims due PENDING jobs, invokes the queue's method on its endpoint with the
+// payload as request body under the queue's attempt timeout, and records the
+// outcome: SUCCEEDED with the response, or PENDING again with the next attempt
+// scheduled after the backoff, or FAILED with the error once attempts are
+// exhausted or the error is not retryable. A method may attach a
+// `google.rpc.RetryInfo` detail to its error to set the wait before the next
+// attempt. Every attempt is recorded in the job's `metadata`.
 //
-// Every handler call carries the job's resource name in the `x-scheduler-job`
-// request metadata, which handlers pass to ReportJobProgress.
+// Every call carries the job's resource name in the `x-scheduler-job` request
+// metadata, which methods pass to ReportJobProgress.
 //
 // # Long-running operations
 //
 // A producer exposing a job as a `google.longrunning.Operation` (AIP-151)
 // sets `operation` at creation, with the job's ID as the operation's ID.
-// A handler whose response type is `google.longrunning.Operation` must return
+// A method whose response type is `google.longrunning.Operation` must return
 // it done: its `response` or `error` is recorded as the job's outcome, and an
 // unfinished operation fails the job with FAILED_PRECONDITION without retry.
 // `WaitJob` backs `WaitOperation`.
 //
-// A running job holds a lease that its worker renews while the call is in
-// flight; jobs whose lease lapses (crashed worker) are returned to PENDING.
+// A running job holds a lease that the dispatcher renews while the call is in
+// flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
 //
 // Terminal jobs are kept for the scheduler's retention and deleted at their
 // `purge_time`.
 type SchedulerServiceServer interface {
-	// Create a target.
-	//
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateTarget(context.Context, *CreateTargetRequest) (*v1.Target, error)
-	// Get a target.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetTarget(context.Context, *GetTargetRequest) (*v1.Target, error)
-	// Update a target. Jobs routed to it after the update use the new
-	// endpoint; calls in flight complete on the old one.
-	//
-	// See: https://google.aip.dev/134 (Standard methods: Update).
-	UpdateTarget(context.Context, *UpdateTargetRequest) (*v1.Target, error)
-	// Delete a target. Fails with FAILED_PRECONDITION while a queue handler
-	// references it.
-	//
-	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteTarget(context.Context, *DeleteTargetRequest) (*emptypb.Empty, error)
-	// List targets.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListTargets(context.Context, *ListTargetsRequest) (*ListTargetsResponse, error)
-	// Get multiple targets in a single request.
-	//
-	// See: https://google.aip.dev/231 (Batch methods: Get).
-	BatchGetTargets(context.Context, *BatchGetTargetsRequest) (*BatchGetTargetsResponse, error)
-	// Create a queue. Every handler's target must exist and serve the handler's
-	// method, which the scheduler checks over the target's gRPC reflection
-	// service; no two handlers may share a request type. The queue starts RUNNING.
+	// Create a queue. No two queues may share a request type. The queue starts
+	// RUNNING. Meant for the dispatcher, which creates one per method it
+	// discovers; see [Queue][malonaz.scheduler.v1.Queue].
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateQueue(context.Context, *CreateQueueRequest) (*v1.Queue, error)
@@ -576,8 +454,8 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetQueue(context.Context, *GetQueueRequest) (*v1.Queue, error)
-	// Update a queue. The new policy applies to attempts claimed after the
-	// update; the new handlers apply to jobs created after it.
+	// Update a queue. The new policy and endpoint apply to attempts claimed
+	// after the update.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateQueue(context.Context, *UpdateQueueRequest) (*v1.Queue, error)
@@ -604,11 +482,11 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeQueue(context.Context, *ResumeQueueRequest) (*v1.Queue, error)
-	// Create a job in its queue. Fails with NOT_FOUND when the queue does not
-	// exist and with INVALID_ARGUMENT when no handler of the queue accepts the
-	// payload type. A job on a PAUSED queue is accepted and waits. When the job
-	// carries a `unique_key` that already has a PENDING job, no job is created
-	// and that job is returned instead.
+	// Create a job in the queue its payload type selects. Fails with
+	// FAILED_PRECONDITION when no queue accepts the payload type. A job on a
+	// PAUSED queue is accepted and waits. When the job carries a `unique_key`
+	// that already has a PENDING job, no job is created and that job is returned
+	// instead.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateJob(context.Context, *CreateJobRequest) (*v1.Job, error)
@@ -668,24 +546,6 @@ type SchedulerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSchedulerServiceServer struct{}
 
-func (UnimplementedSchedulerServiceServer) CreateTarget(context.Context, *CreateTargetRequest) (*v1.Target, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateTarget not implemented")
-}
-func (UnimplementedSchedulerServiceServer) GetTarget(context.Context, *GetTargetRequest) (*v1.Target, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetTarget not implemented")
-}
-func (UnimplementedSchedulerServiceServer) UpdateTarget(context.Context, *UpdateTargetRequest) (*v1.Target, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateTarget not implemented")
-}
-func (UnimplementedSchedulerServiceServer) DeleteTarget(context.Context, *DeleteTargetRequest) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteTarget not implemented")
-}
-func (UnimplementedSchedulerServiceServer) ListTargets(context.Context, *ListTargetsRequest) (*ListTargetsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListTargets not implemented")
-}
-func (UnimplementedSchedulerServiceServer) BatchGetTargets(context.Context, *BatchGetTargetsRequest) (*BatchGetTargetsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method BatchGetTargets not implemented")
-}
 func (UnimplementedSchedulerServiceServer) CreateQueue(context.Context, *CreateQueueRequest) (*v1.Queue, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateQueue not implemented")
 }
@@ -758,114 +618,6 @@ func RegisterSchedulerServiceServer(s grpc.ServiceRegistrar, srv SchedulerServic
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&SchedulerService_ServiceDesc, srv)
-}
-
-func _SchedulerService_CreateTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTargetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).CreateTarget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_CreateTarget_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).CreateTarget(ctx, req.(*CreateTargetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SchedulerService_GetTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTargetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).GetTarget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_GetTarget_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).GetTarget(ctx, req.(*GetTargetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SchedulerService_UpdateTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateTargetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).UpdateTarget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_UpdateTarget_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).UpdateTarget(ctx, req.(*UpdateTargetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SchedulerService_DeleteTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteTargetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).DeleteTarget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_DeleteTarget_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).DeleteTarget(ctx, req.(*DeleteTargetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SchedulerService_ListTargets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTargetsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).ListTargets(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_ListTargets_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).ListTargets(ctx, req.(*ListTargetsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SchedulerService_BatchGetTargets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchGetTargetsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SchedulerServiceServer).BatchGetTargets(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SchedulerService_BatchGetTargets_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchedulerServiceServer).BatchGetTargets(ctx, req.(*BatchGetTargetsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _SchedulerService_CreateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1199,30 +951,6 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "malonaz.scheduler.scheduler_service.v1.SchedulerService",
 	HandlerType: (*SchedulerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CreateTarget",
-			Handler:    _SchedulerService_CreateTarget_Handler,
-		},
-		{
-			MethodName: "GetTarget",
-			Handler:    _SchedulerService_GetTarget_Handler,
-		},
-		{
-			MethodName: "UpdateTarget",
-			Handler:    _SchedulerService_UpdateTarget_Handler,
-		},
-		{
-			MethodName: "DeleteTarget",
-			Handler:    _SchedulerService_DeleteTarget_Handler,
-		},
-		{
-			MethodName: "ListTargets",
-			Handler:    _SchedulerService_ListTargets_Handler,
-		},
-		{
-			MethodName: "BatchGetTargets",
-			Handler:    _SchedulerService_BatchGetTargets_Handler,
-		},
 		{
 			MethodName: "CreateQueue",
 			Handler:    _SchedulerService_CreateQueue_Handler,

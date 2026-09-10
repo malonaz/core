@@ -2699,7 +2699,6 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*longrunningpb.Operation, error) {
 	if !longrunning.IsRun(ctx) {
 		startRequest := &longrunning.StartRequest{
-			Queue:     "queues/library",
 			Resource:  request.GetParent(),
 			Request:   request,
 			RequestID: request.GetRequestId(),

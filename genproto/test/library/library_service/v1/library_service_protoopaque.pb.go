@@ -13,6 +13,7 @@ import (
 	_ "github.com/malonaz/core/genproto/canonicalize/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
+	_ "github.com/malonaz/core/genproto/codegen/scheduler/v1"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -33,7 +34,7 @@ var File_malonaz_test_library_library_service_v1_library_service_proto protorefl
 
 const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#google/longrunning/operations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\x8fS\n" +
+	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#google/longrunning/operations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\xa9S\n" +
 	"\x0eLibraryService\x12\xd8\x01\n" +
 	"\fCreateAuthor\x12<.malonaz.test.library.library_service.v1.CreateAuthorRequest\x1a\x1f.malonaz.test.library.v1.Author\"i\xdaA\rparent,author´-!\n" +
 	"\x1flibrary.test.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xc1\x01\n" +
@@ -62,8 +63,10 @@ const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc
 	"\x16BatchGetAuthorProfiles\x12F.malonaz.test.library.library_service.v1.BatchGetAuthorProfilesRequest\x1aG.malonaz.test.library.library_service.v1.BatchGetAuthorProfilesResponse\"{\xdaA\fparent,names´-(\n" +
 	"&library.test.malonaz.com/AuthorProfile\x82\xd3\xe4\x93\x02:\x128/v1/{parent=organizations/*/authors/*}/profiles:batchGet\x12\xd2\x01\n" +
 	"\vCreateShelf\x12;.malonaz.test.library.library_service.v1.CreateShelfRequest\x1a\x1e.malonaz.test.library.v1.Shelf\"f\xdaA\fparent,shelf´- \n" +
-	"\x1elibrary.test.malonaz.com/Shelf\x82\xd3\xe4\x93\x02-:\x05shelf\"$/v1/{parent=organizations/*}/shelves\x12\xbd\x01\n" +
-	"\bGetShelf\x128.malonaz.test.library.library_service.v1.GetShelfRequest\x1a\x1e.malonaz.test.library.v1.Shelf\"W\xdaA\x04name´- \n" +
+	"\x1elibrary.test.malonaz.com/Shelf\x82\xd3\xe4\x93\x02-:\x05shelf\"$/v1/{parent=organizations/*}/shelves\x12\xc9\x01\n" +
+	"\bGetShelf\x128.malonaz.test.library.library_service.v1.GetShelfRequest\x1a\x1e.malonaz.test.library.v1.Shelf\"c\xdaA\x04name\xc2\xcf$\b\n" +
+	"\x06\n" +
+	"\x02\b\x05\x10\x01´- \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\x82\xd3\xe4\x93\x02&\x12$/v1/{name=organizations/*/shelves/*}\x12\xdd\x01\n" +
 	"\vUpdateShelf\x12;.malonaz.test.library.library_service.v1.UpdateShelfRequest\x1a\x1e.malonaz.test.library.v1.Shelf\"q\xdaA\x11shelf,update_mask´- \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\x82\xd3\xe4\x93\x023:\x05shelf2*/v1/{shelf.name=organizations/*/shelves/*}\x12\xc3\x01\n" +
@@ -93,10 +96,12 @@ const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc
 	"\tListBooks\x129.malonaz.test.library.library_service.v1.ListBooksRequest\x1a:.malonaz.test.library.library_service.v1.ListBooksResponse\"`\xdaA\x06parent´-\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{parent=organizations/*/shelves/*}/books\x12\xff\x01\n" +
 	"\rBatchGetBooks\x12=.malonaz.test.library.library_service.v1.BatchGetBooksRequest\x1a>.malonaz.test.library.library_service.v1.BatchGetBooksResponse\"o\xdaA\fparent,names´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x12\x82\x02\n" +
-	"\vImportBooks\x12;.malonaz.test.library.library_service.v1.ImportBooksRequest\x1a\x1d.google.longrunning.Operation\"\x96\x01\xcaA*\n" +
-	"\x13ImportBooksResponse\x12\x13ImportBooksMetadata\xdaA\x14parent,author,titlesʴ-\x10\n" +
-	"\x0equeues/library\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{parent=organizations/*/shelves/*}/books:import\x12\xe0\x01\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x12\x90\x02\n" +
+	"\vImportBooks\x12;.malonaz.test.library.library_service.v1.ImportBooksRequest\x1a\x1d.google.longrunning.Operation\"\xa4\x01\xcaA*\n" +
+	"\x13ImportBooksResponse\x12\x13ImportBooksMetadata\xdaA\x14parent,author,titles\xc2\xcf$\x1e\n" +
+	"\x1c\n" +
+	"\x02\b\x1e\x10\x03\x1a\x14\n" +
+	"\x05\x10\x80\x84\xaf_\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0?\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{parent=organizations/*/shelves/*}/books:import\x12\xe0\x01\n" +
 	"\rGetBookReview\x12=.malonaz.test.library.library_service.v1.GetBookReviewRequest\x1a#.malonaz.test.library.v1.BookReview\"k\xdaA\x04name´-%\n" +
 	"#library.test.malonaz.com/BookReview\x82\xd3\xe4\x93\x025\x123/v1/{name=organizations/*/shelves/*/books/*/review}\x12\x93\x02\n" +
 	"\x10UpdateBookReview\x12@.malonaz.test.library.library_service.v1.UpdateBookReviewRequest\x1a#.malonaz.test.library.v1.BookReview\"\x97\x01\xdaA\x17book_review,update_mask´-%\n" +

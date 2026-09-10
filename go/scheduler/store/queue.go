@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgerrcode"
 	v5 "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -96,12 +98,39 @@ func (s *Store) QueueHasLiveJobs(ctx context.Context, queueName string) (bool, e
 	return exists, nil
 }
 
-// TargetIsReferenced reports whether a queue handler references the target,
-// which is what refuses its deletion.
-func (s *Store) TargetIsReferenced(ctx context.Context, targetName string) (bool, error) {
-	var exists bool
-	if err := s.client.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM scheduler.queue WHERE handlers @> jsonb_build_array(jsonb_build_object('target', $1::text)))", targetName).Scan(&exists); err != nil {
-		return false, fmt.Errorf("checking target references: %w", err)
+var queueGetByRequestTypeQuery = postgres.SelectQuery("SELECT %s FROM scheduler.queue WHERE request_type = $1", QueuePostgresColumns)
+
+// GetQueueByRequestType returns the queue routing payloads of the given type
+// URL, or model.ErrQueueNotExist.
+func (s *Store) GetQueueByRequestType(ctx context.Context, requestType string) (*model.Queue, error) {
+	rows, err := s.client.Query(ctx, queueGetByRequestTypeQuery, requestType)
+	if err != nil {
+		return nil, fmt.Errorf("getting queue by request type: %w", err)
 	}
-	return exists, nil
+	queue, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Queue])
+	if err != nil {
+		if errors.Is(err, v5.ErrNoRows) {
+			return nil, model.ErrQueueNotExist
+		}
+		return nil, fmt.Errorf("collecting row: %w", err)
+	}
+	return queue, nil
+}
+
+const (
+	queueMethodConstraint      = "queue_method_unique"
+	queueRequestTypeConstraint = "queue_request_type_unique"
+)
+
+// IsQueueMethodConflict reports whether err is another queue already serving the method.
+func IsQueueMethodConflict(err error) bool { return isConstraintViolation(err, queueMethodConstraint) }
+
+// IsQueueRequestTypeConflict reports whether err is another queue already routing the request type.
+func IsQueueRequestTypeConflict(err error) bool {
+	return isConstraintViolation(err, queueRequestTypeConstraint)
+}
+
+func isConstraintViolation(err error, constraint string) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == constraint
 }

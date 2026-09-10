@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	processorpb "github.com/malonaz/core/genproto/test/scheduler/processor/v1"
@@ -36,7 +37,7 @@ func TestProcess_MaxConcurrency(t *testing.T) {
 	const count = 6
 	names := make([]string, count)
 	for i := range names {
-		names[i] = createJobIn(t, "", limitedQueue, &processorpb.SleepRequest{Key: fmt.Sprintf("%s-%d", run, i), Duration: durationpb.New(4 * time.Second)}, labels).GetName()
+		names[i] = createJob(t, &processorpb.LimitedRequest{Key: fmt.Sprintf("%s-%d", run, i), Duration: durationpb.New(4 * time.Second)}, labels).GetName()
 	}
 
 	deadline := time.Now().Add(waitTimeout)
@@ -104,22 +105,18 @@ func TestProcess_RetryInfoOverridesBackoff(t *testing.T) {
 
 func TestUpdateQueue_PolicyAppliesToNextJob(t *testing.T) {
 	t.Parallel()
-	policy := &schedulerpb.QueuePolicy{
-		AttemptTimeout: durationpb.New(5 * time.Second),
-		MaxAttempts:    1,
-		RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(200 * time.Millisecond), Max: durationpb.New(time.Second), Multiplier: 1},
-	}
-	queue := createQueue(t, policy, "Flaky")
+	// The tunable queue is this test's alone: its policy is declared with one attempt.
+	queue := getQueue(t, tunableQueue)
 
 	key := uuid.MustNewV7().String()
-	first := createJobIn(t, "", queue.GetName(), &processorpb.FlakyRequest{Key: key, Failures: 1, Code: int32(codes.Unavailable)})
+	first := createJob(t, &processorpb.TunableRequest{Key: key, Failures: 1, Code: int32(codes.Unavailable)})
 	job := waitForTerminal(t, first.GetName())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
 	require.Equal(t, int32(1), job.GetAttemptCount())
 
 	// Raising max_attempts takes effect without a restart.
 	updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
-		Queue:      &schedulerpb.Queue{Name: queue.GetName(), Policy: &schedulerpb.QueuePolicy{MaxAttempts: 2}},
+		Queue:      &schedulerpb.Queue{Name: queue.GetName(), Policy: &policypb.QueuePolicy{MaxAttempts: 2}},
 		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
 	}
 	updated, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
@@ -128,7 +125,7 @@ func TestUpdateQueue_PolicyAppliesToNextJob(t *testing.T) {
 	require.Equal(t, 200*time.Millisecond, updated.GetPolicy().GetRetryBackoff().GetInitial().AsDuration(), "the rest of the policy is kept")
 
 	key = uuid.MustNewV7().String()
-	second := createJobIn(t, "", queue.GetName(), &processorpb.FlakyRequest{Key: key, Failures: 1, Code: int32(codes.Unavailable)})
+	second := createJob(t, &processorpb.TunableRequest{Key: key, Failures: 1, Code: int32(codes.Unavailable)})
 	job = waitForTerminal(t, second.GetName())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
 	require.Equal(t, int32(2), job.GetAttemptCount())

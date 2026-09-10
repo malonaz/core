@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package malonaz.codegen.scheduler.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/descriptor.proto";
+import "malonaz/scheduler/policy/v1/policy.proto";
+
+option go_package = "github.com/malonaz/core/genproto/codegen/scheduler/v1";
+
+// Extension marking a gRPC method as one the scheduler delivers jobs to. The
+// dispatcher finds annotated methods over each endpoint's gRPC reflection and
+// keeps a scheduler Queue per method, with this policy. A method returning
+// `google.longrunning.Operation` is a long-running operation (AIP-151) run
+// this way.
+extend google.protobuf.MethodOptions {
+  // Scheduler options for this method.
+  MethodOptions method = 75000;
+}
+
+// Scheduler options of a method.
+message MethodOptions {
+  // The execution policy of the method's jobs.
+  malonaz.scheduler.policy.v1.QueuePolicy policy = 1 [(buf.validate.field).required = true];
+}

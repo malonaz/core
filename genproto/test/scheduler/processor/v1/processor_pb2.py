@@ -24,9 +24,10 @@ _sym_db = _symbol_database.Default()
 
 from google.longrunning import operations_pb2 as google_dot_longrunning_dot_operations__pb2
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
+from malonaz.codegen.scheduler.v1 import scheduler_pb2 as malonaz_dot_codegen_dot_scheduler_dot_v1_dot_scheduler__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a#google/longrunning/operations.proto\x1a\x1egoogle/protobuf/duration.proto\"A\n\x0eOperateRequest\x12\r\n\x05value\x18\x01 \x01(\t\x12\x12\n\nunfinished\x18\x02 \x01(\x08\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\"\x1c\n\x0b\x45\x63hoRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1d\n\x0c\x45\x63hoResponse\x12\r\n\x05value\x18\x01 \x01(\t\"k\n\x0c\x46lakyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x10\n\x08\x66\x61ilures\x18\x02 \x01(\x05\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\x12.\n\x0bretry_delay\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x1e\n\rFlakyResponse\x12\r\n\x05\x63\x61lls\x18\x01 \x01(\x05\"H\n\x0cSleepRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x0f\n\rSleepResponse\"K\n\x0f\x44\x65\x61\x64lineRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x12\n\x10\x44\x65\x61\x64lineResponse\" \n\x0fProgressRequest\x12\r\n\x05steps\x18\x01 \x01(\x05\"\x12\n\x10ProgressResponse\"\x15\n\x04Step\x12\r\n\x05index\x18\x01 \x01(\x05\"\x11\n\x0fUnroutedRequest\"\x12\n\x10UnroutedResponse2\xa2\x06\n\tProcessor\x12k\n\x04\x45\x63ho\x12\x30.malonaz.test.scheduler.processor.v1.EchoRequest\x1a\x31.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n\x05\x46laky\x12\x31.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a\x32.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n\x05Sleep\x12\x31.malonaz.test.scheduler.processor.v1.SleepRequest\x1a\x32.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n\x08\x44\x65\x61\x64line\x12\x34.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a\x35.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n\x08Progress\x12\x34.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a\x35.malonaz.test.scheduler.processor.v1.ProgressResponse\x12]\n\x07Operate\x12\x33.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\x12w\n\x08Unrouted\x12\x34.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a\x35.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a#google/longrunning/operations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\"A\n\x0eOperateRequest\x12\r\n\x05value\x18\x01 \x01(\t\x12\x12\n\nunfinished\x18\x02 \x01(\x08\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\"\x1c\n\x0b\x45\x63hoRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1d\n\x0c\x45\x63hoResponse\x12\r\n\x05value\x18\x01 \x01(\t\"k\n\x0c\x46lakyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x10\n\x08\x66\x61ilures\x18\x02 \x01(\x05\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\x12.\n\x0bretry_delay\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x1e\n\rFlakyResponse\x12\r\n\x05\x63\x61lls\x18\x01 \x01(\x05\"H\n\x0cSleepRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x0f\n\rSleepResponse\"J\n\x0eLimitedRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x11\n\x0fLimitedResponse\"K\n\x0fPausableRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x12\n\x10PausableResponse\"=\n\x0eTunableRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x10\n\x08\x66\x61ilures\x18\x02 \x01(\x05\x12\x0c\n\x04\x63ode\x18\x03 \x01(\x05\"\x11\n\x0fTunableResponse\"\x1e\n\rRedialRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1f\n\x0eRedialResponse\x12\r\n\x05value\x18\x01 \x01(\t\"\x1e\n\rSerialRequest\x12\r\n\x05value\x18\x01 \x01(\t\"\x1f\n\x0eSerialResponse\x12\r\n\x05value\x18\x01 \x01(\t\"K\n\x0f\x44\x65\x61\x64lineRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x12\n\x10\x44\x65\x61\x64lineResponse\" \n\x0fProgressRequest\x12\r\n\x05steps\x18\x01 \x01(\x05\"\x12\n\x10ProgressResponse\"\x15\n\x04Step\x12\r\n\x05index\x18\x01 \x01(\x05\"\x11\n\x0fUnroutedRequest\"\x12\n\x10UnroutedResponse2\x8c\r\n\tProcessor\x12y\n\x04\x45\x63ho\x12\x30.malonaz.test.scheduler.processor.v1.EchoRequest\x1a\x31.malonaz.test.scheduler.processor.v1.EchoResponse\"\x0c\xc2\xcf$\x08\n\x06\n\x02\x08\x05\x10\x01\x12\x93\x01\n\x05\x46laky\x12\x31.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a\x32.malonaz.test.scheduler.processor.v1.FlakyResponse\"#\xc2\xcf$\x1f\n\x1d\n\x02\x08\x05\x10\x03\x1a\x15\n\x06\x10\x80\xc6\x86\x8f\x01\x12\x02\x08\x05\x19\x00\x00\x00\x00\x00\x00\x00@\x12|\n\x05Sleep\x12\x31.malonaz.test.scheduler.processor.v1.SleepRequest\x1a\x32.malonaz.test.scheduler.processor.v1.SleepResponse\"\x0c\xc2\xcf$\x08\n\x06\n\x02\x08\n\x10\x01\x12\x9d\x01\n\x08\x44\x65\x61\x64line\x12\x34.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a\x35.malonaz.test.scheduler.processor.v1.DeadlineResponse\"$\xc2\xcf$ \n\x1e\n\x02\x08\x01\x10\x02\x1a\x14\n\x05\x10\x80\x84\xaf_\x12\x02\x08\x01\x19\x00\x00\x00\x00\x00\x00\xf0? \x02\x12\x84\x01\n\x07Limited\x12\x33.malonaz.test.scheduler.processor.v1.LimitedRequest\x1a\x34.malonaz.test.scheduler.processor.v1.LimitedResponse\"\x0e\xc2\xcf$\n\n\x08\n\x02\x08\n\x10\x01 \x02\x12\x81\x01\n\x06Serial\x12\x32.malonaz.test.scheduler.processor.v1.SerialRequest\x1a\x33.malonaz.test.scheduler.processor.v1.SerialResponse\"\x0e\xc2\xcf$\n\n\x08\n\x02\x08\x05\x10\x01 \x01\x12\x85\x01\n\x08Progress\x12\x34.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a\x35.malonaz.test.scheduler.processor.v1.ProgressResponse\"\x0c\xc2\xcf$\x08\n\x06\n\x02\x08\x05\x10\x01\x12\x85\x01\n\x07Operate\x12\x33.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\"&\xc2\xcf$\"\n \n\x02\x08\x05\x10\x03\x1a\x14\n\x05\x10\x80\xc2\xd7/\x12\x02\x08\x01\x19\x00\x00\x00\x00\x00\x00\xf0?*\x02\t\r\x12\x85\x01\n\x08Pausable\x12\x34.malonaz.test.scheduler.processor.v1.PausableRequest\x1a\x35.malonaz.test.scheduler.processor.v1.PausableResponse\"\x0c\xc2\xcf$\x08\n\x06\n\x02\x08\n\x10\x01\x12\x98\x01\n\x07Tunable\x12\x33.malonaz.test.scheduler.processor.v1.TunableRequest\x1a\x34.malonaz.test.scheduler.processor.v1.TunableResponse\"\"\xc2\xcf$\x1e\n\x1c\n\x02\x08\x05\x10\x01\x1a\x14\n\x05\x10\x80\x84\xaf_\x12\x02\x08\x01\x19\x00\x00\x00\x00\x00\x00\xf0?\x12\x98\x01\n\x06Redial\x12\x32.malonaz.test.scheduler.processor.v1.RedialRequest\x1a\x33.malonaz.test.scheduler.processor.v1.RedialResponse\"%\xc2\xcf$!\n\x1f\n\x02\x08\x02\x10\x64\x1a\x17\n\x05\x10\x80\x84\xaf_\x12\x05\x10\x80\x84\xaf_\x19\x00\x00\x00\x00\x00\x00\xf0?\x12w\n\x08Unrouted\x12\x34.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a\x35.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,34 +35,76 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.test.scheduler.proc
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1'
-  _globals['_OPERATEREQUEST']._serialized_start=161
-  _globals['_OPERATEREQUEST']._serialized_end=226
-  _globals['_ECHOREQUEST']._serialized_start=228
-  _globals['_ECHOREQUEST']._serialized_end=256
-  _globals['_ECHORESPONSE']._serialized_start=258
-  _globals['_ECHORESPONSE']._serialized_end=287
-  _globals['_FLAKYREQUEST']._serialized_start=289
-  _globals['_FLAKYREQUEST']._serialized_end=396
-  _globals['_FLAKYRESPONSE']._serialized_start=398
-  _globals['_FLAKYRESPONSE']._serialized_end=428
-  _globals['_SLEEPREQUEST']._serialized_start=430
-  _globals['_SLEEPREQUEST']._serialized_end=502
-  _globals['_SLEEPRESPONSE']._serialized_start=504
-  _globals['_SLEEPRESPONSE']._serialized_end=519
-  _globals['_DEADLINEREQUEST']._serialized_start=521
-  _globals['_DEADLINEREQUEST']._serialized_end=596
-  _globals['_DEADLINERESPONSE']._serialized_start=598
-  _globals['_DEADLINERESPONSE']._serialized_end=616
-  _globals['_PROGRESSREQUEST']._serialized_start=618
-  _globals['_PROGRESSREQUEST']._serialized_end=650
-  _globals['_PROGRESSRESPONSE']._serialized_start=652
-  _globals['_PROGRESSRESPONSE']._serialized_end=670
-  _globals['_STEP']._serialized_start=672
-  _globals['_STEP']._serialized_end=693
-  _globals['_UNROUTEDREQUEST']._serialized_start=695
-  _globals['_UNROUTEDREQUEST']._serialized_end=712
-  _globals['_UNROUTEDRESPONSE']._serialized_start=714
-  _globals['_UNROUTEDRESPONSE']._serialized_end=732
-  _globals['_PROCESSOR']._serialized_start=735
-  _globals['_PROCESSOR']._serialized_end=1537
+  _globals['_PROCESSOR'].methods_by_name['Echo']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Echo']._serialized_options = b'\302\317$\010\n\006\n\002\010\005\020\001'
+  _globals['_PROCESSOR'].methods_by_name['Flaky']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Flaky']._serialized_options = b'\302\317$\037\n\035\n\002\010\005\020\003\032\025\n\006\020\200\306\206\217\001\022\002\010\005\031\000\000\000\000\000\000\000@'
+  _globals['_PROCESSOR'].methods_by_name['Sleep']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Sleep']._serialized_options = b'\302\317$\010\n\006\n\002\010\n\020\001'
+  _globals['_PROCESSOR'].methods_by_name['Deadline']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Deadline']._serialized_options = b'\302\317$ \n\036\n\002\010\001\020\002\032\024\n\005\020\200\204\257_\022\002\010\001\031\000\000\000\000\000\000\360? \002'
+  _globals['_PROCESSOR'].methods_by_name['Limited']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Limited']._serialized_options = b'\302\317$\n\n\010\n\002\010\n\020\001 \002'
+  _globals['_PROCESSOR'].methods_by_name['Serial']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Serial']._serialized_options = b'\302\317$\n\n\010\n\002\010\005\020\001 \001'
+  _globals['_PROCESSOR'].methods_by_name['Progress']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Progress']._serialized_options = b'\302\317$\010\n\006\n\002\010\005\020\001'
+  _globals['_PROCESSOR'].methods_by_name['Operate']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Operate']._serialized_options = b'\302\317$\"\n \n\002\010\005\020\003\032\024\n\005\020\200\302\327/\022\002\010\001\031\000\000\000\000\000\000\360?*\002\t\r'
+  _globals['_PROCESSOR'].methods_by_name['Pausable']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Pausable']._serialized_options = b'\302\317$\010\n\006\n\002\010\n\020\001'
+  _globals['_PROCESSOR'].methods_by_name['Tunable']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Tunable']._serialized_options = b'\302\317$\036\n\034\n\002\010\005\020\001\032\024\n\005\020\200\204\257_\022\002\010\001\031\000\000\000\000\000\000\360?'
+  _globals['_PROCESSOR'].methods_by_name['Redial']._loaded_options = None
+  _globals['_PROCESSOR'].methods_by_name['Redial']._serialized_options = b'\302\317$!\n\037\n\002\010\002\020d\032\027\n\005\020\200\204\257_\022\005\020\200\204\257_\031\000\000\000\000\000\000\360?'
+  _globals['_OPERATEREQUEST']._serialized_start=207
+  _globals['_OPERATEREQUEST']._serialized_end=272
+  _globals['_ECHOREQUEST']._serialized_start=274
+  _globals['_ECHOREQUEST']._serialized_end=302
+  _globals['_ECHORESPONSE']._serialized_start=304
+  _globals['_ECHORESPONSE']._serialized_end=333
+  _globals['_FLAKYREQUEST']._serialized_start=335
+  _globals['_FLAKYREQUEST']._serialized_end=442
+  _globals['_FLAKYRESPONSE']._serialized_start=444
+  _globals['_FLAKYRESPONSE']._serialized_end=474
+  _globals['_SLEEPREQUEST']._serialized_start=476
+  _globals['_SLEEPREQUEST']._serialized_end=548
+  _globals['_SLEEPRESPONSE']._serialized_start=550
+  _globals['_SLEEPRESPONSE']._serialized_end=565
+  _globals['_LIMITEDREQUEST']._serialized_start=567
+  _globals['_LIMITEDREQUEST']._serialized_end=641
+  _globals['_LIMITEDRESPONSE']._serialized_start=643
+  _globals['_LIMITEDRESPONSE']._serialized_end=660
+  _globals['_PAUSABLEREQUEST']._serialized_start=662
+  _globals['_PAUSABLEREQUEST']._serialized_end=737
+  _globals['_PAUSABLERESPONSE']._serialized_start=739
+  _globals['_PAUSABLERESPONSE']._serialized_end=757
+  _globals['_TUNABLEREQUEST']._serialized_start=759
+  _globals['_TUNABLEREQUEST']._serialized_end=820
+  _globals['_TUNABLERESPONSE']._serialized_start=822
+  _globals['_TUNABLERESPONSE']._serialized_end=839
+  _globals['_REDIALREQUEST']._serialized_start=841
+  _globals['_REDIALREQUEST']._serialized_end=871
+  _globals['_REDIALRESPONSE']._serialized_start=873
+  _globals['_REDIALRESPONSE']._serialized_end=904
+  _globals['_SERIALREQUEST']._serialized_start=906
+  _globals['_SERIALREQUEST']._serialized_end=936
+  _globals['_SERIALRESPONSE']._serialized_start=938
+  _globals['_SERIALRESPONSE']._serialized_end=969
+  _globals['_DEADLINEREQUEST']._serialized_start=971
+  _globals['_DEADLINEREQUEST']._serialized_end=1046
+  _globals['_DEADLINERESPONSE']._serialized_start=1048
+  _globals['_DEADLINERESPONSE']._serialized_end=1066
+  _globals['_PROGRESSREQUEST']._serialized_start=1068
+  _globals['_PROGRESSREQUEST']._serialized_end=1100
+  _globals['_PROGRESSRESPONSE']._serialized_start=1102
+  _globals['_PROGRESSRESPONSE']._serialized_end=1120
+  _globals['_STEP']._serialized_start=1122
+  _globals['_STEP']._serialized_end=1143
+  _globals['_UNROUTEDREQUEST']._serialized_start=1145
+  _globals['_UNROUTEDREQUEST']._serialized_end=1162
+  _globals['_UNROUTEDRESPONSE']._serialized_start=1164
+  _globals['_UNROUTEDRESPONSE']._serialized_end=1182
+  _globals['_PROCESSOR']._serialized_start=1185
+  _globals['_PROCESSOR']._serialized_end=2861
 # @@protoc_insertion_point(module_scope)

@@ -6,6 +6,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//malonaz/codegen/scheduler/v1",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",

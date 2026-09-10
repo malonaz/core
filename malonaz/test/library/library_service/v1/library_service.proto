@@ -9,6 +9,7 @@ import "google/protobuf/empty.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
 import "malonaz/test/library/library_service/v1/author.proto";
 import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
@@ -172,6 +173,12 @@ service LibraryService {
 
   // Gets a shelf.
   rpc GetShelf(GetShelfRequest) returns (malonaz.test.library.v1.Shelf) {
+    // Scheduler-run only so the sats have a job of another method to keep out
+    // of ImportBooks' Operations.
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 1
+    };
     option (google.api.http) = {get: "/v1/{name=organizations/*/shelves/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
@@ -297,8 +304,8 @@ service LibraryService {
   }
 
   // Imports books onto a shelf, one per title, as a long-running operation
-  // (AIP-151) run by the scheduler on `queues/library`. The operation's
-  // metadata reports progress; its response lists the books.
+  // (AIP-151) run by the scheduler. The operation's metadata reports
+  // progress; its response lists the books.
   //
   // See: https://google.aip.dev/151 (Long-running operations).
   rpc ImportBooks(ImportBooksRequest) returns (google.longrunning.Operation) {
@@ -311,7 +318,15 @@ service LibraryService {
       response_type: "ImportBooksResponse"
       metadata_type: "ImportBooksMetadata"
     };
-    option (malonaz.codegen.aip.v1.longrunning) = {queue: "queues/library"};
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 30}
+      max_attempts: 3
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+    };
   }
 
   // ===================== BookReview (Singleton) =====================

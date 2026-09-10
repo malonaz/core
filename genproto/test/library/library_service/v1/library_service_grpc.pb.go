@@ -146,8 +146,8 @@ type LibraryServiceClient interface {
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
 	// Imports books onto a shelf, one per title, as a long-running operation
-	// (AIP-151) run by the scheduler on `queues/library`. The operation's
-	// metadata reports progress; its response lists the books.
+	// (AIP-151) run by the scheduler. The operation's metadata reports
+	// progress; its response lists the books.
 	//
 	// See: https://google.aip.dev/151 (Long-running operations).
 	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
@@ -682,8 +682,8 @@ type LibraryServiceServer interface {
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
 	// Imports books onto a shelf, one per title, as a long-running operation
-	// (AIP-151) run by the scheduler on `queues/library`. The operation's
-	// metadata reports progress; its response lists the books.
+	// (AIP-151) run by the scheduler. The operation's metadata reports
+	// progress; its response lists the books.
 	//
 	// See: https://google.aip.dev/151 (Long-running operations).
 	ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error)

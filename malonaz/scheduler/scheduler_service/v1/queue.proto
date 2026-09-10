@@ -13,7 +13,7 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 
 // Request message for SchedulerService.CreateQueue.
 message CreateQueueRequest {
-  // The queue to create. Only `policy` and `handlers` are read.
+  // The queue to create. Only `service`, `method`, `endpoint`, `request_type`, `response_type` and `policy` are read.
   scheduler.v1.Queue queue = 1 [(buf.validate.field).required = true];
 
   // The ID to use for the resource, which will become the final component of
@@ -55,8 +55,9 @@ message GetQueueRequest {
 message UpdateQueueRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
-      "policy",
-      "handlers"
+      "endpoint",
+      "response_type",
+      "policy"
     ]
   };
   option (buf.validate.message).cel = {

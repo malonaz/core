@@ -6,3 +6,7 @@ servers:
         - service: scheduler-service
           proto: //malonaz/scheduler/scheduler_service/v1
           manifest: //go/scheduler/scheduler_service:manifest
+  # Dials the API above and every bootstrap target, so it starts last.
+  - name: scheduler-dispatcher
+    processor:
+      manifest: //go/scheduler/scheduler_dispatcher:manifest

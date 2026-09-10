@@ -1,18 +1,16 @@
 go_test(
     name = "sat",
     srcs = [
-        "bootstrap_test.go",
+        "discover_test.go",
         "job_test.go",
         "longrunning_test.go",
         "policy_test.go",
         "processor_test.go",
         "queue_test.go",
         "sat_test.go",
-        "target_test.go",
         "worker_test.go",
     ],
     data = [
-        "bootstrap.jsonnet",
         "//cmd/postgres-migrator",
         "//cmd/scheduler-service",
         "//go/scheduler/migrations",
@@ -28,6 +26,7 @@ go_test(
         "//go/sat",
         "//go/scheduler",
         "//go/uuid",
+        "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//malonaz/test/scheduler/processor/v1",

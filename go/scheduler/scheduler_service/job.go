@@ -19,6 +19,8 @@ import (
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/scheduler/transition"
 )
 
 // statePreconditionError refuses a transition from the job's current state.
@@ -30,41 +32,35 @@ func (e *statePreconditionError) Error() string {
 	return fmt.Sprintf("job is %s", e.state)
 }
 
-func isTerminal(state schedulerpb.JobState) bool {
-	switch state {
-	case schedulerpb.JobState_JOB_STATE_SUCCEEDED, schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
-		return true
-	}
-	return false
-}
-
 // uniqueKeyCreateAttempts bounds the passes a keyed create makes when the
 // key's PENDING job keeps being claimed between the lookup and the insert.
 const uniqueKeyCreateAttempts = 3
 
-// CreateJob accepts only the producer-owned fields and resolves the handler
-// the payload type selects among the queue's. A keyed job coalesces onto the
-// key's PENDING job when there is one.
+// CreateJob accepts only the producer-owned fields and routes the job to the
+// queue its payload type selects. A keyed job coalesces onto the key's PENDING
+// job when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
 	job := request.GetJob()
 	requestType := job.GetPayload().GetTypeUrl()
 	if requestType == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "payload.type_url must be set").Err()
 	}
-	getQueueRequest := &pb.GetQueueRequest{Name: job.GetQueue()}
-	queue, err := s.SchedulerServiceServer.GetQueue(ctx, getQueueRequest)
+	queueModel, err := s.schedulerPostgresStore.GetQueueByRequestType(ctx, requestType)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, model.ErrQueueNotExist) {
+			return nil, status.Errorf(codes.FailedPrecondition, "no queue accepts %s", requestType).Err()
+		}
+		return nil, status.FromError(err, "getting queue by request type").Err()
 	}
-	handler := handlerFor(queue, requestType)
-	if handler == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "no handler of %s accepts %s", queue.GetName(), requestType).Err()
+	queue, err := queueModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queue from model to pb: %v", err).Err()
 	}
 	request.Job = &schedulerpb.Job{
 		Labels:       job.GetLabels(),
 		Payload:      job.GetPayload(),
 		Queue:        queue.GetName(),
-		Method:       handler.GetMethod(),
+		Method:       scheduler.MethodPath(queue.GetService(), queue.GetMethod()),
 		Priority:     job.GetPriority(),
 		UniqueKey:    job.GetUniqueKey(),
 		ScheduleTime: job.GetScheduleTime(),
@@ -85,9 +81,6 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 		}
 		created, err := s.SchedulerServiceServer.CreateJob(ctx, request)
 		if err == nil {
-			if !request.GetValidateOnly() && !created.GetScheduleTime().AsTime().After(time.Now()) {
-				s.wakeClaim()
-			}
 			return created, nil
 		}
 		// A keyed insert conflicts when a PENDING job appeared since the lookup: pick it up on the next pass.
@@ -95,16 +88,6 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 			return nil, err
 		}
 	}
-}
-
-// handlerFor returns the queue's handler accepting the request type, or nil.
-func handlerFor(queue *schedulerpb.Queue, requestType string) *schedulerpb.Handler {
-	for _, handler := range queue.GetHandlers() {
-		if handler.GetRequestType() == requestType {
-			return handler
-		}
-	}
-	return nil
 }
 
 // pendingJobByUniqueKey returns the PENDING job holding the key, or nil.
@@ -149,9 +132,6 @@ func (s *Service) UpdateJob(ctx context.Context, request *pb.UpdateJobRequest) (
 	if err != nil {
 		return nil, err
 	}
-	if updated.GetState() == schedulerpb.JobState_JOB_STATE_PENDING && !updated.GetScheduleTime().AsTime().After(time.Now()) {
-		s.wakeClaim()
-	}
 	return updated, nil
 }
 
@@ -179,7 +159,7 @@ func (s *Service) DeleteJob(ctx context.Context, request *pb.DeleteJobRequest) (
 // already has a PENDING job is refused: that job is the retry.
 func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*schedulerpb.Job, error) {
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
-		if !isTerminal(job.GetState()) {
+		if !transition.IsTerminal(job.GetState()) {
 			return &statePreconditionError{state: job.GetState()}
 		}
 		job.State = schedulerpb.JobState_JOB_STATE_PENDING
@@ -200,35 +180,32 @@ func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*s
 	if err != nil {
 		return nil, err
 	}
-	s.wakeClaim()
 	return job, nil
 }
 
-// CancelJob moves a PENDING or RUNNING job to CANCELLED and cuts a local
-// in-flight call short; a remote worker notices on its next lease renewal.
+// CancelJob moves a PENDING or RUNNING job to CANCELLED; the dispatcher running
+// it notices on its next lease renewal and cancels the handler call.
 func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (*schedulerpb.Job, error) {
-	now := truncatedNow()
+	now := transition.Now()
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
-		if isTerminal(job.GetState()) {
+		if transition.IsTerminal(job.GetState()) {
 			return &statePreconditionError{state: job.GetState()}
 		}
 		cancelled := grpcstatus.New(codes.Canceled, "cancelled by client")
 		if job.GetState() == schedulerpb.JobState_JOB_STATE_RUNNING {
-			recordAttempt(job, now, cancelled.Err(), nil)
+			transition.RecordAttempt(job, now, cancelled.Err(), nil)
 		}
 		job.State = schedulerpb.JobState_JOB_STATE_CANCELLED
 		job.CompleteTime = timestamppb.New(now)
 		job.LockTime = nil
-		job.PurgeTime = s.purgeTime(now)
+		job.PurgeTime = transition.PurgeTime(now, s.opts.Retention)
 		job.Error = cancelled.Proto()
-		observeTransition(job, job.State)
+		transition.Observe(job, job.State)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	_, _, jobID, _ := model.ParseJobName(job.GetName())
-	s.inflight.cancel(jobID)
 	return job, nil
 }
 
@@ -253,7 +230,7 @@ func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*sch
 			return nil, err
 		}
 		remaining := time.Until(deadline)
-		if isTerminal(job.GetState()) || remaining <= 0 {
+		if transition.IsTerminal(job.GetState()) || remaining <= 0 {
 			return job, nil
 		}
 		select {
@@ -282,9 +259,9 @@ func (s *Service) transitionJob(ctx context.Context, name string, fn func(*sched
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
-	now := truncatedNow()
+	now := transition.Now()
 	jobModel, err := s.schedulerPostgresStore.TransitionJob(ctx, jobID, func(job *model.Job) error {
-		return mutate(job, now, fn)
+		return transition.Mutate(job, now, fn)
 	})
 	if err != nil {
 		var preconditionErr *statePreconditionError

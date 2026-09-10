@@ -10,6 +10,7 @@ package v1
 
 import (
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	_ "github.com/malonaz/core/genproto/codegen/scheduler/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -535,6 +536,633 @@ func (b0 SleepResponse_builder) Build() *SleepResponse {
 	return m0
 }
 
+// Request message for Processor.Limited.
+type LimitedRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Key      string                 `protobuf:"bytes,1,opt,name=key,proto3"`
+	xxx_hidden_Duration *durationpb.Duration   `protobuf:"bytes,2,opt,name=duration,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *LimitedRequest) Reset() {
+	*x = LimitedRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LimitedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LimitedRequest) ProtoMessage() {}
+
+func (x *LimitedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *LimitedRequest) GetKey() string {
+	if x != nil {
+		return x.xxx_hidden_Key
+	}
+	return ""
+}
+
+func (x *LimitedRequest) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_Duration
+	}
+	return nil
+}
+
+func (x *LimitedRequest) SetKey(v string) {
+	x.xxx_hidden_Key = v
+}
+
+func (x *LimitedRequest) SetDuration(v *durationpb.Duration) {
+	x.xxx_hidden_Duration = v
+}
+
+func (x *LimitedRequest) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Duration != nil
+}
+
+func (x *LimitedRequest) ClearDuration() {
+	x.xxx_hidden_Duration = nil
+}
+
+type LimitedRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Groups calls for the sat's bookkeeping.
+	Key string
+	// How long to sleep.
+	Duration *durationpb.Duration
+}
+
+func (b0 LimitedRequest_builder) Build() *LimitedRequest {
+	m0 := &LimitedRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Key = b.Key
+	x.xxx_hidden_Duration = b.Duration
+	return m0
+}
+
+// Response message for Processor.Limited.
+type LimitedResponse struct {
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LimitedResponse) Reset() {
+	*x = LimitedResponse{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LimitedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LimitedResponse) ProtoMessage() {}
+
+func (x *LimitedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type LimitedResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 LimitedResponse_builder) Build() *LimitedResponse {
+	m0 := &LimitedResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
+// Request message for Processor.Pausable.
+type PausableRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Key      string                 `protobuf:"bytes,1,opt,name=key,proto3"`
+	xxx_hidden_Duration *durationpb.Duration   `protobuf:"bytes,2,opt,name=duration,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PausableRequest) Reset() {
+	*x = PausableRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PausableRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PausableRequest) ProtoMessage() {}
+
+func (x *PausableRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *PausableRequest) GetKey() string {
+	if x != nil {
+		return x.xxx_hidden_Key
+	}
+	return ""
+}
+
+func (x *PausableRequest) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_Duration
+	}
+	return nil
+}
+
+func (x *PausableRequest) SetKey(v string) {
+	x.xxx_hidden_Key = v
+}
+
+func (x *PausableRequest) SetDuration(v *durationpb.Duration) {
+	x.xxx_hidden_Duration = v
+}
+
+func (x *PausableRequest) HasDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Duration != nil
+}
+
+func (x *PausableRequest) ClearDuration() {
+	x.xxx_hidden_Duration = nil
+}
+
+type PausableRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Groups calls for the sat's bookkeeping.
+	Key string
+	// How long to sleep.
+	Duration *durationpb.Duration
+}
+
+func (b0 PausableRequest_builder) Build() *PausableRequest {
+	m0 := &PausableRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Key = b.Key
+	x.xxx_hidden_Duration = b.Duration
+	return m0
+}
+
+// Response message for Processor.Pausable.
+type PausableResponse struct {
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PausableResponse) Reset() {
+	*x = PausableResponse{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PausableResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PausableResponse) ProtoMessage() {}
+
+func (x *PausableResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type PausableResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 PausableResponse_builder) Build() *PausableResponse {
+	m0 := &PausableResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
+// Request message for Processor.Tunable.
+type TunableRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Key      string                 `protobuf:"bytes,1,opt,name=key,proto3"`
+	xxx_hidden_Failures int32                  `protobuf:"varint,2,opt,name=failures,proto3"`
+	xxx_hidden_Code     int32                  `protobuf:"varint,3,opt,name=code,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *TunableRequest) Reset() {
+	*x = TunableRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunableRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunableRequest) ProtoMessage() {}
+
+func (x *TunableRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TunableRequest) GetKey() string {
+	if x != nil {
+		return x.xxx_hidden_Key
+	}
+	return ""
+}
+
+func (x *TunableRequest) GetFailures() int32 {
+	if x != nil {
+		return x.xxx_hidden_Failures
+	}
+	return 0
+}
+
+func (x *TunableRequest) GetCode() int32 {
+	if x != nil {
+		return x.xxx_hidden_Code
+	}
+	return 0
+}
+
+func (x *TunableRequest) SetKey(v string) {
+	x.xxx_hidden_Key = v
+}
+
+func (x *TunableRequest) SetFailures(v int32) {
+	x.xxx_hidden_Failures = v
+}
+
+func (x *TunableRequest) SetCode(v int32) {
+	x.xxx_hidden_Code = v
+}
+
+type TunableRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Groups calls for the sat's bookkeeping.
+	Key string
+	// How many calls sharing the key fail before one succeeds.
+	Failures int32
+	// The gRPC code failures carry.
+	Code int32
+}
+
+func (b0 TunableRequest_builder) Build() *TunableRequest {
+	m0 := &TunableRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Key = b.Key
+	x.xxx_hidden_Failures = b.Failures
+	x.xxx_hidden_Code = b.Code
+	return m0
+}
+
+// Response message for Processor.Tunable.
+type TunableResponse struct {
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TunableResponse) Reset() {
+	*x = TunableResponse{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TunableResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TunableResponse) ProtoMessage() {}
+
+func (x *TunableResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type TunableResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 TunableResponse_builder) Build() *TunableResponse {
+	m0 := &TunableResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
+// Request message for Processor.Redial.
+type RedialRequest struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value string                 `protobuf:"bytes,1,opt,name=value,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RedialRequest) Reset() {
+	*x = RedialRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedialRequest) ProtoMessage() {}
+
+func (x *RedialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RedialRequest) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *RedialRequest) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+type RedialRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value to echo, and the key calls are recorded under.
+	Value string
+}
+
+func (b0 RedialRequest_builder) Build() *RedialRequest {
+	m0 := &RedialRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Value = b.Value
+	return m0
+}
+
+// Response message for Processor.Redial.
+type RedialResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value string                 `protobuf:"bytes,1,opt,name=value,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RedialResponse) Reset() {
+	*x = RedialResponse{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedialResponse) ProtoMessage() {}
+
+func (x *RedialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RedialResponse) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *RedialResponse) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+type RedialResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value given.
+	Value string
+}
+
+func (b0 RedialResponse_builder) Build() *RedialResponse {
+	m0 := &RedialResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Value = b.Value
+	return m0
+}
+
+// Request message for Processor.Serial.
+type SerialRequest struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value string                 `protobuf:"bytes,1,opt,name=value,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SerialRequest) Reset() {
+	*x = SerialRequest{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SerialRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SerialRequest) ProtoMessage() {}
+
+func (x *SerialRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SerialRequest) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *SerialRequest) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+type SerialRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value to echo, and the key calls are recorded under.
+	Value string
+}
+
+func (b0 SerialRequest_builder) Build() *SerialRequest {
+	m0 := &SerialRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Value = b.Value
+	return m0
+}
+
+// Response message for Processor.Serial.
+type SerialResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value string                 `protobuf:"bytes,1,opt,name=value,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SerialResponse) Reset() {
+	*x = SerialResponse{}
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SerialResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SerialResponse) ProtoMessage() {}
+
+func (x *SerialResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SerialResponse) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *SerialResponse) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+type SerialResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value given.
+	Value string
+}
+
+func (b0 SerialResponse_builder) Build() *SerialResponse {
+	m0 := &SerialResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Value = b.Value
+	return m0
+}
+
 // Request message for Processor.Deadline.
 type DeadlineRequest struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
@@ -546,7 +1174,7 @@ type DeadlineRequest struct {
 
 func (x *DeadlineRequest) Reset() {
 	*x = DeadlineRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -558,7 +1186,7 @@ func (x *DeadlineRequest) String() string {
 func (*DeadlineRequest) ProtoMessage() {}
 
 func (x *DeadlineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[7]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -629,7 +1257,7 @@ type DeadlineResponse struct {
 
 func (x *DeadlineResponse) Reset() {
 	*x = DeadlineResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -641,7 +1269,7 @@ func (x *DeadlineResponse) String() string {
 func (*DeadlineResponse) ProtoMessage() {}
 
 func (x *DeadlineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[8]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -674,7 +1302,7 @@ type ProgressRequest struct {
 
 func (x *ProgressRequest) Reset() {
 	*x = ProgressRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -686,7 +1314,7 @@ func (x *ProgressRequest) String() string {
 func (*ProgressRequest) ProtoMessage() {}
 
 func (x *ProgressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[9]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -732,7 +1360,7 @@ type ProgressResponse struct {
 
 func (x *ProgressResponse) Reset() {
 	*x = ProgressResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -744,7 +1372,7 @@ func (x *ProgressResponse) String() string {
 func (*ProgressResponse) ProtoMessage() {}
 
 func (x *ProgressResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[10]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +1405,7 @@ type Step struct {
 
 func (x *Step) Reset() {
 	*x = Step{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -789,7 +1417,7 @@ func (x *Step) String() string {
 func (*Step) ProtoMessage() {}
 
 func (x *Step) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[11]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +1463,7 @@ type UnroutedRequest struct {
 
 func (x *UnroutedRequest) Reset() {
 	*x = UnroutedRequest{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +1475,7 @@ func (x *UnroutedRequest) String() string {
 func (*UnroutedRequest) ProtoMessage() {}
 
 func (x *UnroutedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[12]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +1507,7 @@ type UnroutedResponse struct {
 
 func (x *UnroutedResponse) Reset() {
 	*x = UnroutedResponse{}
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -891,7 +1519,7 @@ func (x *UnroutedResponse) String() string {
 func (*UnroutedResponse) ProtoMessage() {}
 
 func (x *UnroutedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[13]
+	mi := &file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,7 +1546,7 @@ var File_malonaz_test_scheduler_processor_v1_processor_proto protoreflect.FileDe
 
 const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\n" +
-	"3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a#google/longrunning/operations.proto\x1a\x1egoogle/protobuf/duration.proto\"Z\n" +
+	"3malonaz/test/scheduler/processor/v1/processor.proto\x12#malonaz.test.scheduler.processor.v1\x1a#google/longrunning/operations.proto\x1a\x1egoogle/protobuf/duration.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\"Z\n" +
 	"\x0eOperateRequest\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x1e\n" +
 	"\n" +
@@ -940,7 +1568,28 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\fSleepRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
 	"\bduration\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\x0f\n" +
-	"\rSleepResponse\"Z\n" +
+	"\rSleepResponse\"Y\n" +
+	"\x0eLimitedRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
+	"\bduration\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\x11\n" +
+	"\x0fLimitedResponse\"Z\n" +
+	"\x0fPausableRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
+	"\bduration\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\x12\n" +
+	"\x10PausableResponse\"R\n" +
+	"\x0eTunableRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1a\n" +
+	"\bfailures\x18\x02 \x01(\x05R\bfailures\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\x05R\x04code\"\x11\n" +
+	"\x0fTunableResponse\"%\n" +
+	"\rRedialRequest\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"&\n" +
+	"\x0eRedialResponse\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"%\n" +
+	"\rSerialRequest\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"&\n" +
+	"\x0eSerialResponse\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"Z\n" +
 	"\x0fDeadlineRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
 	"\bduration\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\x12\n" +
@@ -951,17 +1600,54 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x04Step\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\"\x11\n" +
 	"\x0fUnroutedRequest\"\x12\n" +
-	"\x10UnroutedResponse2\xa2\x06\n" +
-	"\tProcessor\x12k\n" +
-	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\x12n\n" +
-	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\x12n\n" +
-	"\x05Sleep\x121.malonaz.test.scheduler.processor.v1.SleepRequest\x1a2.malonaz.test.scheduler.processor.v1.SleepResponse\x12w\n" +
-	"\bDeadline\x124.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a5.malonaz.test.scheduler.processor.v1.DeadlineResponse\x12w\n" +
-	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\x12]\n" +
-	"\aOperate\x123.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\x12w\n" +
+	"\x10UnroutedResponse2\x8c\r\n" +
+	"\tProcessor\x12y\n" +
+	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\"\f\xc2\xcf$\b\n" +
+	"\x06\n" +
+	"\x02\b\x05\x10\x01\x12\x93\x01\n" +
+	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\"#\xc2\xcf$\x1f\n" +
+	"\x1d\n" +
+	"\x02\b\x05\x10\x03\x1a\x15\n" +
+	"\x06\x10\x80Ɔ\x8f\x01\x12\x02\b\x05\x19\x00\x00\x00\x00\x00\x00\x00@\x12|\n" +
+	"\x05Sleep\x121.malonaz.test.scheduler.processor.v1.SleepRequest\x1a2.malonaz.test.scheduler.processor.v1.SleepResponse\"\f\xc2\xcf$\b\n" +
+	"\x06\n" +
+	"\x02\b\n" +
+	"\x10\x01\x12\x9d\x01\n" +
+	"\bDeadline\x124.malonaz.test.scheduler.processor.v1.DeadlineRequest\x1a5.malonaz.test.scheduler.processor.v1.DeadlineResponse\"$\xc2\xcf$ \n" +
+	"\x1e\n" +
+	"\x02\b\x01\x10\x02\x1a\x14\n" +
+	"\x05\x10\x80\x84\xaf_\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0? \x02\x12\x84\x01\n" +
+	"\aLimited\x123.malonaz.test.scheduler.processor.v1.LimitedRequest\x1a4.malonaz.test.scheduler.processor.v1.LimitedResponse\"\x0e\xc2\xcf$\n" +
+	"\n" +
+	"\b\n" +
+	"\x02\b\n" +
+	"\x10\x01 \x02\x12\x81\x01\n" +
+	"\x06Serial\x122.malonaz.test.scheduler.processor.v1.SerialRequest\x1a3.malonaz.test.scheduler.processor.v1.SerialResponse\"\x0e\xc2\xcf$\n" +
+	"\n" +
+	"\b\n" +
+	"\x02\b\x05\x10\x01 \x01\x12\x85\x01\n" +
+	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\"\f\xc2\xcf$\b\n" +
+	"\x06\n" +
+	"\x02\b\x05\x10\x01\x12\x85\x01\n" +
+	"\aOperate\x123.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\"&\xc2\xcf$\"\n" +
+	" \n" +
+	"\x02\b\x05\x10\x03\x1a\x14\n" +
+	"\x05\x10\x80\xc2\xd7/\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0?*\x02\t\r\x12\x85\x01\n" +
+	"\bPausable\x124.malonaz.test.scheduler.processor.v1.PausableRequest\x1a5.malonaz.test.scheduler.processor.v1.PausableResponse\"\f\xc2\xcf$\b\n" +
+	"\x06\n" +
+	"\x02\b\n" +
+	"\x10\x01\x12\x98\x01\n" +
+	"\aTunable\x123.malonaz.test.scheduler.processor.v1.TunableRequest\x1a4.malonaz.test.scheduler.processor.v1.TunableResponse\"\"\xc2\xcf$\x1e\n" +
+	"\x1c\n" +
+	"\x02\b\x05\x10\x01\x1a\x14\n" +
+	"\x05\x10\x80\x84\xaf_\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0?\x12\x98\x01\n" +
+	"\x06Redial\x122.malonaz.test.scheduler.processor.v1.RedialRequest\x1a3.malonaz.test.scheduler.processor.v1.RedialResponse\"%\xc2\xcf$!\n" +
+	"\x1f\n" +
+	"\x02\b\x02\x10d\x1a\x17\n" +
+	"\x05\x10\x80\x84\xaf_\x12\x05\x10\x80\x84\xaf_\x19\x00\x00\x00\x00\x00\x00\xf0?\x12w\n" +
 	"\bUnrouted\x124.malonaz.test.scheduler.processor.v1.UnroutedRequest\x1a5.malonaz.test.scheduler.processor.v1.UnroutedResponseB>Z<github.com/malonaz/core/genproto/test/scheduler/processor/v1b\x06proto3"
 
-var file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_malonaz_test_scheduler_processor_v1_processor_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_malonaz_test_scheduler_processor_v1_processor_proto_goTypes = []any{
 	(*OperateRequest)(nil),          // 0: malonaz.test.scheduler.processor.v1.OperateRequest
 	(*EchoRequest)(nil),             // 1: malonaz.test.scheduler.processor.v1.EchoRequest
@@ -970,39 +1656,61 @@ var file_malonaz_test_scheduler_processor_v1_processor_proto_goTypes = []any{
 	(*FlakyResponse)(nil),           // 4: malonaz.test.scheduler.processor.v1.FlakyResponse
 	(*SleepRequest)(nil),            // 5: malonaz.test.scheduler.processor.v1.SleepRequest
 	(*SleepResponse)(nil),           // 6: malonaz.test.scheduler.processor.v1.SleepResponse
-	(*DeadlineRequest)(nil),         // 7: malonaz.test.scheduler.processor.v1.DeadlineRequest
-	(*DeadlineResponse)(nil),        // 8: malonaz.test.scheduler.processor.v1.DeadlineResponse
-	(*ProgressRequest)(nil),         // 9: malonaz.test.scheduler.processor.v1.ProgressRequest
-	(*ProgressResponse)(nil),        // 10: malonaz.test.scheduler.processor.v1.ProgressResponse
-	(*Step)(nil),                    // 11: malonaz.test.scheduler.processor.v1.Step
-	(*UnroutedRequest)(nil),         // 12: malonaz.test.scheduler.processor.v1.UnroutedRequest
-	(*UnroutedResponse)(nil),        // 13: malonaz.test.scheduler.processor.v1.UnroutedResponse
-	(*durationpb.Duration)(nil),     // 14: google.protobuf.Duration
-	(*longrunningpb.Operation)(nil), // 15: google.longrunning.Operation
+	(*LimitedRequest)(nil),          // 7: malonaz.test.scheduler.processor.v1.LimitedRequest
+	(*LimitedResponse)(nil),         // 8: malonaz.test.scheduler.processor.v1.LimitedResponse
+	(*PausableRequest)(nil),         // 9: malonaz.test.scheduler.processor.v1.PausableRequest
+	(*PausableResponse)(nil),        // 10: malonaz.test.scheduler.processor.v1.PausableResponse
+	(*TunableRequest)(nil),          // 11: malonaz.test.scheduler.processor.v1.TunableRequest
+	(*TunableResponse)(nil),         // 12: malonaz.test.scheduler.processor.v1.TunableResponse
+	(*RedialRequest)(nil),           // 13: malonaz.test.scheduler.processor.v1.RedialRequest
+	(*RedialResponse)(nil),          // 14: malonaz.test.scheduler.processor.v1.RedialResponse
+	(*SerialRequest)(nil),           // 15: malonaz.test.scheduler.processor.v1.SerialRequest
+	(*SerialResponse)(nil),          // 16: malonaz.test.scheduler.processor.v1.SerialResponse
+	(*DeadlineRequest)(nil),         // 17: malonaz.test.scheduler.processor.v1.DeadlineRequest
+	(*DeadlineResponse)(nil),        // 18: malonaz.test.scheduler.processor.v1.DeadlineResponse
+	(*ProgressRequest)(nil),         // 19: malonaz.test.scheduler.processor.v1.ProgressRequest
+	(*ProgressResponse)(nil),        // 20: malonaz.test.scheduler.processor.v1.ProgressResponse
+	(*Step)(nil),                    // 21: malonaz.test.scheduler.processor.v1.Step
+	(*UnroutedRequest)(nil),         // 22: malonaz.test.scheduler.processor.v1.UnroutedRequest
+	(*UnroutedResponse)(nil),        // 23: malonaz.test.scheduler.processor.v1.UnroutedResponse
+	(*durationpb.Duration)(nil),     // 24: google.protobuf.Duration
+	(*longrunningpb.Operation)(nil), // 25: google.longrunning.Operation
 }
 var file_malonaz_test_scheduler_processor_v1_processor_proto_depIdxs = []int32{
-	14, // 0: malonaz.test.scheduler.processor.v1.FlakyRequest.retry_delay:type_name -> google.protobuf.Duration
-	14, // 1: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
-	14, // 2: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
-	1,  // 3: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
-	3,  // 4: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
-	5,  // 5: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
-	7,  // 6: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
-	9,  // 7: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
-	0,  // 8: malonaz.test.scheduler.processor.v1.Processor.Operate:input_type -> malonaz.test.scheduler.processor.v1.OperateRequest
-	12, // 9: malonaz.test.scheduler.processor.v1.Processor.Unrouted:input_type -> malonaz.test.scheduler.processor.v1.UnroutedRequest
-	2,  // 10: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
-	4,  // 11: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
-	6,  // 12: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
-	8,  // 13: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
-	10, // 14: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
-	15, // 15: malonaz.test.scheduler.processor.v1.Processor.Operate:output_type -> google.longrunning.Operation
-	13, // 16: malonaz.test.scheduler.processor.v1.Processor.Unrouted:output_type -> malonaz.test.scheduler.processor.v1.UnroutedResponse
-	10, // [10:17] is the sub-list for method output_type
-	3,  // [3:10] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	24, // 0: malonaz.test.scheduler.processor.v1.FlakyRequest.retry_delay:type_name -> google.protobuf.Duration
+	24, // 1: malonaz.test.scheduler.processor.v1.SleepRequest.duration:type_name -> google.protobuf.Duration
+	24, // 2: malonaz.test.scheduler.processor.v1.LimitedRequest.duration:type_name -> google.protobuf.Duration
+	24, // 3: malonaz.test.scheduler.processor.v1.PausableRequest.duration:type_name -> google.protobuf.Duration
+	24, // 4: malonaz.test.scheduler.processor.v1.DeadlineRequest.duration:type_name -> google.protobuf.Duration
+	1,  // 5: malonaz.test.scheduler.processor.v1.Processor.Echo:input_type -> malonaz.test.scheduler.processor.v1.EchoRequest
+	3,  // 6: malonaz.test.scheduler.processor.v1.Processor.Flaky:input_type -> malonaz.test.scheduler.processor.v1.FlakyRequest
+	5,  // 7: malonaz.test.scheduler.processor.v1.Processor.Sleep:input_type -> malonaz.test.scheduler.processor.v1.SleepRequest
+	17, // 8: malonaz.test.scheduler.processor.v1.Processor.Deadline:input_type -> malonaz.test.scheduler.processor.v1.DeadlineRequest
+	7,  // 9: malonaz.test.scheduler.processor.v1.Processor.Limited:input_type -> malonaz.test.scheduler.processor.v1.LimitedRequest
+	15, // 10: malonaz.test.scheduler.processor.v1.Processor.Serial:input_type -> malonaz.test.scheduler.processor.v1.SerialRequest
+	19, // 11: malonaz.test.scheduler.processor.v1.Processor.Progress:input_type -> malonaz.test.scheduler.processor.v1.ProgressRequest
+	0,  // 12: malonaz.test.scheduler.processor.v1.Processor.Operate:input_type -> malonaz.test.scheduler.processor.v1.OperateRequest
+	9,  // 13: malonaz.test.scheduler.processor.v1.Processor.Pausable:input_type -> malonaz.test.scheduler.processor.v1.PausableRequest
+	11, // 14: malonaz.test.scheduler.processor.v1.Processor.Tunable:input_type -> malonaz.test.scheduler.processor.v1.TunableRequest
+	13, // 15: malonaz.test.scheduler.processor.v1.Processor.Redial:input_type -> malonaz.test.scheduler.processor.v1.RedialRequest
+	22, // 16: malonaz.test.scheduler.processor.v1.Processor.Unrouted:input_type -> malonaz.test.scheduler.processor.v1.UnroutedRequest
+	2,  // 17: malonaz.test.scheduler.processor.v1.Processor.Echo:output_type -> malonaz.test.scheduler.processor.v1.EchoResponse
+	4,  // 18: malonaz.test.scheduler.processor.v1.Processor.Flaky:output_type -> malonaz.test.scheduler.processor.v1.FlakyResponse
+	6,  // 19: malonaz.test.scheduler.processor.v1.Processor.Sleep:output_type -> malonaz.test.scheduler.processor.v1.SleepResponse
+	18, // 20: malonaz.test.scheduler.processor.v1.Processor.Deadline:output_type -> malonaz.test.scheduler.processor.v1.DeadlineResponse
+	8,  // 21: malonaz.test.scheduler.processor.v1.Processor.Limited:output_type -> malonaz.test.scheduler.processor.v1.LimitedResponse
+	16, // 22: malonaz.test.scheduler.processor.v1.Processor.Serial:output_type -> malonaz.test.scheduler.processor.v1.SerialResponse
+	20, // 23: malonaz.test.scheduler.processor.v1.Processor.Progress:output_type -> malonaz.test.scheduler.processor.v1.ProgressResponse
+	25, // 24: malonaz.test.scheduler.processor.v1.Processor.Operate:output_type -> google.longrunning.Operation
+	10, // 25: malonaz.test.scheduler.processor.v1.Processor.Pausable:output_type -> malonaz.test.scheduler.processor.v1.PausableResponse
+	12, // 26: malonaz.test.scheduler.processor.v1.Processor.Tunable:output_type -> malonaz.test.scheduler.processor.v1.TunableResponse
+	14, // 27: malonaz.test.scheduler.processor.v1.Processor.Redial:output_type -> malonaz.test.scheduler.processor.v1.RedialResponse
+	23, // 28: malonaz.test.scheduler.processor.v1.Processor.Unrouted:output_type -> malonaz.test.scheduler.processor.v1.UnroutedResponse
+	17, // [17:29] is the sub-list for method output_type
+	5,  // [5:17] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_scheduler_processor_v1_processor_proto_init() }
@@ -1016,7 +1724,7 @@ func file_malonaz_test_scheduler_processor_v1_processor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc), len(file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -4,34 +4,141 @@ package malonaz.test.scheduler.processor.v1;
 
 import "google/longrunning/operations.proto";
 import "google/protobuf/duration.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/scheduler/processor/v1";
 
-// A scriptable processor the scheduler sats route jobs to. The sats give each
-// method its own queue, so each can have its own timeout and retry policy.
+// A scriptable processor the scheduler sats route jobs to. Each method
+// declares its own policy, so each gets its own queue, timeout and retries.
+// Timings mirror the constants in sat_test.go, which the tests derive their
+// expectations from.
 service Processor {
   // Returns the value it was given.
-  rpc Echo(EchoRequest) returns (EchoResponse);
+  rpc Echo(EchoRequest) returns (EchoResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 1
+    };
+  }
 
   // Fails the first `failures` calls sharing a key, then succeeds.
-  rpc Flaky(FlakyRequest) returns (FlakyResponse);
+  rpc Flaky(FlakyRequest) returns (FlakyResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 3
+      retry_backoff: {
+        initial: {nanos: 300000000}
+        max: {seconds: 5}
+        multiplier: 2
+      }
+    };
+  }
 
   // Sleeps for the given duration, or until the call is cancelled.
-  rpc Sleep(SleepRequest) returns (SleepResponse);
+  rpc Sleep(SleepRequest) returns (SleepResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 10}
+      max_attempts: 1
+    };
+  }
 
-  // Same as Sleep; the sats configure it with a short timeout to exercise
-  // attempt deadlines.
-  rpc Deadline(DeadlineRequest) returns (DeadlineResponse);
+  // Same as Sleep, with a short timeout to exercise attempt deadlines and a
+  // concurrency cap of two.
+  rpc Deadline(DeadlineRequest) returns (DeadlineResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 1}
+      max_attempts: 2
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+      max_concurrency: 2
+    };
+  }
+
+  // Same as Sleep, capped at two concurrent jobs.
+  rpc Limited(LimitedRequest) returns (LimitedResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 10}
+      max_attempts: 1
+      max_concurrency: 2
+    };
+  }
+
+  // Same as Echo, serialised: the order jobs are claimed in is observable as
+  // the order they run in.
+  rpc Serial(SerialRequest) returns (SerialResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 1
+      max_concurrency: 1
+    };
+  }
 
   // Reports `steps` progress updates to the scheduler before returning.
-  rpc Progress(ProgressRequest) returns (ProgressResponse);
+  rpc Progress(ProgressRequest) returns (ProgressResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 1
+    };
+  }
 
   // Returns a long-running operation: done with an EchoResponse carrying
   // `value`, or, when `unfinished` is set, not done, which the scheduler
-  // must reject.
-  rpc Operate(OperateRequest) returns (google.longrunning.Operation);
+  // must reject. FAILED_PRECONDITION is retryable here to prove an unfinished
+  // operation is not retried even so.
+  rpc Operate(OperateRequest) returns (google.longrunning.Operation) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 3
+      retry_backoff: {
+        initial: {nanos: 100000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+      retryable_codes: [
+        FAILED_PRECONDITION,
+        INTERNAL
+      ]
+    };
+  }
 
-  // Never routed: no sat queue has a handler for it.
+  // Same as Sleep; its queue is the one the sats pause, resume and count.
+  rpc Pausable(PausableRequest) returns (PausableResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 10}
+      max_attempts: 1
+    };
+  }
+
+  // Same as Flaky; its queue is the one whose policy the sats update.
+  rpc Tunable(TunableRequest) returns (TunableResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 5}
+      max_attempts: 1
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+    };
+  }
+
+  // Same as Echo; its queue is the one whose endpoint the sats move.
+  rpc Redial(RedialRequest) returns (RedialResponse) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 2}
+      max_attempts: 100
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {nanos: 200000000}
+        multiplier: 1
+      }
+    };
+  }
+
+  // Not scheduler-run: no annotation, so no queue routes its request type.
   rpc Unrouted(UnroutedRequest) returns (UnroutedResponse);
 }
 
@@ -92,6 +199,69 @@ message SleepRequest {
 
 // Response message for Processor.Sleep.
 message SleepResponse {}
+
+// Request message for Processor.Limited.
+message LimitedRequest {
+  // Groups calls for the sat's bookkeeping.
+  string key = 1;
+
+  // How long to sleep.
+  google.protobuf.Duration duration = 2;
+}
+
+// Response message for Processor.Limited.
+message LimitedResponse {}
+
+// Request message for Processor.Pausable.
+message PausableRequest {
+  // Groups calls for the sat's bookkeeping.
+  string key = 1;
+
+  // How long to sleep.
+  google.protobuf.Duration duration = 2;
+}
+
+// Response message for Processor.Pausable.
+message PausableResponse {}
+
+// Request message for Processor.Tunable.
+message TunableRequest {
+  // Groups calls for the sat's bookkeeping.
+  string key = 1;
+
+  // How many calls sharing the key fail before one succeeds.
+  int32 failures = 2;
+
+  // The gRPC code failures carry.
+  int32 code = 3;
+}
+
+// Response message for Processor.Tunable.
+message TunableResponse {}
+
+// Request message for Processor.Redial.
+message RedialRequest {
+  // The value to echo, and the key calls are recorded under.
+  string value = 1;
+}
+
+// Response message for Processor.Redial.
+message RedialResponse {
+  // The value given.
+  string value = 1;
+}
+
+// Request message for Processor.Serial.
+message SerialRequest {
+  // The value to echo, and the key calls are recorded under.
+  string value = 1;
+}
+
+// Response message for Processor.Serial.
+message SerialResponse {
+  // The value given.
+  string value = 1;
+}
 
 // Request message for Processor.Deadline.
 message DeadlineRequest {

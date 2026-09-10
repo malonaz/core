@@ -93,7 +93,7 @@ func TestCreateJob_OperationName(t *testing.T) {
 	grpcrequire.Equal(t, job, getJob(t, job.GetName()))
 
 	t.Run("unique", func(t *testing.T) {
-		createJobRequest, err := scheduler.NewCreateJobRequest(organization, echoQueue, &processorpb.EchoRequest{Value: "x"},
+		createJobRequest, err := scheduler.NewCreateJobRequest(organization, &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithScheduleTime(farFuture), scheduler.WithOperation(operationName))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)
@@ -101,7 +101,7 @@ func TestCreateJob_OperationName(t *testing.T) {
 	})
 
 	t.Run("invalid", func(t *testing.T) {
-		createJobRequest, err := scheduler.NewCreateJobRequest(organization, echoQueue, &processorpb.EchoRequest{Value: "x"},
+		createJobRequest, err := scheduler.NewCreateJobRequest(organization, &processorpb.EchoRequest{Value: "x"},
 			scheduler.WithOperation("not-an-operation"))
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.CreateJob(ctx, createJobRequest)

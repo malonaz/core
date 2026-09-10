@@ -56,6 +56,7 @@ go_test(
         "//go/test/library/library_service",
         "//go/uuid",
         "//malonaz/aip/v1",
+        "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//malonaz/test/library/library_service/v1",
