@@ -1,0 +1,15 @@
+name: test
+servers:
+  - name: lro-service
+    grpc:
+      services:
+        - service: lro-service
+          proto: //lro/v1(tools/onyx/binary/testdata/lro.proto)
+          manifest: //lro/lro_service:manifest(tools/onyx/binary/testdata/lro_service.yaml)
+  # Declares no scheduler client of its own: lro-service's serves its Operations.
+  - name: lro-gateway
+    grpc:
+      services:
+        - service: lro-gateway
+          proto: //lro/gateway/v1(tools/onyx/binary/testdata/lro_gateway.proto)
+          manifest: //lro/lro_gateway:manifest(tools/onyx/binary/testdata/lro_gateway_service.yaml)
