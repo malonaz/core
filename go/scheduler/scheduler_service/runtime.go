@@ -19,6 +19,7 @@ type Opts struct {
 	WorkerID        string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
 	// WaitJob's timeout is client-supplied, so it is capped here rather than trusted.
 	WaitJobMaxTimeout time.Duration `long:"wait-job-max-timeout" env:"WAIT_JOB_MAX_TIMEOUT" default:"5m" description:"Longest a WaitJob call blocks, whatever timeout the request asks for"`
+	Bootstrap         []string      `long:"bootstrap" env:"BOOTSTRAP" env-delim:"," description:"Jsonnet file evaluating to a scheduler_service.v1.Bootstrap; its targets and queues are created or updated at startup. Repeatable"`
 }
 
 type runtime struct {
@@ -59,6 +60,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 }
 
 func (s *Service) start(ctx context.Context) (func(), error) {
+	if err := s.bootstrap(ctx); err != nil {
+		return nil, err
+	}
 	// Workers outlive the routines that spawn them: they are cancelled and drained last.
 	workerCtx, cancelWorkers := context.WithCancel(ctx)
 

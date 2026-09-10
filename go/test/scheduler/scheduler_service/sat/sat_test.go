@@ -10,12 +10,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	codepb "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -36,6 +34,8 @@ var (
 const (
 	schedulerServiceName = "scheduler-service"
 	schedulerServicePath = "cmd/scheduler-service/scheduler-service"
+	// The fixtures every replica converges onto at boot.
+	bootstrapPath        = "go/test/scheduler/scheduler_service/sat/bootstrap.jsonnet"
 	schedulerServiceHost = "localhost"
 	schedulerServicePort = 9090
 	// A second replica claiming from the same database.
@@ -56,22 +56,25 @@ const (
 	replicaCount    = 2
 
 	// The in-process processor every sat queue routes to.
-	targetName    = "targets/test-processor"
-	processorURL  = "http://localhost:9091"
-	deadURL       = "http://localhost:9093"
-	bareURL       = "http://localhost:9094"
-	testHeader    = "x-test-header"
-	processorPath = "/malonaz.test.scheduler.processor.v1.Processor/"
+	targetName      = "targets/test-processor"
+	bootstrapTarget = "targets/bootstrap-target"
+	processorURL    = "http://localhost:9091"
+	deadURL         = "http://localhost:9093"
+	bareURL         = "http://localhost:9094"
+	testHeader      = "x-test-header"
+	processorPath   = "/malonaz.test.scheduler.processor.v1.Processor/"
 
-	// The sat queues; see newQueues for their policies.
-	echoQueue     = "queues/echo"
-	flakyQueue    = "queues/flaky"
-	sleepQueue    = "queues/sleep"
-	deadlineQueue = "queues/deadline"
-	progressQueue = "queues/progress"
-	limitedQueue  = "queues/limited"
-	operateQueue  = "queues/operate"
+	// The sat queues; see bootstrap.jsonnet for their policies.
+	echoQueue            = "queues/echo"
+	flakyQueue           = "queues/flaky"
+	sleepQueue           = "queues/sleep"
+	deadlineQueue        = "queues/deadline"
+	progressQueue        = "queues/progress"
+	limitedQueue         = "queues/limited"
+	operateQueue         = "queues/operate"
+	bootstrapPausedQueue = "queues/bootstrap-paused"
 
+	// Policies as declared in bootstrap.jsonnet.
 	flakyBackoffInitial = 300 * time.Millisecond
 	flakyMaxAttempts    = 3
 	deadlineTimeout     = 1 * time.Second
@@ -109,14 +112,19 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// schedulerSUT describes one scheduler replica. Every replica needs its own
-// health and metrics ports or the second dies at boot.
-func schedulerSUT(name string, port, healthPort, prometheusPort int) sat.SUT {
+// schedulerSUT describes one scheduler replica converging onto the bootstrap
+// files. Every replica needs its own health and metrics ports or the second
+// dies at boot.
+func schedulerSUT(name string, port, healthPort, prometheusPort int, bootstrapPaths ...string) sat.SUT {
+	args := make([]string, 0, 2*len(bootstrapPaths))
+	for _, path := range bootstrapPaths {
+		args = append(args, "--scheduler-service.bootstrap", path)
+	}
 	return sat.SUT{
 		Name: name,
 		Path: schedulerServicePath,
 		Port: port,
-		Args: []string{
+		Args: append(args,
 			"--scheduler-service-external-grpc.port", strconv.Itoa(port),
 			"--scheduler-service-external-grpc.disable-tls",
 			"--health.port", strconv.Itoa(healthPort),
@@ -127,7 +135,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int) sat.SUT {
 			"--scheduler-service.sweep-interval", "500ms",
 			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
 			"--scheduler-service.worker-id", name,
-		},
+		),
 	}
 }
 
@@ -154,8 +162,8 @@ func run(ctx context.Context) (func(), error) {
 
 	config := &sat.Config{
 		SUTS: []sat.SUT{
-			schedulerSUT(schedulerServiceName, schedulerServicePort, 4040, 13434),
-			schedulerSUT(schedulerServiceName+"-replica", schedulerReplicaPort, 4041, 13435),
+			schedulerSUT(schedulerServiceName, schedulerServicePort, 4040, 13434, bootstrapPath),
+			schedulerSUT(schedulerServiceName+"-replica", schedulerReplicaPort, 4041, 13435, bootstrapPath),
 		},
 		PostgresServerConfig: sat.PostgresServerConfig{
 			Host:     postgresHost,
@@ -204,67 +212,7 @@ func run(ctx context.Context) (func(), error) {
 	cleanupFns = append(cleanupFns, func() { connection.Close() })
 	schedulerServiceClient = schedulerservicepb.NewSchedulerServiceClient(connection.Get())
 	testProcessor.schedulerServiceClient = schedulerServiceClient
-
-	if err := createFixtures(ctx); err != nil {
-		return cleanup, err
-	}
 	return cleanup, nil
-}
-
-// createFixtures registers the processor as a target and creates the queues
-// the tests share.
-func createFixtures(ctx context.Context) error {
-	createTargetRequest := &schedulerservicepb.CreateTargetRequest{
-		TargetId: resourceID(targetName),
-		Target:   &schedulerpb.Target{Url: processorURL, Headers: map[string]string{testHeader: "hello"}},
-	}
-	if _, err := schedulerServiceClient.CreateTarget(ctx, createTargetRequest); err != nil {
-		return fmt.Errorf("creating target: %w", err)
-	}
-	for _, createQueueRequest := range newQueues() {
-		if _, err := schedulerServiceClient.CreateQueue(ctx, createQueueRequest); err != nil {
-			return fmt.Errorf("creating queue %s: %w", createQueueRequest.GetQueueId(), err)
-		}
-	}
-	return nil
-}
-
-// newQueues returns the shared queues: one per processor method, so each has
-// its own timeout and retry policy.
-func newQueues() []*schedulerservicepb.CreateQueueRequest {
-	newQueue := func(name, method string, policy *schedulerpb.QueuePolicy) *schedulerservicepb.CreateQueueRequest {
-		return &schedulerservicepb.CreateQueueRequest{
-			QueueId: resourceID(name),
-			Queue: &schedulerpb.Queue{
-				Policy:   policy,
-				Handlers: []*schedulerpb.Handler{handler(method)},
-			},
-		}
-	}
-	return []*schedulerservicepb.CreateQueueRequest{
-		newQueue(echoQueue, "Echo", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}),
-		newQueue(flakyQueue, "Flaky", &schedulerpb.QueuePolicy{
-			AttemptTimeout: durationpb.New(5 * time.Second),
-			MaxAttempts:    flakyMaxAttempts,
-			RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(flakyBackoffInitial), Max: durationpb.New(5 * time.Second), Multiplier: 2},
-		}),
-		newQueue(sleepQueue, "Sleep", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(sleepTimeout), MaxAttempts: 1}),
-		newQueue(deadlineQueue, "Deadline", &schedulerpb.QueuePolicy{
-			AttemptTimeout: durationpb.New(deadlineTimeout),
-			MaxAttempts:    deadlineMaxAttempts,
-			RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(200 * time.Millisecond), Max: durationpb.New(time.Second), Multiplier: 1},
-			MaxConcurrency: 2,
-		}),
-		newQueue(progressQueue, "Progress", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}),
-		newQueue(limitedQueue, "Sleep", &schedulerpb.QueuePolicy{AttemptTimeout: durationpb.New(sleepTimeout), MaxAttempts: 1, MaxConcurrency: limitedConcurrency}),
-		newQueue(operateQueue, "Operate", &schedulerpb.QueuePolicy{
-			AttemptTimeout: durationpb.New(5 * time.Second),
-			MaxAttempts:    operateMaxAttempts,
-			RetryBackoff:   &schedulerpb.RetryBackoff{Initial: durationpb.New(100 * time.Millisecond), Max: durationpb.New(time.Second), Multiplier: 1},
-			// Proves an unfinished operation is not retried even when its code is retryable.
-			RetryableCodes: []codepb.Code{codepb.Code_FAILED_PRECONDITION, codepb.Code_INTERNAL},
-		}),
-	}
 }
 
 // handler routes a processor method to the shared target.
