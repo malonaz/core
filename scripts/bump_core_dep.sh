@@ -24,9 +24,9 @@ sed -i.bak "s/^core-revision = .*/core-revision = $LATEST_COMMIT/" .plzconfig
 # Update go.mod if it exists
 if [[ -f "go.mod" ]]; then
     echo "Updating go.mod..."
-    # Replace the version in go.mod with new timestamp and commit hash
-    sed -i.bak "s|github.com/malonaz/core v0\.0\.0-[0-9]*-[a-f0-9]*|github.com/malonaz/core v0.0.0-$FORMATTED_TIME-${LATEST_COMMIT:0:12}|g" go.mod
-    echo "Updated go.mod with version: v0.0.0-$FORMATTED_TIME-${LATEST_COMMIT:0:12}"
+    # Keep the pseudo-version base (v0.0.0- or vX.Y.Z-0.) since it changes once core gets tagged.
+    sed -i.bak -E "s|(github.com/malonaz/core v[0-9]+\.[0-9]+\.[0-9]+-(0\.)?)[0-9]{14}-[a-f0-9]{12}|\1$FORMATTED_TIME-${LATEST_COMMIT:0:12}|" go.mod
+    echo "Updated go.mod core pseudo-version to $FORMATTED_TIME-${LATEST_COMMIT:0:12}"
 else
     echo "No go.mod file found, skipping go.mod update"
 fi
