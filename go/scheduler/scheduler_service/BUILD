@@ -14,6 +14,7 @@ onyx_service_src(
 go_library(
     name = "scheduler_service",
     srcs = [
+        "bootstrap.go",
         "job.go",
         "metrics.go",
         "queue.go",
@@ -28,6 +29,7 @@ go_library(
         "//go/aip",
         "//go/grpc",
         "//go/grpc/status",
+        "//go/jsonnet",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
         "//go/pbutil/pbreflection",
@@ -36,8 +38,10 @@ go_library(
         "//go/scheduler/model",
         "//go/scheduler/scheduler_service/rpc",
         "//go/scheduler/store",
+        "//go/uuid",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
+        "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__v2__interceptors__retry",
         "//third_party/go:github.com__prometheus__client_golang__prometheus",
         "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",

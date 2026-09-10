@@ -1,6 +1,7 @@
 go_test(
     name = "sat",
     srcs = [
+        "bootstrap_test.go",
         "job_test.go",
         "longrunning_test.go",
         "policy_test.go",
@@ -11,6 +12,7 @@ go_test(
         "worker_test.go",
     ],
     data = [
+        "bootstrap.jsonnet",
         "//cmd/postgres-migrator",
         "//cmd/scheduler-service",
         "//go/scheduler/migrations",
@@ -18,8 +20,10 @@ go_test(
     test_outputs = ["sat.log"],
     deps = [
         "//go/aip",
+        "//go/binary",
         "//go/grpc",
         "//go/grpc/require",
+        "//go/logging",
         "//go/prometheus",
         "//go/sat",
         "//go/scheduler",

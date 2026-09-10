@@ -1,6 +1,7 @@
 filegroup(
     name = "proto",
     srcs = [
+        "bootstrap.proto",
         "job.proto",
         "queue.proto",
         "scheduler_service.proto",
@@ -12,6 +13,7 @@ filegroup(
 grpc_library(
     name = "v1",
     srcs = [
+        "bootstrap.proto",
         "job.proto",
         "queue.proto",
         "scheduler_service.proto",

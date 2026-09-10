@@ -1,6 +1,7 @@
 go_library(
     name = "v1",
     srcs = [
+        "bootstrap.pb.go",
         "job.pb.go",
         "queue.pb.go",
         "scheduler_service.pb.go",
