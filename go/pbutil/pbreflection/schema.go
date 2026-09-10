@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	gatewaypb "github.com/malonaz/core/genproto/codegen/gateway/v1"
@@ -153,6 +154,12 @@ func (s *Schema) GetComment(name protoreflect.FullName, style CommentStyle) stri
 
 func (s *Schema) FindDescriptorByName(name protoreflect.FullName) (protoreflect.Descriptor, error) {
 	return s.files.FindDescriptorByName(name)
+}
+
+// Types resolves Any payloads whose types only the reflected server knows;
+// pass it as pbutil.WithResolver when (un)marshaling dynamic messages.
+func (s *Schema) Types() *dynamicpb.Types {
+	return dynamicpb.NewTypes(s.files)
 }
 
 func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) (StandardMethodType, error) {
