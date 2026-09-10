@@ -16,3 +16,6 @@ servers:
         - service: b-service
           proto: //a/v1(tools/onyx/binary/testdata/b.proto)
           manifest: //b/b_service:manifest(tools/onyx/binary/testdata/b_service.yaml)
+  - name: d-processor
+    processor:
+      manifest: //d/d_processor:manifest(tools/onyx/binary/testdata/d_processor.yaml)
