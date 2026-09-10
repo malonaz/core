@@ -6377,6 +6377,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__robfig__cron__v3",
+    _tag = "download",
+    module = "github.com/robfig/cron/v3",
+    version = "v3.0.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__robfig__cron__v3",
+    download = ":_github.com__robfig__cron__v3#download",
+    install = ["."],
+    module = "github.com/robfig/cron/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__rs__cors",
     _tag = "download",
     module = "github.com/rs/cors",
