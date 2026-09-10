@@ -117,7 +117,6 @@ func run(ctx context.Context) (func(), error) {
 				Path: libraryServicePath,
 				Port: libraryServicePort,
 				Args: []string{
-					"--library-service-external-grpc.host", libraryServiceHost,
 					"--library-service-external-grpc.port", strconv.Itoa(libraryServicePort),
 					"--library-service-external-grpc.disable-tls",
 					// The scheduler resolves ImportBooks against the library over reflection.
@@ -132,7 +131,6 @@ func run(ctx context.Context) (func(), error) {
 				Path: schedulerServicePath,
 				Port: schedulerServicePort,
 				Args: []string{
-					"--scheduler-service-external-grpc.host", libraryServiceHost,
 					"--scheduler-service-external-grpc.port", strconv.Itoa(schedulerServicePort),
 					"--scheduler-service-external-grpc.disable-tls",
 					"--health.port", strconv.Itoa(schedulerServiceHealthPort),

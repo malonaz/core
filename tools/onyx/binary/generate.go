@@ -62,6 +62,16 @@ func (g *generator) internalServiceAuthentication() bool {
 	return false
 }
 
+// longrunning reports whether a service returns google.longrunning.Operation from some method.
+func longrunning(s *Service) bool {
+	for _, codegen := range s.GetCodegens() {
+		if codegen.GetRpc().GetLongrunning() {
+			return true
+		}
+	}
+	return false
+}
+
 // Identifiers.
 func serviceVar(s *Service) string        { return gen.Camel(s.GetName()) }
 func serviceOpts(s *Service) string       { return "opts." + gen.Pascal(s.GetName()) }
@@ -461,8 +471,14 @@ func (g *generator) grpcServer(s *Server) {
 	fmt_ := g.Import("fmt")
 	v := serverVar(s, "GRPCServer")
 	g.P(v, " := ", grpc, ".NewServer(", serverOpts(s, "GRPC"), ", opts.Certs, opts.Prometheus, \"", s.GetName(), "\", func(server *", grpc, ".Server) {")
+	operations := map[*Service]bool{}
 	for _, registration := range s.GRPC {
 		g.P(gen.PB(g.File, registration.GRPC), ".Register", registration.GRPC.GoName, "Server(server.Raw, ", serviceVar(registration.Service), ")")
+		if longrunning(registration.Service) && !operations[registration.Service] {
+			operations[registration.Service] = true
+			g.P("// AIP-151: a service returning Operations also serves google.longrunning.Operations.")
+			g.P(g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "RegisterOperationsServer"), "(server.Raw, ", serviceVar(registration.Service), ")")
+		}
 	}
 	g.P("})")
 	if s.GetGrpc().GetDescriptorSet() != "" {
