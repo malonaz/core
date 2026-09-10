@@ -75,7 +75,7 @@ func run() error {
 	ctx := context.Background()
 	ctx = metadata.AppendToOutgoingContext(ctx, "tsunade-api-key", "dummy")
 
-	opts := &grpc.Opts{
+	opts := &grpc.ClientOpts{
 		Host:       "localhost",
 		SocketPath: *socket,
 		DisableTLS: true,

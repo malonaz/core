@@ -1,0 +1,64 @@
+def onyx_manifest(
+        name:str,
+        manifest:str="manifest.yaml",
+        deps:list=[],
+        visibility:list=[],
+        test_only:bool=False,
+):
+    """An onyx manifest, its labels resolved to the files they build.
+
+    Every label in `deps` that the manifest names is rewritten to `//label(files...)`, which onyx
+    reads back to find the manifests, protos and packages the label produces.
+    """
+    cmd = ["cp $SRCS $OUT"]
+    for dep in deps:
+        canonical_dep = canonicalise(dep)
+        cmd.append(f"sed -i 's|{dep}$|{canonical_dep}($(locations {dep}))|' $OUT")
+    return genrule(
+        name = name,
+        srcs = [manifest],
+        outs = [name],
+        cmd = cmd,
+        deps = deps,
+        exported_deps = deps,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+
+def onyx_service_src(
+        name:str,
+        manifest:str,
+        visibility:list=[],
+        labels:list=[],
+        test_only:bool=False,
+):
+    """The Service file of a ServiceManifest."""
+    return _onyx_src(name, "service", manifest, visibility, labels, test_only)
+
+
+def onyx_main_src(
+        name:str,
+        manifest:str,
+        visibility:list=[],
+        labels:list=[],
+        test_only:bool=False,
+):
+    """The main file of a MainManifest."""
+    return _onyx_src(name, "main", manifest, visibility, labels, test_only)
+
+
+def _onyx_src(name:str, mode:str, manifest:str, visibility:list, labels:list, test_only:bool):
+    cmd = f"$TOOLS --mode {mode} --manifest $(location {manifest}) --output $OUT"
+    if CONFIG.GO.IMPORT_PATH:
+        cmd += f" --go-import-path {CONFIG.GO.IMPORT_PATH}"
+    return genrule(
+        name = name,
+        outs = [name],
+        cmd = cmd,
+        deps = [manifest],
+        tools = [CONFIG.CORE.ONYX],
+        labels = labels + ["codegen", "go"],
+        visibility = visibility,
+        test_only = test_only,
+    )

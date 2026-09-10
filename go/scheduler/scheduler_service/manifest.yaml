@@ -1,11 +1,11 @@
 name: scheduler-service
-implementation: //go/scheduler/scheduler_service
+target: //go/scheduler/scheduler_service
 codegens:
-  - type: rpc
-    name: scheduler-service
-    store: scheduler
-    implementation: //gengo/scheduler/scheduler_service/rpc
+  - rpc:
+      name: scheduler-service
+      store: scheduler
+      target: //gengo/scheduler/scheduler_service/rpc
 dependencies:
-  - type: postgres_db_client
-    name: scheduler
-    implementation: //gengo/scheduler/store
+  - postgres_db_client:
+      name: scheduler
+      target: //gengo/scheduler/store

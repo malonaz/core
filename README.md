@@ -12,13 +12,13 @@ Reusable Please build definitions:
 - **`grafana.build_defs`** — Grafana dashboard generation
 - **`k8s.build_defs`** — Kubernetes configuration templating and deployment
 - **`remote.build_defs`** — Remote file fetching (GitHub, etc.)
-- **`template.build_defs`** — Text templating and validation
+- **`template.build_defs`** — Text templating
 - **`utils.build_defs`** — General-purpose build utilities
 - **`proto/`** — Protobuf compilation rules for Go, JS, Python, and Ruby
 
 #### Code Generation (`build_defs/codegen/`)
 
-- **`go_service/`** — Full Go service scaffolding (main, runtime, K8s manifests)
+- **`onyx/`** — Service and binary wiring generated from `malonaz/onyx/v1` manifests by `tools/onyx`
 - **`postgres/`** — Database migration and access layer generation
 - **`protoc_gen_core/`** — Custom protobuf code generation plugin rules
 

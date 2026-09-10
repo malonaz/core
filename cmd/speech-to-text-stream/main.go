@@ -52,7 +52,7 @@ func run() error {
 		cancel()
 	}()
 
-	conn, err := grpc.NewConnection(&grpc.Opts{Host: "localhost", SocketPath: *socket, DisableTLS: true}, nil, nil)
+	conn, err := grpc.NewConnection(&grpc.ClientOpts{Host: "localhost", SocketPath: *socket, DisableTLS: true}, nil, nil)
 	if err != nil {
 		return fmt.Errorf("creating connection: %w", err)
 	}

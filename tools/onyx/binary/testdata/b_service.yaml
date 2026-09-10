@@ -1,0 +1,6 @@
+name: b-service
+target: //b/b_service
+dependencies:
+  - grpc_client:
+      service: b-service
+      proto: //a/v1(tools/onyx/binary/testdata/b.proto)

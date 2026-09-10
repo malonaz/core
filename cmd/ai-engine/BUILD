@@ -1,6 +1,6 @@
-subinclude("//build_defs/codegen/go_service:build_defs")
+subinclude("//build_defs/codegen/onyx:build_defs")
 
-go_main_manifest(
+onyx_manifest(
     name = "manifest",
     test_only = True,
     deps = [
@@ -9,7 +9,7 @@ go_main_manifest(
     ],
 )
 
-go_main_src(
+onyx_main_src(
     name = "main.go",
     manifest = ":manifest",
     test_only = True,

@@ -1,14 +1,14 @@
 name: user-service
-includeRuntime: true
-implementation: //go/test/user/user_service
+target: //go/test/user/user_service
+include_runtime: true
 codegens:
-  - type: rpc
-    name: user-service
-    store: user
-    implementation: //gengo/test/user/user_service/rpc
-    nats: true
+  - rpc:
+      name: user-service
+      store: user
+      target: //gengo/test/user/user_service/rpc
+      nats: true
 dependencies:
-  - type: nats
-  - type: postgres_db_client
-    name: user
-    implementation: //gengo/test/user/store
+  - nats: {}
+  - postgres_db_client:
+      name: user
+      target: //gengo/test/user/store

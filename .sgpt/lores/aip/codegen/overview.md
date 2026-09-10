@@ -22,7 +22,7 @@ here — this documents what our implementation decides on top of them.
 A method is generated iff it carries `standard_method.resource` **and** is
 named `{Create,Get,Update,Delete,Undelete}{Singular}` / `{BatchCreate,List,BatchGet,Search}{Plural}`;
 anything else is a codegen error. Wiring (`manifest.yaml` → `service.tmpl.go`)
-is `build_defs/codegen/go_service`; the reference implementation for every
+is onyx (`malonaz/onyx/v1` manifests, `tools/onyx`, `build_defs/codegen/onyx`); the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
 
 ## Resource tree semantics

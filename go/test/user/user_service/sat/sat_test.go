@@ -72,7 +72,6 @@ func run(ctx context.Context) (func(), error) {
 				Path: userServicePath,
 				Port: userServicePort,
 				Args: []string{
-					"--user-service-external-grpc.host", userServiceHost,
 					"--user-service-external-grpc.port", strconv.Itoa(userServicePort),
 					"--user-service-external-grpc.disable-tls",
 				},
@@ -111,7 +110,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       userServiceHost,
 		Port:       userServicePort,
 		DisableTLS: true,

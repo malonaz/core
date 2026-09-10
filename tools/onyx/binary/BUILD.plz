@@ -1,0 +1,25 @@
+go_library(
+    name = "binary",
+    srcs = [
+        "generate.go",
+        "model.go",
+    ],
+    visibility = ["//tools/onyx/..."],
+    deps = [
+        "//malonaz/onyx/v1",
+        "//tools/onyx/gen",
+        "//tools/onyx/manifest",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["binary_test.go"],
+    data = glob(["testdata/*"]),
+    deps = [
+        ":binary",
+        "//malonaz/onyx/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//tools/onyx/manifest",
+    ],
+)

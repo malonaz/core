@@ -100,13 +100,13 @@ DefaultValue = //tools/proto:protoc-gen-go-cobra-dep
 ConfigKey = ProtocGenCore
 DefaultValue = //tools/protoc-gen-core
 
-[PluginConfig "validate_schema"]
-ConfigKey = ValidateSchema
-DefaultValue = //tools/validate-schema
-
 [PluginConfig "templates_go"]
 ConfigKey = TemplatesGo
 DefaultValue = //tools/template
+
+[PluginConfig "onyx"]
+ConfigKey = Onyx
+DefaultValue = //tools/onyx
 
 ;; JS
 [PluginConfig "protoc_gen_es"]

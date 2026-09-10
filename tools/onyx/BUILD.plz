@@ -1,0 +1,12 @@
+go_binary(
+    name = "onyx",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/flags",
+        "//malonaz/onyx/v1",
+        "//tools/onyx/binary",
+        "//tools/onyx/manifest",
+        "//tools/onyx/service",
+    ],
+)

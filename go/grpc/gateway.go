@@ -43,7 +43,7 @@ type Gateway struct {
 	// Opts for this gateway.
 	opts *GatewayOpts
 	// Opts for the grpc server this gateway is connecting to.
-	grpcOpts *Opts
+	grpcOpts *ClientOpts
 	// Opts for certs.
 	certsOpts *certs.Opts
 	// Opts for prometheus.
@@ -79,7 +79,7 @@ func (g *Gateway) WithLogger(logger *slog.Logger) *Gateway {
 }
 
 // NewGateway creates and returns a new Gateway.
-func NewGateway(opts *GatewayOpts, grpcOpts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
+func NewGateway(opts *GatewayOpts, grpcOpts *ClientOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, registerHandlers []RegisterHandler) *Gateway {
 	allowedOutgoingHeaderSet := make(map[string]struct{}, len(opts.AllowedOutgoingHeaders))
 	for _, h := range opts.AllowedOutgoingHeaders {
 		allowedOutgoingHeaderSet[textproto.CanonicalMIMEHeaderKey(h)] = struct{}{}

@@ -63,12 +63,13 @@ type ServerOptions struct {
 type Server struct {
 	name           string
 	log            *slog.Logger
-	opts           *Opts
+	opts           *ServerOpts
 	certsOpts      *certs.Opts
 	prometheusOpts *prometheus.Opts
 	register       func(*Server)
 	Raw            *grpc.Server
 	healthServer   *health.GRPCServer
+	listener       net.Listener
 
 	fdsBytes []byte
 
@@ -95,7 +96,7 @@ func (s *Server) WithLogger(logger *slog.Logger) *Server {
 }
 
 // NewServer creates and returns a new Server.
-func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
+func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
 	return &Server{
 		name:           name,
 		log:            slog.Default(),
@@ -161,10 +162,40 @@ func (s *Server) GracefulStop() error {
 	return nil
 }
 
+// Listen binds the server's address. Serve does so itself when not already bound; calling Listen
+// first lets a binary hold the address before dependents start dialing it: connections queue until
+// Serve accepts them.
+func (s *Server) Listen(ctx context.Context) error {
+	if s.opts.useSocket() {
+		// Clean up a stale socket file and make sure its directory exists.
+		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
+			return fmt.Errorf("removing existing socket [%s]: %w", s.opts.SocketPath, err)
+		}
+		if err := os.MkdirAll(filepath.Dir(s.opts.SocketPath), 0755); err != nil {
+			return fmt.Errorf("creating socket directory [%s]: %w", s.opts.SocketPath, err)
+		}
+		listener, err := net.Listen("unix", s.opts.SocketPath)
+		if err != nil {
+			return fmt.Errorf("listening on socket [%s]: %w", s.opts.SocketPath, err)
+		}
+		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
+			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
+		}
+		s.listener = listener
+		return nil
+	}
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
+	if err != nil {
+		return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
+	}
+	s.listener = listener
+	return nil
+}
+
 // Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve(ctx context.Context) error {
 	s.log = s.log.WithGroup("grpc_server").With(
-		"name", s.name, "port", s.opts.Port, "host", s.opts.Host, "socket_path",
+		"name", s.name, "port", s.opts.Port, "socket_path",
 		s.opts.SocketPath, "disable_tls", s.opts.DisableTLS,
 	)
 	// Default options.
@@ -244,35 +275,15 @@ func (s *Server) Serve(ctx context.Context) error {
 		s.options = append(s.options, grpc.ChainStreamInterceptor(streamInterceptors...))
 	}
 
-	// Create listener based on network type
-	var listener net.Listener
-	if s.opts.useSocket() {
-		defer os.Remove(s.opts.SocketPath)
-		// Clean up existing socket file if it exists
-		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
-			return fmt.Errorf("removing existing socket [%s]: %w", s.opts.SocketPath, err)
-		}
-		// Ensure directory exists
-		dir := filepath.Dir(s.opts.SocketPath)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("creating socket  [%s]: %w", s.opts.SocketPath, err)
-		}
-		listener, err = net.Listen("unix", s.opts.SocketPath)
-		if err != nil {
-			return fmt.Errorf("listening on socket [%s]: %w", s.opts.SocketPath, err)
-		}
-		// Set appropriate permissions
-		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
-			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
-		}
-	} else {
-		// Connect.
-		listener, err = net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
-		if err != nil {
-			return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
+	if s.listener == nil {
+		if err := s.Listen(ctx); err != nil {
+			return err
 		}
 	}
-	defer listener.Close()
+	defer s.listener.Close()
+	if s.opts.useSocket() {
+		defer os.Remove(s.opts.SocketPath)
+	}
 
 	s.Raw = grpc.NewServer(s.options...)
 	s.register(s)
@@ -314,7 +325,7 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	s.healthServer.Start(ctx)
 	s.log.InfoContext(ctx, "serving")
-	if err := s.Raw.Serve(listener); err != nil {
+	if err := s.Raw.Serve(s.listener); err != nil {
 		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}
 	return nil

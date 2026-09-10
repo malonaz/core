@@ -1,22 +1,21 @@
 name: library-service
-includeRuntime: false
-implementation: //go/test/library/library_service
+target: //go/test/library/library_service
 codegens:
-  - type: rpc
-    name: library-service
-    store: library
-    implementation: //gengo/test/library/library_service/rpc
-    nats: true
-    longrunning: true
-  - type: rpc
-    name: bookmark-service
-    store: library
-    implementation: //gengo/test/library/library_service/rpc
+  - rpc:
+      name: library-service
+      store: library
+      target: //gengo/test/library/library_service/rpc
+      nats: true
+      longrunning: true
+  - rpc:
+      name: bookmark-service
+      store: library
+      target: //gengo/test/library/library_service/rpc
 dependencies:
-  - type: nats
-  - type: postgres_db_client
-    name: library
-    implementation: //gengo/test/library/store
-  - type: grpc_client
-    proto: //malonaz/scheduler/scheduler_service/v1
-    service: scheduler-service
+  - nats: {}
+  - postgres_db_client:
+      name: library
+      target: //gengo/test/library/store
+  - grpc_client:
+      service: scheduler-service
+      proto: //malonaz/scheduler/scheduler_service/v1

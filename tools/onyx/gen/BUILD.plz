@@ -1,0 +1,12 @@
+go_library(
+    name = "gen",
+    srcs = [
+        "file.go",
+        "naming.go",
+    ],
+    visibility = ["//tools/onyx/..."],
+    deps = [
+        "//third_party/go:github.com__huandu__xstrings",
+        "//tools/onyx/manifest",
+    ],
+)

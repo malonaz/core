@@ -51,7 +51,6 @@ func run(ctx context.Context) (func(), error) {
 				Path: aiEnginePath,
 				Port: aiEnginePort,
 				Args: []string{
-					"--ai-engine-external-grpc.host", aiEngineHost,
 					"--ai-engine-external-grpc.port", strconv.Itoa(aiEnginePort),
 					"--ai-engine-external-grpc.disable-tls",
 					"--ai-engine-external-grpc.enable-reflection",
@@ -69,7 +68,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       aiEngineHost,
 		Port:       aiEnginePort,
 		DisableTLS: true,

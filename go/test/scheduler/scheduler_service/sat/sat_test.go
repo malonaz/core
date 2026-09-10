@@ -117,7 +117,6 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int) sat.SUT {
 		Path: schedulerServicePath,
 		Port: port,
 		Args: []string{
-			"--scheduler-service-external-grpc.host", schedulerServiceHost,
 			"--scheduler-service-external-grpc.port", strconv.Itoa(port),
 			"--scheduler-service-external-grpc.disable-tls",
 			"--health.port", strconv.Itoa(healthPort),
@@ -190,7 +189,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       schedulerServiceHost,
 		Port:       schedulerServicePort,
 		DisableTLS: true,

@@ -1,5 +1,5 @@
-subinclude("//build_defs/codegen/go_service:build_defs")
 subinclude("///go//build_defs:go")
+subinclude("//build_defs:template")
 subinclude("//build_defs:utils")
 
 def postgres_migrations(

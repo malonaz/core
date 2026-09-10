@@ -77,7 +77,6 @@ func run(ctx context.Context) (func(), error) {
 				Path: aiServicePath,
 				Port: aiServicePort,
 				Args: []string{
-					"--ai-service-external-grpc.host", aiServiceHost,
 					"--ai-service-external-grpc.port", strconv.Itoa(aiServicePort),
 					"--ai-service-external-grpc.disable-tls",
 					"--ai-service.mock-provider",
@@ -116,7 +115,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       aiServiceHost,
 		Port:       aiServicePort,
 		DisableTLS: true,

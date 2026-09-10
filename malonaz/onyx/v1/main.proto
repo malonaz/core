@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package malonaz.onyx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/onyx/v1";
+
+// A Go binary: the servers composing services, and the flags and wiring generated for them.
+message MainManifest {
+  // Kebab-case name of the binary.
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+  // The package defines `setup(ctx) error`, run before anything starts (e.g. migrations).
+  bool setup = 2;
+
+  // Started in dependency order: a server after every server it dials in-process.
+  repeated Server servers = 3 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// A server of the binary.
+message Server {
+  // Kebab-case. The flag namespace (`{name}-grpc`, `{name}-http`, ...) and health entry of the server.
+  // A gRPC server named after the one service it serves shares that service's flags.
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+  // Which kind.
+  oneof kind {
+    option (buf.validate.oneof).required = true;
+
+    // A gRPC server.
+    Grpc grpc = 2;
+
+    // An HTTP server.
+    Http http = 3;
+
+    // A grpc-web to gRPC proxy.
+    GrpcWebProxy grpc_web_proxy = 4;
+
+    // A service with no listener.
+    Processor processor = 5;
+  }
+
+  // A gRPC server.
+  message Grpc {
+    // Outermost first.
+    repeated Interceptor interceptors = 1 [(buf.validate.field).repeated.items.enum = {
+      defined_only: true
+      not_in: [0]
+    }];
+
+    // Path, relative to the main package, of a FileDescriptorSet to embed for reflection.
+    string descriptor_set = 2;
+
+    // Services registered on this server.
+    repeated Service services = 3 [(buf.validate.field).repeated.min_items = 1];
+
+    // A gRPC service registered on the server.
+    message Service {
+      // Please label of the proto library declaring the service.
+      string proto = 1 [(buf.validate.field).string.min_len = 1];
+
+      // Kebab-case name of the proto service.
+      string service = 2 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+      // Please label of the ServiceManifest implementing it.
+      string manifest = 3 [(buf.validate.field).string.min_len = 1];
+
+      // Also serve it over HTTP through grpc-gateway.
+      bool gateway = 4;
+    }
+  }
+
+  // An HTTP server.
+  message Http {
+    // Services registering routes on this server.
+    repeated Service services = 1 [(buf.validate.field).repeated.min_items = 1];
+
+    // A service registering routes on the server.
+    message Service {
+      // Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+      string manifest = 1 [(buf.validate.field).string.min_len = 1];
+    }
+  }
+
+  // A grpc-web to gRPC proxy; the backend is configured by its own flags.
+  message GrpcWebProxy {}
+
+  // A service with no listener: started and health-checked, nothing more.
+  message Processor {
+    // Please label of the ServiceManifest.
+    string manifest = 1 [(buf.validate.field).string.min_len = 1];
+  }
+}
+
+// A gRPC server interceptor.
+enum Interceptor {
+  // Used to detect an unset field.
+  INTERCEPTOR_UNSPECIFIED = 0;
+
+  // Gives the session manager a local context for the request.
+  INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR = 1;
+
+  // Authenticates external callers by API key.
+  INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION = 2;
+
+  // Authenticates internal services by shared secret.
+  INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION = 3;
+
+  // Authenticates callers by JWT.
+  INTERCEPTOR_JWT_AUTHENTICATION = 4;
+
+  // Authorizes the authenticated session against the method's permissions.
+  INTERCEPTOR_PERMISSION_AUTHENTICATION = 5;
+
+  // Adds the session to the request log fields.
+  INTERCEPTOR_SESSION_LOG_INJECTOR = 6;
+
+  // Propagates the session on outgoing calls.
+  INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR = 7;
+}

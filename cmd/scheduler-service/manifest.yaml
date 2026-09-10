@@ -1,8 +1,8 @@
 name: scheduler-service
 servers:
-  - type: grpc
-    name: scheduler-service-external
-    services:
-      - service: scheduler-service
-        proto: //malonaz/scheduler/scheduler_service/v1
-        manifest: //go/scheduler/scheduler_service:manifest
+  - name: scheduler-service-external
+    grpc:
+      services:
+        - service: scheduler-service
+          proto: //malonaz/scheduler/scheduler_service/v1
+          manifest: //go/scheduler/scheduler_service:manifest

@@ -13,12 +13,10 @@ import (
 var (
 	protoGoPackageRegex  = regexp.MustCompile(`option\s+go_package\s*=\s*"([^";]+)(?:;[^"]*)?";`)
 	pleaseFilenamesRegex = regexp.MustCompile(`\(([^)]+)\)`)
-	serviceRegex         = regexp.MustCompile(`service\s+([\w]+)\s+{`)
 	publisherRegex       = regexp.MustCompile(`require_nats_publishers:\s*\[([\s\S]*?)\]`)
 	goPackageRegex       = regexp.MustCompile(`(?m)^package\s+\w+\s*\n`)
 	doOnceCache          = map[string]bool{}
 	filepathToContent    = map[string][]byte{}
-	keyToGrpcServiceName = map[string]string{}
 	goImportPathToAlias  = map[string]string{}
 	aliasToGoImportPath  = map[string]string{}
 	customFuncMap        = template.FuncMap{
@@ -36,7 +34,6 @@ var (
 		},
 
 		"parseYaml": parseYaml,
-		"parseGRPC": parseGRPC,
 
 		"plzGoImport":      plzGoImport,
 		"plzGoImportAlias": plzGoImportAlias,

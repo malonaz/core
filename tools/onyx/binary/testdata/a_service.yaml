@@ -1,0 +1,12 @@
+name: a-service
+target: //a/a_service
+dependencies:
+  - grpc_client:
+      service: b-service
+      proto: //a/v1(tools/onyx/binary/testdata/b.proto)
+  - grpc_client:
+      service: c-service
+      proto: //c/v1(tools/onyx/binary/testdata/c.proto)
+  - postgres_db_client:
+      name: a
+      target: //gengo/a/store

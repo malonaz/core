@@ -26,15 +26,15 @@ import (
 )
 
 type Opts struct {
-	Port                int              `long:"port" env:"PORT" description:"Port to serve gRPC-web proxy on." default:"8443"`
-	Host                string           `long:"host" env:"HOST" description:"Host to bind to." default:"0.0.0.0"`
-	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"Seconds to wait for graceful stop." default:"30"`
-	WriteTimeout        int              `long:"write-timeout" env:"WRITE_TIMEOUT" description:"HTTP write timeout in seconds. 0 means no timeout." default:"0"`
-	ReadTimeout         int              `long:"read-timeout" env:"READ_TIMEOUT" description:"HTTP read timeout in seconds. 0 means no timeout." default:"0"`
-	AllowAllOrigins     bool             `long:"allow-all-origins" env:"ALLOW_ALL_ORIGINS" description:"Allow requests from any origin."`
-	AllowedOrigins      []string         `long:"allowed-origins" env:"ALLOWED_ORIGINS" description:"Comma-separated list of allowed origins."`
-	AllowedHeaders      []string         `long:"allowed-headers" env:"ALLOWED_HEADERS" description:"Headers allowed to propagate to backend."`
-	Backend             *commongrpc.Opts `group:"Backend" namespace:"backend" env-namespace:"BACKEND"`
+	Port                int                    `long:"port" env:"PORT" description:"Port to serve gRPC-web proxy on." default:"8443"`
+	Host                string                 `long:"host" env:"HOST" description:"Host to bind to." default:"0.0.0.0"`
+	GracefulStopTimeout int                    `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"Seconds to wait for graceful stop." default:"30"`
+	WriteTimeout        int                    `long:"write-timeout" env:"WRITE_TIMEOUT" description:"HTTP write timeout in seconds. 0 means no timeout." default:"0"`
+	ReadTimeout         int                    `long:"read-timeout" env:"READ_TIMEOUT" description:"HTTP read timeout in seconds. 0 means no timeout." default:"0"`
+	AllowAllOrigins     bool                   `long:"allow-all-origins" env:"ALLOW_ALL_ORIGINS" description:"Allow requests from any origin."`
+	AllowedOrigins      []string               `long:"allowed-origins" env:"ALLOWED_ORIGINS" description:"Comma-separated list of allowed origins."`
+	AllowedHeaders      []string               `long:"allowed-headers" env:"ALLOWED_HEADERS" description:"Headers allowed to propagate to backend."`
+	Backend             *commongrpc.ClientOpts `group:"Backend" namespace:"backend" env-namespace:"BACKEND"`
 }
 
 type Server struct {

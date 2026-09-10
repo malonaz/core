@@ -1,11 +1,11 @@
 name: library-service
 servers:
-  - type: grpc
-    name: library-service-external
-    services:
-      - service: library-service
-        proto: //malonaz/test/library/library_service/v1
-        manifest: //go/test/library/library_service:manifest
-      - service: bookmark-service
-        proto: //malonaz/test/library/library_service/v1
-        manifest: //go/test/library/library_service:manifest
+  - name: library-service-external
+    grpc:
+      services:
+        - service: library-service
+          proto: //malonaz/test/library/library_service/v1
+          manifest: //go/test/library/library_service:manifest
+        - service: bookmark-service
+          proto: //malonaz/test/library/library_service/v1
+          manifest: //go/test/library/library_service:manifest
