@@ -129,7 +129,7 @@ go_mod_download(
     name = "cloud.google.com__go",
     _tag = "download",
     module = "cloud.google.com/go",
-    version = "v0.116.0",
+    version = "v0.120.0",
     visibility = ["PUBLIC"],
 )
 
@@ -146,7 +146,7 @@ go_mod_download(
     name = "cloud.google.com__go__auth",
     _tag = "download",
     module = "cloud.google.com/go/auth",
-    version = "v0.9.3",
+    version = "v0.16.0",
     visibility = ["PUBLIC"],
 )
 
@@ -159,6 +159,7 @@ go_module(
     deps = [
         ":cloud.google.com__go__auth__internal",
         ":cloud.google.com__go__auth__internal__jwt",
+        ":github.com__googleapis__gax-go__v2__internallog",
     ],
 )
 
@@ -177,6 +178,7 @@ go_module(
         ":cloud.google.com__go__auth__internal__credsfile",
         ":cloud.google.com__go__auth__internal__jwt",
         ":cloud.google.com__go__compute__metadata",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -193,6 +195,7 @@ go_module(
         ":cloud.google.com__go__auth__internal",
         ":cloud.google.com__go__auth__internal__credsfile",
         ":cloud.google.com__go__auth__internal__transport__cert",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -206,6 +209,7 @@ go_module(
     deps = [
         ":cloud.google.com__go__auth__credentials__internal__stsexchange",
         ":cloud.google.com__go__auth__internal",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -220,6 +224,7 @@ go_module(
         ":cloud.google.com__go__auth__internal",
         ":cloud.google.com__go__auth__internal__credsfile",
         ":cloud.google.com__go__auth__internal__jwt",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -232,6 +237,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":cloud.google.com__go__auth__internal",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -244,6 +250,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":cloud.google.com__go__auth__internal",
+        ":github.com__googleapis__gax-go__v2__internallog",
         "//third_party/go:cloud.google.com__go__auth",
     ],
 )
@@ -258,9 +265,8 @@ go_module(
         ":cloud.google.com__go__auth__internal",
         ":cloud.google.com__go__auth__internal__transport",
         ":cloud.google.com__go__auth__internal__transport__cert",
-        ":go.opencensus.io__plugin__ochttp",
-        ":go.opencensus.io__trace",
-        ":go.opencensus.io__trace__propagation",
+        ":github.com__googleapis__gax-go__v2__internallog",
+        ":go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp",
         ":golang.org__x__net__http2",
         "//third_party/go:cloud.google.com__go__auth",
         "//third_party/go:cloud.google.com__go__auth__credentials",
@@ -338,6 +344,35 @@ go_module(
     module = "cloud.google.com/go/compute/metadata",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "cloud.google.com__go__longrunning",
+    _tag = "download",
+    module = "cloud.google.com/go/longrunning",
+    version = "v0.6.7",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "cloud.google.com__go__longrunning__autogen__longrunningpb",
+    download = ":_cloud.google.com__go__longrunning#download",
+    install = ["autogen/longrunningpb"],
+    module = "cloud.google.com/go/longrunning",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__status",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        ":google.golang.org__protobuf__types__known__anypb",
+        ":google.golang.org__protobuf__types__known__durationpb",
+        ":google.golang.org__protobuf__types__known__emptypb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__rpc__status",
+    ],
 )
 
 go_mod_download(
@@ -1053,6 +1088,23 @@ go_module(
         ":google.golang.org__protobuf__types__known__durationpb",
         ":google.golang.org__protobuf__types__known__timestamppb",
     ],
+)
+
+go_mod_download(
+    name = "github.com__felixge__httpsnoop",
+    _tag = "download",
+    module = "github.com/felixge/httpsnoop",
+    version = "v1.0.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__felixge__httpsnoop",
+    download = ":_github.com__felixge__httpsnoop#download",
+    install = ["."],
+    module = "github.com/felixge/httpsnoop",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -1954,23 +2006,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__golang__groupcache",
-    _tag = "download",
-    module = "github.com/golang/groupcache",
-    version = "v0.0.0-20210331224755-41bb18bfe9da",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__golang__groupcache__lru",
-    download = ":_github.com__golang__groupcache#download",
-    install = ["lru"],
-    module = "github.com/golang/groupcache",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__golang__protobuf",
     _tag = "download",
     module = "github.com/golang/protobuf",
@@ -2572,7 +2607,7 @@ go_mod_download(
     name = "github.com__google__s2a-go",
     _tag = "download",
     module = "github.com/google/s2a-go",
-    version = "v0.1.8",
+    version = "v0.1.9",
     visibility = ["PUBLIC"],
 )
 
@@ -2900,7 +2935,7 @@ go_mod_download(
     name = "github.com__googleapis__enterprise-certificate-proxy",
     _tag = "download",
     module = "github.com/googleapis/enterprise-certificate-proxy",
-    version = "v0.3.4",
+    version = "v0.3.6",
     visibility = ["PUBLIC"],
 )
 
@@ -2918,6 +2953,32 @@ go_module(
     download = ":_github.com__googleapis__enterprise-certificate-proxy#download",
     install = ["client/util"],
     module = "github.com/googleapis/enterprise-certificate-proxy",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__googleapis__gax-go__v2",
+    _tag = "download",
+    module = "github.com/googleapis/gax-go/v2",
+    version = "v2.14.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__googleapis__gax-go__v2__internallog",
+    download = ":_github.com__googleapis__gax-go__v2#download",
+    install = ["internallog"],
+    module = "github.com/googleapis/gax-go/v2",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__googleapis__gax-go__v2__internallog__internal"],
+)
+
+go_module(
+    name = "github.com__googleapis__gax-go__v2__internallog__internal",
+    download = ":_github.com__googleapis__gax-go__v2#download",
+    install = ["internallog/internal"],
+    module = "github.com/googleapis/gax-go/v2",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -6095,8 +6156,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "arm64",
         "amd64",
+        "arm64",
     ],
     os = ["linux"],
 ):
@@ -6772,57 +6833,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__xeipuuv__gojsonpointer",
-    _tag = "download",
-    module = "github.com/xeipuuv/gojsonpointer",
-    version = "v0.0.0-20180127040702-4e3ac2762d5f",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__xeipuuv__gojsonpointer",
-    download = ":_github.com__xeipuuv__gojsonpointer#download",
-    install = ["."],
-    module = "github.com/xeipuuv/gojsonpointer",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
-    name = "github.com__xeipuuv__gojsonreference",
-    _tag = "download",
-    module = "github.com/xeipuuv/gojsonreference",
-    version = "v0.0.0-20180127040603-bd5ef7bd5415",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__xeipuuv__gojsonreference",
-    download = ":_github.com__xeipuuv__gojsonreference#download",
-    install = ["."],
-    module = "github.com/xeipuuv/gojsonreference",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__xeipuuv__gojsonpointer"],
-)
-
-go_mod_download(
-    name = "github.com__xeipuuv__gojsonschema",
-    _tag = "download",
-    module = "github.com/xeipuuv/gojsonschema",
-    version = "v1.2.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__xeipuuv__gojsonschema",
-    download = ":_github.com__xeipuuv__gojsonschema#download",
-    install = ["."],
-    module = "github.com/xeipuuv/gojsonschema",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__xeipuuv__gojsonreference"],
-)
-
-go_mod_download(
     name = "go.einride.tech__aip",
     _tag = "download",
     module = "go.einride.tech/aip",
@@ -7027,185 +7037,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "go.opencensus.io",
-    _tag = "download",
-    module = "go.opencensus.io",
-    version = "v0.24.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "go.opencensus.io",
-    download = ":_go.opencensus.io#download",
-    install = ["."],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "go.opencensus.io__internal",
-    download = ":_go.opencensus.io#download",
-    install = ["internal"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:go.opencensus.io"],
-)
-
-go_module(
-    name = "go.opencensus.io__internal__tagencoding",
-    download = ":_go.opencensus.io#download",
-    install = ["internal/tagencoding"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "go.opencensus.io__metric__metricdata",
-    download = ":_go.opencensus.io#download",
-    install = ["metric/metricdata"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [":go.opencensus.io__resource"],
-)
-
-go_module(
-    name = "go.opencensus.io__metric__metricproducer",
-    download = ":_go.opencensus.io#download",
-    install = ["metric/metricproducer"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:go.opencensus.io__metric__metricdata"],
-)
-
-go_module(
-    name = "go.opencensus.io__plugin__ochttp",
-    download = ":_go.opencensus.io#download",
-    install = ["plugin/ochttp"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.opencensus.io__plugin__ochttp__propagation__b3",
-        ":go.opencensus.io__stats",
-        ":go.opencensus.io__stats__view",
-        ":go.opencensus.io__tag",
-        ":go.opencensus.io__trace",
-        ":go.opencensus.io__trace__propagation",
-    ],
-)
-
-go_module(
-    name = "go.opencensus.io__plugin__ochttp__propagation__b3",
-    download = ":_go.opencensus.io#download",
-    install = ["plugin/ochttp/propagation/b3"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.opencensus.io__trace",
-        ":go.opencensus.io__trace__propagation",
-    ],
-)
-
-go_module(
-    name = "go.opencensus.io__resource",
-    download = ":_go.opencensus.io#download",
-    install = ["resource"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "go.opencensus.io__stats",
-    download = ":_go.opencensus.io#download",
-    install = ["stats"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.opencensus.io__stats__internal",
-        ":go.opencensus.io__tag",
-        "//third_party/go:go.opencensus.io__metric__metricdata",
-    ],
-)
-
-go_module(
-    name = "go.opencensus.io__stats__internal",
-    download = ":_go.opencensus.io#download",
-    install = ["stats/internal"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [":go.opencensus.io__tag"],
-)
-
-go_module(
-    name = "go.opencensus.io__stats__view",
-    download = ":_go.opencensus.io#download",
-    install = ["stats/view"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.opencensus.io__tag",
-        "//third_party/go:go.opencensus.io__internal__tagencoding",
-        "//third_party/go:go.opencensus.io__metric__metricdata",
-        "//third_party/go:go.opencensus.io__metric__metricproducer",
-        "//third_party/go:go.opencensus.io__resource",
-        "//third_party/go:go.opencensus.io__stats",
-        "//third_party/go:go.opencensus.io__stats__internal",
-    ],
-)
-
-go_module(
-    name = "go.opencensus.io__tag",
-    download = ":_go.opencensus.io#download",
-    install = ["tag"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "go.opencensus.io__trace",
-    download = ":_go.opencensus.io#download",
-    install = ["trace"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.opencensus.io__trace__internal",
-        ":go.opencensus.io__trace__tracestate",
-        "//third_party/go:github.com__golang__groupcache__lru",
-        "//third_party/go:go.opencensus.io__internal",
-    ],
-)
-
-go_module(
-    name = "go.opencensus.io__trace__internal",
-    download = ":_go.opencensus.io#download",
-    install = ["trace/internal"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "go.opencensus.io__trace__propagation",
-    download = ":_go.opencensus.io#download",
-    install = ["trace/propagation"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:go.opencensus.io__trace"],
-)
-
-go_module(
-    name = "go.opencensus.io__trace__tracestate",
-    download = ":_go.opencensus.io#download",
-    install = ["trace/tracestate"],
-    module = "go.opencensus.io",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "go.opentelemetry.io__auto__sdk",
     _tag = "download",
     module = "go.opentelemetry.io/auto/sdk",
@@ -7236,6 +7067,73 @@ go_module(
     module = "go.opentelemetry.io/auto/sdk",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp",
+    _tag = "download",
+    module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+    version = "v0.60.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp",
+    download = ":_go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp#download",
+    install = ["."],
+    module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__request",
+        ":go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__semconv",
+        ":go.opentelemetry.io__otel",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__metric",
+        ":go.opentelemetry.io__otel__propagation",
+        ":go.opentelemetry.io__otel__trace",
+        "//third_party/go:github.com__felixge__httpsnoop",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__request",
+    download = ":_go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp#download",
+    install = ["internal/request"],
+    module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__semconv",
+    download = ":_go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp#download",
+    install = ["internal/semconv"],
+    module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__semconvutil",
+        ":go.opentelemetry.io__otel",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__metric",
+        ":go.opentelemetry.io__otel__metric__noop",
+        ":go.opentelemetry.io__otel__semconv__v1.20.0",
+        ":go.opentelemetry.io__otel__semconv__v1.26.0",
+    ],
+)
+
+go_module(
+    name = "go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp__internal__semconvutil",
+    download = ":_go.opentelemetry.io__contrib__instrumentation__net__http__otelhttp#download",
+    install = ["internal/semconvutil"],
+    module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__semconv__v1.20.0",
+    ],
 )
 
 go_mod_download(
@@ -7374,6 +7272,24 @@ go_module(
 )
 
 go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.20.0",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.20.0"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__semconv__v1.26.0",
+    download = ":_go.opentelemetry.io__otel#download",
+    install = ["semconv/v1.26.0"],
+    module = "go.opentelemetry.io/otel",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:go.opentelemetry.io__otel__attribute"],
+)
+
+go_module(
     name = "go.opentelemetry.io__otel__semconv__v1.37.0",
     download = ":_go.opentelemetry.io__otel#download",
     install = ["semconv/v1.37.0"],
@@ -7409,6 +7325,18 @@ go_module(
     module = "go.opentelemetry.io/otel/metric",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "go.opentelemetry.io__otel__metric__noop",
+    download = ":_go.opentelemetry.io__otel__metric#download",
+    install = ["noop"],
+    module = "go.opentelemetry.io/otel/metric",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:go.opentelemetry.io__otel__metric",
+        "//third_party/go:go.opentelemetry.io__otel__metric__embedded",
+    ],
 )
 
 go_mod_download(
@@ -8392,6 +8320,18 @@ go_mod_download(
     module = "google.golang.org/genproto/googleapis/rpc",
     version = "v0.0.0-20260128011058-8636f8732409",
     visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "google.golang.org__genproto__googleapis__rpc__code",
+    download = ":_google.golang.org__genproto__googleapis__rpc#download",
+    install = ["code"],
+    module = "google.golang.org/genproto/googleapis/rpc",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+    ],
 )
 
 go_module(
