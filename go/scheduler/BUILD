@@ -6,9 +6,12 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "//go/grpc/status",
+        "//go/uuid",
         "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",

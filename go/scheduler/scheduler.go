@@ -1,11 +1,12 @@
 // Package scheduler holds the producer-side helpers of the scheduler service:
-// building CreateJob requests and reading the job name a processor is handed.
+// creating jobs and reading the job name a processor is handed.
 package scheduler
 
 import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -13,6 +14,8 @@ import (
 
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
+	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/uuid"
 )
 
 // JobMetadataKey is the request metadata key under which the scheduler sends a
@@ -30,6 +33,14 @@ func JobFromIncomingContext(ctx context.Context) (string, bool) {
 
 // CreateJobOption customizes a CreateJob request.
 type CreateJobOption func(*pb.CreateJobRequest)
+
+// WithRequestID makes the create idempotent under id: repeating it returns the
+// job it first created.
+func WithRequestID(id string) CreateJobOption {
+	return func(request *pb.CreateJobRequest) {
+		request.RequestId = id
+	}
+}
 
 // WithScheduleTime defers the job until the given time.
 func WithScheduleTime(scheduleTime time.Time) CreateJobOption {
@@ -67,12 +78,14 @@ func WithLabels(labels map[string]string) CreateJobOption {
 	}
 }
 
-// NewCreateJobRequest builds a CreateJob request delivering message to the
-// method whose request type it is, under parent (empty for a system job).
-func NewCreateJobRequest(parent string, message proto.Message, options ...CreateJobOption) (*pb.CreateJobRequest, error) {
+// CreateJob delivers message to the method whose request type it is, as a job
+// under parent: the user or organization the work belongs to, "" for a system
+// job. The request carries a fresh request_id unless WithRequestID sets one,
+// so a retried create never makes a second job.
+func CreateJob(ctx context.Context, client pb.SchedulerServiceClient, parent string, message proto.Message, options ...CreateJobOption) (*schedulerpb.Job, error) {
 	payload, err := anypb.New(message)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "packing %T: %v", message, err).Err()
 	}
 	request := &pb.CreateJobRequest{
 		Parent: parent,
@@ -81,5 +94,8 @@ func NewCreateJobRequest(parent string, message proto.Message, options ...Create
 	for _, option := range options {
 		option(request)
 	}
-	return request, nil
+	if request.RequestId == "" {
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	return client.CreateJob(ctx, request)
 }

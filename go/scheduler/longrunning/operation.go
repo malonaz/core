@@ -21,12 +21,13 @@ import (
 // under, sibling to the jobs collection.
 const operationsCollection = "operations"
 
-// JobParentOf returns the scheduler parent of a job acting on the resource,
+// jobParentOf returns the scheduler parent of a job acting on the resource,
 // which is where its operation lives: the user when the resource is a user's
 // (`organizations/{o}/users/{u}/...`), else the organization when the resource
 // is an organization's, else the root. Only a `users` collection directly under
-// the organization makes a user parent.
-func JobParentOf(resource string) string {
+// the organization makes a user parent. Only Start derives a parent — a
+// producer building a job by hand names the parent it knows.
+func jobParentOf(resource string) string {
 	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserResourceName{}.Pattern()); ok {
 		return parent
 	}

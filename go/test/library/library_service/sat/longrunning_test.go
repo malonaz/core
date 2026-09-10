@@ -224,10 +224,8 @@ func TestImportBooks_ListOperations(t *testing.T) {
 
 	// A job of another method under the same organization: not this service's,
 	// so invisible through its Operations server.
-	createJobRequest, err := scheduler.NewCreateJobRequest(fixture.organization, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
+	foreign, err := scheduler.CreateJob(ctx, schedulerServiceClient, fixture.organization, &libraryservicepb.GetShelfRequest{Name: fixture.shelf.GetName()},
 		scheduler.WithScheduleTime(time.Now().Add(24*time.Hour)))
-	require.NoError(t, err)
-	foreign, err := schedulerServiceClient.CreateJob(ctx, createJobRequest)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		cancelJobRequest := &schedulerservicepb.CancelJobRequest{Name: foreign.GetName()}

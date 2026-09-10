@@ -26,9 +26,12 @@ rpc ImportBooks(ImportBooksRequest) returns (google.longrunning.Operation) {
 - `operation_info` must set both types; the `scheduler.v1.method` policy is
   what makes the dispatcher create the method's queue.
 - The request must carry a `parent` or `name` with a `resource_reference`:
-  the job's parent derives from it (`longrunning.JobParentOf`). An optional
-  `request_id` (UUID) makes starting idempotent — the repeat returns the same
-  operation.
+  the job's parent derives from it — the user when the resource is a user's,
+  else the organization, else the root. Only the generated `Start` path
+  derives a parent (`jobParentOf` is unexported); a producer building a job by
+  hand with `scheduler.CreateJob(ctx, client, parent, …)` names the parent it knows. An
+  optional `request_id` (UUID) makes starting idempotent — the repeat returns
+  the same operation.
 - The service manifest sets `longrunning: true` on the rpc codegen and needs a
   `grpc_client` on `scheduler-service`.
 
@@ -39,7 +42,7 @@ scheduler's `x-scheduler-job` metadata (`longrunning.IsRun`):
 
 | Caller | Path |
 |---|---|
-| a client | `longrunning.Start`: `CreateJob(parent, request)` → returns the operation, not done |
+| a client | `longrunning.Start`: `scheduler.CreateJob(ctx, client, parent, request, WithRequestID(id))` → returns the operation, not done |
 | the dispatcher | `s.runner.Run{Method}(ctx, request)`, then `longrunning.Done`/`Failed` wrap the outcome as a **done** operation |
 
 The service implements `Run{Method}(ctx, request) (*Response, error)`. Return

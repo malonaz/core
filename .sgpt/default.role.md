@@ -36,6 +36,9 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/onyx/binary` — what the generated main does: one instance per
   service, in-process gRPC deps dial the server's opts, dependency-ordered
   start behind Listen(), health entries, shutdown order, cycle/collision errors.
+- `lores/scheduler/producing` — enqueuing work: `scheduler.CreateJob(ctx,
+  client, parent, message, options…)`, the parent the caller names,
+  `request_id` (idempotent, v7 default) vs `unique_key` (coalescing).
 - `lores/scheduler/longrunning` — AIP-151 operations as scheduler jobs:
   annotations, generated producer/runner split, `{job parent}/operations/{job}`
   naming and why, the per-server Operations server onyx derives from the
