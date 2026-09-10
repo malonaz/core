@@ -6,11 +6,50 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // ///////////////////////////////// MARSHALING ///////////////////////////////////
+
+// TypeResolver resolves Any type URLs and extensions during JSON (un)marshaling.
+type TypeResolver interface {
+	protoregistry.ExtensionTypeResolver
+	protoregistry.MessageTypeResolver
+}
+
+// JSONOption tunes JSON (un)marshaling; the zero configuration is the default.
+type JSONOption func(*jsonOptions)
+
+type jsonOptions struct {
+	resolver TypeResolver
+}
+
+// WithResolver resolves Any payloads against the given registry rather than
+// the global one, e.g. for messages built from server-reflection descriptors.
+func WithResolver(resolver TypeResolver) JSONOption {
+	return func(o *jsonOptions) { o.resolver = resolver }
+}
+
+func marshalWith(base protojson.MarshalOptions, opts []JSONOption) protojson.MarshalOptions {
+	var o jsonOptions
+	for _, opt := range opts {
+		opt(&o)
+	}
+	base.Resolver = o.resolver
+	return base
+}
+
+func unmarshalWith(base protojson.UnmarshalOptions, opts []JSONOption) protojson.UnmarshalOptions {
+	var o jsonOptions
+	for _, opt := range opts {
+		opt(&o)
+	}
+	base.Resolver = o.resolver
+	return base
+}
+
 var marshalOptions = &proto.MarshalOptions{}
 
 func Marshal(m proto.Message) ([]byte, error) {
@@ -37,32 +76,32 @@ var JsonUnmarshalOptions = protojson.UnmarshalOptions{
 	DiscardUnknown: true,
 }
 
-func JSONUnmarshal(b []byte, m proto.Message) error {
-	return JsonUnmarshalOptions.Unmarshal(b, m)
+func JSONUnmarshal(b []byte, m proto.Message, opts ...JSONOption) error {
+	return unmarshalWith(JsonUnmarshalOptions, opts).Unmarshal(b, m)
 }
 
 var JsonUnmarshalStrictOptions = protojson.UnmarshalOptions{
 	DiscardUnknown: false,
 }
 
-func JSONUnmarshalStrict(b []byte, m proto.Message) error {
-	return JsonUnmarshalStrictOptions.Unmarshal(b, m)
+func JSONUnmarshalStrict(b []byte, m proto.Message, opts ...JSONOption) error {
+	return unmarshalWith(JsonUnmarshalStrictOptions, opts).Unmarshal(b, m)
 }
 
 var JsonMarshalOptions = protojson.MarshalOptions{
 	UseProtoNames: true,
 }
 
-func JSONMarshal(m proto.Message) ([]byte, error) {
-	return JsonMarshalOptions.Marshal(m)
+func JSONMarshal(m proto.Message, opts ...JSONOption) ([]byte, error) {
+	return marshalWith(JsonMarshalOptions, opts).Marshal(m)
 }
 
 var JsonCamelCaseMarshalOptions = protojson.MarshalOptions{
 	UseProtoNames: false,
 }
 
-func JSONCamelCaseMarshal(m proto.Message) ([]byte, error) {
-	return JsonCamelCaseMarshalOptions.Marshal(m)
+func JSONCamelCaseMarshal(m proto.Message, opts ...JSONOption) ([]byte, error) {
+	return marshalWith(JsonCamelCaseMarshalOptions, opts).Marshal(m)
 }
 
 var JsonMarshalPrettyOptions = protojson.MarshalOptions{
@@ -71,8 +110,8 @@ var JsonMarshalPrettyOptions = protojson.MarshalOptions{
 	Indent:        "  ",
 }
 
-func JSONMarshalPretty(m proto.Message) ([]byte, error) {
-	return JsonMarshalPrettyOptions.Marshal(m)
+func JSONMarshalPretty(m proto.Message, opts ...JSONOption) ([]byte, error) {
+	return marshalWith(JsonMarshalPrettyOptions, opts).Marshal(m)
 }
 
 ////////////////// SLICES //////////////////
