@@ -38,7 +38,7 @@ var (
 // Connection is a gRPC client.
 type Connection struct {
 	log        *slog.Logger
-	opts       *Opts
+	opts       *ClientOpts
 	connection *grpc.ClientConn
 
 	// The **first** interceptor is the **outermost** (executes first on request, last on response).
@@ -58,7 +58,7 @@ func (c *Connection) WithLogger(logger *slog.Logger) *Connection {
 	return c
 }
 
-func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (grpc.DialOption, error) {
+func getClientTransportCredentialsOptions(opts *ClientOpts, certsOpts *certs.Opts) (grpc.DialOption, error) {
 	if opts.DisableTLS {
 		return grpc.WithTransportCredentials(insecure.NewCredentials()), nil
 	}
@@ -77,7 +77,7 @@ func getClientTransportCredentialsOptions(opts *Opts, certsOpts *certs.Opts) (gr
 }
 
 // NewConnection creates and returns a new gRPC client.
-func NewConnection(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) (*Connection, error) {
+func NewConnection(opts *ClientOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) (*Connection, error) {
 	client := &Connection{
 		log:  slog.Default(),
 		opts: opts,

@@ -169,7 +169,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       libraryServiceHost,
 		Port:       libraryServicePort,
 		DisableTLS: true,
@@ -186,7 +186,7 @@ func run(ctx context.Context) (func(), error) {
 	bookmarkServiceClient = libraryservicepb.NewBookmarkServiceClient(connection.Get())
 	operationsClient = longrunningpb.NewOperationsClient(connection.Get())
 
-	schedulerGrpcOpts := &grpc.Opts{
+	schedulerGrpcOpts := &grpc.ClientOpts{
 		Host:       libraryServiceHost,
 		Port:       schedulerServicePort,
 		DisableTLS: true,

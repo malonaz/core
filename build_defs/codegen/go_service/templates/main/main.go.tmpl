@@ -103,6 +103,16 @@ func run(ctx {{ goImport "context" }}.Context) error {
 
     {{- $serverNameToServiceNameToHealthCheckFunctions := dict -}}
 
+    {{- /* A grpc_client dependency served by a grpc server in this binary dials that server's own opts. */ -}}
+    {{- $servedGRPCServices := dict -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpc" -}}
+            {{- range $service := $server.services -}}
+                {{- $servedGRPCServices = set $servedGRPCServices (printf "%s:%s" $service.proto $service.service) $server.name -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+
     {{- /* DEPENDENCIES GRPC CONNECTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests -}}
         {{- range $dep := $serviceManifest.dependencies -}}
@@ -114,8 +124,12 @@ func run(ctx {{ goImport "context" }}.Context) error {
 
                 {{- if doOnce (printf "grpc_conn_deps_%s_%s" $dep.proto $dep.service) -}}
                     {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
-                    if _, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]; !ok {
-                        connection, err := {{ $grpc.NewConnection }}
+                    {{- $clientOpts := printf "opts.%s" $grpc.OptsFieldName -}}
+                    {{- with index $servedGRPCServices (printf "%s:%s" $dep.proto $dep.service) -}}
+                        {{- $clientOpts = printf "opts.%sGRPC.ClientOpts()" (. | camelcase) -}}
+                    {{- end }}
+                    if _, ok := endpointToGRPCConnection[{{ $clientOpts }}.Endpoint()]; !ok {
+                        connection, err := {{ $grpc.NewConnection $clientOpts }}
                         if err != nil {
                             return {{ goImport "fmt" }}.Errorf("instantiating new connection [%s]: %v", "{{ $dep.proto }}", err)
                         }
@@ -123,7 +137,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
                             return {{ goImport "fmt" }}.Errorf("connecting [%s]: %v", "{{ $dep.proto }}", err)
                         }
                         defer connection.Close()
-                        endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()] = connection
+                        endpointToGRPCConnection[{{ $clientOpts }}.Endpoint()] = connection
                     }
                 {{- end }}
             {{- end }}
@@ -137,7 +151,11 @@ func run(ctx {{ goImport "context" }}.Context) error {
                 {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
                 {{- if doOnce "grpc_client_instantiations" -}}{{ "\n\n// Instantiate GRPC Clients" -}}{{- end -}}
                 {{- if doOnce (printf "grpc_deps_%s_%s" $dep.proto $dep.service) }}
-                    {{ $grpc.Connection }}, ok := endpointToGRPCConnection[opts.{{ $grpc.OptsFieldName }}.Endpoint()]
+                    {{- $clientOpts := printf "opts.%s" $grpc.OptsFieldName -}}
+                    {{- with index $servedGRPCServices (printf "%s:%s" $dep.proto $dep.service) -}}
+                        {{- $clientOpts = printf "opts.%sGRPC.ClientOpts()" (. | camelcase) -}}
+                    {{- end }}
+                    {{ $grpc.Connection }}, ok := endpointToGRPCConnection[{{ $clientOpts }}.Endpoint()]
                     if !ok {
                         return {{ goImport "fmt" }}.Errorf("could not find grpc connection on for {{ $grpc.HumanName }}")
                     }
@@ -460,7 +478,7 @@ func run(ctx {{ goImport "context" }}.Context) error {
             {{ end }}
             {{- if $hasGateway -}}
                 }
-                grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC, opts.Certs, opts.Prometheus, registerHandlers)
+                grpcGatewayServer := grpc.NewGateway(opts.{{ $server.name | camelcase }}GRPCGateway, opts.{{ $server.name | camelcase }}GRPC.ClientOpts(), opts.Certs, opts.Prometheus, registerHandlers)
                 runServer(ctx, "{{ $server.name }}", grpcGatewayServer.Serve)
             {{- end }}
         {{- end }}

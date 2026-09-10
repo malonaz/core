@@ -63,7 +63,7 @@ type ServerOptions struct {
 type Server struct {
 	name           string
 	log            *slog.Logger
-	opts           *Opts
+	opts           *ServerOpts
 	certsOpts      *certs.Opts
 	prometheusOpts *prometheus.Opts
 	register       func(*Server)
@@ -95,7 +95,7 @@ func (s *Server) WithLogger(logger *slog.Logger) *Server {
 }
 
 // NewServer creates and returns a new Server.
-func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
+func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
 	return &Server{
 		name:           name,
 		log:            slog.Default(),
@@ -164,7 +164,7 @@ func (s *Server) GracefulStop() error {
 // Serve instantiates the gRPC server and blocks forever.
 func (s *Server) Serve(ctx context.Context) error {
 	s.log = s.log.WithGroup("grpc_server").With(
-		"name", s.name, "port", s.opts.Port, "host", s.opts.Host, "socket_path",
+		"name", s.name, "port", s.opts.Port, "socket_path",
 		s.opts.SocketPath, "disable_tls", s.opts.DisableTLS,
 	)
 	// Default options.

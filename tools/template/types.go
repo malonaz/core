@@ -156,7 +156,7 @@ func (t *GRPC) OptsFieldName() string {
 }
 
 func (t *GRPC) Opts() (string, error) {
-	return t.template("{optsFieldName} *{grpcImport}.Opts `group:\"{displayNameHumanCaseT} GRPC (Client)\" namespace:\"{displayNameKebabCase}-grpc\" env-namespace:\"{displayNameSnakeCaseUpper}_GRPC\"`")
+	return t.template("{optsFieldName} *{grpcImport}.ClientOpts `group:\"{displayNameHumanCaseT} GRPC (Client)\" namespace:\"{displayNameKebabCase}-grpc\" env-namespace:\"{displayNameSnakeCaseUpper}_GRPC\"`")
 }
 
 func (t *GRPC) Connection() string {
@@ -175,8 +175,9 @@ func (t *GRPC) ClientInterface() (string, error) {
 	return t.template("{protoImport}.{nameCamelCaseT}Client")
 }
 
-func (t *GRPC) NewConnection() (string, error) {
-	return t.template("{grpcImport}.NewConnection(opts.{optsFieldName}, opts.Certs, opts.Prometheus)")
+// NewConnection dials the given client opts expression.
+func (t *GRPC) NewConnection(clientOpts string) (string, error) {
+	return t.template("{grpcImport}.NewConnection(%s, opts.Certs, opts.Prometheus)", clientOpts)
 }
 
 func (t *GRPC) NewClient() (string, error) {

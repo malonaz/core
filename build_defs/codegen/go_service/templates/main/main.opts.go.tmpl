@@ -50,6 +50,16 @@
         {{- end -}}
     {{- end -}}
 
+    {{- /* A grpc_client dependency served by a grpc server in this binary dials that server's opts: no client opts of its own. */ -}}
+    {{- $servedGRPCServices := dict -}}
+    {{- range $server := .servers -}}
+        {{- if eq $server.type "grpc" -}}
+            {{- range $service := $server.services -}}
+                {{- $servedGRPCServices = set $servedGRPCServices (printf "%s:%s" $service.proto $service.service) $server.name -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+
     {{- /* BASE SERVICE DEPS OPTIONS */ -}}
     {{- range $serviceManifest := $serviceManifests -}}
         {{- if $serviceManifest.dependencies -}}
@@ -94,7 +104,7 @@
     {{- range $serviceManifest := $serviceManifests -}}
         {{- if $serviceManifest.dependencies -}}
             {{- range $dep := $serviceManifest.dependencies -}}
-                {{- if eq $dep.type "grpc_client" -}}
+                {{- if and (eq $dep.type "grpc_client") (not (hasKey $servedGRPCServices (printf "%s:%s" $dep.proto $dep.service))) -}}
                     {{- if doOnce "grpc_client_opts" -}}{{ "\n\n// gRPC client options" }}{{- end -}}
                     {{- if doOnce (printf "grpc_client_opts_%s_%s" $dep.proto $dep.service) -}}
                         {{ $grpc := parseGRPC $dep.proto $dep.service ($dep.name | default "") }}
@@ -109,7 +119,7 @@
     {{- range $server := .servers -}}
         {{- if eq $server.type "grpc" -}}
             {{- if doOnce "grpc_server_option_comment" }}{{ "\n\n// gRPC server options" }}{{ end }}
-            {{ $server.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.Opts `group:"{{ $server.name | camelcase }} GRPC (Server)" namespace:"{{ $server.name | kebabcase }}-grpc" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC"`
+            {{ $server.name | camelcase }}GRPC *{{ goImport (printf "%s/grpc" $core) }}.ServerOpts `group:"{{ $server.name | camelcase }} GRPC (Server)" namespace:"{{ $server.name | kebabcase }}-grpc" env-namespace:"{{ $server.name | snakecase | upper }}_GRPC"`
             {{ $hasGrpcGateway := false }}
             {{ range $service := $server.services }}
                 {{ if $service.gateway }}{{ $hasGrpcGateway = true }}{{ break }}{{ end }}

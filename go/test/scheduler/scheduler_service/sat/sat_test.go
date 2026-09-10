@@ -190,7 +190,7 @@ func run(ctx context.Context) (func(), error) {
 	}
 	cleanupFns = append(cleanupFns, satEnvironment.Cleanup)
 
-	grpcOpts := &grpc.Opts{
+	grpcOpts := &grpc.ClientOpts{
 		Host:       schedulerServiceHost,
 		Port:       schedulerServicePort,
 		DisableTLS: true,

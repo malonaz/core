@@ -19,7 +19,7 @@ import (
 // validateURL rejects what buf.validate's scheme check lets through, e.g. a
 // bad port.
 func validateURL(url string) error {
-	if _, err := grpc.ParseOpts(url); err != nil {
+	if _, err := grpc.ParseClientOpts(url); err != nil {
 		return status.Errorf(codes.InvalidArgument, "parsing url: %v", err).Err()
 	}
 	return nil
@@ -149,7 +149,7 @@ func (c *targetConnections) close() {
 }
 
 func dial(ctx context.Context, target *schedulerpb.Target) (*grpc.Connection, error) {
-	opts, err := grpc.ParseOpts(target.GetUrl())
+	opts, err := grpc.ParseClientOpts(target.GetUrl())
 	if err != nil {
 		return nil, fmt.Errorf("parsing url %q: %w", target.GetUrl(), err)
 	}
