@@ -97,7 +97,7 @@ func scheduleJobs(t *testing.T, schedule *schedulerpb.Schedule) []*schedulerpb.J
 	t.Helper()
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{
 		Parent: parentOf(schedule.GetName()),
-		Filter: fmt.Sprintf(`labels."%s" = %q`, schedulerpb.Labels.Schedule.GetKey(), resourceID(schedule.GetName())),
+		Filter: fmt.Sprintf("schedule = %q", schedule.GetName()),
 	}
 	jobs, err := aip.Paginate[*schedulerpb.Job](ctx, listJobsRequest, schedulerServiceClient.ListJobs)
 	require.NoError(t, err)
@@ -303,7 +303,7 @@ func TestSchedule_Validation(t *testing.T) {
 func requireTickJob(t *testing.T, schedule *schedulerpb.Schedule, job *schedulerpb.Job, tick, expireTime time.Time) {
 	t.Helper()
 	require.Equal(t, parentOf(schedule.GetName()), parentOf(job.GetName()), "the job lives under the schedule's parent")
-	require.Equal(t, resourceID(schedule.GetName()), job.GetLabels()[schedulerpb.Labels.Schedule.GetKey()])
+	require.Equal(t, schedule.GetName(), job.GetSchedule())
 	for key, value := range schedule.GetLabels() {
 		require.Equal(t, value, job.GetLabels()[key])
 	}
@@ -472,7 +472,7 @@ func TestSchedule_DeleteLeavesJobs(t *testing.T) {
 
 	job := waitForTerminal(t, schedule.GetLastJob())
 	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
-	require.Equal(t, resourceID(created.GetName()), job.GetLabels()[schedulerpb.Labels.Schedule.GetKey()])
+	require.Equal(t, created.GetName(), job.GetSchedule())
 	jobs := scheduleJobs(t, schedule)
 	require.True(t, slices.ContainsFunc(jobs, func(listed *schedulerpb.Job) bool { return listed.GetName() == job.GetName() }))
 }

@@ -7,13 +7,8 @@ type LabelRetried struct {
 	True   string
 }
 
-type LabelSchedule struct {
-	GetKey func() string
-}
-
 type LabelSet struct {
-	Retried  LabelRetried
-	Schedule LabelSchedule
+	Retried LabelRetried
 }
 
 var Labels = LabelSet{
@@ -22,10 +17,5 @@ var Labels = LabelSet{
 			return "scheduler.malonaz.com/retried"
 		},
 		True: "true",
-	},
-	Schedule: LabelSchedule{
-		GetKey: func() string {
-			return "scheduler.malonaz.com/schedule"
-		},
 	},
 }

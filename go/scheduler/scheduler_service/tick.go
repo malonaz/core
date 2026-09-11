@@ -2,7 +2,6 @@ package scheduler_service
 
 import (
 	"context"
-	"maps"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -92,19 +91,14 @@ func runWindowEnd(expression *cron.Expression, schedule *schedulerpb.Schedule, t
 // createScheduledJob enqueues the tick's job through CreateJob, so it gets the
 // routing and validation every job gets, under the schedule's parent.
 func (s *Service) createScheduledJob(ctx context.Context, schedule *schedulerpb.Schedule, tick, expireTime time.Time) (*schedulerpb.Job, error) {
-	organizationID, userID, scheduleID, err := model.ParseScheduleName(schedule.GetName())
+	organizationID, userID, _, err := model.ParseScheduleName(schedule.GetName())
 	if err != nil {
 		return nil, err
 	}
-	labels := maps.Clone(schedule.GetLabels())
-	if labels == nil {
-		labels = map[string]string{}
-	}
-	labels[schedulerpb.Labels.Schedule.GetKey()] = scheduleID
 	createJobRequest := &pb.CreateJobRequest{
 		Parent: jobParent(organizationID, userID),
 		Job: &schedulerpb.Job{
-			Labels:       labels,
+			Labels:       schedule.GetLabels(),
 			Payload:      schedule.GetPayload(),
 			Priority:     schedule.GetPriority(),
 			ScheduleTime: timestamppb.New(tick),
@@ -112,7 +106,7 @@ func (s *Service) createScheduledJob(ctx context.Context, schedule *schedulerpb.
 		},
 		RequestId: uuid.NewV5(scheduleTickRequestIDNamespace, schedule.GetName()+"/"+tick.UTC().Format(time.RFC3339)).String(),
 	}
-	return s.CreateJob(ctx, createJobRequest)
+	return s.createJob(ctx, createJobRequest, schedule.GetName())
 }
 
 // jobParent returns the parent a schedule's jobs live under: the schedule's own.

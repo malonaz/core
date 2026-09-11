@@ -81,8 +81,8 @@ func (x ScheduleState) Number() protoreflect.EnumNumber {
 // template from which the scheduler materializes one [Job][malonaz.scheduler.v1.Job]
 // per tick, under the schedule's parent and with the schedule's `priority` and
 // `labels`. Each job is a plain job of the queue the payload type selects, so
-// it is routed, retried, listed and cancelled like any other; the label
-// `scheduler.malonaz.com/schedule` ties it back to its schedule.
+// it is routed, retried, listed and cancelled like any other; its `schedule`
+// field ties it back to its schedule.
 //
 // The scheduler owns `queue`, `method`, `state`, `last_schedule_time`,
 // `next_schedule_time`, `last_job` and `missed_tick_count`; producers own
