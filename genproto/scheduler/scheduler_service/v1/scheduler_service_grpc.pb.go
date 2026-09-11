@@ -39,6 +39,14 @@ const (
 	SchedulerService_CancelJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob"
 	SchedulerService_WaitJob_FullMethodName           = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob"
 	SchedulerService_ReportJobProgress_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress"
+	SchedulerService_CreateSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateSchedule"
+	SchedulerService_GetSchedule_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetSchedule"
+	SchedulerService_UpdateSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateSchedule"
+	SchedulerService_DeleteSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteSchedule"
+	SchedulerService_ListSchedules_FullMethodName     = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListSchedules"
+	SchedulerService_BatchGetSchedules_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetSchedules"
+	SchedulerService_PauseSchedule_FullMethodName     = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseSchedule"
+	SchedulerService_ResumeSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeSchedule"
 )
 
 // SchedulerServiceClient is the client API for SchedulerService service.
@@ -60,6 +68,12 @@ const (
 //     Format: jobs/{job}
 //     Format: organizations/{organization}/jobs/{job}
 //     Format: organizations/{organization}/users/{user}/jobs/{job}
+//   - [Schedule][malonaz.scheduler.v1.Schedule] resources declare recurring
+//     work: a cron expression and a payload template from which one job is
+//     created per tick, under the schedule's parent.
+//     Format: schedules/{schedule}
+//     Format: organizations/{organization}/schedules/{schedule}
+//     Format: organizations/{organization}/users/{user}/schedules/{schedule}
 //
 // # Scheduling
 //
@@ -85,6 +99,17 @@ const (
 //
 // Every call carries the job's resource name in the `x-scheduler-job` request
 // metadata, which methods pass to ReportJobProgress.
+//
+// # Recurrence
+//
+// An ENABLED schedule is due at its `next_schedule_time`. At each tick the
+// scheduler creates the job the schedule describes — `schedule_time` the
+// tick, `expire_time` the tick plus the schedule's `run_window` (the next
+// tick when unset), labelled `scheduler.malonaz.com/schedule` — and advances
+// `next_schedule_time` to the first cron occurrence after now. A tick reached
+// after its run window closed is skipped and counted in `missed_tick_count`:
+// downtime is never caught up. A tick's job is created idempotently, so a
+// pass interrupted after the insert replays into the same job.
 //
 // # Long-running operations
 //
@@ -193,6 +218,47 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ReportJobProgress(ctx context.Context, in *ReportJobProgressRequest, opts ...grpc.CallOption) (*v1.Job, error)
+	// Create a schedule in the queue its payload type selects. Fails with
+	// INVALID_ARGUMENT when no queue accepts the payload type, when `cron` is
+	// not a five-field cron expression, or when `time_zone` is not an IANA
+	// zone. The schedule starts ENABLED with `next_schedule_time` at the first
+	// occurrence after now.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateSchedule(ctx context.Context, in *CreateScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
+	// Get a schedule.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
+	// Update a schedule. Changing `cron` or `time_zone` recomputes
+	// `next_schedule_time` from now; jobs already created are untouched.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateSchedule(ctx context.Context, in *UpdateScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
+	// Delete a schedule. Jobs it already created are untouched.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteSchedule(ctx context.Context, in *DeleteScheduleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// List schedules.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListSchedules(ctx context.Context, in *ListSchedulesRequest, opts ...grpc.CallOption) (*ListSchedulesResponse, error)
+	// Get multiple schedules in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetSchedules(ctx context.Context, in *BatchGetSchedulesRequest, opts ...grpc.CallOption) (*BatchGetSchedulesResponse, error)
+	// Pause a schedule: no tick is materialized until it is resumed, and
+	// `next_schedule_time` is cleared. Jobs already created are untouched.
+	// Idempotent on a PAUSED schedule.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	PauseSchedule(ctx context.Context, in *PauseScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
+	// Resume a paused schedule from the first occurrence after now: ticks that
+	// fell within the pause are not caught up. Idempotent on an ENABLED
+	// schedule.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResumeSchedule(ctx context.Context, in *ResumeScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
 }
 
 type schedulerServiceClient struct {
@@ -383,6 +449,86 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 	return out, nil
 }
 
+func (c *schedulerServiceClient) CreateSchedule(ctx context.Context, in *CreateScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Schedule)
+	err := c.cc.Invoke(ctx, SchedulerService_CreateSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Schedule)
+	err := c.cc.Invoke(ctx, SchedulerService_GetSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) UpdateSchedule(ctx context.Context, in *UpdateScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Schedule)
+	err := c.cc.Invoke(ctx, SchedulerService_UpdateSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) DeleteSchedule(ctx context.Context, in *DeleteScheduleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, SchedulerService_DeleteSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) ListSchedules(ctx context.Context, in *ListSchedulesRequest, opts ...grpc.CallOption) (*ListSchedulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSchedulesResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_ListSchedules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchGetSchedules(ctx context.Context, in *BatchGetSchedulesRequest, opts ...grpc.CallOption) (*BatchGetSchedulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetSchedulesResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchGetSchedules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) PauseSchedule(ctx context.Context, in *PauseScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Schedule)
+	err := c.cc.Invoke(ctx, SchedulerService_PauseSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) ResumeSchedule(ctx context.Context, in *ResumeScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Schedule)
+	err := c.cc.Invoke(ctx, SchedulerService_ResumeSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SchedulerServiceServer is the server API for SchedulerService service.
 // All implementations should embed UnimplementedSchedulerServiceServer
 // for forward compatibility.
@@ -402,6 +548,12 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //     Format: jobs/{job}
 //     Format: organizations/{organization}/jobs/{job}
 //     Format: organizations/{organization}/users/{user}/jobs/{job}
+//   - [Schedule][malonaz.scheduler.v1.Schedule] resources declare recurring
+//     work: a cron expression and a payload template from which one job is
+//     created per tick, under the schedule's parent.
+//     Format: schedules/{schedule}
+//     Format: organizations/{organization}/schedules/{schedule}
+//     Format: organizations/{organization}/users/{user}/schedules/{schedule}
 //
 // # Scheduling
 //
@@ -427,6 +579,17 @@ func (c *schedulerServiceClient) ReportJobProgress(ctx context.Context, in *Repo
 //
 // Every call carries the job's resource name in the `x-scheduler-job` request
 // metadata, which methods pass to ReportJobProgress.
+//
+// # Recurrence
+//
+// An ENABLED schedule is due at its `next_schedule_time`. At each tick the
+// scheduler creates the job the schedule describes — `schedule_time` the
+// tick, `expire_time` the tick plus the schedule's `run_window` (the next
+// tick when unset), labelled `scheduler.malonaz.com/schedule` — and advances
+// `next_schedule_time` to the first cron occurrence after now. A tick reached
+// after its run window closed is skipped and counted in `missed_tick_count`:
+// downtime is never caught up. A tick's job is created idempotently, so a
+// pass interrupted after the insert replays into the same job.
 //
 // # Long-running operations
 //
@@ -535,6 +698,47 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ReportJobProgress(context.Context, *ReportJobProgressRequest) (*v1.Job, error)
+	// Create a schedule in the queue its payload type selects. Fails with
+	// INVALID_ARGUMENT when no queue accepts the payload type, when `cron` is
+	// not a five-field cron expression, or when `time_zone` is not an IANA
+	// zone. The schedule starts ENABLED with `next_schedule_time` at the first
+	// occurrence after now.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateSchedule(context.Context, *CreateScheduleRequest) (*v1.Schedule, error)
+	// Get a schedule.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetSchedule(context.Context, *GetScheduleRequest) (*v1.Schedule, error)
+	// Update a schedule. Changing `cron` or `time_zone` recomputes
+	// `next_schedule_time` from now; jobs already created are untouched.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateSchedule(context.Context, *UpdateScheduleRequest) (*v1.Schedule, error)
+	// Delete a schedule. Jobs it already created are untouched.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	DeleteSchedule(context.Context, *DeleteScheduleRequest) (*emptypb.Empty, error)
+	// List schedules.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListSchedules(context.Context, *ListSchedulesRequest) (*ListSchedulesResponse, error)
+	// Get multiple schedules in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetSchedules(context.Context, *BatchGetSchedulesRequest) (*BatchGetSchedulesResponse, error)
+	// Pause a schedule: no tick is materialized until it is resumed, and
+	// `next_schedule_time` is cleared. Jobs already created are untouched.
+	// Idempotent on a PAUSED schedule.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	PauseSchedule(context.Context, *PauseScheduleRequest) (*v1.Schedule, error)
+	// Resume a paused schedule from the first occurrence after now: ticks that
+	// fell within the pause are not caught up. Idempotent on an ENABLED
+	// schedule.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResumeSchedule(context.Context, *ResumeScheduleRequest) (*v1.Schedule, error)
 }
 
 // UnimplementedSchedulerServiceServer should be embedded to have
@@ -597,6 +801,30 @@ func (UnimplementedSchedulerServiceServer) WaitJob(context.Context, *WaitJobRequ
 }
 func (UnimplementedSchedulerServiceServer) ReportJobProgress(context.Context, *ReportJobProgressRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportJobProgress not implemented")
+}
+func (UnimplementedSchedulerServiceServer) CreateSchedule(context.Context, *CreateScheduleRequest) (*v1.Schedule, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) GetSchedule(context.Context, *GetScheduleRequest) (*v1.Schedule, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) UpdateSchedule(context.Context, *UpdateScheduleRequest) (*v1.Schedule, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) DeleteSchedule(context.Context, *DeleteScheduleRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) ListSchedules(context.Context, *ListSchedulesRequest) (*ListSchedulesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSchedules not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchGetSchedules(context.Context, *BatchGetSchedulesRequest) (*BatchGetSchedulesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetSchedules not implemented")
+}
+func (UnimplementedSchedulerServiceServer) PauseSchedule(context.Context, *PauseScheduleRequest) (*v1.Schedule, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) ResumeSchedule(context.Context, *ResumeScheduleRequest) (*v1.Schedule, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResumeSchedule not implemented")
 }
 func (UnimplementedSchedulerServiceServer) testEmbeddedByValue() {}
 
@@ -942,6 +1170,150 @@ func _SchedulerService_ReportJobProgress_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchedulerService_CreateSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).CreateSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_CreateSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).CreateSchedule(ctx, req.(*CreateScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).GetSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_GetSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).GetSchedule(ctx, req.(*GetScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_UpdateSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).UpdateSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_UpdateSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).UpdateSchedule(ctx, req.(*UpdateScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_DeleteSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).DeleteSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_DeleteSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).DeleteSchedule(ctx, req.(*DeleteScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_ListSchedules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSchedulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ListSchedules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ListSchedules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ListSchedules(ctx, req.(*ListSchedulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_BatchGetSchedules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetSchedulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchGetSchedules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchGetSchedules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchGetSchedules(ctx, req.(*BatchGetSchedulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_PauseSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).PauseSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_PauseSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).PauseSchedule(ctx, req.(*PauseScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_ResumeSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ResumeSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ResumeSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ResumeSchedule(ctx, req.(*ResumeScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SchedulerService_ServiceDesc is the grpc.ServiceDesc for SchedulerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1020,6 +1392,38 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportJobProgress",
 			Handler:    _SchedulerService_ReportJobProgress_Handler,
+		},
+		{
+			MethodName: "CreateSchedule",
+			Handler:    _SchedulerService_CreateSchedule_Handler,
+		},
+		{
+			MethodName: "GetSchedule",
+			Handler:    _SchedulerService_GetSchedule_Handler,
+		},
+		{
+			MethodName: "UpdateSchedule",
+			Handler:    _SchedulerService_UpdateSchedule_Handler,
+		},
+		{
+			MethodName: "DeleteSchedule",
+			Handler:    _SchedulerService_DeleteSchedule_Handler,
+		},
+		{
+			MethodName: "ListSchedules",
+			Handler:    _SchedulerService_ListSchedules_Handler,
+		},
+		{
+			MethodName: "BatchGetSchedules",
+			Handler:    _SchedulerService_BatchGetSchedules_Handler,
+		},
+		{
+			MethodName: "PauseSchedule",
+			Handler:    _SchedulerService_PauseSchedule_Handler,
+		},
+		{
+			MethodName: "ResumeSchedule",
+			Handler:    _SchedulerService_ResumeSchedule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

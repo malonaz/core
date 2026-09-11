@@ -53,6 +53,7 @@ require (
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/pseudomuto/protoc-gen-doc v1.5.2-0.20250211140318-129dc82aa469
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/sashabaranov/go-openai v1.41.2
 	github.com/scylladb/go-set v1.0.2
 	github.com/sercand/kuberesolver/v5 v5.1.1

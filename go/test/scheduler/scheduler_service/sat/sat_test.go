@@ -52,6 +52,7 @@ const (
 
 	// Timings the scheduler runs with; tests derive their expectations from them.
 	pollInterval    = 100 * time.Millisecond
+	tickInterval    = 100 * time.Millisecond
 	leaseDuration   = 1500 * time.Millisecond
 	maxParallelJobs = 16
 	replicaCount    = 2
@@ -126,6 +127,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--prometheus.port", strconv.Itoa(prometheusPort),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
 			"--scheduler-service.sweep-interval", "500ms",
+			"--scheduler-service.tick-interval", tickInterval.String(),
 			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
 			"--scheduler-dispatcher.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
 			"--scheduler-dispatcher.poll-interval", pollInterval.String(),

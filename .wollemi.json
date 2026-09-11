@@ -435,6 +435,7 @@
         "github.com/pseudomuto/protoc-gen-doc/extensions/lyft_validate": "//third_party/go:github.com__pseudomuto__protoc-gen-doc__extensions__lyft_validate",
         "github.com/pseudomuto/protoc-gen-doc/extensions/validator_field": "//third_party/go:github.com__pseudomuto__protoc-gen-doc__extensions__validator_field",
         "github.com/pseudomuto/protokit": "//third_party/go:github.com__pseudomuto__protokit",
+        "github.com/robfig/cron/v3": "//third_party/go:github.com__robfig__cron__v3",
         "github.com/rs/cors": "//third_party/go:github.com__rs__cors",
         "github.com/sashabaranov/go-openai": "//third_party/go:github.com__sashabaranov__go-openai",
         "github.com/sashabaranov/go-openai/internal": "//third_party/go:github.com__sashabaranov__go-openai__internal",

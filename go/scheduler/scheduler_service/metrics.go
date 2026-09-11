@@ -32,6 +32,20 @@ var (
 		Help:      "RUNNING jobs by queue, refreshed on the reaper tick.",
 	}, []string{"queue"})
 
+	scheduleTicksCounter = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "scheduler",
+		Subsystem: "schedule",
+		Name:      "ticks_total",
+		Help:      "Schedule ticks reached, by outcome: created (a job), missed (run window already closed), failed (job creation failed; retried next pass).",
+	}, []string{"outcome"})
+
+	schedulesOverdueGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "scheduler",
+		Subsystem: "schedules",
+		Name:      "overdue",
+		Help:      "ENABLED schedules whose tick was due more than a tick interval ago, refreshed on the tick pass.",
+	})
+
 	oldestPendingAgeGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "scheduler",
 		Subsystem: "job",

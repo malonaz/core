@@ -8,6 +8,7 @@ go_test(
         "processor_test.go",
         "queue_test.go",
         "sat_test.go",
+        "schedule_test.go",
         "worker_test.go",
     ],
     data = [
@@ -25,6 +26,7 @@ go_test(
         "//go/prometheus",
         "//go/sat",
         "//go/scheduler",
+        "//go/scheduler/cron",
         "//go/uuid",
         "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/scheduler_service/v1",

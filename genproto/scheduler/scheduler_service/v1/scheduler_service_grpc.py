@@ -15,8 +15,10 @@ import google.protobuf.empty_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.scheduler.scheduler_service.v1.job_pb2
 import malonaz.scheduler.scheduler_service.v1.queue_pb2
+import malonaz.scheduler.scheduler_service.v1.schedule_pb2
 import malonaz.scheduler.v1.job_pb2
 import malonaz.scheduler.v1.queue_pb2
+import malonaz.scheduler.v1.schedule_pb2
 import malonaz.scheduler.scheduler_service.v1.scheduler_service_pb2
 
 
@@ -92,6 +94,38 @@ class SchedulerServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ReportJobProgress(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.ReportJobProgressRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.CreateScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.GetScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.UpdateScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.DeleteScheduleRequest, google.protobuf.empty_pb2.Empty]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListSchedules(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesRequest, malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetSchedules(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesRequest, malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def PauseSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.PauseScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ResumeSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -203,6 +237,54 @@ class SchedulerServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.scheduler.scheduler_service.v1.job_pb2.ReportJobProgressRequest,
                 malonaz.scheduler.v1.job_pb2.Job,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateSchedule': grpclib.const.Handler(
+                self.CreateSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.CreateScheduleRequest,
+                malonaz.scheduler.v1.schedule_pb2.Schedule,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetSchedule': grpclib.const.Handler(
+                self.GetSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.GetScheduleRequest,
+                malonaz.scheduler.v1.schedule_pb2.Schedule,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateSchedule': grpclib.const.Handler(
+                self.UpdateSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.UpdateScheduleRequest,
+                malonaz.scheduler.v1.schedule_pb2.Schedule,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteSchedule': grpclib.const.Handler(
+                self.DeleteSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.DeleteScheduleRequest,
+                google.protobuf.empty_pb2.Empty,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListSchedules': grpclib.const.Handler(
+                self.ListSchedules,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesRequest,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesResponse,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetSchedules': grpclib.const.Handler(
+                self.BatchGetSchedules,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesRequest,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesResponse,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseSchedule': grpclib.const.Handler(
+                self.PauseSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.PauseScheduleRequest,
+                malonaz.scheduler.v1.schedule_pb2.Schedule,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeSchedule': grpclib.const.Handler(
+                self.ResumeSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest,
+                malonaz.scheduler.v1.schedule_pb2.Schedule,
             ),
         }
 
@@ -317,4 +399,52 @@ class SchedulerServiceStub:
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress',
             malonaz.scheduler.scheduler_service.v1.job_pb2.ReportJobProgressRequest,
             malonaz.scheduler.v1.job_pb2.Job,
+        )
+        self.CreateSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.CreateScheduleRequest,
+            malonaz.scheduler.v1.schedule_pb2.Schedule,
+        )
+        self.GetSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.GetScheduleRequest,
+            malonaz.scheduler.v1.schedule_pb2.Schedule,
+        )
+        self.UpdateSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.UpdateScheduleRequest,
+            malonaz.scheduler.v1.schedule_pb2.Schedule,
+        )
+        self.DeleteSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/DeleteSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.DeleteScheduleRequest,
+            google.protobuf.empty_pb2.Empty,
+        )
+        self.ListSchedules = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListSchedules',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesRequest,
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.ListSchedulesResponse,
+        )
+        self.BatchGetSchedules = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetSchedules',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesRequest,
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.BatchGetSchedulesResponse,
+        )
+        self.PauseSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.PauseScheduleRequest,
+            malonaz.scheduler.v1.schedule_pb2.Schedule,
+        )
+        self.ResumeSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest,
+            malonaz.scheduler.v1.schedule_pb2.Schedule,
         )

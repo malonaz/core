@@ -43,6 +43,9 @@ updated whenever a lore is added, renamed, or removed.
   annotations, generated producer/runner split, `{job parent}/operations/{job}`
   naming and why, the per-server Operations server onyx derives from the
   protos (gateways included), traps.
+- `lores/scheduler/schedules` — recurring jobs: the Schedule resource (cron +
+  payload template), what a tick materializes, run window / missed ticks /
+  no catch-up, pause/resume, idempotent replay, how the sats avoid minute waits.
 - `lores/domain/agent` — Agent/Task/Memory ontology, durable runners,
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI

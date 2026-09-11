@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "job.proto",
         "queue.proto",
+        "schedule.proto",
         "scheduler_service.proto",
     ],
     visibility = ["PUBLIC"],
@@ -13,6 +14,7 @@ grpc_library(
     srcs = [
         "job.proto",
         "queue.proto",
+        "schedule.proto",
         "scheduler_service.proto",
     ],
     additional_context = {

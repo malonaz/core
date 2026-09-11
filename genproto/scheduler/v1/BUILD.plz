@@ -7,6 +7,8 @@ go_library(
         "labels_aip_label.pb.go",
         "queue.pb.go",
         "queue_aip.go",
+        "schedule.pb.go",
+        "schedule_aip.go",
     ],
     visibility = ["//..."],
     deps = [

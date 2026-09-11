@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "job.pb.go",
         "queue.pb.go",
+        "schedule.pb.go",
         "scheduler_service.pb.go",
         "scheduler_service_grpc.pb.go",
     ],

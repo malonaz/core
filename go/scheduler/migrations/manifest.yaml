@@ -5,3 +5,5 @@ migrations:
     hash: 6117e2fc79dafbe1f31d1167cf1754ec
   - path: queue/001_init.sql
     hash: 07cac9dbda07255331965ab459740c5f
+  - path: schedule/001_init.sql
+    hash: ba325848cb6226313844eaf0df8b1535

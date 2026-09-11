@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package malonaz.scheduler.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
+
+// A Schedule is recurring work declared once: a cron expression and a payload
+// template from which the scheduler materializes one [Job][malonaz.scheduler.v1.Job]
+// per tick, under the schedule's parent and with the schedule's `priority` and
+// `labels`. Each job is a plain job of the queue the payload type selects, so
+// it is routed, retried, listed and cancelled like any other; the label
+// `scheduler.malonaz.com/schedule` ties it back to its schedule.
+//
+// The scheduler owns `queue`, `method`, `state`, `last_schedule_time`,
+// `next_schedule_time`, `last_job` and `missed_tick_count`; producers own
+// `payload`, `cron`, `time_zone`, `priority`, `run_window` and `labels`.
+//
+// A tick is due at `next_schedule_time`. A tick whose run window has already
+// closed when the scheduler reaches it (downtime, a long pause) is skipped
+// and counted in `missed_tick_count` rather than run late; there is no
+// catch-up. Deleting a schedule leaves the jobs it created untouched.
+message Schedule {
+  option (google.api.resource) = {
+    type: "scheduler.malonaz.com/Schedule"
+    pattern: "schedules/{schedule}"
+    pattern: "organizations/{organization}/schedules/{schedule}"
+    pattern: "organizations/{organization}/users/{user}/schedules/{schedule}"
+    singular: "schedule"
+    plural: "schedules"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "scheduler"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "4c728a7d-9711-4b77-8e6c-e98554c99e90";
+
+  // The resource name of the schedule.
+  // Format: schedules/{schedule}
+  // Format: organizations/{organization}/schedules/{schedule}
+  // Format: organizations/{organization}/users/{user}/schedules/{schedule}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the schedule.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the schedule.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 4;
+
+  // The labels on this schedule, copied onto every job it creates.
+  map<string, string> labels = 5 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // The request enqueued at every tick. Its type URL selects the queue.
+  google.protobuf.Any payload = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
+    (google.api.field_behavior) = IMMUTABLE,
+    (buf.validate.field).required = true
+  ];
+
+  // The queue every tick's job runs in, resolved at creation from the payload type.
+  // Format: queues/{queue}
+  string queue = 7 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // The gRPC method the payload is delivered to, e.g.
+  // `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
+  string method = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The recurrence, as a standard five-field cron expression
+  // (`minute hour day-of-month month day-of-week`), evaluated in `time_zone`.
+  string cron = 9 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
+  // The IANA time zone the cron expression is evaluated in, e.g.
+  // `America/New_York`. Defaults to `UTC`.
+  string time_zone = 10 [(buf.validate.field).string.max_len = 64];
+
+  // Whether ticks are being materialized. ENABLED on creation; changed
+  // through PauseSchedule and ResumeSchedule.
+  ScheduleState state = 11 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (buf.validate.field).enum.defined_only = true
+  ];
+
+  // The claim priority of every job the schedule creates. Defaults to 0.
+  int32 priority = 12 [(buf.validate.field).int32 = {
+    gte: -100
+    lte: 100
+  }];
+
+  // How long after its tick a job may still start: each job's `expire_time`
+  // is its tick plus this window, and a tick reached after its window closed
+  // is skipped. Unset means until the next tick.
+  google.protobuf.Duration run_window = 13 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).duration.gt = {}
+  ];
+
+  // The tick of the last job created.
+  google.protobuf.Timestamp last_schedule_time = 14 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The next tick: when the next job is created. Unset while PAUSED.
+  google.protobuf.Timestamp next_schedule_time = 15 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The job created at the last tick.
+  // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
+  string last_job = 16 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+
+  // The number of ticks skipped because their run window had closed before
+  // the scheduler reached them.
+  int32 missed_tick_count = 17 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Whether a schedule's ticks are being materialized.
+enum ScheduleState {
+  // Used to detect an unset field.
+  SCHEDULE_STATE_UNSPECIFIED = 0;
+
+  // Ticks are materialized as jobs.
+  SCHEDULE_STATE_ENABLED = 1;
+
+  // No tick is materialized; resuming picks up from the next tick after then.
+  SCHEDULE_STATE_PAUSED = 2;
+}
