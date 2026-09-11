@@ -30,8 +30,8 @@ func (mc *msgCtx) generateUndelete() {
 	g.P(fmt.Sprintf("  %s", mc.returningExpr(mc.writeColumns())))
 	g.P()
 
-	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  query := undelete%sPostgresQuery", mc.goType))
 	if mc.hasEtag {
 		g.P(fmt.Sprintf("  params := []any{ %s, newEtag }", mc.patternVarIDsGoTrue()))
@@ -40,7 +40,7 @@ func (mc *msgCtx) generateUndelete() {
 	}
 	mc.emitEtagFilter()
 
-	if mc.hasLifecycleDescendants() {
+	if mc.hasLifecycleDescendants() || mc.outbox {
 		mc.generateUndeleteWithTransaction()
 	} else {
 		mc.generateUndeleteDirect()
@@ -54,8 +54,8 @@ func (mc *msgCtx) generateUndelete() {
 func (mc *msgCtx) generateMultiPatternUndelete() {
 	g := mc.g
 
-	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) Undelete%s(ctx context.Context, %s string%s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+2))
 	mc.emitIDConditionAppends("  ", idParamName)
@@ -68,7 +68,11 @@ func (mc *msgCtx) generateMultiPatternUndelete() {
 			mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), mc.returningExpr(mc.writeColumns())))
 	}
 	mc.emitEtagFilter()
-	mc.generateUndeleteDirect()
+	if mc.outbox {
+		mc.generateUndeleteWithTransaction()
+	} else {
+		mc.generateUndeleteDirect()
+	}
 	g.P("}")
 	g.P()
 }
@@ -127,6 +131,7 @@ func (mc *msgCtx) generateUndeleteWithTransaction() {
 		g.P(fmt.Sprintf("      return %s(\"restoring %s with %s: %%w\", err)", mc.fmtI("Errorf"), dc.tableName, mc.goName))
 		g.P("    }")
 	}
+	mc.emitJournalWrite("    ", fmt.Sprintf("[]*%s{result}", mc.goTypeFqi))
 	g.P("    return nil")
 	g.P("  }")
 	g.P()

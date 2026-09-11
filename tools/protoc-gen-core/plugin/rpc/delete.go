@@ -16,8 +16,9 @@ func (mc *methodCtx) generateDelete() error {
 		return fmt.Errorf("%s has child resources: %s must declare `bool force` (AIP-135)", mc.pr.Desc.Type, method.Input.Desc.FullName())
 	}
 
-	// Publish helper for deleted events.
-	if mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0 {
+	// Publish helper for deleted events. An outbox resource gets its publishers
+	// with the rest of its delivery, at the resource level.
+	if !mc.outbox && mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0 {
 		mc.generateDeletedEventPublisher()
 	}
 
@@ -54,7 +55,9 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g := mc.g
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	hasDeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
+	// An outbox resource journals its deleted event in the delete's own
+	// transaction; the outbox method publishes it.
+	hasDeletedEvents := !mc.outbox && mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
 
 	g.P(fmt.Sprintf("  deleteTime := %s().UTC()", mc.gen.ident(timePkg, "Now")))
 
@@ -86,6 +89,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	}
 	deleteArgs += mc.forceArg()
 	deleteArgs += ", deleteTime"
+	deleteArgs += mc.journalArg("Deleted")
 	g.P(fmt.Sprintf("  db%s, err := s.store.SoftDelete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
@@ -108,8 +112,14 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g.P("        if err != nil {")
 	g.P("          return nil, err")
 	g.P("        }")
+	// The resource is already a tombstone, so there is no write of its own for
+	// the event to ride on: it is journaled directly, or published inline.
 	if hasDeletedEvents {
 		g.P(fmt.Sprintf("        if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
+		g.P("          return nil, err")
+		g.P("        }")
+	} else if mc.outbox && len(mc.mi.natsEventOpts.GetDeleted()) > 0 {
+		g.P(fmt.Sprintf("        if err := s.journalResourceDeletedEvent(ctx, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
 		g.P("          return nil, err")
 		g.P("        }")
 	}
@@ -147,7 +157,9 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	g := mc.g
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	hasDeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
+	// An outbox resource journals its deleted event in the delete's own
+	// transaction; the outbox method publishes it.
+	hasDeletedEvents := !mc.outbox && mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
 
 	// STEP 2: Hard delete.
 	g.P("  // STEP 2: Hard delete the resource.")
@@ -159,6 +171,7 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 		deleteArgs += ", request.GetEtag()"
 	}
 	deleteArgs += mc.forceArg()
+	deleteArgs += mc.journalArg("Deleted")
 
 	if hasDeletedEvents {
 		g.P(fmt.Sprintf("  db%s, err := s.store.Delete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))

@@ -36,6 +36,7 @@ type EventOptions struct {
 	xxx_hidden_Updated          *[]*EventMethodOptions `protobuf:"bytes,4,rep,name=updated,proto3"`
 	xxx_hidden_Deleted          *[]*EventMethodOptions `protobuf:"bytes,5,rep,name=deleted,proto3"`
 	xxx_hidden_Undeleted        *[]*EventMethodOptions `protobuf:"bytes,6,rep,name=undeleted,proto3"`
+	xxx_hidden_Outbox           bool                   `protobuf:"varint,7,opt,name=outbox,proto3"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -115,6 +116,13 @@ func (x *EventOptions) GetUndeleted() []*EventMethodOptions {
 	return nil
 }
 
+func (x *EventOptions) GetOutbox() bool {
+	if x != nil {
+		return x.xxx_hidden_Outbox
+	}
+	return false
+}
+
 func (x *EventOptions) SetStream(v string) {
 	x.xxx_hidden_Stream = v
 }
@@ -137,6 +145,10 @@ func (x *EventOptions) SetDeleted(v []*EventMethodOptions) {
 
 func (x *EventOptions) SetUndeleted(v []*EventMethodOptions) {
 	x.xxx_hidden_Undeleted = &v
+}
+
+func (x *EventOptions) SetOutbox(v bool) {
+	x.xxx_hidden_Outbox = v
 }
 
 type EventOptions_builder struct {
@@ -162,6 +174,15 @@ type EventOptions_builder struct {
 	// Options for undeleted events, published when a soft-deleted resource is restored via its Undelete method.
 	// If unset, no undeleted event is generated.
 	Undeleted []*EventMethodOptions
+	// If true, this resource's events are not published inline by the RPC that
+	// caused them. They are journaled in the same database transaction as the
+	// write, and a relay hands each one to the scheduler, which delivers it to
+	// the service's outbox method. That method publishes them, so a committed
+	// write and its events can no longer diverge.
+	//
+	// Requires the service to declare an outbox method; see the `outbox` method
+	// extension.
+	Outbox bool
 }
 
 func (b0 EventOptions_builder) Build() *EventOptions {
@@ -174,6 +195,7 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	x.xxx_hidden_Updated = &b.Updated
 	x.xxx_hidden_Deleted = &b.Deleted
 	x.xxx_hidden_Undeleted = &b.Undeleted
+	x.xxx_hidden_Outbox = b.Outbox
 	return m0
 }
 
@@ -296,6 +318,14 @@ var file_malonaz_codegen_nats_v1_nats_proto_extTypes = []protoimpl.ExtensionInfo
 		Tag:           "bytes,74001,opt,name=event",
 		Filename:      "malonaz/codegen/nats/v1/nats.proto",
 	},
+	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         74002,
+		Name:          "malonaz.codegen.nats.v1.outbox",
+		Tag:           "varint,74002,opt,name=outbox",
+		Filename:      "malonaz/codegen/nats/v1/nats.proto",
+	},
 }
 
 // Extension fields to descriptorpb.ServiceOptions.
@@ -314,24 +344,34 @@ var (
 	E_Event = &file_malonaz_codegen_nats_v1_nats_proto_extTypes[1]
 )
 
+// Extension fields to descriptorpb.MethodOptions.
+var (
+	// Whether this method is the service's outbox delivery endpoint.
+	//
+	// optional bool outbox = 74002;
+	E_Outbox = &file_malonaz_codegen_nats_v1_nats_proto_extTypes[2]
+)
+
 var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xfb\x02\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\x93\x03\n" +
 	"\fEventOptions\x12\x1e\n" +
 	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12+\n" +
 	"\x11resource_segments\x18\x02 \x03(\tR\x10resourceSegments\x12E\n" +
 	"\acreated\x18\x03 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\acreated\x12E\n" +
 	"\aupdated\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
 	"\adeleted\x18\x05 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\x12I\n" +
-	"\tundeleted\x18\x06 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\tundeleted\"o\n" +
+	"\tundeleted\x18\x06 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\tundeleted\x12\x16\n" +
+	"\x06outbox\x18\a \x01(\bR\x06outbox\"o\n" +
 	"\x12EventMethodOptions\x12 \n" +
 	"\asubject\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12%\n" +
 	"\x0esubject_fields\x18\x02 \x03(\tR\rsubjectFields\x12\x10\n" +
 	"\x03cel\x18\x03 \x01(\tR\x03cel:Y\n" +
 	"\x06stream\x12\x1f.google.protobuf.ServiceOptions\x18\x90\xc2\x04 \x03(\v2\x1e.malonaz.nats.v1.StreamOptionsR\x06stream:^\n" +
-	"\x05event\x12\x1f.google.protobuf.MessageOptions\x18\x91\xc2\x04 \x01(\v2%.malonaz.codegen.nats.v1.EventOptionsR\x05eventB2Z0github.com/malonaz/core/genproto/codegen/nats/v1b\x06proto3"
+	"\x05event\x12\x1f.google.protobuf.MessageOptions\x18\x91\xc2\x04 \x01(\v2%.malonaz.codegen.nats.v1.EventOptionsR\x05event:8\n" +
+	"\x06outbox\x12\x1e.google.protobuf.MethodOptions\x18\x92\xc2\x04 \x01(\bR\x06outboxB2Z0github.com/malonaz/core/genproto/codegen/nats/v1b\x06proto3"
 
 var file_malonaz_codegen_nats_v1_nats_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_codegen_nats_v1_nats_proto_goTypes = []any{
@@ -339,7 +379,8 @@ var file_malonaz_codegen_nats_v1_nats_proto_goTypes = []any{
 	(*EventMethodOptions)(nil),          // 1: malonaz.codegen.nats.v1.EventMethodOptions
 	(*descriptorpb.ServiceOptions)(nil), // 2: google.protobuf.ServiceOptions
 	(*descriptorpb.MessageOptions)(nil), // 3: google.protobuf.MessageOptions
-	(*v1.StreamOptions)(nil),            // 4: malonaz.nats.v1.StreamOptions
+	(*descriptorpb.MethodOptions)(nil),  // 4: google.protobuf.MethodOptions
+	(*v1.StreamOptions)(nil),            // 5: malonaz.nats.v1.StreamOptions
 }
 var file_malonaz_codegen_nats_v1_nats_proto_depIdxs = []int32{
 	1, // 0: malonaz.codegen.nats.v1.EventOptions.created:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
@@ -348,12 +389,13 @@ var file_malonaz_codegen_nats_v1_nats_proto_depIdxs = []int32{
 	1, // 3: malonaz.codegen.nats.v1.EventOptions.undeleted:type_name -> malonaz.codegen.nats.v1.EventMethodOptions
 	2, // 4: malonaz.codegen.nats.v1.stream:extendee -> google.protobuf.ServiceOptions
 	3, // 5: malonaz.codegen.nats.v1.event:extendee -> google.protobuf.MessageOptions
-	4, // 6: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
-	0, // 7: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	6, // [6:8] is the sub-list for extension type_name
-	4, // [4:6] is the sub-list for extension extendee
+	4, // 6: malonaz.codegen.nats.v1.outbox:extendee -> google.protobuf.MethodOptions
+	5, // 7: malonaz.codegen.nats.v1.stream:type_name -> malonaz.nats.v1.StreamOptions
+	0, // 8: malonaz.codegen.nats.v1.event:type_name -> malonaz.codegen.nats.v1.EventOptions
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	7, // [7:9] is the sub-list for extension type_name
+	4, // [4:7] is the sub-list for extension extendee
 	0, // [0:4] is the sub-list for field type_name
 }
 
@@ -369,7 +411,7 @@ func file_malonaz_codegen_nats_v1_nats_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_nats_v1_nats_proto_rawDesc), len(file_malonaz_codegen_nats_v1_nats_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
-			NumExtensions: 2,
+			NumExtensions: 3,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_codegen_nats_v1_nats_proto_goTypes,

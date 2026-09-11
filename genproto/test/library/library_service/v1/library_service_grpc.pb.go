@@ -63,6 +63,7 @@ const (
 	LibraryService_ListNotes_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListNotes"
 	LibraryService_BatchCreateNotes_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes"
 	LibraryService_BatchGetNotes_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes"
+	LibraryService_DeliverResourceEvent_FullMethodName   = "/malonaz.test.library.library_service.v1.LibraryService/DeliverResourceEvent"
 )
 
 // LibraryServiceClient is the client API for LibraryService service.
@@ -181,6 +182,10 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error)
+	// Publishes one journaled resource event. Resources that opt into the outbox
+	// journal their events in the transaction of the write that caused them; the
+	// relay hands each entry to the scheduler, which delivers it here.
+	DeliverResourceEvent(ctx context.Context, in *DeliverResourceEventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type libraryServiceClient struct {
@@ -601,6 +606,16 @@ func (c *libraryServiceClient) BatchGetNotes(ctx context.Context, in *BatchGetNo
 	return out, nil
 }
 
+func (c *libraryServiceClient) DeliverResourceEvent(ctx context.Context, in *DeliverResourceEventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LibraryService_DeliverResourceEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility.
@@ -717,6 +732,10 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error)
+	// Publishes one journaled resource event. Resources that opt into the outbox
+	// journal their events in the transaction of the write that caused them; the
+	// relay hands each entry to the scheduler, which delivers it here.
+	DeliverResourceEvent(context.Context, *DeliverResourceEventRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have
@@ -848,6 +867,9 @@ func (UnimplementedLibraryServiceServer) BatchCreateNotes(context.Context, *Batc
 }
 func (UnimplementedLibraryServiceServer) BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetNotes not implemented")
+}
+func (UnimplementedLibraryServiceServer) DeliverResourceEvent(context.Context, *DeliverResourceEventRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverResourceEvent not implemented")
 }
 func (UnimplementedLibraryServiceServer) testEmbeddedByValue() {}
 
@@ -1607,6 +1629,24 @@ func _LibraryService_BatchGetNotes_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_DeliverResourceEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverResourceEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).DeliverResourceEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_DeliverResourceEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).DeliverResourceEvent(ctx, req.(*DeliverResourceEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1777,6 +1817,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetNotes",
 			Handler:    _LibraryService_BatchGetNotes_Handler,
+		},
+		{
+			MethodName: "DeliverResourceEvent",
+			Handler:    _LibraryService_DeliverResourceEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

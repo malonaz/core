@@ -12,6 +12,7 @@ go_library(
         "library_service_grpc.pb.go",
         "library_service_nats.pb.go",
         "note.pb.go",
+        "outbox.pb.go",
         "shelf.pb.go",
     ],
     visibility = ["//..."],

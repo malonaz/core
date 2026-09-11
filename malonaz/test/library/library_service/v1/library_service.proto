@@ -15,6 +15,7 @@ import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
 import "malonaz/test/library/library_service/v1/book_review.proto";
 import "malonaz/test/library/library_service/v1/note.proto";
+import "malonaz/test/library/library_service/v1/outbox.proto";
 import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/author.proto";
 import "malonaz/test/library/v1/author_profile.proto";
@@ -484,5 +485,23 @@ service LibraryService {
     };
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // ===================== Outbox =====================
+
+  // Publishes one journaled resource event. Resources that opt into the outbox
+  // journal their events in the transaction of the write that caused them; the
+  // relay hands each entry to the scheduler, which delivers it here.
+  rpc DeliverResourceEvent(DeliverResourceEventRequest) returns (google.protobuf.Empty) {
+    option (malonaz.codegen.nats.v1.outbox) = true;
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 10}
+      max_attempts: 5
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 2}
+        multiplier: 2
+      }
+    };
   }
 }

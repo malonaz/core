@@ -38,6 +38,10 @@ func (s *BookmarkServiceServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// Close stops the BookmarkService's background work.
+func (s *BookmarkServiceServer) Close() {
+}
+
 type bookmarkService_BookmarkStore interface {
 	BatchInsertBookmarks(ctx context.Context, requestIDs []string, bookmarks []*model.Bookmark) ([]*model.Bookmark, error)
 	UpdateBookmark(ctx context.Context, bookmark *model.Bookmark, updateClause string, columns []string, etag string) (*model.Bookmark, error)

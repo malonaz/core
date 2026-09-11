@@ -768,3 +768,34 @@ func singletonPatternUnder(child, parent *resource.ParsedResource) *resource.Par
 	}
 	return nil
 }
+
+// JournalTableName is the one table a schema's outbox resources journal their
+// events into: a single journal per schema, whatever resources write to it.
+const JournalTableName = "journal"
+
+// Journal returns the journal table of a resource table's schema.
+func Journal(table Table) Table {
+	return Table{Schema: table.Schema, Name: JournalTableName}
+}
+
+// JournalTableVar is the Go constant a store holds a schema's journal table
+// name in.
+func JournalTableVar(schemaName string) string {
+	return xstrings.ToCamelCase(schemaName) + "JournalTable"
+}
+
+// JournalListFN is the store method returning a schema's undelivered entries.
+func JournalListFN(schemaName string) string {
+	return "List" + xstrings.ToPascalCase(schemaName) + "JournalEntries"
+}
+
+// JournalWriteFN is the store method journaling events about rows that are
+// already committed, outside any write's transaction.
+func JournalWriteFN(schemaName string) string {
+	return "Write" + xstrings.ToPascalCase(schemaName) + "JournalEntries"
+}
+
+// JournalDeleteFN is the store method clearing a schema's delivered entries.
+func JournalDeleteFN(schemaName string) string {
+	return "Delete" + xstrings.ToPascalCase(schemaName) + "JournalEntries"
+}

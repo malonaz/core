@@ -31,6 +31,9 @@ message Shelf {
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.v1.shelf"
     resource_segments: ["organization"]
+    // Journaled in the write's own transaction and published by
+    // LibraryService.DeliverResourceEvent.
+    outbox: true
     created: {
       subject: "created"
       subject_fields: ["genre"]

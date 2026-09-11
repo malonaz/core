@@ -7,6 +7,8 @@ import (
 	fmt "fmt"
 	v5 "github.com/jackc/pgx/v5"
 	model "github.com/malonaz/core/gengo/test/library/model"
+	v1 "github.com/malonaz/core/genproto/aip/v1"
+	outbox "github.com/malonaz/core/go/outbox"
 	postgres "github.com/malonaz/core/go/postgres"
 	strings "strings"
 	time "time"
@@ -16,6 +18,26 @@ var (
 	ShelfPostgresColumns      = postgres.GetDBColumns(model.Shelf{})
 	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title", "latest_draft_book"))
 )
+
+// libraryJournalTable is the outbox journal of the library schema: one row per event a write
+// journaled, cleared once the relay has handed it to the scheduler.
+const libraryJournalTable = "library.journal"
+
+// ListLibraryJournalEntries returns the oldest undelivered entries of the library journal.
+func (s *Store) ListLibraryJournalEntries(ctx context.Context, limit int) ([]*outbox.Entry, error) {
+	return outbox.List(ctx, s.client, libraryJournalTable, limit)
+}
+
+// WriteLibraryJournalEntries journals events about rows that are already committed,
+// which a write's own transaction is not there to carry.
+func (s *Store) WriteLibraryJournalEntries(ctx context.Context, events []*v1.ResourceEvent) error {
+	return outbox.Write(ctx, s.client, libraryJournalTable, events)
+}
+
+// DeleteLibraryJournalEntries clears the entries the relay has delivered.
+func (s *Store) DeleteLibraryJournalEntries(ctx context.Context, ids []string) error {
+	return outbox.Delete(ctx, s.client, libraryJournalTable, ids)
+}
 
 var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book,(SELECT book.title FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book_title,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.title LIKE 'Draft%') ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_draft_book`
 var shelfJoinSelectExprs = `,best_book.page_count AS best_book_page_count,latest_book.name AS latest_book,latest_book.title AS latest_book_title,latest_draft_book.name AS latest_draft_book`
@@ -69,7 +91,7 @@ func orderShelvesByRequestID(requestIDs []string, rows []*ShelfWithRequestID) ([
 	return ordered, nil
 }
 
-func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf) ([]*model.Shelf, error) {
+func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf, journal outbox.EventFn[*model.Shelf]) ([]*model.Shelf, error) {
 	n := len(shelves)
 	if len(requestIDs) != n {
 		return nil, fmt.Errorf("mismatched slice lengths")
@@ -101,6 +123,13 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 			return err
 		}
 
+		events, err := journal(inserted)
+		if err != nil {
+			return err
+		}
+		if err := outbox.Write(ctx, tx, libraryJournalTable, events); err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -130,7 +159,7 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 var updateShelfPostgresQuery = `UPDATE library.shelf SET #update_clause# WHERE #where_clause# RETURNING ` +
 	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
-func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClause string, updateColumns []string) (*model.Shelf, error) {
+func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClause string, updateColumns []string, journal outbox.EventFn[*model.Shelf]) (*model.Shelf, error) {
 	updateParams := postgres.GetParams(_shelf, updateColumns...)
 
 	query := strings.Replace(updateShelfPostgresQuery, "#update_clause#", updateClause, 1)
@@ -143,31 +172,47 @@ func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClau
 		_shelf.ShelfID,
 	)
 
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			live, probeErr := s.probeShelf(ctx, s.client, _shelf.OrganizationID, _shelf.ShelfID)
-			if probeErr != nil {
-				return nil, probeErr
-			}
-			if !live {
-				return nil, model.ErrShelfNotExist
-			}
-			return nil, fmt.Errorf("update matched no rows but shelf exists")
+	var result *model.Shelf
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return err
 		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				live, probeErr := s.probeShelf(ctx, tx, _shelf.OrganizationID, _shelf.ShelfID)
+				if probeErr != nil {
+					return probeErr
+				}
+				if !live {
+					return model.ErrShelfNotExist
+				}
+				return fmt.Errorf("update matched no rows but shelf exists")
+			}
+			return err
+		}
+		events, err := journal([]*model.Shelf{result})
+		if err != nil {
+			return err
+		}
+		if err := outbox.Write(ctx, tx, libraryJournalTable, events); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	return row, nil
+	return result, nil
 }
 
 var softDeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = $3 WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NULL RETURNING ` +
 	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
-func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error) {
+func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time, journal outbox.EventFn[*model.Shelf]) (*model.Shelf, error) {
 	query := softDeleteShelfPostgresQuery
 	params := []any{organizationId, shelfId, deleteTime}
 	var result *model.Shelf
@@ -214,6 +259,13 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 			return fmt.Errorf("cascading shelf delete to library.note: %w", err)
 		}
 
+		events, err := journal([]*model.Shelf{result})
+		if err != nil {
+			return err
+		}
+		if err := outbox.Write(ctx, tx, libraryJournalTable, events); err != nil {
+			return err
+		}
 		return nil
 	}
 
@@ -226,28 +278,44 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 var undeleteShelfPostgresQuery = `UPDATE library.shelf SET delete_time = NULL WHERE organization_id = $1 AND shelf_id = $2 AND delete_time IS NOT NULL RETURNING ` +
 	strings.Join(ShelfWritePostgresColumns, ",") + shelfJoinSubqueryExpr
 
-func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {
+func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId string, journal outbox.EventFn[*model.Shelf]) (*model.Shelf, error) {
 	query := undeleteShelfPostgresQuery
 	params := []any{organizationId, shelfId}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("undeleting shelf: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			live, probeErr := s.probeShelf(ctx, s.client, organizationId, shelfId)
-			if probeErr != nil {
-				return nil, probeErr
-			}
-			if live {
-				return nil, model.ErrShelfNotDeleted
-			}
-			return nil, fmt.Errorf("undelete matched no rows but shelf is deleted")
+	var result *model.Shelf
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("undeleting shelf: %w", err)
 		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				live, probeErr := s.probeShelf(ctx, tx, organizationId, shelfId)
+				if probeErr != nil {
+					return probeErr
+				}
+				if live {
+					return model.ErrShelfNotDeleted
+				}
+				return fmt.Errorf("undelete matched no rows but shelf is deleted")
+			}
+			return err
+		}
+		events, err := journal([]*model.Shelf{result})
+		if err != nil {
+			return err
+		}
+		if err := outbox.Write(ctx, tx, libraryJournalTable, events); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	return row, nil
+	return result, nil
 }
 
 func (s *Store) GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error) {

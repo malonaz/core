@@ -57,6 +57,11 @@ message Codegen {
     // Returns google.longrunning.Operation from some methods; requires a grpc_client dependency on
     // scheduler-service.
     bool longrunning = 5;
+
+    // Journals the events of some resources rather than publishing them inline, and declares the
+    // outbox method the scheduler delivers them to; requires nats and a grpc_client dependency on
+    // scheduler-service.
+    bool outbox = 6;
   }
 }
 

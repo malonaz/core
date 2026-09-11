@@ -14,8 +14,8 @@ func (mc *msgCtx) generateUpdate() {
 	g.P(returning)
 	g.P()
 
-	g.P(fmt.Sprintf("func (s *Store) Update%s(ctx context.Context, %s *%s, updateClause string, updateColumns []string%s) (*%s, error) {",
-		mc.goType, mc.goParam, mc.goTypeFqi, mc.etagMatchParam(), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) Update%s(ctx context.Context, %s *%s, updateClause string, updateColumns []string%s%s) (*%s, error) {",
+		mc.goType, mc.goParam, mc.goTypeFqi, mc.etagMatchParam(), mc.journalParam(), mc.goTypeFqi))
 
 	if mc.multiPattern {
 		mc.generateMultiPatternUpdateBody()
@@ -23,6 +23,25 @@ func (mc *msgCtx) generateUpdate() {
 		mc.generateSinglePatternUpdateBody()
 	}
 
+	// A tombstone reads as not existing: Update only ever addresses live rows.
+	ids := mc.patternVarFieldAccess()
+	if mc.multiPattern {
+		ids = mc.patternVarIDsGoTrue()
+	}
+	unexpected := fmt.Sprintf("%s(\"update matched no rows but %s exists\")", mc.fmtI("Errorf"), mc.goName)
+
+	if mc.outbox {
+		mc.generateUpdateWithTransaction(ids, unexpected)
+	} else {
+		mc.generateUpdateDirect(ids, unexpected)
+	}
+
+	g.P("}")
+	g.P()
+}
+
+func (mc *msgCtx) generateUpdateDirect(ids, unexpected string) {
+	g := mc.g
 	g.P("  rows, err := s.client.Query(ctx, query, params...)")
 	g.P("  if err != nil {")
 	g.P("    return nil, err")
@@ -30,18 +49,41 @@ func (mc *msgCtx) generateUpdate() {
 	g.P(fmt.Sprintf("  row, err := %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if err == %s {", mc.pgx("ErrNoRows")))
-	// A tombstone reads as not existing: Update only ever addresses live rows.
-	ids := mc.patternVarFieldAccess()
-	if mc.multiPattern {
-		ids = mc.patternVarIDsGoTrue()
-	}
-	mc.emitNoRowsProbe(ids, false, true, mc.errNotExist, fmt.Sprintf("%s(\"update matched no rows but %s exists\")", mc.fmtI("Errorf"), mc.goName))
+	mc.emitNoRowsProbe(ids, false, true, mc.errNotExist, unexpected)
 	g.P("    }")
 	g.P("    return nil, err")
 	g.P("  }")
 	g.P("  return row, nil")
-	g.P("}")
+}
+
+// generateUpdateWithTransaction runs the update and the journaling of its
+// event as one transaction, so the row and the event it announces commit
+// together.
+func (mc *msgCtx) generateUpdateWithTransaction(ids, unexpected string) {
+	g := mc.g
+
+	g.P(fmt.Sprintf("  var result *%s", mc.goTypeFqi))
+	g.P(fmt.Sprintf("  transactionFN := func(tx %s) error {", mc.postgres("Tx")))
+	g.P("    result = nil")
+	g.P("    rows, err := tx.Query(ctx, query, params...)")
+	g.P("    if err != nil {")
+	g.P("      return err")
+	g.P("    }")
+	g.P(fmt.Sprintf("    result, err = %s(rows, %s[%s])", mc.pgx("CollectOneRow"), mc.pgx("RowToAddrOfStructByNameLax"), mc.goTypeFqi))
+	g.P("    if err != nil {")
+	g.P(fmt.Sprintf("      if err == %s {", mc.pgx("ErrNoRows")))
+	mc.emitNoRowsProbe(ids, true, true, mc.errNotExist, unexpected)
+	g.P("      }")
+	g.P("      return err")
+	g.P("    }")
+	mc.emitJournalWrite("    ", fmt.Sprintf("[]*%s{result}", mc.goTypeFqi))
+	g.P("    return nil")
+	g.P("  }")
 	g.P()
+	g.P(fmt.Sprintf("  if err := s.client.ExecuteTransaction(ctx, %s, transactionFN); err != nil {", mc.postgres("ReadCommitted")))
+	g.P("    return nil, err")
+	g.P("  }")
+	g.P("  return result, nil")
 }
 
 func (mc *msgCtx) generateSinglePatternUpdateBody() {

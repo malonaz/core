@@ -24,6 +24,15 @@ extend google.protobuf.MessageOptions {
   EventOptions event = 74001;
 }
 
+// Extension marking the RPC that delivers journaled resource events.
+// A service whose resources opt into the outbox declares exactly one such
+// method; the code generator implements it, and the scheduler delivers each
+// journaled event to it.
+extend google.protobuf.MethodOptions {
+  // Whether this method is the service's outbox delivery endpoint.
+  bool outbox = 74002;
+}
+
 // Extension to annotate a protobuf resource message with NATS event generation options.
 // When set, the code generator emits typed NATS JetStream event messages
 // for the specified standard AIP methods (create, update, delete).
@@ -53,6 +62,16 @@ message EventOptions {
   // Options for undeleted events, published when a soft-deleted resource is restored via its Undelete method.
   // If unset, no undeleted event is generated.
   repeated EventMethodOptions undeleted = 6;
+
+  // If true, this resource's events are not published inline by the RPC that
+  // caused them. They are journaled in the same database transaction as the
+  // write, and a relay hands each one to the scheduler, which delivers it to
+  // the service's outbox method. That method publishes them, so a committed
+  // write and its events can no longer diverge.
+  //
+  // Requires the service to declare an outbox method; see the `outbox` method
+  // extension.
+  bool outbox = 7;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.

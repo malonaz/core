@@ -58,6 +58,7 @@ Production-ready Go packages:
 | `logging` | Structured logging |
 | `mock` | gRPC and HTTP mock servers |
 | `nats` | NATS client abstractions |
+| `outbox` | Transactional outbox: journaled resource events and their relay |
 | `pbutil` | Protobuf utilities |
 | `pgq` | PostgreSQL query builder |
 | `postgres` | PostgreSQL client with connection pooling |

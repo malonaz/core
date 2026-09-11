@@ -2,11 +2,16 @@
 package nats
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	natspb "github.com/malonaz/core/genproto/codegen/nats/v1"
+	"github.com/malonaz/core/go/pbutil"
 )
 
 var (
@@ -57,4 +62,27 @@ func GenerateStreamSingleton(g *protogen.GeneratedFile, streamFQN, streamGoName 
 	g.P("  return s.stream")
 	g.P("}")
 	g.P()
+}
+
+// EventOptions returns a message's NATS event options, nil when it declares
+// none.
+func EventOptions(message *protogen.Message) (*natspb.EventOptions, error) {
+	eventOptions, err := pbutil.GetExtension[*natspb.EventOptions](message.Desc.Options(), natspb.E_Event)
+	if err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("getting nats event opts for %s: %w", message.GoIdent.GoName, err)
+	}
+	return eventOptions, nil
+}
+
+// Outbox reports whether a message's events are journaled in the transaction
+// of the write that caused them, rather than published inline by the RPC.
+func Outbox(message *protogen.Message) (bool, error) {
+	eventOptions, err := EventOptions(message)
+	if err != nil {
+		return false, err
+	}
+	return eventOptions.GetOutbox(), nil
 }

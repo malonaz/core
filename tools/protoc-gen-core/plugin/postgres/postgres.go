@@ -11,6 +11,7 @@ import (
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
@@ -24,10 +25,14 @@ var (
 	contextPkg  = protogen.GoImportPath("context")
 
 	storeGenerated bool
+	// journalsGenerated names the schemas whose journal has been emitted: one
+	// journal serves every outbox resource of a schema.
+	journalsGenerated map[string]bool
 )
 
 func ResetState() {
 	storeGenerated = false
+	journalsGenerated = map[string]bool{}
 }
 
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
@@ -107,6 +112,15 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	}
 	g.P(")")
 	g.P()
+
+	// One journal per schema, whatever outbox resources of it this file holds.
+	for _, mc := range msgCtxs {
+		if !mc.outbox || journalsGenerated[mc.schemaName] {
+			continue
+		}
+		journalsGenerated[mc.schemaName] = true
+		gen.generateJournal(schema.TableOf(mc.pr, mc.modelOpts))
+	}
 
 	for _, mc := range msgCtxs {
 		if mc.hasJoins {
@@ -232,6 +246,12 @@ type msgCtx struct {
 	hasEtag       bool
 	hasDeleteTime bool
 
+	// outbox is true when the resource's events are journaled in the
+	// transaction of the write that caused them, rather than published inline.
+	outbox bool
+	// schemaName is the schema the resource's table, and so its journal, lives in.
+	schemaName string
+
 	singletonChildren []*childCtx
 	// descendants are deleted alongside the resource, deepest first.
 	descendants []*descendantCtx
@@ -314,6 +334,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 	hasJoins := len(joins) > 0
 
+	outbox, err := nats.Outbox(message)
+	if err != nil {
+		return nil, err
+	}
+
 	if multiPattern {
 		if hasJoins {
 			return nil, fmt.Errorf("multi-pattern resource %s cannot declare joins", goType)
@@ -361,6 +386,9 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
 		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
+
+		outbox:     outbox,
+		schemaName: table.SchemaOrPublic(),
 
 		singletonChildren: singletonChildren,
 		descendants:       descendants,

@@ -123,9 +123,10 @@ func (g *generator) generate() error {
 		return err
 	}
 
-	// Long-running methods hand their operations to the scheduler.
+	// Long-running methods hand their operations to the scheduler, and outbox
+	// relays hand it their journaled events.
 	var schedulerClient string
-	var longrunning bool
+	var longrunning, outbox bool
 	for _, dep := range g.m.GetDependencies() {
 		if client := dep.GetGrpcClient(); client != nil && client.GetService() == "scheduler-service" {
 			schedulerClient = gen.Camel(clientName(client)) + "Client"
@@ -135,9 +136,15 @@ func (g *generator) generate() error {
 		if codegen.GetRpc().GetLongrunning() {
 			longrunning = true
 		}
+		if codegen.GetRpc().GetOutbox() {
+			outbox = true
+		}
 	}
 	if longrunning && schedulerClient == "" {
 		return fmt.Errorf("a longrunning codegen requires a grpc_client dependency on scheduler-service")
+	}
+	if outbox && schedulerClient == "" {
+		return fmt.Errorf("an outbox codegen requires a grpc_client dependency on scheduler-service")
 	}
 
 	if g.m.GetIncludeRuntime() {
@@ -202,9 +209,12 @@ func (g *generator) generate() error {
 		if rpc.GetNats() {
 			args = append(args, "natsClient")
 		}
+		if rpc.GetLongrunning() || rpc.GetOutbox() {
+			args = append(args, schedulerClient)
+		}
 		if rpc.GetLongrunning() {
 			// The service itself is the runner: it implements Run{Method} for each long-running method.
-			args = append(args, schedulerClient, "service")
+			args = append(args, "service")
 		}
 		server := gen.Pascal(rpc.GetName()) + "Server"
 		g.P("service.", server, " = ", g.Qual(g.goPath(rpc.GetTarget()), "New"+server), "(", strings.Join(args, ", "), ")")
@@ -224,7 +234,23 @@ func (g *generator) generate() error {
 		g.P("return nil, ", g.Qual("fmt", "Errorf"), `("starting `, rpc.GetName(), ` server: %w", err)`)
 		g.P("}")
 	}
-	g.P("return s.start(ctx)")
+	if len(g.m.GetCodegens()) == 0 {
+		g.P("return s.start(ctx)")
+		g.P("}")
+		return nil
+	}
+	g.P("cleanup, err := s.start(ctx)")
+	g.P("if err != nil {")
+	g.P("return nil, err")
+	g.P("}")
+	// The servers' background work is stopped after the service's own, in
+	// reverse start order.
+	g.P("return func() {")
+	g.P("cleanup()")
+	for i := len(g.m.GetCodegens()) - 1; i >= 0; i-- {
+		g.P("s.", gen.Pascal(g.m.GetCodegens()[i].GetRpc().GetName()), "Server.Close()")
+	}
+	g.P("}, nil")
 	g.P("}")
 	return nil
 }

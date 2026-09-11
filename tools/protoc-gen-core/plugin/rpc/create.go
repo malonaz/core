@@ -178,7 +178,8 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 // `s.store.BatchInsertAuthors(ctx, requestIDs, authorModels, authorProfileModels)`.
 func (mc *methodCtx) batchInsertCall(requestIDs string, modelSlices []string) string {
 	args := append([]string{"ctx", requestIDs}, modelSlices...)
-	return fmt.Sprintf("s.store.BatchInsert%s(%s)", mc.pr.PluralGoName(), strings.Join(args, ", "))
+	call := fmt.Sprintf("s.store.BatchInsert%s(%s%s)", mc.pr.PluralGoName(), strings.Join(args, ", "), mc.journalArg("Created"))
+	return call
 }
 
 // generateInsertErrorMapping emits the status mapping of a store insert error.
@@ -301,7 +302,9 @@ func (mc *methodCtx) generateMultiPatternCreateName(errReturn string) error {
 // generateCreatedEvents publishes the created events of the resource held in
 // resourceVar.
 func (mc *methodCtx) generateCreatedEvents(resourceVar string) {
-	if mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetCreated()) == 0 {
+	// An outbox resource journals its events in the insert's own transaction;
+	// the outbox method publishes them.
+	if mc.outbox || mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetCreated()) == 0 {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")

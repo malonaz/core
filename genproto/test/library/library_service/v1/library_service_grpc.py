@@ -22,6 +22,7 @@ import malonaz.test.library.library_service.v1.author_profile_pb2
 import malonaz.test.library.library_service.v1.book_pb2
 import malonaz.test.library.library_service.v1.book_review_pb2
 import malonaz.test.library.library_service.v1.note_pb2
+import malonaz.test.library.library_service.v1.outbox_pb2
 import malonaz.test.library.library_service.v1.shelf_pb2
 import malonaz.test.library.v1.author_pb2
 import malonaz.test.library.v1.author_profile_pb2
@@ -196,6 +197,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeliverResourceEvent(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.outbox_pb2.DeliverResourceEventRequest, google.protobuf.empty_pb2.Empty]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -445,6 +450,12 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/DeliverResourceEvent': grpclib.const.Handler(
+                self.DeliverResourceEvent,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.outbox_pb2.DeliverResourceEventRequest,
+                google.protobuf.empty_pb2.Empty,
             ),
         }
 
@@ -697,4 +708,10 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes',
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+        )
+        self.DeliverResourceEvent = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/DeliverResourceEvent',
+            malonaz.test.library.library_service.v1.outbox_pb2.DeliverResourceEventRequest,
+            google.protobuf.empty_pb2.Empty,
         )

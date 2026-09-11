@@ -49,7 +49,23 @@ type serviceInfo struct {
 	natsResources map[string]bool // resource types that require nats client
 	// Methods returning google.longrunning.Operation, in declaration order.
 	lroMethods []*longrunningMethod
+	// outboxMethod is the RPC the scheduler delivers journaled events to.
+	outboxMethod *outboxMethod
+	// outboxSchemas are the distinct database schemas the service journals
+	// into: one journal, and so one relay, per schema.
+	outboxSchemas []string
+	// outboxDeliveries are the resources the outbox method routes to, in
+	// declaration order.
+	outboxDeliveries []outboxDelivery
 }
+
+// outbox reports whether the service journals any of its events, which gives
+// its server a scheduler client and a relay per journal.
+func (si *serviceInfo) outbox() bool { return len(si.outboxSchemas) > 0 }
+
+// schedulerClient reports whether the server holds a scheduler client: long-
+// running methods hand it their operations, outbox relays their events.
+func (si *serviceInfo) schedulerClient() bool { return si.longrunning() || si.outbox() }
 
 // longrunning reports whether the service has long-running methods, which give
 // its server a scheduler client and a runner.
@@ -89,7 +105,19 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		si.natsStream = len(streamOptionsList) > 0
 
 		resourceSet := map[string]bool{}
+		outboxSchemas := map[string]bool{}
 		for _, method := range svc.Methods {
+			outbox, err := parseOutboxMethod(method)
+			if err != nil {
+				return err
+			}
+			if outbox != nil {
+				if si.outboxMethod != nil {
+					return fmt.Errorf("%s declares more than one outbox method: %s and %s", svc.GoName, si.outboxMethod.method.GoName, outbox.method.GoName)
+				}
+				si.outboxMethod = outbox
+				continue
+			}
 			lro, err := parseLongrunningMethod(method)
 			if err != nil {
 				return err
@@ -117,6 +145,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 				}
 				si.natsResources[pr.Desc.Type] = true
 			}
+			if natsEventOpts.GetOutbox() {
+				schemaName, err := schemaOf(rpc.Message, pr)
+				if err != nil {
+					return err
+				}
+				outboxSchemas[schemaName] = true
+			}
 
 			if !resourceSet[pr.Desc.Singular] {
 				resourceSet[pr.Desc.Singular] = true
@@ -126,7 +161,11 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			mi := &methodInfo{method: method, rpc: rpc, natsEventOpts: natsEventOpts}
 			allMethods = append(allMethods, methodEntry{si: si, mi: mi})
 		}
+		si.outboxSchemas = sortedSchemas(outboxSchemas)
 		if err := requireUndelete(si); err != nil {
+			return err
+		}
+		if err := requireOutboxMethod(si); err != nil {
 			return err
 		}
 		if len(si.resources) > 0 || si.longrunning() {
@@ -173,13 +212,15 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 	}
 
-	// Phase 4: Generate the long-running handlers.
+	// Phase 4: Generate the long-running handlers and the outbox delivery,
+	// which routes into the per-resource deliveries phase 3 emitted.
 	for _, si := range services {
 		for _, lro := range si.lroMethods {
 			if err := gen.generateLongrunning(si, lro); err != nil {
 				return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
 			}
 		}
+		gen.generateOutboxDelivery(si)
 	}
 
 	return nil
@@ -224,6 +265,7 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  %s_%sStore", svcNameUntitled, pr.SingularGoName()))
 	}
+	gen.generateOutboxStoreInterface(si)
 	g.P("}")
 	g.P()
 
@@ -232,9 +274,15 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	if si.natsStream {
 		g.P(fmt.Sprintf("  natsClient *%s", gen.ident(natsPkg, "Client")))
 	}
-	if si.longrunning() {
+	if si.schedulerClient() {
 		g.P(fmt.Sprintf("  schedulerServiceClient %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient")))
+	}
+	if si.longrunning() {
 		g.P(fmt.Sprintf("  runner %s", runnerGoName(si)))
+	}
+	if si.outbox() {
+		g.P(fmt.Sprintf("  store %sStore", svcNameUntitled))
+		g.P(fmt.Sprintf("  outboxRelays []*%s", gen.ident(outboxPkg, "Relay")))
 	}
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  *%s_%sServer", svcNameUntitled, pr.SingularGoName()))
@@ -247,17 +295,25 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	if si.natsStream {
 		params += fmt.Sprintf(", natsClient *%s", gen.ident(natsPkg, "Client"))
 	}
+	if si.schedulerClient() {
+		params += fmt.Sprintf(", schedulerServiceClient %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient"))
+	}
 	if si.longrunning() {
-		params += fmt.Sprintf(", schedulerServiceClient %s, runner %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient"), runnerGoName(si))
+		params += fmt.Sprintf(", runner %s", runnerGoName(si))
 	}
 	g.P(fmt.Sprintf("func New%sServer(%s) *%sServer {", svcName, params, svcName))
 	g.P(fmt.Sprintf("  return &%sServer{", svcName))
 	if si.natsStream {
 		g.P("    natsClient: natsClient,")
 	}
-	if si.longrunning() {
+	if si.schedulerClient() {
 		g.P("    schedulerServiceClient: schedulerServiceClient,")
+	}
+	if si.longrunning() {
 		g.P("    runner: runner,")
+	}
+	if si.outbox() {
+		g.P("    store: store,")
 	}
 	for _, pr := range si.resources {
 		natsArg := ""
@@ -291,9 +347,12 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		g.P("    }")
 		g.P("  }")
 	}
+	gen.generateOutboxRelays(si)
 	g.P("  return nil")
 	g.P("}")
 	g.P()
+
+	gen.generateOutboxClose(si)
 }
 
 // generateResourceLevel emits the per-resource store interface, server struct, and constructor.
@@ -320,6 +379,10 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// Store interface.
 	g.P(fmt.Sprintf("type %s interface {", storeIface))
+	if mc.outbox && len(mi.natsEventOpts.GetDeleted()) > 0 {
+		g.P(fmt.Sprintf("  %s(ctx %s, events []*%s) error",
+			schema.JournalWriteFN(mc.schemaName), gen.ident(contextPkg, "Context"), gen.ident(aipGenPkg, "ResourceEvent")))
+	}
 
 	// BatchInsert: Create is a single-element batch. A singleton is inserted by
 	// its parent's BatchInsert and has no insert of its own.
@@ -329,6 +392,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		for _, child := range mc.singletonChildren {
 			insertSig += fmt.Sprintf(", %s []*%s", xstrings.ToCamelCase(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
 		}
+		insertSig += mc.journalParam("createdEvents")
 		insertSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
 		g.P(insertSig)
 	}
@@ -339,6 +403,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	if mc.hasEtag {
 		updateSig += ", etag string"
 	}
+	updateSig += mc.journalParam("updatedEvents")
 	updateSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 	g.P(updateSig)
 
@@ -351,7 +416,9 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 				deleteSig += ", etag, newEtag string"
 			}
 			deleteSig += mc.forceParam()
-			deleteSig += fmt.Sprintf(", deleteTime %s) (*%s, error)", gen.ident(timePkg, "Time"), goTypeQgi)
+			deleteSig += fmt.Sprintf(", deleteTime %s", gen.ident(timePkg, "Time"))
+			deleteSig += mc.journalParam("deletedEvents")
+			deleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 			g.P(deleteSig)
 		} else {
 			deleteSig := fmt.Sprintf("  Delete%s(ctx %s, %s string",
@@ -360,6 +427,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 				deleteSig += ", etag string"
 			}
 			deleteSig += mc.forceParam()
+			deleteSig += mc.journalParam("deletedEvents")
 			deleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 			g.P(deleteSig)
 		}
@@ -372,6 +440,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		if mc.hasEtag {
 			undeleteSig += ", etag, newEtag string"
 		}
+		undeleteSig += mc.journalParam("undeletedEvents")
 		undeleteSig += fmt.Sprintf(") (*%s, error)", goTypeQgi)
 		g.P(undeleteSig)
 	}
@@ -462,6 +531,11 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	g.P("  }")
 	g.P("}")
 	g.P()
+
+	if mc.outbox {
+		mc.generateOutboxResourceLevel()
+		si.outboxDeliveries = append(si.outboxDeliveries, outboxDelivery{message: mi.rpc.Message, deliverFN: mc.deliverFN()})
+	}
 
 	if createRequest != nil {
 		return mc.generatePrepareCreate(gen.qgi(createRequest.GoIdent))
@@ -621,6 +695,20 @@ type methodCtx struct {
 
 	singletonChildren []schema.SingletonChild
 	natsStreamGoName  string
+	// outbox is true when the resource's events are journaled in the
+	// transaction of the write that caused them, rather than published inline.
+	outbox bool
+	// schemaName is the schema the resource's journal lives in; set with outbox.
+	schemaName string
+}
+
+// journalParam is the trailing store parameter of an outbox resource's writes:
+// the builder of the events journaled in the write's own transaction.
+func (mc *methodCtx) journalParam(kind string) string {
+	if !mc.outbox {
+		return ""
+	}
+	return fmt.Sprintf(", %s %s[*%s]", xstrings.ToCamelCase(kind), mc.gen.ident(outboxPkg, "EventFn"), mc.goTypeQgi)
 }
 
 func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx, error) {
@@ -643,6 +731,14 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	var natsStreamGoName string
 	if mi.natsEventOpts != nil {
 		natsStreamGoName = nats.StreamGoName(mi.natsEventOpts.GetStream())
+	}
+
+	var schemaName string
+	if mi.natsEventOpts.GetOutbox() {
+		schemaName, err = schemaOf(mi.rpc.Message, pr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	singletonChildren, err := schema.SingletonChildren(mi.rpc.Message, pr)
@@ -702,6 +798,8 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 
 		singletonChildren: singletonChildren,
 		natsStreamGoName:  natsStreamGoName,
+		outbox:            mi.natsEventOpts.GetOutbox(),
+		schemaName:        schemaName,
 	}, nil
 }
 

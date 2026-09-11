@@ -22,7 +22,10 @@ func (mc *methodCtx) generateUndelete() error {
 		return fmt.Errorf("%s has an etag: %s must declare `string etag` (AIP-154)", pr.Desc.Type, method.Input.Desc.FullName())
 	}
 
-	hasUndeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetUndeleted()) > 0
+	// An outbox resource journals its undeleted event in the undelete's own
+	// transaction; the outbox method publishes it, and gets its publishers with
+	// the rest of its delivery at the resource level.
+	hasUndeletedEvents := !mc.outbox && mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetUndeleted()) > 0
 	if hasUndeletedEvents {
 		mc.generateUndeletedEventPublisher()
 	}
@@ -64,6 +67,7 @@ func (mc *methodCtx) generateUndelete() error {
 		g.P()
 		undeleteArgs += ", request.GetEtag(), newEtag"
 	}
+	undeleteArgs += mc.journalArg("Undeleted")
 
 	g.P("  // STEP 2: Undelete the resource.")
 	g.P(fmt.Sprintf("  db%s, err := s.store.Undelete%s(%s)", mc.modelGoName, resourceGoName, undeleteArgs))

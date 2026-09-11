@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// Request message for LibraryService.DeliverResourceEvent.
+message DeliverResourceEventRequest {
+  // The journaled event to publish. It carries the resource as it was written.
+  malonaz.aip.v1.ResourceEvent event = 1 [(buf.validate.field).required = true];
+}

@@ -152,6 +152,7 @@ func (mc *methodCtx) generateUpdate() error {
 	if mc.hasEtag {
 		updateArgs += ", etag"
 	}
+	updateArgs += mc.updatedJournalArg("existing" + resourceGoName)
 	g.P(fmt.Sprintf("  db%s, err := s.store.Update%s(%s)", mc.modelGoName, resourceGoName, updateArgs))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
@@ -264,7 +265,9 @@ func (mc *methodCtx) generatePreconditionCheck(resourceGoName string) {
 }
 
 func (mc *methodCtx) generateUpdatedEvents(resourceVar, existingVar string) {
-	if mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetUpdated()) == 0 {
+	// An outbox resource journals its events in the update's own transaction;
+	// the outbox method publishes them.
+	if mc.outbox || mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetUpdated()) == 0 {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")

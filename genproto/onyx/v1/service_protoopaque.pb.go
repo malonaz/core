@@ -617,6 +617,7 @@ type Codegen_Rpc struct {
 	xxx_hidden_Target      string                 `protobuf:"bytes,3,opt,name=target,proto3"`
 	xxx_hidden_Nats        bool                   `protobuf:"varint,4,opt,name=nats,proto3"`
 	xxx_hidden_Longrunning bool                   `protobuf:"varint,5,opt,name=longrunning,proto3"`
+	xxx_hidden_Outbox      bool                   `protobuf:"varint,6,opt,name=outbox,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -681,6 +682,13 @@ func (x *Codegen_Rpc) GetLongrunning() bool {
 	return false
 }
 
+func (x *Codegen_Rpc) GetOutbox() bool {
+	if x != nil {
+		return x.xxx_hidden_Outbox
+	}
+	return false
+}
+
 func (x *Codegen_Rpc) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -701,6 +709,10 @@ func (x *Codegen_Rpc) SetLongrunning(v bool) {
 	x.xxx_hidden_Longrunning = v
 }
 
+func (x *Codegen_Rpc) SetOutbox(v bool) {
+	x.xxx_hidden_Outbox = v
+}
+
 type Codegen_Rpc_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -715,6 +727,10 @@ type Codegen_Rpc_builder struct {
 	// Returns google.longrunning.Operation from some methods; requires a grpc_client dependency on
 	// scheduler-service.
 	Longrunning bool
+	// Journals the events of some resources rather than publishing them inline, and declares the
+	// outbox method the scheduler delivers them to; requires nats and a grpc_client dependency on
+	// scheduler-service.
+	Outbox bool
 }
 
 func (b0 Codegen_Rpc_builder) Build() *Codegen_Rpc {
@@ -726,6 +742,7 @@ func (b0 Codegen_Rpc_builder) Build() *Codegen_Rpc {
 	x.xxx_hidden_Target = b.Target
 	x.xxx_hidden_Nats = b.Nats
 	x.xxx_hidden_Longrunning = b.Longrunning
+	x.xxx_hidden_Outbox = b.Outbox
 	return m0
 }
 
@@ -1130,15 +1147,16 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8d\x02\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\xa5\x02\n" +
 	"\aCodegen\x120\n" +
-	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
+	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xd8\x01\n" +
 	"\x03Rpc\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12-\n" +
 	"\x05store\x18\x02 \x01(\tB\x17\xbaH\x14\xd8\x01\x01r\x0f2\r^[a-z0-9_-]+$R\x05store\x12\x1f\n" +
 	"\x06target\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12\x12\n" +
 	"\x04nats\x18\x04 \x01(\bR\x04nats\x12 \n" +
-	"\vlongrunning\x18\x05 \x01(\bR\vlongrunningB\r\n" +
+	"\vlongrunning\x18\x05 \x01(\bR\vlongrunning\x12\x16\n" +
+	"\x06outbox\x18\x06 \x01(\bR\x06outboxB\r\n" +
 	"\x04kind\x12\x05\xbaH\x02\b\x01\"\xc4\a\n" +
 	"\n" +
 	"Dependency\x12I\n" +

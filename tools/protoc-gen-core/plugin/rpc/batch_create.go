@@ -181,7 +181,7 @@ func (mc *methodCtx) generateBatchCreate(createRequest *protogen.Message) error 
 	g.P("  }")
 	g.P()
 
-	if mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetCreated()) > 0 {
+	if !mc.outbox && mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetCreated()) > 0 {
 		g.P(fmt.Sprintf("  for _, %s := range %s {", resourceVar, pluralVar))
 		mc.generateCreatedEvents(resourceVar)
 		g.P("  }")

@@ -11,3 +11,5 @@ migrations:
     hash: b29f8f1ac9e318333178c9f9068f5647
   - path: library/005_null_semantics.sql
     hash: 7fbf2d9a892ab35280a9caaf77121a6a
+  - path: library/006_outbox_journal.sql
+    hash: 4251960bc7812db194691c15ca23dff4

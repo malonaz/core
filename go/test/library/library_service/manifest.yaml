@@ -7,6 +7,7 @@ codegens:
       target: //gengo/test/library/library_service/rpc
       nats: true
       longrunning: true
+      outbox: true
   - rpc:
       name: bookmark-service
       store: library
