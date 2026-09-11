@@ -1,6 +1,6 @@
 ---
 title: Recurring jobs with Schedule
-description: How recurring work is declared on the scheduler — the Schedule resource (cron + payload template), what each tick materializes (a plain Job under the schedule's parent, labelled scheduler.malonaz.com/schedule), tick/missed-tick/run-window semantics, pause/resume, the idempotent replay, and traps.
+description: How recurring work is declared on the scheduler — the Schedule resource (cron + payload template), what each tick materializes (a plain Job under the schedule's parent, its `schedule` field naming the schedule), tick/missed-tick/run-window semantics, pause/resume, the idempotent replay, and traps.
 labels:
     lang: go, protobuf
     repo: core
@@ -53,7 +53,8 @@ LOCKED`, so replicas tick disjoint sets) and, per schedule:
 | `parent` | the schedule's |
 | `schedule_time` | the tick |
 | `expire_time` | tick + `run_window`; **without a run window, the next tick** — so on an irregular cron (`0 9 * * MON-FRI`) Friday's job may start until Monday |
-| `priority`, `labels` | the schedule's, plus `scheduler.malonaz.com/schedule` = the schedule id |
+| `priority`, `labels` | the schedule's |
+| `schedule` | the schedule's name (OUTPUT_ONLY: only the tick sets it, never a producer) |
 | `request_id` | `uuidv5(fixed namespace, name + "/" + tick RFC3339)` |
 | schedule | `last_schedule_time = tick`, `last_job`, `next_schedule_time = cron.Next(now)` |
 
@@ -80,7 +81,7 @@ update on a paused schedule leaves `next_schedule_time` unset until the resume.
 ## Listing a schedule's jobs
 
 ```
-ListJobs{parent: <schedule parent>, filter: labels."scheduler.malonaz.com/schedule" = "<schedule id>"}
+ListJobs{parent: <schedule parent>, filter: schedule = "<schedule name>"}
 ```
 
 ## Traps

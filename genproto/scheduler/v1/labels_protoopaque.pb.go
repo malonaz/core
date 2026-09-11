@@ -27,9 +27,8 @@ var File_malonaz_scheduler_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/scheduler/v1/labels.proto\x12\x14malonaz.scheduler.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xeb\x05\x92\x95\x15\xab\x02\n" +
-	"\x1dscheduler.malonaz.com/retried\x1a\x83\x02Set by RetryJob when a terminal job is manually returned to PENDING. Distinguishes operator intervention from the scheduler's own attempt retries, which never set it. Filter `labels.\"scheduler.malonaz.com/retried\" = \"true\"` lists every job that needed a hand.\"\x04true\x92\x95\x15\x87\x03\n" +
-	"\x1escheduler.malonaz.com/schedule\x1a\xe4\x02Set by the scheduler on every job a Schedule materializes, to the schedule's ID (the last segment of its name; the job and its schedule share a parent). This is how a schedule's jobs are listed: `ListJobs` under the schedule's parent with filter `labels.\"scheduler.malonaz.com/schedule\" = \"{schedule}\"`. Never set by producers on a job they create by hand.Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
+	"!malonaz/scheduler/v1/labels.proto\x12\x14malonaz.scheduler.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xdf\x02\x92\x95\x15\xab\x02\n" +
+	"\x1dscheduler.malonaz.com/retried\x1a\x83\x02Set by RetryJob when a terminal job is manually returned to PENDING. Distinguishes operator intervention from the scheduler's own attempt retries, which never set it. Filter `labels.\"scheduler.malonaz.com/retried\" = \"true\"` lists every job that needed a hand.\"\x04trueZ-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var file_malonaz_scheduler_v1_labels_proto_goTypes = []any{}
 var file_malonaz_scheduler_v1_labels_proto_depIdxs = []int32{

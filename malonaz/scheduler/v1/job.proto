@@ -32,9 +32,9 @@ option (google.api.resource_definition) = {
 // or exhausts its attempts.
 //
 // The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
-// `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
-// `payload`, `labels`, `priority`, `unique_key`, `schedule_time`,
-// `expire_time` and `operation`. The outcome mirrors a long-running operation: a terminal job
+// `attempt_count`, `error`, `response`, `metadata`, `schedule`); producers own
+// `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
+// `expire_time`. The outcome mirrors a long-running operation: a terminal job
 // carries either a `response` or an `error`.
 //
 // A job belongs to the organization or user it runs on behalf of; system-wide
@@ -108,6 +108,17 @@ message Job {
   // The gRPC method the payload is delivered to, e.g.
   // `/engine.engine_service.v1.EngineService/AnalyzeBook`: the queue's.
   string method = 22 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The schedule whose tick created this job, unset for a job created by
+  // hand. Shares the job's parent.
+  // Format: schedules/{schedule}
+  // Format: organizations/{organization}/schedules/{schedule}
+  // Format: organizations/{organization}/users/{user}/schedules/{schedule}
+  string schedule = 23 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Schedule"
+  ];
 
   // The lifecycle state of the job.
   JobState state = 8 [

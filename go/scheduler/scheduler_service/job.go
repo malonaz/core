@@ -40,6 +40,12 @@ const uniqueKeyCreateAttempts = 3
 // queue its payload type selects. A keyed job coalesces onto the key's PENDING
 // job when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
+	return s.createJob(ctx, request, "")
+}
+
+// createJob is CreateJob with the scheduler-owned `schedule` stamped: only the
+// tick names one, so a producer can never claim a job was scheduled.
+func (s *Service) createJob(ctx context.Context, request *pb.CreateJobRequest, schedule string) (*schedulerpb.Job, error) {
 	job := request.GetJob()
 	queue, err := s.queueByRequestType(ctx, job.GetPayload().GetTypeUrl())
 	if err != nil {
@@ -57,6 +63,7 @@ func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (
 		UniqueKey:    job.GetUniqueKey(),
 		ScheduleTime: job.GetScheduleTime(),
 		ExpireTime:   job.GetExpireTime(),
+		Schedule:     schedule,
 		State:        schedulerpb.JobState_JOB_STATE_PENDING,
 	}
 	uniqueKey := job.GetUniqueKey()

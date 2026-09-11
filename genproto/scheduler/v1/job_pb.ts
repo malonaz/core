@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/v1/job.proto.
  */
 export const file_malonaz_scheduler_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxIu4MCgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEjIKBXF1ZXVlGAcgASgJQiPgQQP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRITCgZtZXRob2QYFiABKAlCA+BBAxI6CgVzdGF0ZRgIIAEoDjIeLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYlN0YXRlQgvgQQO6SAWCAQIQARIkCghwcmlvcml0eRgJIAEoBUISukgPGg0YZCic//////////8BEiIKCnVuaXF1ZV9rZXkYCiABKAlCDrpIBXIDGIACuuoPAiABEjkKDXNjaGVkdWxlX3RpbWUYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESNwoLZXhwaXJlX3RpbWUYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQga66g8CIAESOQoKc3RhcnRfdGltZRgNIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI8Cg1jb21wbGV0ZV90aW1lGA4gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEjgKCWxvY2tfdGltZRgPIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI5CgpwdXJnZV90aW1lGBAgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEhoKDWF0dGVtcHRfY291bnQYESABKAVCA+BBAxIuCgVlcnJvchgSIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzQgvgQQO66g8EGAEgARIzCghyZXNwb25zZRgTIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEjMKCHByb2dyZXNzGBQgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIL4EEDuuoPBBgBIAESQAoIbWV0YWRhdGEYFSABKAsyIS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JNZXRhZGF0YUIL4EEDuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATr+AupBkQEKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2ISCmpvYnMve2pvYn0SJ29yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vam9icy97am9ifRI0b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vam9icy97am9ifSoEam9iczIDam9iukiuARqrAQojam9iLmV4cGlyZV90aW1lX2FmdGVyX3NjaGVkdWxlX3RpbWUSJ2V4cGlyZV90aW1lIG11c3QgYmUgYWZ0ZXIgc2NoZWR1bGVfdGltZRpbIWhhcyh0aGlzLmV4cGlyZV90aW1lKSB8fCAhaGFzKHRoaXMuc2NoZWR1bGVfdGltZSkgfHwgdGhpcy5leHBpcmVfdGltZSA+IHRoaXMuc2NoZWR1bGVfdGltZdKmBAsKCXNjaGVkdWxlcoL2LCQ4ZGJhMTg3Mi05MTkzLTRkZGQtYTk5ZS02OGFiZjMyN2VhZDMiUQoLSm9iTWV0YWRhdGESMgoIYXR0ZW1wdHMYASADKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JBdHRlbXB0Eg4KBndvcmtlchgCIAEoCSLeAQoKSm9iQXR0ZW1wdBIPCgdhdHRlbXB0GAEgASgFEi4KCnN0YXJ0X3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZ3b3JrZXIYBCABKAkSIQoFZXJyb3IYBSABKAsyEi5nb29nbGUucnBjLlN0YXR1cxIuCgtyZXRyeV9kZWxheRgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbiqbAQoISm9iU3RhdGUSGQoVSk9CX1NUQVRFX1VOU1BFQ0lGSUVEEAASFQoRSk9CX1NUQVRFX1BFTkRJTkcQARIVChFKT0JfU1RBVEVfUlVOTklORxACEhcKE0pPQl9TVEFURV9TVUNDRUVERUQQAxIUChBKT0JfU1RBVEVfRkFJTEVEEAQSFwoTSk9CX1NUQVRFX0NBTkNFTExFRBAFQugBWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjHqQV8KInNjaGVkdWxlci5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBVAoac2NoZWR1bGVyLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch5tYWxvbmF6L3NjaGVkdWxlci92MS9qb2IucHJvdG8SFG1hbG9uYXouc2NoZWR1bGVyLnYxIq4NCgNKb2ISEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSywEKBmxhYmVscxgFIAMoCzIlLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIzCgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIMukgDyAEBuuoPAhgBEjIKBXF1ZXVlGAcgASgJQiPgQQP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRITCgZtZXRob2QYFiABKAlCA+BBAxI+CghzY2hlZHVsZRgXIAEoCUIs4EED+kEgCh5zY2hlZHVsZXIubWFsb25hei5jb20vU2NoZWR1bGW66g8CIAESOgoFc3RhdGUYCCABKA4yHi5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2JTdGF0ZUIL4EEDukgFggECEAESJAoIcHJpb3JpdHkYCSABKAVCErpIDxoNGGQonP//////////ARIiCgp1bmlxdWVfa2V5GAogASgJQg66SAVyAxiAArrqDwIgARI5Cg1zY2hlZHVsZV90aW1lGAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIGuuoPAiABEjcKC2V4cGlyZV90aW1lGAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIGuuoPAiABEjkKCnN0YXJ0X3RpbWUYDSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESPAoNY29tcGxldGVfdGltZRgOIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARI4Cglsb2NrX3RpbWUYDyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESOQoKcHVyZ2VfdGltZRgQIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIaCg1hdHRlbXB0X2NvdW50GBEgASgFQgPgQQMSLgoFZXJyb3IYEiABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBgBIAESMwoIcmVzcG9uc2UYEyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55QgvgQQO66g8EGAEgARIzCghwcm9ncmVzcxgUIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnlCC+BBA7rqDwQYASABEkAKCG1ldGFkYXRhGBUgASgLMiEubWFsb25hei5zY2hlZHVsZXIudjEuSm9iTWV0YWRhdGFCC+BBA7rqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6/gLqQZEBChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEgpqb2JzL3tqb2J9Eidvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L2pvYnMve2pvYn0SNG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2pvYnMve2pvYn0qBGpvYnMyA2pvYrpIrgEaqwEKI2pvYi5leHBpcmVfdGltZV9hZnRlcl9zY2hlZHVsZV90aW1lEidleHBpcmVfdGltZSBtdXN0IGJlIGFmdGVyIHNjaGVkdWxlX3RpbWUaWyFoYXModGhpcy5leHBpcmVfdGltZSkgfHwgIWhhcyh0aGlzLnNjaGVkdWxlX3RpbWUpIHx8IHRoaXMuZXhwaXJlX3RpbWUgPiB0aGlzLnNjaGVkdWxlX3RpbWXSpgQLCglzY2hlZHVsZXKC9iwkOGRiYTE4NzItOTE5My00ZGRkLWE5OWUtNjhhYmYzMjdlYWQzIlEKC0pvYk1ldGFkYXRhEjIKCGF0dGVtcHRzGAEgAygLMiAubWFsb25hei5zY2hlZHVsZXIudjEuSm9iQXR0ZW1wdBIOCgZ3b3JrZXIYAiABKAki3gEKCkpvYkF0dGVtcHQSDwoHYXR0ZW1wdBgBIAEoBRIuCgpzdGFydF90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIsCghlbmRfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGd29ya2VyGAQgASgJEiEKBWVycm9yGAUgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMSLgoLcmV0cnlfZGVsYXkYBiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24qmwEKCEpvYlN0YXRlEhkKFUpPQl9TVEFURV9VTlNQRUNJRklFRBAAEhUKEUpPQl9TVEFURV9QRU5ESU5HEAESFQoRSk9CX1NUQVRFX1JVTk5JTkcQAhIXChNKT0JfU1RBVEVfU1VDQ0VFREVEEAMSFAoQSk9CX1NUQVRFX0ZBSUxFRBAEEhcKE0pPQl9TVEFURV9DQU5DRUxMRUQQBULoAVotZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3Yx6kFfCiJzY2hlZHVsZXIubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb27qQVQKGnNjaGVkdWxlci5tYWxvbmF6LmNvbS9Vc2VyEilvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfSoFdXNlcnMyBHVzZXJiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Job is a unit of deferred work: a request payload the scheduler delivers
@@ -28,9 +28,9 @@ export const file_malonaz_scheduler_v1_job: GenFile = /*@__PURE__*/
  * or exhausts its attempts.
  *
  * The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
- * `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
- * `payload`, `labels`, `priority`, `unique_key`, `schedule_time`,
- * `expire_time` and `operation`. The outcome mirrors a long-running operation: a terminal job
+ * `attempt_count`, `error`, `response`, `metadata`, `schedule`); producers own
+ * `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
+ * `expire_time`. The outcome mirrors a long-running operation: a terminal job
  * carries either a `response` or an `error`.
  *
  * A job belongs to the organization or user it runs on behalf of; system-wide
@@ -102,6 +102,17 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
    * @generated from field: string method = 22;
    */
   method: string;
+
+  /**
+   * The schedule whose tick created this job, unset for a job created by
+   * hand. Shares the job's parent.
+   * Format: schedules/{schedule}
+   * Format: organizations/{organization}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   *
+   * @generated from field: string schedule = 23;
+   */
+  schedule: string;
 
   /**
    * The lifecycle state of the job.
@@ -222,9 +233,9 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
  * or exhausts its attempts.
  *
  * The scheduler owns the lifecycle fields (`state`, `method`, timestamps,
- * `attempt_count`, `error`, `response`, `metadata`); producers own `queue`,
- * `payload`, `labels`, `priority`, `unique_key`, `schedule_time`,
- * `expire_time` and `operation`. The outcome mirrors a long-running operation: a terminal job
+ * `attempt_count`, `error`, `response`, `metadata`, `schedule`); producers own
+ * `payload`, `labels`, `priority`, `unique_key`, `schedule_time` and
+ * `expire_time`. The outcome mirrors a long-running operation: a terminal job
  * carries either a `response` or an `error`.
  *
  * A job belongs to the organization or user it runs on behalf of; system-wide
@@ -296,6 +307,17 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
    * @generated from field: string method = 22;
    */
   method: string;
+
+  /**
+   * The schedule whose tick created this job, unset for a job created by
+   * hand. Shares the job's parent.
+   * Format: schedules/{schedule}
+   * Format: organizations/{organization}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   *
+   * @generated from field: string schedule = 23;
+   */
+  schedule: string;
 
   /**
    * The lifecycle state of the job.

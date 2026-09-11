@@ -105,7 +105,7 @@ const (
 // An ENABLED schedule is due at its `next_schedule_time`. At each tick the
 // scheduler creates the job the schedule describes — `schedule_time` the
 // tick, `expire_time` the tick plus the schedule's `run_window` (the next
-// tick when unset), labelled `scheduler.malonaz.com/schedule` — and advances
+// tick when unset), `schedule` the schedule's name — and advances
 // `next_schedule_time` to the first cron occurrence after now. A tick reached
 // after its run window closed is skipped and counted in `missed_tick_count`:
 // downtime is never caught up. A tick's job is created idempotently, so a
@@ -585,7 +585,7 @@ func (c *schedulerServiceClient) ResumeSchedule(ctx context.Context, in *ResumeS
 // An ENABLED schedule is due at its `next_schedule_time`. At each tick the
 // scheduler creates the job the schedule describes — `schedule_time` the
 // tick, `expire_time` the tick plus the schedule's `run_window` (the next
-// tick when unset), labelled `scheduler.malonaz.com/schedule` — and advances
+// tick when unset), `schedule` the schedule's name — and advances
 // `next_schedule_time` to the first cron occurrence after now. A tick reached
 // after its run window closed is skipped and counted in `missed_tick_count`:
 // downtime is never caught up. A tick's job is created idempotently, so a
