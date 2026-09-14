@@ -28,14 +28,14 @@ const (
 // newTool returns a message-generation tool belonging to the test tool set.
 func newTool(name string, preDiscovered bool) *aipb.Tool {
 	annotations := map[string]string{
-		aitool.AnnotationKeyToolType:         aitool.AnnotationValueToolTypeGenerateMessage,
-		aitool.AnnotationKeyProtoMessage:     "malonaz.ai.v1.Tool",
-		aitool.AnnotationKeyToolSetName:      toolSetName,
-		aitool.AnnotationKeyDiscoverableTool: aip.LabelValueTrue,
+		aipb.Annotations.ToolType.Key:         aitool.ToolTypeGenerateMessage,
+		aipb.Annotations.ProtoMessage.Key:     "malonaz.ai.v1.Tool",
+		aipb.Annotations.ToolSetName.Key:      toolSetName,
+		aipb.Annotations.DiscoverableTool.Key: aip.LabelValueTrue,
 	}
 	if preDiscovered {
-		annotations[aitool.AnnotationKeyDiscoverableTool] = aip.LabelValueFalse
-		annotations[aitool.AnnotationKeyPreDiscoveredTool] = aip.LabelValueTrue
+		annotations[aipb.Annotations.DiscoverableTool.Key] = aip.LabelValueFalse
+		annotations[aipb.Annotations.PreDiscoveredTool.Key] = aip.LabelValueTrue
 	}
 	return &aipb.Tool{
 		Name:        name,
@@ -57,7 +57,7 @@ func newToolSet() *aipb.ToolSet {
 		Tools:       []*aipb.Tool{toolB, toolC},
 	}
 	discoveryTool := aitool.CreateDiscoveryTool(createDiscoveryToolRequest)
-	aip.SetAnnotation(discoveryTool, aitool.AnnotationKeyToolSetName, toolSetName)
+	aip.SetAnnotation(discoveryTool, aipb.Annotations.ToolSetName.Key, toolSetName)
 	return &aipb.ToolSet{
 		Name:          toolSetName,
 		DiscoveryTool: discoveryTool,
@@ -74,7 +74,7 @@ func newScriptedUserMessage(t *testing.T, scriptedMessages ...*aipb.Message) *ai
 	return &aipb.Message{
 		Role:        aipb.Role_ROLE_USER,
 		Blocks:      []*aipb.Block{{Content: &aipb.Block_Text{Text: "scripted turn"}}},
-		Annotations: map[string]string{mock.ScriptAnnotationKey: script},
+		Annotations: map[string]string{aipb.Annotations.Script.Key: script},
 	}
 }
 
@@ -183,6 +183,6 @@ func TestGenerateMessageDirectCallToDiscoveredTool(t *testing.T) {
 	require.Equal(t, "call-2", toolCall.GetId())
 	require.Equal(t, "ToolB", toolCall.GetName())
 	require.Equal(t, "bar", toolCall.GetArguments().AsMap()["foo"])
-	require.Equal(t, aitool.AnnotationValueToolTypeGenerateMessage, toolCall.GetAnnotations()[aitool.AnnotationKeyToolType])
-	require.Equal(t, toolSetName, toolCall.GetAnnotations()[aitool.AnnotationKeyToolSetName])
+	require.Equal(t, aitool.ToolTypeGenerateMessage, toolCall.GetAnnotations()[aipb.Annotations.ToolType.Key])
+	require.Equal(t, toolSetName, toolCall.GetAnnotations()[aipb.Annotations.ToolSetName.Key])
 }

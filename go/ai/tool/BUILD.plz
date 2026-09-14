@@ -8,7 +8,6 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        "//go/aip",
         "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",

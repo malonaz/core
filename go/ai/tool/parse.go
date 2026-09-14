@@ -10,7 +10,6 @@ import (
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
@@ -27,9 +26,9 @@ func ParseDiscoveryToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallDiscovery, e
 		}
 	}
 
-	toolSetName, ok := toolCall.GetAnnotations()[AnnotationKeyToolSetName]
+	toolSetName, ok := aipb.Annotations.ToolSetName.Get(toolCall)
 	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", AnnotationKeyToolSetName).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", aipb.Annotations.ToolSetName.Key).Err()
 	}
 
 	return &aipb.ToolCallDiscovery{
@@ -39,18 +38,18 @@ func ParseDiscoveryToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallDiscovery, e
 }
 
 func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
-	toolType, ok := aip.GetAnnotation(toolCall, AnnotationKeyToolType)
+	toolType, ok := aipb.Annotations.ToolType.Get(toolCall)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
 	}
 	switch toolType {
-	case AnnotationValueToolTypeDiscovery:
+	case ToolTypeDiscovery:
 		return parseDiscoveryToolCall(toolCall, toolSets)
 
-	case AnnotationValueToolTypeGenerateRPCRequest:
+	case ToolTypeGenerateRPCRequest:
 		return parseRPCToolCall(schema, toolCall, toolSets)
 
-	case AnnotationValueToolTypeGenerateMessage:
+	case ToolTypeGenerateMessage:
 		message, err := ParseToolCallMessage(schema, toolCall)
 		if err != nil {
 			return nil, err
@@ -98,19 +97,17 @@ func parseDiscoveryToolCall(toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (
 }
 
 func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
-	annotations := toolCall.GetAnnotations()
-	toolType := annotations[AnnotationKeyToolType]
-
-	methodFullName, ok := annotations[AnnotationKeyGRPCMethod]
+	toolType, _ := aipb.Annotations.ToolType.Get(toolCall)
+	methodFullName, ok := aipb.Annotations.GrpcMethod.Get(toolCall)
 	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, AnnotationKeyGRPCMethod).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcMethod.Key).Err()
 	}
-	serviceFullName, ok := annotations[AnnotationKeyGRPCService]
+	serviceFullName, ok := aipb.Annotations.GrpcService.Get(toolCall)
 	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, AnnotationKeyGRPCService).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcService.Key).Err()
 	}
 
-	if _, ok := annotations[AnnotationKeyDiscoverableTool]; ok {
+	if aipb.Annotations.DiscoverableTool.Has(toolCall) {
 		var found bool
 		for _, toolSet := range toolSets {
 			for _, tool := range toolSet.GetTools() {
@@ -146,20 +143,15 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 }
 
 func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolCall) (*structpb.Struct, error) {
-	annotations := toolCall.GetAnnotations()
-	if len(annotations) == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
-	}
-
-	messageFullName, ok := annotations[AnnotationKeyProtoMessage]
+	messageFullName, ok := aipb.Annotations.ProtoMessage.Get(toolCall)
 	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", AnnotationKeyProtoMessage).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", aipb.Annotations.ProtoMessage.Key).Err()
 	}
 
 	arguments := unwrapArgumentsEnvelope(toolCall.GetArguments().AsMap())
 
 	var fieldMask *pbfieldmask.FieldMask
-	if generationFieldMask, ok := annotations[AnnotationKeyGenerationFieldMask]; ok {
+	if generationFieldMask, ok := aipb.Annotations.GenerationFieldMask.Get(toolCall); ok {
 		fieldMask = pbfieldmask.FromString(generationFieldMask)
 		// Prune before building: fields outside the mask were never in the schema
 		// shown to the model, and hallucinated values may not even type-check

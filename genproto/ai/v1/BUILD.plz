@@ -1,6 +1,8 @@
 go_library(
     name = "v1",
     srcs = [
+        "annotations.pb.go",
+        "annotations_aip.pb.go",
         "chat.pb.go",
         "chat_aip.pb.go",
         "errors.pb.go",

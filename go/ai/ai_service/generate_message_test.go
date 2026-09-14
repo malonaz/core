@@ -27,8 +27,8 @@ func newDiscoveryToolCall(t *testing.T, toolNames ...string) *aipb.ToolCall {
 		Name:      "ProjectGateway_Discover",
 		Arguments: arguments,
 		Annotations: map[string]string{
-			aitool.AnnotationKeyToolType:    aitool.AnnotationValueToolTypeDiscovery,
-			aitool.AnnotationKeyToolSetName: testToolSetName,
+			aipb.Annotations.ToolType.Key:    aitool.ToolTypeDiscovery,
+			aipb.Annotations.ToolSetName.Key: testToolSetName,
 		},
 	}
 }
@@ -43,7 +43,7 @@ func newTestToolSetIndex(toolNames ...string) map[string]map[string]*aipb.Tool {
 
 func discoveredToolsAnnotation(t *testing.T, toolResult *aipb.ToolResult) string {
 	t.Helper()
-	return toolResult.GetAnnotations()[aitool.AnnotationKeyDiscoveredTools]
+	return toolResult.GetAnnotations()[aipb.Annotations.DiscoveredTools.Key]
 }
 
 func TestProcessDiscoveryToolCall(t *testing.T) {
@@ -93,7 +93,7 @@ func TestProcessDiscoveryToolCall(t *testing.T) {
 
 	t.Run("errors on unknown tool set", func(t *testing.T) {
 		toolCall := newDiscoveryToolCall(t, "A")
-		toolCall.Annotations[aitool.AnnotationKeyToolSetName] = "other.ToolSet"
+		toolCall.Annotations[aipb.Annotations.ToolSetName.Key] = "other.ToolSet"
 		toolResult := processDiscoveryToolCall(toolCall, newTestToolSetIndex("A"), map[string]*aipb.Tool{})
 		require.NotNil(t, toolResult.GetError())
 	})
@@ -106,7 +106,7 @@ func TestProcessDiscoveryToolCall(t *testing.T) {
 		toolNameToTool := map[string]*aipb.Tool{"A": toolSetIndex[testToolSetName]["A"]}
 		toolResult := processDiscoveryToolCall(newDiscoveryToolCall(t, "A"), toolSetIndex, toolNameToTool)
 		require.Nil(t, toolResult.GetError())
-		_, ok := toolResult.GetAnnotations()[aitool.AnnotationKeyDiscoveredTools]
+		_, ok := toolResult.GetAnnotations()[aipb.Annotations.DiscoveredTools.Key]
 		require.False(t, ok)
 	})
 }
@@ -129,8 +129,8 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 		discoveredTool := &aipb.Tool{
 			Name: "A",
 			Annotations: map[string]string{
-				aitool.AnnotationKeyDiscoverableTool: "true",
-				aitool.AnnotationKeyToolSetName:      testToolSetName,
+				aipb.Annotations.DiscoverableTool.Key: "true",
+				aipb.Annotations.ToolSetName.Key:      testToolSetName,
 			},
 		}
 		stream := &fakeStream{}
@@ -148,7 +148,7 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 		require.Len(t, stream.responses, 1)
 		sentToolCall := stream.responses[0].GetBlock().GetToolCall()
 		require.Equal(t, "A", sentToolCall.GetName())
-		require.Equal(t, "true", sentToolCall.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
+		require.Equal(t, "true", sentToolCall.GetAnnotations()[aipb.Annotations.DiscoverableTool.Key])
 	})
 
 	t.Run("unknown tool returns a recoverable error", func(t *testing.T) {

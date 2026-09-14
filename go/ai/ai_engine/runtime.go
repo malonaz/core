@@ -168,11 +168,11 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		messageDescriptor = methodDescriptor.Input()
 		toolName = string(methodDescriptor.Parent().Name()) + "_" + string(methodDescriptor.Name())
 		toolDescription = schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-		annotations[aitool.AnnotationKeyToolType] = aitool.AnnotationValueToolTypeGenerateRPCRequest
-		annotations[aitool.AnnotationKeyGRPCService] = string(methodDescriptor.Parent().FullName())
-		annotations[aitool.AnnotationKeyGRPCMethod] = string(methodDescriptor.FullName())
+		annotations[aipb.Annotations.ToolType.Key] = aitool.ToolTypeGenerateRPCRequest
+		annotations[aipb.Annotations.GrpcService.Key] = string(methodDescriptor.Parent().FullName())
+		annotations[aipb.Annotations.GrpcMethod.Key] = string(methodDescriptor.FullName())
 		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
-			annotations[aitool.AnnotationKeyNoSideEffect] = "true"
+			annotations[aipb.Annotations.NoSideEffect.Key] = "true"
 		}
 		if request.GetSchemaConfiguration().GetWithResponseReadMask() {
 			schemaOptions = append(schemaOptions, pbjson.WithResponseReadMask())
@@ -194,13 +194,13 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		}
 		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
 		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
-		annotations[aitool.AnnotationKeyToolType] = aitool.AnnotationValueToolTypeGenerateMessage
+		annotations[aipb.Annotations.ToolType.Key] = aitool.ToolTypeGenerateMessage
 
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
 	}
 
-	annotations[aitool.AnnotationKeyProtoMessage] = string(messageDescriptor.FullName())
+	annotations[aipb.Annotations.ProtoMessage.Key] = string(messageDescriptor.FullName())
 
 	// Title applies to both message and method tools.
 	if titleDescription := request.GetSchemaConfiguration().GetWithTitle(); titleDescription != "" {
@@ -213,7 +213,7 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 		if err := fieldMask.Validate(message); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
 		}
-		annotations[aitool.AnnotationKeyGenerationFieldMask] = fieldMask.String()
+		annotations[aipb.Annotations.GenerationFieldMask.Key] = fieldMask.String()
 		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(fieldMask.GetPaths()...))
 	}
 	jsonSchema, err := schemaBuilder.BuildSchema(descriptorFullName, schemaOptions...)
@@ -343,14 +343,14 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 			return nil, status.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
 		}
 		tools = append(tools, tool)
-		aip.SetAnnotation(tool, aitool.AnnotationKeyToolSetName, toolSetName)
+		aipb.Annotations.ToolSetName.Set(tool, toolSetName)
 		if _, ok := discoveredMethodNameSet[methodName]; ok {
 			// Tool is pre-discovered.
-			aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, aip.LabelValueFalse)
-			aip.SetAnnotation(tool, aitool.AnnotationKeyPreDiscoveredTool, aip.LabelValueTrue)
+			aipb.Annotations.DiscoverableTool.Set(tool, aip.LabelValueFalse)
+			aipb.Annotations.PreDiscoveredTool.Set(tool, aip.LabelValueTrue)
 		} else {
 			// Tool is discoverable.
-			aip.SetAnnotation(tool, aitool.AnnotationKeyDiscoverableTool, aip.LabelValueTrue)
+			aipb.Annotations.DiscoverableTool.Set(tool, aip.LabelValueTrue)
 			discoverableTools = append(discoverableTools, tool)
 		}
 	}
@@ -362,7 +362,7 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 		Tools:       discoverableTools,
 	}
 	discoveryTool := aitool.CreateDiscoveryTool(createDiscoveryToolRequest)
-	aip.SetAnnotation(discoveryTool, aitool.AnnotationKeyToolSetName, toolSetName)
+	aipb.Annotations.ToolSetName.Set(discoveryTool, toolSetName)
 
 	return &aipb.ToolSet{
 		Name:          toolSetName,

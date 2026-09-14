@@ -1,6 +1,7 @@
 filegroup(
     name = "proto",
     srcs = [
+        "annotations.proto",
         "chat.proto",
         "errors.proto",
         "labels.proto",
@@ -17,6 +18,7 @@ filegroup(
 proto_library(
     name = "v1",
     srcs = [
+        "annotations.proto",
         "chat.proto",
         "errors.proto",
         "labels.proto",
