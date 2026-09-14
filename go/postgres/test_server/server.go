@@ -32,13 +32,12 @@ import (
 )
 
 const (
-	defaultHost          = "localhost"
-	defaultPort          = 5432
-	defaultDatabase      = "postgres"
-	defaultUser          = "postgres"
-	defaultPassword      = "postgres"
-	defaultMaxConns      = 10
-	defaultDataDirectory = "/tmp/db"
+	defaultHost     = "localhost"
+	defaultPort     = 5432
+	defaultDatabase = "postgres"
+	defaultUser     = "postgres"
+	defaultPassword = "postgres"
+	defaultMaxConns = 10
 
 	socketDirectory = "postgres_socket"
 	configFilename  = "postgresql.conf"
@@ -75,9 +74,6 @@ func (c *Config) applyDefaults() {
 	}
 	if c.MaxConns == 0 {
 		c.MaxConns = defaultMaxConns
-	}
-	if c.DataDirectory == "" {
-		c.DataDirectory = defaultDataDirectory
 	}
 }
 
@@ -125,6 +121,14 @@ func (s *Server) Client() *postgres.Client {
 // directory via initdb, writes a tuned-for-testing configuration, and
 // starts the server. The call blocks until Postgres is accepting connections.
 func (s *Server) Start(ctx context.Context) error {
+	if s.config.DataDirectory == "" {
+		// A fresh directory per server: a fixed path only works under a private /tmp.
+		dataDirectory, err := os.MkdirTemp("", "postgres-")
+		if err != nil {
+			return fmt.Errorf("create data directory: %w", err)
+		}
+		s.config.DataDirectory = dataDirectory
+	}
 	if err := s.initDatabase(); err != nil {
 		return fmt.Errorf("init database: %w", err)
 	}
