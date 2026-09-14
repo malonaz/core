@@ -51,7 +51,16 @@ func MatchShelfTagRn(name string) bool {
 	return resourcename.Match(ShelfTagRnPattern, name)
 }
 
-// ShelfTagRn returns the child library.test.malonaz.com/ShelfTag of n.
+// ShelfTagRn returns the library.test.malonaz.com/ShelfTag under n.
+func (n *OrganizationRn) ShelfTagRn(shelf string, tag string) *ShelfTagRn {
+	return &ShelfTagRn{
+		Organization: n.Organization,
+		Shelf:        shelf,
+		Tag:          tag,
+	}
+}
+
+// ShelfTagRn returns the library.test.malonaz.com/ShelfTag under n.
 func (n *ShelfRn) ShelfTagRn(tag string) *ShelfTagRn {
 	return &ShelfTagRn{
 		Organization: n.Organization,
@@ -121,11 +130,18 @@ func (n *ShelfTagRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}", n.Organization, n.Shelf)
 }
 
-// ShelfRn returns the parent of n.
+// ShelfRn returns the library.test.malonaz.com/Shelf n is under.
 func (n *ShelfTagRn) ShelfRn() *ShelfRn {
 	return &ShelfRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
+	}
+}
+
+// OrganizationRn returns the library.test.malonaz.com/Organization n is under.
+func (n *ShelfTagRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }
 
@@ -169,7 +185,7 @@ func MatchShelfRn(name string) bool {
 	return resourcename.Match(ShelfRnPattern, name)
 }
 
-// ShelfRn returns the child library.test.malonaz.com/Shelf of n.
+// ShelfRn returns the library.test.malonaz.com/Shelf under n.
 func (n *OrganizationRn) ShelfRn(shelf string) *ShelfRn {
 	return &ShelfRn{
 		Organization: n.Organization,
@@ -232,7 +248,7 @@ func (n *ShelfRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// OrganizationRn returns the parent of n.
+// OrganizationRn returns the library.test.malonaz.com/Organization n is under.
 func (n *ShelfRn) OrganizationRn() *OrganizationRn {
 	return &OrganizationRn{
 		Organization: n.Organization,

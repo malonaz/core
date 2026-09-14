@@ -49,7 +49,15 @@ func MatchUserProfileRn(name string) bool {
 	return resourcename.Match(UserProfileRnPattern, name)
 }
 
-// UserProfileRn returns the child user.test.malonaz.com/UserProfile of n.
+// UserProfileRn returns the user.test.malonaz.com/UserProfile under n.
+func (n *OrganizationRn) UserProfileRn(user string) *UserProfileRn {
+	return &UserProfileRn{
+		Organization: n.Organization,
+		User:         user,
+	}
+}
+
+// UserProfileRn returns the user.test.malonaz.com/UserProfile under n.
 func (n *UserRn) UserProfileRn() *UserProfileRn {
 	return &UserProfileRn{
 		Organization: n.Organization,
@@ -112,10 +120,17 @@ func (n *UserProfileRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// UserRn returns the parent of n.
+// UserRn returns the user.test.malonaz.com/User n is under.
 func (n *UserProfileRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the user.test.malonaz.com/Organization n is under.
+func (n *UserProfileRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

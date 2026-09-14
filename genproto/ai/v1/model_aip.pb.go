@@ -133,7 +133,7 @@ func MatchModelRn(name string) bool {
 	return resourcename.Match(ModelRnPattern, name)
 }
 
-// ModelRn returns the child ai.malonaz.com/Model of n.
+// ModelRn returns the ai.malonaz.com/Model under n.
 func (n *ProviderRn) ModelRn(model string) *ModelRn {
 	return &ModelRn{
 		Provider: n.Provider,
@@ -196,7 +196,7 @@ func (n *ModelRn) Parent() string {
 	return resourcename.Sprint("providers/{provider}", n.Provider)
 }
 
-// ProviderRn returns the parent of n.
+// ProviderRn returns the ai.malonaz.com/Provider n is under.
 func (n *ModelRn) ProviderRn() *ProviderRn {
 	return &ProviderRn{
 		Provider: n.Provider,

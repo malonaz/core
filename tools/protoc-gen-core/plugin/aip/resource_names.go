@@ -62,6 +62,14 @@ type pattern struct {
 	parent         string
 	parentResource *annotations.ResourceDescriptor
 	singleton      bool
+	// ancestors are the package resources whose patterns prefix this one, root first;
+	// each gets a child constructor and a parent accessor.
+	ancestors []ancestor
+}
+
+type ancestor struct {
+	resource *annotations.ResourceDescriptor
+	pattern  string
 }
 
 // id is the pattern's own variable; "" for singletons.
@@ -132,6 +140,12 @@ func (r *resource) parsePattern(value string) *pattern {
 		p.parent = strings.Join(parts, "/")
 		p.parentResource = r.resourceByPattern(p.parent)
 	}
+	resourcename.RangeParents(value, func(prefix string) bool {
+		if resource := r.resourceByPattern(prefix); resource != nil {
+			p.ancestors = append(p.ancestors, ancestor{resource: resource, pattern: prefix})
+		}
+		return true
+	})
 	return p
 }
 
@@ -340,12 +354,13 @@ func (r *resource) generatePattern(g *protogen.GeneratedFile, p *pattern) {
 	g.P("return ", resourcenamePkg.Ident("Match"), "(", name, "Pattern, name)")
 	g.P("}")
 
-	if p.parentResource != nil {
-		parentType, err := r.typeNameOf(p.parentResource, p.parent)
-		if err == nil {
-			r.generateChildConstructor(g, p, parentType)
-			defer r.generateParentAccessor(g, p, parentType)
+	for _, a := range p.ancestors {
+		ancestorType, err := r.typeNameOf(a.resource, a.pattern)
+		if err != nil {
+			continue
 		}
+		r.generateChildConstructor(g, p, a, ancestorType)
+		defer r.generateParentAccessor(g, p, a, ancestorType)
 	}
 
 	g.P()
@@ -422,37 +437,53 @@ func (r *resource) generatePattern(g *protogen.GeneratedFile, p *pattern) {
 	}
 }
 
-// generateChildConstructor emits `parent.{Child}Rn(id)` on the parent's struct.
-func (r *resource) generateChildConstructor(g *protogen.GeneratedFile, p *pattern, parentType string) {
-	g.P()
-	g.P("// ", p.typeName, " returns the child ", r.desc.GetType(), " of n.")
-	if id := p.id(); id != "" {
-		g.P("func (n *", parentType, ") ", p.typeName, "(", paramName(id), " string) *", p.typeName, " {")
-	} else {
-		g.P("func (n *", parentType, ") ", p.typeName, "() *", p.typeName, " {")
+// generateChildConstructor emits `ancestor.{Child}Rn(vars...)` on the ancestor's
+// struct, taking every variable the ancestor does not already carry.
+func (r *resource) generateChildConstructor(g *protogen.GeneratedFile, p *pattern, a ancestor, ancestorType string) {
+	inherited := variables(a.pattern)
+	own := p.variables[len(inherited):]
+	params := make([]string, len(own))
+	for i, v := range own {
+		params[i] = paramName(v) + " string"
 	}
+	g.P()
+	g.P("// ", p.typeName, " returns the ", r.desc.GetType(), " under n.")
+	g.P("func (n *", ancestorType, ") ", p.typeName, "(", strings.Join(params, ", "), ") *", p.typeName, " {")
 	g.P("return &", p.typeName, "{")
-	for _, v := range p.parentVariables() {
+	for _, v := range inherited {
 		g.P(fieldName(v), ": n.", fieldName(v), ",")
 	}
-	if id := p.id(); id != "" {
-		g.P(fieldName(id), ": ", paramName(id), ",")
+	for _, v := range own {
+		g.P(fieldName(v), ": ", paramName(v), ",")
 	}
 	g.P("}")
 	g.P("}")
 }
 
-// generateParentAccessor emits `n.{Parent}Rn()`.
-func (r *resource) generateParentAccessor(g *protogen.GeneratedFile, p *pattern, parentType string) {
+// generateParentAccessor emits `n.{Ancestor}Rn()`.
+func (r *resource) generateParentAccessor(g *protogen.GeneratedFile, p *pattern, a ancestor, ancestorType string) {
 	g.P()
-	g.P("// ", parentType, " returns the parent of n.")
-	g.P("func (n *", p.typeName, ") ", parentType, "() *", parentType, " {")
-	g.P("return &", parentType, "{")
-	for _, v := range p.parentVariables() {
+	g.P("// ", ancestorType, " returns the ", a.resource.GetType(), " n is under.")
+	g.P("func (n *", p.typeName, ") ", ancestorType, "() *", ancestorType, " {")
+	g.P("return &", ancestorType, "{")
+	for _, v := range variables(a.pattern) {
 		g.P(fieldName(v), ": n.", fieldName(v), ",")
 	}
 	g.P("}")
 	g.P("}")
+}
+
+// variables returns the pattern's variable names in order.
+func variables(pattern string) []string {
+	var vars []string
+	var sc resourcename.Scanner
+	sc.Init(pattern)
+	for sc.Scan() {
+		if s := sc.Segment(); s.IsVariable() {
+			vars = append(vars, string(s.Literal()))
+		}
+	}
+	return vars
 }
 
 func varList(variables []string) string {

@@ -133,7 +133,7 @@ func MatchUserRn(name string) bool {
 	return resourcename.Match(UserRnPattern, name)
 }
 
-// UserRn returns the child scheduler.malonaz.com/User of n.
+// UserRn returns the scheduler.malonaz.com/User under n.
 func (n *OrganizationRn) UserRn(user string) *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
@@ -196,7 +196,7 @@ func (n *UserRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// OrganizationRn returns the parent of n.
+// OrganizationRn returns the scheduler.malonaz.com/Organization n is under.
 func (n *UserRn) OrganizationRn() *OrganizationRn {
 	return &OrganizationRn{
 		Organization: n.Organization,
@@ -351,7 +351,7 @@ func MatchOrganizationJobRn(name string) bool {
 	return resourcename.Match(OrganizationJobRnPattern, name)
 }
 
-// OrganizationJobRn returns the child scheduler.malonaz.com/Job of n.
+// OrganizationJobRn returns the scheduler.malonaz.com/Job under n.
 func (n *OrganizationRn) OrganizationJobRn(job string) *OrganizationJobRn {
 	return &OrganizationJobRn{
 		Organization: n.Organization,
@@ -414,7 +414,7 @@ func (n *OrganizationJobRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// OrganizationRn returns the parent of n.
+// OrganizationRn returns the scheduler.malonaz.com/Organization n is under.
 func (n *OrganizationJobRn) OrganizationRn() *OrganizationRn {
 	return &OrganizationRn{
 		Organization: n.Organization,
@@ -447,7 +447,16 @@ func MatchUserJobRn(name string) bool {
 	return resourcename.Match(UserJobRnPattern, name)
 }
 
-// UserJobRn returns the child scheduler.malonaz.com/Job of n.
+// UserJobRn returns the scheduler.malonaz.com/Job under n.
+func (n *OrganizationRn) UserJobRn(user string, job string) *UserJobRn {
+	return &UserJobRn{
+		Organization: n.Organization,
+		User:         user,
+		Job:          job,
+	}
+}
+
+// UserJobRn returns the scheduler.malonaz.com/Job under n.
 func (n *UserRn) UserJobRn(job string) *UserJobRn {
 	return &UserJobRn{
 		Organization: n.Organization,
@@ -517,10 +526,17 @@ func (n *UserJobRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// UserRn returns the parent of n.
+// UserRn returns the scheduler.malonaz.com/User n is under.
 func (n *UserJobRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the scheduler.malonaz.com/Organization n is under.
+func (n *UserJobRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

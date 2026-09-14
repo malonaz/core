@@ -49,7 +49,15 @@ func MatchAuthorProfileRn(name string) bool {
 	return resourcename.Match(AuthorProfileRnPattern, name)
 }
 
-// AuthorProfileRn returns the child library.test.malonaz.com/AuthorProfile of n.
+// AuthorProfileRn returns the library.test.malonaz.com/AuthorProfile under n.
+func (n *OrganizationRn) AuthorProfileRn(author string) *AuthorProfileRn {
+	return &AuthorProfileRn{
+		Organization: n.Organization,
+		Author:       author,
+	}
+}
+
+// AuthorProfileRn returns the library.test.malonaz.com/AuthorProfile under n.
 func (n *AuthorRn) AuthorProfileRn() *AuthorProfileRn {
 	return &AuthorProfileRn{
 		Organization: n.Organization,
@@ -112,10 +120,17 @@ func (n *AuthorProfileRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/authors/{author}", n.Organization, n.Author)
 }
 
-// AuthorRn returns the parent of n.
+// AuthorRn returns the library.test.malonaz.com/Author n is under.
 func (n *AuthorProfileRn) AuthorRn() *AuthorRn {
 	return &AuthorRn{
 		Organization: n.Organization,
 		Author:       n.Author,
+	}
+}
+
+// OrganizationRn returns the library.test.malonaz.com/Organization n is under.
+func (n *AuthorProfileRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

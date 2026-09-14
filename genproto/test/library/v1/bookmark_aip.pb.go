@@ -52,7 +52,27 @@ func MatchBookmarkRn(name string) bool {
 	return resourcename.Match(BookmarkRnPattern, name)
 }
 
-// BookmarkRn returns the child library.test.malonaz.com/Bookmark of n.
+// BookmarkRn returns the library.test.malonaz.com/Bookmark under n.
+func (n *OrganizationRn) BookmarkRn(shelf string, book string, bookmark string) *BookmarkRn {
+	return &BookmarkRn{
+		Organization: n.Organization,
+		Shelf:        shelf,
+		Book:         book,
+		Bookmark:     bookmark,
+	}
+}
+
+// BookmarkRn returns the library.test.malonaz.com/Bookmark under n.
+func (n *ShelfRn) BookmarkRn(book string, bookmark string) *BookmarkRn {
+	return &BookmarkRn{
+		Organization: n.Organization,
+		Shelf:        n.Shelf,
+		Book:         book,
+		Bookmark:     bookmark,
+	}
+}
+
+// BookmarkRn returns the library.test.malonaz.com/Bookmark under n.
 func (n *BookRn) BookmarkRn(bookmark string) *BookmarkRn {
 	return &BookmarkRn{
 		Organization: n.Organization,
@@ -129,11 +149,26 @@ func (n *BookmarkRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", n.Organization, n.Shelf, n.Book)
 }
 
-// BookRn returns the parent of n.
+// BookRn returns the library.test.malonaz.com/Book n is under.
 func (n *BookmarkRn) BookRn() *BookRn {
 	return &BookRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Book:         n.Book,
+	}
+}
+
+// ShelfRn returns the library.test.malonaz.com/Shelf n is under.
+func (n *BookmarkRn) ShelfRn() *ShelfRn {
+	return &ShelfRn{
+		Organization: n.Organization,
+		Shelf:        n.Shelf,
+	}
+}
+
+// OrganizationRn returns the library.test.malonaz.com/Organization n is under.
+func (n *BookmarkRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

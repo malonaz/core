@@ -158,7 +158,7 @@ func MatchOrganizationScheduleRn(name string) bool {
 	return resourcename.Match(OrganizationScheduleRnPattern, name)
 }
 
-// OrganizationScheduleRn returns the child scheduler.malonaz.com/Schedule of n.
+// OrganizationScheduleRn returns the scheduler.malonaz.com/Schedule under n.
 func (n *OrganizationRn) OrganizationScheduleRn(schedule string) *OrganizationScheduleRn {
 	return &OrganizationScheduleRn{
 		Organization: n.Organization,
@@ -221,7 +221,7 @@ func (n *OrganizationScheduleRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// OrganizationRn returns the parent of n.
+// OrganizationRn returns the scheduler.malonaz.com/Organization n is under.
 func (n *OrganizationScheduleRn) OrganizationRn() *OrganizationRn {
 	return &OrganizationRn{
 		Organization: n.Organization,
@@ -254,7 +254,16 @@ func MatchUserScheduleRn(name string) bool {
 	return resourcename.Match(UserScheduleRnPattern, name)
 }
 
-// UserScheduleRn returns the child scheduler.malonaz.com/Schedule of n.
+// UserScheduleRn returns the scheduler.malonaz.com/Schedule under n.
+func (n *OrganizationRn) UserScheduleRn(user string, schedule string) *UserScheduleRn {
+	return &UserScheduleRn{
+		Organization: n.Organization,
+		User:         user,
+		Schedule:     schedule,
+	}
+}
+
+// UserScheduleRn returns the scheduler.malonaz.com/Schedule under n.
 func (n *UserRn) UserScheduleRn(schedule string) *UserScheduleRn {
 	return &UserScheduleRn{
 		Organization: n.Organization,
@@ -324,10 +333,17 @@ func (n *UserScheduleRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// UserRn returns the parent of n.
+// UserRn returns the scheduler.malonaz.com/User n is under.
 func (n *UserScheduleRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the scheduler.malonaz.com/Organization n is under.
+func (n *UserScheduleRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

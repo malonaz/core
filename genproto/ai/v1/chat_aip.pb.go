@@ -133,7 +133,7 @@ func MatchUserRn(name string) bool {
 	return resourcename.Match(UserRnPattern, name)
 }
 
-// UserRn returns the child ai.malonaz.com/User of n.
+// UserRn returns the ai.malonaz.com/User under n.
 func (n *OrganizationRn) UserRn(user string) *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
@@ -196,7 +196,7 @@ func (n *UserRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// OrganizationRn returns the parent of n.
+// OrganizationRn returns the ai.malonaz.com/Organization n is under.
 func (n *UserRn) OrganizationRn() *OrganizationRn {
 	return &OrganizationRn{
 		Organization: n.Organization,
@@ -244,7 +244,16 @@ func MatchChatRn(name string) bool {
 	return resourcename.Match(ChatRnPattern, name)
 }
 
-// ChatRn returns the child ai.malonaz.com/Chat of n.
+// ChatRn returns the ai.malonaz.com/Chat under n.
+func (n *OrganizationRn) ChatRn(user string, chat string) *ChatRn {
+	return &ChatRn{
+		Organization: n.Organization,
+		User:         user,
+		Chat:         chat,
+	}
+}
+
+// ChatRn returns the ai.malonaz.com/Chat under n.
 func (n *UserRn) ChatRn(chat string) *ChatRn {
 	return &ChatRn{
 		Organization: n.Organization,
@@ -314,10 +323,17 @@ func (n *ChatRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// UserRn returns the parent of n.
+// UserRn returns the ai.malonaz.com/User n is under.
 func (n *ChatRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the ai.malonaz.com/Organization n is under.
+func (n *ChatRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }
