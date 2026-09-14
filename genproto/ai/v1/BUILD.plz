@@ -19,11 +19,11 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/aip",
-        "//go/aip/resourcename",
         "//malonaz/audio/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//malonaz/json/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",

@@ -83,7 +83,7 @@ filegroup(
     name = "protoc-gen-go-aip-dep",
     exported_deps = [
         "//go/aip",
-        "//go/aip/resourcename",
+        "//third_party/go:go.einride.tech__aip__resourcename",
     ],
 )
 

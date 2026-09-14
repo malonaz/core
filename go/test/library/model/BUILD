@@ -16,9 +16,9 @@ go_library(
     test_only = True,
     visibility = ["//go/test/library/..."],
     deps = [
-        "//go/aip/resourcename",
         "//go/pbutil",
         "//malonaz/test/library/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/malonaz/core/go/aip/resourcename"
+	"go.einride.tech/aip/resourcename"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"

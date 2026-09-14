@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-
-	"github.com/malonaz/core/go/aip/resourcename"
 )
 
 const (

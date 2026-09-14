@@ -476,6 +476,7 @@
         "go.einride.tech/aip/filtering": "//third_party/go:go.einride.tech__aip__filtering",
         "go.einride.tech/aip/ordering": "//third_party/go:go.einride.tech__aip__ordering",
         "go.einride.tech/aip/pagination": "//third_party/go:go.einride.tech__aip__pagination",
+        "go.einride.tech/aip/resourcename": "//third_party/go:go.einride.tech__aip__resourcename",
         "go.mongodb.org/mongo-driver/bson": "//third_party/go:go.mongodb.org__mongo-driver__bson",
         "go.mongodb.org/mongo-driver/bson/bsoncodec": "//third_party/go:go.mongodb.org__mongo-driver__bson__bsoncodec",
         "go.mongodb.org/mongo-driver/bson/bsonoptions": "//third_party/go:go.mongodb.org__mongo-driver__bson__bsonoptions",

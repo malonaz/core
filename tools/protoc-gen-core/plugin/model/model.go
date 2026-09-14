@@ -393,13 +393,13 @@ func (m *Model) ToPbDef() (string, error) {
 		}
 		b.WriteString(nameCode)
 	} else {
-		fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("github.com/malonaz/core/go/aip/resourcename", "Sprint"), m.Patterns[0].Value)
+		fmt.Fprintf(&b, "\tname := %s(\"%s\"", m.fqn("go.einride.tech/aip/resourcename", "Sprint"), m.Patterns[0].Value)
 		for _, idField := range m.resourceIDFieldNames() {
 			fmt.Fprintf(&b, ", m.%s", idField)
 		}
 		fmt.Fprintf(&b, ")\n")
 	}
-	fmt.Fprintf(&b, "\tif err := %s(name); err != nil {\n", m.fqn("github.com/malonaz/core/go/aip/resourcename", "Validate"))
+	fmt.Fprintf(&b, "\tif err := %s(name); err != nil {\n", m.fqn("go.einride.tech/aip/resourcename", "Validate"))
 	fmt.Fprintf(&b, "\t\treturn nil, fmt.Errorf(\"validating resource name: %%w\", err)\n")
 	fmt.Fprintf(&b, "\t}\n")
 
@@ -421,7 +421,7 @@ func (m *Model) ToPbDef() (string, error) {
 func (m *Model) multiPatternNameConstruction() (string, error) {
 	var b strings.Builder
 	variableToBinding := m.bindingsByVariable()
-	sprint := m.fqn("github.com/malonaz/core/go/aip/resourcename", "Sprint")
+	sprint := m.fqn("go.einride.tech/aip/resourcename", "Sprint")
 
 	fmt.Fprintf(&b, "\tvar name string\n")
 	fmt.Fprintf(&b, "\tswitch {\n")
@@ -491,7 +491,7 @@ func (m *Model) ParseNameDef() (string, error) {
 		addrArgs[i] = "&" + idField
 	}
 	fmt.Fprintf(&b, "\tif err := %s(name, \"%s\", %s); err != nil {\n",
-		m.fqn("github.com/malonaz/core/go/aip/resourcename", "Sscan"), m.Patterns[0].Value, strings.Join(addrArgs, ", "))
+		m.fqn("go.einride.tech/aip/resourcename", "Sscan"), m.Patterns[0].Value, strings.Join(addrArgs, ", "))
 
 	emptyStrings := make([]string, len(resourceIDFields))
 	for i := range emptyStrings {
@@ -514,8 +514,8 @@ func (m *Model) multiPatternParseNameDef() (string, error) {
 	goName := m.GoName()
 	unionFields := m.resourceIDFieldNames()
 	variableToBinding := m.bindingsByVariable()
-	sscan := m.fqn("github.com/malonaz/core/go/aip/resourcename", "Sscan")
-	match := m.fqn("github.com/malonaz/core/go/aip/resourcename", "Match")
+	sscan := m.fqn("go.einride.tech/aip/resourcename", "Sscan")
+	match := m.fqn("go.einride.tech/aip/resourcename", "Match")
 
 	returnTypes := make([]string, len(unionFields))
 	for i := range unionFields {

@@ -6,7 +6,7 @@ package v1
 import (
 	fmt "fmt"
 	aip "github.com/malonaz/core/go/aip"
-	resourcename "github.com/malonaz/core/go/aip/resourcename"
+	resourcename "go.einride.tech/aip/resourcename"
 	strings "strings"
 )
 

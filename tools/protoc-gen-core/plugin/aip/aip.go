@@ -13,7 +13,7 @@ import (
 
 const (
 	aipPkg          = protogen.GoImportPath("github.com/malonaz/core/go/aip")
-	resourcenamePkg = protogen.GoImportPath("github.com/malonaz/core/go/aip/resourcename")
+	resourcenamePkg = protogen.GoImportPath("go.einride.tech/aip/resourcename")
 )
 
 // Generate emits `{file}_aip.pb.go`, or skips the file when it declares nothing.

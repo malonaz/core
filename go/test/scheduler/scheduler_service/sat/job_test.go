@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/malonaz/core/go/aip/resourcename"
 	"github.com/stretchr/testify/require"
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"

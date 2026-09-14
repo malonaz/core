@@ -6993,6 +6993,15 @@ go_module(
     deps = [":google.golang.org__protobuf__proto"],
 )
 
+go_module(
+    name = "go.einride.tech__aip__resourcename",
+    download = ":_go.einride.tech__aip#download",
+    install = ["resourcename"],
+    module = "go.einride.tech/aip",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
 go_mod_download(
     name = "go.mongodb.org__mongo-driver",
     _tag = "download",

@@ -4,7 +4,7 @@ import (
 	"encoding"
 	"fmt"
 
-	"github.com/malonaz/core/go/aip/resourcename"
+	"go.einride.tech/aip/resourcename"
 )
 
 // Wildcard is the segment standing for "any" in a resource name, e.g. "organizations/-".

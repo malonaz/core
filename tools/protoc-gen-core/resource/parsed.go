@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-	"github.com/malonaz/core/go/aip/resourcename"
+	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/internal/strs"

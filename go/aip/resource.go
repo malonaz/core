@@ -3,7 +3,7 @@ package aip
 import (
 	"fmt"
 
-	"github.com/malonaz/core/go/aip/resourcename"
+	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 )
 

@@ -26,9 +26,9 @@ go_library(
     import_path = "github.com/malonaz/core/gengo/ai/model",
     visibility = ["PUBLIC"],
     deps = [
-        "//go/aip/resourcename",
         "//go/pbutil",
         "//malonaz/ai/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__rpc__status",  # wollemi:keep
     ],
