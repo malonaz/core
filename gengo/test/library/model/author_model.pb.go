@@ -33,6 +33,7 @@ type Author struct {
 	EmailAddresses []string   `db:"email_addresses" schema:"library" table:"author"`
 	PhoneNumbers   *[]string  `db:"phone_numbers" schema:"library" table:"author"`
 	Labels         []byte     `db:"labels" schema:"library" table:"author"`
+	Annotations    []byte     `db:"annotations" schema:"library" table:"author"`
 	Etag           string     `db:"etag" schema:"library" table:"author"`
 	Metadata       []byte     `db:"metadata" schema:"library" table:"author"`
 }
@@ -77,6 +78,14 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 			return nil, fmt.Errorf("marshaling Labels: %w", err)
 		}
 	}
+	var AnnotationsBytes []byte
+	if m.Annotations != nil {
+		var err error
+		AnnotationsBytes, err = json.Marshal(m.Annotations)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Annotations: %w", err)
+		}
+	}
 	if m.Metadata == nil {
 		return nil, fmt.Errorf("Metadata cannot be nil")
 	}
@@ -97,6 +106,7 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 		EmailAddresses: EmailAddresses,
 		PhoneNumbers:   PhoneNumbers,
 		Labels:         LabelsBytes,
+		Annotations:    AnnotationsBytes,
 		Etag:           m.Etag,
 		Metadata:       MetadataBytes,
 	}, nil
@@ -131,6 +141,13 @@ func (m *Author) ToPb() (*v1.Author, error) {
 			return nil, fmt.Errorf("unmarshaling Labels: %w", err)
 		}
 	}
+	var Annotations map[string]string
+	if m.Annotations != nil {
+		Annotations = map[string]string{}
+		if err := json.Unmarshal(m.Annotations, &Annotations); err != nil {
+			return nil, fmt.Errorf("unmarshaling Annotations: %w", err)
+		}
+	}
 	Metadata := &v1.AuthorMetadata{}
 	if err := pbutil.JSONUnmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
@@ -151,6 +168,7 @@ func (m *Author) ToPb() (*v1.Author, error) {
 		EmailAddresses: m.EmailAddresses,
 		PhoneNumbers:   PhoneNumbers,
 		Labels:         Labels,
+		Annotations:    Annotations,
 		Etag:           m.Etag,
 		Metadata:       Metadata,
 	}, nil

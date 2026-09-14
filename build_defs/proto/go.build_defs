@@ -11,6 +11,7 @@ GENERATE_GO_GRPC = "generate_go_grpc"
 GENERATE_GO_GRPC_GATEWAY = "generate_go_grpc_gateway"
 GENERATE_GO_AIP = "generate_go_aip"
 GENERATE_GO_AIP_LABEL = "generate_go_aip_label"
+GENERATE_GO_AIP_ANNOTATION = "generate_go_aip_annotation"
 GENERATE_GO_RPC = "generate_go_rpc"
 GENERATE_GO_MODEL = "generate_go_model"
 GENERATE_GO_NATS = "generate_go_nat"
@@ -146,6 +147,16 @@ def go_proto_library(
             '--plugin=protoc-gen-core_label="`which $TOOLS_PROTOC_GEN_CORE_LABEL`"',
             '--core_label_out="$OUT_DIR"',
             '--core_label_opt=paths=source_relative,plugin=aip_label',
+        ]
+
+    if additional_context and GENERATE_GO_AIP_ANNOTATION in additional_context:
+        go_deps += [CONFIG.CORE.PROTOC_GEN_ANNOTATION_GO_DEP]
+        tools["protoc_gen_core_annotation"] = [CONFIG.CORE.PROTOC_GEN_CORE]
+        plugin_out_keys += ['core_annotation_out']
+        plugin_flags += [
+            '--plugin=protoc-gen-core_annotation="`which $TOOLS_PROTOC_GEN_CORE_ANNOTATION`"',
+            '--core_annotation_out="$OUT_DIR"',
+            '--core_annotation_opt=paths=source_relative,plugin=aip_annotation',
         ]
 
     protoc = protoc_rule(

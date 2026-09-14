@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package malonaz.aip.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/aip/v1";
+
+// An annotation definition declared by a service. Annotations are bookkeeping
+// written by tooling, never by users; unlike labels they are not filterable and
+// their values are free-form.
+message Annotation {
+  // The annotation key, e.g. "google.calendar.onikisu.com/updated".
+  string key = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
+  }];
+
+  // Human-readable description of the annotation's purpose.
+  string description = 2 [(buf.validate.field).required = true];
+
+  // Fully-qualified name of the message the value encodes as protojson, e.g.
+  // "google.protobuf.Timestamp"; may be package-relative like AIP-151's
+  // operation_info.response_type. Unset means the value is an opaque string.
+  string value_type = 3;
+}

@@ -105,7 +105,13 @@ filegroup(
     ],
 )
 
-# Gathers the proto go aip dependencies - referenced in .plzconfig.
+# Gathers the generated annotation accessors' dependencies - referenced in .plzconfig.
+filegroup(
+    name = "protoc-gen-go-annotation-dep",
+    exported_deps = ["//go/aip"],
+)
+
+# Gathers the proto go nats dependencies - referenced in .plzconfig.
 filegroup(
     name = "protoc-gen-go-nats-dep",
     exported_deps = [

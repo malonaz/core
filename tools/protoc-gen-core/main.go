@@ -143,6 +143,8 @@ func main() {
 			generateFunc = gateway.Generate
 		case "aip_label":
 			generateFunc = aip.Generate
+		case "aip_annotation":
+			generateFunc = aip.GenerateAnnotations
 		case "nats_event":
 			generateFunc = natsevents.Generate
 		case "nats":

@@ -28,6 +28,7 @@ proto_library(
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/test/library/v1",
         GENERATE_GO_AIP: True,
         GENERATE_GO_AIP_LABEL: True,
+        GENERATE_GO_AIP_ANNOTATION: True,
         GENERATE_GO_NATS_EVENT: True,
     },
     labels = ["copy_generated_code:malonaz:genproto"],

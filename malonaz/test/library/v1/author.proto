@@ -8,6 +8,7 @@ import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/aip/v1/annotation.proto";
 import "malonaz/codegen/aip/v1/label.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -17,6 +18,20 @@ option (google.api.resource_definition) = {
   pattern: "organizations/{organization}"
   singular: "organization"
   plural: "organizations"
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "library.com/synced"
+  description: "When the author was last synced, as a Timestamp."
+  value_type: "google.protobuf.Timestamp"
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "library.com/profile-snapshot"
+  description: "A package-relative typed value."
+  value_type: "AuthorProfile"
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "library.com/external-id"
+  description: "An opaque string annotation."
 };
 option (malonaz.codegen.aip.v1.label) = {
   key: "library.com/my-status"
@@ -145,6 +160,21 @@ message Author {
           max_len: 63
           pattern: "^[a-z0-9_\\-\\p{L}]*$"
         }
+      }
+    }
+  ];
+
+  // Annotations on this author: bookkeeping by tooling, never by users.
+  map<string, string> annotations = 14 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {max_len: 1024}
       }
     }
   ];

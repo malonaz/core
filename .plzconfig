@@ -88,6 +88,10 @@ DefaultValue = //tools/proto:protoc-gen-go-aip
 ConfigKey = ProtocGenAipGoDep
 DefaultValue = //tools/proto:protoc-gen-go-aip-dep
 
+[PluginConfig "protoc_gen_annotation_go_dep"]
+ConfigKey = ProtocGenAnnotationGoDep
+DefaultValue = //tools/proto:protoc-gen-go-annotation-dep
+
 [PluginConfig "protoc_gen_nats_go_dep"]
 ConfigKey = ProtocGenNatsGoDep
 DefaultValue = //tools/proto:protoc-gen-go-nats-dep
