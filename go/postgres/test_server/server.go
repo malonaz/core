@@ -122,8 +122,9 @@ func (s *Server) Client() *postgres.Client {
 // starts the server. The call blocks until Postgres is accepting connections.
 func (s *Server) Start(ctx context.Context) error {
 	if s.config.DataDirectory == "" {
-		// A fresh directory per server: a fixed path only works under a private /tmp.
-		dataDirectory, err := os.MkdirTemp("", "postgres-")
+		// A fresh directory per server, under /tmp rather than $TMPDIR: please points the
+		// latter deep into plz-out and the socket path would exceed its 107-byte limit.
+		dataDirectory, err := os.MkdirTemp("/tmp", "postgres-")
 		if err != nil {
 			return fmt.Errorf("create data directory: %w", err)
 		}
