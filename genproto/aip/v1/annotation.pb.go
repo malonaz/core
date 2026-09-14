@@ -32,9 +32,9 @@ type Annotation struct {
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// Human-readable description of the annotation's purpose.
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// Fully-qualified name of the message the value encodes as protojson, e.g.
-	// "google.protobuf.Timestamp"; may be package-relative like AIP-151's
-	// operation_info.response_type. Unset means the value is an opaque string.
+	// Fully-qualified name of the message the value is: proto-encoded and base64 in the
+	// string map, e.g. "google.protobuf.Timestamp". May be package-relative like AIP-151's
+	// operation_info.response_type. Unset means the value is a plain string.
 	ValueType     string `protobuf:"bytes,3,opt,name=value_type,json=valueType,proto3" json:"value_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -105,9 +105,9 @@ type Annotation_builder struct {
 	Key string
 	// Human-readable description of the annotation's purpose.
 	Description string
-	// Fully-qualified name of the message the value encodes as protojson, e.g.
-	// "google.protobuf.Timestamp"; may be package-relative like AIP-151's
-	// operation_info.response_type. Unset means the value is an opaque string.
+	// Fully-qualified name of the message the value is: proto-encoded and base64 in the
+	// string map, e.g. "google.protobuf.Timestamp". May be package-relative like AIP-151's
+	// operation_info.response_type. Unset means the value is a plain string.
 	ValueType string
 }
 

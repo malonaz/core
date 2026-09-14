@@ -1,6 +1,7 @@
 package aip
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
@@ -54,8 +55,8 @@ func (a StringAnnotation) Set(resource Annotatable, value string) {
 
 func (a StringAnnotation) Delete(resource Annotatable) { DeleteAnnotation(resource, a.Key) }
 
-// TypedAnnotation is a declared annotation whose value is a T encoded as protojson,
-// so it stays readable wherever the raw map surfaces (database, logs, UIs).
+// TypedAnnotation is a declared annotation whose value is a T on the wire: proto-encoded,
+// base64 so it fits the string map. Annotations are opaque to everything but their owner.
 type TypedAnnotation[T proto.Message] struct {
 	Key string
 }
@@ -67,7 +68,11 @@ func (a TypedAnnotation[T]) Get(resource Annotatable) (value T, ok bool, err err
 		return value, false, nil
 	}
 	value = value.ProtoReflect().New().Interface().(T)
-	if err := pbutil.JSONUnmarshal([]byte(raw), value); err != nil {
+	wire, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		return value, true, fmt.Errorf("annotation %q: %w", a.Key, err)
+	}
+	if err := pbutil.Unmarshal(wire, value); err != nil {
 		return value, true, fmt.Errorf("annotation %q: %w", a.Key, err)
 	}
 	return value, true, nil
@@ -76,11 +81,11 @@ func (a TypedAnnotation[T]) Get(resource Annotatable) (value T, ok bool, err err
 func (a TypedAnnotation[T]) Has(resource Annotatable) bool { return HasAnnotation(resource, a.Key) }
 
 func (a TypedAnnotation[T]) Set(resource Annotatable, value T) error {
-	raw, err := pbutil.JSONMarshal(value)
+	wire, err := pbutil.MarshalDeterministic(value)
 	if err != nil {
 		return fmt.Errorf("annotation %q: %w", a.Key, err)
 	}
-	SetAnnotation(resource, a.Key, string(raw))
+	SetAnnotation(resource, a.Key, base64.StdEncoding.EncodeToString(wire))
 	return nil
 }
 

@@ -24,8 +24,8 @@ func TestTypedAnnotation(t *testing.T) {
 		author := &librarypb.Author{}
 		at := timestamppb.New(time.Date(2026, 9, 14, 8, 0, 0, 0, time.UTC))
 		require.NoError(t, synced.Set(author, at))
-		// Timestamps encode as a bare RFC3339 string, readable in the raw map.
-		require.Equal(t, `"2026-09-14T08:00:00Z"`, author.GetAnnotations()[synced.Key])
+		// Opaque on the wire: base64 of the proto encoding.
+		require.Equal(t, "CIDTntUG", author.GetAnnotations()[synced.Key])
 		got, ok, err := synced.Get(author)
 		require.NoError(t, err)
 		require.True(t, ok)
