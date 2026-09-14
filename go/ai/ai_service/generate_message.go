@@ -191,7 +191,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		var discoveredTools []*aipb.Tool
 		for _, tool := range toolSet.GetTools() {
 			toolNameToTool[tool.GetName()] = tool
-			if val, _ := aip.GetAnnotation(tool, aitool.AnnotationKeyPreDiscoveredTool); val == aip.LabelValueTrue {
+			if val, _ := aipb.Annotations.PreDiscoveredTool.Get(tool); val == aip.LabelValueTrue {
 				discoveredTools = append(discoveredTools, tool)
 			}
 		}
@@ -215,7 +215,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	for _, message := range history {
 		for _, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolResult) {
 			toolResult := block.GetToolResult()
-			toolSetName, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyToolSetName)
+			toolSetName, ok := aipb.Annotations.ToolSetName.Get(toolResult)
 			if !ok {
 				continue
 			}
@@ -223,7 +223,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 			if !ok {
 				continue
 			}
-			discoveredToolsString, ok := aip.GetAnnotation(toolResult, aitool.AnnotationKeyDiscoveredTools)
+			discoveredToolsString, ok := aipb.Annotations.DiscoveredTools.Get(toolResult)
 			if !ok {
 				continue
 			}
@@ -393,8 +393,8 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
 			if !toolCall.GetPartial() {
-				switch toolType, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolType); toolType {
-				case aitool.AnnotationValueToolTypeDiscovery:
+				switch toolType, _ := aipb.Annotations.ToolType.Get(toolCall); toolType {
+				case aitool.ToolTypeDiscovery:
 					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
 				}
 			}
@@ -443,7 +443,7 @@ func processDiscoveryToolCall(
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool,
 	toolNameToTool map[string]*aipb.Tool,
 ) *aipb.ToolResult {
-	toolSetName, _ := aip.GetAnnotation(toolCall, aitool.AnnotationKeyToolSetName)
+	toolSetName, _ := aipb.Annotations.ToolSetName.Get(toolCall)
 	toolNameToToolInSet, ok := toolSetNameToToolNameToTool[toolSetName]
 	if !ok {
 		return ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool set %q", toolSetName))
@@ -484,12 +484,12 @@ func processDiscoveryToolCall(
 	}
 
 	annotations := map[string]string{
-		aitool.AnnotationKeyToolSetName: toolSetName,
+		aipb.Annotations.ToolSetName.Key: toolSetName,
 	}
 	// Only stamped when something new was discovered: joining an empty list
 	// would persist a "" entry that replay could never resolve.
 	if len(discoveredToolNames) > 0 {
-		annotations[aitool.AnnotationKeyDiscoveredTools] = strings.Join(discoveredToolNames, ",")
+		annotations[aipb.Annotations.DiscoveredTools.Key] = strings.Join(discoveredToolNames, ",")
 	}
 
 	// Return the discovered tools' schemas as the tool result so the model can

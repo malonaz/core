@@ -17,10 +17,6 @@ import (
 )
 
 const (
-	// ScriptAnnotationKey holds the script on a message: a JSON array of
-	// ai.v1.Message whose blocks are replayed, one message per generation turn.
-	ScriptAnnotationKey = "mock.malonaz.com/script"
-
 	// ToolsPlaceholder, when present in a scripted text block, is replaced with
 	// the comma-joined names of the tools visible to the provider. Tests use it
 	// to assert the provider-visible tool list (e.g. prompt-cache stability).
@@ -93,15 +89,16 @@ func (c *Client) StreamGenerateMessage(
 func nextScriptedMessage(messages []*aipb.Message) (*aipb.Message, error) {
 	scriptIndex := -1
 	for i, message := range messages {
-		if _, ok := message.GetAnnotations()[ScriptAnnotationKey]; ok {
+		if aipb.Annotations.Script.Has(message) {
 			scriptIndex = i
 		}
 	}
 	if scriptIndex == -1 {
-		return nil, status.Errorf(codes.InvalidArgument, "mock provider: no message carries the %q annotation", ScriptAnnotationKey).Err()
+		return nil, status.Errorf(codes.InvalidArgument, "mock provider: no message carries the %q annotation", aipb.Annotations.Script.Key).Err()
 	}
 
-	scriptedMessages, err := pbutil.JSONUnmarshalSlice[aipb.Message](pbutil.JsonUnmarshalStrictOptions, []byte(messages[scriptIndex].GetAnnotations()[ScriptAnnotationKey]))
+	script, _ := aipb.Annotations.Script.Get(messages[scriptIndex])
+	scriptedMessages, err := pbutil.JSONUnmarshalSlice[aipb.Message](pbutil.JsonUnmarshalStrictOptions, []byte(script))
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "mock provider: parsing script: %v", err).Err()
 	}

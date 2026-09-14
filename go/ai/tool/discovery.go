@@ -48,8 +48,8 @@ func CreateDiscoveryTool(request *CreateDiscoveryToolRequest) *aipb.Tool {
 			Required: []string{"tools"},
 		},
 		Annotations: map[string]string{
-			AnnotationKeyToolType:     AnnotationValueToolTypeDiscovery,
-			AnnotationKeyNoSideEffect: "true",
+			aipb.Annotations.ToolType.Key:     ToolTypeDiscovery,
+			aipb.Annotations.NoSideEffect.Key: "true",
 		},
 	}
 }

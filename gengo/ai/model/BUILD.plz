@@ -1,6 +1,7 @@
 go_library(
     name = "model",
     srcs = [
+        "annotations_model.pb.go",
         "chat_model.pb.go",
         "errors_model.pb.go",
         "labels_model.pb.go",

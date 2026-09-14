@@ -48,17 +48,17 @@ func TestCreateServiceToolSet(t *testing.T) {
 	toolSet := createServiceToolSet(t, "CreateTool")
 	require.Equal(t, serviceFullName, toolSet.GetName())
 	require.Equal(t, "AiEngine_Discover", toolSet.GetDiscoveryTool().GetName())
-	require.Equal(t, serviceFullName, toolSet.GetDiscoveryTool().GetAnnotations()[aitool.AnnotationKeyToolSetName])
+	require.Equal(t, serviceFullName, toolSet.GetDiscoveryTool().GetAnnotations()[aipb.Annotations.ToolSetName.Key])
 
 	// CreateTool is pre-discovered: available without a discovery tool call.
 	preDiscoveredTool := toolByName(t, toolSet, "AiEngine_CreateTool")
-	require.Equal(t, aip.LabelValueTrue, preDiscoveredTool.GetAnnotations()[aitool.AnnotationKeyPreDiscoveredTool])
-	require.Equal(t, aip.LabelValueFalse, preDiscoveredTool.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
+	require.Equal(t, aip.LabelValueTrue, preDiscoveredTool.GetAnnotations()[aipb.Annotations.PreDiscoveredTool.Key])
+	require.Equal(t, aip.LabelValueFalse, preDiscoveredTool.GetAnnotations()[aipb.Annotations.DiscoverableTool.Key])
 
 	// Every other method is discoverable, and called directly once discovered.
 	discoverableTool := toolByName(t, toolSet, "AiEngine_ParseToolCall")
-	require.Equal(t, aip.LabelValueTrue, discoverableTool.GetAnnotations()[aitool.AnnotationKeyDiscoverableTool])
-	require.Equal(t, aitool.AnnotationValueToolTypeGenerateRPCRequest, discoverableTool.GetAnnotations()[aitool.AnnotationKeyToolType])
+	require.Equal(t, aip.LabelValueTrue, discoverableTool.GetAnnotations()[aipb.Annotations.DiscoverableTool.Key])
+	require.Equal(t, aitool.ToolTypeGenerateRPCRequest, discoverableTool.GetAnnotations()[aipb.Annotations.ToolType.Key])
 	require.NotNil(t, discoverableTool.GetJsonSchema())
 }
 

@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "malonaz/codegen/aip/v1/annotation.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+// Stamped on tools by the ai engine and inherited by their tool calls. Values
+// stay plain strings: clients read grpc-method, no-side-effect and
+// proto-message straight off the map.
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/tool-type"
+  description: "The kind of tool: discovery, generate-message or generate-rpc-request."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/grpc-service"
+  description: "Fully-qualified name of the gRPC service backing the tool."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/grpc-method"
+  description: "Fully-qualified name of the gRPC method backing the tool."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/proto-message"
+  description: "Fully-qualified name of the message the tool's arguments build."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/no-side-effect"
+  description: "\"true\" when the tool is safe to call speculatively."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/generation-field-mask"
+  description: "Comma-separated field mask restricting which fields the model may populate."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/tool-set-name"
+  description: "The tool set the tool belongs to; routes discovery tool calls."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/discoverable-tool"
+  description: "\"true\" when the tool must be discovered before use, \"false\" when it belongs to a tool set but is pre-discovered."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/pre-discovered-tool"
+  description: "\"true\" when the tool is available without a discovery tool call."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/discovered-tools"
+  description: "Comma-separated tool names returned by a discovery tool call, on its tool result."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "mock.malonaz.com/script"
+  description: "Mock provider script on a message: a JSON array of Messages replayed one per generation."
+};
