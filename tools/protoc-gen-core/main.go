@@ -141,7 +141,7 @@ func main() {
 			generateFunc = postgres.Generate
 		case "gateway_handler":
 			generateFunc = gateway.Generate
-		case "aip_label":
+		case "aip":
 			generateFunc = aip.Generate
 		case "nats_event":
 			generateFunc = natsevents.Generate

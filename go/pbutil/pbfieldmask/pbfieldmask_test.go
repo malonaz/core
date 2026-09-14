@@ -366,6 +366,7 @@ func TestFromMessage_AllFields_Author(t *testing.T) {
 		"email_addresses",
 		"phone_numbers",
 		"labels",
+		"annotations",
 		"etag",
 		"metadata.country",
 		"metadata.email_addresses",

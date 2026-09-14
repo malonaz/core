@@ -29,12 +29,18 @@ func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequ
 	// The name is polymorphic: a user or an organization. An empty user ID
 	// tells the store to aggregate across the whole organization.
 	var organizationID, userID string
-	userRn := &aipb.UserResourceName{}
-	organizationRn := &aipb.OrganizationResourceName{}
 	switch {
-	case userRn.UnmarshalString(request.GetName()) == nil:
+	case aipb.MatchUserRn(request.GetName()):
+		userRn, err := aipb.ParseUserRn(request.GetName())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing user name: %v", err).Err()
+		}
 		organizationID, userID = userRn.Organization, userRn.User
-	case organizationRn.UnmarshalString(request.GetName()) == nil:
+	case aipb.MatchOrganizationRn(request.GetName()):
+		organizationRn, err := aipb.ParseOrganizationRn(request.GetName())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing organization name: %v", err).Err()
+		}
 		organizationID = organizationRn.Organization
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "name must be a user or an organization resource name").Err()

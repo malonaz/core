@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
-	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -197,7 +196,7 @@ func Parse(reg *Registry, resourceDescriptor *annotationspb.ResourceDescriptor) 
 
 	parsedResource := &ParsedResource{
 		Desc: resourceDescriptor,
-		Type: aipreflect.ResourceType(t).Type(),
+		Type: t[strings.LastIndexByte(t, '/')+1:],
 	}
 	reg.ParsedResourceTypeToParsedResource[resourceDescriptor.Type] = parsedResource
 

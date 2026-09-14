@@ -1,0 +1,77 @@
+package aip
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/huandu/xstrings"
+	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
+	aippb "github.com/malonaz/core/genproto/aip/v1"
+	codegenaippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+)
+
+// generateAnnotations emits the `Annotations` set: one accessor per declared
+// annotation, typed by its value_type so callers never decode by hand.
+func generateAnnotations(file *protogen.File, g *protogen.GeneratedFile, opts *plugin.Opts) (bool, error) {
+	annotations, err := pbutil.GetExtension[[]*aippb.Annotation](file.Desc.Options(), codegenaippb.E_Annotation)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return false, fmt.Errorf("getting annotation extension: %w", err)
+	}
+	if len(annotations) == 0 {
+		return false, nil
+	}
+	g.P()
+	g.P("type AnnotationSet struct {")
+	types := make([]string, len(annotations))
+	for i, annotation := range annotations {
+		typ, err := annotationGoType(g, file, opts, annotation)
+		if err != nil {
+			return false, err
+		}
+		types[i] = typ
+		g.P("// ", annotation.GetDescription())
+		g.P(annotationGoName(annotation.GetKey()), " ", typ)
+	}
+	g.P("}")
+	g.P()
+	g.P("var Annotations = AnnotationSet{")
+	for i, annotation := range annotations {
+		g.P(annotationGoName(annotation.GetKey()), ": ", types[i], "{Key: ", fmt.Sprintf("%q", annotation.GetKey()), "},")
+	}
+	g.P("}")
+	return true, nil
+}
+
+func annotationGoType(g *protogen.GeneratedFile, file *protogen.File, opts *plugin.Opts, annotation *aippb.Annotation) (string, error) {
+	if annotation.GetValueType() == "" {
+		return g.QualifiedGoIdent(aipPkg.Ident("StringAnnotation")), nil
+	}
+	fullName := protoreflect.FullName(annotation.GetValueType())
+	if !fullName.IsValid() {
+		return "", fmt.Errorf("annotation %q: invalid value_type %q", annotation.GetKey(), annotation.GetValueType())
+	}
+	// AIP-151 style: a bare name is relative to the declaring package.
+	if fullName.Parent() == "" {
+		fullName = file.Desc.Package().Append(fullName.Name())
+	}
+	for _, f := range opts.Files {
+		for _, message := range f.Messages {
+			if message.Desc.FullName() == fullName {
+				return g.QualifiedGoIdent(aipPkg.Ident("TypedAnnotation")) + "[*" + g.QualifiedGoIdent(message.GoIdent) + "]", nil
+			}
+		}
+	}
+	return "", fmt.Errorf("annotation %q: value_type %s is not a top-level message of the compilation unit; import its proto", annotation.GetKey(), fullName)
+}
+
+func annotationGoName(key string) string {
+	if idx := strings.LastIndex(key, "/"); idx >= 0 {
+		key = key[idx+1:]
+	}
+	return xstrings.ToPascalCase(strings.NewReplacer("-", "_", ".", "_").Replace(key))
+}

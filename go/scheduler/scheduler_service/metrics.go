@@ -61,7 +61,7 @@ func observeQueueStats(stats []*store.QueueStats, now time.Time) {
 	runningGauge.Reset()
 	oldestPendingAgeGauge.Reset()
 	for _, queueStats := range stats {
-		queue := (&schedulerpb.QueueResourceName{Queue: queueStats.QueueID}).String()
+		queue := (&schedulerpb.QueueRn{Queue: queueStats.QueueID}).String()
 		pendingGauge.WithLabelValues(queue).Set(float64(queueStats.PendingCount))
 		runningGauge.WithLabelValues(queue).Set(float64(queueStats.RunningCount))
 		var oldestPendingAge float64

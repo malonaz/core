@@ -151,20 +151,29 @@ if err := eg.Wait(); err != nil {
 ```
 
 ### 6. Resource Names
-Never construct resource name strings manually via concatenation. Always use the generated protobuf resource name structs.
+Never construct resource name strings manually via concatenation. Always use the generated `{Type}Rn`
+types (`{file}_aip.pb.go`): pointer receivers, all implementing `aip.Rn`.
 
 ```go
 // Bad
 configName := "organizations/" + orgID + "/users/" + userID + "/config"
 
 // Good
-configName := contactRn.UserResourceName().ConfigResourceName().String()
+configName := contactRn.UserRn().ConfigRn().String()
 
 // Parsing
-contactRn := &userpb.ContactResourceName{}
-if err := contactRn.UnmarshalString(request.GetContact()); err != nil {
-    return nil, status.Errorf(codes.InvalidArgument, "unmarshaling contact resource name: %v", err).Err()
+contactRn, err := userpb.ParseContactRn(request.GetContact())
+if err != nil {
+    return nil, status.Errorf(codes.InvalidArgument, "parsing contact resource name: %v", err).Err()
 }
+
+// Polymorphic names: Match before Parse, never parse-and-ignore-the-error.
+if userpb.MatchUserRn(name) { ... }
+
+// A child under whichever parent pattern applies (multi-pattern resources).
+jobRn, err := schedulerpb.NewJobRn(parent, jobID) // JobRn interface: RootJobRn | OrganizationJobRn | UserJobRn
+
+// Generic access: rn.ID(), rn.Parent(), rn.Type(), rn.Pattern(); consts {Type}RnType, {Struct}RnPattern.
 ```
 
 ### 7. gRPC servers and clients (`go/grpc`)

@@ -46,7 +46,7 @@ func chat() string {
 	if *chatName != "" {
 		return *chatName
 	}
-	chatRn := &aipb.ChatResourceName{
+	chatRn := &aipb.ChatRn{
 		Organization: "unknown",
 		User:         "unknown",
 		Chat:         aip.NewSystemGeneratedBase32ResourceID(),

@@ -6252,8 +6252,8 @@ if is_platform(
 
 if is_platform(
     arch = [
-        "amd64",
         "arm64",
+        "amd64",
     ],
     os = ["linux"],
 ):
@@ -6945,37 +6945,6 @@ go_mod_download(
 )
 
 go_module(
-    name = "go.einride.tech__aip__cmd__protoc-gen-go-aip",
-    download = ":_go.einride.tech__aip#download",
-    install = ["cmd/protoc-gen-go-aip"],
-    module = "go.einride.tech/aip",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.einride.tech__aip__cmd__protoc-gen-go-aip__internal__genaip",
-        ":google.golang.org__protobuf__compiler__protogen",
-        ":google.golang.org__protobuf__types__pluginpb",
-    ],
-)
-
-go_module(
-    name = "go.einride.tech__aip__cmd__protoc-gen-go-aip__internal__genaip",
-    download = ":_go.einride.tech__aip#download",
-    install = ["cmd/protoc-gen-go-aip/internal/genaip"],
-    module = "go.einride.tech/aip",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.einride.tech__aip__reflect__aipreflect",
-        ":go.einride.tech__aip__resourcename",
-        ":google.golang.org__protobuf__compiler__protogen",
-        ":google.golang.org__protobuf__proto",
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__reflect__protoregistry",
-        "//third_party/go:github.com__stoewer__go-strcase",
-        "//third_party/proto:google__api__annotations",
-    ],
-)
-
-go_module(
     name = "go.einride.tech__aip__fieldmask",
     download = ":_go.einride.tech__aip#download",
     install = ["fieldmask"],
@@ -7022,23 +6991,6 @@ go_module(
     module = "go.einride.tech/aip",
     visibility = ["PUBLIC"],
     deps = [":google.golang.org__protobuf__proto"],
-)
-
-go_module(
-    name = "go.einride.tech__aip__reflect__aipreflect",
-    download = ":_go.einride.tech__aip#download",
-    install = ["reflect/aipreflect"],
-    module = "go.einride.tech/aip",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":go.einride.tech__aip__resourcename",
-        ":google.golang.org__protobuf__proto",
-        ":google.golang.org__protobuf__reflect__protopath",
-        ":google.golang.org__protobuf__reflect__protorange",
-        ":google.golang.org__protobuf__reflect__protoreflect",
-        ":google.golang.org__protobuf__reflect__protoregistry",
-        "//third_party/proto:google__api__annotations",
-    ],
 )
 
 go_module(

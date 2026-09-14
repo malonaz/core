@@ -2,6 +2,7 @@ go_library(
     name = "v1",
     srcs = [
         "aip.pb.go",
+        "annotation.pb.go",
         "label.pb.go",
     ],
     visibility = ["//..."],

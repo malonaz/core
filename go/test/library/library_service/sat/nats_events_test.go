@@ -1056,9 +1056,9 @@ func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
 	organizationParent2 := getOrganizationParent()
 	consumerSuffix := uuid.MustNewV7().String()
 
-	organizationResourceName1 := &librarypb.OrganizationResourceName{}
+	organizationResourceName1 := &librarypb.OrganizationRn{}
 	require.NoError(t, organizationResourceName1.UnmarshalString(organizationParent1))
-	organizationResourceName2 := &librarypb.OrganizationResourceName{}
+	organizationResourceName2 := &librarypb.OrganizationRn{}
 	require.NoError(t, organizationResourceName2.UnmarshalString(organizationParent2))
 
 	shelfStream := librarypb.GetShelfStream()

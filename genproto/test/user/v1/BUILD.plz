@@ -2,13 +2,13 @@ go_library(
     name = "v1",
     srcs = [
         "organization.pb.go",
-        "organization_aip.go",
+        "organization_aip.pb.go",
         "organization_nats_event.pb.go",
         "user.pb.go",
-        "user_aip.go",
+        "user_aip.pb.go",
         "user_nats_event.pb.go",
         "user_profile.pb.go",
-        "user_profile_aip.go",
+        "user_profile_aip.pb.go",
     ],
     visibility = ["//..."],
     deps = [

@@ -14,7 +14,6 @@ import (
 	_ "github.com/scylladb/go-set/strset"
 	_ "github.com/sirupsen/logrus"
 	_ "github.com/spf13/cobra"
-	_ "go.einride.tech/aip/cmd/protoc-gen-go-aip"
 	_ "golang.org/x/mod/modfile"
 	_ "google.golang.org/grpc/metadata"
 	_ "google.golang.org/grpc/status"

@@ -34,8 +34,8 @@ const (
 
 // scheduleParents are the three shapes a schedule (and its jobs) may live under.
 func scheduleParents() map[string]string {
-	organization := (&schedulerpb.OrganizationResourceName{Organization: "org-" + uuid.MustNewV7().String()}).String()
-	user := (&schedulerpb.UserResourceName{Organization: "org-" + uuid.MustNewV7().String(), User: "user-" + uuid.MustNewV7().String()}).String()
+	organization := (&schedulerpb.OrganizationRn{Organization: "org-" + uuid.MustNewV7().String()}).String()
+	user := (&schedulerpb.UserRn{Organization: "org-" + uuid.MustNewV7().String(), User: "user-" + uuid.MustNewV7().String()}).String()
 	return map[string]string{"root": "", "organization": organization, "user": user}
 }
 

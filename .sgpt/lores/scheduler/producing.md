@@ -25,7 +25,7 @@ if err != nil {
 - **`parent`** is where the job lives and what authorizes reads of it: the
   user (`organizations/{o}/users/{u}`) or organization the work belongs to,
   `""` for a system job. The caller names it — there is no derivation helper;
-  a `Call`'s job goes under `callRn.UserResourceName().String()`. For a job of
+  a `Call`'s job goes under `callRn.UserRn().String()`. For a job of
   a long-running method use what `Start` would derive (user, else
   organization), so the operation lists with the ones started through the rpc.
 - **`message`** is the request of the method that will run; its type URL

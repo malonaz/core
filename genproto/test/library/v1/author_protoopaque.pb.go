@@ -42,6 +42,7 @@ type Author struct {
 	xxx_hidden_EmailAddresses []string               `protobuf:"bytes,9,rep,name=email_addresses,json=emailAddresses,proto3"`
 	xxx_hidden_PhoneNumbers   []string               `protobuf:"bytes,10,rep,name=phone_numbers,json=phoneNumbers,proto3"`
 	xxx_hidden_Labels         map[string]string      `protobuf:"bytes,11,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Annotations    map[string]string      `protobuf:"bytes,14,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Etag           string                 `protobuf:"bytes,12,opt,name=etag,proto3"`
 	xxx_hidden_Metadata       *AuthorMetadata        `protobuf:"bytes,13,opt,name=metadata,proto3"`
 	unknownFields             protoimpl.UnknownFields
@@ -150,6 +151,13 @@ func (x *Author) GetLabels() map[string]string {
 	return nil
 }
 
+func (x *Author) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Annotations
+	}
+	return nil
+}
+
 func (x *Author) GetEtag() string {
 	if x != nil {
 		return x.xxx_hidden_Etag
@@ -206,6 +214,10 @@ func (x *Author) SetPhoneNumbers(v []string) {
 
 func (x *Author) SetLabels(v map[string]string) {
 	x.xxx_hidden_Labels = v
+}
+
+func (x *Author) SetAnnotations(v map[string]string) {
+	x.xxx_hidden_Annotations = v
 }
 
 func (x *Author) SetEtag(v string) {
@@ -286,6 +298,8 @@ type Author_builder struct {
 	PhoneNumbers []string
 	// The labels on this author.
 	Labels map[string]string
+	// Annotations on this author: bookkeeping by tooling, never by users.
+	Annotations map[string]string
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string
 	// Author metadata.
@@ -307,6 +321,7 @@ func (b0 Author_builder) Build() *Author {
 	x.xxx_hidden_EmailAddresses = b.EmailAddresses
 	x.xxx_hidden_PhoneNumbers = b.PhoneNumbers
 	x.xxx_hidden_Labels = b.Labels
+	x.xxx_hidden_Annotations = b.Annotations
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Metadata = b.Metadata
 	return m0
@@ -405,7 +420,7 @@ var File_malonaz_test_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xba\t\n" +
+	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a'malonaz/codegen/aip/v1/annotation.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xce\v\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -422,10 +437,14 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x0femail_addresses\x18\t \x03(\tB\x12\xbaH\t\x92\x01\x06\"\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\x0eemailAddresses\x127\n" +
 	"\rphone_numbers\x18\n" +
 	" \x03(\tB\x12\xbaH\x03\xd8\x01\x01\xba\xea\x0f\x02 \x01\x82\xb5\x18\x02\x10\x01R\fphoneNumbers\x12\xd9\x01\n" +
-	"\x06labels\x18\v \x03(\v2+.malonaz.test.library.v1.Author.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
+	"\x06labels\x18\v \x03(\v2+.malonaz.test.library.v1.Author.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\xd1\x01\n" +
+	"\vannotations\x18\x0e \x03(\v20.malonaz.test.library.v1.Author.AnnotationsEntryB}\xbaHr\x9a\x01o\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x05r\x03\x18\x80\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x12\n" +
 	"\x04etag\x18\f \x01(\tR\x04etag\x12Q\n" +
 	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x02\xeaAa\n" +
 	"\x1flibrary.test.malonaz.com/Author\x12-organizations/{organization}/authors/{author}*\aauthors2\x06authorҦ\x04\t\n" +
@@ -449,28 +468,33 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x0eAuthorMetadata\x12\x18\n" +
 	"\acountry\x18\x01 \x01(\tR\acountry\x12>\n" +
 	"\x0femail_addresses\x18\x02 \x03(\tB\x15\xbaH\f\xd8\x01\x01\x92\x01\x06\"\x04r\x02`\x01\x82\xb5\x18\x02\b\x01R\x0eemailAddresses\x12+\n" +
-	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\xf7\x02\xeaAb\n" +
+	"\rphone_numbers\x18\x03 \x03(\tB\x06\x82\xb5\x18\x02\x10\x01R\fphoneNumbersB\xe9\x04\xeaAb\n" +
 	"%library.test.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\x92\x95\x158\n" +
-	"\x15library.com/my-status\x1a\vdummy label\"\bapproved\"\brejected\x92\x95\x15,\x12\x1dlibrary.com/{category}.{type}\x1a\vdummy label\x92\x95\x154\x12#library.com/hello-{category}.{type}\x1a\rdummy label 2\x92\x95\x158\x12'library.com/hello-{category}.{type}-bye\x1a\rdummy label 3Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
+	"\x15library.com/my-status\x1a\vdummy label\"\bapproved\"\brejected\x92\x95\x15,\x12\x1dlibrary.com/{category}.{type}\x1a\vdummy label\x92\x95\x154\x12#library.com/hello-{category}.{type}\x1a\rdummy label 2\x92\x95\x158\x12'library.com/hello-{category}.{type}-bye\x1a\rdummy label 3\x9a\x95\x15a\n" +
+	"\x12library.com/synced\x120When the author was last synced, as a Timestamp.\x1a\x19google.protobuf.Timestamp\x9a\x95\x15N\n" +
+	"\x1clibrary.com/profile-snapshot\x12\x1fA package-relative typed value.\x1a\rAuthorProfile\x9a\x95\x157\n" +
+	"\x17library.com/external-id\x12\x1cAn opaque string annotation.Z0github.com/malonaz/core/genproto/test/library/v1b\x06proto3"
 
-var file_malonaz_test_library_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_test_library_v1_author_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_test_library_v1_author_proto_goTypes = []any{
 	(*Author)(nil),                // 0: malonaz.test.library.v1.Author
 	(*AuthorMetadata)(nil),        // 1: malonaz.test.library.v1.AuthorMetadata
 	nil,                           // 2: malonaz.test.library.v1.Author.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	nil,                           // 3: malonaz.test.library.v1.Author.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_malonaz_test_library_v1_author_proto_depIdxs = []int32{
-	3, // 0: malonaz.test.library.v1.Author.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.test.library.v1.Author.update_time:type_name -> google.protobuf.Timestamp
-	3, // 2: malonaz.test.library.v1.Author.delete_time:type_name -> google.protobuf.Timestamp
+	4, // 0: malonaz.test.library.v1.Author.create_time:type_name -> google.protobuf.Timestamp
+	4, // 1: malonaz.test.library.v1.Author.update_time:type_name -> google.protobuf.Timestamp
+	4, // 2: malonaz.test.library.v1.Author.delete_time:type_name -> google.protobuf.Timestamp
 	2, // 3: malonaz.test.library.v1.Author.labels:type_name -> malonaz.test.library.v1.Author.LabelsEntry
-	1, // 4: malonaz.test.library.v1.Author.metadata:type_name -> malonaz.test.library.v1.AuthorMetadata
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3, // 4: malonaz.test.library.v1.Author.annotations:type_name -> malonaz.test.library.v1.Author.AnnotationsEntry
+	1, // 5: malonaz.test.library.v1.Author.metadata:type_name -> malonaz.test.library.v1.AuthorMetadata
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_author_proto_init() }
@@ -484,7 +508,7 @@ func file_malonaz_test_library_v1_author_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_v1_author_proto_rawDesc), len(file_malonaz_test_library_v1_author_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

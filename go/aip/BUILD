@@ -13,6 +13,7 @@ go_library(
         "resource_event.go",
         "resource_id.go",
         "resource_tree.go",
+        "rn.go",
         "search_query.go",
         "search_request_parser.go",
         "update_request_parser.go",
@@ -51,10 +52,12 @@ go_library(
 go_test(
     name = "test",
     srcs = [
+        "annotations_test.go",
         "filtering_request_test.go",
         "labels_test.go",
         "ordering_request_test.go",
         "pagination_request_test.go",
+        "rn_test.go",
         "search_query_test.go",
         "search_request_parser_test.go",
         "update_request_parser_test.go",
@@ -66,5 +69,6 @@ go_test(
         "//malonaz/test/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )

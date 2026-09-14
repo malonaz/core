@@ -6,7 +6,7 @@ import (
 )
 
 func NewModelName(provider, model string) string {
-	return (&aipb.ModelResourceName{Provider: provider, Model: model}).String()
+	return (&aipb.ModelRn{Provider: provider, Model: model}).String()
 }
 
 func parseModels(bytes []byte) (*aipb.ProviderModelConfig, error) {
