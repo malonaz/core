@@ -14,10 +14,10 @@ go_library(
     import_path = "github.com/malonaz/core/gengo/scheduler/model",
     visibility = ["PUBLIC"],
     deps = [
+        "//go/aip/resourcename",
         "//go/pbutil",
         "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/v1",
-        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",

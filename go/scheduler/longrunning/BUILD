@@ -7,12 +7,12 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "//go/aip/resourcename",
         "//go/grpc/status",
         "//go/scheduler",
         "//go/scheduler/model",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
-        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",

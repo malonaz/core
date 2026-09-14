@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"go.einride.tech/aip/resourcename"
+	"github.com/malonaz/core/go/aip/resourcename"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -28,10 +28,10 @@ const operationsCollection = "operations"
 // the organization makes a user parent. Only Start derives a parent — a
 // producer building a job by hand names the parent it knows.
 func jobParentOf(resource string) string {
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserResourceName{}.Pattern()); ok {
+	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserRn{}.Pattern()); ok {
 		return parent
 	}
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.OrganizationResourceName{}.Pattern()); ok {
+	if parent, ok := resourcename.Ancestor(resource, schedulerpb.OrganizationRn{}.Pattern()); ok {
 		return parent
 	}
 	return ""
@@ -51,9 +51,9 @@ func OperationName(jobName string) (string, error) {
 func jobParent(organizationID, userID string) string {
 	switch {
 	case userID != "":
-		return (&schedulerpb.UserResourceName{Organization: organizationID, User: userID}).String()
+		return (&schedulerpb.UserRn{Organization: organizationID, User: userID}).String()
 	case organizationID != "":
-		return (&schedulerpb.OrganizationResourceName{Organization: organizationID}).String()
+		return (&schedulerpb.OrganizationRn{Organization: organizationID}).String()
 	}
 	return ""
 }
@@ -65,15 +65,15 @@ func jobNameOf(operationName string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	var user schedulerpb.UserResourceName
-	var organization schedulerpb.OrganizationResourceName
+	var user schedulerpb.UserRn
+	var organization schedulerpb.OrganizationRn
 	switch {
 	case parent == "":
-		return schedulerpb.JobResourceName{Job: operationID}.String(), true
+		return schedulerpb.JobRn{Job: operationID}.String(), true
 	case user.UnmarshalString(parent) == nil:
-		return user.OrganizationsUsersJobResourceName(operationID).String(), true
+		return user.OrganizationsUsersJobRn(operationID).String(), true
 	case organization.UnmarshalString(parent) == nil:
-		return organization.OrganizationsJobResourceName(operationID).String(), true
+		return organization.OrganizationsJobRn(operationID).String(), true
 	}
 	return "", false
 }

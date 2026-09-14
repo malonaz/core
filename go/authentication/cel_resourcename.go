@@ -4,7 +4,7 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
-	"go.einride.tech/aip/resourcename"
+	"github.com/malonaz/core/go/aip/resourcename"
 )
 
 // resourceNameCelOptions exposes wildcard-aware AIP-122 resource name helpers

@@ -20,6 +20,7 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "//go/aip/resourcename",
         "//go/aip/transpiler/postgres",
         "//go/canonicalize",
         "//go/pbutil",
@@ -34,9 +35,7 @@ go_library(
         "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:go.einride.tech__aip__pagination",
-        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc",
-        "//third_party/go:google.golang.org__protobuf__encoding__protojson",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",

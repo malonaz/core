@@ -3,8 +3,9 @@ package aip
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/malonaz/core/go/pbutil"
 )
 
 type Annotatable interface {
@@ -66,7 +67,7 @@ func (a TypedAnnotation[T]) Get(resource Annotatable) (value T, ok bool, err err
 		return value, false, nil
 	}
 	value = value.ProtoReflect().New().Interface().(T)
-	if err := protojson.Unmarshal([]byte(raw), value); err != nil {
+	if err := pbutil.JSONUnmarshal([]byte(raw), value); err != nil {
 		return value, true, fmt.Errorf("annotation %q: %w", a.Key, err)
 	}
 	return value, true, nil
@@ -75,7 +76,7 @@ func (a TypedAnnotation[T]) Get(resource Annotatable) (value T, ok bool, err err
 func (a TypedAnnotation[T]) Has(resource Annotatable) bool { return HasAnnotation(resource, a.Key) }
 
 func (a TypedAnnotation[T]) Set(resource Annotatable, value T) error {
-	raw, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(value)
+	raw, err := pbutil.JSONMarshal(value)
 	if err != nil {
 		return fmt.Errorf("annotation %q: %w", a.Key, err)
 	}

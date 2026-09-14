@@ -15,7 +15,7 @@ import (
 
 // textToTextDefaultUserRn owns the chats implicitly created by the legacy
 // stateless API, which has no notion of an organization or user.
-var textToTextDefaultUserRn = &aipb.UserResourceName{
+var textToTextDefaultUserRn = &aipb.UserRn{
 	Organization: "unknown",
 	User:         "unknown",
 }
@@ -97,10 +97,10 @@ func (s *Service) TextToTextStream(request *pb.TextToTextStreamRequest, srv pb.A
 // conversation in every request, so each call targets a fresh chat: the
 // request's messages become that chat's history and nothing is inherited.
 func textToTextStreamRequestToGenerateMessageRequest(request *pb.TextToTextStreamRequest) (*pb.GenerateMessageRequest, error) {
-	generatedChatRn := textToTextDefaultUserRn.ChatResourceName(aip.NewSystemGeneratedBase32ResourceID())
+	generatedChatRn := textToTextDefaultUserRn.ChatRn(aip.NewSystemGeneratedBase32ResourceID())
 	chatRn := &generatedChatRn
 	if request.GetParent() != "" {
-		chatRn = &aipb.ChatResourceName{}
+		chatRn = &aipb.ChatRn{}
 		if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 		}

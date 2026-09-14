@@ -113,9 +113,9 @@ func (s *Service) createScheduledJob(ctx context.Context, schedule *schedulerpb.
 func jobParent(organizationID, userID string) string {
 	switch {
 	case userID != "":
-		return (&schedulerpb.UserResourceName{Organization: organizationID, User: userID}).String()
+		return (&schedulerpb.UserRn{Organization: organizationID, User: userID}).String()
 	case organizationID != "":
-		return (&schedulerpb.OrganizationResourceName{Organization: organizationID}).String()
+		return (&schedulerpb.OrganizationRn{Organization: organizationID}).String()
 	}
 	return ""
 }

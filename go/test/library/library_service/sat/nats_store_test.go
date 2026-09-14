@@ -16,7 +16,7 @@ import (
 func TestNatsStore(t *testing.T) {
 	t.Parallel()
 	organizationParent := getOrganizationParent()
-	organizationResourceName := &librarypb.OrganizationResourceName{}
+	organizationResourceName := &librarypb.OrganizationRn{}
 	require.NoError(t, organizationResourceName.UnmarshalString(organizationParent))
 
 	genre := librarypb.ShelfGenre_SHELF_GENRE_FICTION

@@ -47,7 +47,7 @@ var (
 )
 
 func recordModelUsage(modelUsage *aipb.ModelUsage) {
-	modelResourceName := &aipb.ModelResourceName{}
+	modelResourceName := &aipb.ModelRn{}
 	if err := modelResourceName.UnmarshalString(modelUsage.GetModel()); err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func recordModelUsage(modelUsage *aipb.ModelUsage) {
 }
 
 func recordGenerationMetrics(model string, generationMetrics *aipb.GenerationMetrics) {
-	modelResourceName := &aipb.ModelResourceName{}
+	modelResourceName := &aipb.ModelRn{}
 	if err := modelResourceName.UnmarshalString(model); err != nil {
 		return
 	}

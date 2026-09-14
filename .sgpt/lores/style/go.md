@@ -158,10 +158,10 @@ Never construct resource name strings manually via concatenation. Always use the
 configName := "organizations/" + orgID + "/users/" + userID + "/config"
 
 // Good
-configName := contactRn.UserResourceName().ConfigResourceName().String()
+configName := contactRn.UserRn().ConfigRn().String()
 
 // Parsing
-contactRn := &userpb.ContactResourceName{}
+contactRn := &userpb.ContactRn{}
 if err := contactRn.UnmarshalString(request.GetContact()); err != nil {
     return nil, status.Errorf(codes.InvalidArgument, "unmarshaling contact resource name: %v", err).Err()
 }

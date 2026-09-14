@@ -117,9 +117,9 @@ func PurgeTime(now time.Time, retention time.Duration) *timestamppb.Timestamp {
 func JobName(job *model.Job) string {
 	switch {
 	case job.UserID != nil:
-		return (&schedulerpb.OrganizationsUsersJobResourceName{Organization: *job.OrganizationID, User: *job.UserID, Job: job.JobID}).String()
+		return (&schedulerpb.OrganizationsUsersJobRn{Organization: *job.OrganizationID, User: *job.UserID, Job: job.JobID}).String()
 	case job.OrganizationID != nil:
-		return (&schedulerpb.OrganizationsJobResourceName{Organization: *job.OrganizationID, Job: job.JobID}).String()
+		return (&schedulerpb.OrganizationsJobRn{Organization: *job.OrganizationID, Job: job.JobID}).String()
 	}
-	return (&schedulerpb.JobResourceName{Job: job.JobID}).String()
+	return (&schedulerpb.JobRn{Job: job.JobID}).String()
 }

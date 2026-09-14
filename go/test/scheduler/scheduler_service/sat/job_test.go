@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/malonaz/core/go/aip/resourcename"
 	"github.com/stretchr/testify/require"
-	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -350,9 +350,9 @@ func TestListJobs(t *testing.T) {
 func TestJob_Parents(t *testing.T) {
 	t.Parallel()
 	run := uuid.MustNewV7().String()
-	organization := (&schedulerpb.OrganizationResourceName{Organization: "org-" + run}).String()
-	user := (&schedulerpb.UserResourceName{Organization: "org-" + run, User: "user-" + run}).String()
-	otherOrganization := (&schedulerpb.OrganizationResourceName{Organization: "other-" + run}).String()
+	organization := (&schedulerpb.OrganizationRn{Organization: "org-" + run}).String()
+	user := (&schedulerpb.UserRn{Organization: "org-" + run, User: "user-" + run}).String()
+	otherOrganization := (&schedulerpb.OrganizationRn{Organization: "other-" + run}).String()
 	labels := scheduler.WithLabels(map[string]string{"run": run})
 	filter := fmt.Sprintf(`labels.run = "%s"`, run)
 

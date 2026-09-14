@@ -27,7 +27,7 @@ var (
 	fieldmaskPkg = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
 	natsCPkg     = protogen.GoImportPath("github.com/malonaz/core/go/nats")
 	aipPkg       = protogen.GoImportPath("github.com/malonaz/core/go/aip")
-	resnPkg      = protogen.GoImportPath("go.einride.tech/aip/resourcename")
+	resnPkg      = protogen.GoImportPath("github.com/malonaz/core/go/aip/resourcename")
 )
 
 type generator struct {

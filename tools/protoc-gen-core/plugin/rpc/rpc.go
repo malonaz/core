@@ -29,7 +29,7 @@ var (
 	timestamppbPkg  = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb")
 	emptypbPkg      = protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb")
 	protovalidate   = protogen.GoImportPath("buf.build/go/protovalidate")
-	resourcenamePkg = protogen.GoImportPath("go.einride.tech/aip/resourcename")
+	resourcenamePkg = protogen.GoImportPath("github.com/malonaz/core/go/aip/resourcename")
 	aipPkg          = protogen.GoImportPath("github.com/malonaz/core/go/aip")
 	aipGenPkg       = protogen.GoImportPath("github.com/malonaz/core/genproto/aip/v1")
 	uuidPkg         = protogen.GoImportPath("github.com/malonaz/core/go/uuid")

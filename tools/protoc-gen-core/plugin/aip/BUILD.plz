@@ -1,17 +1,23 @@
 go_library(
     name = "aip",
     srcs = [
+        "aip.go",
         "annotations.go",
         "labels.go",
+        "resource_names.go",
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip/resourcename",
         "//go/pbutil",
         "//malonaz/aip/v1",
         "//malonaz/codegen/aip/v1",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
+        "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/proto:google__api__annotations",
         "//tools/protoc-gen-core/plugin",
     ],
 )

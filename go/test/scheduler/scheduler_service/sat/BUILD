@@ -19,6 +19,7 @@ go_test(
     test_outputs = ["sat.log"],
     deps = [
         "//go/aip",
+        "//go/aip/resourcename",
         "//go/binary",
         "//go/grpc",
         "//go/grpc/require",
@@ -33,7 +34,6 @@ go_test(
         "//malonaz/scheduler/v1",
         "//malonaz/test/scheduler/processor/v1",
         "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",

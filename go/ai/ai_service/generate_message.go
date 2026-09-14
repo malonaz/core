@@ -69,7 +69,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		accumulator = ai.NewMessageAccumulator()
 	}
 
-	chatRn := &aipb.ChatResourceName{}
+	chatRn := &aipb.ChatRn{}
 	if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
 		return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 	}
@@ -109,7 +109,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 				return err
 			}
 			createChatRequest := &pb.CreateChatRequest{
-				Parent: chatRn.UserResourceName().String(),
+				Parent: chatRn.UserRn().String(),
 				ChatId: chatRn.Chat,
 				Chat:   &aipb.Chat{},
 			}
@@ -317,7 +317,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 // generation error is what surfaces to the caller.
 func (s *Service) markGenerationFailure(
 	ctx context.Context,
-	chatRn *aipb.ChatResourceName,
+	chatRn *aipb.ChatRn,
 	inputMessages []*aipb.Message,
 	accumulator *ai.MessageAccumulator,
 	generationError error,

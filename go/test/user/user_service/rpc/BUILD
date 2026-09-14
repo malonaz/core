@@ -22,6 +22,7 @@ go_library(
     visibility = ["//go/test/user/user_service/..."],
     deps = [
         "//go/aip",
+        "//go/aip/resourcename",
         "//go/grpc/status",
         "//go/nats",
         "//go/pbutil",
@@ -32,7 +33,6 @@ go_library(
         "//malonaz/test/user/user_service/v1",
         "//malonaz/test/user/v1",
         "//third_party/go:buf.build__go__protovalidate",
-        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",

@@ -7,7 +7,7 @@ import (
 	errors "errors"
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
-	resourcename "go.einride.tech/aip/resourcename"
+	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )

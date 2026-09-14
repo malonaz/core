@@ -33,7 +33,7 @@ func NewVoiceService() (*VoiceService, error) {
 }
 
 func (s *VoiceService) CreateVoice(ctx context.Context, request *aiservicepb.CreateVoiceRequest) (*aipb.Voice, error) {
-	voiceRn := &aipb.VoiceResourceName{Voice: request.VoiceId}
+	voiceRn := &aipb.VoiceRn{Voice: request.VoiceId}
 	if err := voiceRn.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid voice_id: %v", err).Err()
 	}
@@ -57,7 +57,7 @@ func (s *VoiceService) CreateVoice(ctx context.Context, request *aiservicepb.Cre
 }
 
 func (s *VoiceService) GetVoice(ctx context.Context, request *aiservicepb.GetVoiceRequest) (*aipb.Voice, error) {
-	voiceRn := &aipb.VoiceResourceName{}
+	voiceRn := &aipb.VoiceRn{}
 	if err := voiceRn.UnmarshalString(request.Name); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling voice name: %v", err).Err()
 	}
