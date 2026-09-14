@@ -5,32 +5,59 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// UserProfileRnType is the resource type of UserProfileRn.
+const UserProfileRnType = "user.test.malonaz.com/UserProfile"
+
+// NewUserProfileRn is the singleton under parent, which must follow one of: "organizations/{organization}/users/{user}".
+func NewUserProfileRn(parent string) (*UserProfileRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}/users/{user}", parent):
+		n := &UserProfileRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/users/{user}", &n.Organization, &n.User); err != nil {
+			return nil, err
+		}
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of user.test.malonaz.com/UserProfile", parent)
+}
+
+// UserProfileRnPattern is the pattern UserProfileRn follows.
+const UserProfileRnPattern = "organizations/{organization}/users/{user}/profile"
+
+// UserProfileRn is the resource name "organizations/{organization}/users/{user}/profile".
 type UserProfileRn struct {
 	Organization string
 	User         string
 }
 
-func (n OrganizationRn) UserProfileRn(
-	user string,
-) UserProfileRn {
-	return UserProfileRn{
-		Organization: n.Organization,
-		User:         user,
+// ParseUserProfileRn parses and validates name against UserProfileRnPattern.
+func ParseUserProfileRn(name string) (*UserProfileRn, error) {
+	n := &UserProfileRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n UserRn) UserProfileRn() UserProfileRn {
-	return UserProfileRn{
+// MatchUserProfileRn reports whether name follows UserProfileRnPattern.
+func MatchUserProfileRn(name string) bool {
+	return resourcename.Match(UserProfileRnPattern, name)
+}
+
+// UserProfileRn returns the child user.test.malonaz.com/UserProfile of n.
+func (n *UserRn) UserProfileRn() *UserProfileRn {
+	return &UserProfileRn{
 		Organization: n.Organization,
 		User:         n.User,
 	}
 }
 
-func (n UserProfileRn) Validate() error {
+func (n *UserProfileRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -46,68 +73,48 @@ func (n UserProfileRn) Validate() error {
 	return nil
 }
 
-func (n UserProfileRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.User == "-"
+func (n *UserProfileRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.User == aip.Wildcard
 }
 
-func (n UserProfileRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/users/{user}/profile",
-		n.Organization,
-		n.User,
-	)
+func (n *UserProfileRn) String() string {
+	return resourcename.Sprint(UserProfileRnPattern, n.Organization, n.User)
 }
 
-func (n UserProfileRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n UserProfileRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *UserProfileRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against UserProfileRnPattern.
 func (n *UserProfileRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/users/{user}/profile",
-		&n.Organization,
-		&n.User,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, UserProfileRnPattern, &n.Organization, &n.User); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *UserProfileRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n UserProfileRn) Type() string {
-	return "user.test.malonaz.com/UserProfile"
+func (n *UserProfileRn) Type() string { return UserProfileRnType }
+
+func (n *UserProfileRn) Pattern() string { return UserProfileRnPattern }
+
+func (n *UserProfileRn) ID() string { return "" }
+
+func (n *UserProfileRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// Pattern returns the resource name pattern for UserProfileRn as a string.
-func (n UserProfileRn) Pattern() string {
-	return "organizations/{organization}/users/{user}/profile"
-}
-
-func (n UserProfileRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n UserProfileRn) UserRn() UserRn {
-	return UserRn{
+// UserRn returns the parent of n.
+func (n *UserProfileRn) UserRn() *UserRn {
+	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
 	}

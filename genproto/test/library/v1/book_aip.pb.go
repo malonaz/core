@@ -5,38 +5,62 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// BookRnType is the resource type of BookRn.
+const BookRnType = "library.test.malonaz.com/Book"
+
+// NewBookRn is the resource named book under parent, which must follow one of: "organizations/{organization}/shelves/{shelf}".
+func NewBookRn(parent string, book string) (*BookRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", parent):
+		n := &BookRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/shelves/{shelf}", &n.Organization, &n.Shelf); err != nil {
+			return nil, err
+		}
+		n.Book = book
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of library.test.malonaz.com/Book", parent)
+}
+
+// BookRnPattern is the pattern BookRn follows.
+const BookRnPattern = "organizations/{organization}/shelves/{shelf}/books/{book}"
+
+// BookRn is the resource name "organizations/{organization}/shelves/{shelf}/books/{book}".
 type BookRn struct {
 	Organization string
 	Shelf        string
 	Book         string
 }
 
-func (n OrganizationRn) BookRn(
-	shelf string,
-	book string,
-) BookRn {
-	return BookRn{
-		Organization: n.Organization,
-		Shelf:        shelf,
-		Book:         book,
+// ParseBookRn parses and validates name against BookRnPattern.
+func ParseBookRn(name string) (*BookRn, error) {
+	n := &BookRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n ShelfRn) BookRn(
-	book string,
-) BookRn {
-	return BookRn{
+// MatchBookRn reports whether name follows BookRnPattern.
+func MatchBookRn(name string) bool {
+	return resourcename.Match(BookRnPattern, name)
+}
+
+// BookRn returns the child library.test.malonaz.com/Book of n.
+func (n *ShelfRn) BookRn(book string) *BookRn {
+	return &BookRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Book:         book,
 	}
 }
 
-func (n BookRn) Validate() error {
+func (n *BookRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -58,70 +82,48 @@ func (n BookRn) Validate() error {
 	return nil
 }
 
-func (n BookRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Shelf == "-" || n.Book == "-"
+func (n *BookRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Shelf == aip.Wildcard || n.Book == aip.Wildcard
 }
 
-func (n BookRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/shelves/{shelf}/books/{book}",
-		n.Organization,
-		n.Shelf,
-		n.Book,
-	)
+func (n *BookRn) String() string {
+	return resourcename.Sprint(BookRnPattern, n.Organization, n.Shelf, n.Book)
 }
 
-func (n BookRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n BookRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *BookRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against BookRnPattern.
 func (n *BookRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/shelves/{shelf}/books/{book}",
-		&n.Organization,
-		&n.Shelf,
-		&n.Book,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, BookRnPattern, &n.Organization, &n.Shelf, &n.Book); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *BookRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n BookRn) Type() string {
-	return "library.test.malonaz.com/Book"
+func (n *BookRn) Type() string { return BookRnType }
+
+func (n *BookRn) Pattern() string { return BookRnPattern }
+
+func (n *BookRn) ID() string { return n.Book }
+
+func (n *BookRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}", n.Organization, n.Shelf)
 }
 
-// Pattern returns the resource name pattern for BookRn as a string.
-func (n BookRn) Pattern() string {
-	return "organizations/{organization}/shelves/{shelf}/books/{book}"
-}
-
-func (n BookRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n BookRn) ShelfRn() ShelfRn {
-	return ShelfRn{
+// ShelfRn returns the parent of n.
+func (n *BookRn) ShelfRn() *ShelfRn {
+	return &ShelfRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 	}

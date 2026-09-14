@@ -77,8 +77,8 @@ func (s *ModelService) RegisterProvider(ctx context.Context, provider Provider) 
 		return fmt.Errorf("parsing config for %s: %v", provider.ProviderId(), err)
 	}
 	for _, model := range config.Models {
-		modelRn := &aipb.ModelRn{}
-		if err := modelRn.UnmarshalString(model.Name); err != nil {
+		modelRn, err := aipb.ParseModelRn(model.Name)
+		if err != nil {
 			return fmt.Errorf("unmarshaling model name: %v", err)
 		}
 		model.Name = ""
@@ -97,8 +97,8 @@ func (s *ModelService) RegisterProvider(ctx context.Context, provider Provider) 
 
 func (s *ModelService) CreateModel(ctx context.Context, request *aiservicepb.CreateModelRequest) (*aipb.Model, error) {
 	// Parse provider rn and instantiate model rn.
-	providerRn := &aipb.ProviderRn{}
-	if err := providerRn.UnmarshalString(request.Parent); err != nil {
+	providerRn, err := aipb.ParseProviderRn(request.Parent)
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
 	}
 	modelRn := providerRn.ModelRn(request.ModelId)
@@ -125,8 +125,8 @@ func (s *ModelService) CreateModel(ctx context.Context, request *aiservicepb.Cre
 }
 
 func (s *ModelService) GetModel(ctx context.Context, request *aiservicepb.GetModelRequest) (*aipb.Model, error) {
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(request.Name); err != nil {
+	modelRn, err := aipb.ParseModelRn(request.Name)
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 	modelIdToModel, ok := s.providerIdToModelIdToModel[modelRn.Provider]
@@ -152,8 +152,8 @@ func (s *ModelService) ListModels(ctx context.Context, request *aiservicepb.List
 	pageSize := int(request.GetPageSize())
 
 	// Step 2: Parse the provider name.
-	providerRn := &aipb.ProviderRn{}
-	if err := providerRn.UnmarshalString(request.Parent); err != nil {
+	providerRn, err := aipb.ParseProviderRn(request.Parent)
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling provider name: %v", err).Err()
 	}
 
@@ -218,8 +218,8 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 	}
 
 	// Parse the model name.
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(modelName); err != nil {
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 
@@ -249,8 +249,8 @@ func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName st
 	}
 
 	// Parse the model name.
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(modelName); err != nil {
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 
@@ -277,8 +277,8 @@ func (s *ModelService) GetSpeechToTextStreamProvider(ctx context.Context, modelN
 	if model.Stt == nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type STT", modelName).Err()
 	}
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(modelName); err != nil {
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
@@ -301,8 +301,8 @@ func (s *ModelService) GetStreamTextToSpeechProvider(ctx context.Context, modelN
 	if model.Tts == nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not of type TTS", modelName).Err()
 	}
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(modelName); err != nil {
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 	provider, ok := s.providerIdToProvider[modelRn.Provider]
@@ -328,8 +328,8 @@ func (s *ModelService) GetTextToSpeechProvider(ctx context.Context, modelName st
 	}
 
 	// Parse the model name.
-	modelRn := &aipb.ModelRn{}
-	if err := modelRn.UnmarshalString(modelName); err != nil {
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
 	}
 

@@ -5,15 +5,48 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// VoiceRnType is the resource type of VoiceRn.
+const VoiceRnType = "ai.malonaz.com/Voice"
+
+// NewVoiceRn is the resource named voice under parent, which must follow one of: "".
+func NewVoiceRn(parent string, voice string) (*VoiceRn, error) {
+	switch {
+	case parent == "":
+		n := &VoiceRn{}
+		n.Voice = voice
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of ai.malonaz.com/Voice", parent)
+}
+
+// VoiceRnPattern is the pattern VoiceRn follows.
+const VoiceRnPattern = "voices/{voice}"
+
+// VoiceRn is the resource name "voices/{voice}".
 type VoiceRn struct {
 	Voice string
 }
 
-func (n VoiceRn) Validate() error {
+// ParseVoiceRn parses and validates name against VoiceRnPattern.
+func ParseVoiceRn(name string) (*VoiceRn, error) {
+	n := &VoiceRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchVoiceRn reports whether name follows VoiceRnPattern.
+func MatchVoiceRn(name string) bool {
+	return resourcename.Match(VoiceRnPattern, name)
+}
+
+func (n *VoiceRn) Validate() error {
 	if n.Voice == "" {
 		return fmt.Errorf("voice: empty")
 	}
@@ -23,54 +56,39 @@ func (n VoiceRn) Validate() error {
 	return nil
 }
 
-func (n VoiceRn) ContainsWildcard() bool {
-	return false || n.Voice == "-"
+func (n *VoiceRn) ContainsWildcard() bool {
+	return n.Voice == aip.Wildcard
 }
 
-func (n VoiceRn) String() string {
-	return resourcename.Sprint(
-		"voices/{voice}",
-		n.Voice,
-	)
+func (n *VoiceRn) String() string {
+	return resourcename.Sprint(VoiceRnPattern, n.Voice)
 }
 
-func (n VoiceRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n VoiceRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *VoiceRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against VoiceRnPattern.
 func (n *VoiceRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"voices/{voice}",
-		&n.Voice,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, VoiceRnPattern, &n.Voice); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *VoiceRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n VoiceRn) Type() string {
-	return "ai.malonaz.com/Voice"
-}
+func (n *VoiceRn) Type() string { return VoiceRnType }
 
-// Pattern returns the resource name pattern for VoiceRn as a string.
-func (n VoiceRn) Pattern() string {
-	return "voices/{voice}"
-}
+func (n *VoiceRn) Pattern() string { return VoiceRnPattern }
+
+func (n *VoiceRn) ID() string { return n.Voice }
+
+func (n *VoiceRn) Parent() string { return "" }

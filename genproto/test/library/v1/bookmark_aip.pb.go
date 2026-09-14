@@ -5,10 +5,32 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// BookmarkRnType is the resource type of BookmarkRn.
+const BookmarkRnType = "library.test.malonaz.com/Bookmark"
+
+// NewBookmarkRn is the resource named bookmark under parent, which must follow one of: "organizations/{organization}/shelves/{shelf}/books/{book}".
+func NewBookmarkRn(parent string, bookmark string) (*BookmarkRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}/books/{book}", parent):
+		n := &BookmarkRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/shelves/{shelf}/books/{book}", &n.Organization, &n.Shelf, &n.Book); err != nil {
+			return nil, err
+		}
+		n.Bookmark = bookmark
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of library.test.malonaz.com/Bookmark", parent)
+}
+
+// BookmarkRnPattern is the pattern BookmarkRn follows.
+const BookmarkRnPattern = "organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}"
+
+// BookmarkRn is the resource name "organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}".
 type BookmarkRn struct {
 	Organization string
 	Shelf        string
@@ -16,35 +38,23 @@ type BookmarkRn struct {
 	Bookmark     string
 }
 
-func (n OrganizationRn) BookmarkRn(
-	shelf string,
-	book string,
-	bookmark string,
-) BookmarkRn {
-	return BookmarkRn{
-		Organization: n.Organization,
-		Shelf:        shelf,
-		Book:         book,
-		Bookmark:     bookmark,
+// ParseBookmarkRn parses and validates name against BookmarkRnPattern.
+func ParseBookmarkRn(name string) (*BookmarkRn, error) {
+	n := &BookmarkRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n ShelfRn) BookmarkRn(
-	book string,
-	bookmark string,
-) BookmarkRn {
-	return BookmarkRn{
-		Organization: n.Organization,
-		Shelf:        n.Shelf,
-		Book:         book,
-		Bookmark:     bookmark,
-	}
+// MatchBookmarkRn reports whether name follows BookmarkRnPattern.
+func MatchBookmarkRn(name string) bool {
+	return resourcename.Match(BookmarkRnPattern, name)
 }
 
-func (n BookRn) BookmarkRn(
-	bookmark string,
-) BookmarkRn {
-	return BookmarkRn{
+// BookmarkRn returns the child library.test.malonaz.com/Bookmark of n.
+func (n *BookRn) BookmarkRn(bookmark string) *BookmarkRn {
+	return &BookmarkRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Book:         n.Book,
@@ -52,7 +62,7 @@ func (n BookRn) BookmarkRn(
 	}
 }
 
-func (n BookmarkRn) Validate() error {
+func (n *BookmarkRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -80,79 +90,48 @@ func (n BookmarkRn) Validate() error {
 	return nil
 }
 
-func (n BookmarkRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Shelf == "-" || n.Book == "-" || n.Bookmark == "-"
+func (n *BookmarkRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Shelf == aip.Wildcard || n.Book == aip.Wildcard || n.Bookmark == aip.Wildcard
 }
 
-func (n BookmarkRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}",
-		n.Organization,
-		n.Shelf,
-		n.Book,
-		n.Bookmark,
-	)
+func (n *BookmarkRn) String() string {
+	return resourcename.Sprint(BookmarkRnPattern, n.Organization, n.Shelf, n.Book, n.Bookmark)
 }
 
-func (n BookmarkRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n BookmarkRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *BookmarkRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against BookmarkRnPattern.
 func (n *BookmarkRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}",
-		&n.Organization,
-		&n.Shelf,
-		&n.Book,
-		&n.Bookmark,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, BookmarkRnPattern, &n.Organization, &n.Shelf, &n.Book, &n.Bookmark); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *BookmarkRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n BookmarkRn) Type() string {
-	return "library.test.malonaz.com/Bookmark"
+func (n *BookmarkRn) Type() string { return BookmarkRnType }
+
+func (n *BookmarkRn) Pattern() string { return BookmarkRnPattern }
+
+func (n *BookmarkRn) ID() string { return n.Bookmark }
+
+func (n *BookmarkRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", n.Organization, n.Shelf, n.Book)
 }
 
-// Pattern returns the resource name pattern for BookmarkRn as a string.
-func (n BookmarkRn) Pattern() string {
-	return "organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}"
-}
-
-func (n BookmarkRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n BookmarkRn) ShelfRn() ShelfRn {
-	return ShelfRn{
-		Organization: n.Organization,
-		Shelf:        n.Shelf,
-	}
-}
-
-func (n BookmarkRn) BookRn() BookRn {
-	return BookRn{
+// BookRn returns the parent of n.
+func (n *BookmarkRn) BookRn() *BookRn {
+	return &BookRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Book:         n.Book,

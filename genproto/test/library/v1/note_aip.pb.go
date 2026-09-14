@@ -4,50 +4,101 @@
 package v1
 
 import (
-	encoding "encoding"
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
-type NoteMultiPatternRn interface {
-	fmt.Stringer
-	encoding.TextMarshaler
-	MarshalString() (string, error)
-	ContainsWildcard() bool
+// NoteRnType is the resource type of NoteRn.
+const NoteRnType = "library.test.malonaz.com/Note"
+
+// NoteRn is any of the resource's patterns: "organizations/{organization}/notes/{note}", "organizations/{organization}/authors/{author}/notes/{note}", "organizations/{organization}/shelves/{shelf}/notes/{note}".
+type NoteRn interface {
+	aip.Rn
+	isNoteRn()
 }
 
-func ParseNoteMultiPatternRn(name string) (NoteMultiPatternRn, error) {
+// ParseNoteRn parses name under whichever pattern it matches.
+func ParseNoteRn(name string) (NoteRn, error) {
 	switch {
 	case resourcename.Match("organizations/{organization}/notes/{note}", name):
-		var result OrganizationsNoteRn
-		return &result, result.UnmarshalString(name)
+		return ParseOrganizationNoteRn(name)
 	case resourcename.Match("organizations/{organization}/authors/{author}/notes/{note}", name):
-		var result OrganizationsAuthorsNoteRn
-		return &result, result.UnmarshalString(name)
+		return ParseAuthorNoteRn(name)
 	case resourcename.Match("organizations/{organization}/shelves/{shelf}/notes/{note}", name):
-		var result OrganizationsShelvesNoteRn
-		return &result, result.UnmarshalString(name)
-	default:
-		return nil, fmt.Errorf("no matching pattern")
+		return ParseShelfNoteRn(name)
 	}
+	return nil, fmt.Errorf("resource name %q matches no pattern of library.test.malonaz.com/Note", name)
 }
 
-type NoteRn struct {
+// MatchNoteRn reports whether name follows any pattern of library.test.malonaz.com/Note.
+func MatchNoteRn(name string) bool {
+	return resourcename.Match("organizations/{organization}/notes/{note}", name) || resourcename.Match("organizations/{organization}/authors/{author}/notes/{note}", name) || resourcename.Match("organizations/{organization}/shelves/{shelf}/notes/{note}", name)
+}
+
+// NewNoteRn is the resource named note under parent, which must follow one of: "organizations/{organization}", "organizations/{organization}/authors/{author}", "organizations/{organization}/shelves/{shelf}".
+func NewNoteRn(parent string, note string) (NoteRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}", parent):
+		n := &OrganizationNoteRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}", &n.Organization); err != nil {
+			return nil, err
+		}
+		n.Note = note
+		return n, nil
+	case resourcename.Match("organizations/{organization}/authors/{author}", parent):
+		n := &AuthorNoteRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/authors/{author}", &n.Organization, &n.Author); err != nil {
+			return nil, err
+		}
+		n.Note = note
+		return n, nil
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", parent):
+		n := &ShelfNoteRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/shelves/{shelf}", &n.Organization, &n.Shelf); err != nil {
+			return nil, err
+		}
+		n.Note = note
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of library.test.malonaz.com/Note", parent)
+}
+
+// OrganizationNoteRnPattern is the pattern OrganizationNoteRn follows.
+const OrganizationNoteRnPattern = "organizations/{organization}/notes/{note}"
+
+// OrganizationNoteRn is the resource name "organizations/{organization}/notes/{note}".
+type OrganizationNoteRn struct {
 	Organization string
 	Note         string
 }
 
-func (n OrganizationRn) NoteRn(
-	note string,
-) NoteRn {
-	return NoteRn{
+func (*OrganizationNoteRn) isNoteRn() {}
+
+// ParseOrganizationNoteRn parses and validates name against OrganizationNoteRnPattern.
+func ParseOrganizationNoteRn(name string) (*OrganizationNoteRn, error) {
+	n := &OrganizationNoteRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchOrganizationNoteRn reports whether name follows OrganizationNoteRnPattern.
+func MatchOrganizationNoteRn(name string) bool {
+	return resourcename.Match(OrganizationNoteRnPattern, name)
+}
+
+// OrganizationNoteRn returns the child library.test.malonaz.com/Note of n.
+func (n *OrganizationRn) OrganizationNoteRn(note string) *OrganizationNoteRn {
+	return &OrganizationNoteRn{
 		Organization: n.Organization,
 		Note:         note,
 	}
 }
 
-func (n NoteRn) Validate() error {
+func (n *OrganizationNoteRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -63,184 +114,88 @@ func (n NoteRn) Validate() error {
 	return nil
 }
 
-func (n NoteRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Note == "-"
+func (n *OrganizationNoteRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Note == aip.Wildcard
 }
 
-func (n NoteRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/notes/{note}",
-		n.Organization,
-		n.Note,
-	)
+func (n *OrganizationNoteRn) String() string {
+	return resourcename.Sprint(OrganizationNoteRnPattern, n.Organization, n.Note)
 }
 
-func (n NoteRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n NoteRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *OrganizationNoteRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *NoteRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/notes/{note}",
-		&n.Organization,
-		&n.Note,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against OrganizationNoteRnPattern.
+func (n *OrganizationNoteRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, OrganizationNoteRnPattern, &n.Organization, &n.Note); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *NoteRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *OrganizationNoteRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n NoteRn) Type() string {
-	return "library.test.malonaz.com/Note"
+func (n *OrganizationNoteRn) Type() string { return NoteRnType }
+
+func (n *OrganizationNoteRn) Pattern() string { return OrganizationNoteRnPattern }
+
+func (n *OrganizationNoteRn) ID() string { return n.Note }
+
+func (n *OrganizationNoteRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// Pattern returns the resource name pattern for NoteRn as a string.
-func (n NoteRn) Pattern() string {
-	return "organizations/{organization}/notes/{note}"
-}
-
-func (n NoteRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
+// OrganizationRn returns the parent of n.
+func (n *OrganizationNoteRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
 		Organization: n.Organization,
 	}
 }
 
-type OrganizationsNoteRn struct {
-	Organization string
-	Note         string
-}
+// AuthorNoteRnPattern is the pattern AuthorNoteRn follows.
+const AuthorNoteRnPattern = "organizations/{organization}/authors/{author}/notes/{note}"
 
-func (n OrganizationRn) OrganizationsNoteRn(
-	note string,
-) OrganizationsNoteRn {
-	return OrganizationsNoteRn{
-		Organization: n.Organization,
-		Note:         note,
-	}
-}
-
-func (n OrganizationsNoteRn) Validate() error {
-	if n.Organization == "" {
-		return fmt.Errorf("organization: empty")
-	}
-	if strings.IndexByte(n.Organization, '/') != -1 {
-		return fmt.Errorf("organization: contains illegal character '/'")
-	}
-	if n.Note == "" {
-		return fmt.Errorf("note: empty")
-	}
-	if strings.IndexByte(n.Note, '/') != -1 {
-		return fmt.Errorf("note: contains illegal character '/'")
-	}
-	return nil
-}
-
-func (n OrganizationsNoteRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Note == "-"
-}
-
-func (n OrganizationsNoteRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/notes/{note}",
-		n.Organization,
-		n.Note,
-	)
-}
-
-func (n OrganizationsNoteRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n OrganizationsNoteRn) MarshalText() ([]byte, error) {
-	if err := n.Validate(); err != nil {
-		return nil, err
-	}
-	return []byte(n.String()), nil
-}
-
-func (n *OrganizationsNoteRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/notes/{note}",
-		&n.Organization,
-		&n.Note,
-	)
-	if err != nil {
-		return err
-	}
-	return n.Validate()
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *OrganizationsNoteRn) UnmarshalText(text []byte) error {
-	return n.UnmarshalString(string(text))
-}
-
-func (n OrganizationsNoteRn) Type() string {
-	return "library.test.malonaz.com/Note"
-}
-
-// Pattern returns the resource name pattern for OrganizationsNoteRn as a string.
-func (n OrganizationsNoteRn) Pattern() string {
-	return "organizations/{organization}/notes/{note}"
-}
-
-func (n OrganizationsNoteRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-type OrganizationsAuthorsNoteRn struct {
+// AuthorNoteRn is the resource name "organizations/{organization}/authors/{author}/notes/{note}".
+type AuthorNoteRn struct {
 	Organization string
 	Author       string
 	Note         string
 }
 
-func (n OrganizationRn) OrganizationsAuthorsNoteRn(
-	author string,
-	note string,
-) OrganizationsAuthorsNoteRn {
-	return OrganizationsAuthorsNoteRn{
-		Organization: n.Organization,
-		Author:       author,
-		Note:         note,
+func (*AuthorNoteRn) isNoteRn() {}
+
+// ParseAuthorNoteRn parses and validates name against AuthorNoteRnPattern.
+func ParseAuthorNoteRn(name string) (*AuthorNoteRn, error) {
+	n := &AuthorNoteRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n AuthorRn) OrganizationsAuthorsNoteRn(
-	note string,
-) OrganizationsAuthorsNoteRn {
-	return OrganizationsAuthorsNoteRn{
+// MatchAuthorNoteRn reports whether name follows AuthorNoteRnPattern.
+func MatchAuthorNoteRn(name string) bool {
+	return resourcename.Match(AuthorNoteRnPattern, name)
+}
+
+// AuthorNoteRn returns the child library.test.malonaz.com/Note of n.
+func (n *AuthorRn) AuthorNoteRn(note string) *AuthorNoteRn {
+	return &AuthorNoteRn{
 		Organization: n.Organization,
 		Author:       n.Author,
 		Note:         note,
 	}
 }
 
-func (n OrganizationsAuthorsNoteRn) Validate() error {
+func (n *AuthorNoteRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -262,103 +217,89 @@ func (n OrganizationsAuthorsNoteRn) Validate() error {
 	return nil
 }
 
-func (n OrganizationsAuthorsNoteRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Author == "-" || n.Note == "-"
+func (n *AuthorNoteRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Author == aip.Wildcard || n.Note == aip.Wildcard
 }
 
-func (n OrganizationsAuthorsNoteRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/authors/{author}/notes/{note}",
-		n.Organization,
-		n.Author,
-		n.Note,
-	)
+func (n *AuthorNoteRn) String() string {
+	return resourcename.Sprint(AuthorNoteRnPattern, n.Organization, n.Author, n.Note)
 }
 
-func (n OrganizationsAuthorsNoteRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n OrganizationsAuthorsNoteRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *AuthorNoteRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *OrganizationsAuthorsNoteRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/authors/{author}/notes/{note}",
-		&n.Organization,
-		&n.Author,
-		&n.Note,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against AuthorNoteRnPattern.
+func (n *AuthorNoteRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, AuthorNoteRnPattern, &n.Organization, &n.Author, &n.Note); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *OrganizationsAuthorsNoteRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *AuthorNoteRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n OrganizationsAuthorsNoteRn) Type() string {
-	return "library.test.malonaz.com/Note"
+func (n *AuthorNoteRn) Type() string { return NoteRnType }
+
+func (n *AuthorNoteRn) Pattern() string { return AuthorNoteRnPattern }
+
+func (n *AuthorNoteRn) ID() string { return n.Note }
+
+func (n *AuthorNoteRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/authors/{author}", n.Organization, n.Author)
 }
 
-// Pattern returns the resource name pattern for OrganizationsAuthorsNoteRn as a string.
-func (n OrganizationsAuthorsNoteRn) Pattern() string {
-	return "organizations/{organization}/authors/{author}/notes/{note}"
-}
-
-func (n OrganizationsAuthorsNoteRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n OrganizationsAuthorsNoteRn) AuthorRn() AuthorRn {
-	return AuthorRn{
+// AuthorRn returns the parent of n.
+func (n *AuthorNoteRn) AuthorRn() *AuthorRn {
+	return &AuthorRn{
 		Organization: n.Organization,
 		Author:       n.Author,
 	}
 }
 
-type OrganizationsShelvesNoteRn struct {
+// ShelfNoteRnPattern is the pattern ShelfNoteRn follows.
+const ShelfNoteRnPattern = "organizations/{organization}/shelves/{shelf}/notes/{note}"
+
+// ShelfNoteRn is the resource name "organizations/{organization}/shelves/{shelf}/notes/{note}".
+type ShelfNoteRn struct {
 	Organization string
 	Shelf        string
 	Note         string
 }
 
-func (n OrganizationRn) OrganizationsShelvesNoteRn(
-	shelf string,
-	note string,
-) OrganizationsShelvesNoteRn {
-	return OrganizationsShelvesNoteRn{
-		Organization: n.Organization,
-		Shelf:        shelf,
-		Note:         note,
+func (*ShelfNoteRn) isNoteRn() {}
+
+// ParseShelfNoteRn parses and validates name against ShelfNoteRnPattern.
+func ParseShelfNoteRn(name string) (*ShelfNoteRn, error) {
+	n := &ShelfNoteRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n ShelfRn) OrganizationsShelvesNoteRn(
-	note string,
-) OrganizationsShelvesNoteRn {
-	return OrganizationsShelvesNoteRn{
+// MatchShelfNoteRn reports whether name follows ShelfNoteRnPattern.
+func MatchShelfNoteRn(name string) bool {
+	return resourcename.Match(ShelfNoteRnPattern, name)
+}
+
+// ShelfNoteRn returns the child library.test.malonaz.com/Note of n.
+func (n *ShelfRn) ShelfNoteRn(note string) *ShelfNoteRn {
+	return &ShelfNoteRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Note:         note,
 	}
 }
 
-func (n OrganizationsShelvesNoteRn) Validate() error {
+func (n *ShelfNoteRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -380,70 +321,48 @@ func (n OrganizationsShelvesNoteRn) Validate() error {
 	return nil
 }
 
-func (n OrganizationsShelvesNoteRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Shelf == "-" || n.Note == "-"
+func (n *ShelfNoteRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Shelf == aip.Wildcard || n.Note == aip.Wildcard
 }
 
-func (n OrganizationsShelvesNoteRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/shelves/{shelf}/notes/{note}",
-		n.Organization,
-		n.Shelf,
-		n.Note,
-	)
+func (n *ShelfNoteRn) String() string {
+	return resourcename.Sprint(ShelfNoteRnPattern, n.Organization, n.Shelf, n.Note)
 }
 
-func (n OrganizationsShelvesNoteRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n OrganizationsShelvesNoteRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *ShelfNoteRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *OrganizationsShelvesNoteRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/shelves/{shelf}/notes/{note}",
-		&n.Organization,
-		&n.Shelf,
-		&n.Note,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against ShelfNoteRnPattern.
+func (n *ShelfNoteRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, ShelfNoteRnPattern, &n.Organization, &n.Shelf, &n.Note); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *OrganizationsShelvesNoteRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *ShelfNoteRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n OrganizationsShelvesNoteRn) Type() string {
-	return "library.test.malonaz.com/Note"
+func (n *ShelfNoteRn) Type() string { return NoteRnType }
+
+func (n *ShelfNoteRn) Pattern() string { return ShelfNoteRnPattern }
+
+func (n *ShelfNoteRn) ID() string { return n.Note }
+
+func (n *ShelfNoteRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}", n.Organization, n.Shelf)
 }
 
-// Pattern returns the resource name pattern for OrganizationsShelvesNoteRn as a string.
-func (n OrganizationsShelvesNoteRn) Pattern() string {
-	return "organizations/{organization}/shelves/{shelf}/notes/{note}"
-}
-
-func (n OrganizationsShelvesNoteRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n OrganizationsShelvesNoteRn) ShelfRn() ShelfRn {
-	return ShelfRn{
+// ShelfRn returns the parent of n.
+func (n *ShelfNoteRn) ShelfRn() *ShelfRn {
+	return &ShelfRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 	}

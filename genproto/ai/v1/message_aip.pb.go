@@ -5,10 +5,32 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// MessageRnType is the resource type of MessageRn.
+const MessageRnType = "ai.malonaz.com/Message"
+
+// NewMessageRn is the resource named message under parent, which must follow one of: "organizations/{organization}/users/{user}/chats/{chat}".
+func NewMessageRn(parent string, message string) (*MessageRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}/users/{user}/chats/{chat}", parent):
+		n := &MessageRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/users/{user}/chats/{chat}", &n.Organization, &n.User, &n.Chat); err != nil {
+			return nil, err
+		}
+		n.Message = message
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of ai.malonaz.com/Message", parent)
+}
+
+// MessageRnPattern is the pattern MessageRn follows.
+const MessageRnPattern = "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}"
+
+// MessageRn is the resource name "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}".
 type MessageRn struct {
 	Organization string
 	User         string
@@ -16,35 +38,23 @@ type MessageRn struct {
 	Message      string
 }
 
-func (n OrganizationRn) MessageRn(
-	user string,
-	chat string,
-	message string,
-) MessageRn {
-	return MessageRn{
-		Organization: n.Organization,
-		User:         user,
-		Chat:         chat,
-		Message:      message,
+// ParseMessageRn parses and validates name against MessageRnPattern.
+func ParseMessageRn(name string) (*MessageRn, error) {
+	n := &MessageRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n UserRn) MessageRn(
-	chat string,
-	message string,
-) MessageRn {
-	return MessageRn{
-		Organization: n.Organization,
-		User:         n.User,
-		Chat:         chat,
-		Message:      message,
-	}
+// MatchMessageRn reports whether name follows MessageRnPattern.
+func MatchMessageRn(name string) bool {
+	return resourcename.Match(MessageRnPattern, name)
 }
 
-func (n ChatRn) MessageRn(
-	message string,
-) MessageRn {
-	return MessageRn{
+// MessageRn returns the child ai.malonaz.com/Message of n.
+func (n *ChatRn) MessageRn(message string) *MessageRn {
+	return &MessageRn{
 		Organization: n.Organization,
 		User:         n.User,
 		Chat:         n.Chat,
@@ -52,7 +62,7 @@ func (n ChatRn) MessageRn(
 	}
 }
 
-func (n MessageRn) Validate() error {
+func (n *MessageRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -80,79 +90,48 @@ func (n MessageRn) Validate() error {
 	return nil
 }
 
-func (n MessageRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.User == "-" || n.Chat == "-" || n.Message == "-"
+func (n *MessageRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.User == aip.Wildcard || n.Chat == aip.Wildcard || n.Message == aip.Wildcard
 }
 
-func (n MessageRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/users/{user}/chats/{chat}/messages/{message}",
-		n.Organization,
-		n.User,
-		n.Chat,
-		n.Message,
-	)
+func (n *MessageRn) String() string {
+	return resourcename.Sprint(MessageRnPattern, n.Organization, n.User, n.Chat, n.Message)
 }
 
-func (n MessageRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n MessageRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *MessageRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against MessageRnPattern.
 func (n *MessageRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/users/{user}/chats/{chat}/messages/{message}",
-		&n.Organization,
-		&n.User,
-		&n.Chat,
-		&n.Message,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, MessageRnPattern, &n.Organization, &n.User, &n.Chat, &n.Message); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *MessageRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n MessageRn) Type() string {
-	return "ai.malonaz.com/Message"
+func (n *MessageRn) Type() string { return MessageRnType }
+
+func (n *MessageRn) Pattern() string { return MessageRnPattern }
+
+func (n *MessageRn) ID() string { return n.Message }
+
+func (n *MessageRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}", n.Organization, n.User, n.Chat)
 }
 
-// Pattern returns the resource name pattern for MessageRn as a string.
-func (n MessageRn) Pattern() string {
-	return "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}"
-}
-
-func (n MessageRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n MessageRn) UserRn() UserRn {
-	return UserRn{
-		Organization: n.Organization,
-		User:         n.User,
-	}
-}
-
-func (n MessageRn) ChatRn() ChatRn {
-	return ChatRn{
+// ChatRn returns the parent of n.
+func (n *MessageRn) ChatRn() *ChatRn {
+	return &ChatRn{
 		Organization: n.Organization,
 		User:         n.User,
 		Chat:         n.Chat,

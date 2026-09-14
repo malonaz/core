@@ -5,15 +5,48 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// ProviderRnType is the resource type of ProviderRn.
+const ProviderRnType = "ai.malonaz.com/Provider"
+
+// NewProviderRn is the resource named provider under parent, which must follow one of: "".
+func NewProviderRn(parent string, provider string) (*ProviderRn, error) {
+	switch {
+	case parent == "":
+		n := &ProviderRn{}
+		n.Provider = provider
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of ai.malonaz.com/Provider", parent)
+}
+
+// ProviderRnPattern is the pattern ProviderRn follows.
+const ProviderRnPattern = "providers/{provider}"
+
+// ProviderRn is the resource name "providers/{provider}".
 type ProviderRn struct {
 	Provider string
 }
 
-func (n ProviderRn) Validate() error {
+// ParseProviderRn parses and validates name against ProviderRnPattern.
+func ParseProviderRn(name string) (*ProviderRn, error) {
+	n := &ProviderRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchProviderRn reports whether name follows ProviderRnPattern.
+func MatchProviderRn(name string) bool {
+	return resourcename.Match(ProviderRnPattern, name)
+}
+
+func (n *ProviderRn) Validate() error {
 	if n.Provider == "" {
 		return fmt.Errorf("provider: empty")
 	}
@@ -23,73 +56,92 @@ func (n ProviderRn) Validate() error {
 	return nil
 }
 
-func (n ProviderRn) ContainsWildcard() bool {
-	return false || n.Provider == "-"
+func (n *ProviderRn) ContainsWildcard() bool {
+	return n.Provider == aip.Wildcard
 }
 
-func (n ProviderRn) String() string {
-	return resourcename.Sprint(
-		"providers/{provider}",
-		n.Provider,
-	)
+func (n *ProviderRn) String() string {
+	return resourcename.Sprint(ProviderRnPattern, n.Provider)
 }
 
-func (n ProviderRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n ProviderRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *ProviderRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against ProviderRnPattern.
 func (n *ProviderRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"providers/{provider}",
-		&n.Provider,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, ProviderRnPattern, &n.Provider); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *ProviderRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n ProviderRn) Type() string {
-	return "ai.malonaz.com/Provider"
+func (n *ProviderRn) Type() string { return ProviderRnType }
+
+func (n *ProviderRn) Pattern() string { return ProviderRnPattern }
+
+func (n *ProviderRn) ID() string { return n.Provider }
+
+func (n *ProviderRn) Parent() string { return "" }
+
+// ModelRnType is the resource type of ModelRn.
+const ModelRnType = "ai.malonaz.com/Model"
+
+// NewModelRn is the resource named model under parent, which must follow one of: "providers/{provider}".
+func NewModelRn(parent string, model string) (*ModelRn, error) {
+	switch {
+	case resourcename.Match("providers/{provider}", parent):
+		n := &ModelRn{}
+		if err := resourcename.Sscan(parent, "providers/{provider}", &n.Provider); err != nil {
+			return nil, err
+		}
+		n.Model = model
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of ai.malonaz.com/Model", parent)
 }
 
-// Pattern returns the resource name pattern for ProviderRn as a string.
-func (n ProviderRn) Pattern() string {
-	return "providers/{provider}"
-}
+// ModelRnPattern is the pattern ModelRn follows.
+const ModelRnPattern = "providers/{provider}/models/{model}"
 
+// ModelRn is the resource name "providers/{provider}/models/{model}".
 type ModelRn struct {
 	Provider string
 	Model    string
 }
 
-func (n ProviderRn) ModelRn(
-	model string,
-) ModelRn {
-	return ModelRn{
+// ParseModelRn parses and validates name against ModelRnPattern.
+func ParseModelRn(name string) (*ModelRn, error) {
+	n := &ModelRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchModelRn reports whether name follows ModelRnPattern.
+func MatchModelRn(name string) bool {
+	return resourcename.Match(ModelRnPattern, name)
+}
+
+// ModelRn returns the child ai.malonaz.com/Model of n.
+func (n *ProviderRn) ModelRn(model string) *ModelRn {
+	return &ModelRn{
 		Provider: n.Provider,
 		Model:    model,
 	}
 }
 
-func (n ModelRn) Validate() error {
+func (n *ModelRn) Validate() error {
 	if n.Provider == "" {
 		return fmt.Errorf("provider: empty")
 	}
@@ -105,62 +157,48 @@ func (n ModelRn) Validate() error {
 	return nil
 }
 
-func (n ModelRn) ContainsWildcard() bool {
-	return false || n.Provider == "-" || n.Model == "-"
+func (n *ModelRn) ContainsWildcard() bool {
+	return n.Provider == aip.Wildcard || n.Model == aip.Wildcard
 }
 
-func (n ModelRn) String() string {
-	return resourcename.Sprint(
-		"providers/{provider}/models/{model}",
-		n.Provider,
-		n.Model,
-	)
+func (n *ModelRn) String() string {
+	return resourcename.Sprint(ModelRnPattern, n.Provider, n.Model)
 }
 
-func (n ModelRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n ModelRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *ModelRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against ModelRnPattern.
 func (n *ModelRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"providers/{provider}/models/{model}",
-		&n.Provider,
-		&n.Model,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, ModelRnPattern, &n.Provider, &n.Model); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *ModelRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n ModelRn) Type() string {
-	return "ai.malonaz.com/Model"
+func (n *ModelRn) Type() string { return ModelRnType }
+
+func (n *ModelRn) Pattern() string { return ModelRnPattern }
+
+func (n *ModelRn) ID() string { return n.Model }
+
+func (n *ModelRn) Parent() string {
+	return resourcename.Sprint("providers/{provider}", n.Provider)
 }
 
-// Pattern returns the resource name pattern for ModelRn as a string.
-func (n ModelRn) Pattern() string {
-	return "providers/{provider}/models/{model}"
-}
-
-func (n ModelRn) ProviderRn() ProviderRn {
-	return ProviderRn{
+// ProviderRn returns the parent of n.
+func (n *ModelRn) ProviderRn() *ProviderRn {
+	return &ProviderRn{
 		Provider: n.Provider,
 	}
 }

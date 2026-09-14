@@ -18,6 +18,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip",
         "//go/aip/resourcename",
         "//malonaz/audio/v1",
         "//malonaz/codegen/aip/v1",

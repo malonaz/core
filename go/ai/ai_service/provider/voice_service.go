@@ -57,8 +57,8 @@ func (s *VoiceService) CreateVoice(ctx context.Context, request *aiservicepb.Cre
 }
 
 func (s *VoiceService) GetVoice(ctx context.Context, request *aiservicepb.GetVoiceRequest) (*aipb.Voice, error) {
-	voiceRn := &aipb.VoiceRn{}
-	if err := voiceRn.UnmarshalString(request.Name); err != nil {
+	voiceRn, err := aipb.ParseVoiceRn(request.Name)
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshaling voice name: %v", err).Err()
 	}
 	voice, ok := s.voiceIdToVoice[voiceRn.Voice]

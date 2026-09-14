@@ -5,38 +5,62 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// ShelfTagRnType is the resource type of ShelfTagRn.
+const ShelfTagRnType = "library.test.malonaz.com/ShelfTag"
+
+// NewShelfTagRn is the resource named tag under parent, which must follow one of: "organizations/{organization}/shelves/{shelf}".
+func NewShelfTagRn(parent string, tag string) (*ShelfTagRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}/shelves/{shelf}", parent):
+		n := &ShelfTagRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/shelves/{shelf}", &n.Organization, &n.Shelf); err != nil {
+			return nil, err
+		}
+		n.Tag = tag
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of library.test.malonaz.com/ShelfTag", parent)
+}
+
+// ShelfTagRnPattern is the pattern ShelfTagRn follows.
+const ShelfTagRnPattern = "organizations/{organization}/shelves/{shelf}/tags/{tag}"
+
+// ShelfTagRn is the resource name "organizations/{organization}/shelves/{shelf}/tags/{tag}".
 type ShelfTagRn struct {
 	Organization string
 	Shelf        string
 	Tag          string
 }
 
-func (n OrganizationRn) ShelfTagRn(
-	shelf string,
-	tag string,
-) ShelfTagRn {
-	return ShelfTagRn{
-		Organization: n.Organization,
-		Shelf:        shelf,
-		Tag:          tag,
+// ParseShelfTagRn parses and validates name against ShelfTagRnPattern.
+func ParseShelfTagRn(name string) (*ShelfTagRn, error) {
+	n := &ShelfTagRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n ShelfRn) ShelfTagRn(
-	tag string,
-) ShelfTagRn {
-	return ShelfTagRn{
+// MatchShelfTagRn reports whether name follows ShelfTagRnPattern.
+func MatchShelfTagRn(name string) bool {
+	return resourcename.Match(ShelfTagRnPattern, name)
+}
+
+// ShelfTagRn returns the child library.test.malonaz.com/ShelfTag of n.
+func (n *ShelfRn) ShelfTagRn(tag string) *ShelfTagRn {
+	return &ShelfTagRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 		Tag:          tag,
 	}
 }
 
-func (n ShelfTagRn) Validate() error {
+func (n *ShelfTagRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -58,90 +82,102 @@ func (n ShelfTagRn) Validate() error {
 	return nil
 }
 
-func (n ShelfTagRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Shelf == "-" || n.Tag == "-"
+func (n *ShelfTagRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Shelf == aip.Wildcard || n.Tag == aip.Wildcard
 }
 
-func (n ShelfTagRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/shelves/{shelf}/tags/{tag}",
-		n.Organization,
-		n.Shelf,
-		n.Tag,
-	)
+func (n *ShelfTagRn) String() string {
+	return resourcename.Sprint(ShelfTagRnPattern, n.Organization, n.Shelf, n.Tag)
 }
 
-func (n ShelfTagRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n ShelfTagRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *ShelfTagRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against ShelfTagRnPattern.
 func (n *ShelfTagRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/shelves/{shelf}/tags/{tag}",
-		&n.Organization,
-		&n.Shelf,
-		&n.Tag,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, ShelfTagRnPattern, &n.Organization, &n.Shelf, &n.Tag); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *ShelfTagRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n ShelfTagRn) Type() string {
-	return "library.test.malonaz.com/ShelfTag"
+func (n *ShelfTagRn) Type() string { return ShelfTagRnType }
+
+func (n *ShelfTagRn) Pattern() string { return ShelfTagRnPattern }
+
+func (n *ShelfTagRn) ID() string { return n.Tag }
+
+func (n *ShelfTagRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/shelves/{shelf}", n.Organization, n.Shelf)
 }
 
-// Pattern returns the resource name pattern for ShelfTagRn as a string.
-func (n ShelfTagRn) Pattern() string {
-	return "organizations/{organization}/shelves/{shelf}/tags/{tag}"
-}
-
-func (n ShelfTagRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n ShelfTagRn) ShelfRn() ShelfRn {
-	return ShelfRn{
+// ShelfRn returns the parent of n.
+func (n *ShelfTagRn) ShelfRn() *ShelfRn {
+	return &ShelfRn{
 		Organization: n.Organization,
 		Shelf:        n.Shelf,
 	}
 }
 
+// ShelfRnType is the resource type of ShelfRn.
+const ShelfRnType = "library.test.malonaz.com/Shelf"
+
+// NewShelfRn is the resource named shelf under parent, which must follow one of: "organizations/{organization}".
+func NewShelfRn(parent string, shelf string) (*ShelfRn, error) {
+	switch {
+	case resourcename.Match("organizations/{organization}", parent):
+		n := &ShelfRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}", &n.Organization); err != nil {
+			return nil, err
+		}
+		n.Shelf = shelf
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of library.test.malonaz.com/Shelf", parent)
+}
+
+// ShelfRnPattern is the pattern ShelfRn follows.
+const ShelfRnPattern = "organizations/{organization}/shelves/{shelf}"
+
+// ShelfRn is the resource name "organizations/{organization}/shelves/{shelf}".
 type ShelfRn struct {
 	Organization string
 	Shelf        string
 }
 
-func (n OrganizationRn) ShelfRn(
-	shelf string,
-) ShelfRn {
-	return ShelfRn{
+// ParseShelfRn parses and validates name against ShelfRnPattern.
+func ParseShelfRn(name string) (*ShelfRn, error) {
+	n := &ShelfRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchShelfRn reports whether name follows ShelfRnPattern.
+func MatchShelfRn(name string) bool {
+	return resourcename.Match(ShelfRnPattern, name)
+}
+
+// ShelfRn returns the child library.test.malonaz.com/Shelf of n.
+func (n *OrganizationRn) ShelfRn(shelf string) *ShelfRn {
+	return &ShelfRn{
 		Organization: n.Organization,
 		Shelf:        shelf,
 	}
 }
 
-func (n ShelfRn) Validate() error {
+func (n *ShelfRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -157,62 +193,48 @@ func (n ShelfRn) Validate() error {
 	return nil
 }
 
-func (n ShelfRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Shelf == "-"
+func (n *ShelfRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Shelf == aip.Wildcard
 }
 
-func (n ShelfRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/shelves/{shelf}",
-		n.Organization,
-		n.Shelf,
-	)
+func (n *ShelfRn) String() string {
+	return resourcename.Sprint(ShelfRnPattern, n.Organization, n.Shelf)
 }
 
-func (n ShelfRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n ShelfRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *ShelfRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against ShelfRnPattern.
 func (n *ShelfRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/shelves/{shelf}",
-		&n.Organization,
-		&n.Shelf,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, ShelfRnPattern, &n.Organization, &n.Shelf); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *ShelfRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n ShelfRn) Type() string {
-	return "library.test.malonaz.com/Shelf"
+func (n *ShelfRn) Type() string { return ShelfRnType }
+
+func (n *ShelfRn) Pattern() string { return ShelfRnPattern }
+
+func (n *ShelfRn) ID() string { return n.Shelf }
+
+func (n *ShelfRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// Pattern returns the resource name pattern for ShelfRn as a string.
-func (n ShelfRn) Pattern() string {
-	return "organizations/{organization}/shelves/{shelf}"
-}
-
-func (n ShelfRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
+// OrganizationRn returns the parent of n.
+func (n *ShelfRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
 		Organization: n.Organization,
 	}
 }

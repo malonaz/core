@@ -69,8 +69,8 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		accumulator = ai.NewMessageAccumulator()
 	}
 
-	chatRn := &aipb.ChatRn{}
-	if err := chatRn.UnmarshalString(request.GetParent()); err != nil {
+	chatRn, err := aipb.ParseChatRn(request.GetParent())
+	if err != nil {
 		return status.Errorf(codes.InvalidArgument, "unmarshaling parent: %v", err).Err()
 	}
 

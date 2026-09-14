@@ -5,15 +5,48 @@ package v1
 
 import (
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
+// QueueRnType is the resource type of QueueRn.
+const QueueRnType = "scheduler.malonaz.com/Queue"
+
+// NewQueueRn is the resource named queue under parent, which must follow one of: "".
+func NewQueueRn(parent string, queue string) (*QueueRn, error) {
+	switch {
+	case parent == "":
+		n := &QueueRn{}
+		n.Queue = queue
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of scheduler.malonaz.com/Queue", parent)
+}
+
+// QueueRnPattern is the pattern QueueRn follows.
+const QueueRnPattern = "queues/{queue}"
+
+// QueueRn is the resource name "queues/{queue}".
 type QueueRn struct {
 	Queue string
 }
 
-func (n QueueRn) Validate() error {
+// ParseQueueRn parses and validates name against QueueRnPattern.
+func ParseQueueRn(name string) (*QueueRn, error) {
+	n := &QueueRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchQueueRn reports whether name follows QueueRnPattern.
+func MatchQueueRn(name string) bool {
+	return resourcename.Match(QueueRnPattern, name)
+}
+
+func (n *QueueRn) Validate() error {
 	if n.Queue == "" {
 		return fmt.Errorf("queue: empty")
 	}
@@ -23,54 +56,39 @@ func (n QueueRn) Validate() error {
 	return nil
 }
 
-func (n QueueRn) ContainsWildcard() bool {
-	return false || n.Queue == "-"
+func (n *QueueRn) ContainsWildcard() bool {
+	return n.Queue == aip.Wildcard
 }
 
-func (n QueueRn) String() string {
-	return resourcename.Sprint(
-		"queues/{queue}",
-		n.Queue,
-	)
+func (n *QueueRn) String() string {
+	return resourcename.Sprint(QueueRnPattern, n.Queue)
 }
 
-func (n QueueRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n QueueRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *QueueRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
+// UnmarshalString parses and validates name against QueueRnPattern.
 func (n *QueueRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"queues/{queue}",
-		&n.Queue,
-	)
-	if err != nil {
+	if err := resourcename.Sscan(name, QueueRnPattern, &n.Queue); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// UnmarshalText implements encoding.TextUnmarshaler.
 func (n *QueueRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n QueueRn) Type() string {
-	return "scheduler.malonaz.com/Queue"
-}
+func (n *QueueRn) Type() string { return QueueRnType }
 
-// Pattern returns the resource name pattern for QueueRn as a string.
-func (n QueueRn) Pattern() string {
-	return "queues/{queue}"
-}
+func (n *QueueRn) Pattern() string { return QueueRnPattern }
+
+func (n *QueueRn) ID() string { return n.Queue }
+
+func (n *QueueRn) Parent() string { return "" }

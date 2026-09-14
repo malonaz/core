@@ -4,40 +4,89 @@
 package v1
 
 import (
-	encoding "encoding"
 	fmt "fmt"
+	aip "github.com/malonaz/core/go/aip"
 	resourcename "github.com/malonaz/core/go/aip/resourcename"
 	strings "strings"
 )
 
-type ScheduleMultiPatternRn interface {
-	fmt.Stringer
-	encoding.TextMarshaler
-	MarshalString() (string, error)
-	ContainsWildcard() bool
+// ScheduleRnType is the resource type of ScheduleRn.
+const ScheduleRnType = "scheduler.malonaz.com/Schedule"
+
+// ScheduleRn is any of the resource's patterns: "schedules/{schedule}", "organizations/{organization}/schedules/{schedule}", "organizations/{organization}/users/{user}/schedules/{schedule}".
+type ScheduleRn interface {
+	aip.Rn
+	isScheduleRn()
 }
 
-func ParseScheduleMultiPatternRn(name string) (ScheduleMultiPatternRn, error) {
+// ParseScheduleRn parses name under whichever pattern it matches.
+func ParseScheduleRn(name string) (ScheduleRn, error) {
 	switch {
 	case resourcename.Match("schedules/{schedule}", name):
-		var result ScheduleRn
-		return &result, result.UnmarshalString(name)
+		return ParseRootScheduleRn(name)
 	case resourcename.Match("organizations/{organization}/schedules/{schedule}", name):
-		var result OrganizationsScheduleRn
-		return &result, result.UnmarshalString(name)
+		return ParseOrganizationScheduleRn(name)
 	case resourcename.Match("organizations/{organization}/users/{user}/schedules/{schedule}", name):
-		var result OrganizationsUsersScheduleRn
-		return &result, result.UnmarshalString(name)
-	default:
-		return nil, fmt.Errorf("no matching pattern")
+		return ParseUserScheduleRn(name)
 	}
+	return nil, fmt.Errorf("resource name %q matches no pattern of scheduler.malonaz.com/Schedule", name)
 }
 
-type ScheduleRn struct {
+// MatchScheduleRn reports whether name follows any pattern of scheduler.malonaz.com/Schedule.
+func MatchScheduleRn(name string) bool {
+	return resourcename.Match("schedules/{schedule}", name) || resourcename.Match("organizations/{organization}/schedules/{schedule}", name) || resourcename.Match("organizations/{organization}/users/{user}/schedules/{schedule}", name)
+}
+
+// NewScheduleRn is the resource named schedule under parent, which must follow one of: "", "organizations/{organization}", "organizations/{organization}/users/{user}".
+func NewScheduleRn(parent string, schedule string) (ScheduleRn, error) {
+	switch {
+	case parent == "":
+		n := &RootScheduleRn{}
+		n.Schedule = schedule
+		return n, nil
+	case resourcename.Match("organizations/{organization}", parent):
+		n := &OrganizationScheduleRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}", &n.Organization); err != nil {
+			return nil, err
+		}
+		n.Schedule = schedule
+		return n, nil
+	case resourcename.Match("organizations/{organization}/users/{user}", parent):
+		n := &UserScheduleRn{}
+		if err := resourcename.Sscan(parent, "organizations/{organization}/users/{user}", &n.Organization, &n.User); err != nil {
+			return nil, err
+		}
+		n.Schedule = schedule
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of scheduler.malonaz.com/Schedule", parent)
+}
+
+// RootScheduleRnPattern is the pattern RootScheduleRn follows.
+const RootScheduleRnPattern = "schedules/{schedule}"
+
+// RootScheduleRn is the resource name "schedules/{schedule}".
+type RootScheduleRn struct {
 	Schedule string
 }
 
-func (n ScheduleRn) Validate() error {
+func (*RootScheduleRn) isScheduleRn() {}
+
+// ParseRootScheduleRn parses and validates name against RootScheduleRnPattern.
+func ParseRootScheduleRn(name string) (*RootScheduleRn, error) {
+	n := &RootScheduleRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchRootScheduleRn reports whether name follows RootScheduleRnPattern.
+func MatchRootScheduleRn(name string) bool {
+	return resourcename.Match(RootScheduleRnPattern, name)
+}
+
+func (n *RootScheduleRn) Validate() error {
 	if n.Schedule == "" {
 		return fmt.Errorf("schedule: empty")
 	}
@@ -47,73 +96,77 @@ func (n ScheduleRn) Validate() error {
 	return nil
 }
 
-func (n ScheduleRn) ContainsWildcard() bool {
-	return false || n.Schedule == "-"
+func (n *RootScheduleRn) ContainsWildcard() bool {
+	return n.Schedule == aip.Wildcard
 }
 
-func (n ScheduleRn) String() string {
-	return resourcename.Sprint(
-		"schedules/{schedule}",
-		n.Schedule,
-	)
+func (n *RootScheduleRn) String() string {
+	return resourcename.Sprint(RootScheduleRnPattern, n.Schedule)
 }
 
-func (n ScheduleRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n ScheduleRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *RootScheduleRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *ScheduleRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"schedules/{schedule}",
-		&n.Schedule,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against RootScheduleRnPattern.
+func (n *RootScheduleRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, RootScheduleRnPattern, &n.Schedule); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *ScheduleRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *RootScheduleRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n ScheduleRn) Type() string {
-	return "scheduler.malonaz.com/Schedule"
-}
+func (n *RootScheduleRn) Type() string { return ScheduleRnType }
 
-// Pattern returns the resource name pattern for ScheduleRn as a string.
-func (n ScheduleRn) Pattern() string {
-	return "schedules/{schedule}"
-}
+func (n *RootScheduleRn) Pattern() string { return RootScheduleRnPattern }
 
-type OrganizationsScheduleRn struct {
+func (n *RootScheduleRn) ID() string { return n.Schedule }
+
+func (n *RootScheduleRn) Parent() string { return "" }
+
+// OrganizationScheduleRnPattern is the pattern OrganizationScheduleRn follows.
+const OrganizationScheduleRnPattern = "organizations/{organization}/schedules/{schedule}"
+
+// OrganizationScheduleRn is the resource name "organizations/{organization}/schedules/{schedule}".
+type OrganizationScheduleRn struct {
 	Organization string
 	Schedule     string
 }
 
-func (n OrganizationRn) OrganizationsScheduleRn(
-	schedule string,
-) OrganizationsScheduleRn {
-	return OrganizationsScheduleRn{
+func (*OrganizationScheduleRn) isScheduleRn() {}
+
+// ParseOrganizationScheduleRn parses and validates name against OrganizationScheduleRnPattern.
+func ParseOrganizationScheduleRn(name string) (*OrganizationScheduleRn, error) {
+	n := &OrganizationScheduleRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchOrganizationScheduleRn reports whether name follows OrganizationScheduleRnPattern.
+func MatchOrganizationScheduleRn(name string) bool {
+	return resourcename.Match(OrganizationScheduleRnPattern, name)
+}
+
+// OrganizationScheduleRn returns the child scheduler.malonaz.com/Schedule of n.
+func (n *OrganizationRn) OrganizationScheduleRn(schedule string) *OrganizationScheduleRn {
+	return &OrganizationScheduleRn{
 		Organization: n.Organization,
 		Schedule:     schedule,
 	}
 }
 
-func (n OrganizationsScheduleRn) Validate() error {
+func (n *OrganizationScheduleRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -129,94 +182,88 @@ func (n OrganizationsScheduleRn) Validate() error {
 	return nil
 }
 
-func (n OrganizationsScheduleRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.Schedule == "-"
+func (n *OrganizationScheduleRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.Schedule == aip.Wildcard
 }
 
-func (n OrganizationsScheduleRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/schedules/{schedule}",
-		n.Organization,
-		n.Schedule,
-	)
+func (n *OrganizationScheduleRn) String() string {
+	return resourcename.Sprint(OrganizationScheduleRnPattern, n.Organization, n.Schedule)
 }
 
-func (n OrganizationsScheduleRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n OrganizationsScheduleRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *OrganizationScheduleRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *OrganizationsScheduleRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/schedules/{schedule}",
-		&n.Organization,
-		&n.Schedule,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against OrganizationScheduleRnPattern.
+func (n *OrganizationScheduleRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, OrganizationScheduleRnPattern, &n.Organization, &n.Schedule); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *OrganizationsScheduleRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *OrganizationScheduleRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n OrganizationsScheduleRn) Type() string {
-	return "scheduler.malonaz.com/Schedule"
+func (n *OrganizationScheduleRn) Type() string { return ScheduleRnType }
+
+func (n *OrganizationScheduleRn) Pattern() string { return OrganizationScheduleRnPattern }
+
+func (n *OrganizationScheduleRn) ID() string { return n.Schedule }
+
+func (n *OrganizationScheduleRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
-// Pattern returns the resource name pattern for OrganizationsScheduleRn as a string.
-func (n OrganizationsScheduleRn) Pattern() string {
-	return "organizations/{organization}/schedules/{schedule}"
-}
-
-func (n OrganizationsScheduleRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
+// OrganizationRn returns the parent of n.
+func (n *OrganizationScheduleRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
 		Organization: n.Organization,
 	}
 }
 
-type OrganizationsUsersScheduleRn struct {
+// UserScheduleRnPattern is the pattern UserScheduleRn follows.
+const UserScheduleRnPattern = "organizations/{organization}/users/{user}/schedules/{schedule}"
+
+// UserScheduleRn is the resource name "organizations/{organization}/users/{user}/schedules/{schedule}".
+type UserScheduleRn struct {
 	Organization string
 	User         string
 	Schedule     string
 }
 
-func (n OrganizationRn) OrganizationsUsersScheduleRn(
-	user string,
-	schedule string,
-) OrganizationsUsersScheduleRn {
-	return OrganizationsUsersScheduleRn{
-		Organization: n.Organization,
-		User:         user,
-		Schedule:     schedule,
+func (*UserScheduleRn) isScheduleRn() {}
+
+// ParseUserScheduleRn parses and validates name against UserScheduleRnPattern.
+func ParseUserScheduleRn(name string) (*UserScheduleRn, error) {
+	n := &UserScheduleRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
 	}
+	return n, nil
 }
 
-func (n UserRn) OrganizationsUsersScheduleRn(
-	schedule string,
-) OrganizationsUsersScheduleRn {
-	return OrganizationsUsersScheduleRn{
+// MatchUserScheduleRn reports whether name follows UserScheduleRnPattern.
+func MatchUserScheduleRn(name string) bool {
+	return resourcename.Match(UserScheduleRnPattern, name)
+}
+
+// UserScheduleRn returns the child scheduler.malonaz.com/Schedule of n.
+func (n *UserRn) UserScheduleRn(schedule string) *UserScheduleRn {
+	return &UserScheduleRn{
 		Organization: n.Organization,
 		User:         n.User,
 		Schedule:     schedule,
 	}
 }
 
-func (n OrganizationsUsersScheduleRn) Validate() error {
+func (n *UserScheduleRn) Validate() error {
 	if n.Organization == "" {
 		return fmt.Errorf("organization: empty")
 	}
@@ -238,70 +285,48 @@ func (n OrganizationsUsersScheduleRn) Validate() error {
 	return nil
 }
 
-func (n OrganizationsUsersScheduleRn) ContainsWildcard() bool {
-	return false || n.Organization == "-" || n.User == "-" || n.Schedule == "-"
+func (n *UserScheduleRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard || n.User == aip.Wildcard || n.Schedule == aip.Wildcard
 }
 
-func (n OrganizationsUsersScheduleRn) String() string {
-	return resourcename.Sprint(
-		"organizations/{organization}/users/{user}/schedules/{schedule}",
-		n.Organization,
-		n.User,
-		n.Schedule,
-	)
+func (n *UserScheduleRn) String() string {
+	return resourcename.Sprint(UserScheduleRnPattern, n.Organization, n.User, n.Schedule)
 }
 
-func (n OrganizationsUsersScheduleRn) MarshalString() (string, error) {
-	if err := n.Validate(); err != nil {
-		return "", err
-	}
-	return n.String(), nil
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (n OrganizationsUsersScheduleRn) MarshalText() ([]byte, error) {
+// MarshalText implements encoding.TextMarshaler.
+func (n *UserScheduleRn) MarshalText() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return []byte(n.String()), nil
 }
 
-func (n *OrganizationsUsersScheduleRn) UnmarshalString(name string) error {
-	err := resourcename.Sscan(
-		name,
-		"organizations/{organization}/users/{user}/schedules/{schedule}",
-		&n.Organization,
-		&n.User,
-		&n.Schedule,
-	)
-	if err != nil {
+// UnmarshalString parses and validates name against UserScheduleRnPattern.
+func (n *UserScheduleRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, UserScheduleRnPattern, &n.Organization, &n.User, &n.Schedule); err != nil {
 		return err
 	}
 	return n.Validate()
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (n *OrganizationsUsersScheduleRn) UnmarshalText(text []byte) error {
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *UserScheduleRn) UnmarshalText(text []byte) error {
 	return n.UnmarshalString(string(text))
 }
 
-func (n OrganizationsUsersScheduleRn) Type() string {
-	return "scheduler.malonaz.com/Schedule"
+func (n *UserScheduleRn) Type() string { return ScheduleRnType }
+
+func (n *UserScheduleRn) Pattern() string { return UserScheduleRnPattern }
+
+func (n *UserScheduleRn) ID() string { return n.Schedule }
+
+func (n *UserScheduleRn) Parent() string {
+	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
 }
 
-// Pattern returns the resource name pattern for OrganizationsUsersScheduleRn as a string.
-func (n OrganizationsUsersScheduleRn) Pattern() string {
-	return "organizations/{organization}/users/{user}/schedules/{schedule}"
-}
-
-func (n OrganizationsUsersScheduleRn) OrganizationRn() OrganizationRn {
-	return OrganizationRn{
-		Organization: n.Organization,
-	}
-}
-
-func (n OrganizationsUsersScheduleRn) UserRn() UserRn {
-	return UserRn{
+// UserRn returns the parent of n.
+func (n *UserScheduleRn) UserRn() *UserRn {
+	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
 	}

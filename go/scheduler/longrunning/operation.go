@@ -28,10 +28,10 @@ const operationsCollection = "operations"
 // the organization makes a user parent. Only Start derives a parent — a
 // producer building a job by hand names the parent it knows.
 func jobParentOf(resource string) string {
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserRn{}.Pattern()); ok {
+	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserRnPattern); ok {
 		return parent
 	}
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.OrganizationRn{}.Pattern()); ok {
+	if parent, ok := resourcename.Ancestor(resource, schedulerpb.OrganizationRnPattern); ok {
 		return parent
 	}
 	return ""
@@ -65,17 +65,11 @@ func jobNameOf(operationName string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	var user schedulerpb.UserRn
-	var organization schedulerpb.OrganizationRn
-	switch {
-	case parent == "":
-		return schedulerpb.JobRn{Job: operationID}.String(), true
-	case user.UnmarshalString(parent) == nil:
-		return user.OrganizationsUsersJobRn(operationID).String(), true
-	case organization.UnmarshalString(parent) == nil:
-		return organization.OrganizationsJobRn(operationID).String(), true
+	jobRn, err := schedulerpb.NewJobRn(parent, operationID)
+	if err != nil {
+		return "", false
 	}
-	return "", false
+	return jobRn.String(), true
 }
 
 // splitOperationName splits an operation name into its parent and ID.

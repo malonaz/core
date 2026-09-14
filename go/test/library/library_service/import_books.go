@@ -65,8 +65,8 @@ func (s *Service) importBook(ctx context.Context, request *libraryservicepb.Impo
 	if !status.HasCode(err, codes.AlreadyExists) {
 		return nil, false, err
 	}
-	shelf := &librarypb.ShelfRn{}
-	if err := shelf.UnmarshalString(request.GetParent()); err != nil {
+	shelf, err := librarypb.ParseShelfRn(request.GetParent())
+	if err != nil {
 		return nil, false, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
 	}
 	getBookRequest := &libraryservicepb.GetBookRequest{Name: shelf.BookRn(createBookRequest.GetBookId()).String()}
