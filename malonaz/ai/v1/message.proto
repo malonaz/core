@@ -40,8 +40,8 @@ message Message {
   };
   option (buf.validate.message).cel = {
     id: "user_role_blocks"
-    message: "USER messages can only have text or image blocks"
-    expression: "this.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))"
+    message: "USER messages can only have text, image or document blocks"
+    expression: "this.role != 3 || this.blocks.all(b, has(b.text) || has(b.image) || has(b.document))"
   };
   option (buf.validate.message).cel = {
     id: "tool_role_blocks"
@@ -144,7 +144,7 @@ message Block {
   option (buf.validate.message).cel = {
     id: "block_content_required_when_signature_set"
     message: "content is required when signature is set"
-    expression: "this.signature == '' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image)"
+    expression: "this.signature == '' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image) || has(this.document)"
   };
 
   // Index of this block.
@@ -175,6 +175,9 @@ message Block {
 
     // Image block.
     Image image = 9;
+
+    // Document block.
+    Document document = 10;
   }
 }
 
@@ -204,6 +207,33 @@ message Image {
 
   // Quality of the image.
   ImageQuality quality = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+// A document block (e.g. a PDF) supplied as model input.
+message Document {
+  option (buf.validate.message).cel = {
+    id: "document_requires_media_type_for_data"
+    message: "media_type is required when using data"
+    expression: "!has(this.data) || this.media_type != ''"
+  };
+
+  // The document source.
+  oneof source {
+    option (buf.validate.oneof).required = true;
+
+    // Raw document bytes.
+    bytes data = 1;
+
+    // HTTPS URL to the document.
+    string url = 2;
+  }
+
+  // MIME type of the document (e.g., "application/pdf", "text/plain").
+  // Required when using `data`, optional when using `url`.
+  string media_type = 3;
+
+  // Optional title of the document, surfaced to the model as its file name.
+  string title = 4;
 }
 
 // Represents the level of reasoning effort for AI model responses.

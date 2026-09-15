@@ -572,6 +572,7 @@ type Block struct {
 	//	*Block_PartialToolCall
 	//	*Block_ToolResult
 	//	*Block_Image
+	//	*Block_Document
 	Content       isBlock_Content `protobuf_oneof:"content"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -684,6 +685,15 @@ func (x *Block) GetImage() *Image {
 	return nil
 }
 
+func (x *Block) GetDocument() *Document {
+	if x != nil {
+		if x, ok := x.Content.(*Block_Document); ok {
+			return x.Document
+		}
+	}
+	return nil
+}
+
 func (x *Block) SetIndex(v int64) {
 	x.Index = v
 }
@@ -734,6 +744,14 @@ func (x *Block) SetImage(v *Image) {
 		return
 	}
 	x.Content = &Block_Image{v}
+}
+
+func (x *Block) SetDocument(v *Document) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &Block_Document{v}
 }
 
 func (x *Block) HasExtraFields() bool {
@@ -798,6 +816,14 @@ func (x *Block) HasImage() bool {
 	return ok
 }
 
+func (x *Block) HasDocument() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*Block_Document)
+	return ok
+}
+
 func (x *Block) ClearExtraFields() {
 	x.ExtraFields = nil
 }
@@ -842,6 +868,12 @@ func (x *Block) ClearImage() {
 	}
 }
 
+func (x *Block) ClearDocument() {
+	if _, ok := x.Content.(*Block_Document); ok {
+		x.Content = nil
+	}
+}
+
 const Block_Content_not_set_case case_Block_Content = 0
 const Block_Thought_case case_Block_Content = 4
 const Block_Text_case case_Block_Content = 5
@@ -849,6 +881,7 @@ const Block_ToolCall_case case_Block_Content = 6
 const Block_PartialToolCall_case case_Block_Content = 7
 const Block_ToolResult_case case_Block_Content = 8
 const Block_Image_case case_Block_Content = 9
+const Block_Document_case case_Block_Content = 10
 
 func (x *Block) WhichContent() case_Block_Content {
 	if x == nil {
@@ -867,6 +900,8 @@ func (x *Block) WhichContent() case_Block_Content {
 		return Block_ToolResult_case
 	case *Block_Image:
 		return Block_Image_case
+	case *Block_Document:
+		return Block_Document_case
 	default:
 		return Block_Content_not_set_case
 	}
@@ -896,6 +931,8 @@ type Block_builder struct {
 	ToolResult *ToolResult
 	// Image block.
 	Image *Image
+	// Document block.
+	Document *Document
 	// -- end of Content
 }
 
@@ -923,6 +960,9 @@ func (b0 Block_builder) Build() *Block {
 	}
 	if b.Image != nil {
 		x.Content = &Block_Image{b.Image}
+	}
+	if b.Document != nil {
+		x.Content = &Block_Document{b.Document}
 	}
 	return m0
 }
@@ -971,6 +1011,11 @@ type Block_Image struct {
 	Image *Image `protobuf:"bytes,9,opt,name=image,proto3,oneof"`
 }
 
+type Block_Document struct {
+	// Document block.
+	Document *Document `protobuf:"bytes,10,opt,name=document,proto3,oneof"`
+}
+
 func (*Block_Thought) isBlock_Content() {}
 
 func (*Block_Text) isBlock_Content() {}
@@ -982,6 +1027,8 @@ func (*Block_PartialToolCall) isBlock_Content() {}
 func (*Block_ToolResult) isBlock_Content() {}
 
 func (*Block_Image) isBlock_Content() {}
+
+func (*Block_Document) isBlock_Content() {}
 
 // An image block.
 type Image struct {
@@ -1205,11 +1252,231 @@ func (*Image_Data) isImage_Source() {}
 
 func (*Image_Url) isImage_Source() {}
 
+// A document block (e.g. a PDF) supplied as model input.
+type Document struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The document source.
+	//
+	// Types that are valid to be assigned to Source:
+	//
+	//	*Document_Data
+	//	*Document_Url
+	Source isDocument_Source `protobuf_oneof:"source"`
+	// MIME type of the document (e.g., "application/pdf", "text/plain").
+	// Required when using `data`, optional when using `url`.
+	MediaType string `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	// Optional title of the document, surfaced to the model as its file name.
+	Title         string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Document) Reset() {
+	*x = Document{}
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Document) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Document) ProtoMessage() {}
+
+func (x *Document) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_message_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Document) GetSource() isDocument_Source {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *Document) GetData() []byte {
+	if x != nil {
+		if x, ok := x.Source.(*Document_Data); ok {
+			return x.Data
+		}
+	}
+	return nil
+}
+
+func (x *Document) GetUrl() string {
+	if x != nil {
+		if x, ok := x.Source.(*Document_Url); ok {
+			return x.Url
+		}
+	}
+	return ""
+}
+
+func (x *Document) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *Document) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Document) SetData(v []byte) {
+	if v == nil {
+		v = []byte{}
+	}
+	x.Source = &Document_Data{v}
+}
+
+func (x *Document) SetUrl(v string) {
+	x.Source = &Document_Url{v}
+}
+
+func (x *Document) SetMediaType(v string) {
+	x.MediaType = v
+}
+
+func (x *Document) SetTitle(v string) {
+	x.Title = v
+}
+
+func (x *Document) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.Source != nil
+}
+
+func (x *Document) HasData() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*Document_Data)
+	return ok
+}
+
+func (x *Document) HasUrl() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*Document_Url)
+	return ok
+}
+
+func (x *Document) ClearSource() {
+	x.Source = nil
+}
+
+func (x *Document) ClearData() {
+	if _, ok := x.Source.(*Document_Data); ok {
+		x.Source = nil
+	}
+}
+
+func (x *Document) ClearUrl() {
+	if _, ok := x.Source.(*Document_Url); ok {
+		x.Source = nil
+	}
+}
+
+const Document_Source_not_set_case case_Document_Source = 0
+const Document_Data_case case_Document_Source = 1
+const Document_Url_case case_Document_Source = 2
+
+func (x *Document) WhichSource() case_Document_Source {
+	if x == nil {
+		return Document_Source_not_set_case
+	}
+	switch x.Source.(type) {
+	case *Document_Data:
+		return Document_Data_case
+	case *Document_Url:
+		return Document_Url_case
+	default:
+		return Document_Source_not_set_case
+	}
+}
+
+type Document_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The document source.
+
+	// Fields of oneof Source:
+	// Raw document bytes.
+	Data []byte
+	// HTTPS URL to the document.
+	Url *string
+	// -- end of Source
+	// MIME type of the document (e.g., "application/pdf", "text/plain").
+	// Required when using `data`, optional when using `url`.
+	MediaType string
+	// Optional title of the document, surfaced to the model as its file name.
+	Title string
+}
+
+func (b0 Document_builder) Build() *Document {
+	m0 := &Document{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Data != nil {
+		x.Source = &Document_Data{b.Data}
+	}
+	if b.Url != nil {
+		x.Source = &Document_Url{*b.Url}
+	}
+	x.MediaType = b.MediaType
+	x.Title = b.Title
+	return m0
+}
+
+type case_Document_Source protoreflect.FieldNumber
+
+func (x case_Document_Source) String() string {
+	md := file_malonaz_ai_v1_message_proto_msgTypes[3].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isDocument_Source interface {
+	isDocument_Source()
+}
+
+type Document_Data struct {
+	// Raw document bytes.
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3,oneof"`
+}
+
+type Document_Url struct {
+	// HTTPS URL to the document.
+	Url string `protobuf:"bytes,2,opt,name=url,proto3,oneof"`
+}
+
+func (*Document_Data) isDocument_Source() {}
+
+func (*Document_Url) isDocument_Source() {}
+
 var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xde\r\n" +
+	"\x1bmalonaz/ai/v1/message.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfb\r\n" +
 	"\aMessage\x12\x17\n" +
 	"\x04name\x18\a \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1236,12 +1503,12 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf4\x05\xeaAv\n" +
-	"\x16ai.malonaz.com/Message\x12Iorganizations/{organization}/users/{user}/chats/{chat}/messages/{message}*\bmessages2\amessage\xbaH\xcb\x04\x1ar\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x91\x06\xeaAv\n" +
+	"\x16ai.malonaz.com/Message\x12Iorganizations/{organization}/users/{user}/chats/{chat}/messages/{message}*\bmessages2\amessage\xbaH\xe8\x04\x1ar\n" +
 	"\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a1this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xcc\x01\n" +
-	"\x15assistant_role_blocks\x12JASSISTANT messages can only have thought, text, tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\x87\x01\n" +
-	"\x10user_role_blocks\x120USER messages can only have text or image blocks\x1aAthis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image))\x1a|\n" +
-	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\x82\xf6,$d96e0fa8-568e-420f-bdb2-3c133ef3a50f\"\x9f\x05\n" +
+	"\x15assistant_role_blocks\x12JASSISTANT messages can only have thought, text, tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\xa4\x01\n" +
+	"\x10user_role_blocks\x12:USER messages can only have text, image or document blocks\x1aTthis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image) || has(b.document))\x1a|\n" +
+	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\x82\xf6,$d96e0fa8-568e-420f-bdb2-3c133ef3a50f\"\xec\x05\n" +
 	"\x05Block\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x03R\x05index\x12\x1c\n" +
 	"\tsignature\x18\x02 \x01(\tR\tsignature\x12:\n" +
@@ -1252,8 +1519,10 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x11partial_tool_call\x18\a \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\x0fpartialToolCall\x12<\n" +
 	"\vtool_result\x18\b \x01(\v2\x19.malonaz.ai.v1.ToolResultH\x00R\n" +
 	"toolResult\x12,\n" +
-	"\x05image\x18\t \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05image:\xfd\x01\xbaH\xf9\x01\x1a\xf6\x01\n" +
-	")block_content_required_when_signature_set\x12)content is required when signature is set\x1a\x9d\x01this.signature == '' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image)B\t\n" +
+	"\x05image\x18\t \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05image\x125\n" +
+	"\bdocument\x18\n" +
+	" \x01(\v2\x17.malonaz.ai.v1.DocumentH\x00R\bdocument:\x93\x02\xbaH\x8f\x02\x1a\x8c\x02\n" +
+	")block_content_required_when_signature_set\x12)content is required when signature is set\x1a\xb3\x01this.signature == '' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image) || has(this.document)B\t\n" +
 	"\acontent\"\x9f\x02\n" +
 	"\x05Image\x12\x14\n" +
 	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
@@ -1262,6 +1531,14 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"media_type\x18\x03 \x01(\tR\tmediaType\x12?\n" +
 	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:{\xbaHx\x1av\n" +
 	"\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01\"\xfa\x01\n" +
+	"\bDocument\x12\x14\n" +
+	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
+	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x03 \x01(\tR\tmediaType\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title:~\xbaH{\x1ay\n" +
+	"%document_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
 	"\x06source\x12\x05\xbaH\x02\b\x01*\xd9\x01\n" +
 	"\x0fReasoningEffort\x12 \n" +
 	"\x1cREASONING_EFFORT_UNSPECIFIED\x10\x00\x12\x1c\n" +
@@ -1284,7 +1561,7 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x12IMAGE_QUALITY_HIGH\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_malonaz_ai_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(ReasoningEffort)(0),          // 0: malonaz.ai.v1.ReasoningEffort
 	(Role)(0),                     // 1: malonaz.ai.v1.Role
@@ -1292,36 +1569,38 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(*Message)(nil),               // 3: malonaz.ai.v1.Message
 	(*Block)(nil),                 // 4: malonaz.ai.v1.Block
 	(*Image)(nil),                 // 5: malonaz.ai.v1.Image
-	nil,                           // 6: malonaz.ai.v1.Message.LabelsEntry
-	nil,                           // 7: malonaz.ai.v1.Message.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
-	(*ModelUsage)(nil),            // 9: malonaz.ai.v1.ModelUsage
-	(*status.Status)(nil),         // 10: google.rpc.Status
-	(*structpb.Struct)(nil),       // 11: google.protobuf.Struct
-	(*ToolCall)(nil),              // 12: malonaz.ai.v1.ToolCall
-	(*ToolResult)(nil),            // 13: malonaz.ai.v1.ToolResult
+	(*Document)(nil),              // 6: malonaz.ai.v1.Document
+	nil,                           // 7: malonaz.ai.v1.Message.LabelsEntry
+	nil,                           // 8: malonaz.ai.v1.Message.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*ModelUsage)(nil),            // 10: malonaz.ai.v1.ModelUsage
+	(*status.Status)(nil),         // 11: google.rpc.Status
+	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
+	(*ToolCall)(nil),              // 13: malonaz.ai.v1.ToolCall
+	(*ToolResult)(nil),            // 14: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
-	8,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
-	8,  // 1: malonaz.ai.v1.Message.update_time:type_name -> google.protobuf.Timestamp
-	8,  // 2: malonaz.ai.v1.Message.delete_time:type_name -> google.protobuf.Timestamp
-	6,  // 3: malonaz.ai.v1.Message.labels:type_name -> malonaz.ai.v1.Message.LabelsEntry
-	7,  // 4: malonaz.ai.v1.Message.annotations:type_name -> malonaz.ai.v1.Message.AnnotationsEntry
+	9,  // 0: malonaz.ai.v1.Message.create_time:type_name -> google.protobuf.Timestamp
+	9,  // 1: malonaz.ai.v1.Message.update_time:type_name -> google.protobuf.Timestamp
+	9,  // 2: malonaz.ai.v1.Message.delete_time:type_name -> google.protobuf.Timestamp
+	7,  // 3: malonaz.ai.v1.Message.labels:type_name -> malonaz.ai.v1.Message.LabelsEntry
+	8,  // 4: malonaz.ai.v1.Message.annotations:type_name -> malonaz.ai.v1.Message.AnnotationsEntry
 	1,  // 5: malonaz.ai.v1.Message.role:type_name -> malonaz.ai.v1.Role
 	4,  // 6: malonaz.ai.v1.Message.blocks:type_name -> malonaz.ai.v1.Block
-	9,  // 7: malonaz.ai.v1.Message.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	10, // 8: malonaz.ai.v1.Message.status:type_name -> google.rpc.Status
-	11, // 9: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
-	12, // 10: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	12, // 11: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
-	13, // 12: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
+	10, // 7: malonaz.ai.v1.Message.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	11, // 8: malonaz.ai.v1.Message.status:type_name -> google.rpc.Status
+	12, // 9: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
+	13, // 10: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	13, // 11: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
+	14, // 12: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
 	5,  // 13: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
-	2,  // 14: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	6,  // 14: malonaz.ai.v1.Block.document:type_name -> malonaz.ai.v1.Document
+	2,  // 15: malonaz.ai.v1.Image.quality:type_name -> malonaz.ai.v1.ImageQuality
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_message_proto_init() }
@@ -1338,10 +1617,15 @@ func file_malonaz_ai_v1_message_proto_init() {
 		(*Block_PartialToolCall)(nil),
 		(*Block_ToolResult)(nil),
 		(*Block_Image)(nil),
+		(*Block_Document)(nil),
 	}
 	file_malonaz_ai_v1_message_proto_msgTypes[2].OneofWrappers = []any{
 		(*Image_Data)(nil),
 		(*Image_Url)(nil),
+	}
+	file_malonaz_ai_v1_message_proto_msgTypes[3].OneofWrappers = []any{
+		(*Document_Data)(nil),
+		(*Document_Url)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1349,7 +1633,7 @@ func file_malonaz_ai_v1_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_message_proto_rawDesc), len(file_malonaz_ai_v1_message_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
