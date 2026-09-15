@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -808,6 +809,10 @@ var finishReasonToPb = map[genai.FinishReason]aiservicepb.StopReason{
 	genai.FinishReasonImageOther:             aiservicepb.StopReason_STOP_REASON_END_TURN,
 }
 
+// Vertex streams an enum-typed string value as Go's missing-verb artifact,
+// `%!(EXTRA string=INDUSTRY_ELECTRICAL)`: their formatting bug, our input.
+var vertexExtraStringRegexp = regexp.MustCompile(`^%!\(EXTRA string=(.*)\)$`)
+
 // resolvePartialArgValue extracts the typed value from a PartialArg, which uses a union-like
 // encoding where only one of the value fields is set.
 func resolvePartialArgValue(partialArg *genai.PartialArg) any {
@@ -819,6 +824,9 @@ func resolvePartialArgValue(partialArg *genai.PartialArg) any {
 	}
 	if partialArg.BoolValue != nil {
 		return *partialArg.BoolValue
+	}
+	if match := vertexExtraStringRegexp.FindStringSubmatch(partialArg.StringValue); match != nil {
+		return match[1]
 	}
 	return partialArg.StringValue
 }
