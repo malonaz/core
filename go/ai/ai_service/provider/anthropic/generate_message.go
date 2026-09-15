@@ -402,6 +402,10 @@ func buildDocumentBlock(doc *aipb.Document) (anthropic.ContentBlockParamUnion, e
 	var block anthropic.ContentBlockParamUnion
 	switch source := doc.Source.(type) {
 	case *aipb.Document_Url:
+		// URL sources are PDF-only; the SDK has no media type to carry anything else.
+		if doc.MediaType != "" && doc.MediaType != mediaTypePDF {
+			return block, fmt.Errorf("unsupported document media type %s for url source", doc.MediaType)
+		}
 		block = anthropic.NewDocumentBlock(anthropic.URLPDFSourceParam{URL: source.Url})
 	case *aipb.Document_Data:
 		switch doc.MediaType {
