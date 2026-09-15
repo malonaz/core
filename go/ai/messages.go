@@ -80,8 +80,12 @@ func NewDocumentBlock(document *aipb.Document) *aipb.Block {
 	return &aipb.Block{Content: &aipb.Block_Document{Document: document}}
 }
 
-func NewDocumentFromURL(url string) *aipb.Document {
-	return &aipb.Document{Source: &aipb.Document_Url{Url: url}}
+// Providers that inline URL sources (openai, google) need the media type up front.
+func NewDocumentFromURL(url, mediaType string) *aipb.Document {
+	return &aipb.Document{
+		Source:    &aipb.Document_Url{Url: url},
+		MediaType: mediaType,
+	}
 }
 
 func NewDocumentFromData(data []byte, mediaType string) *aipb.Document {
