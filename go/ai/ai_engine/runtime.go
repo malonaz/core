@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +17,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 
@@ -44,6 +47,11 @@ type runtime struct {
 	// deterministic hash of the request avoids rebuilding schemas.
 	toolCacheMutex sync.RWMutex
 	hashToTool     map[string]*aipb.Tool
+
+	// Messages asked for by name that no service reaches: reflection is walked
+	// from the services, so these are fetched by symbol on every resolution.
+	symbolsMutex sync.RWMutex
+	symbols      []string
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
@@ -121,7 +129,39 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 }
 
 func (s *Service) getSchema(ctx context.Context) (*pbreflection.Schema, error) {
-	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient, pbreflection.WithMemCache("schema", time.Hour))
+	s.symbolsMutex.RLock()
+	symbols := slices.Clone(s.symbols)
+	s.symbolsMutex.RUnlock()
+	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient,
+		pbreflection.WithMemCache("schema", time.Hour),
+		pbreflection.WithSymbols(symbols...),
+	)
+}
+
+// findMessageDescriptor looks the message up in the schema; a miss fetches its
+// file by symbol and resolves again, so a message outside every method's
+// request and response (a document payload) is still a valid tool target.
+func (s *Service) findMessageDescriptor(ctx context.Context, schema *pbreflection.Schema, fullName protoreflect.FullName) (protoreflect.MessageDescriptor, *pbreflection.Schema, error) {
+	descriptor, err := schema.FindDescriptorByName(fullName)
+	if errors.Is(err, protoregistry.NotFound) {
+		s.symbolsMutex.Lock()
+		if !slices.Contains(s.symbols, string(fullName)) {
+			s.symbols = append(s.symbols, string(fullName))
+		}
+		s.symbolsMutex.Unlock()
+		if schema, err = s.getSchema(ctx); err != nil {
+			return nil, nil, err
+		}
+		descriptor, err = schema.FindDescriptorByName(fullName)
+	}
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", fullName, err).Err()
+	}
+	messageDescriptor, ok := descriptor.(protoreflect.MessageDescriptor)
+	if !ok {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "%s is not a message", fullName).Err()
+	}
+	return messageDescriptor, schema, nil
 }
 
 func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest) (*aipb.Tool, error) {
@@ -183,15 +223,12 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 
 	case *pb.DescriptorReference_Message:
 		descriptorFullName = protoreflect.FullName(target.Message)
-		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
+		var err error
+		messageDescriptor, schema, err = s.findMessageDescriptor(ctx, schema, descriptorFullName)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", target.Message, err).Err()
+			return nil, err
 		}
-		var ok bool
-		messageDescriptor, ok = descriptor.(protoreflect.MessageDescriptor)
-		if !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "%s is not a message", target.Message).Err()
-		}
+		schemaBuilder = pbjson.NewSchemaBuilder(schema)
 		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
 		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
 		annotations[aipb.Annotations.ToolType.Key] = aitool.ToolTypeGenerateMessage

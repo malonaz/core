@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -55,6 +56,17 @@ type resolveSchemaOptions struct {
 	cacheKey string
 	cacheDir string
 	cacheTTL time.Duration
+	symbols  []string
+}
+
+// WithSymbols also fetches the files containing these fully-qualified names.
+// Reflection is walked from the services, so a message no method references
+// (a document payload, say) is unreachable unless asked for here. The cache
+// key covers the set: a different set is a different schema.
+func WithSymbols(symbols ...string) ResolveSchemaOption {
+	return func(o *resolveSchemaOptions) {
+		o.symbols = append(o.symbols, symbols...)
+	}
 }
 
 func (o *resolveSchemaOptions) memCache() bool {
@@ -80,6 +92,11 @@ func ResolveSchema(ctx context.Context, reflectionClient rpb.ServerReflectionCli
 	for _, opt := range opts {
 		opt(options)
 	}
+	if options.cacheKey != "" && len(options.symbols) > 0 {
+		symbols := slices.Clone(options.symbols)
+		slices.Sort(symbols)
+		options.cacheKey = hashKey(options.cacheKey + "|" + strings.Join(symbols, ","))
+	}
 
 	// Try mem cache first (returns Schema directly).
 	if options.memCache() {
@@ -97,7 +114,7 @@ func ResolveSchema(ctx context.Context, reflectionClient rpb.ServerReflectionCli
 	// Fallback to resolution.
 	if data == nil {
 		var err error
-		data, err = resolve(ctx, reflectionClient)
+		data, err = resolve(ctx, reflectionClient, options.symbols)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +201,7 @@ func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.Resour
 // ResolveFiles fetches every file descriptor the server exposes over
 // reflection into one registry, without the AIP interpretation a Schema adds.
 func ResolveFiles(ctx context.Context, reflectionClient rpb.ServerReflectionClient) (*protoregistry.Files, error) {
-	data, err := resolve(ctx, reflectionClient)
+	data, err := resolve(ctx, reflectionClient, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +366,7 @@ func newSchema(data *schemaData) (*Schema, error) {
 	return schema, nil
 }
 
-func resolve(ctx context.Context, client rpb.ServerReflectionClient) (*schemaData, error) {
+func resolve(ctx context.Context, client rpb.ServerReflectionClient, symbols []string) (*schemaData, error) {
 	stream, err := client.ServerReflectionInfo(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating reflection stream: %w", err)
@@ -362,8 +379,8 @@ func resolve(ctx context.Context, client rpb.ServerReflectionClient) (*schemaDat
 	}
 
 	fdProtos := make(map[string]*descriptorpb.FileDescriptorProto)
-	for _, svc := range services {
-		if err := fetchFileDescriptors(stream, fdProtos, svc); err != nil {
+	for _, symbol := range slices.Concat(services, symbols) {
+		if err := fetchFileDescriptors(stream, fdProtos, symbol); err != nil {
 			return nil, err
 		}
 	}

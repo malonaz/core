@@ -37,6 +37,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
         "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
     ],
