@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -473,6 +472,13 @@ func (c *Client) buildUserParts(ctx context.Context, blocks []*aipb.Block) ([]*g
 			}
 			parts = append(parts, part)
 
+		case *aipb.Block_Document:
+			part, err := buildDocumentPart(ctx, content.Document)
+			if err != nil {
+				return nil, fmt.Errorf("block [%d]: %w", j, err)
+			}
+			parts = append(parts, part)
+
 		default:
 			return nil, fmt.Errorf("block [%d]: unexpected block type %T for USER role", j, content)
 		}
@@ -490,33 +496,45 @@ func (c *Client) buildImagePart(ctx context.Context, img *aipb.Image) (*genai.Pa
 
 	switch source := img.Source.(type) {
 	case *aipb.Image_Data:
-		return &genai.Part{
-			InlineData: &genai.Blob{
-				Data:     source.Data,
-				MIMEType: img.MediaType,
-			},
-		}, nil
+		return inlinePart(source.Data, img.MediaType), nil
 
 	case *aipb.Image_Url:
-		httpResponse, err := http.Get(source.Url)
+		data, err := provider.Download(ctx, source.Url)
 		if err != nil {
-			return nil, fmt.Errorf("downloading image from URL: %w", err)
+			return nil, fmt.Errorf("downloading image: %w", err)
 		}
-		defer httpResponse.Body.Close()
-		data, err := io.ReadAll(httpResponse.Body)
-		if err != nil {
-			return nil, fmt.Errorf("reading image response body: %w", err)
-		}
-		return &genai.Part{
-			InlineData: &genai.Blob{
-				Data:     data,
-				MIMEType: img.MediaType,
-			},
-		}, nil
+		return inlinePart(data, img.MediaType), nil
 
 	default:
 		return nil, fmt.Errorf("unknown image source type: %T", source)
 	}
+}
+
+// buildDocumentPart converts a document proto to a genai Part with inline data.
+// URL-sourced documents are downloaded and submitted as inline data.
+func buildDocumentPart(ctx context.Context, doc *aipb.Document) (*genai.Part, error) {
+	if doc.MediaType == "" {
+		return nil, fmt.Errorf("media_type required for document data")
+	}
+
+	switch source := doc.Source.(type) {
+	case *aipb.Document_Data:
+		return inlinePart(source.Data, doc.MediaType), nil
+
+	case *aipb.Document_Url:
+		data, err := provider.Download(ctx, source.Url)
+		if err != nil {
+			return nil, fmt.Errorf("downloading document: %w", err)
+		}
+		return inlinePart(data, doc.MediaType), nil
+
+	default:
+		return nil, fmt.Errorf("unknown document source type: %T", source)
+	}
+}
+
+func inlinePart(data []byte, mediaType string) *genai.Part {
+	return &genai.Part{InlineData: &genai.Blob{Data: data, MIMEType: mediaType}}
 }
 
 // buildAssistantParts converts assistant message blocks into genai parts, preserving

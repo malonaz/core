@@ -42,7 +42,7 @@ func (c *Client) StreamGenerateMessage(
 
 	var messages []openai.ChatCompletionMessageParamUnion
 	for i, msg := range requestMessages {
-		converted, err := pbMessageToOpenAI(msg)
+		converted, err := pbMessageToOpenAI(ctx, msg)
 		if err != nil {
 			return status.Errorf(codes.InvalidArgument, "message [%d]: %v", i, err).Err()
 		}
@@ -281,7 +281,7 @@ func (c *Client) StreamGenerateMessage(
 	return nil
 }
 
-func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUnion, error) {
+func pbMessageToOpenAI(ctx context.Context, msg *aipb.Message) ([]openai.ChatCompletionMessageParamUnion, error) {
 	switch msg.Role {
 	case aipb.Role_ROLE_SYSTEM:
 		var texts []string
@@ -320,6 +320,12 @@ func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUn
 					URL:    url,
 					Detail: detail,
 				}))
+			case *aipb.Block_Document:
+				filePart, err := buildFilePart(ctx, content.Document)
+				if err != nil {
+					return nil, fmt.Errorf("block [%d]: %w", i, err)
+				}
+				contentParts = append(contentParts, filePart)
 			default:
 				return nil, fmt.Errorf("block [%d]: unexpected block type %T for USER role", i, content)
 			}
@@ -387,6 +393,35 @@ func pbMessageToOpenAI(msg *aipb.Message) ([]openai.ChatCompletionMessageParamUn
 	default:
 		return nil, fmt.Errorf("unexpected role: %v", msg.Role)
 	}
+}
+
+// buildFilePart converts a document proto to a chat completion file part.
+// Chat completions only accept inline file data, so URL sources are downloaded.
+func buildFilePart(ctx context.Context, doc *aipb.Document) (openai.ChatCompletionContentPartUnionParam, error) {
+	var data []byte
+	switch source := doc.Source.(type) {
+	case *aipb.Document_Data:
+		data = source.Data
+	case *aipb.Document_Url:
+		downloaded, err := provider.Download(ctx, source.Url)
+		if err != nil {
+			return openai.ChatCompletionContentPartUnionParam{}, fmt.Errorf("downloading document: %w", err)
+		}
+		data = downloaded
+	default:
+		return openai.ChatCompletionContentPartUnionParam{}, fmt.Errorf("unknown document source type %T", source)
+	}
+	if doc.MediaType == "" {
+		return openai.ChatCompletionContentPartUnionParam{}, fmt.Errorf("media_type required for document")
+	}
+	filename := doc.Title
+	if filename == "" {
+		filename = "document"
+	}
+	return openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
+		FileData: openai.String(fmt.Sprintf("data:%s;base64,%s", doc.MediaType, base64.StdEncoding.EncodeToString(data))),
+		Filename: openai.String(filename),
+	}), nil
 }
 
 func pbToolToOpenAI(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, error) {

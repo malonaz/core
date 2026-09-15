@@ -73,6 +73,12 @@ func (c *Client) StreamGenerateMessage(
 					default:
 						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected image source type %T", i, j, source).Err()
 					}
+				case *aipb.Block_Document:
+					documentBlock, err := buildDocumentBlock(content.Document)
+					if err != nil {
+						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: %v", i, j, err).Err()
+					}
+					contentBlocks = append(contentBlocks, documentBlock)
 				default:
 					return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: unexpected block type %T for USER role", i, j, content).Err()
 				}
@@ -383,6 +389,36 @@ var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.StopReason{
 	anthropic.StopReasonStopSequence: aiservicepb.StopReason_STOP_REASON_STOP_SEQUENCE,
 	anthropic.StopReasonPauseTurn:    aiservicepb.StopReason_STOP_REASON_PAUSE_TURN,
 	anthropic.StopReasonRefusal:      aiservicepb.StopReason_STOP_REASON_REFUSAL,
+}
+
+const (
+	mediaTypePDF       = "application/pdf"
+	mediaTypePlainText = "text/plain"
+)
+
+// buildDocumentBlock converts a document proto to an anthropic document block.
+// Anthropic only accepts PDFs by URL; inline data may be a PDF or plain text.
+func buildDocumentBlock(doc *aipb.Document) (anthropic.ContentBlockParamUnion, error) {
+	var block anthropic.ContentBlockParamUnion
+	switch source := doc.Source.(type) {
+	case *aipb.Document_Url:
+		block = anthropic.NewDocumentBlock(anthropic.URLPDFSourceParam{URL: source.Url})
+	case *aipb.Document_Data:
+		switch doc.MediaType {
+		case mediaTypePDF:
+			block = anthropic.NewDocumentBlock(anthropic.Base64PDFSourceParam{Data: base64.StdEncoding.EncodeToString(source.Data)})
+		case mediaTypePlainText:
+			block = anthropic.NewDocumentBlock(anthropic.PlainTextSourceParam{Data: string(source.Data)})
+		default:
+			return block, fmt.Errorf("unsupported document media type %s", doc.MediaType)
+		}
+	default:
+		return block, fmt.Errorf("unexpected document source type %T", source)
+	}
+	if doc.Title != "" {
+		block.OfDocument.Title = anthropic.String(doc.Title)
+	}
+	return block, nil
 }
 
 var imageSourceMediaTypeSet = map[anthropic.Base64ImageSourceMediaType]struct{}{

@@ -19,6 +19,7 @@ const (
 	BlockTypeToolResult
 	BlockTypeImage
 	BlockTypePartialToolCall
+	BlockTypeDocument
 )
 
 func newMessage(role aipb.Role, blocks ...*aipb.Block) *aipb.Message {
@@ -71,6 +72,21 @@ func NewImageFromURL(url string) *aipb.Image {
 func NewImageFromData(data []byte, mediaType string) *aipb.Image {
 	return &aipb.Image{
 		Source:    &aipb.Image_Data{Data: data},
+		MediaType: mediaType,
+	}
+}
+
+func NewDocumentBlock(document *aipb.Document) *aipb.Block {
+	return &aipb.Block{Content: &aipb.Block_Document{Document: document}}
+}
+
+func NewDocumentFromURL(url string) *aipb.Document {
+	return &aipb.Document{Source: &aipb.Document_Url{Url: url}}
+}
+
+func NewDocumentFromData(data []byte, mediaType string) *aipb.Document {
+	return &aipb.Document{
+		Source:    &aipb.Document_Data{Data: data},
 		MediaType: mediaType,
 	}
 }
@@ -142,6 +158,8 @@ func FilterBlocks(blocks []*aipb.Block, blockTypes ...BlockType) []*aipb.Block {
 			bt = BlockTypeToolResult
 		case *aipb.Block_Image:
 			bt = BlockTypeImage
+		case *aipb.Block_Document:
+			bt = BlockTypeDocument
 		}
 		if _, ok := typeSet[bt]; ok {
 			filteredBlocks = append(filteredBlocks, block)
