@@ -14,12 +14,15 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
+	aippb "github.com/malonaz/core/genproto/aip/v1"
 	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
+	"github.com/malonaz/core/go/aip"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/scheduler/longrunning"
@@ -56,11 +59,32 @@ func titles(count int) []string {
 	return titles
 }
 
+// titlesRequest is an import of the titles, one book each, with the test hooks.
+func (f *importFixture) titlesRequest(titles []string, failAfter int32, delay time.Duration) *libraryservicepb.ImportBooksRequest {
+	return &libraryservicepb.ImportBooksRequest{
+		Parent:    f.shelf.GetName(),
+		RequestId: uuid.MustNewV7().String(),
+		Source: &libraryservicepb.ImportBooksRequest_TitlesSource{TitlesSource: &libraryservicepb.TitlesSource{
+			Author:    f.author.GetName(),
+			Titles:    titles,
+			FailAfter: failAfter,
+			Delay:     durationpb.New(delay),
+		}},
+	}
+}
+
+// inlineRequest is an import of the books themselves.
+func (f *importFixture) inlineRequest(books ...*librarypb.Book) *libraryservicepb.ImportBooksRequest {
+	return &libraryservicepb.ImportBooksRequest{
+		Parent:    f.shelf.GetName(),
+		RequestId: uuid.MustNewV7().String(),
+		Source:    &libraryservicepb.ImportBooksRequest_InlineSource{InlineSource: &libraryservicepb.InlineSource{Books: books}},
+	}
+}
+
 // importBooks starts an import and returns its not-done operation.
 func (f *importFixture) importBooks(t *testing.T, request *libraryservicepb.ImportBooksRequest) *longrunningpb.Operation {
 	t.Helper()
-	request.Parent = f.shelf.GetName()
-	request.Author = f.author.GetName()
 	operation, err := libraryServiceClient.ImportBooks(ctx, request)
 	require.NoError(t, err)
 	require.Regexp(t, "^"+f.organization+"/operations/[a-z0-9]+$", operation.GetName())
@@ -130,10 +154,24 @@ func unpackAny[M proto.Message](t *testing.T, payload *anypb.Any) M {
 	return message
 }
 
-func importMetadata(t *testing.T, operation *longrunningpb.Operation) *libraryservicepb.ImportBooksMetadata {
+func importMetadata(t *testing.T, operation *longrunningpb.Operation) *aippb.ImportMetadata {
 	t.Helper()
 	require.NotNil(t, operation.GetMetadata(), "operation %s has no metadata", operation.GetName())
-	return unpackAny[*libraryservicepb.ImportBooksMetadata](t, operation.GetMetadata())
+	return unpackAny[*aippb.ImportMetadata](t, operation.GetMetadata())
+}
+
+// importedBooks gets the books a finished import names, in order.
+func importedBooks(t *testing.T, done *longrunningpb.Operation) []*librarypb.Book {
+	t.Helper()
+	names := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames()
+	books := make([]*librarypb.Book, len(names))
+	for i, name := range names {
+		getBookRequest := &libraryservicepb.GetBookRequest{Name: name}
+		book, err := libraryServiceClient.GetBook(ctx, getBookRequest)
+		require.NoError(t, err)
+		books[i] = book
+	}
+	return books
 }
 
 // setImportMaxAttempts changes the shared queue's retry budget; tests relying
@@ -152,29 +190,33 @@ func TestImportBooks_Lifecycle(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
 	titles := titles(5)
-	operation := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles, Delay: durationpb.New(300 * time.Millisecond)})
+	operation := fixture.importBooks(t, fixture.titlesRequest(titles, 0, 300*time.Millisecond))
 
 	// Progress is observable while the import runs.
 	running := waitForOperation(t, operation.GetName(), func(operation *longrunningpb.Operation) bool {
-		return operation.GetMetadata() != nil && importMetadata(t, operation).GetImported() > 0
+		return operation.GetMetadata() != nil && importMetadata(t, operation).GetSuccessCount() > 0
 	})
 	require.False(t, running.GetDone())
 	metadata := importMetadata(t, running)
-	require.Equal(t, int32(len(titles)), metadata.GetTotal())
-	require.Less(t, metadata.GetImported(), metadata.GetTotal())
+	require.Equal(t, int32(len(titles)), metadata.GetTotalCount())
+	require.Less(t, metadata.GetSuccessCount(), metadata.GetTotalCount())
 
 	done := waitOperation(t, operation.GetName(), operationWaitTimeout)
 	require.True(t, done.GetDone())
 	require.Nil(t, done.GetError())
 	metadata = importMetadata(t, done)
-	require.Equal(t, int32(len(titles)), metadata.GetImported())
-	require.Equal(t, int32(len(titles)), metadata.GetTotal())
+	require.Equal(t, int32(len(titles)), metadata.GetSuccessCount())
+	require.Equal(t, int32(len(titles)), metadata.GetTotalCount())
+	require.Zero(t, metadata.GetFailureCount())
+	require.Empty(t, metadata.GetErrors())
 
-	response := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse())
-	require.Len(t, response.GetBooks(), len(titles))
-	for i, book := range response.GetBooks() {
+	books := importedBooks(t, done)
+	require.Len(t, books, len(titles))
+	for i, book := range books {
 		require.Equal(t, titles[i], book.GetTitle())
 		require.Equal(t, fixture.author.GetName(), book.GetAuthor())
+		require.Equal(t, "titles", book.GetLabels()[aip.LabelKeyImportSource])
+		require.Equal(t, time.Now().UTC().Format(aip.LabelDateFormat), book.GetLabels()[aip.LabelKeyImportTime])
 	}
 	require.Len(t, fixture.books(t), len(titles))
 	grpcrequire.Equal(t, done, getOperation(t, operation.GetName()))
@@ -183,7 +225,7 @@ func TestImportBooks_Lifecycle(t *testing.T) {
 func TestImportBooks_WaitOperation(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
-	operation := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles(20), Delay: durationpb.New(500 * time.Millisecond)})
+	operation := fixture.importBooks(t, fixture.titlesRequest(titles(20), 0, 500*time.Millisecond))
 	t.Cleanup(func() {
 		cancelOperationRequest := &longrunningpb.CancelOperationRequest{Name: operation.GetName()}
 		_, _ = operationsClient.CancelOperation(ctx, cancelOperationRequest)
@@ -212,13 +254,14 @@ func TestImportBooks_ListOperations(t *testing.T) {
 	fixture := newImportFixture(t)
 	otherShelf := createTestShelf(t, fixture.organization, "Other Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
-	first := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles(2)})
-	second := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles(20), Delay: durationpb.New(500 * time.Millisecond)})
+	first := fixture.importBooks(t, fixture.titlesRequest(titles(2), 0, 0))
+	second := fixture.importBooks(t, fixture.titlesRequest(titles(20), 0, 500*time.Millisecond))
 	t.Cleanup(func() {
 		cancelOperationRequest := &longrunningpb.CancelOperationRequest{Name: second.GetName()}
 		_, _ = operationsClient.CancelOperation(ctx, cancelOperationRequest)
 	})
-	otherRequest := &libraryservicepb.ImportBooksRequest{Parent: otherShelf.GetName(), Author: fixture.author.GetName(), Titles: titles(1)}
+	otherRequest := fixture.titlesRequest(titles(1), 0, 0)
+	otherRequest.Parent = otherShelf.GetName()
 	other, err := libraryServiceClient.ImportBooks(ctx, otherRequest)
 	require.NoError(t, err)
 
@@ -258,9 +301,9 @@ func TestImportBooks_ListOperations(t *testing.T) {
 func TestImportBooks_Cancel(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
-	operation := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles(20), Delay: durationpb.New(300 * time.Millisecond)})
+	operation := fixture.importBooks(t, fixture.titlesRequest(titles(20), 0, 300*time.Millisecond))
 	waitForOperation(t, operation.GetName(), func(operation *longrunningpb.Operation) bool {
-		return operation.GetMetadata() != nil && importMetadata(t, operation).GetImported() > 0
+		return operation.GetMetadata() != nil && importMetadata(t, operation).GetSuccessCount() > 0
 	})
 
 	cancelOperationRequest := &longrunningpb.CancelOperationRequest{Name: operation.GetName()}
@@ -294,19 +337,20 @@ func TestImportBooks_Retry(t *testing.T) {
 
 	t.Run("second attempt completes without duplicates", func(t *testing.T) {
 		titles := titles(4)
-		operation := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles, FailAfter: 2})
+		operation := fixture.importBooks(t, fixture.titlesRequest(titles, 2, 0))
 		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
 		require.True(t, done.GetDone())
 		require.Nil(t, done.GetError())
-		require.Len(t, unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetBooks(), len(titles))
-		require.Equal(t, int32(len(titles)), importMetadata(t, done).GetImported())
+		require.Len(t, unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames(), len(titles))
+		// Progress is per attempt: the second one found every book, fresh or not.
+		require.Equal(t, int32(len(titles)), importMetadata(t, done).GetSuccessCount())
 		require.Len(t, fixture.books(t), len(titles))
 	})
 
 	t.Run("single attempt fails the operation", func(t *testing.T) {
 		setImportMaxAttempts(t, 1)
 		t.Cleanup(func() { setImportMaxAttempts(t, 2) })
-		operation := fixture.importBooks(t, &libraryservicepb.ImportBooksRequest{Titles: titles(3), FailAfter: 1})
+		operation := fixture.importBooks(t, fixture.titlesRequest(titles(3), 1, 0))
 		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
 		require.True(t, done.GetDone())
 		require.Equal(t, int32(codes.Internal), done.GetError().GetCode())
@@ -317,13 +361,17 @@ func TestImportBooks_Retry(t *testing.T) {
 func TestImportBooks_RequestID(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
-	request := &libraryservicepb.ImportBooksRequest{Titles: titles(1), RequestId: uuid.MustNewV7().String()}
+	request := fixture.titlesRequest(titles(1), 0, 0)
 	first := fixture.importBooks(t, request)
-	repeatedRequest := &libraryservicepb.ImportBooksRequest{Parent: fixture.shelf.GetName(), Author: fixture.author.GetName(), Titles: request.GetTitles(), RequestId: request.GetRequestId()}
-	repeated, err := libraryServiceClient.ImportBooks(ctx, repeatedRequest)
+	repeated, err := libraryServiceClient.ImportBooks(ctx, request)
 	require.NoError(t, err)
 	require.Equal(t, first.GetName(), repeated.GetName())
 	require.Len(t, listOperations(t, fixture.organization, ""), 1)
+
+	missing := fixture.titlesRequest(titles(1), 0, 0)
+	missing.RequestId = ""
+	_, err = libraryServiceClient.ImportBooks(ctx, missing)
+	grpcrequire.Error(t, codes.InvalidArgument, err)
 }
 
 func TestImportBooks_RunInline(t *testing.T) {
@@ -335,11 +383,92 @@ func TestImportBooks_RunInline(t *testing.T) {
 	// the call, which is how a runner is exercised directly.
 	jobID := uuid.MustNewV7().String()
 	runCtx := metadata.AppendToOutgoingContext(ctx, scheduler.JobMetadataKey, "jobs/"+jobID)
-	importBooksRequest := &libraryservicepb.ImportBooksRequest{Parent: fixture.shelf.GetName(), Author: fixture.author.GetName(), Titles: titles}
-	operation, err := libraryServiceClient.ImportBooks(runCtx, importBooksRequest)
+	operation, err := libraryServiceClient.ImportBooks(runCtx, fixture.titlesRequest(titles, 0, 0))
 	require.NoError(t, err)
 	require.Equal(t, "operations/"+jobID, operation.GetName())
 	require.True(t, operation.GetDone())
-	require.Len(t, unpackAny[*libraryservicepb.ImportBooksResponse](t, operation.GetResponse()).GetBooks(), len(titles))
+	require.Len(t, unpackAny[*libraryservicepb.ImportBooksResponse](t, operation.GetResponse()).GetNames(), len(titles))
 	require.Len(t, fixture.books(t), len(titles))
+}
+
+// inlineBook is a book to import inline; the table stores duration and metadata in non-null columns.
+func inlineBook(author, title string) *librarypb.Book {
+	return &librarypb.Book{Title: title, Author: author, Duration: durationpb.New(0), Metadata: &librarypb.BookMetadata{}}
+}
+
+func TestImportBooks_Inline(t *testing.T) {
+	t.Parallel()
+	fixture := newImportFixture(t)
+	titles := titles(3)
+	past := timestamppb.New(time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC))
+	shelf, err := librarypb.ParseShelfRn(fixture.shelf.GetName())
+	require.NoError(t, err)
+
+	// Anonymous; named, with its own timestamps and labels; stamped by the server otherwise.
+	anonymous := inlineBook(fixture.author.GetName(), titles[0])
+	named := inlineBook(fixture.author.GetName(), titles[1])
+	named.Name = shelf.BookRn("named-book").String()
+	named.CreateTime = past
+	named.UpdateTime = past
+	named.Labels = map[string]string{aip.LabelKeyImportSource: "legacy", aip.LabelKeyImportTime: "1999-12-31", "other": "kept"}
+	third := inlineBook(fixture.author.GetName(), titles[2])
+
+	done := waitOperation(t, fixture.importBooks(t, fixture.inlineRequest(anonymous, named, third)).GetName(), operationWaitTimeout)
+	require.True(t, done.GetDone())
+	require.Nil(t, done.GetError())
+	metadata := importMetadata(t, done)
+	require.Equal(t, int32(3), metadata.GetTotalCount())
+	require.Equal(t, int32(3), metadata.GetSuccessCount())
+	require.Empty(t, metadata.GetErrors())
+
+	books := importedBooks(t, done)
+	require.Len(t, books, 3)
+	today := time.Now().UTC().Format(aip.LabelDateFormat)
+	require.Equal(t, titles[0], books[0].GetTitle())
+	require.Equal(t, "inline", books[0].GetLabels()[aip.LabelKeyImportSource])
+	require.Equal(t, today, books[0].GetLabels()[aip.LabelKeyImportTime])
+	require.WithinDuration(t, time.Now(), books[0].GetCreateTime().AsTime(), time.Minute)
+	require.Equal(t, named.GetName(), books[1].GetName())
+	grpcrequire.Equal(t, past, books[1].GetCreateTime())
+	grpcrequire.Equal(t, past, books[1].GetUpdateTime())
+	require.Equal(t, map[string]string{aip.LabelKeyImportSource: "legacy", aip.LabelKeyImportTime: "1999-12-31", "other": "kept"}, books[1].GetLabels())
+	require.Len(t, fixture.books(t), 3)
+}
+
+func TestImportBooks_InlinePartialFailure(t *testing.T) {
+	t.Parallel()
+	fixture := newImportFixture(t)
+	otherShelf := createTestShelf(t, fixture.organization, "Other Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	other, err := librarypb.ParseShelfRn(otherShelf.GetName())
+	require.NoError(t, err)
+	titles := titles(3)
+
+	// A book under another parent, one that already exists, one that is fine.
+	foreign := inlineBook(fixture.author.GetName(), titles[0])
+	foreign.Name = other.BookRn("foreign").String()
+	existing := createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), titles[1])
+	duplicate := inlineBook(fixture.author.GetName(), "duplicate of "+titles[1])
+	duplicate.Name = existing.GetName()
+	fine := inlineBook(fixture.author.GetName(), titles[2])
+
+	done := waitOperation(t, fixture.importBooks(t, fixture.inlineRequest(foreign, duplicate, fine)).GetName(), operationWaitTimeout)
+	require.True(t, done.GetDone())
+	require.Nil(t, done.GetError(), "partial failures do not fail the operation")
+	metadata := importMetadata(t, done)
+	require.Equal(t, int32(3), metadata.GetTotalCount())
+	require.Equal(t, int32(1), metadata.GetSuccessCount())
+	require.Equal(t, int32(2), metadata.GetFailureCount())
+	require.Len(t, metadata.GetErrors(), 2)
+	require.Equal(t, int32(codes.InvalidArgument), metadata.GetErrors()[0].GetCode())
+	require.Contains(t, metadata.GetErrors()[0].GetMessage(), "is not under parent")
+	require.Equal(t, int32(codes.AlreadyExists), metadata.GetErrors()[1].GetCode())
+
+	books := importedBooks(t, done)
+	require.Len(t, books, 1)
+	require.Equal(t, titles[2], books[0].GetTitle())
+	require.Len(t, fixture.books(t), 2)
+	getBookRequest := &libraryservicepb.GetBookRequest{Name: existing.GetName()}
+	kept, err := libraryServiceClient.GetBook(ctx, getBookRequest)
+	require.NoError(t, err)
+	require.Equal(t, existing.GetTitle(), kept.GetTitle(), "an import never overwrites")
 }

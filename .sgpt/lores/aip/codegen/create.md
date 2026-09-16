@@ -50,8 +50,10 @@ instead; the store then re-reads by request id and returns the committed row.
 
 `create_time` is stamped `now()` and copied to `update_time`. If the incoming
 gRPC metadata carries `x-migration-request`, the request **must** supply
-`create_time` (else `InvalidArgument`) and it is kept — the escape hatch for
-backfills that need historical timestamps.
+`create_time` (else `InvalidArgument`) and it is kept — the legacy escape
+hatch for backfills that need historical timestamps. Deprecated: backfill
+through `Import{Plural}` instead (`lores/aip/codegen/import`), which keeps
+the timestamps it is given without any header.
 
 ## Singleton children
 

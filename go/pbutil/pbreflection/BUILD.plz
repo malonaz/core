@@ -15,6 +15,7 @@ go_library(
         "//malonaz/codegen/gateway/v1",
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__protobuf__proto",

@@ -10,6 +10,18 @@ import (
 const (
 	LabelValueTrue  = "true"
 	LabelValueFalse = "false"
+
+	// LabelKeyImportSource marks a resource created by an Import{Plural} method
+	// (AIP-153) with the source it came from: the request's source variant minus
+	// its `_source` suffix, in kebab-case (`inline`, `google-connection`). Set by
+	// the import unless the resource already carries one.
+	LabelKeyImportSource = "aip.malonaz.com/import-source"
+	// LabelKeyImportTime marks a resource created by an Import{Plural} method
+	// with the UTC date the import started, `YYYY-MM-DD` (label values allow no
+	// colons). Set by the import unless the resource already carries one.
+	LabelKeyImportTime = "aip.malonaz.com/import-time"
+	// LabelDateFormat is the layout of a date label value.
+	LabelDateFormat = "2006-01-02"
 )
 
 type Labellable interface {

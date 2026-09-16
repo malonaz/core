@@ -61,7 +61,7 @@ func newAiService_ChatServer(store aiService_ChatStore) *aiService_ChatServer {
 	}
 }
 
-func (s *aiService_ChatServer) prepareCreateChat(ctx context.Context, request *v1.CreateChatRequest) (*model.Chat, error) {
+func (s *aiService_ChatServer) prepareCreateChat(ctx context.Context, request *v1.CreateChatRequest, importing bool) (*model.Chat, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -81,16 +81,18 @@ func (s *aiService_ChatServer) prepareCreateChat(ctx context.Context, request *v
 
 	request.Chat.Name = resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}", organizationId, userId, chatId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Chat.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Chat.CreateTime == nil {
 		request.Chat.CreateTime = timestamppb.Now()
 	}
-	request.Chat.UpdateTime = request.Chat.CreateTime
+	if !importing || request.Chat.UpdateTime == nil {
+		request.Chat.UpdateTime = request.Chat.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -110,7 +112,7 @@ func (s *aiService_ChatServer) prepareCreateChat(ctx context.Context, request *v
 }
 
 func (s *aiService_ChatServer) CreateChat(ctx context.Context, request *v1.CreateChatRequest) (*v11.Chat, error) {
-	chatModel, err := s.prepareCreateChat(ctx, request)
+	chatModel, err := s.prepareCreateChat(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +496,7 @@ func newAiService_MessageServer(store aiService_MessageStore) *aiService_Message
 	}
 }
 
-func (s *aiService_MessageServer) prepareCreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*model.Message, error) {
+func (s *aiService_MessageServer) prepareCreateMessage(ctx context.Context, request *v1.CreateMessageRequest, importing bool) (*model.Message, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -514,16 +516,18 @@ func (s *aiService_MessageServer) prepareCreateMessage(ctx context.Context, requ
 
 	request.Message.Name = resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}/messages/{message}", organizationId, userId, chatId, messageId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Message.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Message.CreateTime == nil {
 		request.Message.CreateTime = timestamppb.Now()
 	}
-	request.Message.UpdateTime = request.Message.CreateTime
+	if !importing || request.Message.UpdateTime == nil {
+		request.Message.UpdateTime = request.Message.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -543,7 +547,7 @@ func (s *aiService_MessageServer) prepareCreateMessage(ctx context.Context, requ
 }
 
 func (s *aiService_MessageServer) CreateMessage(ctx context.Context, request *v1.CreateMessageRequest) (*v11.Message, error) {
-	messageModel, err := s.prepareCreateMessage(ctx, request)
+	messageModel, err := s.prepareCreateMessage(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}

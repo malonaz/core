@@ -63,7 +63,7 @@ func newSchedulerService_QueueServer(store schedulerService_QueueStore) *schedul
 	}
 }
 
-func (s *schedulerService_QueueServer) prepareCreateQueue(ctx context.Context, request *v1.CreateQueueRequest) (*model.Queue, error) {
+func (s *schedulerService_QueueServer) prepareCreateQueue(ctx context.Context, request *v1.CreateQueueRequest, importing bool) (*model.Queue, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -75,16 +75,18 @@ func (s *schedulerService_QueueServer) prepareCreateQueue(ctx context.Context, r
 
 	request.Queue.Name = resourcename.Sprint("queues/{queue}", queueId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Queue.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Queue.CreateTime == nil {
 		request.Queue.CreateTime = timestamppb.Now()
 	}
-	request.Queue.UpdateTime = request.Queue.CreateTime
+	if !importing || request.Queue.UpdateTime == nil {
+		request.Queue.UpdateTime = request.Queue.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -104,7 +106,7 @@ func (s *schedulerService_QueueServer) prepareCreateQueue(ctx context.Context, r
 }
 
 func (s *schedulerService_QueueServer) CreateQueue(ctx context.Context, request *v1.CreateQueueRequest) (*v11.Queue, error) {
-	queueModel, err := s.prepareCreateQueue(ctx, request)
+	queueModel, err := s.prepareCreateQueue(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -386,7 +388,7 @@ func newSchedulerService_JobServer(store schedulerService_JobStore) *schedulerSe
 	}
 }
 
-func (s *schedulerService_JobServer) prepareCreateJob(ctx context.Context, request *v1.CreateJobRequest) (*model.Job, error) {
+func (s *schedulerService_JobServer) prepareCreateJob(ctx context.Context, request *v1.CreateJobRequest, importing bool) (*model.Job, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -417,16 +419,18 @@ func (s *schedulerService_JobServer) prepareCreateJob(ctx context.Context, reque
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 	}
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Job.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Job.CreateTime == nil {
 		request.Job.CreateTime = timestamppb.Now()
 	}
-	request.Job.UpdateTime = request.Job.CreateTime
+	if !importing || request.Job.UpdateTime == nil {
+		request.Job.UpdateTime = request.Job.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -446,7 +450,7 @@ func (s *schedulerService_JobServer) prepareCreateJob(ctx context.Context, reque
 }
 
 func (s *schedulerService_JobServer) CreateJob(ctx context.Context, request *v1.CreateJobRequest) (*v11.Job, error) {
-	jobModel, err := s.prepareCreateJob(ctx, request)
+	jobModel, err := s.prepareCreateJob(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -768,7 +772,7 @@ func newSchedulerService_ScheduleServer(store schedulerService_ScheduleStore) *s
 	}
 }
 
-func (s *schedulerService_ScheduleServer) prepareCreateSchedule(ctx context.Context, request *v1.CreateScheduleRequest) (*model.Schedule, error) {
+func (s *schedulerService_ScheduleServer) prepareCreateSchedule(ctx context.Context, request *v1.CreateScheduleRequest, importing bool) (*model.Schedule, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -799,16 +803,18 @@ func (s *schedulerService_ScheduleServer) prepareCreateSchedule(ctx context.Cont
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 	}
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Schedule.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Schedule.CreateTime == nil {
 		request.Schedule.CreateTime = timestamppb.Now()
 	}
-	request.Schedule.UpdateTime = request.Schedule.CreateTime
+	if !importing || request.Schedule.UpdateTime == nil {
+		request.Schedule.UpdateTime = request.Schedule.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -828,7 +834,7 @@ func (s *schedulerService_ScheduleServer) prepareCreateSchedule(ctx context.Cont
 }
 
 func (s *schedulerService_ScheduleServer) CreateSchedule(ctx context.Context, request *v1.CreateScheduleRequest) (*v11.Schedule, error) {
-	scheduleModel, err := s.prepareCreateSchedule(ctx, request)
+	scheduleModel, err := s.prepareCreateSchedule(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
