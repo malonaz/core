@@ -4,6 +4,7 @@ go_library(
         "aip.pb.go",
         "annotation.pb.go",
         "extensions.pb.go",
+        "import.pb.go",
         "label.pb.go",
     ],
     visibility = ["//..."],
@@ -14,6 +15,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__rpc__status",
         "//third_party/proto:validate",
     ],
 )

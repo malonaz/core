@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package malonaz.aip.v1;
+
+import "google/rpc/status.proto";
+
+option go_package = "github.com/malonaz/core/genproto/aip/v1";
+
+// The metadata of every Import{Plural} operation (AIP-153): live progress while it runs, the
+// final tally and the partial failures once it is done. Declared as the method's
+// `google.longrunning.operation_info.metadata_type`.
+//
+// An import is best effort: an item that fails is recorded here and does not fail the others.
+// The operation itself only fails when the source cannot be read at all.
+message ImportMetadata {
+  // The number of resources imported so far.
+  int32 success_count = 1;
+
+  // The number of items that failed to import so far, one entry in `errors` each.
+  int32 failure_count = 2;
+
+  // The number of items the source holds, when known ahead of time; 0 otherwise.
+  int32 total_count = 3;
+
+  // The partial failures, in the order they occurred. Each status describes one item
+  // that could not be imported (AIP-193).
+  repeated google.rpc.Status errors = 4;
+}
+
+// The metadata of every Export{Plural} operation (AIP-153). Same contract as ImportMetadata.
+message ExportMetadata {
+  // The number of resources exported so far.
+  int32 success_count = 1;
+
+  // The number of resources that failed to export so far, one entry in `errors` each.
+  int32 failure_count = 2;
+
+  // The number of resources to export, when known ahead of time; 0 otherwise.
+  int32 total_count = 3;
+
+  // The partial failures, in the order they occurred (AIP-193).
+  repeated google.rpc.Status errors = 4;
+}
