@@ -1042,22 +1042,17 @@ type ImportBooksRequest struct {
 	// The shelf to import the books onto; the operation hangs off it.
 	// Format: organizations/{organization}/shelves/{shelf}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// The author of every imported book.
-	// Format: organizations/{organization}/authors/{author}
-	Author string `protobuf:"bytes,2,opt,name=author,proto3" json:"author,omitempty"`
-	// The titles to import, one book each. A retry does not duplicate a title
-	// already imported: book IDs are derived from the title.
-	Titles []string `protobuf:"bytes,3,rep,name=titles,proto3" json:"titles,omitempty"`
+	// Where the books come from.
+	//
+	// Types that are valid to be assigned to Source:
+	//
+	//	*ImportBooksRequest_InlineSource
+	//	*ImportBooksRequest_TitlesSource
+	Source isImportBooksRequest_Source `protobuf_oneof:"source"`
 	// A unique identifier for this request. Must be a UUID. Repeating a request
-	// with the same ID returns the operation it started instead of starting another.
-	RequestId string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	// Test hook: fail with INTERNAL right after importing this many books, when
-	// this attempt created the last of them; a retry finds it and carries on.
-	// 0 disables it.
-	FailAfter int32 `protobuf:"varint,5,opt,name=fail_after,json=failAfter,proto3" json:"fail_after,omitempty"`
-	// Test hook: wait this long before importing each book, so progress and
-	// cancellation can be observed.
-	Delay         *durationpb.Duration `protobuf:"bytes,6,opt,name=delay,proto3" json:"delay,omitempty"`
+	// with the same ID returns the operation it started instead of starting
+	// another, and a retried attempt finds the books an earlier one imported.
+	RequestId     string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1094,16 +1089,27 @@ func (x *ImportBooksRequest) GetParent() string {
 	return ""
 }
 
-func (x *ImportBooksRequest) GetAuthor() string {
+func (x *ImportBooksRequest) GetSource() isImportBooksRequest_Source {
 	if x != nil {
-		return x.Author
+		return x.Source
 	}
-	return ""
+	return nil
 }
 
-func (x *ImportBooksRequest) GetTitles() []string {
+func (x *ImportBooksRequest) GetInlineSource() *InlineSource {
 	if x != nil {
-		return x.Titles
+		if x, ok := x.Source.(*ImportBooksRequest_InlineSource); ok {
+			return x.InlineSource
+		}
+	}
+	return nil
+}
+
+func (x *ImportBooksRequest) GetTitlesSource() *TitlesSource {
+	if x != nil {
+		if x, ok := x.Source.(*ImportBooksRequest_TitlesSource); ok {
+			return x.TitlesSource
+		}
 	}
 	return nil
 }
@@ -1115,53 +1121,85 @@ func (x *ImportBooksRequest) GetRequestId() string {
 	return ""
 }
 
-func (x *ImportBooksRequest) GetFailAfter() int32 {
-	if x != nil {
-		return x.FailAfter
-	}
-	return 0
-}
-
-func (x *ImportBooksRequest) GetDelay() *durationpb.Duration {
-	if x != nil {
-		return x.Delay
-	}
-	return nil
-}
-
 func (x *ImportBooksRequest) SetParent(v string) {
 	x.Parent = v
 }
 
-func (x *ImportBooksRequest) SetAuthor(v string) {
-	x.Author = v
+func (x *ImportBooksRequest) SetInlineSource(v *InlineSource) {
+	if v == nil {
+		x.Source = nil
+		return
+	}
+	x.Source = &ImportBooksRequest_InlineSource{v}
 }
 
-func (x *ImportBooksRequest) SetTitles(v []string) {
-	x.Titles = v
+func (x *ImportBooksRequest) SetTitlesSource(v *TitlesSource) {
+	if v == nil {
+		x.Source = nil
+		return
+	}
+	x.Source = &ImportBooksRequest_TitlesSource{v}
 }
 
 func (x *ImportBooksRequest) SetRequestId(v string) {
 	x.RequestId = v
 }
 
-func (x *ImportBooksRequest) SetFailAfter(v int32) {
-	x.FailAfter = v
-}
-
-func (x *ImportBooksRequest) SetDelay(v *durationpb.Duration) {
-	x.Delay = v
-}
-
-func (x *ImportBooksRequest) HasDelay() bool {
+func (x *ImportBooksRequest) HasSource() bool {
 	if x == nil {
 		return false
 	}
-	return x.Delay != nil
+	return x.Source != nil
 }
 
-func (x *ImportBooksRequest) ClearDelay() {
-	x.Delay = nil
+func (x *ImportBooksRequest) HasInlineSource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*ImportBooksRequest_InlineSource)
+	return ok
+}
+
+func (x *ImportBooksRequest) HasTitlesSource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*ImportBooksRequest_TitlesSource)
+	return ok
+}
+
+func (x *ImportBooksRequest) ClearSource() {
+	x.Source = nil
+}
+
+func (x *ImportBooksRequest) ClearInlineSource() {
+	if _, ok := x.Source.(*ImportBooksRequest_InlineSource); ok {
+		x.Source = nil
+	}
+}
+
+func (x *ImportBooksRequest) ClearTitlesSource() {
+	if _, ok := x.Source.(*ImportBooksRequest_TitlesSource); ok {
+		x.Source = nil
+	}
+}
+
+const ImportBooksRequest_Source_not_set_case case_ImportBooksRequest_Source = 0
+const ImportBooksRequest_InlineSource_case case_ImportBooksRequest_Source = 2
+const ImportBooksRequest_TitlesSource_case case_ImportBooksRequest_Source = 3
+
+func (x *ImportBooksRequest) WhichSource() case_ImportBooksRequest_Source {
+	if x == nil {
+		return ImportBooksRequest_Source_not_set_case
+	}
+	switch x.Source.(type) {
+	case *ImportBooksRequest_InlineSource:
+		return ImportBooksRequest_InlineSource_case
+	case *ImportBooksRequest_TitlesSource:
+		return ImportBooksRequest_TitlesSource_case
+	default:
+		return ImportBooksRequest_Source_not_set_case
+	}
 }
 
 type ImportBooksRequest_builder struct {
@@ -1170,15 +1208,232 @@ type ImportBooksRequest_builder struct {
 	// The shelf to import the books onto; the operation hangs off it.
 	// Format: organizations/{organization}/shelves/{shelf}
 	Parent string
+	// Where the books come from.
+
+	// Fields of oneof Source:
+	// The books themselves.
+	InlineSource *InlineSource
+	// Titles to make books of.
+	TitlesSource *TitlesSource
+	// -- end of Source
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting
+	// another, and a retried attempt finds the books an earlier one imported.
+	RequestId string
+}
+
+func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
+	m0 := &ImportBooksRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	if b.InlineSource != nil {
+		x.Source = &ImportBooksRequest_InlineSource{b.InlineSource}
+	}
+	if b.TitlesSource != nil {
+		x.Source = &ImportBooksRequest_TitlesSource{b.TitlesSource}
+	}
+	x.RequestId = b.RequestId
+	return m0
+}
+
+type case_ImportBooksRequest_Source protoreflect.FieldNumber
+
+func (x case_ImportBooksRequest_Source) String() string {
+	md := file_malonaz_test_library_library_service_v1_book_proto_msgTypes[10].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isImportBooksRequest_Source interface {
+	isImportBooksRequest_Source()
+}
+
+type ImportBooksRequest_InlineSource struct {
+	// The books themselves.
+	InlineSource *InlineSource `protobuf:"bytes,2,opt,name=inline_source,json=inlineSource,proto3,oneof"`
+}
+
+type ImportBooksRequest_TitlesSource struct {
+	// Titles to make books of.
+	TitlesSource *TitlesSource `protobuf:"bytes,3,opt,name=titles_source,json=titlesSource,proto3,oneof"`
+}
+
+func (*ImportBooksRequest_InlineSource) isImportBooksRequest_Source() {}
+
+func (*ImportBooksRequest_TitlesSource) isImportBooksRequest_Source() {}
+
+// InlineSource carries the books to import in the request.
+type InlineSource struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The books to import. A name, timestamps and labels are kept when set.
+	Books         []*v1.Book `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InlineSource) Reset() {
+	*x = InlineSource{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InlineSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InlineSource) ProtoMessage() {}
+
+func (x *InlineSource) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *InlineSource) GetBooks() []*v1.Book {
+	if x != nil {
+		return x.Books
+	}
+	return nil
+}
+
+func (x *InlineSource) SetBooks(v []*v1.Book) {
+	x.Books = v
+}
+
+type InlineSource_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The books to import. A name, timestamps and labels are kept when set.
+	Books []*v1.Book
+}
+
+func (b0 InlineSource_builder) Build() *InlineSource {
+	m0 := &InlineSource{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Books = b.Books
+	return m0
+}
+
+// TitlesSource makes one book per title, by one author.
+type TitlesSource struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The author of every imported book.
+	// Format: organizations/{organization}/authors/{author}
+	Author string `protobuf:"bytes,1,opt,name=author,proto3" json:"author,omitempty"`
+	// The titles to import, one book each. A retry does not duplicate a title
+	// already imported: book IDs are derived from the title.
+	Titles []string `protobuf:"bytes,2,rep,name=titles,proto3" json:"titles,omitempty"`
+	// Test hook: fail with INTERNAL right after importing this many books, when
+	// this attempt created the last of them; a retry finds it and carries on.
+	// 0 disables it.
+	FailAfter int32 `protobuf:"varint,3,opt,name=fail_after,json=failAfter,proto3" json:"fail_after,omitempty"`
+	// Test hook: wait this long before importing each book, so progress and
+	// cancellation can be observed.
+	Delay         *durationpb.Duration `protobuf:"bytes,4,opt,name=delay,proto3" json:"delay,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TitlesSource) Reset() {
+	*x = TitlesSource{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TitlesSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TitlesSource) ProtoMessage() {}
+
+func (x *TitlesSource) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TitlesSource) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
+func (x *TitlesSource) GetTitles() []string {
+	if x != nil {
+		return x.Titles
+	}
+	return nil
+}
+
+func (x *TitlesSource) GetFailAfter() int32 {
+	if x != nil {
+		return x.FailAfter
+	}
+	return 0
+}
+
+func (x *TitlesSource) GetDelay() *durationpb.Duration {
+	if x != nil {
+		return x.Delay
+	}
+	return nil
+}
+
+func (x *TitlesSource) SetAuthor(v string) {
+	x.Author = v
+}
+
+func (x *TitlesSource) SetTitles(v []string) {
+	x.Titles = v
+}
+
+func (x *TitlesSource) SetFailAfter(v int32) {
+	x.FailAfter = v
+}
+
+func (x *TitlesSource) SetDelay(v *durationpb.Duration) {
+	x.Delay = v
+}
+
+func (x *TitlesSource) HasDelay() bool {
+	if x == nil {
+		return false
+	}
+	return x.Delay != nil
+}
+
+func (x *TitlesSource) ClearDelay() {
+	x.Delay = nil
+}
+
+type TitlesSource_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
 	// The author of every imported book.
 	// Format: organizations/{organization}/authors/{author}
 	Author string
 	// The titles to import, one book each. A retry does not duplicate a title
 	// already imported: book IDs are derived from the title.
 	Titles []string
-	// A unique identifier for this request. Must be a UUID. Repeating a request
-	// with the same ID returns the operation it started instead of starting another.
-	RequestId string
 	// Test hook: fail with INTERNAL right after importing this many books, when
 	// this attempt created the last of them; a retry finds it and carries on.
 	// 0 disables it.
@@ -1188,14 +1443,12 @@ type ImportBooksRequest_builder struct {
 	Delay *durationpb.Duration
 }
 
-func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
-	m0 := &ImportBooksRequest{}
+func (b0 TitlesSource_builder) Build() *TitlesSource {
+	m0 := &TitlesSource{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Parent = b.Parent
 	x.Author = b.Author
 	x.Titles = b.Titles
-	x.RequestId = b.RequestId
 	x.FailAfter = b.FailAfter
 	x.Delay = b.Delay
 	return m0
@@ -1204,15 +1457,16 @@ func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
 // Response message for LibraryService.ImportBooks, the operation's response.
 type ImportBooksResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The imported books, in title order.
-	Books         []*v1.Book `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	// The books imported, in import order.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	Names         []string `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ImportBooksResponse) Reset() {
 	*x = ImportBooksResponse{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[11]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1224,7 +1478,7 @@ func (x *ImportBooksResponse) String() string {
 func (*ImportBooksResponse) ProtoMessage() {}
 
 func (x *ImportBooksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[11]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1235,105 +1489,30 @@ func (x *ImportBooksResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ImportBooksResponse) GetBooks() []*v1.Book {
+func (x *ImportBooksResponse) GetNames() []string {
 	if x != nil {
-		return x.Books
+		return x.Names
 	}
 	return nil
 }
 
-func (x *ImportBooksResponse) SetBooks(v []*v1.Book) {
-	x.Books = v
+func (x *ImportBooksResponse) SetNames(v []string) {
+	x.Names = v
 }
 
 type ImportBooksResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The imported books, in title order.
-	Books []*v1.Book
+	// The books imported, in import order.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	Names []string
 }
 
 func (b0 ImportBooksResponse_builder) Build() *ImportBooksResponse {
 	m0 := &ImportBooksResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Books = b.Books
-	return m0
-}
-
-// Metadata of an ImportBooks operation: its progress.
-type ImportBooksMetadata struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The number of books imported so far.
-	Imported int32 `protobuf:"varint,1,opt,name=imported,proto3" json:"imported,omitempty"`
-	// The number of books to import.
-	Total         int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImportBooksMetadata) Reset() {
-	*x = ImportBooksMetadata{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportBooksMetadata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportBooksMetadata) ProtoMessage() {}
-
-func (x *ImportBooksMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ImportBooksMetadata) GetImported() int32 {
-	if x != nil {
-		return x.Imported
-	}
-	return 0
-}
-
-func (x *ImportBooksMetadata) GetTotal() int32 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
-func (x *ImportBooksMetadata) SetImported(v int32) {
-	x.Imported = v
-}
-
-func (x *ImportBooksMetadata) SetTotal(v int32) {
-	x.Total = v
-}
-
-type ImportBooksMetadata_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The number of books imported so far.
-	Imported int32
-	// The number of books to import.
-	Total int32
-}
-
-func (b0 ImportBooksMetadata_builder) Build() *ImportBooksMetadata {
-	m0 := &ImportBooksMetadata{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Imported = b.Imported
-	x.Total = b.Total
+	x.Names = b.Names
 	return m0
 }
 
@@ -1419,25 +1598,28 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB5\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"L\n" +
 	"\x15BatchGetBooksResponse\x123\n" +
-	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xd5\x02\n" +
-	"\x12ImportBooksRequest\x12D\n" +
-	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
-	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12B\n" +
-	"\x06author\x18\x02 \x01(\tB*\xfaA!\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xd2\x02\n" +
+	"\x12ImportBooksRequest\x12C\n" +
+	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x06parent\x12\\\n" +
+	"\rinline_source\x18\x02 \x01(\v25.malonaz.test.library.library_service.v1.InlineSourceH\x00R\finlineSource\x12\\\n" +
+	"\rtitles_source\x18\x03 \x01(\v25.malonaz.test.library.library_service.v1.TitlesSourceH\x00R\ftitlesSource\x12*\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestIdB\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01\"C\n" +
+	"\fInlineSource\x123\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xdd\x01\n" +
+	"\fTitlesSource\x12B\n" +
+	"\x06author\x18\x01 \x01(\tB*\xfaA!\n" +
 	"\x1flibrary.test.malonaz.com/Author\xbaH\x03\xc8\x01\x01R\x06author\x12&\n" +
-	"\x06titles\x18\x03 \x03(\tB\x0e\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\x06titles\x12*\n" +
+	"\x06titles\x18\x02 \x03(\tB\x0e\xbaH\v\x92\x01\b\b\x01\"\x04r\x02\x10\x01R\x06titles\x12&\n" +
 	"\n" +
-	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12&\n" +
-	"\n" +
-	"fail_after\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tfailAfter\x129\n" +
-	"\x05delay\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\x05delay\"J\n" +
-	"\x13ImportBooksResponse\x123\n" +
-	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"G\n" +
-	"\x13ImportBooksMetadata\x12\x1a\n" +
-	"\bimported\x18\x01 \x01(\x05R\bimported\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x05R\x05totalBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
+	"fail_after\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tfailAfter\x129\n" +
+	"\x05delay\x18\x04 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\x05delay\"O\n" +
+	"\x13ImportBooksResponse\x128\n" +
+	"\x05names\x18\x01 \x03(\tB\"\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/BookR\x05namesBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_malonaz_test_library_library_service_v1_book_proto_goTypes = []any{
 	(*CreateBookRequest)(nil),     // 0: malonaz.test.library.library_service.v1.CreateBookRequest
 	(*GetBookRequest)(nil),        // 1: malonaz.test.library.library_service.v1.GetBookRequest
@@ -1450,28 +1632,31 @@ var file_malonaz_test_library_library_service_v1_book_proto_goTypes = []any{
 	(*BatchGetBooksRequest)(nil),  // 8: malonaz.test.library.library_service.v1.BatchGetBooksRequest
 	(*BatchGetBooksResponse)(nil), // 9: malonaz.test.library.library_service.v1.BatchGetBooksResponse
 	(*ImportBooksRequest)(nil),    // 10: malonaz.test.library.library_service.v1.ImportBooksRequest
-	(*ImportBooksResponse)(nil),   // 11: malonaz.test.library.library_service.v1.ImportBooksResponse
-	(*ImportBooksMetadata)(nil),   // 12: malonaz.test.library.library_service.v1.ImportBooksMetadata
-	(*v1.Book)(nil),               // 13: malonaz.test.library.v1.Book
-	(*fieldmaskpb.FieldMask)(nil), // 14: google.protobuf.FieldMask
-	(*v11.SearchSnippet)(nil),     // 15: malonaz.aip.v1.SearchSnippet
-	(*durationpb.Duration)(nil),   // 16: google.protobuf.Duration
+	(*InlineSource)(nil),          // 11: malonaz.test.library.library_service.v1.InlineSource
+	(*TitlesSource)(nil),          // 12: malonaz.test.library.library_service.v1.TitlesSource
+	(*ImportBooksResponse)(nil),   // 13: malonaz.test.library.library_service.v1.ImportBooksResponse
+	(*v1.Book)(nil),               // 14: malonaz.test.library.v1.Book
+	(*fieldmaskpb.FieldMask)(nil), // 15: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),     // 16: malonaz.aip.v1.SearchSnippet
+	(*durationpb.Duration)(nil),   // 17: google.protobuf.Duration
 }
 var file_malonaz_test_library_library_service_v1_book_proto_depIdxs = []int32{
-	13, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	13, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	14, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
-	13, // 3: malonaz.test.library.library_service.v1.SearchBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	15, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
-	13, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	13, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	16, // 7: malonaz.test.library.library_service.v1.ImportBooksRequest.delay:type_name -> google.protobuf.Duration
-	13, // 8: malonaz.test.library.library_service.v1.ImportBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	14, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	14, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	15, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 3: malonaz.test.library.library_service.v1.SearchBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	16, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	14, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	14, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	11, // 7: malonaz.test.library.library_service.v1.ImportBooksRequest.inline_source:type_name -> malonaz.test.library.library_service.v1.InlineSource
+	12, // 8: malonaz.test.library.library_service.v1.ImportBooksRequest.titles_source:type_name -> malonaz.test.library.library_service.v1.TitlesSource
+	14, // 9: malonaz.test.library.library_service.v1.InlineSource.books:type_name -> malonaz.test.library.v1.Book
+	17, // 10: malonaz.test.library.library_service.v1.TitlesSource.delay:type_name -> google.protobuf.Duration
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_book_proto_init() }
@@ -1479,13 +1664,17 @@ func file_malonaz_test_library_library_service_v1_book_proto_init() {
 	if File_malonaz_test_library_library_service_v1_book_proto != nil {
 		return
 	}
+	file_malonaz_test_library_library_service_v1_book_proto_msgTypes[10].OneofWrappers = []any{
+		(*ImportBooksRequest_InlineSource)(nil),
+		(*ImportBooksRequest_TitlesSource)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_book_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

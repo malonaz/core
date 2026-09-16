@@ -303,21 +303,23 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
   }
 
-  // Imports books onto a shelf, one per title, as a long-running operation
-  // (AIP-151) run by the scheduler. The operation's metadata reports
-  // progress; its response lists the books.
+  // Imports books onto a shelf from one of the request's sources: the books
+  // themselves, or titles to make books of. A long-running operation (AIP-151)
+  // run by the scheduler: its metadata tallies progress and partial failures,
+  // its response names the books imported.
   //
-  // See: https://google.aip.dev/151 (Long-running operations).
+  // See: https://google.aip.dev/153 (Import and export).
   rpc ImportBooks(ImportBooksRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/shelves/*}/books:import"
       body: "*"
     };
-    option (google.api.method_signature) = "parent,author,titles";
+    option (google.api.method_signature) = "parent";
     option (google.longrunning.operation_info) = {
       response_type: "ImportBooksResponse"
-      metadata_type: "ImportBooksMetadata"
+      metadata_type: "malonaz.aip.v1.ImportMetadata"
     };
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
     option (malonaz.codegen.scheduler.v1.method).policy = {
       attempt_timeout: {seconds: 30}
       max_attempts: 3
