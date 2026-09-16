@@ -70,9 +70,9 @@ message Choice {
     max_items: 8
   }];
 
-  // Whether to also offer a free-text input, so "none of the above" answers
-  // don't cost an extra round trip.
-  bool allow_free_text = 3;
+  // Free text is the composer's job, not the card's.
+  reserved 3;
+  reserved "allow_free_text";
 }
 
 // A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
@@ -92,10 +92,10 @@ message ChoiceResponse {
 
     // The selected option's label, verbatim.
     string option = 1;
-
-    // The user's free-text answer (only when `allow_free_text` was set).
-    string free_text = 2;
   }
+
+  reserved 2;
+  reserved "free_text";
 }
 
 // A question allowing several answers to be selected before submitting,

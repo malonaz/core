@@ -478,10 +478,7 @@ type Choice struct {
 	Question string `protobuf:"bytes,1,opt,name=question,proto3" json:"question,omitempty"`
 	// The answers the user may pick from, in display order. Options stream in and
 	// render one by one.
-	Options []*ChoiceOption `protobuf:"bytes,2,rep,name=options,proto3" json:"options,omitempty"`
-	// Whether to also offer a free-text input, so "none of the above" answers
-	// don't cost an extra round trip.
-	AllowFreeText bool `protobuf:"varint,3,opt,name=allow_free_text,json=allowFreeText,proto3" json:"allow_free_text,omitempty"`
+	Options       []*ChoiceOption `protobuf:"bytes,2,rep,name=options,proto3" json:"options,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -525,23 +522,12 @@ func (x *Choice) GetOptions() []*ChoiceOption {
 	return nil
 }
 
-func (x *Choice) GetAllowFreeText() bool {
-	if x != nil {
-		return x.AllowFreeText
-	}
-	return false
-}
-
 func (x *Choice) SetQuestion(v string) {
 	x.Question = v
 }
 
 func (x *Choice) SetOptions(v []*ChoiceOption) {
 	x.Options = v
-}
-
-func (x *Choice) SetAllowFreeText(v bool) {
-	x.AllowFreeText = v
 }
 
 type Choice_builder struct {
@@ -553,9 +539,6 @@ type Choice_builder struct {
 	// The answers the user may pick from, in display order. Options stream in and
 	// render one by one.
 	Options []*ChoiceOption
-	// Whether to also offer a free-text input, so "none of the above" answers
-	// don't cost an extra round trip.
-	AllowFreeText bool
 }
 
 func (b0 Choice_builder) Build() *Choice {
@@ -564,7 +547,6 @@ func (b0 Choice_builder) Build() *Choice {
 	_, _ = b, x
 	x.Question = b.Question
 	x.Options = b.Options
-	x.AllowFreeText = b.AllowFreeText
 	return m0
 }
 
@@ -652,7 +634,6 @@ type ChoiceResponse struct {
 	// Types that are valid to be assigned to Answer:
 	//
 	//	*ChoiceResponse_Option
-	//	*ChoiceResponse_FreeText
 	Answer        isChoiceResponse_Answer `protobuf_oneof:"answer"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -699,21 +680,8 @@ func (x *ChoiceResponse) GetOption() string {
 	return ""
 }
 
-func (x *ChoiceResponse) GetFreeText() string {
-	if x != nil {
-		if x, ok := x.Answer.(*ChoiceResponse_FreeText); ok {
-			return x.FreeText
-		}
-	}
-	return ""
-}
-
 func (x *ChoiceResponse) SetOption(v string) {
 	x.Answer = &ChoiceResponse_Option{v}
-}
-
-func (x *ChoiceResponse) SetFreeText(v string) {
-	x.Answer = &ChoiceResponse_FreeText{v}
 }
 
 func (x *ChoiceResponse) HasAnswer() bool {
@@ -731,14 +699,6 @@ func (x *ChoiceResponse) HasOption() bool {
 	return ok
 }
 
-func (x *ChoiceResponse) HasFreeText() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Answer.(*ChoiceResponse_FreeText)
-	return ok
-}
-
 func (x *ChoiceResponse) ClearAnswer() {
 	x.Answer = nil
 }
@@ -749,15 +709,8 @@ func (x *ChoiceResponse) ClearOption() {
 	}
 }
 
-func (x *ChoiceResponse) ClearFreeText() {
-	if _, ok := x.Answer.(*ChoiceResponse_FreeText); ok {
-		x.Answer = nil
-	}
-}
-
 const ChoiceResponse_Answer_not_set_case case_ChoiceResponse_Answer = 0
 const ChoiceResponse_Option_case case_ChoiceResponse_Answer = 1
-const ChoiceResponse_FreeText_case case_ChoiceResponse_Answer = 2
 
 func (x *ChoiceResponse) WhichAnswer() case_ChoiceResponse_Answer {
 	if x == nil {
@@ -766,8 +719,6 @@ func (x *ChoiceResponse) WhichAnswer() case_ChoiceResponse_Answer {
 	switch x.Answer.(type) {
 	case *ChoiceResponse_Option:
 		return ChoiceResponse_Option_case
-	case *ChoiceResponse_FreeText:
-		return ChoiceResponse_FreeText_case
 	default:
 		return ChoiceResponse_Answer_not_set_case
 	}
@@ -781,8 +732,6 @@ type ChoiceResponse_builder struct {
 	// Fields of oneof Answer:
 	// The selected option's label, verbatim.
 	Option *string
-	// The user's free-text answer (only when `allow_free_text` was set).
-	FreeText *string
 	// -- end of Answer
 }
 
@@ -792,9 +741,6 @@ func (b0 ChoiceResponse_builder) Build() *ChoiceResponse {
 	_, _ = b, x
 	if b.Option != nil {
 		x.Answer = &ChoiceResponse_Option{*b.Option}
-	}
-	if b.FreeText != nil {
-		x.Answer = &ChoiceResponse_FreeText{*b.FreeText}
 	}
 	return m0
 }
@@ -818,14 +764,7 @@ type ChoiceResponse_Option struct {
 	Option string `protobuf:"bytes,1,opt,name=option,proto3,oneof"`
 }
 
-type ChoiceResponse_FreeText struct {
-	// The user's free-text answer (only when `allow_free_text` was set).
-	FreeText string `protobuf:"bytes,2,opt,name=free_text,json=freeText,proto3,oneof"`
-}
-
 func (*ChoiceResponse_Option) isChoiceResponse_Answer() {}
-
-func (*ChoiceResponse_FreeText) isChoiceResponse_Answer() {}
 
 // A question allowing several answers to be selected before submitting,
 // e.g. "which contacts should I include in the follow-up?".
@@ -3256,19 +3195,17 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x0fresource_picker\x18\x06 \x01(\v2+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00R\x0eresourcePicker\x12=\n" +
 	"\x06slider\x18\a \x01(\v2#.malonaz.ai.genui.v1.SliderResponseH\x00R\x06slider\x12W\n" +
 	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePickerB\x11\n" +
-	"\bresponse\x12\x05\xbaH\x02\b\x01\"\x9d\x01\n" +
+	"\bresponse\x12\x05\xbaH\x02\b\x01\"\x8c\x01\n" +
 	"\x06Choice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12G\n" +
 	"\aoptions\x18\x02 \x03(\v2!.malonaz.ai.genui.v1.ChoiceOptionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\x12&\n" +
-	"\x0fallow_free_text\x18\x03 \x01(\bR\rallowFreeText\"N\n" +
+	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptionsJ\x04\b\x03\x10\x04R\x0fallow_free_text\"N\n" +
 	"\fChoiceOption\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"Z\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"L\n" +
 	"\x0eChoiceResponse\x12\x18\n" +
-	"\x06option\x18\x01 \x01(\tH\x00R\x06option\x12\x1d\n" +
-	"\tfree_text\x18\x02 \x01(\tH\x00R\bfreeTextB\x0f\n" +
-	"\x06answer\x12\x05\xbaH\x02\b\x01\"\xb7\x01\n" +
+	"\x06option\x18\x01 \x01(\tH\x00R\x06optionB\x0f\n" +
+	"\x06answer\x12\x05\xbaH\x02\b\x01J\x04\b\x02\x10\x03R\tfree_text\"\xb7\x01\n" +
 	"\vMultiChoice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
 	"\aoptions\x18\x02 \x03(\tB\n" +
@@ -3434,7 +3371,6 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 	}
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[3].OneofWrappers = []any{
 		(*ChoiceResponse_Option)(nil),
-		(*ChoiceResponse_FreeText)(nil),
 	}
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[10].OneofWrappers = []any{
 		(*FormField_Text)(nil),
