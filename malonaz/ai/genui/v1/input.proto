@@ -69,10 +69,6 @@ message Choice {
     min_items: 2
     max_items: 8
   }];
-
-  // Whether to also offer a free-text input, so "none of the above" answers
-  // don't cost an extra round trip.
-  bool allow_free_text = 3;
 }
 
 // A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
@@ -86,16 +82,8 @@ message ChoiceOption {
 
 // The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
 message ChoiceResponse {
-  // The user's answer.
-  oneof answer {
-    option (buf.validate.oneof).required = true;
-
-    // The selected option's label, verbatim.
-    string option = 1;
-
-    // The user's free-text answer (only when `allow_free_text` was set).
-    string free_text = 2;
-  }
+  // The selected option's label, verbatim.
+  string option = 1 [(buf.validate.field).required = true];
 }
 
 // A question allowing several answers to be selected before submitting,
