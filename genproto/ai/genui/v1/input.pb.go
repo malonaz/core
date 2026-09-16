@@ -629,12 +629,8 @@ func (b0 ChoiceOption_builder) Build() *ChoiceOption {
 // The answer the user picked within a [Choice][malonaz.ai.genui.v1.Choice].
 type ChoiceResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The user's answer.
-	//
-	// Types that are valid to be assigned to Answer:
-	//
-	//	*ChoiceResponse_Option
-	Answer        isChoiceResponse_Answer `protobuf_oneof:"answer"`
+	// The selected option's label, verbatim.
+	Option        string `protobuf:"bytes,1,opt,name=option,proto3" json:"option,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -664,107 +660,31 @@ func (x *ChoiceResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ChoiceResponse) GetAnswer() isChoiceResponse_Answer {
-	if x != nil {
-		return x.Answer
-	}
-	return nil
-}
-
 func (x *ChoiceResponse) GetOption() string {
 	if x != nil {
-		if x, ok := x.Answer.(*ChoiceResponse_Option); ok {
-			return x.Option
-		}
+		return x.Option
 	}
 	return ""
 }
 
 func (x *ChoiceResponse) SetOption(v string) {
-	x.Answer = &ChoiceResponse_Option{v}
-}
-
-func (x *ChoiceResponse) HasAnswer() bool {
-	if x == nil {
-		return false
-	}
-	return x.Answer != nil
-}
-
-func (x *ChoiceResponse) HasOption() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.Answer.(*ChoiceResponse_Option)
-	return ok
-}
-
-func (x *ChoiceResponse) ClearAnswer() {
-	x.Answer = nil
-}
-
-func (x *ChoiceResponse) ClearOption() {
-	if _, ok := x.Answer.(*ChoiceResponse_Option); ok {
-		x.Answer = nil
-	}
-}
-
-const ChoiceResponse_Answer_not_set_case case_ChoiceResponse_Answer = 0
-const ChoiceResponse_Option_case case_ChoiceResponse_Answer = 1
-
-func (x *ChoiceResponse) WhichAnswer() case_ChoiceResponse_Answer {
-	if x == nil {
-		return ChoiceResponse_Answer_not_set_case
-	}
-	switch x.Answer.(type) {
-	case *ChoiceResponse_Option:
-		return ChoiceResponse_Option_case
-	default:
-		return ChoiceResponse_Answer_not_set_case
-	}
+	x.Option = v
 }
 
 type ChoiceResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The user's answer.
-
-	// Fields of oneof Answer:
 	// The selected option's label, verbatim.
-	Option *string
-	// -- end of Answer
+	Option string
 }
 
 func (b0 ChoiceResponse_builder) Build() *ChoiceResponse {
 	m0 := &ChoiceResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Option != nil {
-		x.Answer = &ChoiceResponse_Option{*b.Option}
-	}
+	x.Option = b.Option
 	return m0
 }
-
-type case_ChoiceResponse_Answer protoreflect.FieldNumber
-
-func (x case_ChoiceResponse_Answer) String() string {
-	md := file_malonaz_ai_genui_v1_input_proto_msgTypes[3].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isChoiceResponse_Answer interface {
-	isChoiceResponse_Answer()
-}
-
-type ChoiceResponse_Option struct {
-	// The selected option's label, verbatim.
-	Option string `protobuf:"bytes,1,opt,name=option,proto3,oneof"`
-}
-
-func (*ChoiceResponse_Option) isChoiceResponse_Answer() {}
 
 // A question allowing several answers to be selected before submitting,
 // e.g. "which contacts should I include in the follow-up?".
@@ -3202,10 +3122,9 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\"N\n" +
 	"\fChoiceOption\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\";\n" +
-	"\x0eChoiceResponse\x12\x18\n" +
-	"\x06option\x18\x01 \x01(\tH\x00R\x06optionB\x0f\n" +
-	"\x06answer\x12\x05\xbaH\x02\b\x01\"\xb7\x01\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"0\n" +
+	"\x0eChoiceResponse\x12\x1e\n" +
+	"\x06option\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06option\"\xb7\x01\n" +
 	"\vMultiChoice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
 	"\aoptions\x18\x02 \x03(\tB\n" +
@@ -3368,9 +3287,6 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 		(*InputResponse_ResourcePicker)(nil),
 		(*InputResponse_Slider)(nil),
 		(*InputResponse_DateTimePicker)(nil),
-	}
-	file_malonaz_ai_genui_v1_input_proto_msgTypes[3].OneofWrappers = []any{
-		(*ChoiceResponse_Option)(nil),
 	}
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[10].OneofWrappers = []any{
 		(*FormField_Text)(nil),
