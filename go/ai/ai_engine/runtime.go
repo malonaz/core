@@ -34,10 +34,12 @@ var defaultMaxDepth = 5
 type Opts struct {
 	DefaultModel             string   `long:"default-model" env:"DEFAULT_MODEL" description:"The default model to use" required:"true"`
 	FileDescriptorSetConfigs []string `long:"file-descriptor-set" env:"FILE_DESCRIPTOR_SET" description:"Use a local file descriptor set instead of a grpc reflection client. each item can be passed as 'filepath:fqn_service_name1,fqn_service_name2', e.g. 'path/to/fds.bin:user.user_service.v1.UserService,chat.chat_service.v1.ChatService'"`
+	Symbols                  []string `long:"symbol" env:"SYMBOLS" env-delim:"," description:"Fully-qualified proto symbols to resolve in addition to the reflected services, e.g. messages tools generate that no RPC references. Repeatable"`
 }
 
 type runtime struct {
 	reflectionServerOptions *reflection.ServerOptions
+	symbols                 []string
 
 	// Tool schemas are derived from proto descriptors fixed at build time, so an
 	// identical request always yields an identical tool: caching on a
@@ -103,6 +105,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 
 	return &runtime{
 		reflectionServerOptions: reflectionServerOptions,
+		symbols:                 opts.Symbols,
 		hashToTool:              map[string]*aipb.Tool{},
 	}, nil
 }
@@ -121,7 +124,10 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 }
 
 func (s *Service) getSchema(ctx context.Context) (*pbreflection.Schema, error) {
-	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient, pbreflection.WithMemCache("schema", time.Hour))
+	return pbreflection.ResolveSchema(ctx, s.serverReflectionClient,
+		pbreflection.WithMemCache("schema", time.Hour),
+		pbreflection.WithSymbols(s.symbols...),
+	)
 }
 
 func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest) (*aipb.Tool, error) {
