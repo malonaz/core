@@ -3195,17 +3195,17 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x0fresource_picker\x18\x06 \x01(\v2+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00R\x0eresourcePicker\x12=\n" +
 	"\x06slider\x18\a \x01(\v2#.malonaz.ai.genui.v1.SliderResponseH\x00R\x06slider\x12W\n" +
 	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePickerB\x11\n" +
-	"\bresponse\x12\x05\xbaH\x02\b\x01\"\x8c\x01\n" +
+	"\bresponse\x12\x05\xbaH\x02\b\x01\"u\n" +
 	"\x06Choice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12G\n" +
 	"\aoptions\x18\x02 \x03(\v2!.malonaz.ai.genui.v1.ChoiceOptionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptionsJ\x04\b\x03\x10\x04R\x0fallow_free_text\"N\n" +
+	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\"N\n" +
 	"\fChoiceOption\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"L\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\";\n" +
 	"\x0eChoiceResponse\x12\x18\n" +
 	"\x06option\x18\x01 \x01(\tH\x00R\x06optionB\x0f\n" +
-	"\x06answer\x12\x05\xbaH\x02\b\x01J\x04\b\x02\x10\x03R\tfree_text\"\xb7\x01\n" +
+	"\x06answer\x12\x05\xbaH\x02\b\x01\"\xb7\x01\n" +
 	"\vMultiChoice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
 	"\aoptions\x18\x02 \x03(\tB\n" +

@@ -27,7 +27,7 @@ from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf7\x03\n\rInputResponse\x12\x1c\n\x0c\x63omponent_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x35\n\x06\x63hoice\x18\x02 \x01(\x0b\x32#.malonaz.ai.genui.v1.ChoiceResponseH\x00\x12@\n\x0cmulti_choice\x18\x03 \x01(\x0b\x32(.malonaz.ai.genui.v1.MultiChoiceResponseH\x00\x12\x41\n\x0c\x63onfirmation\x18\x04 \x01(\x0b\x32).malonaz.ai.genui.v1.ConfirmationResponseH\x00\x12\x31\n\x04\x66orm\x18\x05 \x01(\x0b\x32!.malonaz.ai.genui.v1.FormResponseH\x00\x12\x46\n\x0fresource_picker\x18\x06 \x01(\x0b\x32+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00\x12\x35\n\x06slider\x18\x07 \x01(\x0b\x32#.malonaz.ai.genui.v1.SliderResponseH\x00\x12G\n\x10\x64\x61te_time_picker\x18\x08 \x01(\x0b\x32+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00\x42\x11\n\x08response\x12\x05\xbaH\x02\x08\x01\"y\n\x06\x43hoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12>\n\x07options\x18\x02 \x03(\x0b\x32!.malonaz.ai.genui.v1.ChoiceOptionB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x08J\x04\x08\x03\x10\x04R\x0f\x61llow_free_text\":\n\x0c\x43hoiceOption\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"D\n\x0e\x43hoiceResponse\x12\x10\n\x06option\x18\x01 \x01(\tH\x00\x42\x0f\n\x06\x61nswer\x12\x05\xbaH\x02\x08\x01J\x04\x08\x02\x10\x03R\tfree_text\"\x86\x01\n\x0bMultiChoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x07options\x18\x02 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x0c\x12\x1f\n\x0emin_selections\x18\x03 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12\x1f\n\x0emax_selections\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\"0\n\x13MultiChoiceResponse\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x01\"|\n\x0c\x43onfirmation\x12\x15\n\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x15\n\rconfirm_label\x18\x03 \x01(\t\x12\x14\n\x0c\x63\x61ncel_label\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65structive\x18\x05 \x01(\x08\")\n\x14\x43onfirmationResponse\x12\x11\n\tconfirmed\x18\x01 \x01(\x08\"e\n\x04\x46orm\x12\r\n\x05title\x18\x01 \x01(\t\x12\x14\n\x0csubmit_label\x18\x02 \x01(\t\x12\x38\n\x06\x66ields\x18\x03 \x03(\x0b\x32\x1e.malonaz.ai.genui.v1.FormFieldB\x08\xbaH\x05\x92\x01\x02\x08\x01\"M\n\x0c\x46ormResponse\x12=\n\x06values\x18\x01 \x03(\x0b\x32#.malonaz.ai.genui.v1.FormFieldValueB\x08\xbaH\x05\x92\x01\x02\x08\x01\"\xfd\x02\n\tFormField\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x15\n\x05label\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x10\n\x08required\x18\x03 \x01(\x08\x12\x32\n\x04text\x18\x04 \x01(\x0b\x32\".malonaz.ai.genui.v1.FormTextInputH\x00\x12\x36\n\x06number\x18\x05 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormNumberInputH\x00\x12\x36\n\x06select\x18\x06 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormSelectInputH\x00\x12\x32\n\x04\x64\x61te\x18\x07 \x01(\x0b\x32\".malonaz.ai.genui.v1.FormDateInputH\x00\x12\x36\n\x06toggle\x18\x08 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormToggleInputH\x00\x12\x13\n\x0bplaceholder\x18\t \x01(\tB\x0e\n\x05input\x12\x05\xbaH\x02\x08\x01\"\xfb\x01\n\x0e\x46ormFieldValue\x12\x18\n\x08\x66ield_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x0e\n\x04text\x18\x02 \x01(\tH\x00\x12\x10\n\x06number\x18\x03 \x01(\x01H\x00\x12\x19\n\x0fselected_option\x18\x04 \x01(\tH\x00\x12\x44\n\x10selected_options\x18\x05 \x01(\x0b\x32(.malonaz.ai.genui.v1.FormSelectedOptionsH\x00\x12*\n\x04\x64\x61te\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12\x10\n\x06toggle\x18\x07 \x01(\x08H\x00\x42\x0e\n\x05value\x12\x05\xbaH\x02\x08\x01\"0\n\x13\x46ormSelectedOptions\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x01\"9\n\rFormTextInput\x12\x11\n\tmultiline\x18\x01 \x01(\x08\x12\x15\n\rdefault_value\x18\x02 \x01(\t\"s\n\x0f\x46ormNumberInput\x12\x10\n\x03min\x18\x01 \x01(\x01H\x00\x88\x01\x01\x12\x10\n\x03max\x18\x02 \x01(\x01H\x01\x88\x01\x01\x12\x1a\n\rdefault_value\x18\x03 \x01(\x01H\x02\x88\x01\x01\x42\x06\n\x04_minB\x06\n\x04_maxB\x10\n\x0e_default_value\"T\n\x0f\x46ormSelectInput\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x02\x12\r\n\x05multi\x18\x02 \x01(\x08\x12\x17\n\x0f\x64\x65\x66\x61ult_options\x18\x03 \x03(\t\"%\n\rFormDateInput\x12\x14\n\x0cinclude_time\x18\x01 \x01(\x08\"(\n\x0f\x46ormToggleInput\x12\x15\n\rdefault_value\x18\x01 \x01(\x08\"\x8b\x01\n\x0eResourcePicker\x12\r\n\x05title\x18\x01 \x01(\t\x12,\n\x0eresource_names\x18\x02 \x03(\tB\x14\xfa\x41\x03\n\x01*\xbaH\x0b\x92\x01\x08\x08\x01\"\x04r\x02\x10\x01\x12\x14\n\x0cmulti_select\x18\x03 \x01(\x08\x12\x12\n\nallow_none\x18\x04 \x01(\x08\x12\x12\n\nnone_label\x18\x05 \x01(\t\"R\n\x16ResourcePickerResponse\x12*\n\x0eresource_names\x18\x01 \x03(\tB\x12\xfa\x41\x03\n\x01*\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01\x12\x0c\n\x04none\x18\x02 \x01(\x08\"W\n\x06Slider\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x0b\n\x03min\x18\x02 \x01(\x01\x12\x0b\n\x03max\x18\x03 \x01(\x01\x12\x1c\n\x04step\x18\x04 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00\"\x1f\n\x0eSliderResponse\x12\r\n\x05value\x18\x01 \x01(\x01\"\xa8\x01\n\x0e\x44\x61teTimePicker\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cinclude_time\x18\x02 \x01(\x08\x12,\n\x08min_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08max_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\r\n\x05range\x18\x05 \x01(\x08\"x\n\x16\x44\x61teTimePickerResponse\x12\x30\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x06\xbaH\x03\xc8\x01\x01\x12,\n\x08\x65nd_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf7\x03\n\rInputResponse\x12\x1c\n\x0c\x63omponent_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x35\n\x06\x63hoice\x18\x02 \x01(\x0b\x32#.malonaz.ai.genui.v1.ChoiceResponseH\x00\x12@\n\x0cmulti_choice\x18\x03 \x01(\x0b\x32(.malonaz.ai.genui.v1.MultiChoiceResponseH\x00\x12\x41\n\x0c\x63onfirmation\x18\x04 \x01(\x0b\x32).malonaz.ai.genui.v1.ConfirmationResponseH\x00\x12\x31\n\x04\x66orm\x18\x05 \x01(\x0b\x32!.malonaz.ai.genui.v1.FormResponseH\x00\x12\x46\n\x0fresource_picker\x18\x06 \x01(\x0b\x32+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00\x12\x35\n\x06slider\x18\x07 \x01(\x0b\x32#.malonaz.ai.genui.v1.SliderResponseH\x00\x12G\n\x10\x64\x61te_time_picker\x18\x08 \x01(\x0b\x32+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00\x42\x11\n\x08response\x12\x05\xbaH\x02\x08\x01\"b\n\x06\x43hoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12>\n\x07options\x18\x02 \x03(\x0b\x32!.malonaz.ai.genui.v1.ChoiceOptionB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x08\":\n\x0c\x43hoiceOption\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"3\n\x0e\x43hoiceResponse\x12\x10\n\x06option\x18\x01 \x01(\tH\x00\x42\x0f\n\x06\x61nswer\x12\x05\xbaH\x02\x08\x01\"\x86\x01\n\x0bMultiChoice\x12\x18\n\x08question\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1b\n\x07options\x18\x02 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x02\x10\x0c\x12\x1f\n\x0emin_selections\x18\x03 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12\x1f\n\x0emax_selections\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\"0\n\x13MultiChoiceResponse\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x01\"|\n\x0c\x43onfirmation\x12\x15\n\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x15\n\rconfirm_label\x18\x03 \x01(\t\x12\x14\n\x0c\x63\x61ncel_label\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65structive\x18\x05 \x01(\x08\")\n\x14\x43onfirmationResponse\x12\x11\n\tconfirmed\x18\x01 \x01(\x08\"e\n\x04\x46orm\x12\r\n\x05title\x18\x01 \x01(\t\x12\x14\n\x0csubmit_label\x18\x02 \x01(\t\x12\x38\n\x06\x66ields\x18\x03 \x03(\x0b\x32\x1e.malonaz.ai.genui.v1.FormFieldB\x08\xbaH\x05\x92\x01\x02\x08\x01\"M\n\x0c\x46ormResponse\x12=\n\x06values\x18\x01 \x03(\x0b\x32#.malonaz.ai.genui.v1.FormFieldValueB\x08\xbaH\x05\x92\x01\x02\x08\x01\"\xfd\x02\n\tFormField\x12\x12\n\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x15\n\x05label\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x10\n\x08required\x18\x03 \x01(\x08\x12\x32\n\x04text\x18\x04 \x01(\x0b\x32\".malonaz.ai.genui.v1.FormTextInputH\x00\x12\x36\n\x06number\x18\x05 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormNumberInputH\x00\x12\x36\n\x06select\x18\x06 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormSelectInputH\x00\x12\x32\n\x04\x64\x61te\x18\x07 \x01(\x0b\x32\".malonaz.ai.genui.v1.FormDateInputH\x00\x12\x36\n\x06toggle\x18\x08 \x01(\x0b\x32$.malonaz.ai.genui.v1.FormToggleInputH\x00\x12\x13\n\x0bplaceholder\x18\t \x01(\tB\x0e\n\x05input\x12\x05\xbaH\x02\x08\x01\"\xfb\x01\n\x0e\x46ormFieldValue\x12\x18\n\x08\x66ield_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x0e\n\x04text\x18\x02 \x01(\tH\x00\x12\x10\n\x06number\x18\x03 \x01(\x01H\x00\x12\x19\n\x0fselected_option\x18\x04 \x01(\tH\x00\x12\x44\n\x10selected_options\x18\x05 \x01(\x0b\x32(.malonaz.ai.genui.v1.FormSelectedOptionsH\x00\x12*\n\x04\x64\x61te\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12\x10\n\x06toggle\x18\x07 \x01(\x08H\x00\x42\x0e\n\x05value\x12\x05\xbaH\x02\x08\x01\"0\n\x13\x46ormSelectedOptions\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x01\"9\n\rFormTextInput\x12\x11\n\tmultiline\x18\x01 \x01(\x08\x12\x15\n\rdefault_value\x18\x02 \x01(\t\"s\n\x0f\x46ormNumberInput\x12\x10\n\x03min\x18\x01 \x01(\x01H\x00\x88\x01\x01\x12\x10\n\x03max\x18\x02 \x01(\x01H\x01\x88\x01\x01\x12\x1a\n\rdefault_value\x18\x03 \x01(\x01H\x02\x88\x01\x01\x42\x06\n\x04_minB\x06\n\x04_maxB\x10\n\x0e_default_value\"T\n\x0f\x46ormSelectInput\x12\x19\n\x07options\x18\x01 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x08\x02\x12\r\n\x05multi\x18\x02 \x01(\x08\x12\x17\n\x0f\x64\x65\x66\x61ult_options\x18\x03 \x03(\t\"%\n\rFormDateInput\x12\x14\n\x0cinclude_time\x18\x01 \x01(\x08\"(\n\x0f\x46ormToggleInput\x12\x15\n\rdefault_value\x18\x01 \x01(\x08\"\x8b\x01\n\x0eResourcePicker\x12\r\n\x05title\x18\x01 \x01(\t\x12,\n\x0eresource_names\x18\x02 \x03(\tB\x14\xfa\x41\x03\n\x01*\xbaH\x0b\x92\x01\x08\x08\x01\"\x04r\x02\x10\x01\x12\x14\n\x0cmulti_select\x18\x03 \x01(\x08\x12\x12\n\nallow_none\x18\x04 \x01(\x08\x12\x12\n\nnone_label\x18\x05 \x01(\t\"R\n\x16ResourcePickerResponse\x12*\n\x0eresource_names\x18\x01 \x03(\tB\x12\xfa\x41\x03\n\x01*\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01\x12\x0c\n\x04none\x18\x02 \x01(\x08\"W\n\x06Slider\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x0b\n\x03min\x18\x02 \x01(\x01\x12\x0b\n\x03max\x18\x03 \x01(\x01\x12\x1c\n\x04step\x18\x04 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00\"\x1f\n\x0eSliderResponse\x12\r\n\x05value\x18\x01 \x01(\x01\"\xa8\x01\n\x0e\x44\x61teTimePicker\x12\x15\n\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x14\n\x0cinclude_time\x18\x02 \x01(\x08\x12,\n\x08min_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08max_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\r\n\x05range\x18\x05 \x01(\x08\"x\n\x16\x44\x61teTimePickerResponse\x12\x30\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x06\xbaH\x03\xc8\x01\x01\x12,\n\x08\x65nd_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -92,49 +92,49 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_INPUTRESPONSE']._serialized_start=146
   _globals['_INPUTRESPONSE']._serialized_end=649
   _globals['_CHOICE']._serialized_start=651
-  _globals['_CHOICE']._serialized_end=772
-  _globals['_CHOICEOPTION']._serialized_start=774
-  _globals['_CHOICEOPTION']._serialized_end=832
-  _globals['_CHOICERESPONSE']._serialized_start=834
-  _globals['_CHOICERESPONSE']._serialized_end=902
-  _globals['_MULTICHOICE']._serialized_start=905
-  _globals['_MULTICHOICE']._serialized_end=1039
-  _globals['_MULTICHOICERESPONSE']._serialized_start=1041
-  _globals['_MULTICHOICERESPONSE']._serialized_end=1089
-  _globals['_CONFIRMATION']._serialized_start=1091
-  _globals['_CONFIRMATION']._serialized_end=1215
-  _globals['_CONFIRMATIONRESPONSE']._serialized_start=1217
-  _globals['_CONFIRMATIONRESPONSE']._serialized_end=1258
-  _globals['_FORM']._serialized_start=1260
-  _globals['_FORM']._serialized_end=1361
-  _globals['_FORMRESPONSE']._serialized_start=1363
-  _globals['_FORMRESPONSE']._serialized_end=1440
-  _globals['_FORMFIELD']._serialized_start=1443
-  _globals['_FORMFIELD']._serialized_end=1824
-  _globals['_FORMFIELDVALUE']._serialized_start=1827
-  _globals['_FORMFIELDVALUE']._serialized_end=2078
-  _globals['_FORMSELECTEDOPTIONS']._serialized_start=2080
-  _globals['_FORMSELECTEDOPTIONS']._serialized_end=2128
-  _globals['_FORMTEXTINPUT']._serialized_start=2130
-  _globals['_FORMTEXTINPUT']._serialized_end=2187
-  _globals['_FORMNUMBERINPUT']._serialized_start=2189
-  _globals['_FORMNUMBERINPUT']._serialized_end=2304
-  _globals['_FORMSELECTINPUT']._serialized_start=2306
-  _globals['_FORMSELECTINPUT']._serialized_end=2390
-  _globals['_FORMDATEINPUT']._serialized_start=2392
-  _globals['_FORMDATEINPUT']._serialized_end=2429
-  _globals['_FORMTOGGLEINPUT']._serialized_start=2431
-  _globals['_FORMTOGGLEINPUT']._serialized_end=2471
-  _globals['_RESOURCEPICKER']._serialized_start=2474
-  _globals['_RESOURCEPICKER']._serialized_end=2613
-  _globals['_RESOURCEPICKERRESPONSE']._serialized_start=2615
-  _globals['_RESOURCEPICKERRESPONSE']._serialized_end=2697
-  _globals['_SLIDER']._serialized_start=2699
-  _globals['_SLIDER']._serialized_end=2786
-  _globals['_SLIDERRESPONSE']._serialized_start=2788
-  _globals['_SLIDERRESPONSE']._serialized_end=2819
-  _globals['_DATETIMEPICKER']._serialized_start=2822
-  _globals['_DATETIMEPICKER']._serialized_end=2990
-  _globals['_DATETIMEPICKERRESPONSE']._serialized_start=2992
-  _globals['_DATETIMEPICKERRESPONSE']._serialized_end=3112
+  _globals['_CHOICE']._serialized_end=749
+  _globals['_CHOICEOPTION']._serialized_start=751
+  _globals['_CHOICEOPTION']._serialized_end=809
+  _globals['_CHOICERESPONSE']._serialized_start=811
+  _globals['_CHOICERESPONSE']._serialized_end=862
+  _globals['_MULTICHOICE']._serialized_start=865
+  _globals['_MULTICHOICE']._serialized_end=999
+  _globals['_MULTICHOICERESPONSE']._serialized_start=1001
+  _globals['_MULTICHOICERESPONSE']._serialized_end=1049
+  _globals['_CONFIRMATION']._serialized_start=1051
+  _globals['_CONFIRMATION']._serialized_end=1175
+  _globals['_CONFIRMATIONRESPONSE']._serialized_start=1177
+  _globals['_CONFIRMATIONRESPONSE']._serialized_end=1218
+  _globals['_FORM']._serialized_start=1220
+  _globals['_FORM']._serialized_end=1321
+  _globals['_FORMRESPONSE']._serialized_start=1323
+  _globals['_FORMRESPONSE']._serialized_end=1400
+  _globals['_FORMFIELD']._serialized_start=1403
+  _globals['_FORMFIELD']._serialized_end=1784
+  _globals['_FORMFIELDVALUE']._serialized_start=1787
+  _globals['_FORMFIELDVALUE']._serialized_end=2038
+  _globals['_FORMSELECTEDOPTIONS']._serialized_start=2040
+  _globals['_FORMSELECTEDOPTIONS']._serialized_end=2088
+  _globals['_FORMTEXTINPUT']._serialized_start=2090
+  _globals['_FORMTEXTINPUT']._serialized_end=2147
+  _globals['_FORMNUMBERINPUT']._serialized_start=2149
+  _globals['_FORMNUMBERINPUT']._serialized_end=2264
+  _globals['_FORMSELECTINPUT']._serialized_start=2266
+  _globals['_FORMSELECTINPUT']._serialized_end=2350
+  _globals['_FORMDATEINPUT']._serialized_start=2352
+  _globals['_FORMDATEINPUT']._serialized_end=2389
+  _globals['_FORMTOGGLEINPUT']._serialized_start=2391
+  _globals['_FORMTOGGLEINPUT']._serialized_end=2431
+  _globals['_RESOURCEPICKER']._serialized_start=2434
+  _globals['_RESOURCEPICKER']._serialized_end=2573
+  _globals['_RESOURCEPICKERRESPONSE']._serialized_start=2575
+  _globals['_RESOURCEPICKERRESPONSE']._serialized_end=2657
+  _globals['_SLIDER']._serialized_start=2659
+  _globals['_SLIDER']._serialized_end=2746
+  _globals['_SLIDERRESPONSE']._serialized_start=2748
+  _globals['_SLIDERRESPONSE']._serialized_end=2779
+  _globals['_DATETIMEPICKER']._serialized_start=2782
+  _globals['_DATETIMEPICKER']._serialized_end=2950
+  _globals['_DATETIMEPICKERRESPONSE']._serialized_start=2952
+  _globals['_DATETIMEPICKERRESPONSE']._serialized_end=3072
 # @@protoc_insertion_point(module_scope)

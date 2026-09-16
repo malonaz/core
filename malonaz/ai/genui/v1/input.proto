@@ -69,10 +69,6 @@ message Choice {
     min_items: 2
     max_items: 8
   }];
-
-  // Free text is the composer's job, not the card's.
-  reserved 3;
-  reserved "allow_free_text";
 }
 
 // A single answer within a [Choice][malonaz.ai.genui.v1.Choice].
@@ -93,9 +89,6 @@ message ChoiceResponse {
     // The selected option's label, verbatim.
     string option = 1;
   }
-
-  reserved 2;
-  reserved "free_text";
 }
 
 // A question allowing several answers to be selected before submitting,
