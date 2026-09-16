@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/huandu/xstrings"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
@@ -45,6 +46,8 @@ const (
 )
 
 var (
+	errSymbolNotFound = errors.New("symbol not found")
+
 	commentOverrideRegexp   = regexp.MustCompile(`@comment\(([^)]+)\)`)
 	resourcePatternWildcard = regexp.MustCompile(`\{[^}]+\}`)
 )
@@ -375,6 +378,11 @@ func resolve(ctx context.Context, client rpb.ServerReflectionClient, files []str
 	for _, svc := range services {
 		request := &rpb.ServerReflectionRequest{MessageRequest: &rpb.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: svc}}
 		if err := fetchFileDescriptors(stream, fdProtos, request); err != nil {
+			// Servers list services (e.g. grpc.health.v1.Health) whose protos are
+			// not in their descriptor set; those are simply not part of the schema.
+			if errors.Is(err, errSymbolNotFound) {
+				continue
+			}
 			return nil, err
 		}
 	}
@@ -420,6 +428,9 @@ func fetchFileDescriptors(stream rpb.ServerReflection_ServerReflectionInfoClient
 		return err
 	}
 	if errResp := resp.GetErrorResponse(); errResp != nil {
+		if codes.Code(errResp.GetErrorCode()) == codes.NotFound {
+			return fmt.Errorf("reflection request %v: %w", request.GetMessageRequest(), errSymbolNotFound)
+		}
 		return fmt.Errorf("reflection request %v: %s", request.GetMessageRequest(), errResp.GetErrorMessage())
 	}
 	for _, fdBytes := range resp.GetFileDescriptorResponse().GetFileDescriptorProto() {
