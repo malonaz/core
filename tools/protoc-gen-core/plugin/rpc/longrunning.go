@@ -31,6 +31,9 @@ type longrunningMethod struct {
 	// Set when the request carries a `request_id`, which makes the start idempotent.
 	requestIDField *protogen.Field
 	responseType   protoreflect.FullName
+	operationInfo  *longrunningpb.OperationInfo
+	// Set when the method is Import{Plural} (AIP-153), which is generated rather than run by the runner.
+	imp *importMethod
 }
 
 // parseLongrunningMethod returns nil when the method does not return an
@@ -58,7 +61,7 @@ func parseLongrunningMethod(method *protogen.Method) (*longrunningMethod, error)
 	if err != nil {
 		return nil, err
 	}
-	parsed := &longrunningMethod{method: method, responseType: responseType}
+	parsed := &longrunningMethod{method: method, responseType: responseType, operationInfo: operationInfo}
 	for _, field := range method.Input.Fields {
 		switch field.Desc.Name() {
 		case "parent", "name":
@@ -99,6 +102,14 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 	g.P("// with; the result is recorded as the operation's response or error.")
 	g.P("type ", runnerGoName(si), " interface {")
 	for _, lro := range si.lroMethods {
+		if lro.imp != nil {
+			// The import itself is generated; the runner supplies its custom sources.
+			for _, source := range lro.imp.sources {
+				g.P(fmt.Sprintf("  %s(ctx %s, request *%s, sink *%s) error",
+					lro.imp.runnerMethodGoName(source), gen.ident(contextPkg, "Context"), gen.qgi(lro.method.Input.GoIdent), lro.imp.sinkGoName()))
+			}
+			continue
+		}
 		responseType, err := gen.responseTypeIdent(lro)
 		if err != nil {
 			return err
@@ -113,14 +124,23 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 
 // responseTypeIdent resolves the operation's response message to its Go type.
 func (gen *generator) responseTypeIdent(lro *longrunningMethod) (string, error) {
+	message, err := gen.responseMessage(lro)
+	if err != nil {
+		return "", err
+	}
+	return gen.qgi(message.GoIdent), nil
+}
+
+// responseMessage resolves the operation's response message.
+func (gen *generator) responseMessage(lro *longrunningMethod) (*protogen.Message, error) {
 	for _, file := range gen.files {
 		for _, message := range file.Messages {
 			if message.Desc.FullName() == lro.responseType {
-				return gen.qgi(message.GoIdent), nil
+				return message, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("%s: operation_info.response_type %s is not a top-level message of the compilation unit", lro.method.GoName, lro.responseType)
+	return nil, fmt.Errorf("%s: operation_info.response_type %s is not a top-level message of the compilation unit", lro.method.GoName, lro.responseType)
 }
 
 // generateLongrunning emits the handler: a producer when the call comes from a
@@ -142,7 +162,11 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 	g.P("    }")
 	g.P(fmt.Sprintf("    return %s(ctx, s.schedulerServiceClient, startRequest)", gen.ident(longrunningPkg, "Start")))
 	g.P("  }")
-	g.P(fmt.Sprintf("  response, err := s.runner.Run%s(ctx, request)", method.GoName))
+	runner := "s.runner."
+	if lro.imp != nil {
+		runner = "s."
+	}
+	g.P(fmt.Sprintf("  response, err := %sRun%s(ctx, request)", runner, method.GoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return %s(ctx, err)", gen.ident(longrunningPkg, "Failed")))
 	g.P("  }")

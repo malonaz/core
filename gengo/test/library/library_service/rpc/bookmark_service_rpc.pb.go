@@ -58,7 +58,7 @@ func newBookmarkService_BookmarkServer(store bookmarkService_BookmarkStore) *boo
 	}
 }
 
-func (s *bookmarkService_BookmarkServer) prepareCreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest) (*model.Bookmark, error) {
+func (s *bookmarkService_BookmarkServer) prepareCreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest, importing bool) (*model.Bookmark, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -78,16 +78,18 @@ func (s *bookmarkService_BookmarkServer) prepareCreateBookmark(ctx context.Conte
 
 	request.Bookmark.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}", organizationId, shelfId, bookId, bookmarkId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Bookmark.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Bookmark.CreateTime == nil {
 		request.Bookmark.CreateTime = timestamppb.Now()
 	}
-	request.Bookmark.UpdateTime = request.Bookmark.CreateTime
+	if !importing || request.Bookmark.UpdateTime == nil {
+		request.Bookmark.UpdateTime = request.Bookmark.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -107,7 +109,7 @@ func (s *bookmarkService_BookmarkServer) prepareCreateBookmark(ctx context.Conte
 }
 
 func (s *bookmarkService_BookmarkServer) CreateBookmark(ctx context.Context, request *v1.CreateBookmarkRequest) (*v11.Bookmark, error) {
-	bookmarkModel, err := s.prepareCreateBookmark(ctx, request)
+	bookmarkModel, err := s.prepareCreateBookmark(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}

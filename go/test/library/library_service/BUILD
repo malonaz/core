@@ -27,7 +27,6 @@ go_library(
         "//go/grpc/middleware",
         "//go/grpc/status",
         "//go/nats",
-        "//go/scheduler/longrunning",
         "//go/test/library/library_service/rpc",
         "//go/test/library/store",
         "//go/uuid",

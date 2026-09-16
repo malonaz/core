@@ -29,6 +29,8 @@ import (
 	proto "google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	strconv "strconv"
+	strings "strings"
 	time "time"
 )
 
@@ -84,7 +86,7 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 // scheduler calls each Run method back with the request the operation was started
 // with; the result is recorded as the operation's response or error.
 type LibraryServiceRunner interface {
-	RunImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*v12.ImportBooksResponse, error)
+	ImportBooksFromTitles(ctx context.Context, request *v12.ImportBooksRequest, sink *ImportBooksSink) error
 }
 
 type libraryService_AuthorStore interface {
@@ -108,7 +110,7 @@ func newLibraryService_AuthorServer(store libraryService_AuthorStore) *librarySe
 	}
 }
 
-func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, request *v12.CreateAuthorRequest) (*model.Author, *model.AuthorProfile, error) {
+func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, request *v12.CreateAuthorRequest, importing bool) (*model.Author, *model.AuthorProfile, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -128,16 +130,18 @@ func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, r
 
 	request.Author.Name = resourcename.Sprint("organizations/{organization}/authors/{author}", organizationId, authorId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Author.CreateTime == nil {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Author.CreateTime == nil {
 		request.Author.CreateTime = timestamppb.Now()
 	}
-	request.Author.UpdateTime = request.Author.CreateTime
+	if !importing || request.Author.UpdateTime == nil {
+		request.Author.UpdateTime = request.Author.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -174,7 +178,7 @@ func (s *libraryService_AuthorServer) prepareCreateAuthor(ctx context.Context, r
 }
 
 func (s *libraryService_AuthorServer) CreateAuthor(ctx context.Context, request *v12.CreateAuthorRequest) (*v14.Author, error) {
-	authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, request)
+	authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +562,7 @@ func (s *libraryService_AuthorServer) BatchCreateAuthors(ctx context.Context, re
 		if createRequest.ValidateOnly {
 			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported; set validate_only on the batch request", i).Err()
 		}
-		authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, createRequest)
+		authorModel, authorProfileModel, err := s.prepareCreateAuthor(ctx, createRequest, false)
 		if err != nil {
 			return nil, status.FromError(err, "requests[%d]", i).Err()
 		}
@@ -956,7 +960,7 @@ func newLibraryService_ShelfServer(store libraryService_ShelfStore, natsClient *
 	}
 }
 
-func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v12.CreateShelfRequest) (*model.Shelf, error) {
+func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v12.CreateShelfRequest, importing bool) (*model.Shelf, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -976,16 +980,18 @@ func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, req
 
 	request.Shelf.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}", organizationId, shelfId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Shelf.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Shelf.CreateTime == nil {
 		request.Shelf.CreateTime = timestamppb.Now()
 	}
-	request.Shelf.UpdateTime = request.Shelf.CreateTime
+	if !importing || request.Shelf.UpdateTime == nil {
+		request.Shelf.UpdateTime = request.Shelf.CreateTime
+	}
 
 	// STEP 3: Convert the resource to the database representation.
 	shelfModel, err := model.ShelfFromPb(request.Shelf)
@@ -997,7 +1003,7 @@ func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, req
 }
 
 func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v12.CreateShelfRequest) (*v14.Shelf, error) {
-	shelfModel, err := s.prepareCreateShelf(ctx, request)
+	shelfModel, err := s.prepareCreateShelf(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1303,7 +1309,7 @@ func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, req
 		if createRequest.ValidateOnly {
 			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported", i).Err()
 		}
-		shelfModel, err := s.prepareCreateShelf(ctx, createRequest)
+		shelfModel, err := s.prepareCreateShelf(ctx, createRequest, false)
 		if err != nil {
 			return nil, status.FromError(err, "requests[%d]", i).Err()
 		}
@@ -1432,7 +1438,7 @@ func newLibraryService_BookServer(store libraryService_BookStore, natsClient *na
 	}
 }
 
-func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, request *v12.CreateBookRequest) (*model.Book, *model.BookReview, error) {
+func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, request *v12.CreateBookRequest, importing bool) (*model.Book, *model.BookReview, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -1452,16 +1458,18 @@ func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, reque
 
 	request.Book.Name = resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", organizationId, shelfId, bookId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Book.CreateTime == nil {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Book.CreateTime == nil {
 		request.Book.CreateTime = timestamppb.Now()
 	}
-	request.Book.UpdateTime = request.Book.CreateTime
+	if !importing || request.Book.UpdateTime == nil {
+		request.Book.UpdateTime = request.Book.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -1498,7 +1506,7 @@ func (s *libraryService_BookServer) prepareCreateBook(ctx context.Context, reque
 }
 
 func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v12.CreateBookRequest) (*v14.Book, error) {
-	bookModel, bookReviewModel, err := s.prepareCreateBook(ctx, request)
+	bookModel, bookReviewModel, err := s.prepareCreateBook(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2178,7 +2186,7 @@ func newLibraryService_NoteServer(store libraryService_NoteStore) *libraryServic
 	}
 }
 
-func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, request *v12.CreateNoteRequest) (*model.Note, error) {
+func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, request *v12.CreateNoteRequest, importing bool) (*model.Note, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -2212,16 +2220,18 @@ func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, reque
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
 	}
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Note.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Note.CreateTime == nil {
 		request.Note.CreateTime = timestamppb.Now()
 	}
-	request.Note.UpdateTime = request.Note.CreateTime
+	if !importing || request.Note.UpdateTime == nil {
+		request.Note.UpdateTime = request.Note.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -2241,7 +2251,7 @@ func (s *libraryService_NoteServer) prepareCreateNote(ctx context.Context, reque
 }
 
 func (s *libraryService_NoteServer) CreateNote(ctx context.Context, request *v12.CreateNoteRequest) (*v14.Note, error) {
-	noteModel, err := s.prepareCreateNote(ctx, request)
+	noteModel, err := s.prepareCreateNote(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2577,7 +2587,7 @@ func (s *libraryService_NoteServer) BatchCreateNotes(ctx context.Context, reques
 		if createRequest.ValidateOnly {
 			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported", i).Err()
 		}
-		noteModel, err := s.prepareCreateNote(ctx, createRequest)
+		noteModel, err := s.prepareCreateNote(ctx, createRequest, false)
 		if err != nil {
 			return nil, status.FromError(err, "requests[%d]", i).Err()
 		}
@@ -2700,9 +2710,191 @@ func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.Imp
 		}
 		return longrunning.Start(ctx, s.schedulerServiceClient, startRequest)
 	}
-	response, err := s.runner.RunImportBooks(ctx, request)
+	response, err := s.RunImportBooks(ctx, request)
 	if err != nil {
 		return longrunning.Failed(ctx, err)
 	}
 	return longrunning.Done(ctx, response)
+}
+
+// ImportBooksSink takes the books of ImportBooks's sources into the store (AIP-153): each is
+// stamped, inserted under the request's parent and counted in the operation's metadata.
+type ImportBooksSink struct {
+	server    *libraryService_BookServer
+	request   *v12.ImportBooksRequest
+	requestID uuid.UUID
+	// The import-source and import-time label values of this run.
+	source, date string
+	progress     *longrunning.ImportProgress
+	// The names imported so far, in order.
+	names []string
+	// Items taken so far, which keys the request id of an unnamed item.
+	taken int
+}
+
+func (s *LibraryServiceServer) newImportBooksSink(request *v12.ImportBooksRequest, source string) (*ImportBooksSink, error) {
+	requestID, err := uuid.Parse(request.GetRequestId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request_id: %v", err).Err()
+	}
+	return &ImportBooksSink{
+		server:    s.libraryService_BookServer,
+		request:   request,
+		requestID: requestID,
+		source:    source,
+		date:      time.Now().UTC().Format(aip.LabelDateFormat),
+		progress:  longrunning.NewImportProgress(s.schedulerServiceClient),
+	}, nil
+}
+
+// SetTotal records how many items the source holds, when known ahead of time.
+func (s *ImportBooksSink) SetTotal(ctx context.Context, total int32) error {
+	return s.progress.SetTotal(ctx, total)
+}
+
+// Fail records an item the source could not turn into a book (AIP-193). The error
+// returned means the operation was cancelled: stop importing.
+func (s *ImportBooksSink) Fail(ctx context.Context, err error) error {
+	return s.progress.Failed(ctx, err)
+}
+
+// prepare stamps one book and resolves it to its database models: a name it carries
+// must be under the request's parent; timestamps and the import labels are kept when set.
+func (s *ImportBooksSink) prepare(ctx context.Context, book *v14.Book) (string, *model.Book, *model.BookReview, error) {
+	name := book.GetName()
+	requestIDKey := name
+	if requestIDKey == "" {
+		requestIDKey = strconv.Itoa(s.taken)
+	}
+	s.taken++
+	createRequest := &v12.CreateBookRequest{
+		RequestId: uuid.NewV5(s.requestID, requestIDKey).String(),
+		Parent:    s.request.GetParent(),
+		Book:      book,
+	}
+	if name != "" {
+		createRequest.BookId = name[strings.LastIndex(name, "/")+1:]
+	}
+	if !aip.HasLabel(book, aip.LabelKeyImportSource) {
+		aip.SetLabel(book, aip.LabelKeyImportSource, s.source)
+	}
+	if !aip.HasLabel(book, aip.LabelKeyImportTime) {
+		aip.SetLabel(book, aip.LabelKeyImportTime, s.date)
+	}
+	bookModel, bookReviewModel, err := s.server.prepareCreateBook(ctx, createRequest, true)
+	if err != nil {
+		return "", nil, nil, err
+	}
+	if name != "" && book.GetName() != name {
+		return "", nil, nil, status.Errorf(codes.InvalidArgument, "book %q is not under parent %q", name, s.request.GetParent()).Err()
+	}
+	return createRequest.RequestId, bookModel, bookReviewModel, nil
+}
+
+// insert inserts the batch atomically or, when that fails, one row at a time so that
+// only the rows at fault are recorded as failures.
+func (s *ImportBooksSink) insert(ctx context.Context, requestIDs []string, bookModels []*model.Book, bookReviewModels []*model.BookReview) ([]*model.Book, error) {
+	if dbBooks, err := s.server.store.BatchInsertBooks(ctx, requestIDs, bookModels, bookReviewModels); err == nil {
+		return dbBooks, nil
+	}
+	dbBooks := make([]*model.Book, 0, len(requestIDs))
+	for i := range requestIDs {
+		inserted, err := s.server.store.BatchInsertBooks(ctx, requestIDs[i:i+1], bookModels[i:i+1], bookReviewModels[i:i+1])
+		if err != nil {
+			if errors.Is(err, model.ErrBookAlreadyExists) {
+				err = status.Errorf(codes.AlreadyExists, "book already exists").Err()
+			}
+			if err := s.Fail(ctx, err); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		dbBooks = append(dbBooks, inserted...)
+	}
+	return dbBooks, nil
+}
+
+// Import imports a batch of books and returns them as stored, in order. One that cannot
+// be imported is recorded as a partial failure and left out; the error returned means
+// the operation was cancelled: stop importing.
+func (s *ImportBooksSink) Import(ctx context.Context, books []*v14.Book) ([]*v14.Book, error) {
+	requestIDs := make([]string, 0, len(books))
+	bookModels := make([]*model.Book, 0, len(books))
+	bookReviewModels := make([]*model.BookReview, 0, len(books))
+	for _, book := range books {
+		requestID, bookModel, bookReviewModel, err := s.prepare(ctx, book)
+		if err != nil {
+			if err := s.Fail(ctx, err); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		requestIDs = append(requestIDs, requestID)
+		bookModels = append(bookModels, bookModel)
+		bookReviewModels = append(bookReviewModels, bookReviewModel)
+	}
+	if len(requestIDs) == 0 {
+		return nil, nil
+	}
+	dbBooks, err := s.insert(ctx, requestIDs, bookModels, bookReviewModels)
+	if err != nil {
+		return nil, err
+	}
+	imported := make([]*v14.Book, 0, len(dbBooks))
+	for _, dbBookModel := range dbBooks {
+		book, err := dbBookModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting book from model to pb: %v", err).Err()
+		}
+		imported = append(imported, book)
+		s.names = append(s.names, book.GetName())
+	}
+	if err := s.progress.Succeeded(ctx, int32(len(imported))); err != nil {
+		return nil, err
+	}
+	return imported, nil
+}
+
+// RunImportBooks imports books from the request's source (AIP-153).
+func (s *LibraryServiceServer) RunImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*v12.ImportBooksResponse, error) {
+	if resourcename.ContainsWildcard(request.GetParent()) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	var sourceLabel string
+	switch request.GetSource().(type) {
+	case *v12.ImportBooksRequest_InlineSource:
+		sourceLabel = "inline"
+	case *v12.ImportBooksRequest_TitlesSource:
+		sourceLabel = "titles"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "source is required").Err()
+	}
+	sink, err := s.newImportBooksSink(request, sourceLabel)
+	if err != nil {
+		return nil, err
+	}
+	switch source := request.GetSource().(type) {
+	case *v12.ImportBooksRequest_InlineSource:
+		err = sink.importInline(ctx, source.InlineSource.GetBooks())
+	case *v12.ImportBooksRequest_TitlesSource:
+		err = s.runner.ImportBooksFromTitles(ctx, request, sink)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &v12.ImportBooksResponse{Names: sink.names}, nil
+}
+
+// importInline imports the books the request carries, 500 at a time.
+func (s *ImportBooksSink) importInline(ctx context.Context, books []*v14.Book) error {
+	if err := s.SetTotal(ctx, int32(len(books))); err != nil {
+		return err
+	}
+	for start := 0; start < len(books); start += 500 {
+		end := min(start+500, len(books))
+		if _, err := s.Import(ctx, books[start:end]); err != nil {
+			return err
+		}
+	}
+	return nil
 }

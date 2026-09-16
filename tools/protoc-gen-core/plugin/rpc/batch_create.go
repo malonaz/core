@@ -127,7 +127,7 @@ func (mc *methodCtx) generateBatchCreate(createRequest *protogen.Message) error 
 		g.P("    }")
 	}
 
-	g.P(fmt.Sprintf("    %s, err := s.%s(ctx, createRequest)", strings.Join(models, ", "), mc.prepareGoName()))
+	g.P(fmt.Sprintf("    %s, err := s.%s(ctx, createRequest, false)", strings.Join(models, ", "), mc.prepareGoName()))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return nil, %s(err, \"requests[%%d]\", i).Err()", mc.statusFromError()))
 	g.P("    }")

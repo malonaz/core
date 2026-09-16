@@ -34,7 +34,7 @@ var File_malonaz_test_library_library_service_v1_library_service_proto protorefl
 
 const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc = "" +
 	"\n" +
-	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#google/longrunning/operations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\xa9S\n" +
+	"=malonaz/test/library/library_service/v1/library_service.proto\x12'malonaz.test.library.library_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#google/longrunning/operations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\x1a4malonaz/test/library/library_service/v1/author.proto\x1a<malonaz/test/library/library_service/v1/author_profile.proto\x1a2malonaz/test/library/library_service/v1/book.proto\x1a9malonaz/test/library/library_service/v1/book_review.proto\x1a2malonaz/test/library/library_service/v1/note.proto\x1a3malonaz/test/library/library_service/v1/shelf.proto\x1a$malonaz/test/library/v1/author.proto\x1a,malonaz/test/library/v1/author_profile.proto\x1a\"malonaz/test/library/v1/book.proto\x1a)malonaz/test/library/v1/book_review.proto\x1a\"malonaz/test/library/v1/note.proto\x1a#malonaz/test/library/v1/shelf.proto2\xc8S\n" +
 	"\x0eLibraryService\x12\xd8\x01\n" +
 	"\fCreateAuthor\x12<.malonaz.test.library.library_service.v1.CreateAuthorRequest\x1a\x1f.malonaz.test.library.v1.Author\"i\xdaA\rparent,author´-!\n" +
 	"\x1flibrary.test.malonaz.com/Author\x82\xd3\xe4\x93\x02.:\x06author\"$/v1/{parent=organizations/*}/authors\x12\xc1\x01\n" +
@@ -96,12 +96,13 @@ const file_malonaz_test_library_library_service_v1_library_service_proto_rawDesc
 	"\tListBooks\x129.malonaz.test.library.library_service.v1.ListBooksRequest\x1a:.malonaz.test.library.library_service.v1.ListBooksResponse\"`\xdaA\x06parent´-\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x02.\x12,/v1/{parent=organizations/*/shelves/*}/books\x12\xff\x01\n" +
 	"\rBatchGetBooks\x12=.malonaz.test.library.library_service.v1.BatchGetBooksRequest\x1a>.malonaz.test.library.library_service.v1.BatchGetBooksResponse\"o\xdaA\fparent,names´-\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x12\x90\x02\n" +
-	"\vImportBooks\x12;.malonaz.test.library.library_service.v1.ImportBooksRequest\x1a\x1d.google.longrunning.Operation\"\xa4\x01\xcaA*\n" +
-	"\x13ImportBooksResponse\x12\x13ImportBooksMetadata\xdaA\x14parent,author,titles\xc2\xcf$\x1e\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x027\x125/v1/{parent=organizations/*/shelves/*}/books:batchGet\x12\xaf\x02\n" +
+	"\vImportBooks\x12;.malonaz.test.library.library_service.v1.ImportBooksRequest\x1a\x1d.google.longrunning.Operation\"\xc3\x01\xcaA4\n" +
+	"\x13ImportBooksResponse\x12\x1dmalonaz.aip.v1.ImportMetadata\xdaA\x06parent\xc2\xcf$\x1e\n" +
 	"\x1c\n" +
 	"\x02\b\x1e\x10\x03\x1a\x14\n" +
-	"\x05\x10\x80\x84\xaf_\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0?\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{parent=organizations/*/shelves/*}/books:import\x12\xe0\x01\n" +
+	"\x05\x10\x80\x84\xaf_\x12\x02\b\x01\x19\x00\x00\x00\x00\x00\x00\xf0?´-\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{parent=organizations/*/shelves/*}/books:import\x12\xe0\x01\n" +
 	"\rGetBookReview\x12=.malonaz.test.library.library_service.v1.GetBookReviewRequest\x1a#.malonaz.test.library.v1.BookReview\"k\xdaA\x04name´-%\n" +
 	"#library.test.malonaz.com/BookReview\x82\xd3\xe4\x93\x025\x123/v1/{name=organizations/*/shelves/*/books/*/review}\x12\x93\x02\n" +
 	"\x10UpdateBookReview\x12@.malonaz.test.library.library_service.v1.UpdateBookReviewRequest\x1a#.malonaz.test.library.v1.BookReview\"\x97\x01\xdaA\x17book_review,update_mask´-%\n" +
