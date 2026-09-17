@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"slices"
 	"strings"
 
 	"golang.org/x/sync/errgroup"
@@ -172,6 +173,11 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		inputMessages = append(inputMessages, inputMessage)
 	}
 	history = append(history, inputMessages...)
+	// A model may legitimately end its turn with no content; providers reject
+	// such turns on replay, so they are persisted but never sent back.
+	history = slices.DeleteFunc(history, func(message *aipb.Message) bool {
+		return message.GetRole() == aipb.Role_ROLE_ASSISTANT && len(message.GetBlocks()) == 0
+	})
 	if len(history) == 0 {
 		return status.Errorf(codes.FailedPrecondition, "chat %q has no messages to generate from", chatRn.String()).Err()
 	}
@@ -250,11 +256,6 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	sender.Close()
 	if generationError == nil {
 		generationError = sender.Wait(ctx)
-	}
-	// An empty response would persist a blockless assistant message that
-	// providers reject on every subsequent replay, poisoning the chat.
-	if generationError == nil && len(accumulator.Message.GetBlocks()) == 0 {
-		generationError = grpcstatus.Errorf(codes.Internal, "%s: model returned an empty message", request.GetModel())
 	}
 	if generationError != nil {
 		s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, generationError)
