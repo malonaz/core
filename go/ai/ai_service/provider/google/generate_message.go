@@ -719,47 +719,47 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 		Model: modelName,
 	}
 
-	var inputImageTokens, outputImageTokens, cacheReadImageTokens int32
-	var inputTextTokens, outputTextTokens, cacheReadTextTokens int32
+	var inputImageTokens, outputImageTokens, cacheReadImageTokens int64
+	var inputTextTokens, outputTextTokens, cacheReadTextTokens int64
 
 	// Fall back to aggregate counts when per-modality details aren't available.
 	if len(usage.PromptTokensDetails) > 0 {
 		for _, detail := range usage.PromptTokensDetails {
 			switch detail.Modality {
 			case genai.MediaModalityImage:
-				inputImageTokens += detail.TokenCount
+				inputImageTokens += int64(detail.TokenCount)
 			case genai.MediaModalityText:
-				inputTextTokens += detail.TokenCount
+				inputTextTokens += int64(detail.TokenCount)
 			}
 		}
 	} else {
-		inputTextTokens = usage.PromptTokenCount
+		inputTextTokens = int64(usage.PromptTokenCount)
 	}
 
 	if len(usage.CandidatesTokensDetails) > 0 {
 		for _, detail := range usage.CandidatesTokensDetails {
 			switch detail.Modality {
 			case genai.MediaModalityImage:
-				outputImageTokens += detail.TokenCount
+				outputImageTokens += int64(detail.TokenCount)
 			case genai.MediaModalityText:
-				outputTextTokens += detail.TokenCount
+				outputTextTokens += int64(detail.TokenCount)
 			}
 		}
 	} else {
-		outputTextTokens = usage.CandidatesTokenCount
+		outputTextTokens = int64(usage.CandidatesTokenCount)
 	}
 
 	if len(usage.CacheTokensDetails) > 0 {
 		for _, detail := range usage.CacheTokensDetails {
 			switch detail.Modality {
 			case genai.MediaModalityImage:
-				cacheReadImageTokens += detail.TokenCount
+				cacheReadImageTokens += int64(detail.TokenCount)
 			case genai.MediaModalityText:
-				cacheReadTextTokens += detail.TokenCount
+				cacheReadTextTokens += int64(detail.TokenCount)
 			}
 		}
 	} else {
-		cacheReadTextTokens = usage.CachedContentTokenCount
+		cacheReadTextTokens = int64(usage.CachedContentTokenCount)
 	}
 
 	// Report uncached input tokens only (cached tokens are reported separately for pricing).
@@ -780,7 +780,7 @@ func buildModelUsage(modelName string, usage *genai.GenerateContentResponseUsage
 
 	modelUsage.InputTokenCacheRead = ai.NewResourceConsumption(cacheReadTextTokens)
 	modelUsage.OutputToken = ai.NewResourceConsumption(outputTextTokens)
-	modelUsage.OutputReasoningToken = ai.NewResourceConsumption(usage.ThoughtsTokenCount)
+	modelUsage.OutputReasoningToken = ai.NewResourceConsumption(int64(usage.ThoughtsTokenCount))
 	modelUsage.InputImageTokenCacheRead = ai.NewResourceConsumption(cacheReadImageTokens)
 	modelUsage.OutputImageToken = ai.NewResourceConsumption(outputImageTokens)
 

@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../google/api/field_behavi
 import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { ModelUsage } from "./metrics_pb";
+import { file_malonaz_ai_v1_metrics } from "./metrics_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -17,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/chat.proto.
  */
 export const file_malonaz_ai_v1_chat: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEiswYKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJDCgthbm5vdGF0aW9ucxgHIAMoCzIkLm1hbG9uYXouYWkudjEuQ2hhdC5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARIXCgV0aXRsZRgIIAEoCUIIukgFcgMYgAQSEgoFcHJpY2UYCSABKAFCA+BBAxI5ChFsYXN0X3VzZXJfbWVzc2FnZRgKIAEoCUIe4EED+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOokB6kFaChNhaS5tYWxvbmF6LmNvbS9DaGF0EjZvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9jaGF0cy97Y2hhdH0qBWNoYXRzMgRjaGF00qYEAIL2LCRlMGMyYTA0Ni0wNWRjLTQ4NTMtOWJlNS1iNDdlMzg4OWYyNDJC0wFaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3Yx6kFYChthaS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbupBTQoTYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL2NoYXQucHJvdG8SDW1hbG9uYXouYWkudjEi+gcKBENoYXQSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSxQEKBmxhYmVscxgGIAMoCzIfLm1hbG9uYXouYWkudjEuQ2hhdC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJDCgthbm5vdGF0aW9ucxgHIAMoCzIkLm1hbG9uYXouYWkudjEuQ2hhdC5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARIXCgV0aXRsZRgIIAEoCUIIukgFcgMYgAQSEgoFcHJpY2UYCSABKAFCA+BBAxI5ChFsYXN0X3VzZXJfbWVzc2FnZRgKIAEoCUIe4EED+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlEiEKFHN5c3RlbV9tZXNzYWdlX2NvdW50GAsgASgFQgPgQQMSJAoXYXNzaXN0YW50X21lc3NhZ2VfY291bnQYDCABKAVCA+BBAxIfChJ1c2VyX21lc3NhZ2VfY291bnQYDSABKAVCA+BBAxIfChJ0b29sX21lc3NhZ2VfY291bnQYDiABKAVCA+BBAxI6Cgxtb2RlbF91c2FnZXMYDyADKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2VCCeBBA7rqDwIQARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqJAepBWgoTYWkubWFsb25hei5jb20vQ2hhdBI2b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vY2hhdHMve2NoYXR9KgVjaGF0czIEY2hhdNKmBACC9iwkZTBjMmEwNDYtMDVkYy00ODUzLTliZTUtYjQ3ZTM4ODlmMjQyQtMBWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBWAobYWkubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb27qQU0KE2FpLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_metrics, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Chat represents a multi-turn AI conversation between a user and an assistant.
@@ -92,7 +94,7 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
 
   /**
    * Total price in dollars of this chat, aggregated over the model usage of
-   * all of its messages.
+   * all of its messages. Append-only spend: never decremented on delete.
    *
    * @generated from field: double price = 9;
    */
@@ -105,6 +107,44 @@ export type Chat = Message<"malonaz.ai.v1.Chat"> & {
    * @generated from field: string last_user_message = 10;
    */
   lastUserMessage: string;
+
+  /**
+   * Number of live system messages.
+   *
+   * @generated from field: int32 system_message_count = 11;
+   */
+  systemMessageCount: number;
+
+  /**
+   * Number of live assistant messages.
+   *
+   * @generated from field: int32 assistant_message_count = 12;
+   */
+  assistantMessageCount: number;
+
+  /**
+   * Number of live user messages.
+   *
+   * @generated from field: int32 user_message_count = 13;
+   */
+  userMessageCount: number;
+
+  /**
+   * Number of live tool messages.
+   *
+   * @generated from field: int32 tool_message_count = 14;
+   */
+  toolMessageCount: number;
+
+  /**
+   * Model usage aggregated over every successful generation in this chat, one
+   * entry per model, ordered by model resource name. Like `price`, this is
+   * append-only spend: deleting a message does not subtract its usage, and
+   * failed generations are not counted. `price` equals the sum of these.
+   *
+   * @generated from field: repeated malonaz.ai.v1.ModelUsage model_usages = 15;
+   */
+  modelUsages: ModelUsage[];
 };
 
 export type ChatValid = Chat;

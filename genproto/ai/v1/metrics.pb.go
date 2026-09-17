@@ -520,7 +520,7 @@ func (b0 ModelUsage_builder) Build() *ModelUsage {
 type ResourceConsumption struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Number of units consumed.
-	Quantity int32 `protobuf:"varint,1,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	Quantity int64 `protobuf:"varint,1,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	// Price in dollars for this resource consumption.
 	Price         float64 `protobuf:"fixed64,2,opt,name=price,proto3" json:"price,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -552,7 +552,7 @@ func (x *ResourceConsumption) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ResourceConsumption) GetQuantity() int32 {
+func (x *ResourceConsumption) GetQuantity() int64 {
 	if x != nil {
 		return x.Quantity
 	}
@@ -566,7 +566,7 @@ func (x *ResourceConsumption) GetPrice() float64 {
 	return 0
 }
 
-func (x *ResourceConsumption) SetQuantity(v int32) {
+func (x *ResourceConsumption) SetQuantity(v int64) {
 	x.Quantity = v
 }
 
@@ -578,7 +578,7 @@ type ResourceConsumption_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Number of units consumed.
-	Quantity int32
+	Quantity int64
 	// Price in dollars for this resource consumption.
 	Price float64
 }
@@ -619,7 +619,7 @@ const file_malonaz_ai_v1_metrics_proto_rawDesc = "" +
 	"\x1cinput_image_token_cache_read\x18\f \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x18inputImageTokenCacheRead\x12d\n" +
 	"\x1dinput_image_token_cache_write\x18\r \x01(\v2\".malonaz.ai.v1.ResourceConsumptionR\x19inputImageTokenCacheWrite\"G\n" +
 	"\x13ResourceConsumption\x12\x1a\n" +
-	"\bquantity\x18\x01 \x01(\x05R\bquantity\x12\x14\n" +
+	"\bquantity\x18\x01 \x01(\x03R\bquantity\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\x01R\x05priceB(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_metrics_proto_msgTypes = make([]protoimpl.MessageInfo, 3)

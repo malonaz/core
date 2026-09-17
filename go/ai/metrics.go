@@ -4,7 +4,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
-func NewResourceConsumption(quantity int32) *aipb.ResourceConsumption {
+func NewResourceConsumption(quantity int64) *aipb.ResourceConsumption {
 	if quantity == 0 {
 		return nil
 	}

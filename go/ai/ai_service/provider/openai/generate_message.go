@@ -233,12 +233,12 @@ func (c *Client) StreamGenerateMessage(
 				inputTokens -= lastUsage.PromptTokensDetails.CachedTokens
 			}
 			if inputTokens > 0 {
-				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(inputTokens)}
+				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int64(inputTokens)}
 			}
 		}
 
 		if lastUsage.PromptTokensDetails.CachedTokens > 0 {
-			modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(lastUsage.PromptTokensDetails.CachedTokens)}
+			modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int64(lastUsage.PromptTokensDetails.CachedTokens)}
 		}
 
 		if lastUsage.CompletionTokens > 0 {
@@ -247,13 +247,13 @@ func (c *Client) StreamGenerateMessage(
 				outputTokens -= lastUsage.CompletionTokensDetails.ReasoningTokens
 			}
 			if outputTokens > 0 {
-				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int32(outputTokens)}
+				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: int64(outputTokens)}
 			}
 		}
 
-		inferredReasoningTokens := int32(lastUsage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
+		inferredReasoningTokens := int64(lastUsage.TotalTokens) - modelUsage.GetInputToken().GetQuantity() - modelUsage.GetInputTokenCacheRead().GetQuantity() - modelUsage.GetOutputToken().GetQuantity()
 		if lastUsage.CompletionTokensDetails.ReasoningTokens > 0 {
-			if int32(lastUsage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
+			if int64(lastUsage.CompletionTokensDetails.ReasoningTokens) != inferredReasoningTokens {
 				return status.Errorf(
 					codes.Internal, "reasoning tokens doesn't match inferred value: inferred %d, got %d",
 					inferredReasoningTokens, lastUsage.CompletionTokensDetails.ReasoningTokens,

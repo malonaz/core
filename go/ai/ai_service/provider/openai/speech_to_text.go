@@ -44,7 +44,7 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	modelUsage := &aipb.ModelUsage{
 		Model: request.Model,
 		InputSecond: &aipb.ResourceConsumption{
-			Quantity: int32(request.AudioChunk.Duration.AsDuration().Round(time.Second).Seconds()),
+			Quantity: int64(request.AudioChunk.Duration.AsDuration().Round(time.Second).Seconds()),
 		},
 	}
 

@@ -179,10 +179,10 @@ func (c *Client) StreamTextToSpeech(
 	modelUsage := &aipb.ModelUsage{
 		Model: configuration.Model,
 		InputCharacter: &aipb.ResourceConsumption{
-			Quantity: int32(billableCharacterCount),
+			Quantity: int64(billableCharacterCount),
 		},
 		OutputSecond: &aipb.ResourceConsumption{
-			Quantity: int32(totalDuration.Seconds()),
+			Quantity: int64(totalDuration.Seconds()),
 		},
 	}
 	if err := srv.Send(&aiservicepb.StreamTextToSpeechResponse{

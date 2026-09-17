@@ -127,10 +127,10 @@ func (c *Client) TextToSpeechStream(request *aiservicepb.TextToSpeechStreamReque
 	modelUsage := &aipb.ModelUsage{
 		Model: request.Model,
 		InputCharacter: &aipb.ResourceConsumption{
-			Quantity: int32(utf8.RuneCountInString(request.Text)),
+			Quantity: int64(utf8.RuneCountInString(request.Text)),
 		},
 		OutputSecond: &aipb.ResourceConsumption{
-			Quantity: int32(totalDuration.Seconds()),
+			Quantity: int64(totalDuration.Seconds()),
 		},
 	}
 	if err := stream.Send(&aiservicepb.TextToSpeechStreamResponse{
