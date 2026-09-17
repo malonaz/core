@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/metrics.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -89,7 +90,7 @@ message Chat {
   string title = 8 [(buf.validate.field).string.max_len = 512];
 
   // Total price in dollars of this chat, aggregated over the model usage of
-  // all of its messages.
+  // all of its messages. Append-only spend: never decremented on delete.
   double price = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The resource name of the last user message in this chat.
@@ -97,5 +98,30 @@ message Chat {
   string last_user_message = 10 [
     (google.api.resource_reference).type = "ai.malonaz.com/Message",
     (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // Message counts below are live, one per [Role][malonaz.ai.v1.Role]:
+  // soft-deleted messages are excluded, so they track the conversation as it
+  // stands.
+
+  // Number of live system messages.
+  int32 system_message_count = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Number of live assistant messages.
+  int32 assistant_message_count = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Number of live user messages.
+  int32 user_message_count = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Number of live tool messages.
+  int32 tool_message_count = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Model usage aggregated over every successful generation in this chat, one
+  // entry per model, ordered by model resource name. Like `price`, this is
+  // append-only spend: deleting a message does not subtract its usage, and
+  // failed generations are not counted. `price` equals the sum of these.
+  repeated ModelUsage model_usages = 15 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
   ];
 }

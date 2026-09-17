@@ -1,10 +1,13 @@
 package ai
 
 import (
+	"slices"
+	"sort"
+
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
-func NewResourceConsumption(quantity int32) *aipb.ResourceConsumption {
+func NewResourceConsumption(quantity int64) *aipb.ResourceConsumption {
 	if quantity == 0 {
 		return nil
 	}
@@ -93,4 +96,15 @@ func AggregateModelUsage(aggregateModelUsage *aipb.ModelUsage, modelUsages ...*a
 		addResourceConsumption(&aggregateModelUsage.InputImageTokenCacheRead, modelUsage.GetInputImageTokenCacheRead())
 		addResourceConsumption(&aggregateModelUsage.InputImageTokenCacheWrite, modelUsage.GetInputImageTokenCacheWrite())
 	}
+}
+
+// AddModelUsage folds usage into a per-model aggregate list, keeping one entry
+// per model ordered by model resource name.
+func AddModelUsage(modelUsages []*aipb.ModelUsage, usage *aipb.ModelUsage) []*aipb.ModelUsage {
+	i := sort.Search(len(modelUsages), func(i int) bool { return modelUsages[i].GetModel() >= usage.GetModel() })
+	if i == len(modelUsages) || modelUsages[i].GetModel() != usage.GetModel() {
+		modelUsages = slices.Insert(modelUsages, i, &aipb.ModelUsage{Model: usage.GetModel()})
+	}
+	AggregateModelUsage(modelUsages[i], usage)
+	return modelUsages
 }

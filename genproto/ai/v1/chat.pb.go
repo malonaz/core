@@ -56,13 +56,26 @@ type Chat struct {
 	// A human-readable title for this chat.
 	Title string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
 	// Total price in dollars of this chat, aggregated over the model usage of
-	// all of its messages.
+	// all of its messages. Append-only spend: never decremented on delete.
 	Price float64 `protobuf:"fixed64,9,opt,name=price,proto3" json:"price,omitempty"`
 	// The resource name of the last user message in this chat.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
 	LastUserMessage string `protobuf:"bytes,10,opt,name=last_user_message,json=lastUserMessage,proto3" json:"last_user_message,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Number of live system messages.
+	SystemMessageCount int32 `protobuf:"varint,11,opt,name=system_message_count,json=systemMessageCount,proto3" json:"system_message_count,omitempty"`
+	// Number of live assistant messages.
+	AssistantMessageCount int32 `protobuf:"varint,12,opt,name=assistant_message_count,json=assistantMessageCount,proto3" json:"assistant_message_count,omitempty"`
+	// Number of live user messages.
+	UserMessageCount int32 `protobuf:"varint,13,opt,name=user_message_count,json=userMessageCount,proto3" json:"user_message_count,omitempty"`
+	// Number of live tool messages.
+	ToolMessageCount int32 `protobuf:"varint,14,opt,name=tool_message_count,json=toolMessageCount,proto3" json:"tool_message_count,omitempty"`
+	// Model usage aggregated over every successful generation in this chat, one
+	// entry per model, ordered by model resource name. Like `price`, this is
+	// append-only spend: deleting a message does not subtract its usage, and
+	// failed generations are not counted. `price` equals the sum of these.
+	ModelUsages   []*ModelUsage `protobuf:"bytes,15,rep,name=model_usages,json=modelUsages,proto3" json:"model_usages,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Chat) Reset() {
@@ -160,6 +173,41 @@ func (x *Chat) GetLastUserMessage() string {
 	return ""
 }
 
+func (x *Chat) GetSystemMessageCount() int32 {
+	if x != nil {
+		return x.SystemMessageCount
+	}
+	return 0
+}
+
+func (x *Chat) GetAssistantMessageCount() int32 {
+	if x != nil {
+		return x.AssistantMessageCount
+	}
+	return 0
+}
+
+func (x *Chat) GetUserMessageCount() int32 {
+	if x != nil {
+		return x.UserMessageCount
+	}
+	return 0
+}
+
+func (x *Chat) GetToolMessageCount() int32 {
+	if x != nil {
+		return x.ToolMessageCount
+	}
+	return 0
+}
+
+func (x *Chat) GetModelUsages() []*ModelUsage {
+	if x != nil {
+		return x.ModelUsages
+	}
+	return nil
+}
+
 func (x *Chat) SetName(v string) {
 	x.Name = v
 }
@@ -198,6 +246,26 @@ func (x *Chat) SetPrice(v float64) {
 
 func (x *Chat) SetLastUserMessage(v string) {
 	x.LastUserMessage = v
+}
+
+func (x *Chat) SetSystemMessageCount(v int32) {
+	x.SystemMessageCount = v
+}
+
+func (x *Chat) SetAssistantMessageCount(v int32) {
+	x.AssistantMessageCount = v
+}
+
+func (x *Chat) SetUserMessageCount(v int32) {
+	x.UserMessageCount = v
+}
+
+func (x *Chat) SetToolMessageCount(v int32) {
+	x.ToolMessageCount = v
+}
+
+func (x *Chat) SetModelUsages(v []*ModelUsage) {
+	x.ModelUsages = v
 }
 
 func (x *Chat) HasCreateTime() bool {
@@ -259,11 +327,24 @@ type Chat_builder struct {
 	// A human-readable title for this chat.
 	Title string
 	// Total price in dollars of this chat, aggregated over the model usage of
-	// all of its messages.
+	// all of its messages. Append-only spend: never decremented on delete.
 	Price float64
 	// The resource name of the last user message in this chat.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
 	LastUserMessage string
+	// Number of live system messages.
+	SystemMessageCount int32
+	// Number of live assistant messages.
+	AssistantMessageCount int32
+	// Number of live user messages.
+	UserMessageCount int32
+	// Number of live tool messages.
+	ToolMessageCount int32
+	// Model usage aggregated over every successful generation in this chat, one
+	// entry per model, ordered by model resource name. Like `price`, this is
+	// append-only spend: deleting a message does not subtract its usage, and
+	// failed generations are not counted. `price` equals the sum of these.
+	ModelUsages []*ModelUsage
 }
 
 func (b0 Chat_builder) Build() *Chat {
@@ -280,6 +361,11 @@ func (b0 Chat_builder) Build() *Chat {
 	x.Title = b.Title
 	x.Price = b.Price
 	x.LastUserMessage = b.LastUserMessage
+	x.SystemMessageCount = b.SystemMessageCount
+	x.AssistantMessageCount = b.AssistantMessageCount
+	x.UserMessageCount = b.UserMessageCount
+	x.ToolMessageCount = b.ToolMessageCount
+	x.ModelUsages = b.ModelUsages
 	return m0
 }
 
@@ -287,7 +373,7 @@ var File_malonaz_ai_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xaf\a\n" +
+	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd2\t\n" +
 	"\x04Chat\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -303,7 +389,12 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\x05price\x18\t \x01(\x01B\x03\xe0A\x03R\x05price\x12J\n" +
 	"\x11last_user_message\x18\n" +
 	" \x01(\tB\x1e\xe0A\x03\xfaA\x18\n" +
-	"\x16ai.malonaz.com/MessageR\x0flastUserMessage\x1a9\n" +
+	"\x16ai.malonaz.com/MessageR\x0flastUserMessage\x125\n" +
+	"\x14system_message_count\x18\v \x01(\x05B\x03\xe0A\x03R\x12systemMessageCount\x12;\n" +
+	"\x17assistant_message_count\x18\f \x01(\x05B\x03\xe0A\x03R\x15assistantMessageCount\x121\n" +
+	"\x12user_message_count\x18\r \x01(\x05B\x03\xe0A\x03R\x10userMessageCount\x121\n" +
+	"\x12tool_message_count\x18\x0e \x01(\x05B\x03\xe0A\x03R\x10toolMessageCount\x12G\n" +
+	"\fmodel_usages\x18\x0f \x03(\v2\x19.malonaz.ai.v1.ModelUsageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\vmodelUsages\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -320,6 +411,7 @@ var file_malonaz_ai_v1_chat_proto_goTypes = []any{
 	nil,                           // 1: malonaz.ai.v1.Chat.LabelsEntry
 	nil,                           // 2: malonaz.ai.v1.Chat.AnnotationsEntry
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*ModelUsage)(nil),            // 4: malonaz.ai.v1.ModelUsage
 }
 var file_malonaz_ai_v1_chat_proto_depIdxs = []int32{
 	3, // 0: malonaz.ai.v1.Chat.create_time:type_name -> google.protobuf.Timestamp
@@ -327,11 +419,12 @@ var file_malonaz_ai_v1_chat_proto_depIdxs = []int32{
 	3, // 2: malonaz.ai.v1.Chat.delete_time:type_name -> google.protobuf.Timestamp
 	1, // 3: malonaz.ai.v1.Chat.labels:type_name -> malonaz.ai.v1.Chat.LabelsEntry
 	2, // 4: malonaz.ai.v1.Chat.annotations:type_name -> malonaz.ai.v1.Chat.AnnotationsEntry
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4, // 5: malonaz.ai.v1.Chat.model_usages:type_name -> malonaz.ai.v1.ModelUsage
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_chat_proto_init() }
@@ -339,6 +432,7 @@ func file_malonaz_ai_v1_chat_proto_init() {
 	if File_malonaz_ai_v1_chat_proto != nil {
 		return
 	}
+	file_malonaz_ai_v1_metrics_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

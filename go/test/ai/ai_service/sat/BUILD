@@ -1,6 +1,7 @@
 go_test(
     name = "sat",
     srcs = [
+        "chat_test.go",
         "generate_message_test.go",
         "sat_test.go",
         "stats_test.go",
@@ -12,6 +13,7 @@ go_test(
     ],
     test_outputs = ["sat.log"],
     deps = [
+        "//go/ai",
         "//go/ai/ai_service/provider/mock",
         "//go/ai/tool",
         "//go/aip",

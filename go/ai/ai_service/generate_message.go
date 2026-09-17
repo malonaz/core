@@ -95,15 +95,13 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		return status.Errorf(codes.InvalidArgument, "%s does not support tool calling", request.Model).Err()
 	}
 
-	// Fetch (or lazily create) the chat, and load its valid message history:
-	// errored and superseded messages are excluded.
-	var chat *aipb.Chat
+	// Ensure the chat exists (lazily creating it), and load its valid message
+	// history: errored and superseded messages are excluded.
 	var history []*aipb.Message
 	eg, ctxEg := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		getChatRequest := &pb.GetChatRequest{Name: chatRn.String()}
-		var err error
-		chat, err = s.GetChat(ctxEg, getChatRequest)
+		_, err := s.GetChat(ctxEg, getChatRequest)
 		if err != nil {
 			if !status.HasCode(err, codes.NotFound) {
 				return err
@@ -113,12 +111,9 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 				ChatId: chatRn.Chat,
 				Chat:   &aipb.Chat{},
 			}
-			chat, err = s.CreateChat(ctxEg, createChatRequest)
-			if err != nil {
-				return err
-			}
+			_, err = s.CreateChat(ctxEg, createChatRequest)
 		}
-		return nil
+		return err
 	})
 	eg.Go(func() error {
 		listMessagesRequest := &pb.ListMessagesRequest{
@@ -286,21 +281,25 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		return err
 	}
 
-	// Roll the message's price up into the chat, and track the last user message.
-	chat.Price += persistedMessage.GetPrice()
-	updateChatPaths := []string{"price"}
+	// Roll the generation's spend up into the chat, and track the last user message.
+	var lastUserMessage string
 	for i := len(history) - 1; i >= 0; i-- {
 		if history[i].GetRole() == aipb.Role_ROLE_USER {
-			chat.LastUserMessage = history[i].GetName()
-			updateChatPaths = append(updateChatPaths, "last_user_message")
+			lastUserMessage = history[i].GetName()
 			break
 		}
 	}
-	updateChatRequest := &pb.UpdateChatRequest{
-		Chat:       chat,
-		UpdateMask: pbfieldmask.FromPaths(updateChatPaths...).Proto(),
-	}
-	if _, err := s.UpdateChat(ctx, updateChatRequest); err != nil {
+	_, err = s.mutateChat(ctx, chatRn.String(), func(chat *aipb.Chat) []string {
+		chat.Price += persistedMessage.GetPrice()
+		chat.ModelUsages = ai.AddModelUsage(chat.ModelUsages, persistedMessage.GetModelUsage())
+		paths := []string{"price", "model_usages"}
+		if lastUserMessage != "" {
+			chat.LastUserMessage = lastUserMessage
+			paths = append(paths, "last_user_message")
+		}
+		return paths
+	})
+	if err != nil {
 		return err
 	}
 

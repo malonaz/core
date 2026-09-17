@@ -212,13 +212,13 @@ func (c *Client) StreamGenerateMessage(
 		case anthropic.MessageStartEvent:
 			modelUsage := &aipb.ModelUsage{Model: request.Model}
 			if variant.Message.Usage.InputTokens > 0 {
-				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.InputTokens)}
+				modelUsage.InputToken = &aipb.ResourceConsumption{Quantity: int64(variant.Message.Usage.InputTokens)}
 			}
 			if variant.Message.Usage.CacheReadInputTokens > 0 {
-				modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheReadInputTokens)}
+				modelUsage.InputTokenCacheRead = &aipb.ResourceConsumption{Quantity: int64(variant.Message.Usage.CacheReadInputTokens)}
 			}
 			if variant.Message.Usage.CacheCreationInputTokens > 0 {
-				modelUsage.InputTokenCacheWrite = &aipb.ResourceConsumption{Quantity: int32(variant.Message.Usage.CacheCreationInputTokens)}
+				modelUsage.InputTokenCacheWrite = &aipb.ResourceConsumption{Quantity: int64(variant.Message.Usage.CacheCreationInputTokens)}
 			}
 			sender.SendModelUsage(ctx, modelUsage)
 
@@ -288,8 +288,8 @@ func (c *Client) StreamGenerateMessage(
 			modelUsage := &aipb.ModelUsage{Model: request.Model}
 			// Anthropic reports thinking_tokens as a subset of output_tokens, but ModelUsage
 			// consumptions must be disjoint since each is priced separately, so split them out.
-			thinkingTokens := int32(variant.Usage.OutputTokensDetails.ThinkingTokens)
-			if outputTokens := int32(variant.Usage.OutputTokens) - thinkingTokens; outputTokens > 0 {
+			thinkingTokens := int64(variant.Usage.OutputTokensDetails.ThinkingTokens)
+			if outputTokens := int64(variant.Usage.OutputTokens) - thinkingTokens; outputTokens > 0 {
 				modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: outputTokens}
 			}
 			if thinkingTokens > 0 {

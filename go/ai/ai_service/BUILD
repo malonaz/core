@@ -14,6 +14,7 @@ onyx_service_src(
 go_library(
     name = "ai_service",
     srcs = [
+        "chat.go",
         "generate_message.go",
         "metrics.go",
         "runtime.go",

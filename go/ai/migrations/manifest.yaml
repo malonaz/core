@@ -11,3 +11,5 @@ migrations:
     hash: f28e9cafecf37009be49fd3b683e258a
   - path: chat/004_last_user_message.sql
     hash: 98f775d761f7b9dfa0352609cef9f6de
+  - path: chat/005_message_counts_model_usages.sql
+    hash: b7f382bb45fc76cd6b2cd1d99a4b963d

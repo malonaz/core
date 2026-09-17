@@ -1,6 +1,7 @@
 go_library(
     name = "store",
     srcs = [
+        "chat.go",
         "chat_postgres.pb.go",
         "message_postgres.pb.go",
         "stats.go",
@@ -8,6 +9,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/ai/model",
+        "//go/aip",
         "//go/postgres",
         "//third_party/go:github.com__jackc__pgx__v5",
     ],
