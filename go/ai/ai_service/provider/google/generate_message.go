@@ -551,6 +551,12 @@ func (c *Client) buildAssistantParts(ctx context.Context, blocks []*aipb.Block) 
 
 		switch content := block.Content.(type) {
 		case *aipb.Block_Thought:
+			// A signature-only part is stored as an empty thought; Vertex intermittently
+			// rejects empty parts on replay, so ride the signature on the preceding part.
+			if content.Thought == "" && len(parts) > 0 {
+				parts[len(parts)-1].ThoughtSignature = thoughtSignature
+				continue
+			}
 			parts = append(parts, &genai.Part{
 				Text:             content.Thought,
 				Thought:          true,
