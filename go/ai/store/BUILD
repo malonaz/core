@@ -15,7 +15,10 @@ go_protoc_gen_core(
 
 filegroup(
     name = "handwritten",
-    srcs = ["stats.go"],
+    srcs = [
+        "chat.go",
+        "stats.go",
+    ],
     labels = [
         "codegen",
         "copy_generated_code:go:gengo",
@@ -25,6 +28,7 @@ filegroup(
 go_library(
     name = "store",
     srcs = [
+        "chat.go",
         "stats.go",
         ":codegen",
     ],
@@ -32,6 +36,7 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/ai/model",
+        "//go/aip",
         "//go/postgres",
         "//third_party/go:github.com__jackc__pgx__v5",
     ],
