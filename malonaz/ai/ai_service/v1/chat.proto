@@ -66,7 +66,8 @@ message UpdateChatRequest {
       "title",
       "annotations",
       "price",
-      "last_user_message"
+      "last_user_message",
+      "model_usages"
     ]
   };
   option (buf.validate.message).cel = {
