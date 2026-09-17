@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -200,8 +201,17 @@ func (c *Client) StreamGenerateMessage(
 	redactedThinkingIndexSet := map[int64]struct{}{}
 	var sentTtfb bool
 
+	// DEBUG: capture the raw provider payload to dump when the turn yields no blocks.
+	var accumulated anthropic.Message
+	var sentBlocks bool
 	for messageStream.Next() && sender.Err() == nil {
 		event := messageStream.Current()
+		if err := accumulated.Accumulate(event); err != nil {
+			slog.Info("anthropic: accumulating event", "error", err)
+		}
+		if _, ok := event.AsAny().(anthropic.ContentBlockDeltaEvent); ok {
+			sentBlocks = true
+		}
 
 		if !sentTtfb {
 			sender.SendGenerationMetrics(ctx, &aipb.GenerationMetrics{Ttfb: durationpb.New(time.Since(startTime))})
@@ -313,6 +323,15 @@ func (c *Client) StreamGenerateMessage(
 
 	if err := messageStream.Err(); err != nil {
 		return status.FromError(err, "streaming from anthropic").Err()
+	}
+	if !sentBlocks {
+		requestJSON, _ := json.Marshal(messageParams)
+		responseJSON, _ := json.Marshal(accumulated)
+		slog.Info("anthropic: empty message",
+			"model", request.Model,
+			"request", string(requestJSON),
+			"response", string(responseJSON),
+		)
 	}
 	return nil
 }
