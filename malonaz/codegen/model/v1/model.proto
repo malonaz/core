@@ -78,7 +78,7 @@ message Join {
 
   // Required. The field name on the joined message to populate from. The
   // special value "name" selects the joined resource's name, reconstructed
-  // from its identifier columns.
+  // from its identifier columns (and is what COUNT aggregates must name).
   string field = 2;
 
   // Selects the joined row. When unset, resource_type must be an ancestor of
@@ -95,6 +95,13 @@ message Join {
     // resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
     // fields must be nullable.
     Query query = 4;
+
+    // Folds every descendant row correlated with this resource into one
+    // value. `field` names the aggregated column on the descendant (ignored
+    // for COUNT, which must name "name"). Emitted as a correlated subquery,
+    // so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
+    // Nothing can chain onto an aggregate field: there is no row behind it.
+    Aggregate aggregate = 5;
   }
 }
 
@@ -109,4 +116,32 @@ message Query {
   // Required AIP-132 order_by picking the winning row, e.g.
   // "create_time desc".
   string order_by = 2;
+}
+
+// An aggregate over the descendant rows correlated with this resource.
+message Aggregate {
+  // The SQL aggregate function applied to the descendant column.
+  enum Function {
+    // Used to detect an unset field.
+    FUNCTION_UNSPECIFIED = 0;
+    // SUM over a google.type.Decimal (stays Decimal) or an integer column
+    // (widens to int64, as Postgres does).
+    FUNCTION_SUM = 1;
+    // COUNT of the correlated rows, as int64. `field` must be "name".
+    FUNCTION_COUNT = 2;
+    // MIN, keeping the column's type (Timestamp included).
+    FUNCTION_MIN = 3;
+    // MAX, keeping the column's type (Timestamp included).
+    FUNCTION_MAX = 4;
+  }
+
+  // Required. The function folding the descendant rows.
+  Function function = 1;
+
+  // Optional AIP-160 filter over the descendant, same grammar and limits as
+  // Query.filter: conjunctions of comparisons on scalar stored fields, enums
+  // unquoted. The aggregate sees exactly the rows the filter admits: when the
+  // descendant is soft-deletable and only live rows should count, say so with
+  // `NOT delete_time:*`.
+  string filter = 2;
 }

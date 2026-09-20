@@ -510,15 +510,15 @@ func resolveJoinSourceMessage(registry *protoregistry.Files, msgDesc protoreflec
 
 // resolveJoinAlias resolves the table alias a joined field is emitted under:
 // the reference field name for reference joins (including references chained
-// onto a query join's anchor), the anchor field's own name for query joins,
-// and the source table name for ancestor joins.
+// onto a query join's anchor), the field's own name for query and aggregate
+// joins, and the source table name for ancestor joins.
 func resolveJoinAlias(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, fieldName string, join *modelpb.Join) (string, error) {
-	// The alias never depends on the source message for reference and query
-	// joins, which may not exist in the registry.
+	// The alias never depends on the source message for reference, query and
+	// aggregate joins, which may not exist in the registry.
 	if join.GetReference() != "" {
 		return join.GetReference(), nil
 	}
-	if join.GetQuery() != nil {
+	if join.GetQuery() != nil || join.GetAggregate() != nil {
 		return fieldName, nil
 	}
 
@@ -566,10 +566,19 @@ func findMessageByResourceType(registry *protoregistry.Files, resourceType strin
 	return found, nil
 }
 
+// AggregateJoinColumn is the column an aggregate join's lateral subquery
+// projects its value under, shared with codegen so runtime filters and the
+// emitted SQL agree.
+const AggregateJoinColumn = "value"
+
 // resolveJoinFieldColumnName resolves the database column name for a joined field
 // by looking up the referenced field on the join source message. Returns the
 // field's column_name override if set, otherwise the field's proto name.
 func resolveJoinFieldColumnName(registry *protoregistry.Files, msgDesc protoreflect.MessageDescriptor, join *modelpb.Join) (string, error) {
+	// An aggregate's lateral projects its value under a fixed column.
+	if join.GetAggregate() != nil {
+		return AggregateJoinColumn, nil
+	}
 	sourceMsg, err := resolveJoinSourceMessage(registry, msgDesc, join)
 	if err != nil {
 		return "", err
