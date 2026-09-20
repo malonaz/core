@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 
@@ -206,6 +207,66 @@ message Shelf {
   ShelfExtra extra = 19 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The pages on this shelf, resolved by an aggregate join: the sum of
+  // page_count over its books with pages — the same filter as latest_book,
+  // so the two are directly comparable. Unset while no book qualifies.
+  int64 total_page_count = 21 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "page_count"
+        aggregate: {
+          function: FUNCTION_SUM
+          filter: "page_count > 0"
+        }
+      }
+    }
+  ];
+
+  // The number of books on this shelf, pageless ones included. COUNT over
+  // no rows is 0, not NULL, so this reads as 0 either way.
+  int64 book_count = 22 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        aggregate: {function: FUNCTION_COUNT}
+      }
+    }
+  ];
+
+  // The value of the priced books on this shelf: SUM over a decimal stays a
+  // decimal. Unset while no book has a price.
+  google.type.Decimal total_price = 24 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "price"
+        aggregate: {function: FUNCTION_SUM}
+      }
+    }
+  ];
+
+  // When the most recent book on this shelf was created: MAX over a
+  // Timestamp keeps its type.
+  google.protobuf.Timestamp last_book_create_time = 23 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "create_time"
+        aggregate: {function: FUNCTION_MAX}
+      }
+    }
   ];
 }
 

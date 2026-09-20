@@ -1,6 +1,7 @@
 go_test(
     name = "sat",
     srcs = [
+        "aggregate_join_test.go",
         "aip_paginate_test.go",
         "author_test.go",
         "batch_create_test.go",
@@ -74,6 +75,7 @@ go_test(
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__longrunning__operations",
+        "//third_party/proto:google__type__decimal",
         "//third_party/proto:validate",
     ],
 )

@@ -8,7 +8,9 @@ import (
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	decimal "github.com/shopspring/decimal"
 	resourcename "go.einride.tech/aip/resourcename"
+	decimal1 "google.golang.org/genproto/googleapis/type/decimal"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
@@ -22,26 +24,27 @@ var ErrBookHasChildren = errors.New("book has child resources")
 var ErrBookETagChanged = errors.New("book etag changed")
 
 type Book struct {
-	OrganizationID      string        `db:"organization_id" schema:"library" table:"book"`
-	ShelfID             string        `db:"shelf_id" schema:"library" table:"book"`
-	BookID              string        `db:"book_id" schema:"library" table:"book"`
-	CreateTime          time.Time     `db:"create_time" schema:"library" table:"book"`
-	UpdateTime          time.Time     `db:"update_time" schema:"library" table:"book"`
-	Title               string        `db:"title" schema:"library" table:"book"`
-	Author              string        `db:"author" schema:"library" table:"book"`
-	Isbn                string        `db:"isbn" schema:"library" table:"book"`
-	PublicationYear     int32         `db:"publication_year" schema:"library" table:"book"`
-	PageCount           int32         `db:"page_count" schema:"library" table:"book"`
-	Duration            time.Duration `db:"duration" schema:"library" table:"book"`
-	Labels              []byte        `db:"labels" schema:"library" table:"book"`
-	Etag                string        `db:"etag" schema:"library" table:"book"`
-	Metadata            []byte        `db:"metadata" schema:"library" table:"book"`
-	ShelfExternalId     *string       `db:"shelf_external_id" external:"true" join_schema:"library" join_table:"shelf" join_column:"ext_id"`
-	ShelfGenre          int16         `db:"shelf_genre" external:"true" join_schema:"library" join_table:"shelf" join_column:"genre"`
-	LatestBookmark      *string       `db:"latest_bookmark" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"name"`
-	LatestBookmarkColor *int16        `db:"latest_bookmark_color" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"color"`
-	FirstBookmark       *string       `db:"first_bookmark" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"name"`
-	FirstBookmarkColor  *int16        `db:"first_bookmark_color" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"color"`
+	OrganizationID      string           `db:"organization_id" schema:"library" table:"book"`
+	ShelfID             string           `db:"shelf_id" schema:"library" table:"book"`
+	BookID              string           `db:"book_id" schema:"library" table:"book"`
+	CreateTime          time.Time        `db:"create_time" schema:"library" table:"book"`
+	UpdateTime          time.Time        `db:"update_time" schema:"library" table:"book"`
+	Title               string           `db:"title" schema:"library" table:"book"`
+	Author              string           `db:"author" schema:"library" table:"book"`
+	Isbn                string           `db:"isbn" schema:"library" table:"book"`
+	PublicationYear     int32            `db:"publication_year" schema:"library" table:"book"`
+	PageCount           int32            `db:"page_count" schema:"library" table:"book"`
+	Duration            time.Duration    `db:"duration" schema:"library" table:"book"`
+	Labels              []byte           `db:"labels" schema:"library" table:"book"`
+	Etag                string           `db:"etag" schema:"library" table:"book"`
+	Metadata            []byte           `db:"metadata" schema:"library" table:"book"`
+	ShelfExternalId     *string          `db:"shelf_external_id" external:"true" join_schema:"library" join_table:"shelf" join_column:"ext_id"`
+	ShelfGenre          int16            `db:"shelf_genre" external:"true" join_schema:"library" join_table:"shelf" join_column:"genre"`
+	LatestBookmark      *string          `db:"latest_bookmark" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"name"`
+	LatestBookmarkColor *int16           `db:"latest_bookmark_color" external:"true" join_schema:"library" join_table:"latest_bookmark" join_column:"color"`
+	FirstBookmark       *string          `db:"first_bookmark" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"name"`
+	FirstBookmarkColor  *int16           `db:"first_bookmark_color" external:"true" join_schema:"library" join_table:"first_bookmark" join_column:"color"`
+	Price               *decimal.Decimal `db:"price" schema:"library" table:"book"`
 }
 
 func BookFromPb(m *v1.Book) (*Book, error) {
@@ -100,6 +103,14 @@ func BookFromPb(m *v1.Book) (*Book, error) {
 		FirstBookmarkColorInt := int16(m.FirstBookmarkColor)
 		FirstBookmarkColor = &FirstBookmarkColorInt
 	}
+	var Price *decimal.Decimal
+	if m.Price != nil {
+		d, err := decimal.NewFromString(m.Price.GetValue())
+		if err != nil {
+			return nil, fmt.Errorf("parsing decimal price: %w", err)
+		}
+		Price = &d
+	}
 	return &Book{
 		OrganizationID:      OrganizationID,
 		ShelfID:             ShelfID,
@@ -121,6 +132,7 @@ func BookFromPb(m *v1.Book) (*Book, error) {
 		LatestBookmarkColor: LatestBookmarkColor,
 		FirstBookmark:       FirstBookmark,
 		FirstBookmarkColor:  FirstBookmarkColor,
+		Price:               Price,
 	}, nil
 }
 
@@ -171,6 +183,10 @@ func (m *Book) ToPb() (*v1.Book, error) {
 	if m.FirstBookmarkColor != nil {
 		FirstBookmarkColor = *m.FirstBookmarkColor
 	}
+	var Price *decimal1.Decimal
+	if m.Price != nil {
+		Price = &decimal1.Decimal{Value: m.Price.String()}
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}", m.OrganizationID, m.ShelfID, m.BookID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -194,6 +210,7 @@ func (m *Book) ToPb() (*v1.Book, error) {
 		LatestBookmarkColor: v1.BookmarkColor(LatestBookmarkColor),
 		FirstBookmark:       FirstBookmark,
 		FirstBookmarkColor:  v1.BookmarkColor(FirstBookmarkColor),
+		Price:               Price,
 	}, nil
 }
 
