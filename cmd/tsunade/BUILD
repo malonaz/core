@@ -32,6 +32,7 @@ go_binary(
         "//go/postgres",
         "//go/prometheus",
         "//malonaz/ai/ai_service/v1",
+        "//third_party/go:google.golang.org__grpc",
     ],
 )
 

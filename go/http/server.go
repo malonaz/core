@@ -2,12 +2,15 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/lifecycle"
 )
 
 // Opts holds HTTP server options.
@@ -27,20 +30,29 @@ type Server struct {
 	httpServer   *http.Server
 	mux          *http.ServeMux
 	healthServer *health.GRPCServer
-	register     func(*Server)
 	patternSet   map[string]struct{}
+	lifecycle    lifecycle.State
 }
 
-// NewServer creates a new HTTP server.
+// NewServer creates a new HTTP server and lets register add its routes.
 func NewServer(opts *Opts, name string, register func(*Server)) *Server {
-	return &Server{
+	mux := http.NewServeMux()
+	s := &Server{
 		opts:         opts,
 		log:          slog.Default(),
-		mux:          http.NewServeMux(),
+		mux:          mux,
 		healthServer: health.NewGRPCServer(opts.Health, name),
-		register:     register,
 		patternSet:   map[string]struct{}{},
+		httpServer: &http.Server{
+			Addr:         fmt.Sprintf(":%d", opts.Port),
+			Handler:      mux,
+			ReadTimeout:  opts.ReadTimeout,
+			WriteTimeout: opts.WriteTimeout,
+			IdleTimeout:  opts.IdleTimeout,
+		},
 	}
+	register(s)
+	return s
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {
@@ -61,22 +73,32 @@ func (s *Server) GetHealthServer() *health.GRPCServer {
 	return s.healthServer
 }
 
+// Listen binds the server's address; Serve does so itself when not already bound.
+func (s *Server) Listen(ctx context.Context) error {
+	_, err := s.listen()
+	return err
+}
+
+func (s *Server) listen() (net.Listener, error) {
+	return s.lifecycle.Listen(func() (net.Listener, error) {
+		listener, err := net.Listen("tcp", s.httpServer.Addr)
+		if err != nil {
+			return nil, fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
+		}
+		return listener, nil
+	})
+}
+
 // Serve the HTTP server.
 func (s *Server) Serve(ctx context.Context) error {
-	s.register(s)
 	// Start health server in background
 	go s.healthServer.Start(ctx)
 
-	// Create HTTP server
-	s.httpServer = &http.Server{
-		Addr:         fmt.Sprintf(":%d", s.opts.Port),
-		Handler:      s.mux,
-		ReadTimeout:  s.opts.ReadTimeout,
-		WriteTimeout: s.opts.WriteTimeout,
-		IdleTimeout:  s.opts.IdleTimeout,
+	listener, err := s.listen()
+	if err != nil {
+		return err
 	}
 
-	// Start HTTP server
 	s.log.InfoContext(ctx, "starting HTTP server",
 		"port", s.opts.Port,
 		"read_timeout", s.opts.ReadTimeout,
@@ -84,33 +106,36 @@ func (s *Server) Serve(ctx context.Context) error {
 		"idle_timeout", s.opts.IdleTimeout,
 		"graceful_stop_timeout", s.opts.GracefulStopTimeout,
 	)
-	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	// Stopped before serving: a clean exit, like a stop during Serve.
+	if err := s.httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("HTTP server exited unexpectedly: %w", err)
 	}
 	return nil
 }
 
-// Stop immediately stops the gateway server.
+// Stop closes the HTTP server immediately. A no-op once stopped.
 func (s *Server) Stop() error {
-	if s.httpServer == nil {
+	if !s.lifecycle.Stop() {
 		return nil
 	}
+	defer s.lifecycle.Done()
 	s.log.Info("stopping HTTP server")
 	s.healthServer.Shutdown()
 	return s.httpServer.Close()
 }
 
-// GracefulStop gracefully stops the gateway server.
+// GracefulStop stops the HTTP server, waiting for in-flight requests up to the graceful stop timeout.
+// A no-op once a stop has been requested.
 func (s *Server) GracefulStop() error {
-	if s.httpServer == nil {
+	if !s.lifecycle.GracefulStop() {
 		return nil
 	}
+	defer s.lifecycle.Done()
 	s.log.Info("gracefully stopping HTTP Server")
 	s.healthServer.Shutdown()
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
-
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		s.log.Warn("graceful shutdown failed, forcing", "error", err)
 		return s.httpServer.Close()

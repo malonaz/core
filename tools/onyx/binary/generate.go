@@ -127,6 +127,8 @@ func (g *generator) generate() {
 		g.P()
 	}
 	g.P("errChan := make(chan error, 1)")
+	g.P("// Every server is also stopped on return, so one bound before a later step fails does not outlive")
+	g.P("// run; Stop is a no-op after handleSignals.")
 	g.P("runServer := func(ctx ", ctx, ".Context, name string, serve func(", ctx, ".Context) error) {")
 	g.P("go func() {")
 	g.P("if err := serve(ctx); err != nil {")
@@ -170,6 +172,7 @@ func (g *generator) generate() {
 
 	g.P()
 	g.P("go healthServer.Serve(ctx)")
+	g.P("defer healthServer.Shutdown()")
 	g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
 	g.P("healthServer.Shutdown()")
 	g.P("return nil")
@@ -438,7 +441,7 @@ func (g *generator) service(s *Service) {
 	}
 	g.P(v, ", err := ", g.Qual(s.Target.GoImportPath(g.b.GoImportPath), "New"), "(", strings.Join(args, ", "), ")")
 	g.P("if err != nil {")
-	g.P("return ", fmt_, `.Errorf("instantiating `, s.GetName(), `: %w", err)`)
+	g.P("return ", fmt_, `.Errorf("instantiating `, s.GetName(), ` server: %w", err)`)
 	g.P("}")
 	g.P(v, "Cleanup, err := ", v, ".Start(ctx, ", withServiceAccount, ")")
 	g.P("if err != nil {")
@@ -468,7 +471,25 @@ func (g *generator) grpcServer(s *Server) {
 	grpc := g.Import(core + "/grpc")
 	fmt_ := g.Import("fmt")
 	v := serverVar(s, "GRPCServer")
-	g.P(v, " := ", grpc, ".NewServer(", serverOpts(s, "GRPC"), ", opts.Certs, opts.Prometheus, \"", s.GetName(), "\", func(server *", grpc, ".Server) {")
+	g.P(v, ", err := ", grpc, ".NewServer(", serverOpts(s, "GRPC"), ", opts.Certs, opts.Prometheus, \"", s.GetName(), "\", ", grpc, ".ServerOptions{")
+	for _, kind := range []string{"Unary", "Stream"} {
+		if len(s.GetGrpc().GetInterceptors()) == 0 {
+			break
+		}
+		g.P(kind, "Interceptors: []", g.Qual("google.golang.org/grpc", kind+"ServerInterceptor"), "{")
+		for _, i := range s.GetGrpc().GetInterceptors() {
+			if method := interceptors[i].method; method != "" {
+				g.P("sessionManager.", kind, "Server", method, "Interceptor(),")
+			} else {
+				g.P(gen.Camel(interceptorName(i)), "Interceptor.", kind, "(),")
+			}
+		}
+		g.P("},")
+	}
+	if s.GetGrpc().GetDescriptorSet() != "" {
+		g.P("FileDescriptorSet: ", serverVar(s, "DescriptorSetBytes"), ",")
+	}
+	g.P("}, func(server *", grpc, ".Server) {")
 	for _, registration := range s.GRPC {
 		g.P(gen.PB(g.File, registration.GRPC), ".Register", registration.GRPC.GoName, "Server(server.Raw, ", serviceVar(registration.Service), ")")
 	}
@@ -481,22 +502,9 @@ func (g *generator) grpcServer(s *Server) {
 		g.P("}))")
 	}
 	g.P("})")
-	if s.GetGrpc().GetDescriptorSet() != "" {
-		g.P(v, ".WithFileDescriptorSet(", serverVar(s, "DescriptorSetBytes"), ")")
-	}
-	if len(s.GetGrpc().GetInterceptors()) > 0 {
-		for _, kind := range []string{"Unary", "Stream"} {
-			g.P(v, ".With", kind, "Interceptors(")
-			for _, i := range s.GetGrpc().GetInterceptors() {
-				if method := interceptors[i].method; method != "" {
-					g.P("sessionManager.", kind, "Server", method, "Interceptor(),")
-				} else {
-					g.P(gen.Camel(interceptorName(i)), "Interceptor.", kind, "(),")
-				}
-			}
-			g.P(")")
-		}
-	}
+	g.P("if err != nil {")
+	g.P("return ", fmt_, `.Errorf("instantiating `, s.GetName(), ` server: %w", err)`)
+	g.P("}")
 	g.P("gracefulStopFns = append(gracefulStopFns, ", v, ".GracefulStop)")
 	g.P("stopFns = append(stopFns, ", v, ".Stop)")
 	for _, registration := range s.GRPC {
@@ -504,11 +512,8 @@ func (g *generator) grpcServer(s *Server) {
 		g.P(v, ".GetHealthServer().RegisterService(", strings.Join(checks, ", "), ")")
 	}
 	g.P("healthServer.RegisterService(\"", s.GetName(), "\", ", v, ".GetHealthServer().CheckFn())")
-	g.P("// Bound now, so a dependent's Start() can reach it and a bad address fails here.")
-	g.P("if err := ", v, ".Listen(ctx); err != nil {")
-	g.P("return ", fmt_, `.Errorf("listening `, s.GetName(), `: %w", err)`)
-	g.P("}")
-	g.P("runServer(ctx, \"", s.GetName(), "\", ", v, ".Serve)")
+	g.P("// Bound now, so a dependent's Start() can reach it.")
+	g.listenAndServe(s.GetName(), v)
 
 	var handlers []string
 	for _, registration := range s.GRPC {
@@ -525,7 +530,7 @@ func (g *generator) grpcServer(s *Server) {
 		g.P("})")
 		g.P("gracefulStopFns = append(gracefulStopFns, ", gateway, ".GracefulStop)")
 		g.P("stopFns = append(stopFns, ", gateway, ".Stop)")
-		g.P("runServer(ctx, \"", s.GetName(), " gateway\", ", gateway, ".Serve)")
+		g.listenAndServe(s.GetName()+" gateway", gateway)
 	}
 }
 
@@ -544,7 +549,7 @@ func (g *generator) httpServer(s *Server) {
 		g.P(v, ".GetHealthServer().RegisterService(", strings.Join(checks, ", "), ")")
 	}
 	g.P("healthServer.RegisterService(\"", s.GetName(), "\", ", v, ".GetHealthServer().CheckFn())")
-	g.P("runServer(ctx, \"", s.GetName(), "\", ", v, ".Serve)")
+	g.listenAndServe(s.GetName(), v)
 }
 
 func (g *generator) grpcWebProxy(s *Server) {
@@ -553,7 +558,18 @@ func (g *generator) grpcWebProxy(s *Server) {
 	g.P("gracefulStopFns = append(gracefulStopFns, ", v, ".GracefulStop)")
 	g.P("stopFns = append(stopFns, ", v, ".Stop)")
 	g.P("healthServer.RegisterService(\"", s.GetName(), "\", ", v, ".HealthCheckFn())")
-	g.P("runServer(ctx, \"", s.GetName(), "\", ", v, ".Serve)")
+	g.listenAndServe(s.GetName(), v)
+}
+
+// listenAndServe binds synchronously, so a bad address fails run and a stop always has a listener
+// to close, then serves in the background and stops on return.
+func (g *generator) listenAndServe(name, v string) {
+	fmt_ := g.Import("fmt")
+	g.P("if err := ", v, ".Listen(ctx); err != nil {")
+	g.P("return ", fmt_, `.Errorf("listening `, name, `: %w", err)`)
+	g.P("}")
+	g.P("runServer(ctx, \"", name, "\", ", v, ".Serve)")
+	g.P("defer ", v, ".Stop()")
 }
 
 func (g *generator) handleSignals() {

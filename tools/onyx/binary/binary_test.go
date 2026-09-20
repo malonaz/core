@@ -31,10 +31,10 @@ func TestLoad(t *testing.T) {
 	require.NoError(t, err)
 
 	// b-service is dialed by a-service, so it starts first; the rest keep manifest order.
-	require.Equal(t, []string{"b-service", "a-service", "a-processor", "d-processor"}, names(b.Servers))
+	require.Equal(t, []string{"b-service", "a-service", "a-processor", "d-processor", "d-http", "web"}, names(b.Servers))
 
 	// One a-service instance is shared by the grpc server and the processor.
-	require.Len(t, b.Services, 3)
+	require.Len(t, b.Services, 4)
 	require.Equal(t, []string{"a-service", "a-processor"}, names(b.Services[0].Servers))
 
 	require.Len(t, b.GRPCClients, 3)

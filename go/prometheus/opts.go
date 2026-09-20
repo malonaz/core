@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -26,10 +27,14 @@ type Server struct {
 }
 
 func NewServer(opts *Opts) *Server {
-	return &Server{
-		opts: opts,
-		log:  slog.Default(),
+	s := &Server{opts: opts, log: slog.Default()}
+	if opts.Enabled() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		// Built up front so a Stop that lands before Start is honored: net/http refuses to serve once closed.
+		s.server = &http.Server{Addr: fmt.Sprintf(":%d", opts.Port), Handler: mux}
 	}
+	return s
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {
@@ -41,26 +46,16 @@ func (s *Server) Start(ctx context.Context) {
 	if !s.opts.Enabled() {
 		return
 	}
-
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
-
-	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.opts.Port),
-		Handler: mux,
-	}
-
 	s.log.Info("serving Prometheus metrics", "port", s.opts.Port, "endpoint", "/metrics")
-	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		s.log.Warn("prometheus server shutdown unexpectedly", "error", err)
 	}
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	if s.server == nil {
+	if !s.opts.Enabled() {
 		return nil
 	}
-
 	s.log.Info("stopping Prometheus server")
 	if err := s.server.Shutdown(ctx); err != nil {
 		s.log.Error("Prometheus server forced to shutdown", "error", err)

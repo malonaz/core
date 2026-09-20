@@ -6,6 +6,7 @@ go_library(
         "//go/certs",
         "//go/grpc",
         "//go/health",
+        "//go/lifecycle",
         "//go/prometheus",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",

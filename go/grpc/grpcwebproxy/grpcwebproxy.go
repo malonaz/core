@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -22,6 +23,7 @@ import (
 	"github.com/malonaz/core/go/certs"
 	commongrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/lifecycle"
 	"github.com/malonaz/core/go/prometheus"
 )
 
@@ -45,98 +47,123 @@ type Server struct {
 
 	httpServer  *http.Server
 	grpcServer  *grpc.Server
-	backendConn *grpc.ClientConn
+	lifecycle   lifecycle.State
+	backendConn atomic.Pointer[grpc.ClientConn]
 }
 
 func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts) *Server {
-	return &Server{
-		log:            slog.Default(),
+	s := &Server{
 		opts:           opts,
 		certsOpts:      certsOpts,
 		prometheusOpts: prometheusOpts,
 	}
+	s.grpcServer = s.buildGRPCProxyServer()
+	s.httpServer = &http.Server{
+		Handler:      s.wrapWithGRPCWeb(),
+		WriteTimeout: time.Duration(opts.WriteTimeout) * time.Second,
+		ReadTimeout:  time.Duration(opts.ReadTimeout) * time.Second,
+	}
+	return s.WithLogger(slog.Default())
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {
-	s.log = logger
-	return s
-}
-
-func (s *Server) Serve(ctx context.Context) error {
-	s.log = s.log.WithGroup("grpcwebproxy").With(
+	s.log = logger.WithGroup("grpcwebproxy").With(
 		"port", s.opts.Port, "host", s.opts.Host,
 		"backend_host", s.opts.Backend.Host, "backend_port", s.opts.Backend.Port,
 	)
+	return s
+}
 
-	if s.opts.AllowAllOrigins && len(s.opts.AllowedOrigins) > 0 {
-		return fmt.Errorf("ambiguous config: set either allow_all_origins or allowed_origins, not both")
+// Listen dials the backend and binds the proxy's address; Serve does so itself when not already bound.
+func (s *Server) Listen(ctx context.Context) error {
+	_, err := s.listen()
+	return err
+}
+
+func (s *Server) listen() (net.Listener, error) {
+	return s.lifecycle.Listen(func() (net.Listener, error) {
+		if s.opts.AllowAllOrigins && len(s.opts.AllowedOrigins) > 0 {
+			return nil, fmt.Errorf("ambiguous config: set either allow_all_origins or allowed_origins, not both")
+		}
+		backendConn, err := s.dialBackend()
+		if err != nil {
+			return nil, fmt.Errorf("dialing backend: %w", err)
+		}
+		listener, err := s.buildListener()
+		if err != nil {
+			backendConn.Close()
+			return nil, err
+		}
+		s.backendConn.Store(backendConn)
+		return listener, nil
+	})
+}
+
+func (s *Server) closeBackend() {
+	if backendConn := s.backendConn.Load(); backendConn != nil {
+		backendConn.Close()
 	}
+}
 
-	var err error
-	s.backendConn, err = s.dialBackend()
-	if err != nil {
-		return fmt.Errorf("dialing backend: %w", err)
-	}
-	defer s.backendConn.Close()
+// done completes a stop: releases an unadopted listener and closes the backend connection.
+func (s *Server) done() {
+	s.lifecycle.Done()
+	s.closeBackend()
+}
 
-	s.grpcServer = s.buildGRPCProxyServer()
-	wrappedGrpc := s.wrapWithGRPCWeb()
-
-	listener, err := s.buildListener()
+func (s *Server) Serve(ctx context.Context) error {
+	listener, err := s.listen()
 	if err != nil {
 		return err
 	}
-	defer listener.Close()
-
-	s.httpServer = &http.Server{
-		Handler:      wrappedGrpc,
-		WriteTimeout: time.Duration(s.opts.WriteTimeout) * time.Second,
-		ReadTimeout:  time.Duration(s.opts.ReadTimeout) * time.Second,
-	}
-
+	defer s.closeBackend()
 	s.log.InfoContext(ctx, "serving")
+	// Stopped before serving: a clean exit, like a stop during Serve.
 	if err := s.httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("server error: %w", err)
 	}
 	return nil
 }
 
+// Stop closes the proxy immediately. A no-op once stopped.
 func (s *Server) Stop() error {
+	if !s.lifecycle.Stop() {
+		return nil
+	}
+	defer s.done()
 	s.log.Warn("stopping")
-	if s.httpServer != nil {
-		s.httpServer.Close()
-	}
-	if s.grpcServer != nil {
-		s.grpcServer.Stop()
-	}
+	s.httpServer.Close()
+	s.grpcServer.Stop()
 	return nil
 }
 
+// GracefulStop stops the proxy, waiting for in-flight requests up to the graceful stop timeout.
+// A no-op once a stop has been requested.
 func (s *Server) GracefulStop() error {
+	if !s.lifecycle.GracefulStop() {
+		return nil
+	}
+	defer s.done()
 	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
 	s.log.Info("gracefully stopping", "grace_period", duration)
-
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
-
-	if s.httpServer != nil {
-		if err := s.httpServer.Shutdown(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.log.Error("http server shutdown error", "error", err)
-		}
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		s.log.Warn("graceful shutdown failed, forcing", "error", err)
+		s.httpServer.Close()
 	}
-	if s.grpcServer != nil {
-		s.grpcServer.GracefulStop()
-	}
+	s.grpcServer.GracefulStop()
 	s.log.Info("stopped gracefully")
 	return nil
 }
 
 func (s *Server) HealthCheckFn() health.Check {
 	return func(ctx context.Context) error {
-		if s.backendConn == nil {
+		backendConn := s.backendConn.Load()
+		if backendConn == nil {
 			return fmt.Errorf("backend connection not established")
 		}
-		state := s.backendConn.GetState()
+		state := backendConn.GetState()
 		if state.String() == "TRANSIENT_FAILURE" || state.String() == "SHUTDOWN" {
 			return fmt.Errorf("backend connection state: %s", state)
 		}
@@ -181,7 +208,7 @@ func (s *Server) buildGRPCProxyServer() *grpc.Server {
 		delete(mdCopy, "user-agent")
 		delete(mdCopy, "connection")
 		outCtx = metadata.NewOutgoingContext(outCtx, mdCopy)
-		return outCtx, s.backendConn, nil
+		return outCtx, s.backendConn.Load(), nil
 	}
 
 	serverOpts := []grpc.ServerOption{

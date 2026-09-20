@@ -41,6 +41,7 @@ type GRPCServer struct {
 	log                      *slog.Logger
 	serviceNameToHealthCheck map[string]Check
 	shutdownChan             chan struct{}
+	shutdownOnce             sync.Once
 	startupCompleted         bool
 }
 
@@ -94,9 +95,12 @@ func (s *GRPCServer) Start(ctx context.Context) {
 
 // Shutdown signals all monitoring goroutines to stop and shuts down the
 // underlying gRPC health server, setting all services to NOT_SERVING.
+// Idempotent: a graceful stop that times out and falls back to Stop calls it twice.
 func (s *GRPCServer) Shutdown() {
-	close(s.shutdownChan)
-	s.Server.Shutdown()
+	s.shutdownOnce.Do(func() {
+		close(s.shutdownChan)
+		s.Server.Shutdown()
+	})
 }
 
 // updateHealthPeriodically spawns one goroutine per registered service, each
@@ -246,7 +250,9 @@ func (s *GRPCServer) checkService(ctx context.Context, request *grpc_health_v1.H
 	ctxCancel, cancel := context.WithTimeout(ctx, s.opts.Timeout)
 	defer cancel()
 	start := time.Now()
-	defer metrics.durationSeconds.WithLabelValues(s.name, request.Service).Observe(time.Since(start).Seconds())
+	defer func() {
+		metrics.durationSeconds.WithLabelValues(s.name, request.Service).Observe(time.Since(start).Seconds())
+	}()
 
 	servingStatus := grpc_health_v1.HealthCheckResponse_SERVING
 	if err := healthCheck(ctxCancel); err != nil {
