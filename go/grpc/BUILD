@@ -19,6 +19,7 @@ go_library(
         "//go/grpc/middleware",
         "//go/grpc/status",
         "//go/health",
+        "//go/lifecycle",
         "//go/pbutil",
         "//go/pbutil/pbreflection",
         "//go/prometheus",

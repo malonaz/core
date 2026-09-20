@@ -16,6 +16,13 @@ servers:
         - service: b-service
           proto: //a/v1(tools/onyx/binary/testdata/b.proto)
           manifest: //b/b_service:manifest(tools/onyx/binary/testdata/b_service.yaml)
+          gateway: true
   - name: d-processor
     processor:
       manifest: //d/d_processor:manifest(tools/onyx/binary/testdata/d_processor.yaml)
+  - name: d-http
+    http:
+      services:
+        - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)
+  - name: web
+    grpc_web_proxy: {}

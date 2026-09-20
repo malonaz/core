@@ -3,6 +3,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -27,6 +28,7 @@ import (
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/lifecycle"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 	"github.com/malonaz/core/go/prometheus"
@@ -52,257 +54,131 @@ var (
 	}
 )
 
-// ServerOptions holds config for a server.
+// ServerOptions holds what a caller adds to a server: interceptors between the default pre and post
+// chains (the first is the outermost), extra gRPC options, and a FileDescriptorSet for reflection.
 type ServerOptions struct {
 	UnaryInterceptors  []grpc.UnaryServerInterceptor
 	StreamInterceptors []grpc.StreamServerInterceptor
 	GRPCOptions        []grpc.ServerOption
+	FileDescriptorSet  []byte
 }
 
-// Server is a gRPC server.
+// Server is a gRPC server, fully built by NewServer so a stop reaches it whether or not Serve has run.
 type Server struct {
-	name           string
-	log            *slog.Logger
-	opts           *ServerOpts
-	certsOpts      *certs.Opts
-	prometheusOpts *prometheus.Opts
-	register       func(*Server)
-	Raw            *grpc.Server
-	healthServer   *health.GRPCServer
-	listener       net.Listener
-
-	fdsBytes []byte
-
-	// The **first** interceptor is the **outermost** (executes first on request, last on response).
-	// Order of interceptors is [PRE_OPTIONS_DEFAULT, OPTIONS, POST_OPTIONS_DEFAULT].
-	preUnaryInterceptors   []grpc.UnaryServerInterceptor
-	unaryInterceptors      []grpc.UnaryServerInterceptor
-	postUnaryInterceptors  []grpc.UnaryServerInterceptor
-	preStreamInterceptors  []grpc.StreamServerInterceptor
-	streamInterceptors     []grpc.StreamServerInterceptor
-	postStreamInterceptors []grpc.StreamServerInterceptor
-
-	options []grpc.ServerOption
+	name         string
+	log          *slog.Logger
+	opts         *ServerOpts
+	healthServer *health.GRPCServer
+	Raw          *grpc.Server
+	lifecycle    lifecycle.State
 }
 
-func (s *Server) WithFileDescriptorSet(bytes []byte) *Server {
-	s.fdsBytes = bytes
-	return s
-}
-
-func (s *Server) WithLogger(logger *slog.Logger) *Server {
-	s.log = logger
-	return s
-}
-
-// NewServer creates and returns a new Server.
-func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, register func(*Server)) *Server {
-	return &Server{
-		name:           name,
-		log:            slog.Default(),
-		opts:           opts,
-		certsOpts:      certsOpts,
-		prometheusOpts: prometheusOpts,
-		register:       register,
-		healthServer:   health.NewGRPCServer(opts.Health, name),
+// NewServer builds the server and lets register add services to Raw.
+func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, name string, options ServerOptions, register func(*Server)) (*Server, error) {
+	s := &Server{
+		name:         name,
+		opts:         opts,
+		healthServer: health.NewGRPCServer(opts.Health, name),
 	}
-}
+	s.WithLogger(slog.Default())
 
-func (s *Server) GetHealthServer() *health.GRPCServer {
-	return s.healthServer
-}
-
-// WithOptions adds options to this gRPC server.
-func (s *Server) WithOptions(options ...grpc.ServerOption) *Server {
-	s.options = append(s.options, options...)
-	return s
-}
-
-// WithUnaryInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *AFTER* the default pre interceptors and *BEFORE* the default post interceptors.
-func (s *Server) WithUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) *Server {
-	s.unaryInterceptors = append(s.unaryInterceptors, interceptors...)
-	return s
-}
-
-// WithStreamInterceptors adds interceptors to this gRPC server.
-// These interceptors are added *AFTER* the default pre interceptors and *BEFORE* the default post interceptors.
-func (s *Server) WithStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) *Server {
-	s.streamInterceptors = append(s.streamInterceptors, interceptors...)
-	return s
-}
-
-func (s *Server) Stop() error {
-	s.log.Warn("stopping")
-	if s.Raw != nil {
-		s.Raw.Stop()
-	}
-	s.healthServer.Shutdown()
-	return nil
-}
-
-func (s *Server) GracefulStop() error {
-	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
-	ch := make(chan struct{})
-	go func() {
-		s.log.Info("gracefully stopping", "grace_period", duration)
-		if s.Raw != nil {
-			s.Raw.GracefulStop()
-		}
-		s.log.Info("stopped gracefully")
-		ch <- struct{}{}
-	}()
-	select {
-	case <-time.After(duration):
-		s.log.Info("grace period exhausted")
-		s.Stop()
-	case <-ch:
-	}
-	s.healthServer.Shutdown()
-	return nil
-}
-
-// Listen binds the server's address. Serve does so itself when not already bound; calling Listen
-// first lets a binary hold the address before dependents start dialing it: connections queue until
-// Serve accepts them.
-func (s *Server) Listen(ctx context.Context) error {
-	if s.opts.useSocket() {
-		// Clean up a stale socket file and make sure its directory exists.
-		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
-			return fmt.Errorf("removing existing socket [%s]: %w", s.opts.SocketPath, err)
-		}
-		if err := os.MkdirAll(filepath.Dir(s.opts.SocketPath), 0755); err != nil {
-			return fmt.Errorf("creating socket directory [%s]: %w", s.opts.SocketPath, err)
-		}
-		listener, err := net.Listen("unix", s.opts.SocketPath)
+	grpcOptions := []grpc.ServerOption{grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize)}
+	grpcOptions = append(grpcOptions, options.GRPCOptions...)
+	if !opts.DisableTLS {
+		tlsConfig, err := certsOpts.ServerTLSConfig()
 		if err != nil {
-			return fmt.Errorf("listening on socket [%s]: %w", s.opts.SocketPath, err)
+			return nil, fmt.Errorf("loading TLS config: %w", err)
 		}
-		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
-			return fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
-		}
-		s.listener = listener
-		return nil
-	}
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
-	if err != nil {
-		return fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
-	}
-	s.listener = listener
-	return nil
-}
-
-// Serve instantiates the gRPC server and blocks forever.
-func (s *Server) Serve(ctx context.Context) error {
-	s.log = s.log.WithGroup("grpc_server").With(
-		"name", s.name, "port", s.opts.Port, "socket_path",
-		s.opts.SocketPath, "disable_tls", s.opts.DisableTLS,
-	)
-	// Default options.
-	s.options = append(s.options, grpc.MaxRecvMsgSize(MaximumMessageSize), grpc.MaxSendMsgSize(MaximumMessageSize))
-	if !s.opts.DisableTLS {
-		tlsConfig, err := s.certsOpts.ServerTLSConfig()
-		if err != nil {
-			return fmt.Errorf("loading TLS config: %w", err)
-		}
-		s.options = append(s.options, grpc.Creds(credentials.NewTLS(tlsConfig)))
+		grpcOptions = append(grpcOptions, grpc.Creds(credentials.NewTLS(tlsConfig)))
 	} else {
-		s.log.WarnContext(ctx, "starting without TLS")
+		s.log.Warn("starting without TLS")
 	}
 
 	// Instantiate validator.
 	validator, err := protovalidate.New()
 	if err != nil {
-		return fmt.Errorf("instantiating proto validator: %w", err)
+		return nil, fmt.Errorf("instantiating proto validator: %w", err)
 	}
 
+	var preUnaryInterceptors, postUnaryInterceptors []grpc.UnaryServerInterceptor
+	var preStreamInterceptors, postStreamInterceptors []grpc.StreamServerInterceptor
 	// PRE (1): Panic interceptor. We *never* want to panic.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_recovery.StreamServerInterceptor())
+	preUnaryInterceptors = append(preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor())
+	preStreamInterceptors = append(preStreamInterceptors, grpc_recovery.StreamServerInterceptor())
 	// PRE (2): Error debug info scrubber (acts on the response so needs to be placed early).
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerDebugInfoScrubber())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerDebugInfoScrubber())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerDebugInfoScrubber())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerDebugInfoScrubber())
 	// PRE (3): Method descriptor resolver. Makes the method descriptor available to all downstream interceptors.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerMethodDescriptor())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerMethodDescriptor())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerMethodDescriptor())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerMethodDescriptor())
 	// PRE (4): Prometheus.
-	if s.prometheusOpts.Enabled() {
+	if prometheusOpts.Enabled() {
 		prometheusServerMetrics := getPrometheusServerMetrics()
-		s.preUnaryInterceptors = append(s.preUnaryInterceptors, grpc_selector.UnaryServerInterceptor(prometheusServerMetrics.UnaryServerInterceptor(), middleware.AllButHealth))
-		s.preStreamInterceptors = append(s.preStreamInterceptors, grpc_selector.StreamServerInterceptor(prometheusServerMetrics.StreamServerInterceptor(), middleware.AllButHealth))
+		preUnaryInterceptors = append(preUnaryInterceptors, grpc_selector.UnaryServerInterceptor(prometheusServerMetrics.UnaryServerInterceptor(), middleware.AllButHealth))
+		preStreamInterceptors = append(preStreamInterceptors, grpc_selector.StreamServerInterceptor(prometheusServerMetrics.StreamServerInterceptor(), middleware.AllButHealth))
 	}
 	// PRE (5): Context propagator: propagates incoming.metadata headers to outgoing.metadata headers
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerHeaderPropagation())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerHeaderPropagation())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerHeaderPropagation())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerHeaderPropagation())
 	// PRE (6): Trailer propagator interceptor.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerTrailerPropagation())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerTrailerPropagation())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerTrailerPropagation())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerTrailerPropagation())
 	// PRE (7): Inject context tag: allows downstream components to inject log fields via the ctx for the logging interceptor to log.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerLogContextTagInitializer())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerLogContextTagInitializer())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerLogContextTagInitializer())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerLogContextTagInitializer())
 	// PRE (7.5): AIP logging: injects resource name fields from requests into log context.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerAIPLogging())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerAIPLogging())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerAIPLogging())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerAIPLogging())
 	// PRE (8): Logging interceptor.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerLogging(s.log))
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerLogging(s.log))
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerLogging(s.log))
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerLogging(s.log))
 	// PRE (9): Error interceptor.
-	s.preUnaryInterceptors = append(s.preUnaryInterceptors, middleware.UnaryServerErrorInfoInjector())
-	s.preStreamInterceptors = append(s.preStreamInterceptors, middleware.StreamServerErrorInfoInjector())
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerErrorInfoInjector())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerErrorInfoInjector())
 
 	// POST (1): Hook interceptor. Used in `Post` to allow authentication middleware to take precedence.
-	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerHook())
-	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerHook())
+	postUnaryInterceptors = append(postUnaryInterceptors, middleware.UnaryServerHook())
+	postStreamInterceptors = append(postStreamInterceptors, middleware.StreamServerHook())
 	// POST (2): Canonicalize interceptor. Set after protovalidate.
-	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerCanonicalize())
-	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerCanonicalize())
+	postUnaryInterceptors = append(postUnaryInterceptors, middleware.UnaryServerCanonicalize())
+	postStreamInterceptors = append(postStreamInterceptors, middleware.StreamServerCanonicalize())
 	// POST (3): Proto validator interceptor. Used in `Post` to allow authentication middleware to take precedence.
-	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerValidate(validator))
-	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerValidate(validator))
+	postUnaryInterceptors = append(postUnaryInterceptors, middleware.UnaryServerValidate(validator))
+	postStreamInterceptors = append(postStreamInterceptors, middleware.StreamServerValidate(validator))
 	// POST (4): Field mask interceptor.
-	s.postUnaryInterceptors = append(s.postUnaryInterceptors, middleware.UnaryServerFieldMask())
-	s.postStreamInterceptors = append(s.postStreamInterceptors, middleware.StreamServerFieldMask())
+	postUnaryInterceptors = append(postUnaryInterceptors, middleware.UnaryServerFieldMask())
+	postStreamInterceptors = append(postStreamInterceptors, middleware.StreamServerFieldMask())
 
-	unaryInterceptors := append(s.preUnaryInterceptors, s.unaryInterceptors...)
-	unaryInterceptors = append(unaryInterceptors, s.postUnaryInterceptors...)
-	streamInterceptors := append(s.preStreamInterceptors, s.streamInterceptors...)
-	streamInterceptors = append(streamInterceptors, s.postStreamInterceptors...)
+	unaryInterceptors := append(preUnaryInterceptors, options.UnaryInterceptors...)
+	unaryInterceptors = append(unaryInterceptors, postUnaryInterceptors...)
+	streamInterceptors := append(preStreamInterceptors, options.StreamInterceptors...)
+	streamInterceptors = append(streamInterceptors, postStreamInterceptors...)
 	// Chain interceptors.
 	if len(unaryInterceptors) > 0 {
-		s.options = append(s.options, grpc.ChainUnaryInterceptor(unaryInterceptors...))
+		grpcOptions = append(grpcOptions, grpc.ChainUnaryInterceptor(unaryInterceptors...))
 	}
 	if len(streamInterceptors) > 0 {
-		s.options = append(s.options, grpc.ChainStreamInterceptor(streamInterceptors...))
+		grpcOptions = append(grpcOptions, grpc.ChainStreamInterceptor(streamInterceptors...))
 	}
 
-	if s.listener == nil {
-		if err := s.Listen(ctx); err != nil {
-			return err
-		}
-	}
-	defer s.listener.Close()
-	if s.opts.useSocket() {
-		defer os.Remove(s.opts.SocketPath)
-	}
-
-	s.Raw = grpc.NewServer(s.options...)
-	s.register(s)
+	s.Raw = grpc.NewServer(grpcOptions...)
+	register(s)
 	grpc_health_v1.RegisterHealthServer(s.Raw, s.healthServer)
 
 	if s.opts.EnableReflection {
-		if s.fdsBytes != nil {
+		if options.FileDescriptorSet != nil {
 			var fds descriptorpb.FileDescriptorSet
-			if err := pbutil.Unmarshal(s.fdsBytes, &fds); err != nil {
-				return err
+			if err := pbutil.Unmarshal(options.FileDescriptorSet, &fds); err != nil {
+				return nil, err
 			}
 			// Convert FileDescriptorSet to a resolver
 			files, err := protodesc.NewFiles(&fds)
 			if err != nil {
-				return fmt.Errorf("building file descriptor registry: %w", err)
+				return nil, fmt.Errorf("building file descriptor registry: %w", err)
 			}
 			types, err := pbreflection.NewTypesFromFiles(files)
 			if err != nil {
-				return fmt.Errorf("new types from files: %w", err)
+				return nil, fmt.Errorf("new types from files: %w", err)
 			}
 			reflectionServerOptions := reflection.ServerOptions{
 				Services:           s.Raw,
@@ -316,16 +192,111 @@ func (s *Server) Serve(ctx context.Context) error {
 			reflection.Register(s.Raw)
 		}
 		s.GetHealthServer().RegisterService(grpc_reflection_v1.ServerReflection_ServiceDesc.ServiceName)
-		s.log.InfoContext(ctx, "gRPC reflection enabled")
+		s.log.Info("gRPC reflection enabled")
 	}
 
-	if s.prometheusOpts.Enabled() {
+	if prometheusOpts.Enabled() {
 		getPrometheusServerMetrics().InitializeMetrics(s.Raw)
 	}
+	return s, nil
+}
 
+func (s *Server) WithLogger(logger *slog.Logger) *Server {
+	s.log = logger.WithGroup("grpc_server").With(
+		"name", s.name, "port", s.opts.Port, "socket_path",
+		s.opts.SocketPath, "disable_tls", s.opts.DisableTLS,
+	)
+	return s
+}
+
+func (s *Server) GetHealthServer() *health.GRPCServer {
+	return s.healthServer
+}
+
+// Stop closes all connections and listeners immediately. A no-op once stopped.
+func (s *Server) Stop() error {
+	if !s.lifecycle.Stop() {
+		return nil
+	}
+	defer s.lifecycle.Done()
+	s.log.Warn("stopping")
+	s.healthServer.Shutdown()
+	s.Raw.Stop()
+	return nil
+}
+
+// GracefulStop stops accepting new RPCs and waits for pending ones up to the graceful stop timeout,
+// after which it stops forcibly. A no-op once a stop has been requested.
+func (s *Server) GracefulStop() error {
+	if !s.lifecycle.GracefulStop() {
+		return nil
+	}
+	defer s.lifecycle.Done()
+	// NOT_SERVING first, so load balancers polling health stop routing to us while we drain.
+	s.healthServer.Shutdown()
+	duration := time.Duration(s.opts.GracefulStopTimeout) * time.Second
+	s.log.Info("gracefully stopping", "grace_period", duration)
+	done := make(chan struct{})
+	go func() {
+		s.Raw.GracefulStop()
+		close(done)
+	}()
+	select {
+	case <-done:
+		s.log.Info("stopped gracefully")
+	case <-time.After(duration):
+		s.log.Info("grace period exhausted")
+		s.Raw.Stop()
+	}
+	return nil
+}
+
+// Listen binds the server's address. Serve does so itself when not already bound; calling Listen
+// first lets a binary hold the address before dependents start dialing it: connections queue until
+// Serve accepts them.
+func (s *Server) Listen(ctx context.Context) error {
+	_, err := s.lifecycle.Listen(s.listen)
+	return err
+}
+
+func (s *Server) listen() (net.Listener, error) {
+	if s.opts.useSocket() {
+		// Clean up a stale socket file and make sure its directory exists.
+		if err := os.RemoveAll(s.opts.SocketPath); err != nil {
+			return nil, fmt.Errorf("removing existing socket [%s]: %w", s.opts.SocketPath, err)
+		}
+		if err := os.MkdirAll(filepath.Dir(s.opts.SocketPath), 0755); err != nil {
+			return nil, fmt.Errorf("creating socket directory [%s]: %w", s.opts.SocketPath, err)
+		}
+		listener, err := net.Listen("unix", s.opts.SocketPath)
+		if err != nil {
+			return nil, fmt.Errorf("listening on socket [%s]: %w", s.opts.SocketPath, err)
+		}
+		if err := os.Chmod(s.opts.SocketPath, 0666); err != nil {
+			return nil, fmt.Errorf("setting socket os permissions [%s]: %w", s.opts.SocketPath, err)
+		}
+		return listener, nil
+	}
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.opts.Port))
+	if err != nil {
+		return nil, fmt.Errorf("listening on port [%d]: %w", s.opts.Port, err)
+	}
+	return listener, nil
+}
+
+// Serve blocks until the server is stopped.
+func (s *Server) Serve(ctx context.Context) error {
+	listener, err := s.lifecycle.Listen(s.listen)
+	if err != nil {
+		return err
+	}
+	if s.opts.useSocket() {
+		defer os.Remove(s.opts.SocketPath)
+	}
 	s.healthServer.Start(ctx)
 	s.log.InfoContext(ctx, "serving")
-	if err := s.Raw.Serve(s.listener); err != nil {
+	// Stopped before serving: a clean exit, like a stop during Serve.
+	if err := s.Raw.Serve(listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 		return fmt.Errorf("server exited unexpectedly: %w", err)
 	}
 	return nil

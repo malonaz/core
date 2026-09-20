@@ -16,14 +16,18 @@ import (
 	aservicepb "example.com/repo/genproto/a/v1"
 	bservicepb "example.com/repo/genproto/b/v1"
 	cservicepb "example.com/repo/genproto/c/v1"
+	hservice "example.com/repo/h/h_service"
 	"github.com/malonaz/core/go/authentication"
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/flags"
 	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/grpc/grpcwebproxy"
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/http"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/prometheus"
+	grpc2 "google.golang.org/grpc"
 )
 
 var opts struct {
@@ -40,13 +44,17 @@ var opts struct {
 	CServiceGRPC *grpc.ClientOpts `group:"C Service GRPC (Client)" namespace:"c-service-grpc" env-namespace:"C_SERVICE_GRPC"`
 
 	// Servers. In-process clients of a gRPC server dial it through these same opts.
-	BServiceGRPC *grpc.ServerOpts `group:"BService GRPC (Server)" namespace:"b-service-grpc" env-namespace:"B_SERVICE_GRPC"`
-	AServiceGRPC *grpc.ServerOpts `group:"AService GRPC (Server)" namespace:"a-service-grpc" env-namespace:"A_SERVICE_GRPC"`
+	BServiceGRPC        *grpc.ServerOpts   `group:"BService GRPC (Server)" namespace:"b-service-grpc" env-namespace:"B_SERVICE_GRPC"`
+	BServiceGRPCGateway *grpc.GatewayOpts  `group:"BService GRPC Gateway" namespace:"b-service-grpc-gateway" env-namespace:"B_SERVICE_GRPC_GATEWAY"`
+	AServiceGRPC        *grpc.ServerOpts   `group:"AService GRPC (Server)" namespace:"a-service-grpc" env-namespace:"A_SERVICE_GRPC"`
+	DHttpHTTP           *http.Opts         `group:"DHttp HTTP (Server)" namespace:"d-http-http" env-namespace:"D_HTTP_HTTP"`
+	WebGRPCWebProxy     *grpcwebproxy.Opts `group:"Web GRPC Web Proxy" namespace:"web-grpcwebproxy" env-namespace:"WEB_GRPCWEBPROXY"`
 
 	// Services.
 	AService   *aservice.Opts   `group:"AService" namespace:"a-service" env-namespace:"A_SERVICE"`
 	BService   *bservice.Opts   `group:"BService" namespace:"b-service" env-namespace:"B_SERVICE"`
 	DProcessor *dprocessor.Opts `group:"DProcessor" namespace:"d-processor" env-namespace:"D_PROCESSOR"`
+	HService   *hservice.Opts   `group:"HService" namespace:"h-service" env-namespace:"H_SERVICE"`
 }
 
 func main() {
@@ -72,6 +80,8 @@ func run(ctx context.Context) error {
 	sessionManager := authentication.NewSessionManager(opts.SessionManager)
 
 	errChan := make(chan error, 1)
+	// Every server is also stopped on return, so one bound before a later step fails does not outlive
+	// run; Stop is a no-op after handleSignals.
 	runServer := func(ctx context.Context, name string, serve func(context.Context) error) {
 		go func() {
 			if err := serve(ctx); err != nil {
@@ -155,54 +165,73 @@ func run(ctx context.Context) error {
 	// b-service
 	bService, err := bservice.New(opts.BService, bServiceClient)
 	if err != nil {
-		return fmt.Errorf("instantiating b-service: %w", err)
+		return fmt.Errorf("instantiating b-service server: %w", err)
 	}
 	bServiceCleanup, err := bService.Start(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting b-service: %w", err)
 	}
 	defer bServiceCleanup()
-	bServiceGRPCServer := grpc.NewServer(opts.BServiceGRPC, opts.Certs, opts.Prometheus, "b-service", func(server *grpc.Server) {
+	bServiceGRPCServer, err := grpc.NewServer(opts.BServiceGRPC, opts.Certs, opts.Prometheus, "b-service", grpc.ServerOptions{
+		UnaryInterceptors: []grpc2.UnaryServerInterceptor{
+			sessionManager.UnaryServerLogInjectorInterceptor(),
+		},
+		StreamInterceptors: []grpc2.StreamServerInterceptor{
+			sessionManager.StreamServerLogInjectorInterceptor(),
+		},
+	}, func(server *grpc.Server) {
 		bservicepb.RegisterBServiceServer(server.Raw, bService)
 	})
-	bServiceGRPCServer.WithUnaryInterceptors(
-		sessionManager.UnaryServerLogInjectorInterceptor(),
-	)
-	bServiceGRPCServer.WithStreamInterceptors(
-		sessionManager.StreamServerLogInjectorInterceptor(),
-	)
+	if err != nil {
+		return fmt.Errorf("instantiating b-service server: %w", err)
+	}
 	gracefulStopFns = append(gracefulStopFns, bServiceGRPCServer.GracefulStop)
 	stopFns = append(stopFns, bServiceGRPCServer.Stop)
 	bServiceGRPCServer.GetHealthServer().RegisterService(bservicepb.BService_ServiceDesc.ServiceName)
 	healthServer.RegisterService("b-service", bServiceGRPCServer.GetHealthServer().CheckFn())
-	// Bound now, so a dependent's Start() can reach it and a bad address fails here.
+	// Bound now, so a dependent's Start() can reach it.
 	if err := bServiceGRPCServer.Listen(ctx); err != nil {
 		return fmt.Errorf("listening b-service: %w", err)
 	}
 	runServer(ctx, "b-service", bServiceGRPCServer.Serve)
+	defer bServiceGRPCServer.Stop()
+	bServiceGRPCGateway := grpc.NewGateway(opts.BServiceGRPCGateway, opts.BServiceGRPC.ClientOpts(), opts.Certs, opts.Prometheus, []grpc.RegisterHandler{
+		bservicepb.RegisterBServiceHandlerFromEndpoint,
+	})
+	gracefulStopFns = append(gracefulStopFns, bServiceGRPCGateway.GracefulStop)
+	stopFns = append(stopFns, bServiceGRPCGateway.Stop)
+	if err := bServiceGRPCGateway.Listen(ctx); err != nil {
+		return fmt.Errorf("listening b-service gateway: %w", err)
+	}
+	runServer(ctx, "b-service gateway", bServiceGRPCGateway.Serve)
+	defer bServiceGRPCGateway.Stop()
 
 	// a-service
 	aService, err := aservice.New(opts.AService, bServiceClient, cServiceClient, aStore)
 	if err != nil {
-		return fmt.Errorf("instantiating a-service: %w", err)
+		return fmt.Errorf("instantiating a-service server: %w", err)
 	}
 	aServiceCleanup, err := aService.Start(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting a-service: %w", err)
 	}
 	defer aServiceCleanup()
-	aServiceGRPCServer := grpc.NewServer(opts.AServiceGRPC, opts.Certs, opts.Prometheus, "a-service", func(server *grpc.Server) {
+	aServiceGRPCServer, err := grpc.NewServer(opts.AServiceGRPC, opts.Certs, opts.Prometheus, "a-service", grpc.ServerOptions{}, func(server *grpc.Server) {
 		aservicepb.RegisterAServiceServer(server.Raw, aService)
 	})
+	if err != nil {
+		return fmt.Errorf("instantiating a-service server: %w", err)
+	}
 	gracefulStopFns = append(gracefulStopFns, aServiceGRPCServer.GracefulStop)
 	stopFns = append(stopFns, aServiceGRPCServer.Stop)
 	aServiceGRPCServer.GetHealthServer().RegisterService(aservicepb.AService_ServiceDesc.ServiceName, bServiceHealthCheck, cServiceHealthCheck, aPsqlClient.Ping)
 	healthServer.RegisterService("a-service", aServiceGRPCServer.GetHealthServer().CheckFn())
-	// Bound now, so a dependent's Start() can reach it and a bad address fails here.
+	// Bound now, so a dependent's Start() can reach it.
 	if err := aServiceGRPCServer.Listen(ctx); err != nil {
 		return fmt.Errorf("listening a-service: %w", err)
 	}
 	runServer(ctx, "a-service", aServiceGRPCServer.Serve)
+	defer aServiceGRPCServer.Stop()
 
 	// a-processor
 	healthServer.RegisterService("a-processor", aService.HealthCheck)
@@ -210,7 +239,7 @@ func run(ctx context.Context) error {
 	// d-processor
 	dProcessor, err := dprocessor.New(opts.DProcessor, aServiceClient)
 	if err != nil {
-		return fmt.Errorf("instantiating d-processor: %w", err)
+		return fmt.Errorf("instantiating d-processor server: %w", err)
 	}
 	dProcessorCleanup, err := dProcessor.Start(ctx, nil)
 	if err != nil {
@@ -219,7 +248,42 @@ func run(ctx context.Context) error {
 	defer dProcessorCleanup()
 	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
+	// d-http
+	hService, err := hservice.New(opts.HService, bServiceClient)
+	if err != nil {
+		return fmt.Errorf("instantiating h-service server: %w", err)
+	}
+	hServiceCleanup, err := hService.Start(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("starting h-service: %w", err)
+	}
+	defer hServiceCleanup()
+	dHttpHTTPServer := http.NewServer(opts.DHttpHTTP, "d-http", func(server *http.Server) {
+		hService.RegisterRoutes(server)
+	})
+	gracefulStopFns = append(gracefulStopFns, dHttpHTTPServer.GracefulStop)
+	stopFns = append(stopFns, dHttpHTTPServer.Stop)
+	dHttpHTTPServer.GetHealthServer().RegisterService("h-service", bServiceHealthCheck)
+	healthServer.RegisterService("d-http", dHttpHTTPServer.GetHealthServer().CheckFn())
+	if err := dHttpHTTPServer.Listen(ctx); err != nil {
+		return fmt.Errorf("listening d-http: %w", err)
+	}
+	runServer(ctx, "d-http", dHttpHTTPServer.Serve)
+	defer dHttpHTTPServer.Stop()
+
+	// web
+	webGRPCWebProxy := grpcwebproxy.NewServer(opts.WebGRPCWebProxy, opts.Certs, opts.Prometheus)
+	gracefulStopFns = append(gracefulStopFns, webGRPCWebProxy.GracefulStop)
+	stopFns = append(stopFns, webGRPCWebProxy.Stop)
+	healthServer.RegisterService("web", webGRPCWebProxy.HealthCheckFn())
+	if err := webGRPCWebProxy.Listen(ctx); err != nil {
+		return fmt.Errorf("listening web: %w", err)
+	}
+	runServer(ctx, "web", webGRPCWebProxy.Serve)
+	defer webGRPCWebProxy.Stop()
+
 	go healthServer.Serve(ctx)
+	defer healthServer.Shutdown()
 	gracefulStopFns = append(gracefulStopFns, func() error {
 		healthServer.Shutdown()
 		return nil

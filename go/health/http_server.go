@@ -2,6 +2,7 @@ package health
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -31,16 +32,22 @@ type Server struct {
 
 // NewServer creates a new health check server.
 func NewServer(opts *Opts, name string) *Server {
-	return &Server{
+	s := &Server{
 		GRPCServer: NewGRPCServer(opts.GRPCOpts, name),
 		opts:       opts,
 		name:       name,
-		log:        slog.Default(),
 	}
+	s.WithLogger(slog.Default())
+	mux := http.NewServeMux()
+	mux.HandleFunc("/liveness", s.liveness)
+	mux.HandleFunc("/readiness", s.readiness)
+	// Built up front so a Shutdown that lands before Serve is honored: net/http refuses to serve once closed.
+	s.httpServer = &http.Server{Addr: fmt.Sprintf(":%d", opts.Port), Handler: mux}
+	return s
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {
-	s.log = logger
+	s.log = logger.WithGroup("health_http_server").With("name", s.name, "port", s.opts.Port, "disable", s.opts.Disable)
 	s.GRPCServer.WithLogger(logger)
 	return s
 }
@@ -62,7 +69,6 @@ func (s *Server) MarkReady() {
 
 // Serve starts the HTTP health check server.
 func (s *Server) Serve(ctx context.Context) {
-	s.log = s.log.WithGroup("health_http_server").With("name", s.name, "port", s.opts.Port, "disable", s.opts.Disable)
 	if s.opts.Disable {
 		return
 	}
@@ -70,61 +76,55 @@ func (s *Server) Serve(ctx context.Context) {
 	// Start the GRPC server.
 	s.GRPCServer.Start(ctx)
 
-	// Setup HTTP handlers
-	mux := http.NewServeMux()
+	s.log.InfoContext(ctx, "serving health check")
+	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		s.log.WarnContext(ctx, "health server shutdown unexpectedly", "error", err)
+	}
+}
 
-	mux.HandleFunc("/liveness", func(w http.ResponseWriter, r *http.Request) {
-		if s.isReady() {
-			w.Write([]byte("ok"))
-		} else {
-			http.Error(w, "Server not ready", http.StatusServiceUnavailable)
-		}
-	})
+// Shutdown stops the health monitoring and closes the HTTP listener.
+func (s *Server) Shutdown() {
+	s.GRPCServer.Shutdown()
+	s.httpServer.Close()
+}
 
-	mux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
-		// Check if server is ready first
-		if !s.isReady() {
-			s.log.DebugContext(ctx, "readiness check failed: server not ready")
-			http.Error(w, "Server not ready", http.StatusServiceUnavailable)
-			return
-		}
+func (s *Server) liveness(w http.ResponseWriter, r *http.Request) {
+	if !s.isReady() {
+		http.Error(w, "Server not ready", http.StatusServiceUnavailable)
+		return
+	}
+	w.Write([]byte("ok"))
+}
 
-		// Use the List endpoint to get all services and their health status
-		healthListRequest := &grpc_health_v1.HealthListRequest{}
-		healthListResponse, err := s.List(r.Context(), healthListRequest)
-		if err != nil {
-			s.log.DebugContext(ctx, "readiness check failed", "error", err)
-			http.Error(w, "Failed to carry out the readiness check", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		healthCheckResponse := healthListResponse.Statuses[""]
-		if healthCheckResponse.Status != grpc_health_v1.HealthCheckResponse_SERVING {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}
-
-		// Use pbutil.JSONMarshal instead of json.NewEncoder
-		responseBytes, err := pbutil.JSONMarshal(healthListResponse)
-		if err != nil {
-			s.log.ErrorContext(ctx, "marshaling list response", "error", err)
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-			return
-		}
-
-		if _, err := w.Write(responseBytes); err != nil {
-			s.log.ErrorContext(ctx, "writing response", "error", err)
-		}
-	})
-
-	// Create and start HTTP server
-	s.httpServer = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.opts.Port),
-		Handler: mux,
+func (s *Server) readiness(w http.ResponseWriter, r *http.Request) {
+	if !s.isReady() {
+		s.log.DebugContext(r.Context(), "readiness check failed: server not ready")
+		http.Error(w, "Server not ready", http.StatusServiceUnavailable)
+		return
 	}
 
-	s.log.InfoContext(ctx, "serving health check", "port", s.opts.Port)
-	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		s.log.WarnContext(ctx, "health server shutdown unexpectedly", "port", s.opts.Port, "error", err)
+	// Use the List endpoint to get all services and their health status
+	healthListRequest := &grpc_health_v1.HealthListRequest{}
+	healthListResponse, err := s.List(r.Context(), healthListRequest)
+	if err != nil {
+		s.log.DebugContext(r.Context(), "readiness check failed", "error", err)
+		http.Error(w, "Failed to carry out the readiness check", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	healthCheckResponse := healthListResponse.Statuses[""]
+	if healthCheckResponse.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
+
+	responseBytes, err := pbutil.JSONMarshal(healthListResponse)
+	if err != nil {
+		s.log.ErrorContext(r.Context(), "marshaling list response", "error", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	if _, err := w.Write(responseBytes); err != nil {
+		s.log.ErrorContext(r.Context(), "writing response", "error", err)
 	}
 }

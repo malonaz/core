@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/textproto"
 	"reflect"
@@ -22,6 +24,7 @@ import (
 	grpcpb "github.com/malonaz/core/genproto/grpc/v1"
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/grpc/middleware"
+	"github.com/malonaz/core/go/lifecycle"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/prometheus"
 )
@@ -51,6 +54,7 @@ type Gateway struct {
 
 	// HTTP Server.
 	httpServer *http.Server
+	lifecycle  lifecycle.State
 
 	// Handlers.
 	registerHandlers []RegisterHandler
@@ -74,7 +78,13 @@ type Gateway struct {
 }
 
 func (g *Gateway) WithLogger(logger *slog.Logger) *Gateway {
-	g.log = logger
+	g.log = logger.WithGroup("grpc_gateway_server").With(
+		"port", g.opts.Port, "host", g.opts.Host,
+		slog.Group("grpc_server",
+			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath,
+			"disable_tls", g.grpcOpts.DisableTLS,
+		),
+	)
 	return g
 }
 
@@ -88,8 +98,7 @@ func NewGateway(opts *GatewayOpts, grpcOpts *ClientOpts, certsOpts *certs.Opts, 
 	for _, h := range opts.AllowedIncomingHeaders {
 		allowedIncomingHeaderSet[textproto.CanonicalMIMEHeaderKey(h)] = struct{}{}
 	}
-	return &Gateway{
-		log:                      slog.Default(),
+	g := &Gateway{
 		opts:                     opts,
 		grpcOpts:                 grpcOpts,
 		certsOpts:                certsOpts,
@@ -97,7 +106,9 @@ func NewGateway(opts *GatewayOpts, grpcOpts *ClientOpts, certsOpts *certs.Opts, 
 		registerHandlers:         registerHandlers,
 		allowedOutgoingHeaderSet: allowedOutgoingHeaderSet,
 		allowedIncomingHeaderSet: allowedIncomingHeaderSet,
+		httpServer:               &http.Server{Addr: fmt.Sprintf(":%d", opts.Port)},
 	}
+	return g.WithLogger(slog.Default())
 }
 
 // WithOptions adds options to this gRPC gateway.
@@ -124,15 +135,24 @@ func (g *Gateway) WithClientStreamInterceptors(interceptors ...grpc.StreamClient
 	return g
 }
 
+// Listen binds the gateway's address; Serve does so itself when not already bound.
+func (g *Gateway) Listen(ctx context.Context) error {
+	_, err := g.listen()
+	return err
+}
+
+func (g *Gateway) listen() (net.Listener, error) {
+	return g.lifecycle.Listen(func() (net.Listener, error) {
+		listener, err := net.Listen("tcp", g.httpServer.Addr)
+		if err != nil {
+			return nil, fmt.Errorf("listening on port [%d]: %w", g.opts.Port, err)
+		}
+		return listener, nil
+	})
+}
+
 // Serve serves this gRPC gateway. Blocking call.
 func (g *Gateway) Serve(ctx context.Context) error {
-	g.log = g.log.WithGroup("grpc_gateway_server").With(
-		"port", g.opts.Port, "host", g.opts.Host,
-		slog.Group("grpc_server",
-			"port", g.grpcOpts.Port, "host", g.grpcOpts.Host, "socket_path", g.grpcOpts.SocketPath,
-			"disable_tls", g.grpcOpts.DisableTLS,
-		),
-	)
 	gatewayCookie := &GatewayCookie{log: g.log}
 	// Some default options.
 	g.options = append(
@@ -205,39 +225,43 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		return fmt.Errorf("getting gateway options: %w", err)
 	}
 
-	url := fmt.Sprintf(":%d", g.opts.Port)
-	handler := allowCORS(mux)
-	g.httpServer = &http.Server{Addr: url, Handler: handler}
+	listener, err := g.listen()
+	if err != nil {
+		return err
+	}
+	g.httpServer.Handler = allowCORS(mux)
 	g.log.InfoContext(ctx, "serving")
-	if err := g.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+	// Stopped before serving: a clean exit, like a stop during Serve.
+	if err := g.httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("exited unexpectedly: %w", err)
 	}
 	return nil
 }
 
-// Stop immediately stops the gateway server.
+// Stop closes the gateway server immediately. A no-op once stopped.
 func (g *Gateway) Stop() error {
-	g.log.Info("stopping")
-	if g.httpServer != nil {
-		return g.httpServer.Close()
+	if !g.lifecycle.Stop() {
+		return nil
 	}
-	return nil
+	defer g.lifecycle.Done()
+	g.log.Info("stopping")
+	return g.httpServer.Close()
 }
 
-// GracefulStop gracefully stops the gateway server.
+// GracefulStop stops the gateway server, waiting for in-flight requests up to the graceful stop
+// timeout. A no-op once a stop has been requested.
 func (g *Gateway) GracefulStop() error {
+	if !g.lifecycle.GracefulStop() {
+		return nil
+	}
+	defer g.lifecycle.Done()
 	g.log.Info("gracefully stopping")
-	if g.httpServer != nil {
-		duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
-		ctx, cancel := context.WithTimeout(context.Background(), duration)
-		defer cancel()
-		err := g.httpServer.Shutdown(ctx)
-		if err == context.DeadlineExceeded {
-			g.log.Warn("graceful shutdown timed out")
-			// Force close any remaining connections
-			return g.Stop()
-		}
-		return err
+	duration := time.Duration(g.opts.GracefulStopTimeout) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+	if err := g.httpServer.Shutdown(ctx); err != nil {
+		g.log.Warn("graceful shutdown failed, forcing", "error", err)
+		return g.httpServer.Close()
 	}
 	return nil
 }
