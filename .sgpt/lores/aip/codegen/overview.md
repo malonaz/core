@@ -77,6 +77,23 @@ registry is per package — cross-package parent/child links do not exist):
 - **Query joins are total**: `ORDER BY <order_by>, <child id>` so `LIMIT 1`
   picks the same row in the lateral join (Get/List) and in each RETURNING
   subquery (Create/Update), or chained fields could name different rows.
+- **Aggregate joins** (`join.aggregate`: `SUM`/`COUNT`/`MIN`/`MAX` over a
+  descendant) are one correlated subquery per field — `LEFT JOIN LATERAL
+  (SELECT SUM(book.page_count) AS value FROM … WHERE <correlation> AND
+  <filter>) AS total_page_count ON TRUE` on reads, `(SELECT SUM(…) …) AS
+  total_page_count` in RETURNING — so List filters and `order_by` address the
+  field like any joined column (`total_page_count > 0`, `total_page_count:*`).
+  The field must be nullable and `OUTPUT_ONLY` (SUM/MIN/MAX over no rows is
+  NULL; COUNT is 0), typed as Postgres yields: `SUM(numeric)` → Decimal,
+  `SUM(int)` → `int64` (never `int32`), `COUNT` → `int64` over `field:
+  "name"`, MIN/MAX keep the source type (bool/bytes rejected: Postgres cannot
+  order them). Nothing chains onto an aggregate
+  (no row behind it), and there is no tombstone magic: the aggregate sees
+  what its filter admits, so add `NOT delete_time:*` for soft-deletable
+  descendants when only live rows should count. Reference:
+  `Shelf.{total_page_count,book_count,total_price,last_book_create_time}` +
+  `sat/aggregate_join_test.go`; generation errors are covered by
+  `tools/protoc-gen-core/schema/aggregate_join_test.go`.
 - **Non-nullable columns**: a `repeated`/`bytes`/map field has no proto3
   presence, so an omitted one is stored empty (`{}`), never `NULL`. A
   message-typed field (incl. `Duration`/`Timestamp`) has presence, so a
