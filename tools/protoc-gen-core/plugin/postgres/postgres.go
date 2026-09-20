@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
@@ -374,9 +375,15 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}, nil
 }
 
+// buildJoinSubqueryExpr emits every joined field as a scalar subquery for the
+// RETURNING list of writes, which cannot carry a JOIN clause.
 func buildJoinSubqueryExpr(joins []schema.Join, childBareTable string) string {
 	var parts []string
 	for _, join := range joins {
+		if join.Aggregate != nil {
+			parts = append(parts, "("+aggregateSubquery(join, childBareTable, join.Aggregate.Expr)+") AS "+join.Fields[0].Alias)
+			continue
+		}
 		// Query joins alias the child table by its own bare name inside the
 		// subquery, matching the transpiled filter/order_by qualification.
 		inner := join.Alias
@@ -388,11 +395,7 @@ func buildJoinSubqueryExpr(joins []schema.Join, childBareTable string) string {
 			}
 			suffix += fmt.Sprintf(" ORDER BY %s LIMIT 1", join.Query.OrderByWithTieBreak())
 		}
-		var whereParts []string
-		for _, condition := range join.Conditions {
-			whereParts = append(whereParts, condition.Render(inner, childBareTable))
-		}
-		whereClause := strings.Join(whereParts, " AND ")
+		whereClause := renderConditions(join, inner, childBareTable)
 		for _, field := range join.Fields {
 			selectExpr := inner + "." + field.Column
 			if join.Query != nil && field.Column == "name" {
@@ -403,6 +406,28 @@ func buildJoinSubqueryExpr(joins []schema.Join, childBareTable string) string {
 		}
 	}
 	return "," + strings.Join(parts, ",")
+}
+
+// renderConditions renders a join's correlation conditions against the child
+// table, aliased as inner.
+func renderConditions(join schema.Join, inner, childBareTable string) string {
+	var parts []string
+	for _, condition := range join.Conditions {
+		parts = append(parts, condition.Render(inner, childBareTable))
+	}
+	return strings.Join(parts, " AND ")
+}
+
+// aggregateSubquery emits the correlated subquery projecting the given
+// expression over the child rows an aggregate join admits. Concatenated, so a
+// `%` in the transpiled filter stays a `%`.
+func aggregateSubquery(join schema.Join, childBareTable, projection string) string {
+	inner := join.Aggregate.Inner
+	whereClause := renderConditions(join, inner, childBareTable)
+	if join.Aggregate.Filter != "" {
+		whereClause += " AND " + join.Aggregate.Filter
+	}
+	return "SELECT " + projection + " FROM " + join.Table.Qualified() + " AS " + inner + " WHERE " + whereClause
 }
 
 func buildJoinSelectExprs(joins []schema.Join) string {
@@ -418,8 +443,16 @@ func buildJoinSelectExprs(joins []schema.Join) string {
 func buildJoinClause(joins []schema.Join, childBareTable string) string {
 	var parts []string
 	for _, join := range joins {
-		if join.Query != nil {
+		switch {
+		case join.Query != nil:
 			parts = append(parts, buildLateralJoinClause(join, childBareTable))
+			continue
+		case join.Aggregate != nil:
+			// A lateral rather than a scalar subquery in the SELECT list, so
+			// filter and order_by can address the value as a qualified column
+			// like any other joined field. An aggregate yields exactly one row.
+			projection := join.Aggregate.Expr + " AS " + aip.AggregateJoinColumn
+			parts = append(parts, "LEFT JOIN LATERAL ("+aggregateSubquery(join, childBareTable, projection)+") AS "+join.Alias+" ON TRUE")
 			continue
 		}
 		// Reference joins on nullable fields tolerate a missing match;
@@ -428,11 +461,7 @@ func buildJoinClause(joins []schema.Join, childBareTable string) string {
 		if join.Left {
 			joinKind = "LEFT JOIN"
 		}
-		var onParts []string
-		for _, condition := range join.Conditions {
-			onParts = append(onParts, condition.Render(join.Alias, childBareTable))
-		}
-		parts = append(parts, fmt.Sprintf("%s %s AS %s ON %s", joinKind, join.Table.Qualified(), join.Alias, strings.Join(onParts, " AND ")))
+		parts = append(parts, fmt.Sprintf("%s %s AS %s ON %s", joinKind, join.Table.Qualified(), join.Alias, renderConditions(join, join.Alias, childBareTable)))
 	}
 	return strings.Join(parts, " ")
 }
@@ -442,11 +471,7 @@ func buildJoinClause(joins []schema.Join, childBareTable string) string {
 // reconstructed resource name.
 func buildLateralJoinClause(join schema.Join, childBareTable string) string {
 	inner := join.Query.Inner
-	var whereParts []string
-	for _, condition := range join.Conditions {
-		whereParts = append(whereParts, condition.Render(inner, childBareTable))
-	}
-	whereClause := strings.Join(whereParts, " AND ")
+	whereClause := renderConditions(join, inner, childBareTable)
 	if join.Query.Filter != "" {
 		whereClause += " AND " + join.Query.Filter
 	}
