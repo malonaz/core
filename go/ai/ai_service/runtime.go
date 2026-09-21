@@ -21,6 +21,7 @@ import (
 	"github.com/malonaz/core/go/ai/ai_service/provider/google"
 	"github.com/malonaz/core/go/ai/ai_service/provider/mock"
 	"github.com/malonaz/core/go/ai/ai_service/provider/openai"
+	"github.com/malonaz/core/go/ai/ai_service/provider/typesafe"
 	"github.com/malonaz/core/go/ai/ai_service/provider/xai"
 	"github.com/malonaz/core/go/grpc/grpcinproc"
 	"github.com/malonaz/core/go/grpc/status"
@@ -39,6 +40,7 @@ type Opts struct {
 	MoonshotApiKey   string       `long:"moonshot-api-key"     env:"MOONSHOT_API_KEY" description:"Moonshot api key"`
 	BasetenApiKey    string       `long:"baseten-api-key"     env:"BASETEN_API_KEY" description:"Baseten api key"`
 	DeepgramApiKey   string       `long:"deepgram-api-key"     env:"DEEPGRAM_API_KEY" description:"Deepgram api key"`
+	TypesafeApiKey   string       `long:"typesafe-api-key"     env:"TYPESAFE_API_KEY" description:"TypeSafe Jev api key"`
 	GoogleApiKey     string       `long:"google-api-key"     env:"GOOGLE_API_KEY" description:"Google api key"`
 	Google           *google.Opts `group:"Google" namespace:"google" env-namespace:"GOOGLE"`
 	MockProvider     bool         `long:"mock-provider" env:"MOCK_PROVIDER" description:"Register the scriptable mock provider (tests only)"`
@@ -97,6 +99,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.Google.Valid() {
 		providers = append(providers, google.NewVertexClient(opts.Google, modelService))
+	}
+	if opts.TypesafeApiKey != "" {
+		providers = append(providers, typesafe.NewClient(opts.TypesafeApiKey))
 	}
 	if opts.MockProvider {
 		providers = append(providers, mock.NewClient())

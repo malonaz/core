@@ -1,0 +1,15 @@
+go_library(
+    name = "typesafe",
+    srcs = [
+        "classify.go",
+        "typesafe.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/ai_service/provider",
+        "//go/grpc/status",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
+    ],
+)
