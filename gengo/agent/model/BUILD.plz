@@ -1,0 +1,16 @@
+go_library(
+    name = "model",
+    srcs = [
+        "agent_model.pb.go",
+        "memory_model.pb.go",
+        "task_model.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/agent/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
