@@ -13,3 +13,5 @@ migrations:
     hash: 7fbf2d9a892ab35280a9caaf77121a6a
   - path: library/006_author_annotations.sql
     hash: 35fa31eec1d1dffa7d7c61cbf66ae9a9
+  - path: library/007_book_price.sql
+    hash: 8c840406f46c94801cf84d5e46d6878e

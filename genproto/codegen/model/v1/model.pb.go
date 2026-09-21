@@ -24,6 +24,63 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// The SQL aggregate function applied to the descendant column.
+type Aggregate_Function int32
+
+const (
+	// Used to detect an unset field.
+	Aggregate_FUNCTION_UNSPECIFIED Aggregate_Function = 0
+	// SUM over a google.type.Decimal (stays Decimal) or an integer column
+	// (widens to int64, as Postgres does).
+	Aggregate_FUNCTION_SUM Aggregate_Function = 1
+	// COUNT of the correlated rows, as int64. `field` must be "name".
+	Aggregate_FUNCTION_COUNT Aggregate_Function = 2
+	// MIN, keeping the column's type (Timestamp included).
+	Aggregate_FUNCTION_MIN Aggregate_Function = 3
+	// MAX, keeping the column's type (Timestamp included).
+	Aggregate_FUNCTION_MAX Aggregate_Function = 4
+)
+
+// Enum value maps for Aggregate_Function.
+var (
+	Aggregate_Function_name = map[int32]string{
+		0: "FUNCTION_UNSPECIFIED",
+		1: "FUNCTION_SUM",
+		2: "FUNCTION_COUNT",
+		3: "FUNCTION_MIN",
+		4: "FUNCTION_MAX",
+	}
+	Aggregate_Function_value = map[string]int32{
+		"FUNCTION_UNSPECIFIED": 0,
+		"FUNCTION_SUM":         1,
+		"FUNCTION_COUNT":       2,
+		"FUNCTION_MIN":         3,
+		"FUNCTION_MAX":         4,
+	}
+)
+
+func (x Aggregate_Function) Enum() *Aggregate_Function {
+	p := new(Aggregate_Function)
+	*p = x
+	return p
+}
+
+func (x Aggregate_Function) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Aggregate_Function) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_codegen_model_v1_model_proto_enumTypes[0].Descriptor()
+}
+
+func (Aggregate_Function) Type() protoreflect.EnumType {
+	return &file_malonaz_codegen_model_v1_model_proto_enumTypes[0]
+}
+
+func (x Aggregate_Function) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // ModelOpts defines code generation options for an entire message/model.
 // Controls database mapping and which CRUD functions are generated.
 type ModelOpts struct {
@@ -324,7 +381,7 @@ type Join struct {
 	ResourceType string `protobuf:"bytes,1,opt,name=resource_type,json=resourceType,proto3" json:"resource_type,omitempty"`
 	// Required. The field name on the joined message to populate from. The
 	// special value "name" selects the joined resource's name, reconstructed
-	// from its identifier columns.
+	// from its identifier columns (and is what COUNT aggregates must name).
 	Field string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
 	// Selects the joined row. When unset, resource_type must be an ancestor of
 	// this resource: the join equates the ancestor's identifier columns with
@@ -334,6 +391,7 @@ type Join struct {
 	//
 	//	*Join_Reference
 	//	*Join_Query
+	//	*Join_Aggregate
 	Selector      isJoin_Selector `protobuf_oneof:"selector"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -403,6 +461,15 @@ func (x *Join) GetQuery() *Query {
 	return nil
 }
 
+func (x *Join) GetAggregate() *Aggregate {
+	if x != nil {
+		if x, ok := x.Selector.(*Join_Aggregate); ok {
+			return x.Aggregate
+		}
+	}
+	return nil
+}
+
 func (x *Join) SetResourceType(v string) {
 	x.ResourceType = v
 }
@@ -421,6 +488,14 @@ func (x *Join) SetQuery(v *Query) {
 		return
 	}
 	x.Selector = &Join_Query{v}
+}
+
+func (x *Join) SetAggregate(v *Aggregate) {
+	if v == nil {
+		x.Selector = nil
+		return
+	}
+	x.Selector = &Join_Aggregate{v}
 }
 
 func (x *Join) HasSelector() bool {
@@ -446,6 +521,14 @@ func (x *Join) HasQuery() bool {
 	return ok
 }
 
+func (x *Join) HasAggregate() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Selector.(*Join_Aggregate)
+	return ok
+}
+
 func (x *Join) ClearSelector() {
 	x.Selector = nil
 }
@@ -462,9 +545,16 @@ func (x *Join) ClearQuery() {
 	}
 }
 
+func (x *Join) ClearAggregate() {
+	if _, ok := x.Selector.(*Join_Aggregate); ok {
+		x.Selector = nil
+	}
+}
+
 const Join_Selector_not_set_case case_Join_Selector = 0
 const Join_Reference_case case_Join_Selector = 3
 const Join_Query_case case_Join_Selector = 4
+const Join_Aggregate_case case_Join_Selector = 5
 
 func (x *Join) WhichSelector() case_Join_Selector {
 	if x == nil {
@@ -475,6 +565,8 @@ func (x *Join) WhichSelector() case_Join_Selector {
 		return Join_Reference_case
 	case *Join_Query:
 		return Join_Query_case
+	case *Join_Aggregate:
+		return Join_Aggregate_case
 	default:
 		return Join_Selector_not_set_case
 	}
@@ -489,7 +581,7 @@ type Join_builder struct {
 	ResourceType string
 	// Required. The field name on the joined message to populate from. The
 	// special value "name" selects the joined resource's name, reconstructed
-	// from its identifier columns.
+	// from its identifier columns (and is what COUNT aggregates must name).
 	Field string
 	// Selects the joined row. When unset, resource_type must be an ancestor of
 	// this resource: the join equates the ancestor's identifier columns with
@@ -505,6 +597,12 @@ type Join_builder struct {
 	// resource. Emitted as a LEFT JOIN LATERAL (... LIMIT 1), so joined
 	// fields must be nullable.
 	Query *Query
+	// Folds every descendant row correlated with this resource into one
+	// value. `field` names the aggregated column on the descendant (ignored
+	// for COUNT, which must name "name"). Emitted as a correlated subquery,
+	// so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
+	// Nothing can chain onto an aggregate field: there is no row behind it.
+	Aggregate *Aggregate
 	// -- end of Selector
 }
 
@@ -519,6 +617,9 @@ func (b0 Join_builder) Build() *Join {
 	}
 	if b.Query != nil {
 		x.Selector = &Join_Query{b.Query}
+	}
+	if b.Aggregate != nil {
+		x.Selector = &Join_Aggregate{b.Aggregate}
 	}
 	return m0
 }
@@ -552,9 +653,20 @@ type Join_Query struct {
 	Query *Query `protobuf:"bytes,4,opt,name=query,proto3,oneof"`
 }
 
+type Join_Aggregate struct {
+	// Folds every descendant row correlated with this resource into one
+	// value. `field` names the aggregated column on the descendant (ignored
+	// for COUNT, which must name "name"). Emitted as a correlated subquery,
+	// so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
+	// Nothing can chain onto an aggregate field: there is no row behind it.
+	Aggregate *Aggregate `protobuf:"bytes,5,opt,name=aggregate,proto3,oneof"`
+}
+
 func (*Join_Reference) isJoin_Selector() {}
 
 func (*Join_Query) isJoin_Selector() {}
+
+func (*Join_Aggregate) isJoin_Selector() {}
 
 // A query selecting at most one descendant row.
 type Query struct {
@@ -640,6 +752,90 @@ func (b0 Query_builder) Build() *Query {
 	return m0
 }
 
+// An aggregate over the descendant rows correlated with this resource.
+type Aggregate struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Required. The function folding the descendant rows.
+	Function Aggregate_Function `protobuf:"varint,1,opt,name=function,proto3,enum=malonaz.codegen.model.v1.Aggregate_Function" json:"function,omitempty"`
+	// Optional AIP-160 filter over the descendant, same grammar and limits as
+	// Query.filter: conjunctions of comparisons on scalar stored fields, enums
+	// unquoted. The aggregate sees exactly the rows the filter admits: when the
+	// descendant is soft-deletable and only live rows should count, say so with
+	// `NOT delete_time:*`.
+	Filter        string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Aggregate) Reset() {
+	*x = Aggregate{}
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Aggregate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Aggregate) ProtoMessage() {}
+
+func (x *Aggregate) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_codegen_model_v1_model_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Aggregate) GetFunction() Aggregate_Function {
+	if x != nil {
+		return x.Function
+	}
+	return Aggregate_FUNCTION_UNSPECIFIED
+}
+
+func (x *Aggregate) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *Aggregate) SetFunction(v Aggregate_Function) {
+	x.Function = v
+}
+
+func (x *Aggregate) SetFilter(v string) {
+	x.Filter = v
+}
+
+type Aggregate_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Required. The function folding the descendant rows.
+	Function Aggregate_Function
+	// Optional AIP-160 filter over the descendant, same grammar and limits as
+	// Query.filter: conjunctions of comparisons on scalar stored fields, enums
+	// unquoted. The aggregate sees exactly the rows the filter admits: when the
+	// descendant is soft-deletable and only live rows should count, say so with
+	// `NOT delete_time:*`.
+	Filter string
+}
+
+func (b0 Aggregate_builder) Build() *Aggregate {
+	m0 := &Aggregate{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Function = b.Function
+	x.Filter = b.Filter
+	return m0
+}
+
 var file_malonaz_codegen_model_v1_model_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
@@ -695,44 +891,59 @@ const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\x04skip\x18\x05 \x01(\bR\x04skip\x12\x14\n" +
 	"\x05embed\x18\x06 \x01(\bR\x05embed\x12\x1b\n" +
 	"\tpg_vector\x18\a \x01(\bR\bpgVector\x122\n" +
-	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"\xae\x01\n" +
+	"\x04join\x18\b \x01(\v2\x1e.malonaz.codegen.model.v1.JoinR\x04join\"\xf3\x01\n" +
 	"\x04Join\x12+\n" +
 	"\rresource_type\x18\x01 \x01(\tB\x06\xfaA\x03\n" +
 	"\x01*R\fresourceType\x12\x14\n" +
 	"\x05field\x18\x02 \x01(\tR\x05field\x12\x1e\n" +
 	"\treference\x18\x03 \x01(\tH\x00R\treference\x127\n" +
-	"\x05query\x18\x04 \x01(\v2\x1f.malonaz.codegen.model.v1.QueryH\x00R\x05queryB\n" +
+	"\x05query\x18\x04 \x01(\v2\x1f.malonaz.codegen.model.v1.QueryH\x00R\x05query\x12C\n" +
+	"\taggregate\x18\x05 \x01(\v2#.malonaz.codegen.model.v1.AggregateH\x00R\taggregateB\n" +
 	"\n" +
 	"\bselector\":\n" +
 	"\x05Query\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x19\n" +
-	"\border_by\x18\x02 \x01(\tR\aorderBy:d\n" +
+	"\border_by\x18\x02 \x01(\tR\aorderBy\"\xdd\x01\n" +
+	"\tAggregate\x12H\n" +
+	"\bfunction\x18\x01 \x01(\x0e2,.malonaz.codegen.model.v1.Aggregate.FunctionR\bfunction\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\"n\n" +
+	"\bFunction\x12\x18\n" +
+	"\x14FUNCTION_UNSPECIFIED\x10\x00\x12\x10\n" +
+	"\fFUNCTION_SUM\x10\x01\x12\x12\n" +
+	"\x0eFUNCTION_COUNT\x10\x02\x12\x10\n" +
+	"\fFUNCTION_MIN\x10\x03\x12\x10\n" +
+	"\fFUNCTION_MAX\x10\x04:d\n" +
 	"\n" +
 	"model_opts\x12\x1f.google.protobuf.MessageOptions\x18\xeaD \x01(\v2#.malonaz.codegen.model.v1.ModelOptsR\tmodelOpts:c\n" +
 	"\n" +
 	"field_opts\x12\x1d.google.protobuf.FieldOptions\x18\xa7\xfd\x01 \x01(\v2#.malonaz.codegen.model.v1.FieldOptsR\tfieldOptsB3Z1github.com/malonaz/core/genproto/codegen/model/v1b\x06proto3"
 
-var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_codegen_model_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_codegen_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_malonaz_codegen_model_v1_model_proto_goTypes = []any{
-	(*ModelOpts)(nil),                   // 0: malonaz.codegen.model.v1.ModelOpts
-	(*FieldOpts)(nil),                   // 1: malonaz.codegen.model.v1.FieldOpts
-	(*Join)(nil),                        // 2: malonaz.codegen.model.v1.Join
-	(*Query)(nil),                       // 3: malonaz.codegen.model.v1.Query
-	(*descriptorpb.MessageOptions)(nil), // 4: google.protobuf.MessageOptions
-	(*descriptorpb.FieldOptions)(nil),   // 5: google.protobuf.FieldOptions
+	(Aggregate_Function)(0),             // 0: malonaz.codegen.model.v1.Aggregate.Function
+	(*ModelOpts)(nil),                   // 1: malonaz.codegen.model.v1.ModelOpts
+	(*FieldOpts)(nil),                   // 2: malonaz.codegen.model.v1.FieldOpts
+	(*Join)(nil),                        // 3: malonaz.codegen.model.v1.Join
+	(*Query)(nil),                       // 4: malonaz.codegen.model.v1.Query
+	(*Aggregate)(nil),                   // 5: malonaz.codegen.model.v1.Aggregate
+	(*descriptorpb.MessageOptions)(nil), // 6: google.protobuf.MessageOptions
+	(*descriptorpb.FieldOptions)(nil),   // 7: google.protobuf.FieldOptions
 }
 var file_malonaz_codegen_model_v1_model_proto_depIdxs = []int32{
-	2, // 0: malonaz.codegen.model.v1.FieldOpts.join:type_name -> malonaz.codegen.model.v1.Join
-	3, // 1: malonaz.codegen.model.v1.Join.query:type_name -> malonaz.codegen.model.v1.Query
-	4, // 2: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
-	5, // 3: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
-	0, // 4: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
-	1, // 5: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	4, // [4:6] is the sub-list for extension type_name
-	2, // [2:4] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 0: malonaz.codegen.model.v1.FieldOpts.join:type_name -> malonaz.codegen.model.v1.Join
+	4, // 1: malonaz.codegen.model.v1.Join.query:type_name -> malonaz.codegen.model.v1.Query
+	5, // 2: malonaz.codegen.model.v1.Join.aggregate:type_name -> malonaz.codegen.model.v1.Aggregate
+	0, // 3: malonaz.codegen.model.v1.Aggregate.function:type_name -> malonaz.codegen.model.v1.Aggregate.Function
+	6, // 4: malonaz.codegen.model.v1.model_opts:extendee -> google.protobuf.MessageOptions
+	7, // 5: malonaz.codegen.model.v1.field_opts:extendee -> google.protobuf.FieldOptions
+	1, // 6: malonaz.codegen.model.v1.model_opts:type_name -> malonaz.codegen.model.v1.ModelOpts
+	2, // 7: malonaz.codegen.model.v1.field_opts:type_name -> malonaz.codegen.model.v1.FieldOpts
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	6, // [6:8] is the sub-list for extension type_name
+	4, // [4:6] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_codegen_model_v1_model_proto_init() }
@@ -743,19 +954,21 @@ func file_malonaz_codegen_model_v1_model_proto_init() {
 	file_malonaz_codegen_model_v1_model_proto_msgTypes[2].OneofWrappers = []any{
 		(*Join_Reference)(nil),
 		(*Join_Query)(nil),
+		(*Join_Aggregate)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_codegen_model_v1_model_proto_rawDesc), len(file_malonaz_codegen_model_v1_model_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   4,
+			NumEnums:      1,
+			NumMessages:   5,
 			NumExtensions: 2,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_codegen_model_v1_model_proto_goTypes,
 		DependencyIndexes: file_malonaz_codegen_model_v1_model_proto_depIdxs,
+		EnumInfos:         file_malonaz_codegen_model_v1_model_proto_enumTypes,
 		MessageInfos:      file_malonaz_codegen_model_v1_model_proto_msgTypes,
 		ExtensionInfos:    file_malonaz_codegen_model_v1_model_proto_extTypes,
 	}.Build()

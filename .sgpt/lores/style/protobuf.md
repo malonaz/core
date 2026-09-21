@@ -36,7 +36,11 @@ labels:
 - **Nullable fields**: Use `(malonaz.codegen.model.v1.field_opts).nullable = true` for optional fields (especially `delete_time`).
 - **Non-nullable message fields are required**: a message-typed field (a `*Metadata` message, `google.protobuf.Duration`, `Timestamp`) that is neither `nullable` nor `OUTPUT_ONLY` must carry `(buf.validate.field).required = true`; codegen rejects the resource otherwise. Pick one: optional → `nullable = true`, mandatory → `required = true`. Scalars, `repeated`, `bytes` and maps are exempt (no proto3 presence; an omitted list/map is stored empty).
 - **JSON storage**: Use `(malonaz.codegen.model.v1.field_opts).as_json_bytes = true` for complex nested messages stored as JSON in the database.
-- **Joins**: Use `(malonaz.codegen.model.v1.field_opts).join = {parent: "...", field: "..."}` for OUTPUT_ONLY fields projected from a parent resource.
+- **Joins**: `(malonaz.codegen.model.v1.field_opts).join` populates an `OUTPUT_ONLY` field from another table, in four kinds (all `resource_type` + `field`; see `lores/aip/codegen/overview`):
+  - ancestor — no selector: `join: {resource_type: "…/Shelf", field: "genre"}` (nullability must mirror the source column);
+  - reference — `join: {resource_type: "…/Book", reference: "best_book", field: "page_count"}`, following a stored resource-name field;
+  - query — `join: {resource_type: "…/Book", field: "name", query: {filter: "page_count > 0", order_by: "create_time desc"}}`, one descendant row; other fields chain onto it via `reference: "<anchor field>"`;
+  - aggregate — `join: {resource_type: "…/Book", field: "page_count", aggregate: {function: FUNCTION_SUM, filter: "page_count > 0"}}`, folding descendant rows (`FUNCTION_COUNT` over `field: "name"`, `FUNCTION_MIN`/`FUNCTION_MAX` keep the type); nullable, no chaining.
 
 ### Codegen Options (resource messages)
 - **`malonaz.codegen.aip.v1.uuid_namespace`**: A fixed UUID per resource message — deterministic resource IDs.

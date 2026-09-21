@@ -2,8 +2,8 @@
 // @generated from file malonaz/codegen/model/v1/model.proto (package malonaz.codegen.model.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenExtension, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { extDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenExtension, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, extDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { FieldOptions, MessageOptions } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_descriptor } from "@bufbuild/protobuf/wkt";
@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/model/v1/model.proto.
  */
 export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIocBCgRKb2luEh0KDXJlc291cmNlX3R5cGUYASABKAlCBvpBAwoBKhINCgVmaWVsZBgCIAEoCRITCglyZWZlcmVuY2UYAyABKAlIABIwCgVxdWVyeRgEIAEoCzIfLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5RdWVyeUgAQgoKCHNlbGVjdG9yIikKBVF1ZXJ5Eg4KBmZpbHRlchgBIAEoCRIQCghvcmRlcl9ieRgCIAEoCTpkCgptb2RlbF9vcHRzEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGOpEIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Nb2RlbE9wdHNSCW1vZGVsT3B0czpjCgpmaWVsZF9vcHRzEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxin/QEgASgLMiMubWFsb25hei5jb2RlZ2VuLm1vZGVsLnYxLkZpZWxkT3B0c1IJZmllbGRPcHRzQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbW9kZWwvdjFiBnByb3RvMw", [file_google_api_resource, file_google_protobuf_descriptor]);
+  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIsEBCgRKb2luEh0KDXJlc291cmNlX3R5cGUYASABKAlCBvpBAwoBKhINCgVmaWVsZBgCIAEoCRITCglyZWZlcmVuY2UYAyABKAlIABIwCgVxdWVyeRgEIAEoCzIfLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5RdWVyeUgAEjgKCWFnZ3JlZ2F0ZRgFIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGVIAEIKCghzZWxlY3RvciIpCgVRdWVyeRIOCgZmaWx0ZXIYASABKAkSEAoIb3JkZXJfYnkYAiABKAkiywEKCUFnZ3JlZ2F0ZRI+CghmdW5jdGlvbhgBIAEoDjIsLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGUuRnVuY3Rpb24SDgoGZmlsdGVyGAIgASgJIm4KCEZ1bmN0aW9uEhgKFEZVTkNUSU9OX1VOU1BFQ0lGSUVEEAASEAoMRlVOQ1RJT05fU1VNEAESEgoORlVOQ1RJT05fQ09VTlQQAhIQCgxGVU5DVElPTl9NSU4QAxIQCgxGVU5DVElPTl9NQVgQBDpkCgptb2RlbF9vcHRzEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGOpEIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Nb2RlbE9wdHNSCW1vZGVsT3B0czpjCgpmaWVsZF9vcHRzEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxin/QEgASgLMiMubWFsb25hei5jb2RlZ2VuLm1vZGVsLnYxLkZpZWxkT3B0c1IJZmllbGRPcHRzQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbW9kZWwvdjFiBnByb3RvMw", [file_google_api_resource, file_google_protobuf_descriptor]);
 
 /**
  * ModelOpts defines code generation options for an entire message/model.
@@ -151,7 +151,7 @@ export type Join = Message<"malonaz.codegen.model.v1.Join"> & {
   /**
    * Required. The field name on the joined message to populate from. The
    * special value "name" selects the joined resource's name, reconstructed
-   * from its identifier columns.
+   * from its identifier columns (and is what COUNT aggregates must name).
    *
    * @generated from field: string field = 2;
    */
@@ -185,6 +185,18 @@ export type Join = Message<"malonaz.codegen.model.v1.Join"> & {
      */
     value: Query;
     case: "query";
+  } | {
+    /**
+     * Folds every descendant row correlated with this resource into one
+     * value. `field` names the aggregated column on the descendant (ignored
+     * for COUNT, which must name "name"). Emitted as a correlated subquery,
+     * so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
+     * Nothing can chain onto an aggregate field: there is no row behind it.
+     *
+     * @generated from field: malonaz.codegen.model.v1.Aggregate aggregate = 5;
+     */
+    value: Aggregate;
+    case: "aggregate";
   } | { case: undefined; value?: undefined };
 };
 
@@ -230,6 +242,89 @@ export type QueryValid = Query;
  */
 export const QuerySchema: GenMessage<Query, {validType: QueryValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_codegen_model_v1_model, 3);
+
+/**
+ * An aggregate over the descendant rows correlated with this resource.
+ *
+ * @generated from message malonaz.codegen.model.v1.Aggregate
+ */
+export type Aggregate = Message<"malonaz.codegen.model.v1.Aggregate"> & {
+  /**
+   * Required. The function folding the descendant rows.
+   *
+   * @generated from field: malonaz.codegen.model.v1.Aggregate.Function function = 1;
+   */
+  function: Aggregate_Function;
+
+  /**
+   * Optional AIP-160 filter over the descendant, same grammar and limits as
+   * Query.filter: conjunctions of comparisons on scalar stored fields, enums
+   * unquoted. The aggregate sees exactly the rows the filter admits: when the
+   * descendant is soft-deletable and only live rows should count, say so with
+   * `NOT delete_time:*`.
+   *
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+};
+
+export type AggregateValid = Aggregate;
+
+/**
+ * Describes the message malonaz.codegen.model.v1.Aggregate.
+ * Use `create(AggregateSchema)` to create a new message.
+ */
+export const AggregateSchema: GenMessage<Aggregate, {validType: AggregateValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_codegen_model_v1_model, 4);
+
+/**
+ * The SQL aggregate function applied to the descendant column.
+ *
+ * @generated from enum malonaz.codegen.model.v1.Aggregate.Function
+ */
+export enum Aggregate_Function {
+  /**
+   * Used to detect an unset field.
+   *
+   * @generated from enum value: FUNCTION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * SUM over a google.type.Decimal (stays Decimal) or an integer column
+   * (widens to int64, as Postgres does).
+   *
+   * @generated from enum value: FUNCTION_SUM = 1;
+   */
+  SUM = 1,
+
+  /**
+   * COUNT of the correlated rows, as int64. `field` must be "name".
+   *
+   * @generated from enum value: FUNCTION_COUNT = 2;
+   */
+  COUNT = 2,
+
+  /**
+   * MIN, keeping the column's type (Timestamp included).
+   *
+   * @generated from enum value: FUNCTION_MIN = 3;
+   */
+  MIN = 3,
+
+  /**
+   * MAX, keeping the column's type (Timestamp included).
+   *
+   * @generated from enum value: FUNCTION_MAX = 4;
+   */
+  MAX = 4,
+}
+
+/**
+ * Describes the enum malonaz.codegen.model.v1.Aggregate.Function.
+ */
+export const Aggregate_FunctionSchema: GenEnum<Aggregate_Function> = /*@__PURE__*/
+  enumDesc(file_malonaz_codegen_model_v1_model, 4, 0);
 
 /**
  * Opts for a model.

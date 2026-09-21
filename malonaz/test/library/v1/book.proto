@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
 import "google/type/money.proto";
 import "malonaz/canonicalize/v1/canonicalize.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
@@ -186,6 +187,10 @@ message Book {
       }
     }
   ];
+
+  // The price of the book, stored as NUMERIC. Nullable so it can be left
+  // unset; summed by Shelf.total_price.
+  google.type.Decimal price = 19 [(malonaz.codegen.model.v1.field_opts).nullable = true];
 }
 
 // Metadata for a book.

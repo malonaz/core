@@ -8,7 +8,9 @@ import (
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	decimal "github.com/shopspring/decimal"
 	resourcename "go.einride.tech/aip/resourcename"
+	decimal1 "google.golang.org/genproto/googleapis/type/decimal"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
@@ -21,27 +23,31 @@ var ErrShelfNotDeleted = errors.New("shelf is not deleted")
 var ErrShelfHasChildren = errors.New("shelf has child resources")
 
 type Shelf struct {
-	OrganizationID    string         `db:"organization_id" schema:"library" table:"shelf"`
-	ShelfID           string         `db:"shelf_id" schema:"library" table:"shelf"`
-	CreateTime        time.Time      `db:"create_time" schema:"library" table:"shelf"`
-	UpdateTime        time.Time      `db:"update_time" schema:"library" table:"shelf"`
-	DeleteTime        *time.Time     `db:"delete_time" schema:"library" table:"shelf"`
-	DisplayName       string         `db:"display_name" schema:"library" table:"shelf"`
-	Genre             int16          `db:"genre" schema:"library" table:"shelf"`
-	ExternalId        *string        `db:"ext_id" schema:"library" table:"shelf"`
-	CorrelationId_2   string         `db:"correlation_id" schema:"library" table:"shelf"`
-	Duration          *time.Duration `db:"duration" schema:"library" table:"shelf"`
-	Labels            []byte         `db:"labels" schema:"library" table:"shelf"`
-	Metadata          []byte         `db:"legacy_meta" schema:"library" table:"shelf"`
-	BestBook          string         `db:"best_book" schema:"library" table:"shelf"`
-	BestBookPageCount *int32         `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
-	LatestBook        *string        `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
-	LatestBookTitle   *string        `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
-	SecondaryGenre    *int16         `db:"secondary_genre" schema:"library" table:"shelf"`
-	ShelfNumber       *int32         `db:"shelf_number" schema:"library" table:"shelf"`
-	Featured          *bool          `db:"featured" schema:"library" table:"shelf"`
-	LatestDraftBook   *string        `db:"latest_draft_book" external:"true" join_schema:"library" join_table:"latest_draft_book" join_column:"name"`
-	Extra             []byte         `db:"extra" schema:"library" table:"shelf"`
+	OrganizationID     string           `db:"organization_id" schema:"library" table:"shelf"`
+	ShelfID            string           `db:"shelf_id" schema:"library" table:"shelf"`
+	CreateTime         time.Time        `db:"create_time" schema:"library" table:"shelf"`
+	UpdateTime         time.Time        `db:"update_time" schema:"library" table:"shelf"`
+	DeleteTime         *time.Time       `db:"delete_time" schema:"library" table:"shelf"`
+	DisplayName        string           `db:"display_name" schema:"library" table:"shelf"`
+	Genre              int16            `db:"genre" schema:"library" table:"shelf"`
+	ExternalId         *string          `db:"ext_id" schema:"library" table:"shelf"`
+	CorrelationId_2    string           `db:"correlation_id" schema:"library" table:"shelf"`
+	Duration           *time.Duration   `db:"duration" schema:"library" table:"shelf"`
+	Labels             []byte           `db:"labels" schema:"library" table:"shelf"`
+	Metadata           []byte           `db:"legacy_meta" schema:"library" table:"shelf"`
+	BestBook           string           `db:"best_book" schema:"library" table:"shelf"`
+	BestBookPageCount  *int32           `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
+	LatestBook         *string          `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
+	LatestBookTitle    *string          `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
+	SecondaryGenre     *int16           `db:"secondary_genre" schema:"library" table:"shelf"`
+	ShelfNumber        *int32           `db:"shelf_number" schema:"library" table:"shelf"`
+	Featured           *bool            `db:"featured" schema:"library" table:"shelf"`
+	LatestDraftBook    *string          `db:"latest_draft_book" external:"true" join_schema:"library" join_table:"latest_draft_book" join_column:"name"`
+	Extra              []byte           `db:"extra" schema:"library" table:"shelf"`
+	TotalPageCount     *int64           `db:"total_page_count" external:"true" join_schema:"library" join_table:"total_page_count" join_column:"value"`
+	BookCount          *int64           `db:"book_count" external:"true" join_schema:"library" join_table:"book_count" join_column:"value"`
+	TotalPrice         *decimal.Decimal `db:"total_price" external:"true" join_schema:"library" join_table:"total_price" join_column:"value"`
+	LastBookCreateTime *time.Time       `db:"last_book_create_time" external:"true" join_schema:"library" join_table:"last_book_create_time" join_column:"value"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -132,28 +138,56 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 			return nil, fmt.Errorf("marshaling Extra: %w", err)
 		}
 	}
+	var TotalPageCount *int64
+	if m.TotalPageCount != 0 {
+		TotalPageCount = &m.TotalPageCount
+	}
+	var BookCount *int64
+	if m.BookCount != 0 {
+		BookCount = &m.BookCount
+	}
+	var TotalPrice *decimal.Decimal
+	if m.TotalPrice != nil {
+		d, err := decimal.NewFromString(m.TotalPrice.GetValue())
+		if err != nil {
+			return nil, fmt.Errorf("parsing decimal total_price: %w", err)
+		}
+		TotalPrice = &d
+	}
+	var LastBookCreateTime *time.Time
+	if m.LastBookCreateTime != nil {
+		if err := m.LastBookCreateTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating last_book_create_time: %w", err)
+		}
+		t := m.LastBookCreateTime.AsTime()
+		LastBookCreateTime = &t
+	}
 	return &Shelf{
-		OrganizationID:    OrganizationID,
-		ShelfID:           ShelfID,
-		CreateTime:        m.CreateTime.AsTime(),
-		UpdateTime:        m.UpdateTime.AsTime(),
-		DeleteTime:        DeleteTime,
-		DisplayName:       m.DisplayName,
-		Genre:             int16(m.Genre),
-		ExternalId:        ExternalId,
-		CorrelationId_2:   m.CorrelationId_2,
-		Duration:          Duration,
-		Labels:            LabelsBytes,
-		Metadata:          MetadataBytes,
-		BestBook:          m.BestBook,
-		BestBookPageCount: BestBookPageCount,
-		LatestBook:        LatestBook,
-		LatestBookTitle:   LatestBookTitle,
-		SecondaryGenre:    SecondaryGenre,
-		ShelfNumber:       ShelfNumber,
-		Featured:          Featured,
-		LatestDraftBook:   LatestDraftBook,
-		Extra:             ExtraBytes,
+		OrganizationID:     OrganizationID,
+		ShelfID:            ShelfID,
+		CreateTime:         m.CreateTime.AsTime(),
+		UpdateTime:         m.UpdateTime.AsTime(),
+		DeleteTime:         DeleteTime,
+		DisplayName:        m.DisplayName,
+		Genre:              int16(m.Genre),
+		ExternalId:         ExternalId,
+		CorrelationId_2:    m.CorrelationId_2,
+		Duration:           Duration,
+		Labels:             LabelsBytes,
+		Metadata:           MetadataBytes,
+		BestBook:           m.BestBook,
+		BestBookPageCount:  BestBookPageCount,
+		LatestBook:         LatestBook,
+		LatestBookTitle:    LatestBookTitle,
+		SecondaryGenre:     SecondaryGenre,
+		ShelfNumber:        ShelfNumber,
+		Featured:           Featured,
+		LatestDraftBook:    LatestDraftBook,
+		Extra:              ExtraBytes,
+		TotalPageCount:     TotalPageCount,
+		BookCount:          BookCount,
+		TotalPrice:         TotalPrice,
+		LastBookCreateTime: LastBookCreateTime,
 	}, nil
 }
 
@@ -232,31 +266,54 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 			return nil, fmt.Errorf("unmarshaling Extra: %w", err)
 		}
 	}
+	var TotalPageCount int64
+	if m.TotalPageCount != nil {
+		TotalPageCount = *m.TotalPageCount
+	}
+	var BookCount int64
+	if m.BookCount != nil {
+		BookCount = *m.BookCount
+	}
+	var TotalPrice *decimal1.Decimal
+	if m.TotalPrice != nil {
+		TotalPrice = &decimal1.Decimal{Value: m.TotalPrice.String()}
+	}
+	var LastBookCreateTime *timestamppb.Timestamp
+	if m.LastBookCreateTime != nil {
+		LastBookCreateTime = timestamppb.New(*m.LastBookCreateTime)
+		if err := LastBookCreateTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating last_book_create_time: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Shelf{
-		Name:              name,
-		CreateTime:        CreateTime,
-		UpdateTime:        UpdateTime,
-		DeleteTime:        DeleteTime,
-		DisplayName:       m.DisplayName,
-		Genre:             v1.ShelfGenre(m.Genre),
-		ExternalId:        ExternalId,
-		CorrelationId_2:   m.CorrelationId_2,
-		Duration:          Duration,
-		Labels:            Labels,
-		Metadata:          Metadata,
-		BestBook:          m.BestBook,
-		BestBookPageCount: BestBookPageCount,
-		LatestBook:        LatestBook,
-		LatestBookTitle:   LatestBookTitle,
-		SecondaryGenre:    v1.ShelfGenre(SecondaryGenre),
-		ShelfNumber:       ShelfNumber,
-		Featured:          Featured,
-		LatestDraftBook:   LatestDraftBook,
-		Extra:             Extra,
+		Name:               name,
+		CreateTime:         CreateTime,
+		UpdateTime:         UpdateTime,
+		DeleteTime:         DeleteTime,
+		DisplayName:        m.DisplayName,
+		Genre:              v1.ShelfGenre(m.Genre),
+		ExternalId:         ExternalId,
+		CorrelationId_2:    m.CorrelationId_2,
+		Duration:           Duration,
+		Labels:             Labels,
+		Metadata:           Metadata,
+		BestBook:           m.BestBook,
+		BestBookPageCount:  BestBookPageCount,
+		LatestBook:         LatestBook,
+		LatestBookTitle:    LatestBookTitle,
+		SecondaryGenre:     v1.ShelfGenre(SecondaryGenre),
+		ShelfNumber:        ShelfNumber,
+		Featured:           Featured,
+		LatestDraftBook:    LatestDraftBook,
+		Extra:              Extra,
+		TotalPageCount:     TotalPageCount,
+		BookCount:          BookCount,
+		TotalPrice:         TotalPrice,
+		LastBookCreateTime: LastBookCreateTime,
 	}, nil
 }
 

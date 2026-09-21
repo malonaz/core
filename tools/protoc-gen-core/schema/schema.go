@@ -16,8 +16,10 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/aip/transpiler/postgres/static"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/protofield"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
@@ -126,8 +128,8 @@ type JoinTarget struct {
 	Table Table
 	// Alias is the table alias the join is emitted under. Ancestor joins use
 	// the table name; reference joins use the reference field name and query
-	// joins their anchor field name, so two joins against the same table
-	// cannot collide.
+	// and aggregate joins their own field name, so two joins against the same
+	// table cannot collide.
 	Alias    string
 	Column   string
 	Nullable bool
@@ -169,13 +171,16 @@ type Join struct {
 	// Alias is the table alias the join is emitted under.
 	Alias string
 	// Left is true when the join is emitted as a LEFT JOIN: reference joins
-	// on nullable fields, and every query join.
+	// on nullable fields, and every query and aggregate join.
 	Left       bool
 	Conditions []JoinCondition
 	Fields     []JoinField
-	// Query marks a descendant join: emitted as a LEFT JOIN LATERAL
-	// selecting at most one correlated child row.
+	// Query marks a query join: emitted as a LEFT JOIN LATERAL selecting at
+	// most one correlated child row.
 	Query *JoinQuery
+	// Aggregate marks an aggregate join: emitted as a LEFT JOIN LATERAL
+	// folding the correlated child rows into a single value.
+	Aggregate *JoinAggregate
 }
 
 // JoinQuery is the resolved SQL of a query join's row selection over the
@@ -197,6 +202,15 @@ type JoinQuery struct {
 // OrderByWithTieBreak is the ORDER BY list, made total by the identifier column.
 func (q *JoinQuery) OrderByWithTieBreak() string {
 	return q.OrderBy + ", " + q.TieBreak
+}
+
+// JoinAggregate is the resolved SQL of an aggregate join. Expr folds the child
+// rows admitted by Filter, e.g. "SUM(book.page_count)"; both are qualified by
+// Inner, the child's bare table name.
+type JoinAggregate struct {
+	Inner  string
+	Expr   string
+	Filter string
 }
 
 // joinSource bundles everything resolvable from a join's source resource type.
@@ -255,7 +269,7 @@ func SetFilesRegistry(registry *protoregistry.Files) { filesRegistry = registry 
 
 var filesRegistry *protoregistry.Files
 
-// joinKind discriminates the three join shapes.
+// joinKind discriminates the four join shapes.
 type joinKind int
 
 const (
@@ -265,6 +279,8 @@ const (
 	referenceJoin
 	// queryJoin selects at most one correlated descendant row.
 	queryJoin
+	// aggregateJoin folds the correlated descendant rows into one value.
+	aggregateJoin
 )
 
 func joinKindOf(join *modelpb.Join) (joinKind, error) {
@@ -279,13 +295,16 @@ func joinKindOf(join *modelpb.Join) (joinKind, error) {
 		return referenceJoin, nil
 	case join.GetQuery() != nil:
 		return queryJoin, nil
+	case join.GetAggregate() != nil:
+		return aggregateJoin, nil
 	default:
 		return ancestorJoin, nil
 	}
 }
 
 // anchorField returns the query join annotated on a field, if any: such
-// fields anchor a lateral join that reference joins can chain onto.
+// fields anchor a lateral join that reference joins can chain onto. An
+// aggregate field is no anchor — there is no row behind it to chain from.
 func anchorField(field *protogen.Field) (*modelpb.Join, error) {
 	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
 	if err != nil {
@@ -295,6 +314,9 @@ func anchorField(field *protogen.Field) (*modelpb.Join, error) {
 		return nil, err
 	}
 	join := fieldOpts.GetJoin()
+	if join.GetAggregate() != nil {
+		return nil, fmt.Errorf("field %q is an aggregate join, which nothing can chain onto", field.Desc.TextName())
+	}
 	if join.GetQuery() == nil {
 		return nil, nil
 	}
@@ -331,6 +353,8 @@ func ResolveJoin(message *protogen.Message, field *protogen.Field, join *modelpb
 			Column:   "name",
 			Nullable: true,
 		}, nil
+	case aggregateJoin:
+		return resolveAggregateJoin(field, join)
 	case referenceJoin:
 		referenceField := fieldByTextName(message, join.GetReference())
 		if referenceField == nil {
@@ -362,32 +386,157 @@ func ResolveJoin(message *protogen.Message, field *protogen.Field, join *modelpb
 	if join.GetField() == "name" {
 		return nil, fmt.Errorf("field %q is only joinable via a query join, whose lateral subquery reconstructs it", "name")
 	}
-	for _, sourceField := range source.message.Fields {
-		if sourceField.Desc.TextName() != join.GetField() {
-			continue
-		}
-		sourceFieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](sourceField.Desc.Options(), modelpb.E_FieldOpts)
-		if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return nil, fmt.Errorf("getting field_opts for joined field %q: %w", join.GetField(), err)
-		}
-		column := join.GetField()
-		if sourceFieldOpts.GetColumnName() != "" {
-			column = sourceFieldOpts.GetColumnName()
-		}
-		return &JoinTarget{
-			Table:    TableOf(source.resource, source.modelOpts),
-			Alias:    alias,
-			Column:   column,
-			Nullable: sourceFieldOpts.GetNullable(),
-			Ancestor: kind == ancestorJoin,
-		}, nil
+	_, sourceFieldOpts, column, err := joinedColumn(source, join.GetField())
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("field %q not found on joined resource %q", join.GetField(), source.resource.Desc.Type)
+	return &JoinTarget{
+		Table:    TableOf(source.resource, source.modelOpts),
+		Alias:    alias,
+		Column:   column,
+		Nullable: sourceFieldOpts.GetNullable(),
+		Ancestor: kind == ancestorJoin,
+	}, nil
+}
+
+// joinedColumn resolves a field of the join source to its field, options and
+// backing column.
+func joinedColumn(source *joinSource, fieldName string) (*protogen.Field, *modelpb.FieldOpts, string, error) {
+	sourceField := fieldByTextName(source.message, fieldName)
+	if sourceField == nil {
+		return nil, nil, "", fmt.Errorf("field %q not found on joined resource %q", fieldName, source.resource.Desc.Type)
+	}
+	sourceFieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](sourceField.Desc.Options(), modelpb.E_FieldOpts)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return nil, nil, "", fmt.Errorf("getting field_opts for joined field %q: %w", fieldName, err)
+	}
+	column := fieldName
+	if sourceFieldOpts.GetColumnName() != "" {
+		column = sourceFieldOpts.GetColumnName()
+	}
+	return sourceField, sourceFieldOpts, column, nil
+}
+
+// aggregateFunctions maps each aggregate function to its SQL name.
+var aggregateFunctions = map[modelpb.Aggregate_Function]string{
+	modelpb.Aggregate_FUNCTION_SUM:   "SUM",
+	modelpb.Aggregate_FUNCTION_COUNT: "COUNT",
+	modelpb.Aggregate_FUNCTION_MIN:   "MIN",
+	modelpb.Aggregate_FUNCTION_MAX:   "MAX",
+}
+
+// resolveAggregateJoin resolves an aggregate join's target and checks that
+// the annotated field can hold the aggregate: nullable and output-only, of
+// the type Postgres yields for the function over the source column.
+func resolveAggregateJoin(field *protogen.Field, join *modelpb.Join) (*JoinTarget, error) {
+	name := field.Desc.TextName()
+	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
+	if err != nil {
+		return nil, fmt.Errorf("getting field_opts for %q: %w", name, err)
+	}
+	if !fieldOpts.GetNullable() {
+		return nil, fmt.Errorf("aggregate join field %q must be nullable: an aggregate over no rows is NULL", name)
+	}
+	behavior, err := pbutil.GetFieldBehavior(field.Desc)
+	if err != nil {
+		return nil, fmt.Errorf("getting field behavior for %q: %w", name, err)
+	}
+	if !behavior.OutputOnly {
+		return nil, fmt.Errorf("aggregate join field %q must be OUTPUT_ONLY", name)
+	}
+	source, err := resolveJoinSource(join.GetResourceType())
+	if err != nil {
+		return nil, err
+	}
+	if err := checkAggregateType(field, source, join); err != nil {
+		return nil, fmt.Errorf("aggregate join field %q: %w", name, err)
+	}
+	return &JoinTarget{
+		Table:    TableOf(source.resource, source.modelOpts),
+		Alias:    name,
+		Column:   aip.AggregateJoinColumn,
+		Nullable: true,
+	}, nil
+}
+
+// checkAggregateType checks the annotated field's type against what the
+// aggregate yields over the source column.
+func checkAggregateType(field *protogen.Field, source *joinSource, join *modelpb.Join) error {
+	function := join.GetAggregate().GetFunction()
+	sql, ok := aggregateFunctions[function]
+	if !ok {
+		return fmt.Errorf("aggregate must declare a function")
+	}
+	if function == modelpb.Aggregate_FUNCTION_COUNT {
+		if join.GetField() != "name" {
+			return fmt.Errorf("COUNT must aggregate %q, got %q", "name", join.GetField())
+		}
+		if field.Desc.Kind() != protoreflect.Int64Kind {
+			return fmt.Errorf("COUNT yields int64, not %s", field.Desc.Kind())
+		}
+		return nil
+	}
+	if join.GetField() == "name" {
+		return fmt.Errorf("%s cannot aggregate %q: it is not a stored column", sql, "name")
+	}
+	sourceField, sourceFieldOpts, _, err := joinedColumn(source, join.GetField())
+	if err != nil {
+		return err
+	}
+	if sourceField.Desc.IsList() || sourceField.Desc.IsMap() || sourceFieldOpts.GetAsJsonBytes() || sourceFieldOpts.GetAsProtoBytes() {
+		return fmt.Errorf("%s over %q: not a scalar stored column", sql, join.GetField())
+	}
+	switch function {
+	case modelpb.Aggregate_FUNCTION_SUM:
+		switch {
+		case protofield.IsDecimal(sourceField):
+			if !protofield.IsDecimal(field) {
+				return fmt.Errorf("SUM over decimal %q yields google.type.Decimal, not %s", join.GetField(), fieldTypeName(field))
+			}
+		case isInteger(sourceField):
+			// Postgres widens integer sums to bigint.
+			if field.Desc.Kind() != protoreflect.Int64Kind {
+				return fmt.Errorf("SUM over %s %q yields int64, not %s", fieldTypeName(sourceField), join.GetField(), fieldTypeName(field))
+			}
+		default:
+			return fmt.Errorf("SUM over %s %q: only google.type.Decimal and integer columns can be summed", fieldTypeName(sourceField), join.GetField())
+		}
+	default:
+		// Postgres has no min/max over boolean or bytea.
+		if kind := sourceField.Desc.Kind(); kind == protoreflect.BoolKind || kind == protoreflect.BytesKind {
+			return fmt.Errorf("%s over %s %q: Postgres cannot order it", sql, kind, join.GetField())
+		}
+		if fieldTypeName(field) != fieldTypeName(sourceField) {
+			return fmt.Errorf("%s over %q keeps its type %s, not %s", sql, join.GetField(), fieldTypeName(sourceField), fieldTypeName(field))
+		}
+	}
+	return nil
+}
+
+func isInteger(field *protogen.Field) bool {
+	switch field.Desc.Kind() {
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
+		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		return true
+	}
+	return false
+}
+
+// fieldTypeName names a field's type for diagnostics: the message or enum
+// full name, else the scalar kind.
+func fieldTypeName(field *protogen.Field) string {
+	switch {
+	case field.Message != nil:
+		return string(field.Message.Desc.FullName())
+	case field.Enum != nil:
+		return string(field.Enum.Desc.FullName())
+	}
+	return field.Desc.Kind().String()
 }
 
 // ParseJoins collects a message's join annotations, grouped by join source in
 // field-declaration order. Reference joins chained onto a query join's anchor
-// field share the anchor's lateral join.
+// field share the anchor's lateral join; aggregate joins each stand alone.
 func ParseJoins(message *protogen.Message) ([]Join, error) {
 	var keys []string
 	keyToJoin := map[string]*Join{}
@@ -427,6 +576,12 @@ func ParseJoins(message *protogen.Message) ([]Join, error) {
 				if err == nil {
 					join.Query, err = buildJoinQuery(message, joinOpts)
 				}
+			case aggregateJoin:
+				join.Left = true
+				join.Conditions, err = descendantJoinConditions(message, joinOpts.GetResourceType())
+				if err == nil {
+					join.Aggregate, err = buildJoinAggregate(message, joinOpts)
+				}
 			case referenceJoin:
 				referenceField := fieldByTextName(message, joinOpts.GetReference())
 				anchor, anchorErr := anchorField(referenceField)
@@ -463,13 +618,15 @@ func ParseJoins(message *protogen.Message) ([]Join, error) {
 }
 
 // joinKey identifies a field's join group: query anchors and the references
-// chained onto them share the anchor field's key.
+// chained onto them share the anchor field's key; an aggregate is its own.
 func joinKey(field *protogen.Field, join *modelpb.Join) string {
 	switch {
 	case join.GetReference() != "":
 		return "reference:" + join.GetReference()
 	case join.GetQuery() != nil:
 		return "reference:" + field.Desc.TextName()
+	case join.GetAggregate() != nil:
+		return "aggregate:" + field.Desc.TextName()
 	}
 	return "ancestor:" + join.GetResourceType()
 }
@@ -496,10 +653,10 @@ func descendantJoinConditions(message *protogen.Message, descendantType string) 
 	}
 	descendantPattern, err := descendant.resource.SinglePattern()
 	if err != nil {
-		return nil, fmt.Errorf("query join on %q: %w", descendantType, err)
+		return nil, fmt.Errorf("descendant join on %q: %w", descendantType, err)
 	}
 	if !strings.HasPrefix(descendantPattern.Value, ownPattern.Value+"/") {
-		return nil, fmt.Errorf("query join resource pattern %q does not extend %q", descendantPattern.Value, ownPattern.Value)
+		return nil, fmt.Errorf("descendant join resource pattern %q does not extend %q", descendantPattern.Value, ownPattern.Value)
 	}
 
 	ownBindings, err := ColumnBindings(ownPattern, ownModelOpts)
@@ -526,10 +683,16 @@ func descendantJoinConditions(message *protogen.Message, descendantType string) 
 	return conditions, nil
 }
 
-// buildJoinQuery transpiles a query join's filter and order_by against the
-// child resource, and composes the child's name expression, all qualified by
-// the child's own bare table name — the alias it takes inside the lateral.
-func buildJoinQuery(message *protogen.Message, join *modelpb.Join) (*JoinQuery, error) {
+// descendantQuery is what a descendant join's subquery is transpiled against:
+// the child resource, its table, and a transpiler qualifying by the child's
+// bare table name — the alias it takes inside the correlated subquery.
+type descendantQuery struct {
+	child      *joinSource
+	table      Table
+	transpiler *static.Transpiler
+}
+
+func newDescendantQuery(message *protogen.Message, join *modelpb.Join) (*descendantQuery, error) {
 	child, err := resolveJoinSource(join.GetResourceType())
 	if err != nil {
 		return nil, err
@@ -543,43 +706,77 @@ func buildJoinQuery(message *protogen.Message, join *modelpb.Join) (*JoinQuery, 
 	if err != nil {
 		return nil, fmt.Errorf("getting model_opts for %s: %w", message.Desc.FullName(), err)
 	}
-	// The lateral correlates on the outer table by bare name: a shared table
+	// The subquery correlates on the outer table by bare name: a shared table
 	// would make those references ambiguous.
 	if ownTable := TableOf(ownResource, ownModelOpts); ownTable.Name == childTable.Name {
-		return nil, fmt.Errorf("query join on %q shares this resource's table %q", join.GetResourceType(), ownTable.Name)
-	}
-
-	if join.GetQuery().GetOrderBy() == "" {
-		return nil, fmt.Errorf("query join on %q must declare an order_by", join.GetResourceType())
+		return nil, fmt.Errorf("descendant join on %q shares this resource's table %q", join.GetResourceType(), ownTable.Name)
 	}
 	transpiler, err := static.NewTranspiler(child.message.Desc, static.WithRegistry(filesRegistry))
 	if err != nil {
 		return nil, fmt.Errorf("building transpiler for %q: %w", join.GetResourceType(), err)
 	}
-	filter, err := transpiler.TranspileFilter(join.GetQuery().GetFilter())
+	return &descendantQuery{child: child, table: childTable, transpiler: transpiler}, nil
+}
+
+// buildJoinQuery transpiles a query join's filter and order_by against the
+// child resource, and composes the child's name expression, all qualified by
+// the child's own bare table name — the alias it takes inside the lateral.
+func buildJoinQuery(message *protogen.Message, join *modelpb.Join) (*JoinQuery, error) {
+	if join.GetQuery().GetOrderBy() == "" {
+		return nil, fmt.Errorf("query join on %q must declare an order_by", join.GetResourceType())
+	}
+	descendant, err := newDescendantQuery(message, join)
+	if err != nil {
+		return nil, err
+	}
+	filter, err := descendant.transpiler.TranspileFilter(join.GetQuery().GetFilter())
 	if err != nil {
 		return nil, fmt.Errorf("query join filter on %q: %w", join.GetResourceType(), err)
 	}
-	orderBy, err := transpiler.TranspileOrderBy(join.GetQuery().GetOrderBy())
+	orderBy, err := descendant.transpiler.TranspileOrderBy(join.GetQuery().GetOrderBy())
 	if err != nil {
 		return nil, fmt.Errorf("query join order_by on %q: %w", join.GetResourceType(), err)
 	}
 
-	childPattern, err := child.resource.SinglePattern()
+	childPattern, err := descendant.child.resource.SinglePattern()
 	if err != nil {
 		return nil, err
 	}
-	childBindings, err := ColumnBindings(childPattern, child.modelOpts)
+	childBindings, err := ColumnBindings(childPattern, descendant.child.modelOpts)
 	if err != nil {
 		return nil, err
 	}
 	return &JoinQuery{
-		Inner:    childTable.Name,
+		Inner:    descendant.table.Name,
 		Filter:   filter,
 		OrderBy:  orderBy,
-		NameExpr: resourceNameExpr(childPattern, childBindings, childTable.Name),
-		TieBreak: childTable.Name + "." + childBindings[len(childBindings)-1].Column,
+		NameExpr: resourceNameExpr(childPattern, childBindings, descendant.table.Name),
+		TieBreak: descendant.table.Name + "." + childBindings[len(childBindings)-1].Column,
 	}, nil
+}
+
+// buildJoinAggregate transpiles an aggregate join's filter against the child
+// resource and composes the aggregate expression over its column, both
+// qualified by the child's bare table name.
+func buildJoinAggregate(message *protogen.Message, join *modelpb.Join) (*JoinAggregate, error) {
+	descendant, err := newDescendantQuery(message, join)
+	if err != nil {
+		return nil, err
+	}
+	aggregate := join.GetAggregate()
+	filter, err := descendant.transpiler.TranspileFilter(aggregate.GetFilter())
+	if err != nil {
+		return nil, fmt.Errorf("aggregate join filter on %q: %w", join.GetResourceType(), err)
+	}
+	expr := "COUNT(*)"
+	if aggregate.GetFunction() != modelpb.Aggregate_FUNCTION_COUNT {
+		_, _, column, err := joinedColumn(descendant.child, join.GetField())
+		if err != nil {
+			return nil, err
+		}
+		expr = aggregateFunctions[aggregate.GetFunction()] + "(" + descendant.table.Name + "." + column + ")"
+	}
+	return &JoinAggregate{Inner: descendant.table.Name, Expr: expr, Filter: filter}, nil
 }
 
 // resourceNameExpr composes the SQL expression reconstructing a resource's

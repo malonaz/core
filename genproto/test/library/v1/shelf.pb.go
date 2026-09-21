@@ -13,6 +13,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	decimal "google.golang.org/genproto/googleapis/type/decimal"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -136,9 +137,22 @@ type Shelf struct {
 	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
 	LatestDraftBook string `protobuf:"bytes,20,opt,name=latest_draft_book,json=latestDraftBook,proto3" json:"latest_draft_book,omitempty"`
 	// Optional extra data, stored as nullable JSONB.
-	Extra         *ShelfExtra `protobuf:"bytes,19,opt,name=extra,proto3" json:"extra,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Extra *ShelfExtra `protobuf:"bytes,19,opt,name=extra,proto3" json:"extra,omitempty"`
+	// The pages on this shelf, resolved by an aggregate join: the sum of
+	// page_count over its books with pages — the same filter as latest_book,
+	// so the two are directly comparable. Unset while no book qualifies.
+	TotalPageCount int64 `protobuf:"varint,21,opt,name=total_page_count,json=totalPageCount,proto3" json:"total_page_count,omitempty"`
+	// The number of books on this shelf, pageless ones included. COUNT over
+	// no rows is 0, not NULL, so this reads as 0 either way.
+	BookCount int64 `protobuf:"varint,22,opt,name=book_count,json=bookCount,proto3" json:"book_count,omitempty"`
+	// The value of the priced books on this shelf: SUM over a decimal stays a
+	// decimal. Unset while no book has a price.
+	TotalPrice *decimal.Decimal `protobuf:"bytes,24,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	// When the most recent book on this shelf was created: MAX over a
+	// Timestamp keeps its type.
+	LastBookCreateTime *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=last_book_create_time,json=lastBookCreateTime,proto3" json:"last_book_create_time,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Shelf) Reset() {
@@ -306,6 +320,34 @@ func (x *Shelf) GetExtra() *ShelfExtra {
 	return nil
 }
 
+func (x *Shelf) GetTotalPageCount() int64 {
+	if x != nil {
+		return x.TotalPageCount
+	}
+	return 0
+}
+
+func (x *Shelf) GetBookCount() int64 {
+	if x != nil {
+		return x.BookCount
+	}
+	return 0
+}
+
+func (x *Shelf) GetTotalPrice() *decimal.Decimal {
+	if x != nil {
+		return x.TotalPrice
+	}
+	return nil
+}
+
+func (x *Shelf) GetLastBookCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastBookCreateTime
+	}
+	return nil
+}
+
 func (x *Shelf) SetName(v string) {
 	x.Name = v
 }
@@ -386,6 +428,22 @@ func (x *Shelf) SetExtra(v *ShelfExtra) {
 	x.Extra = v
 }
 
+func (x *Shelf) SetTotalPageCount(v int64) {
+	x.TotalPageCount = v
+}
+
+func (x *Shelf) SetBookCount(v int64) {
+	x.BookCount = v
+}
+
+func (x *Shelf) SetTotalPrice(v *decimal.Decimal) {
+	x.TotalPrice = v
+}
+
+func (x *Shelf) SetLastBookCreateTime(v *timestamppb.Timestamp) {
+	x.LastBookCreateTime = v
+}
+
 func (x *Shelf) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -428,6 +486,20 @@ func (x *Shelf) HasExtra() bool {
 	return x.Extra != nil
 }
 
+func (x *Shelf) HasTotalPrice() bool {
+	if x == nil {
+		return false
+	}
+	return x.TotalPrice != nil
+}
+
+func (x *Shelf) HasLastBookCreateTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.LastBookCreateTime != nil
+}
+
 func (x *Shelf) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -450,6 +522,14 @@ func (x *Shelf) ClearMetadata() {
 
 func (x *Shelf) ClearExtra() {
 	x.Extra = nil
+}
+
+func (x *Shelf) ClearTotalPrice() {
+	x.TotalPrice = nil
+}
+
+func (x *Shelf) ClearLastBookCreateTime() {
+	x.LastBookCreateTime = nil
 }
 
 type Shelf_builder struct {
@@ -501,6 +581,19 @@ type Shelf_builder struct {
 	LatestDraftBook string
 	// Optional extra data, stored as nullable JSONB.
 	Extra *ShelfExtra
+	// The pages on this shelf, resolved by an aggregate join: the sum of
+	// page_count over its books with pages — the same filter as latest_book,
+	// so the two are directly comparable. Unset while no book qualifies.
+	TotalPageCount int64
+	// The number of books on this shelf, pageless ones included. COUNT over
+	// no rows is 0, not NULL, so this reads as 0 either way.
+	BookCount int64
+	// The value of the priced books on this shelf: SUM over a decimal stays a
+	// decimal. Unset while no book has a price.
+	TotalPrice *decimal.Decimal
+	// When the most recent book on this shelf was created: MAX over a
+	// Timestamp keeps its type.
+	LastBookCreateTime *timestamppb.Timestamp
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -527,6 +620,10 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.Featured = b.Featured
 	x.LatestDraftBook = b.LatestDraftBook
 	x.Extra = b.Extra
+	x.TotalPageCount = b.TotalPageCount
+	x.BookCount = b.BookCount
+	x.TotalPrice = b.TotalPrice
+	x.LastBookCreateTime = b.LastBookCreateTime
 	return m0
 }
 
@@ -913,7 +1010,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb1\x10\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xf7\x13\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -956,7 +1053,18 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x1dlibrary.test.malonaz.com/Book\xba\xea\x0fO \x01BK\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\x04name\"$\n" +
 	"\x10title = \"Draft*\"\x12\x10create_time descR\x0flatestDraftBook\x12C\n" +
-	"\x05extra\x18\x13 \x01(\v2#.malonaz.test.library.v1.ShelfExtraB\b\xba\xea\x0f\x04\x10\x01 \x01R\x05extra\x1a9\n" +
+	"\x05extra\x18\x13 \x01(\v2#.malonaz.test.library.v1.ShelfExtraB\b\xba\xea\x0f\x04\x10\x01 \x01R\x05extra\x12t\n" +
+	"\x10total_page_count\x18\x15 \x01(\x03BJ\xe0A\x03\xba\xea\x0fC \x01B?\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\n" +
+	"page_count*\x12\b\x01\x12\x0epage_count > 0R\x0etotalPageCount\x12S\n" +
+	"\n" +
+	"book_count\x18\x16 \x01(\x03B4\xe0A\x03\xba\xea\x0f- \x01B)\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name*\x02\b\x02R\tbookCount\x12l\n" +
+	"\vtotal_price\x18\x18 \x01(\v2\x14.google.type.DecimalB5\xe0A\x03\xba\xea\x0f. \x01B*\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x05price*\x02\b\x01R\n" +
+	"totalPrice\x12\x8a\x01\n" +
+	"\x15last_book_create_time\x18\x17 \x01(\v2\x1a.google.protobuf.TimestampB;\xe0A\x03\xba\xea\x0f4 \x01B0\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\vcreate_time*\x02\b\x04R\x12lastBookCreateTime\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xd5\x02\xeaA^\n" +
@@ -1011,6 +1119,7 @@ var file_malonaz_test_library_v1_shelf_proto_goTypes = []any{
 	nil,                           // 7: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
+	(*decimal.Decimal)(nil),       // 10: google.type.Decimal
 }
 var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
 	8,  // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
@@ -1022,16 +1131,18 @@ var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
 	2,  // 6: malonaz.test.library.v1.Shelf.metadata:type_name -> malonaz.test.library.v1.ShelfMetadata
 	0,  // 7: malonaz.test.library.v1.Shelf.secondary_genre:type_name -> malonaz.test.library.v1.ShelfGenre
 	4,  // 8: malonaz.test.library.v1.Shelf.extra:type_name -> malonaz.test.library.v1.ShelfExtra
-	5,  // 9: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
-	7,  // 10: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	0,  // 11: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
-	3,  // 12: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
-	5,  // 13: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	10, // 9: malonaz.test.library.v1.Shelf.total_price:type_name -> google.type.Decimal
+	8,  // 10: malonaz.test.library.v1.Shelf.last_book_create_time:type_name -> google.protobuf.Timestamp
+	5,  // 11: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
+	7,  // 12: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	0,  // 13: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
+	3,  // 14: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
+	5,  // 15: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_shelf_proto_init() }

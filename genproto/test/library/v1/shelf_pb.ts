@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../google/api/field_beh
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Decimal, DecimalValid } from "../../../../google/type/decimal_pb";
+import { file_google_type_decimal } from "../../../../google/type/decimal_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import { file_malonaz_codegen_nats_v1_nats } from "../../../codegen/nats/v1/nats_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -17,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/shelf.proto.
  */
 export const file_malonaz_test_library_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEitg4KBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARI0ChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhq6SAPIAQG66g8QCg5jb3JyZWxhdGlvbl9pZBIzCghkdXJhdGlvbhgJIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIGuuoPAiABEtABCgZsYWJlbHMYCiADKAsyKi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJTCghtZXRhZGF0YRgLIAEoCzImLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGFCGbpIA8gBAbrqDw8KC2xlZ2FjeV9tZXRhEAESNQoJYmVzdF9ib29rGAwgASgJQiL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEl8KFGJlc3RfYm9va19wYWdlX2NvdW50GA0gASgFQkHgQQO66g86IAFCNgodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2sSCnBhZ2VfY291bnQaCWJlc3RfYm9vaxKLAQoLbGF0ZXN0X2Jvb2sYDiABKAlCduBBA/pBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u66g9NIAFCSQodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2sSBG5hbWUiIgoOcGFnZV9jb3VudCA+IDASEGNyZWF0ZV90aW1lIGRlc2MSWQoRbGF0ZXN0X2Jvb2tfdGl0bGUYDyABKAlCPuBBA7rqDzcgAUIzCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIFdGl0bGUaC2xhdGVzdF9ib29rEkQKD3NlY29uZGFyeV9nZW5yZRgQIAEoDjIjLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmR2VucmVCBrrqDwIgARIcCgxzaGVsZl9udW1iZXIYESABKAVCBrrqDwIgARIYCghmZWF0dXJlZBgSIAEoCEIGuuoPAiABEpMBChFsYXRlc3RfZHJhZnRfYm9vaxgUIAEoCUJ44EED+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7rqD08gAUJLCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIEbmFtZSIkChB0aXRsZSA9ICJEcmFmdCoiEhBjcmVhdGVfdGltZSBkZXNjEjwKBWV4dHJhGBMgASgLMiMubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZFeHRyYUIIuuoPBBABIAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATrVAupBXgoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmEixvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfSoHc2hlbHZlczIFc2hlbGbSpgQJCgdsaWJyYXJ5ipEk4gEKHW1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLnNoZWxmEgxvcmdhbml6YXRpb24aEAoHY3JlYXRlZBIFZ2VucmUiLQoHdXBkYXRlZBIQY29ycmVsYXRpb25faWRfMhoQc2hlbGYuZ2VucmUgIT0gMSI6CgxnZW5yZV9jaGFuZ2USBWdlbnJlGiNzaGVsZi5nZW5yZSAhPSBwcmV2aW91c19zaGVsZi5nZW5yZSoiCgdkZWxldGVkEgVnZW5yZRIQY29ycmVsYXRpb25faWRfMjISCgl1bmRlbGV0ZWQSBWdlbnJlIooDCg1TaGVsZk1ldGFkYXRhEhAKCGNhcGFjaXR5GAEgASgFEg0KBWR1bW15GAIgASgJEjEKBW5vdGVzGAMgAygLMiIubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZOb3RlElAKDmF1dGhvcl90b19ub3RlGAQgAygLMjgubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZNZXRhZGF0YS5BdXRob3JUb05vdGVFbnRyeRIMCgRvcGVuGAUgASgIEjIKBXRoZW1lGAYgASgOMiMubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZHZW5yZRI4Cghsb2NhdGlvbhgHIAEoCzImLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTG9jYXRpb24aVwoRQXV0aG9yVG9Ob3RlRW50cnkSCwoDa2V5GAEgASgJEjEKBXZhbHVlGAIgASgLMiIubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZOb3RlOgI4ASIsCg1TaGVsZkxvY2F0aW9uEgwKBHJvb20YASABKAkSDQoFZmxvb3IYAiABKAUiKAoKU2hlbGZFeHRyYRIMCgRub3RlGAEgASgJEgwKBHJhbmsYAiABKAUiHAoJU2hlbGZOb3RlEg8KB2NvbnRlbnQYASABKAkqtAEKClNoZWxmR2VucmUSGwoXU0hFTEZfR0VOUkVfVU5TUEVDSUZJRUQQABIXChNTSEVMRl9HRU5SRV9GSUNUSU9OEAESGwoXU0hFTEZfR0VOUkVfTk9OX0ZJQ1RJT04QAhIfChtTSEVMRl9HRU5SRV9TQ0lFTkNFX0ZJQ1RJT04QAxIXChNTSEVMRl9HRU5SRV9ISVNUT1JZEAQSGQoVU0hFTEZfR0VOUkVfQklPR1JBUEhZEAVCpgFaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS92MepBcQohbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmVGFnEjdvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NoZWx2ZXMve3NoZWxmfS90YWdzL3t0YWd9KglzaGVsZlRhZ3MyCHNoZWxmVGFnYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
+  fileDesc("CiNtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9zaGVsZi5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEiwBEKBVNoZWxmEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIgCgxkaXNwbGF5X25hbWUYBSABKAlCCrpIB3IFEAEYgAISPgoFZ2VucmUYBiABKA4yIy5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkdlbnJlQgq6SAeCAQQQASAAEiMKC2V4dGVybmFsX2lkGAcgASgJQg666g8KCgZleHRfaWQgARI0ChBjb3JyZWxhdGlvbl9pZF8yGAggASgJQhq6SAPIAQG66g8QCg5jb3JyZWxhdGlvbl9pZBIzCghkdXJhdGlvbhgJIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIGuuoPAiABEtABCgZsYWJlbHMYCiADKAsyKi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJTCghtZXRhZGF0YRgLIAEoCzImLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGFCGbpIA8gBAbrqDw8KC2xlZ2FjeV9tZXRhEAESNQoJYmVzdF9ib29rGAwgASgJQiL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEl8KFGJlc3RfYm9va19wYWdlX2NvdW50GA0gASgFQkHgQQO66g86IAFCNgodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2sSCnBhZ2VfY291bnQaCWJlc3RfYm9vaxKLAQoLbGF0ZXN0X2Jvb2sYDiABKAlCduBBA/pBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u66g9NIAFCSQodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2sSBG5hbWUiIgoOcGFnZV9jb3VudCA+IDASEGNyZWF0ZV90aW1lIGRlc2MSWQoRbGF0ZXN0X2Jvb2tfdGl0bGUYDyABKAlCPuBBA7rqDzcgAUIzCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIFdGl0bGUaC2xhdGVzdF9ib29rEkQKD3NlY29uZGFyeV9nZW5yZRgQIAEoDjIjLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmR2VucmVCBrrqDwIgARIcCgxzaGVsZl9udW1iZXIYESABKAVCBrrqDwIgARIYCghmZWF0dXJlZBgSIAEoCEIGuuoPAiABEpMBChFsYXRlc3RfZHJhZnRfYm9vaxgUIAEoCUJ44EED+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7rqD08gAUJLCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIEbmFtZSIkChB0aXRsZSA9ICJEcmFmdCoiEhBjcmVhdGVfdGltZSBkZXNjEjwKBWV4dHJhGBMgASgLMiMubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZFeHRyYUIIuuoPBBABIAESZAoQdG90YWxfcGFnZV9jb3VudBgVIAEoA0JK4EEDuuoPQyABQj8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEgpwYWdlX2NvdW50KhIIARIOcGFnZV9jb3VudCA+IDASSAoKYm9va19jb3VudBgWIAEoA0I04EEDuuoPLSABQikKHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEgRuYW1lKgIIAhJgCgt0b3RhbF9wcmljZRgYIAEoCzIULmdvb2dsZS50eXBlLkRlY2ltYWxCNeBBA7rqDy4gAUIqCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxIFcHJpY2UqAggBEnYKFWxhc3RfYm9va19jcmVhdGVfdGltZRgXIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCO+BBA7rqDzQgAUIwCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9vaxILY3JlYXRlX3RpbWUqAggEGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE61QLqQV4KHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZhIsb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0qB3NoZWx2ZXMyBXNoZWxm0qYECQoHbGlicmFyeYqRJOIBCh1tYWxvbmF6LnRlc3QubGlicmFyeS52MS5zaGVsZhIMb3JnYW5pemF0aW9uGhAKB2NyZWF0ZWQSBWdlbnJlIi0KB3VwZGF0ZWQSEGNvcnJlbGF0aW9uX2lkXzIaEHNoZWxmLmdlbnJlICE9IDEiOgoMZ2VucmVfY2hhbmdlEgVnZW5yZRojc2hlbGYuZ2VucmUgIT0gcHJldmlvdXNfc2hlbGYuZ2VucmUqIgoHZGVsZXRlZBIFZ2VucmUSEGNvcnJlbGF0aW9uX2lkXzIyEgoJdW5kZWxldGVkEgVnZW5yZSKKAwoNU2hlbGZNZXRhZGF0YRIQCghjYXBhY2l0eRgBIAEoBRINCgVkdW1teRgCIAEoCRIxCgVub3RlcxgDIAMoCzIiLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTm90ZRJQCg5hdXRob3JfdG9fbm90ZRgEIAMoCzI4Lm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTWV0YWRhdGEuQXV0aG9yVG9Ob3RlRW50cnkSDAoEb3BlbhgFIAEoCBIyCgV0aGVtZRgGIAEoDjIjLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmR2VucmUSOAoIbG9jYXRpb24YByABKAsyJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkxvY2F0aW9uGlcKEUF1dGhvclRvTm90ZUVudHJ5EgsKA2tleRgBIAEoCRIxCgV2YWx1ZRgCIAEoCzIiLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmTm90ZToCOAEiLAoNU2hlbGZMb2NhdGlvbhIMCgRyb29tGAEgASgJEg0KBWZsb29yGAIgASgFIigKClNoZWxmRXh0cmESDAoEbm90ZRgBIAEoCRIMCgRyYW5rGAIgASgFIhwKCVNoZWxmTm90ZRIPCgdjb250ZW50GAEgASgJKrQBCgpTaGVsZkdlbnJlEhsKF1NIRUxGX0dFTlJFX1VOU1BFQ0lGSUVEEAASFwoTU0hFTEZfR0VOUkVfRklDVElPThABEhsKF1NIRUxGX0dFTlJFX05PTl9GSUNUSU9OEAISHwobU0hFTEZfR0VOUkVfU0NJRU5DRV9GSUNUSU9OEAMSFwoTU0hFTEZfR0VOUkVfSElTVE9SWRAEEhkKFVNIRUxGX0dFTlJFX0JJT0dSQVBIWRAFQqYBWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjHqQXEKIWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZlRhZxI3b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zaGVsdmVzL3tzaGVsZn0vdGFncy97dGFnfSoJc2hlbGZUYWdzMghzaGVsZlRhZ2IGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_type_decimal, file_malonaz_codegen_model_v1_model, file_malonaz_codegen_nats_v1_nats]);
 
 /**
  * Shelf represents a categorized collection of books.
@@ -170,6 +172,39 @@ export type Shelf = Message<"malonaz.test.library.v1.Shelf"> & {
    * @generated from field: malonaz.test.library.v1.ShelfExtra extra = 19;
    */
   extra?: ShelfExtra;
+
+  /**
+   * The pages on this shelf, resolved by an aggregate join: the sum of
+   * page_count over its books with pages — the same filter as latest_book,
+   * so the two are directly comparable. Unset while no book qualifies.
+   *
+   * @generated from field: int64 total_page_count = 21;
+   */
+  totalPageCount: bigint;
+
+  /**
+   * The number of books on this shelf, pageless ones included. COUNT over
+   * no rows is 0, not NULL, so this reads as 0 either way.
+   *
+   * @generated from field: int64 book_count = 22;
+   */
+  bookCount: bigint;
+
+  /**
+   * The value of the priced books on this shelf: SUM over a decimal stays a
+   * decimal. Unset while no book has a price.
+   *
+   * @generated from field: google.type.Decimal total_price = 24;
+   */
+  totalPrice?: Decimal;
+
+  /**
+   * When the most recent book on this shelf was created: MAX over a
+   * Timestamp keeps its type.
+   *
+   * @generated from field: google.protobuf.Timestamp last_book_create_time = 23;
+   */
+  lastBookCreateTime?: Timestamp;
 };
 
 /**
@@ -323,6 +358,39 @@ export type ShelfValid = Message<"malonaz.test.library.v1.Shelf"> & {
    * @generated from field: malonaz.test.library.v1.ShelfExtra extra = 19;
    */
   extra?: ShelfExtraValid;
+
+  /**
+   * The pages on this shelf, resolved by an aggregate join: the sum of
+   * page_count over its books with pages — the same filter as latest_book,
+   * so the two are directly comparable. Unset while no book qualifies.
+   *
+   * @generated from field: int64 total_page_count = 21;
+   */
+  totalPageCount: bigint;
+
+  /**
+   * The number of books on this shelf, pageless ones included. COUNT over
+   * no rows is 0, not NULL, so this reads as 0 either way.
+   *
+   * @generated from field: int64 book_count = 22;
+   */
+  bookCount: bigint;
+
+  /**
+   * The value of the priced books on this shelf: SUM over a decimal stays a
+   * decimal. Unset while no book has a price.
+   *
+   * @generated from field: google.type.Decimal total_price = 24;
+   */
+  totalPrice?: DecimalValid;
+
+  /**
+   * When the most recent book on this shelf was created: MAX over a
+   * Timestamp keeps its type.
+   *
+   * @generated from field: google.protobuf.Timestamp last_book_create_time = 23;
+   */
+  lastBookCreateTime?: Timestamp;
 };
 
 /**

@@ -15,6 +15,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	decimal "google.golang.org/genproto/googleapis/type/decimal"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -52,6 +53,7 @@ type Book struct {
 	xxx_hidden_LatestBookmarkColor BookmarkColor          `protobuf:"varint,16,opt,name=latest_bookmark_color,json=latestBookmarkColor,proto3,enum=malonaz.test.library.v1.BookmarkColor"`
 	xxx_hidden_FirstBookmark       string                 `protobuf:"bytes,17,opt,name=first_bookmark,json=firstBookmark,proto3"`
 	xxx_hidden_FirstBookmarkColor  BookmarkColor          `protobuf:"varint,18,opt,name=first_bookmark_color,json=firstBookmarkColor,proto3,enum=malonaz.test.library.v1.BookmarkColor"`
+	xxx_hidden_Price               *decimal.Decimal       `protobuf:"bytes,19,opt,name=price,proto3"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -207,6 +209,13 @@ func (x *Book) GetFirstBookmarkColor() BookmarkColor {
 	return BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED
 }
 
+func (x *Book) GetPrice() *decimal.Decimal {
+	if x != nil {
+		return x.xxx_hidden_Price
+	}
+	return nil
+}
+
 func (x *Book) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -279,6 +288,10 @@ func (x *Book) SetFirstBookmarkColor(v BookmarkColor) {
 	x.xxx_hidden_FirstBookmarkColor = v
 }
 
+func (x *Book) SetPrice(v *decimal.Decimal) {
+	x.xxx_hidden_Price = v
+}
+
 func (x *Book) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -307,6 +320,13 @@ func (x *Book) HasMetadata() bool {
 	return x.xxx_hidden_Metadata != nil
 }
 
+func (x *Book) HasPrice() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Price != nil
+}
+
 func (x *Book) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
 }
@@ -321,6 +341,10 @@ func (x *Book) ClearDuration() {
 
 func (x *Book) ClearMetadata() {
 	x.xxx_hidden_Metadata = nil
+}
+
+func (x *Book) ClearPrice() {
+	x.xxx_hidden_Price = nil
 }
 
 type Book_builder struct {
@@ -369,6 +393,9 @@ type Book_builder struct {
 	// without FQN-qualified filter declarations both collapse to a bare `color`
 	// enum ident and collide at parser init.
 	FirstBookmarkColor BookmarkColor
+	// The price of the book, stored as NUMERIC. Nullable so it can be left
+	// unset; summed by Shelf.total_price.
+	Price *decimal.Decimal
 }
 
 func (b0 Book_builder) Build() *Book {
@@ -393,6 +420,7 @@ func (b0 Book_builder) Build() *Book {
 	x.xxx_hidden_LatestBookmarkColor = b.LatestBookmarkColor
 	x.xxx_hidden_FirstBookmark = b.FirstBookmark
 	x.xxx_hidden_FirstBookmarkColor = b.FirstBookmarkColor
+	x.xxx_hidden_Price = b.Price
 	return m0
 }
 
@@ -979,7 +1007,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xa5\x0f\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xd9\x0f\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1013,7 +1041,8 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"!library.test.malonaz.com/Bookmark\xba\xea\x0f@ \x01B<\n" +
 	"!library.test.malonaz.com/Bookmark\x12\x04name\"\x11\x12\x0fcreate_time ascR\rfirstBookmark\x12\x9f\x01\n" +
 	"\x14first_bookmark_color\x18\x12 \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorBE\xe0A\x03\xba\xea\x0f> \x01B:\n" +
-	"!library.test.malonaz.com/Bookmark\x12\x05color\x1a\x0efirst_bookmarkR\x12firstBookmarkColor\x1a9\n" +
+	"!library.test.malonaz.com/Bookmark\x12\x05color\x1a\x0efirst_bookmarkR\x12firstBookmarkColor\x122\n" +
+	"\x05price\x18\x13 \x01(\v2\x14.google.type.DecimalB\x06\xba\xea\x0f\x02 \x01R\x05price\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x9a\x02\xeaAg\n" +
@@ -1070,7 +1099,8 @@ var file_malonaz_test_library_v1_book_proto_goTypes = []any{
 	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
 	(ShelfGenre)(0),               // 8: malonaz.test.library.v1.ShelfGenre
 	(BookmarkColor)(0),            // 9: malonaz.test.library.v1.BookmarkColor
-	(*money.Money)(nil),           // 10: google.type.Money
+	(*decimal.Decimal)(nil),       // 10: google.type.Decimal
+	(*money.Money)(nil),           // 11: google.type.Money
 }
 var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
 	6,  // 0: malonaz.test.library.v1.Book.create_time:type_name -> google.protobuf.Timestamp
@@ -1081,20 +1111,21 @@ var file_malonaz_test_library_v1_book_proto_depIdxs = []int32{
 	8,  // 5: malonaz.test.library.v1.Book.shelf_genre:type_name -> malonaz.test.library.v1.ShelfGenre
 	9,  // 6: malonaz.test.library.v1.Book.latest_bookmark_color:type_name -> malonaz.test.library.v1.BookmarkColor
 	9,  // 7: malonaz.test.library.v1.Book.first_bookmark_color:type_name -> malonaz.test.library.v1.BookmarkColor
-	7,  // 8: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
-	10, // 9: malonaz.test.library.v1.Dummy.subtotal:type_name -> google.type.Money
-	10, // 10: malonaz.test.library.v1.Dummy.tax:type_name -> google.type.Money
-	6,  // 11: malonaz.test.library.v1.Dummy.expire_time:type_name -> google.protobuf.Timestamp
-	7,  // 12: malonaz.test.library.v1.Dummy.duration:type_name -> google.protobuf.Duration
-	5,  // 13: malonaz.test.library.v1.Dummy.labels:type_name -> malonaz.test.library.v1.Dummy.LabelsEntry
-	1,  // 14: malonaz.test.library.v1.Dummy.metadata:type_name -> malonaz.test.library.v1.BookMetadata
-	3,  // 15: malonaz.test.library.v1.Dummy.adjustment:type_name -> malonaz.test.library.v1.DummyAdjustment
-	10, // 16: malonaz.test.library.v1.DummyAdjustment.amount:type_name -> google.type.Money
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	10, // 8: malonaz.test.library.v1.Book.price:type_name -> google.type.Decimal
+	7,  // 9: malonaz.test.library.v1.BookMetadata.duration:type_name -> google.protobuf.Duration
+	11, // 10: malonaz.test.library.v1.Dummy.subtotal:type_name -> google.type.Money
+	11, // 11: malonaz.test.library.v1.Dummy.tax:type_name -> google.type.Money
+	6,  // 12: malonaz.test.library.v1.Dummy.expire_time:type_name -> google.protobuf.Timestamp
+	7,  // 13: malonaz.test.library.v1.Dummy.duration:type_name -> google.protobuf.Duration
+	5,  // 14: malonaz.test.library.v1.Dummy.labels:type_name -> malonaz.test.library.v1.Dummy.LabelsEntry
+	1,  // 15: malonaz.test.library.v1.Dummy.metadata:type_name -> malonaz.test.library.v1.BookMetadata
+	3,  // 16: malonaz.test.library.v1.Dummy.adjustment:type_name -> malonaz.test.library.v1.DummyAdjustment
+	11, // 17: malonaz.test.library.v1.DummyAdjustment.amount:type_name -> google.type.Money
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_book_proto_init() }
