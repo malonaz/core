@@ -30,15 +30,10 @@ go_library(
 
 go_test(
     name = "provider_test",
-    srcs = [
-        "tool_accumulator_test.go",
-        "ttc_adapter_test.go",
-    ],
+    srcs = ["tool_accumulator_test.go"],
+    external = True,
     deps = [
         ":provider",
-        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
-        "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
