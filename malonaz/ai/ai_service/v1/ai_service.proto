@@ -5,6 +5,7 @@ package malonaz.ai.ai_service.v1;
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/ai/ai_service/v1/chat.proto";
+import "malonaz/ai/ai_service/v1/classify.proto";
 import "malonaz/ai/ai_service/v1/message.proto";
 import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
@@ -352,6 +353,20 @@ service AiService {
   rpc StreamGenerateMessage(GenerateMessageRequest) returns (stream StreamGenerateMessageResponse) {
     option (google.api.http) = {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
+      body: "*"
+    };
+  }
+
+  // ===================== Classification =====================
+
+  // Answers typed questions about a state using a classification model.
+  // Stateless: unlike GenerateMessage, no chat is involved.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc Classify(ClassifyRequest) returns (ClassifyResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      post: "/v1/{model=providers/*/models/*}:classify"
       body: "*"
     };
   }

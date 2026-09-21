@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "malonaz/ai/v1/metrics.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// A typed question asked of a classification model about a state.
+message Question {
+  // The question's type.
+  oneof type {
+    option (buf.validate.oneof).required = true;
+
+    // Selects one option from a fixed set.
+    ChoiceQuestion choice = 1;
+    // Places the state on a fixed rubric.
+    ScoreQuestion score = 2;
+    // Evaluates a yes/no question.
+    NoulQuestion noul = 3;
+  }
+}
+
+// Asks the model to select one option from a fixed set.
+message ChoiceQuestion {
+  // What is being asked. String, object, or array.
+  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
+  // Maps an option name to a description of when it applies.
+  map<string, google.protobuf.Value> criteria = 2 [(buf.validate.field).map = {
+    min_pairs: 1
+    max_pairs: 255
+  }];
+}
+
+// Asks the model to place the state on a fixed rubric.
+message ScoreQuestion {
+  // What is being asked. String, object, or array.
+  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
+  // Ordered rubric levels, from lowest to highest.
+  repeated google.protobuf.Value criteria = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 10
+  }];
+}
+
+// Asks the model to evaluate a yes/no question and return the probability
+// that the answer is yes.
+message NoulQuestion {
+  // What is being asked. String, object, or array.
+  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
+  // Describes what a "yes" answer looks like. Optional.
+  google.protobuf.Value criteria_true = 2;
+  // Describes what a "no" answer looks like. Optional.
+  google.protobuf.Value criteria_false = 3;
+}
+
+// The typed answer to a Question.
+message Answer {
+  // The answer's type.
+  oneof type {
+    // Answer to a ChoiceQuestion.
+    ChoiceAnswer choice = 1;
+    // Answer to a ScoreQuestion.
+    ScoreAnswer score = 2;
+    // Answer to a NoulQuestion.
+    NoulAnswer noul = 3;
+  }
+}
+
+// Answer to a ChoiceQuestion.
+message ChoiceAnswer {
+  // The selected option name.
+  string choice = 1;
+  // Probability mass per option. Empty when the classifier cannot report
+  // calibrated probabilities (e.g. a TTT model used as a classifier).
+  map<string, double> probabilities = 2;
+  // Confidence in the selected choice, in [0, 1]. Unset when the classifier
+  // cannot report a calibrated confidence.
+  optional double confidence = 3 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 1.0
+  }];
+}
+
+// Answer to a ScoreQuestion.
+message ScoreAnswer {
+  // The score, as an index into the rubric levels (may be fractional).
+  double score = 1;
+  // Maps a rubric level index (as a string) to its description.
+  map<string, string> legend = 2;
+  // Probability mass per rubric level index (as a string). Empty when the
+  // classifier cannot report calibrated probabilities.
+  map<string, double> probabilities = 3;
+  // Confidence in the score, in [0, 1]. Unset when the classifier cannot
+  // report a calibrated confidence.
+  optional double confidence = 4 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 1.0
+  }];
+}
+
+// Answer to a NoulQuestion.
+message NoulAnswer {
+  // Probability that the answer is yes, in [0, 1]. A two-outcome
+  // distribution carries no separate confidence value.
+  double noul = 1 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 1.0
+  }];
+}
+
+// Request message for AiService.Classify.
+message ClassifyRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+  // The state to evaluate. String, object, or array.
+  google.protobuf.Value state = 2 [(buf.validate.field).required = true];
+  // The questions to answer about the state, keyed by caller-defined id.
+  map<string, Question> questions = 3 [(buf.validate.field).map.min_pairs = 1];
+  // Labels for this call.
+  map<string, string> labels = 4;
+}
+
+// Response message for AiService.Classify.
+message ClassifyResponse {
+  // The answers, keyed by the same ids as the request's questions.
+  map<string, Answer> answers = 1;
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 2;
+}

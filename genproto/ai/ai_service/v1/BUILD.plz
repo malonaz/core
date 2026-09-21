@@ -4,6 +4,7 @@ go_library(
         "ai_service.pb.go",
         "ai_service_grpc.pb.go",
         "chat.pb.go",
+        "classify.pb.go",
         "message.pb.go",
         "model.pb.go",
         "speech_to_text.pb.go",
