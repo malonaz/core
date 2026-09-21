@@ -15,6 +15,7 @@ go_library(
     name = "ai_service",
     srcs = [
         "chat.go",
+        "classify.go",
         "generate_message.go",
         "metrics.go",
         "runtime.go",
@@ -34,6 +35,7 @@ go_library(
         "//go/ai/ai_service/provider/google",
         "//go/ai/ai_service/provider/mock",
         "//go/ai/ai_service/provider/openai",
+        "//go/ai/ai_service/provider/typesafe",
         "//go/ai/ai_service/provider/xai",
         "//go/ai/ai_service/rpc",
         "//go/ai/model",

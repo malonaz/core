@@ -1,0 +1,18 @@
+local p = "providers/typesafe/models/";
+
+{
+  "provider_id": "typesafe",
+  "models": [
+    {
+      "name": p + "jev-1.13",
+      "provider_model_id": "jev-1.13.0",
+      "description": "TypeSafe's flagship classification model. Answers typed choice/score/noul questions about a state; does not generate text.",
+      "ttc": {
+        "context_token_limit": 64000,
+        "pricing": {
+          "input_token_price_per_million": 0.042
+        }
+      }
+    }
+  ]
+}

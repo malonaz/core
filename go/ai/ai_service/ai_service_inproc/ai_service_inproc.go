@@ -296,6 +296,16 @@ func (c *Client) ComputeStats(
 	return c.server.ComputeStats(ctx, request)
 }
 
+// Classify provides a client-facing interface for the stateless
+// classification API.
+func (c *Client) Classify(
+	ctx context.Context,
+	request *aiservicepb.ClassifyRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ClassifyResponse, error) {
+	return c.server.Classify(ctx, request)
+}
+
 // TextToText provides a client-facing interface for the legacy stateless
 // text generation API.
 //

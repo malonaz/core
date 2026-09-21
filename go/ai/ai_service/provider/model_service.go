@@ -31,6 +31,7 @@ const (
 	Moonshot     = "moonshot"
 	Baseten      = "baseten"
 	Deepgram     = "deepgram"
+	TypeSafe     = "typesafe"
 	Mock         = "mock"
 )
 
@@ -235,6 +236,52 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", provider.ProviderId()).Err()
 	}
 	return generateMessageClient, model, nil
+}
+
+// GetClassificationProvider resolves the classifier for a model. A model
+// classifies either natively (model.Ttc set, provider implements
+// ClassificationClient directly) or via a generic adapter that forces a
+// structured tool call on any tool-call-capable TTT model.
+func (s *ModelService) GetClassificationProvider(ctx context.Context, modelName string) (ClassificationClient, *aipb.Model, error) {
+	// Get the model.
+	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
+	model, err := s.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Parse the model name.
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+	}
+
+	// Get the provider.
+	registeredProvider, ok := s.providerIdToProvider[modelRn.Provider]
+	if !ok {
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+	}
+
+	switch {
+	case model.Ttc != nil:
+		// Native classifier (e.g. TypeSafe).
+		classificationClient, ok := registeredProvider.(ClassificationClient)
+		if !ok {
+			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support classification", registeredProvider.ProviderId()).Err()
+		}
+		return classificationClient, model, nil
+
+	case model.GetTtt().GetToolCall():
+		// Any tool-call-capable TTT model is automatically usable as a classifier.
+		generateMessageClient, ok := registeredProvider.(GenerateMessageClient)
+		if !ok {
+			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", registeredProvider.ProviderId()).Err()
+		}
+		return newTTCAdapter(generateMessageClient, model), model, nil
+
+	default:
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support classification", modelName).Err()
+	}
 }
 
 func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName string) (SpeechToTextClient, *aipb.Model, error) {

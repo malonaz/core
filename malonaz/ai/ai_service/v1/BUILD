@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "ai_service.proto",
         "chat.proto",
+        "classify.proto",
         "message.proto",
         "model.proto",
         "speech_to_text.proto",
@@ -19,6 +20,7 @@ grpc_library(
     srcs = [
         "ai_service.proto",
         "chat.proto",
+        "classify.proto",
         "message.proto",
         "model.proto",
         "speech_to_text.proto",
