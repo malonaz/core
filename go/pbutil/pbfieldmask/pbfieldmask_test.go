@@ -349,6 +349,10 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"extra.note",
 		"extra.rank",
 		"latest_draft_book",
+		"total_page_count",
+		"book_count",
+		"total_price",
+		"last_book_create_time",
 		"opened_date",
 	}, paths)
 }
@@ -399,6 +403,7 @@ func TestFromMessage_AllFields_Book(t *testing.T) {
 		"first_bookmark_color",
 		"latest_bookmark",
 		"latest_bookmark_color",
+		"price",
 	}, paths)
 }
 
