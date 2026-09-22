@@ -2,6 +2,7 @@ go_library(
     name = "postgres",
     srcs = [
         "client.go",
+        "date.go",
         "insert.go",
         "select.go",
         "types.go",
@@ -12,13 +13,16 @@ go_library(
         "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
         "//third_party/go:github.com__jackc__pgx__v5__pgconn",
+        "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__jackc__pgx__v5__pgxpool",
+        "//third_party/proto:google__type__date",
     ],
 )
 
 go_test(
     name = "postgres_test",
     srcs = [
+        "date_test.go",
         "insert_test.go",
         "select_test.go",
         "types_test.go",
@@ -26,7 +30,9 @@ go_test(
     ],
     deps = [
         ":postgres",
+        "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__lib__pq",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/proto:google__type__date",
     ],
 )
