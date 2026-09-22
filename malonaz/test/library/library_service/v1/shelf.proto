@@ -64,6 +64,7 @@ message UpdateShelfRequest {
       "correlation_id_2",
       "external_id",
       "best_book",
+      "opened_date",
       "metadata.capacity",
       "metadata.dummy",
       "metadata.notes",

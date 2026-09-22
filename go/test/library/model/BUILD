@@ -17,11 +17,14 @@ go_library(
     visibility = ["//go/test/library/..."],
     deps = [
         "//go/pbutil",
+        "//go/postgres",
         "//malonaz/test/library/v1",
+        "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__shopspring__decimal",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__type__date",
         "//third_party/proto:google__type__decimal",
     ],
 )

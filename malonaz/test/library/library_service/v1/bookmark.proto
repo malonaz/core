@@ -62,7 +62,8 @@ message UpdateBookmarkRequest {
       "page_number",
       "display_name",
       "note",
-      "labels"
+      "labels",
+      "placed_date"
     ]
   };
   option (buf.validate.message).cel = {
@@ -118,7 +119,8 @@ message ListBookmarksRequest {
       "create_time",
       "update_time",
       "page_number",
-      "display_name"
+      "display_name",
+      "placed_date"
     ]
     default: "create_time desc"
   };

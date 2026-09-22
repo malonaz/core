@@ -567,6 +567,7 @@ func TestSearch_FilterOnJoinedField(t *testing.T) {
 				PageNumber:  42,
 				DisplayName: "Colored bookmark",
 				Color:       librarypb.BookmarkColor_BOOKMARK_COLOR_RED,
+				PlacedDate:  testDate,
 			},
 		})
 		require.NoError(t, err)

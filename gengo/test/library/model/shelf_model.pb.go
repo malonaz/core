@@ -6,10 +6,13 @@ import (
 	json "encoding/json"
 	errors "errors"
 	fmt "fmt"
+	pgtype "github.com/jackc/pgx/v5/pgtype"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
+	postgres "github.com/malonaz/core/go/postgres"
 	decimal "github.com/shopspring/decimal"
 	resourcename "go.einride.tech/aip/resourcename"
+	date "google.golang.org/genproto/googleapis/type/date"
 	decimal1 "google.golang.org/genproto/googleapis/type/decimal"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -48,6 +51,7 @@ type Shelf struct {
 	BookCount          *int64           `db:"book_count" external:"true" join_schema:"library" join_table:"book_count" join_column:"value"`
 	TotalPrice         *decimal.Decimal `db:"total_price" external:"true" join_schema:"library" join_table:"total_price" join_column:"value"`
 	LastBookCreateTime *time.Time       `db:"last_book_create_time" external:"true" join_schema:"library" join_table:"last_book_create_time" join_column:"value"`
+	OpenedDate         *pgtype.Date     `db:"opened_date" schema:"library" table:"shelf"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -162,6 +166,14 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		t := m.LastBookCreateTime.AsTime()
 		LastBookCreateTime = &t
 	}
+	var OpenedDate *pgtype.Date
+	if m.OpenedDate != nil {
+		d, err := postgres.DateFromPb(m.OpenedDate)
+		if err != nil {
+			return nil, fmt.Errorf("parsing date opened_date: %w", err)
+		}
+		OpenedDate = &d
+	}
 	return &Shelf{
 		OrganizationID:     OrganizationID,
 		ShelfID:            ShelfID,
@@ -188,6 +200,7 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		BookCount:          BookCount,
 		TotalPrice:         TotalPrice,
 		LastBookCreateTime: LastBookCreateTime,
+		OpenedDate:         OpenedDate,
 	}, nil
 }
 
@@ -285,6 +298,10 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 			return nil, fmt.Errorf("validating last_book_create_time: %w", err)
 		}
 	}
+	var OpenedDate *date.Date
+	if m.OpenedDate != nil {
+		OpenedDate = postgres.DateToPb(*m.OpenedDate)
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -314,6 +331,7 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 		BookCount:          BookCount,
 		TotalPrice:         TotalPrice,
 		LastBookCreateTime: LastBookCreateTime,
+		OpenedDate:         OpenedDate,
 	}, nil
 }
 

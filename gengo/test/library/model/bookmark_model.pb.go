@@ -6,8 +6,11 @@ import (
 	json "encoding/json"
 	errors "errors"
 	fmt "fmt"
+	pgtype "github.com/jackc/pgx/v5/pgtype"
 	v1 "github.com/malonaz/core/genproto/test/library/v1"
+	postgres "github.com/malonaz/core/go/postgres"
 	resourcename "go.einride.tech/aip/resourcename"
+	date "google.golang.org/genproto/googleapis/type/date"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -20,19 +23,20 @@ var ErrBookmarkHasChildren = errors.New("bookmark has child resources")
 var ErrBookmarkETagChanged = errors.New("bookmark etag changed")
 
 type Bookmark struct {
-	OrganizationID string     `db:"organization_id" schema:"library" table:"bookmark"`
-	ShelfID        string     `db:"shelf_id" schema:"library" table:"bookmark"`
-	BookID         string     `db:"book_id" schema:"library" table:"bookmark"`
-	BookmarkID     string     `db:"bookmark_id" schema:"library" table:"bookmark"`
-	CreateTime     time.Time  `db:"create_time" schema:"library" table:"bookmark"`
-	UpdateTime     time.Time  `db:"update_time" schema:"library" table:"bookmark"`
-	DeleteTime     *time.Time `db:"delete_time" schema:"library" table:"bookmark"`
-	PageNumber     int32      `db:"page_number" schema:"library" table:"bookmark"`
-	DisplayName    string     `db:"display_name" schema:"library" table:"bookmark"`
-	Note           string     `db:"note" schema:"library" table:"bookmark"`
-	Labels         []byte     `db:"labels" schema:"library" table:"bookmark"`
-	Etag           string     `db:"etag" schema:"library" table:"bookmark"`
-	Color          int16      `db:"color" schema:"library" table:"bookmark"`
+	OrganizationID string      `db:"organization_id" schema:"library" table:"bookmark"`
+	ShelfID        string      `db:"shelf_id" schema:"library" table:"bookmark"`
+	BookID         string      `db:"book_id" schema:"library" table:"bookmark"`
+	BookmarkID     string      `db:"bookmark_id" schema:"library" table:"bookmark"`
+	CreateTime     time.Time   `db:"create_time" schema:"library" table:"bookmark"`
+	UpdateTime     time.Time   `db:"update_time" schema:"library" table:"bookmark"`
+	DeleteTime     *time.Time  `db:"delete_time" schema:"library" table:"bookmark"`
+	PageNumber     int32       `db:"page_number" schema:"library" table:"bookmark"`
+	DisplayName    string      `db:"display_name" schema:"library" table:"bookmark"`
+	Note           string      `db:"note" schema:"library" table:"bookmark"`
+	Labels         []byte      `db:"labels" schema:"library" table:"bookmark"`
+	Etag           string      `db:"etag" schema:"library" table:"bookmark"`
+	Color          int16       `db:"color" schema:"library" table:"bookmark"`
+	PlacedDate     pgtype.Date `db:"placed_date" schema:"library" table:"bookmark"`
 }
 
 func BookmarkFromPb(m *v1.Bookmark) (*Bookmark, error) {
@@ -67,6 +71,10 @@ func BookmarkFromPb(m *v1.Bookmark) (*Bookmark, error) {
 			return nil, fmt.Errorf("marshaling Labels: %w", err)
 		}
 	}
+	PlacedDate, err := postgres.DateFromPb(m.PlacedDate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing date placed_date: %w", err)
+	}
 	return &Bookmark{
 		OrganizationID: OrganizationID,
 		ShelfID:        ShelfID,
@@ -81,6 +89,7 @@ func BookmarkFromPb(m *v1.Bookmark) (*Bookmark, error) {
 		Labels:         LabelsBytes,
 		Etag:           m.Etag,
 		Color:          int16(m.Color),
+		PlacedDate:     PlacedDate,
 	}, nil
 }
 
@@ -109,6 +118,8 @@ func (m *Bookmark) ToPb() (*v1.Bookmark, error) {
 			return nil, fmt.Errorf("unmarshaling Labels: %w", err)
 		}
 	}
+	var PlacedDate *date.Date
+	PlacedDate = postgres.DateToPb(m.PlacedDate)
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}", m.OrganizationID, m.ShelfID, m.BookID, m.BookmarkID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -124,6 +135,7 @@ func (m *Bookmark) ToPb() (*v1.Bookmark, error) {
 		Labels:      Labels,
 		Etag:        m.Etag,
 		Color:       v1.BookmarkColor(m.Color),
+		PlacedDate:  PlacedDate,
 	}, nil
 }
 

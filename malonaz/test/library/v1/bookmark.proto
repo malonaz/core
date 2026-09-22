@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/date.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
@@ -69,6 +70,9 @@ message Bookmark {
 
   // The highlight color of the bookmark.
   BookmarkColor color = 10;
+
+  // The day the bookmark was placed: a NOT NULL DATE column.
+  google.type.Date placed_date = 11 [(buf.validate.field).required = true];
 }
 
 // BookmarkColor is the highlight color of a bookmark.

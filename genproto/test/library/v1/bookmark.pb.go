@@ -12,6 +12,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	date "google.golang.org/genproto/googleapis/type/date"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -97,7 +98,9 @@ type Bookmark struct {
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string `protobuf:"bytes,9,opt,name=etag,proto3" json:"etag,omitempty"`
 	// The highlight color of the bookmark.
-	Color         BookmarkColor `protobuf:"varint,10,opt,name=color,proto3,enum=malonaz.test.library.v1.BookmarkColor" json:"color,omitempty"`
+	Color BookmarkColor `protobuf:"varint,10,opt,name=color,proto3,enum=malonaz.test.library.v1.BookmarkColor" json:"color,omitempty"`
+	// The day the bookmark was placed: a NOT NULL DATE column.
+	PlacedDate    *date.Date `protobuf:"bytes,11,opt,name=placed_date,json=placedDate,proto3" json:"placed_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -197,6 +200,13 @@ func (x *Bookmark) GetColor() BookmarkColor {
 	return BookmarkColor_BOOKMARK_COLOR_UNSPECIFIED
 }
 
+func (x *Bookmark) GetPlacedDate() *date.Date {
+	if x != nil {
+		return x.PlacedDate
+	}
+	return nil
+}
+
 func (x *Bookmark) SetName(v string) {
 	x.Name = v
 }
@@ -237,6 +247,10 @@ func (x *Bookmark) SetColor(v BookmarkColor) {
 	x.Color = v
 }
 
+func (x *Bookmark) SetPlacedDate(v *date.Date) {
+	x.PlacedDate = v
+}
+
 func (x *Bookmark) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -258,6 +272,13 @@ func (x *Bookmark) HasDeleteTime() bool {
 	return x.DeleteTime != nil
 }
 
+func (x *Bookmark) HasPlacedDate() bool {
+	if x == nil {
+		return false
+	}
+	return x.PlacedDate != nil
+}
+
 func (x *Bookmark) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -268,6 +289,10 @@ func (x *Bookmark) ClearUpdateTime() {
 
 func (x *Bookmark) ClearDeleteTime() {
 	x.DeleteTime = nil
+}
+
+func (x *Bookmark) ClearPlacedDate() {
+	x.PlacedDate = nil
 }
 
 type Bookmark_builder struct {
@@ -294,6 +319,8 @@ type Bookmark_builder struct {
 	Etag string
 	// The highlight color of the bookmark.
 	Color BookmarkColor
+	// The day the bookmark was placed: a NOT NULL DATE column.
+	PlacedDate *date.Date
 }
 
 func (b0 Bookmark_builder) Build() *Bookmark {
@@ -310,6 +337,7 @@ func (b0 Bookmark_builder) Build() *Bookmark {
 	x.Labels = b.Labels
 	x.Etag = b.Etag
 	x.Color = b.Color
+	x.PlacedDate = b.PlacedDate
 	return m0
 }
 
@@ -317,7 +345,7 @@ var File_malonaz_test_library_v1_bookmark_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"\n" +
-	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xed\x06\n" +
+	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa9\a\n" +
 	"\bBookmark\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -334,7 +362,9 @@ const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"\x06labels\x18\b \x03(\v2-.malonaz.test.library.v1.Bookmark.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\x12\n" +
 	"\x04etag\x18\t \x01(\tR\x04etag\x12<\n" +
 	"\x05color\x18\n" +
-	" \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorR\x05color\x1a9\n" +
+	" \x01(\x0e2&.malonaz.test.library.v1.BookmarkColorR\x05color\x12:\n" +
+	"\vplaced_date\x18\v \x01(\v2\x11.google.type.DateB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"placedDate\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x99\x01\xeaA\x88\x01\n" +
@@ -352,6 +382,7 @@ var file_malonaz_test_library_v1_bookmark_proto_goTypes = []any{
 	(*Bookmark)(nil),              // 1: malonaz.test.library.v1.Bookmark
 	nil,                           // 2: malonaz.test.library.v1.Bookmark.LabelsEntry
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*date.Date)(nil),             // 4: google.type.Date
 }
 var file_malonaz_test_library_v1_bookmark_proto_depIdxs = []int32{
 	3, // 0: malonaz.test.library.v1.Bookmark.create_time:type_name -> google.protobuf.Timestamp
@@ -359,11 +390,12 @@ var file_malonaz_test_library_v1_bookmark_proto_depIdxs = []int32{
 	3, // 2: malonaz.test.library.v1.Bookmark.delete_time:type_name -> google.protobuf.Timestamp
 	2, // 3: malonaz.test.library.v1.Bookmark.labels:type_name -> malonaz.test.library.v1.Bookmark.LabelsEntry
 	0, // 4: malonaz.test.library.v1.Bookmark.color:type_name -> malonaz.test.library.v1.BookmarkColor
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4, // 5: malonaz.test.library.v1.Bookmark.placed_date:type_name -> google.type.Date
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_bookmark_proto_init() }
