@@ -19,6 +19,10 @@ func IsDecimal(field *protogen.Field) bool {
 	return field.Message != nil && string(field.Message.Desc.FullName()) == "google.type.Decimal"
 }
 
+func IsDate(field *protogen.Field) bool {
+	return field.Message != nil && string(field.Message.Desc.FullName()) == "google.type.Date"
+}
+
 func GoType(field *protogen.Field) (string, error) {
 	var kind string
 	switch field.Desc.Kind() {
@@ -65,6 +69,9 @@ func SanitizedGoType(field *protogen.Field, fqn func(string, string) string) (st
 	if IsDecimal(field) {
 		return fqn("github.com/shopspring/decimal", "Decimal"), nil
 	}
+	if IsDate(field) {
+		return fqn("github.com/jackc/pgx/v5/pgtype", "Date"), nil
+	}
 	return GoType(field)
 }
 
@@ -87,7 +94,7 @@ func ZeroValue(field *protogen.Field) (string, error) {
 	case protoreflect.BytesKind:
 		return "nil", nil
 	case protoreflect.MessageKind:
-		if IsTimestamp(field) || IsDuration(field) || IsDecimal(field) {
+		if IsTimestamp(field) || IsDuration(field) || IsDecimal(field) || IsDate(field) {
 			return "nil", nil
 		}
 	}
