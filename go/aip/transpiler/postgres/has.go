@@ -44,8 +44,8 @@ func (t *Transpiler) transpileHasCallExpr(e *expr.Expr) (boolExpr, error) {
 // transpilePresenceCheck renders `field:*`. Presence is proto3 presence: a
 // scalar is present when it holds a non-zero value, and a NULL column stands
 // for zero (see null.go) — so strings, numbers, bools and enums all test
-// `IS NOT NULL AND != zero`. Timestamps, durations, messages and collections
-// are present when non-NULL (and, for collections, non-empty).
+// `IS NOT NULL AND != zero`. Timestamps, durations, dates, messages and
+// collections are present when non-NULL (and, for collections, non-empty).
 func (t *Transpiler) transpilePresenceCheck(lhsExpr *expr.Expr, lhsType *expr.Type) (boolExpr, error) {
 	if lhsType.GetListType() != nil {
 		return t.transpileRepeatedPresenceCheck(lhsExpr)
@@ -120,16 +120,16 @@ func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr
 	if err != nil {
 		return nil, err
 	}
-	l, ok, err := t.operandLiteral(rhsExpr, true)
+	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhsExpr.GetId()]
+	if !ok {
+		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
+	}
+	l, ok, err := t.operandLiteral(rhsExpr, lhsType, true)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
 		return nil, fmt.Errorf("unsupported argument to `:` operator: expected a literal")
-	}
-	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhsExpr.GetId()]
-	if !ok {
-		return nil, fmt.Errorf("unknown type of lhs expr %d", lhsExpr.GetId())
 	}
 	return nullAware(lhs, lhsType, opEq, l, t.traversalParent(lhsExpr)), nil
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"go.einride.tech/aip/filtering"
 	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -188,10 +189,13 @@ func (t *Transpiler) constLiteral(e *expr.Expr) (literal, error) {
 }
 
 // operandLiteral transpiles the right-hand side of a comparison whose left-hand
-// side is a column: a constant, an enum value, a bool keyword, or a
-// timestamp()/duration() call. ok is false when it is another column.
-func (t *Transpiler) operandLiteral(rhs *expr.Expr, jsonbColumn bool) (literal, bool, error) {
+// side is a column of columnType: a constant, an enum value, a bool keyword,
+// or a timestamp()/duration() call. ok is false when it is another column.
+func (t *Transpiler) operandLiteral(rhs *expr.Expr, columnType *expr.Type, jsonbColumn bool) (literal, bool, error) {
 	switch {
+	case isDate(columnType):
+		l, err := t.dateLiteral(rhs)
+		return l, err == nil, err
 	case rhs.GetConstExpr() != nil:
 		l, err := t.constLiteral(rhs)
 		return l, err == nil, err
@@ -271,6 +275,10 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 	if err != nil {
 		return nil, err
 	}
+	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhs.GetId()]
+	if !ok {
+		return nil, fmt.Errorf("unknown type of lhs expr %d", lhs.GetId())
+	}
 
 	// NULL semantics apply to `column op literal`; anything else (a literal on
 	// the left, column against column) is rendered as written.
@@ -281,7 +289,7 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 	var l literal
 	rhsIsLiteral := false
 	if lhsIsColumn {
-		if l, rhsIsLiteral, err = t.operandLiteral(rhs, t.isJSONBPath(lhs)); err != nil {
+		if l, rhsIsLiteral, err = t.operandLiteral(rhs, lhsType, t.isJSONBPath(lhs)); err != nil {
 			return nil, err
 		}
 	}
@@ -292,10 +300,6 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 		}
 		return comparisonOp{lhs: lhsExpr, op: op, rhs: rhsExpr}, nil
 	}
-	lhsType, ok := t.filter.CheckedExpr.GetTypeMap()[lhs.GetId()]
-	if !ok {
-		return nil, fmt.Errorf("unknown type of lhs expr %d", lhs.GetId())
-	}
 	return nullAware(lhsExpr, lhsType, op, l, t.traversalParent(lhs)), nil
 }
 
@@ -305,6 +309,10 @@ func (t *Transpiler) isSubstringMatchExpr(e *expr.Expr) bool {
 	}
 	lhs := e.GetCallExpr().GetArgs()[0]
 	if lhs.GetIdentExpr() == nil && lhs.GetSelectExpr() == nil {
+		return false
+	}
+	// A date is not text: its "2025-*" is a malformed date, not a pattern.
+	if isDate(t.filter.CheckedExpr.GetTypeMap()[lhs.GetId()]) {
 		return false
 	}
 	val, ok := getStringConstValue(e.GetCallExpr().GetArgs()[1])
@@ -458,6 +466,8 @@ func sqlLiteral(value any) (string, error) {
 		return "'" + v.UTC().Format(time.RFC3339Nano) + "'::timestamptz", nil
 	case time.Duration:
 		return fmt.Sprintf("'%g seconds'::interval", v.Seconds()), nil
+	case pgtype.Date:
+		return "'" + v.Time.Format(time.DateOnly) + "'::date", nil
 	default:
 		return "", fmt.Errorf("cannot render %T as a SQL literal", value)
 	}

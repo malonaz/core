@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 
@@ -66,6 +67,10 @@ func TestNullMatches(t *testing.T) {
 		{"duration != 0s", wellKnown(expr.Type_DURATION), opNe, time.Duration(0), true},
 		{"duration = 0s", wellKnown(expr.Type_DURATION), opEq, time.Duration(0), false},
 		{"duration <= 0s", wellKnown(expr.Type_DURATION), opLe, time.Duration(0), false},
+		// Dates: NULL is absent.
+		{"date != x", TypeDate, opNe, pgtype.Date{Valid: true}, true},
+		{"date = x", TypeDate, opEq, pgtype.Date{Valid: true}, false},
+		{"date < x", TypeDate, opLt, pgtype.Date{Valid: true}, false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -93,6 +98,7 @@ func TestZeroLiteral(t *testing.T) {
 		{"unknown enum", enumType("google.protobuf.Missing"), false, "", false},
 		{"timestamp", wellKnown(expr.Type_TIMESTAMP), false, "", false},
 		{"duration", wellKnown(expr.Type_DURATION), false, "", false},
+		{"date", TypeDate, false, "", false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

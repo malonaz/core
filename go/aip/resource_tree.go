@@ -18,6 +18,7 @@ import (
 
 	canonicalizepb "github.com/malonaz/core/genproto/canonicalize/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	"github.com/malonaz/core/go/aip/transpiler/postgres"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -471,31 +472,42 @@ func (t *Tree) Explore(fieldPath string, fieldDesc protoreflect.FieldDescriptor,
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_Primitive{Primitive: v1alpha1.Type_DOUBLE}})
 			case "google.protobuf.Duration":
 				node.ExprType = wrapIfRepeated(&v1alpha1.Type{TypeKind: &v1alpha1.Type_WellKnown{WellKnown: v1alpha1.Type_DURATION}})
+			// A DATE column when stored as one; inside JSONB it is protojson's
+			// {year, month, day} object, filtered by field like any message.
+			case "google.type.Date":
+				if fieldOpts.GetAsJsonBytes() || depth > 0 {
+					return t.exploreMessage(node, fieldPath, fieldDesc, depth, wrapIfRepeated)
+				}
+				node.ExprType = postgres.TypeDate
 			// Skip well-known wrapper/recursive types that cause combinatorial explosion.
 			case "google.protobuf.Struct", "google.protobuf.Value", "google.protobuf.ListValue",
 				"google.protobuf.Any":
 			default:
 				if fieldOpts.GetAsJsonBytes() || depth > 0 {
-					elemType := &v1alpha1.Type{
-						TypeKind: &v1alpha1.Type_MessageType{
-							MessageType: string(msgFullName),
-						},
-					}
-					node.ExprType = wrapIfRepeated(elemType)
-					nestedFieldsDescriptor := fieldDesc.Message().Fields()
-					for i := 0; i < nestedFieldsDescriptor.Len(); i++ {
-						nestedFieldDesc := nestedFieldsDescriptor.Get(i)
-						nestedFieldName := nestedFieldDesc.TextName()
-						nestedFieldPath := fieldPath + "." + nestedFieldName
-						if err := t.Explore(nestedFieldPath, nestedFieldDesc, depth+1); err != nil {
-							return fmt.Errorf("%s: %v", nestedFieldPath, err)
-						}
-					}
+					return t.exploreMessage(node, fieldPath, fieldDesc, depth, wrapIfRepeated)
 				}
 			}
 		}
 	}
 
+	return nil
+}
+
+// exploreMessage types a JSONB-stored message node and explores its fields.
+func (t *Tree) exploreMessage(node *Node, fieldPath string, fieldDesc protoreflect.FieldDescriptor, depth int, wrapIfRepeated func(*v1alpha1.Type) *v1alpha1.Type) error {
+	node.ExprType = wrapIfRepeated(&v1alpha1.Type{
+		TypeKind: &v1alpha1.Type_MessageType{
+			MessageType: string(fieldDesc.Message().FullName()),
+		},
+	})
+	nestedFieldsDescriptor := fieldDesc.Message().Fields()
+	for i := 0; i < nestedFieldsDescriptor.Len(); i++ {
+		nestedFieldDesc := nestedFieldsDescriptor.Get(i)
+		nestedFieldPath := fieldPath + "." + nestedFieldDesc.TextName()
+		if err := t.Explore(nestedFieldPath, nestedFieldDesc, depth+1); err != nil {
+			return fmt.Errorf("%s: %v", nestedFieldPath, err)
+		}
+	}
 	return nil
 }
 
