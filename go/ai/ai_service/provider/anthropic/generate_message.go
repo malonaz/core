@@ -137,7 +137,7 @@ func (c *Client) StreamGenerateMessage(
 		CacheControl: anthropic.NewCacheControlEphemeralParam(),
 	}
 	if request.Configuration.GetTemperature() > 0 {
-		// Newer models (opus-4.7+, opus-5, sonnet-5, fable-5) reject non-default sampling parameters on every request.
+		// Newer models (opus-4.7+, opus-5/5.5, sonnet-5, fable-5) reject non-default sampling parameters on every request.
 		if model.GetProviderSettings().GetFields()["sampling_parameters_unsupported"].GetBoolValue() {
 			return status.Errorf(codes.InvalidArgument, "%s does not support temperature", request.Model).Err()
 		}
