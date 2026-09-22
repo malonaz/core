@@ -25,7 +25,7 @@ func createTestBookmark(t *testing.T, bookName, displayName string) *librarypb.B
 	t.Helper()
 	createBookmarkRequest := &libraryservicepb.CreateBookmarkRequest{
 		Parent:   bookName,
-		Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: displayName},
+		Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: displayName, PlacedDate: testDate},
 	}
 	bookmark, err := bookmarkServiceClient.CreateBookmark(ctx, createBookmarkRequest)
 	require.NoError(t, err)

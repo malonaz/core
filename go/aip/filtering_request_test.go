@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
@@ -758,6 +759,86 @@ func TestFilteringRequestParser_Timestamps(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			request := &libraryservicepb.ListAuthorsRequest{Filter: tc.filter}
+			parsedRequest, err := parser.Parse(request)
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+			require.Equal(t, escapeDollar(tc.expectedClause), escapeDollar(whereClause))
+			require.Equal(t, tc.expectedParams, whereParams)
+		})
+	}
+}
+
+func TestFilteringRequestParser_Dates(t *testing.T) {
+	parser := MustNewFilteringRequestParser[*libraryservicepb.ListShelvesRequest, *librarypb.Shelf](WithFQN())
+	sep := pgtype.Date{Time: time.Date(2025, time.September, 1, 0, 0, 0, 0, time.UTC), Valid: true}
+	oct := pgtype.Date{Time: time.Date(2025, time.October, 1, 0, 0, 0, 0, time.UTC), Valid: true}
+
+	tests := []struct {
+		name           string
+		filter         string
+		expectedClause string
+		expectedParams []any
+		wantErr        bool
+	}{
+		{
+			name:           "date equals",
+			filter:         `opened_date = "2025-09-01"`,
+			expectedClause: "WHERE (shelf.opened_date = $1)",
+			expectedParams: []any{sep},
+		},
+		{
+			// NULL is absent: it differs from every day.
+			name:           "date not equals admits NULL",
+			filter:         `opened_date != "2025-09-01"`,
+			expectedClause: "WHERE (shelf.opened_date IS NULL OR shelf.opened_date != $1)",
+			expectedParams: []any{sep},
+		},
+		{
+			name:           "date range",
+			filter:         `opened_date >= "2025-09-01" AND opened_date < "2025-10-01"`,
+			expectedClause: "WHERE ((shelf.opened_date >= $1) AND (shelf.opened_date < $2))",
+			expectedParams: []any{sep, oct},
+		},
+		{
+			name:           "date presence",
+			filter:         `opened_date:*`,
+			expectedClause: "WHERE (shelf.opened_date IS NOT NULL)",
+			expectedParams: []any{},
+		},
+		{
+			name:    "malformed date",
+			filter:  `opened_date = "2025--0-01"`,
+			wantErr: true,
+		},
+		{
+			name:    "timestamp is not a date",
+			filter:  `opened_date = "2025-09-01T00:00:00Z"`,
+			wantErr: true,
+		},
+		{
+			name:    "wildcard is not a date",
+			filter:  `opened_date = "2025-*"`,
+			wantErr: true,
+		},
+		{
+			name:    "number is not a date",
+			filter:  `opened_date = 20250901`,
+			wantErr: true,
+		},
+		{
+			name:    "date has no value match",
+			filter:  `opened_date:"2025-09-01"`,
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &libraryservicepb.ListShelvesRequest{Filter: tc.filter}
 			parsedRequest, err := parser.Parse(request)
 			if tc.wantErr {
 				require.Error(t, err)

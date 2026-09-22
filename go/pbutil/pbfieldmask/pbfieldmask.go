@@ -269,4 +269,5 @@ var wellKnownLeafTypes = map[protoreflect.FullName]struct{}{
 	"google.protobuf.FieldMask":   {},
 	"google.protobuf.Empty":       {},
 	"google.type.Decimal":         {},
+	"google.type.Date":            {},
 }

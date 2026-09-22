@@ -23,6 +23,10 @@ const (
 	// "decimal", so protogen aliases whichever one it registers second.
 	decimalPkg      = "github.com/shopspring/decimal"
 	decimalProtoPkg = "google.golang.org/genproto/googleapis/type/decimal"
+	// google.type.Date fields are DATE columns, held as pgtype.Date and
+	// bridged by the postgres package.
+	dateProtoPkg = "google.golang.org/genproto/googleapis/type/date"
+	postgresPkg  = "github.com/malonaz/core/go/postgres"
 )
 
 func Generate(file *protogen.File, generatedFile *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
@@ -724,7 +728,7 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 		}
 		fmt.Fprintf(&b, "\tvar %s *%s\n", goName, sanitizedType)
 
-		if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) {
+		if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) || protofield.IsDate(field) {
 			fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
 		} else {
 			zv, err := protofield.ZeroValue(field)
@@ -753,6 +757,12 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 			fmt.Fprintf(&b, "\t\td, err := %s(m.%s.GetValue())\n", m.fqn(decimalPkg, "NewFromString"), goName)
 			fmt.Fprintf(&b, "\t\tif err != nil {\n")
 			fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"parsing decimal %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+			fmt.Fprintf(&b, "\t\t}\n")
+			fmt.Fprintf(&b, "\t\t%s = &d\n", goName)
+		} else if protofield.IsDate(field) {
+			fmt.Fprintf(&b, "\t\td, err := %s(m.%s)\n", m.fqn(postgresPkg, "DateFromPb"), goName)
+			fmt.Fprintf(&b, "\t\tif err != nil {\n")
+			fmt.Fprintf(&b, "\t\t\treturn nil, %s(\"parsing date %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
 			fmt.Fprintf(&b, "\t\t}\n")
 			fmt.Fprintf(&b, "\t\t%s = &d\n", goName)
 		} else {
@@ -795,6 +805,15 @@ func (m *Model) fromPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.
 		fmt.Fprintf(&b, "\t}\n")
 	}
 
+	// A DATE has no zero: an unset non-nullable date is a client error
+	// buf.validate is expected to have rejected (checkRequiredPresence).
+	if protofield.IsDate(field) {
+		fmt.Fprintf(&b, "\t%s, err := %s(m.%s)\n", goName, m.fqn(postgresPkg, "DateFromPb"), goName)
+		fmt.Fprintf(&b, "\tif err != nil {\n")
+		fmt.Fprintf(&b, "\t\treturn nil, %s(\"parsing date %s: %%w\", err)\n", m.fqn("fmt", "Errorf"), field.Desc.TextName())
+		fmt.Fprintf(&b, "\t}\n")
+	}
+
 	return b.String(), nil
 }
 
@@ -814,7 +833,7 @@ func (m *Model) fromPbFieldValue(field *protogen.Field, fieldOpts *modelpb.Field
 	if fieldOpts.GetEmbed() {
 		return goName
 	}
-	if protofield.IsDecimal(field) {
+	if protofield.IsDecimal(field) || protofield.IsDate(field) {
 		return goName
 	}
 	if nullable {
@@ -977,6 +996,20 @@ func (m *Model) toPbFieldConversion(field *protogen.Field, fieldOpts *modelpb.Fi
 		return b.String(), nil
 	}
 
+	if protofield.IsDate(field) {
+		fmt.Fprintf(&b, "\tvar %s *%s\n", goName, m.fqn(dateProtoPkg, "Date"))
+		deref := ""
+		if nullable {
+			fmt.Fprintf(&b, "\tif m.%s != nil {\n", goName)
+			deref = "*"
+		}
+		fmt.Fprintf(&b, "\t%s = %s(%sm.%s)\n", goName, m.fqn(postgresPkg, "DateToPb"), deref, goName)
+		if nullable {
+			fmt.Fprintf(&b, "\t}\n")
+		}
+		return b.String(), nil
+	}
+
 	if nullable {
 		sanitizedType, err := protofield.SanitizedGoType(field, m.fqn)
 		if err != nil {
@@ -1008,7 +1041,7 @@ func (m *Model) toPbFieldValue(field *protogen.Field, fieldOpts *modelpb.FieldOp
 	if fieldOpts.GetEmbed() {
 		return goName
 	}
-	if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) {
+	if protofield.IsTimestamp(field) || protofield.IsDuration(field) || protofield.IsDecimal(field) || protofield.IsDate(field) {
 		return goName
 	}
 	if nullable {

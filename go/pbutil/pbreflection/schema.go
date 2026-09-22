@@ -840,7 +840,7 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 	var examples []string
 
 	if resourceMsg != nil {
-		var hasString, hasBool, hasEnum, hasTimestamp, hasDuration, hasDecimal bool
+		var hasString, hasBool, hasEnum, hasTimestamp, hasDuration, hasDecimal, hasDate bool
 
 		pathSet := make(map[string]struct{})
 		for _, p := range paths {
@@ -891,6 +891,11 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 						examples = append(examples, fmt.Sprintf(`%s > 10.25`, name))
 						hasDecimal = true
 					}
+				case "google.type.Date":
+					if !hasDate {
+						examples = append(examples, fmt.Sprintf(`%s >= "2024-01-01"`, name))
+						hasDate = true
+					}
 				}
 			}
 		}
@@ -901,7 +906,7 @@ func formatFilteringDoc(resourceMsg protoreflect.MessageDescriptor, paths []stri
 Filterable fields: %s
 Only top-level fields are listed. Nested fields are also filterable via dot notation, e.g. metadata.some_field = "value".
 Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
-Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, strings.Join(paths, ", "))
+Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s"). Date fields compare against a "YYYY-MM-DD" string.`, strings.Join(paths, ", "))
 	}
 
 	exampleStr := "Examples: " + strings.Join(examples, ", ")
@@ -909,7 +914,7 @@ Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT
 %s
 Only top-level fields are listed. Nested fields are also filterable via dot notation, e.g. metadata.some_field = "value".
 Wildcards: '*' supported at leading (field="*suffix"), trailing (field="prefix*"), and middle (field="prefix*suffix") positions.
-Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s").`, exampleStr)
+Note: matching is case-sensitive. Boolean fields use 'field_name' (true) or 'NOT field_name' (false). Enum values are unquoted. Duration fields use duration("10s"). Date fields compare against a "YYYY-MM-DD" string.`, exampleStr)
 }
 
 func formatOrderingDoc(paths []string, defaultOrder string) string {

@@ -874,16 +874,17 @@ const file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"Y\n" +
 	"\x12GetBookmarkRequest\x12C\n" +
 	"\x04name\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
-	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\"\xa4\x02\n" +
+	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\"\xb2\x02\n" +
 	"\x15UpdateBookmarkRequest\x12E\n" +
 	"\bbookmark\x18\x01 \x01(\v2!.malonaz.test.library.v1.BookmarkB\x06\xbaH\x03\xd8\x01\x03R\bbookmark\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\x7f\xbaHN\x1aL\n" +
-	"\x16bookmark.name_required\x12\x19bookmark.name must be set\x1a\x17has(this.bookmark.name)\xea\x9c\xc1\x03)\n" +
+	"updateMask:\x8c\x01\xbaHN\x1aL\n" +
+	"\x16bookmark.name_required\x12\x19bookmark.name must be set\x1a\x17has(this.bookmark.name)\xea\x9c\xc1\x036\n" +
 	"\vpage_number\n" +
 	"\fdisplay_name\n" +
 	"\x04note\n" +
-	"\x06labels\"\x95\x01\n" +
+	"\x06labels\n" +
+	"\vplaced_date\"\x95\x01\n" +
 	"\x15DeleteBookmarkRequest\x12C\n" +
 	"\x04name\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
 	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
@@ -892,7 +893,7 @@ const file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc = "" +
 	"\x17UndeleteBookmarkRequest\x12C\n" +
 	"\x04name\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
 	"!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
-	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xd3\x02\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xe0\x02\n" +
 	"\x14ListBookmarksRequest\x12C\n" +
 	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
@@ -902,11 +903,12 @@ const file_malonaz_test_library_library_service_v1_bookmark_proto_rawDesc = "" +
 	"\tpage_size\x18\x05 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageToken:X\x82\xf3-\x02\bd\x8a\xf3-G\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken:e\x82\xf3-\x02\bd\x8a\xf3-T\n" +
 	"\vcreate_time\n" +
 	"\vupdate_time\n" +
 	"\vpage_number\n" +
-	"\fdisplay_name\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"\fdisplay_name\n" +
+	"\vplaced_date\x12\x10create_time desc\x92\xf3-\x03\n" +
 	"\x01*\"\x80\x01\n" +
 	"\x15ListBookmarksResponse\x12?\n" +
 	"\tbookmarks\x18\x01 \x03(\v2!.malonaz.test.library.v1.BookmarkR\tbookmarks\x12&\n" +

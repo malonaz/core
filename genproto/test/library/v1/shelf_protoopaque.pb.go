@@ -13,6 +13,7 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	date "google.golang.org/genproto/googleapis/type/date"
 	decimal "google.golang.org/genproto/googleapis/type/decimal"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -116,6 +117,7 @@ type Shelf struct {
 	xxx_hidden_BookCount          int64                  `protobuf:"varint,22,opt,name=book_count,json=bookCount,proto3"`
 	xxx_hidden_TotalPrice         *decimal.Decimal       `protobuf:"bytes,24,opt,name=total_price,json=totalPrice,proto3"`
 	xxx_hidden_LastBookCreateTime *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=last_book_create_time,json=lastBookCreateTime,proto3"`
+	xxx_hidden_OpenedDate         *date.Date             `protobuf:"bytes,25,opt,name=opened_date,json=openedDate,proto3"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
@@ -313,6 +315,13 @@ func (x *Shelf) GetLastBookCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Shelf) GetOpenedDate() *date.Date {
+	if x != nil {
+		return x.xxx_hidden_OpenedDate
+	}
+	return nil
+}
+
 func (x *Shelf) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -409,6 +418,10 @@ func (x *Shelf) SetLastBookCreateTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_LastBookCreateTime = v
 }
 
+func (x *Shelf) SetOpenedDate(v *date.Date) {
+	x.xxx_hidden_OpenedDate = v
+}
+
 func (x *Shelf) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -465,6 +478,13 @@ func (x *Shelf) HasLastBookCreateTime() bool {
 	return x.xxx_hidden_LastBookCreateTime != nil
 }
 
+func (x *Shelf) HasOpenedDate() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_OpenedDate != nil
+}
+
 func (x *Shelf) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
 }
@@ -495,6 +515,10 @@ func (x *Shelf) ClearTotalPrice() {
 
 func (x *Shelf) ClearLastBookCreateTime() {
 	x.xxx_hidden_LastBookCreateTime = nil
+}
+
+func (x *Shelf) ClearOpenedDate() {
+	x.xxx_hidden_OpenedDate = nil
 }
 
 type Shelf_builder struct {
@@ -559,6 +583,8 @@ type Shelf_builder struct {
 	// When the most recent book on this shelf was created: MAX over a
 	// Timestamp keeps its type.
 	LastBookCreateTime *timestamppb.Timestamp
+	// The day the shelf opened: a nullable DATE column.
+	OpenedDate *date.Date
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -589,6 +615,7 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.xxx_hidden_BookCount = b.BookCount
 	x.xxx_hidden_TotalPrice = b.TotalPrice
 	x.xxx_hidden_LastBookCreateTime = b.LastBookCreateTime
+	x.xxx_hidden_OpenedDate = b.OpenedDate
 	return m0
 }
 
@@ -965,7 +992,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xf7\x13\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb3\x14\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1019,7 +1046,9 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\x05price*\x02\b\x01R\n" +
 	"totalPrice\x12\x8a\x01\n" +
 	"\x15last_book_create_time\x18\x17 \x01(\v2\x1a.google.protobuf.TimestampB;\xe0A\x03\xba\xea\x0f4 \x01B0\n" +
-	"\x1dlibrary.test.malonaz.com/Book\x12\vcreate_time*\x02\b\x04R\x12lastBookCreateTime\x1a9\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\vcreate_time*\x02\b\x04R\x12lastBookCreateTime\x12:\n" +
+	"\vopened_date\x18\x19 \x01(\v2\x11.google.type.DateB\x06\xba\xea\x0f\x02 \x01R\n" +
+	"openedDate\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xd5\x02\xeaA^\n" +
@@ -1075,6 +1104,7 @@ var file_malonaz_test_library_v1_shelf_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
 	(*decimal.Decimal)(nil),       // 10: google.type.Decimal
+	(*date.Date)(nil),             // 11: google.type.Date
 }
 var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
 	8,  // 0: malonaz.test.library.v1.Shelf.create_time:type_name -> google.protobuf.Timestamp
@@ -1088,16 +1118,17 @@ var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
 	4,  // 8: malonaz.test.library.v1.Shelf.extra:type_name -> malonaz.test.library.v1.ShelfExtra
 	10, // 9: malonaz.test.library.v1.Shelf.total_price:type_name -> google.type.Decimal
 	8,  // 10: malonaz.test.library.v1.Shelf.last_book_create_time:type_name -> google.protobuf.Timestamp
-	5,  // 11: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
-	7,  // 12: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	0,  // 13: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
-	3,  // 14: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
-	5,  // 15: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	11, // 11: malonaz.test.library.v1.Shelf.opened_date:type_name -> google.type.Date
+	5,  // 12: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
+	7,  // 13: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	0,  // 14: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
+	3,  // 15: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
+	5,  // 16: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_shelf_proto_init() }

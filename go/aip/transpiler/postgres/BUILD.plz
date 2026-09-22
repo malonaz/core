@@ -1,6 +1,7 @@
 go_library(
     name = "postgres",
     srcs = [
+        "date.go",
         "has.go",
         "jsonb.go",
         "null.go",
@@ -11,19 +12,25 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:go.einride.tech__aip__ordering",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/proto:google__api__expr__v1alpha1",
+        "//third_party/proto:google__type__date",
     ],
 )
 
 go_test(
     name = "test",
-    srcs = ["null_test.go"],
+    srcs = [
+        "date_test.go",
+        "null_test.go",
+    ],
     deps = [
         ":postgres",
+        "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/proto:google__api__expr__v1alpha1",

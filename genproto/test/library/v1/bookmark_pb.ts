@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../google/api/field_beh
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Date, DateValid } from "../../../../google/type/date_pb";
+import { file_google_type_date } from "../../../../google/type/date_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -16,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/v1/bookmark.proto.
  */
 export const file_malonaz_test_library_v1_bookmark: GenFile = /*@__PURE__*/
-  fileDesc("CiZtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rbWFyay5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEigwYKCEJvb2ttYXJrEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIcCgtwYWdlX251bWJlchgFIAEoBUIHukgEGgIoARIgCgxkaXNwbGF5X25hbWUYBiABKAlCCrpIB3IFEAEYgAISFgoEbm90ZRgHIAEoCUIIukgFcgMYgCAS0wEKBmxhYmVscxgIIAMoCzItLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCSABKAkSNQoFY29sb3IYCiABKA4yJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFya0NvbG9yGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6mQHqQYgBCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmsSTm9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vc2hlbHZlcy97c2hlbGZ9L2Jvb2tzL3tib29rfS9ib29rbWFya3Mve2Jvb2ttYXJrfSoJYm9va21hcmtzMghib29rbWFya9KmBAkKB2xpYnJhcnkqYAoNQm9va21hcmtDb2xvchIeChpCT09LTUFSS19DT0xPUl9VTlNQRUNJRklFRBAAEhYKEkJPT0tNQVJLX0NPTE9SX1JFRBABEhcKE0JPT0tNQVJLX0NPTE9SX0JMVUUQAkIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiZtYWxvbmF6L3Rlc3QvbGlicmFyeS92MS9ib29rbWFyay5wcm90bxIXbWFsb25hei50ZXN0LmxpYnJhcnkudjEiswYKCEJvb2ttYXJrEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI6CgtkZWxldGVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARIcCgtwYWdlX251bWJlchgFIAEoBUIHukgEGgIoARIgCgxkaXNwbGF5X25hbWUYBiABKAlCCrpIB3IFEAEYgAISFgoEbm90ZRgHIAEoCUIIukgFcgMYgCAS0wEKBmxhYmVscxgIIAMoCzItLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrLkxhYmVsc0VudHJ5QpMBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJLrqDwQQASABEgwKBGV0YWcYCSABKAkSNQoFY29sb3IYCiABKA4yJi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFya0NvbG9yEi4KC3BsYWNlZF9kYXRlGAsgASgLMhEuZ29vZ2xlLnR5cGUuRGF0ZUIGukgDyAEBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6mQHqQYgBCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmsSTm9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vc2hlbHZlcy97c2hlbGZ9L2Jvb2tzL3tib29rfS9ib29rbWFya3Mve2Jvb2ttYXJrfSoJYm9va21hcmtzMghib29rbWFya9KmBAkKB2xpYnJhcnkqYAoNQm9va21hcmtDb2xvchIeChpCT09LTUFSS19DT0xPUl9VTlNQRUNJRklFRBAAEhYKEkJPT0tNQVJLX0NPTE9SX1JFRBABEhcKE0JPT0tNQVJLX0NPTE9SX0JMVUUQAkIyWjBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_type_date, file_malonaz_codegen_model_v1_model]);
 
 /**
  * Bookmark represents a saved position within a book.
@@ -94,9 +96,99 @@ export type Bookmark = Message<"malonaz.test.library.v1.Bookmark"> & {
    * @generated from field: malonaz.test.library.v1.BookmarkColor color = 10;
    */
   color: BookmarkColor;
+
+  /**
+   * The day the bookmark was placed: a NOT NULL DATE column.
+   *
+   * @generated from field: google.type.Date placed_date = 11;
+   */
+  placedDate?: Date;
 };
 
-export type BookmarkValid = Bookmark;
+/**
+ * Bookmark represents a saved position within a book.
+ *
+ * @generated from message malonaz.test.library.v1.Bookmark
+ */
+export type BookmarkValid = Message<"malonaz.test.library.v1.Bookmark"> & {
+  /**
+   * The resource name of the bookmark.
+   * Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The creation timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   */
+  createTime?: Timestamp;
+
+  /**
+   * The last update timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * The deletion timestamp.
+   *
+   * @generated from field: google.protobuf.Timestamp delete_time = 4;
+   */
+  deleteTime?: Timestamp;
+
+  /**
+   * The page number of the bookmark.
+   *
+   * @generated from field: int32 page_number = 5;
+   */
+  pageNumber: number;
+
+  /**
+   * A user-defined label for the bookmark.
+   *
+   * @generated from field: string display_name = 6;
+   */
+  displayName: string;
+
+  /**
+   * An optional note associated with the bookmark.
+   *
+   * @generated from field: string note = 7;
+   */
+  note: string;
+
+  /**
+   * The labels on this bookmark.
+   *
+   * @generated from field: map<string, string> labels = 8;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * A checksum computed by the server based on the current value of the resource.
+   *
+   * @generated from field: string etag = 9;
+   */
+  etag: string;
+
+  /**
+   * The highlight color of the bookmark.
+   *
+   * @generated from field: malonaz.test.library.v1.BookmarkColor color = 10;
+   */
+  color: BookmarkColor;
+
+  /**
+   * The day the bookmark was placed: a NOT NULL DATE column.
+   *
+   * @generated from field: google.type.Date placed_date = 11;
+   */
+  placedDate: DateValid;
+};
 
 /**
  * Describes the message malonaz.test.library.v1.Bookmark.

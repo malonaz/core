@@ -128,11 +128,11 @@ func (f *FilteringRequest) GetFilter() filtering.Filter {
 // references, and the macros rewriting the former into the latter. withFQN
 // qualifies column references with their table (or join alias).
 func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclarations *filtering.Declarations, macros []filtering.Macro, err error) {
-	sharedDeclarationOptions := []filtering.DeclarationOption{
+	sharedDeclarationOptions := append([]filtering.DeclarationOption{
 		filtering.DeclareIdent("true", filtering.TypeBool),
 		filtering.DeclareIdent("false", filtering.TypeBool),
 		filtering.DeclareStandardFunctions(),
-	}
+	}, dateComparisonDeclarations()...)
 	declarationOptions := []filtering.DeclarationOption{}      // ident declarations matching proto fields.
 	macroDeclarationOptions := []filtering.DeclarationOption{} // ident declarations matching db column names.
 
@@ -266,6 +266,27 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 		return nil, nil, nil, fmt.Errorf("creating filter macro declarations: %w", err)
 	}
 	return declarations, macroDeclarations, macros, nil
+}
+
+// dateComparisonDeclarations declares the comparisons of a date column
+// against its string literal, `opened_date >= "2025-09-01"`: AIP-160 has no
+// date literal, and the standard functions know no date type.
+func dateComparisonDeclarations() []filtering.DeclarationOption {
+	functions := []string{
+		filtering.FunctionEquals,
+		filtering.FunctionNotEquals,
+		filtering.FunctionLessThan,
+		filtering.FunctionLessEquals,
+		filtering.FunctionGreaterThan,
+		filtering.FunctionGreaterEquals,
+	}
+	declarations := make([]filtering.DeclarationOption, 0, len(functions))
+	for _, function := range functions {
+		declarations = append(declarations, filtering.DeclareFunction(function,
+			filtering.NewFunctionOverload(function+"_date_string", filtering.TypeBool, postgres.TypeDate, filtering.TypeString),
+		))
+	}
+	return declarations
 }
 
 // exprPath flattens an ident or select-expression chain into a dotted path

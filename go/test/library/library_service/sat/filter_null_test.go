@@ -466,7 +466,7 @@ func TestFilterNull_Search(t *testing.T) {
 		book := createNullBook(t, shelf.Name, author.Name, c.title, func(b *librarypb.Book) { b.Labels = map[string]string{"k": c.label} })
 		_, err := bookmarkServiceClient.CreateBookmark(ctx, &libraryservicepb.CreateBookmarkRequest{
 			Parent:   book.Name,
-			Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: c.title, Color: c.color},
+			Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: c.title, Color: c.color, PlacedDate: testDate},
 		})
 		require.NoError(t, err)
 	}

@@ -16,8 +16,8 @@ import (
 // too), while the API renders that NULL back as the zero value. A NULL column
 // therefore *is* zero for scalars and enums: `genre = GENRE_UNSPECIFIED`,
 // `count < 10` and `title != "x"` all match it. Well-known message types
-// (timestamp, duration) have no zero rendering — NULL is simply absent, which
-// differs from every value and orders with none.
+// (timestamp, duration) and dates have no zero rendering — NULL is simply
+// absent, which differs from every value and orders with none.
 //
 // The stored form is not observable at transpile time, so every comparison is
 // rewritten by whether the type's zero satisfies it: `(col IS NULL OR col OP
@@ -29,7 +29,7 @@ import (
 // is its name), so zero-ness is decided independently of the SQL rendering.
 type literal struct {
 	expr  sqlExpr
-	value any // bool, int64, float64, string, time.Time, time.Duration
+	value any // bool, int64, float64, string, time.Time, time.Duration, pgtype.Date
 }
 
 // zeroSign compares the literal's type zero against its value (-1, 0, 1).
@@ -52,11 +52,11 @@ func (l literal) zeroSign() int {
 }
 
 // absent reports whether NULL means absent rather than zero for a column
-// type: the well-known message types (timestamp, duration), which the API
-// renders as unset, never as a zero value. Decided on the column, not the
-// literal — a timestamp column compares against plain string literals.
+// type: the well-known message types (timestamp, duration) and dates, which
+// the API renders as unset, never as a zero value. Decided on the column, not
+// the literal — a timestamp column compares against plain string literals.
 func absent(columnType *expr.Type) bool {
-	return columnType.GetWellKnown() != expr.Type_WELL_KNOWN_TYPE_UNSPECIFIED
+	return columnType.GetWellKnown() != expr.Type_WELL_KNOWN_TYPE_UNSPECIFIED || isDate(columnType)
 }
 
 // nullMatches reports whether a NULL column satisfies `column op literal`.
