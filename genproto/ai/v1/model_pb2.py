@@ -30,7 +30,7 @@ from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__
 from malonaz.audio.v1 import audio_pb2 as malonaz_dot_audio_dot_v1_dot_audio__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"P\n\x13ProviderModelConfig\x12\x13\n\x0bprovider_id\x18\x01 \x01(\t\x12$\n\x06models\x18\x02 \x03(\x0b\x32\x14.malonaz.ai.v1.Model\"\xa8\x03\n\x05Model\x12\x1b\n\x04name\x18\x01 \x01(\tB\r\xbaH\nr\x05\x10\x01\x18\x80\x01\xc8\x01\x01\x12(\n\x11provider_model_id\x18\x02 \x01(\tB\r\xbaH\nr\x05\x10\x01\x18\x80\x01\xc8\x01\x01\x12\x1d\n\x0b\x64\x65scription\x18\x03 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x08\x12\x32\n\x0e\x64\x65precate_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12*\n\x03stt\x18\x05 \x01(\x0b\x32\x1d.malonaz.ai.v1.SttModelConfig\x12*\n\x03ttt\x18\x06 \x01(\x0b\x32\x1d.malonaz.ai.v1.TttModelConfig\x12*\n\x03tts\x18\x07 \x01(\x0b\x32\x1d.malonaz.ai.v1.TtsModelConfig\x12\x32\n\x11provider_settings\x18\x08 \x01(\x0b\x32\x17.google.protobuf.Struct:M\xea\x41J\n\x14\x61i.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n\x0eSttModelConfig\"\xb2\x01\n\x0eTttModelConfig\x12\x11\n\treasoning\x18\x01 \x01(\x08\x12\x11\n\ttool_call\x18\x02 \x01(\x08\x12$\n\x13\x63ontext_token_limit\x18\x03 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12#\n\x12output_token_limit\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12/\n\x07pricing\x18\x05 \x01(\x0b\x32\x1e.malonaz.ai.v1.TttModelPricing\"\xc3\x03\n\x0fTttModelPricing\x12%\n\x1dinput_token_price_per_million\x18\x01 \x01(\x01\x12&\n\x1eoutput_token_price_per_million\x18\x02 \x01(\x01\x12\x30\n(output_reasoning_token_price_per_million\x18\x03 \x01(\x01\x12\x30\n(input_token_cache_read_price_per_million\x18\x04 \x01(\x01\x12\x31\n)input_token_cache_write_price_per_million\x18\x05 \x01(\x01\x12+\n#input_image_token_price_per_million\x18\x06 \x01(\x01\x12,\n$output_image_token_price_per_million\x18\x07 \x01(\x01\x12\x36\n.input_image_token_cache_read_price_per_million\x18\x08 \x01(\x01\x12\x37\n/input_image_token_cache_write_price_per_million\x18\t \x01(\x01\"y\n\x0eTtsModelConfig\x12\x36\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01\x12/\n\x16supported_sample_rates\x18\x02 \x03(\x05\x42\x0f\xbaH\x0c\x92\x01\t\x08\x01\"\x05\x1a\x03(\xc0>BoZ&github.com/malonaz/core/genproto/ai/v1\xea\x41\x44\n\x17\x61i.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\x08providerb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19malonaz/ai/v1/model.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/descriptor.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"P\n\x13ProviderModelConfig\x12\x13\n\x0bprovider_id\x18\x01 \x01(\t\x12$\n\x06models\x18\x02 \x03(\x0b\x32\x14.malonaz.ai.v1.Model\"\xd4\x03\n\x05Model\x12\x1b\n\x04name\x18\x01 \x01(\tB\r\xbaH\nr\x05\x10\x01\x18\x80\x01\xc8\x01\x01\x12(\n\x11provider_model_id\x18\x02 \x01(\tB\r\xbaH\nr\x05\x10\x01\x18\x80\x01\xc8\x01\x01\x12\x1d\n\x0b\x64\x65scription\x18\x03 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x08\x12\x32\n\x0e\x64\x65precate_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12*\n\x03stt\x18\x05 \x01(\x0b\x32\x1d.malonaz.ai.v1.SttModelConfig\x12*\n\x03ttt\x18\x06 \x01(\x0b\x32\x1d.malonaz.ai.v1.TttModelConfig\x12*\n\x03tts\x18\x07 \x01(\x0b\x32\x1d.malonaz.ai.v1.TtsModelConfig\x12*\n\x03ttc\x18\t \x01(\x0b\x32\x1d.malonaz.ai.v1.TtcModelConfig\x12\x32\n\x11provider_settings\x18\x08 \x01(\x0b\x32\x17.google.protobuf.Struct:M\xea\x41J\n\x14\x61i.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n\x0eSttModelConfig\"\xb2\x01\n\x0eTttModelConfig\x12\x11\n\treasoning\x18\x01 \x01(\x08\x12\x11\n\ttool_call\x18\x02 \x01(\x08\x12$\n\x13\x63ontext_token_limit\x18\x03 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12#\n\x12output_token_limit\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12/\n\x07pricing\x18\x05 \x01(\x0b\x32\x1e.malonaz.ai.v1.TttModelPricing\"\xc3\x03\n\x0fTttModelPricing\x12%\n\x1dinput_token_price_per_million\x18\x01 \x01(\x01\x12&\n\x1eoutput_token_price_per_million\x18\x02 \x01(\x01\x12\x30\n(output_reasoning_token_price_per_million\x18\x03 \x01(\x01\x12\x30\n(input_token_cache_read_price_per_million\x18\x04 \x01(\x01\x12\x31\n)input_token_cache_write_price_per_million\x18\x05 \x01(\x01\x12+\n#input_image_token_price_per_million\x18\x06 \x01(\x01\x12,\n$output_image_token_price_per_million\x18\x07 \x01(\x01\x12\x36\n.input_image_token_cache_read_price_per_million\x18\x08 \x01(\x01\x12\x37\n/input_image_token_cache_write_price_per_million\x18\t \x01(\x01\"g\n\x0eTtcModelConfig\x12$\n\x13\x63ontext_token_limit\x18\x01 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12/\n\x07pricing\x18\x02 \x01(\x0b\x32\x1e.malonaz.ai.v1.TtcModelPricing\"8\n\x0fTtcModelPricing\x12%\n\x1dinput_token_price_per_million\x18\x01 \x01(\x01\"y\n\x0eTtsModelConfig\x12\x36\n\x0c\x61udio_format\x18\x01 \x01(\x0b\x32\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01\x12/\n\x16supported_sample_rates\x18\x02 \x03(\x05\x42\x0f\xbaH\x0c\x92\x01\t\x08\x01\"\x05\x1a\x03(\xc0>BoZ&github.com/malonaz/core/genproto/ai/v1\xea\x41\x44\n\x17\x61i.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\x08providerb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -50,6 +50,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TTTMODELCONFIG'].fields_by_name['context_token_limit']._serialized_options = b'\272H\004\032\002(\001'
   _globals['_TTTMODELCONFIG'].fields_by_name['output_token_limit']._loaded_options = None
   _globals['_TTTMODELCONFIG'].fields_by_name['output_token_limit']._serialized_options = b'\272H\004\032\002(\001'
+  _globals['_TTCMODELCONFIG'].fields_by_name['context_token_limit']._loaded_options = None
+  _globals['_TTCMODELCONFIG'].fields_by_name['context_token_limit']._serialized_options = b'\272H\004\032\002(\001'
   _globals['_TTSMODELCONFIG'].fields_by_name['audio_format']._loaded_options = None
   _globals['_TTSMODELCONFIG'].fields_by_name['audio_format']._serialized_options = b'\272H\003\310\001\001'
   _globals['_TTSMODELCONFIG'].fields_by_name['supported_sample_rates']._loaded_options = None
@@ -57,13 +59,17 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PROVIDERMODELCONFIG']._serialized_start=227
   _globals['_PROVIDERMODELCONFIG']._serialized_end=307
   _globals['_MODEL']._serialized_start=310
-  _globals['_MODEL']._serialized_end=734
-  _globals['_STTMODELCONFIG']._serialized_start=736
-  _globals['_STTMODELCONFIG']._serialized_end=752
-  _globals['_TTTMODELCONFIG']._serialized_start=755
-  _globals['_TTTMODELCONFIG']._serialized_end=933
-  _globals['_TTTMODELPRICING']._serialized_start=936
-  _globals['_TTTMODELPRICING']._serialized_end=1387
-  _globals['_TTSMODELCONFIG']._serialized_start=1389
-  _globals['_TTSMODELCONFIG']._serialized_end=1510
+  _globals['_MODEL']._serialized_end=778
+  _globals['_STTMODELCONFIG']._serialized_start=780
+  _globals['_STTMODELCONFIG']._serialized_end=796
+  _globals['_TTTMODELCONFIG']._serialized_start=799
+  _globals['_TTTMODELCONFIG']._serialized_end=977
+  _globals['_TTTMODELPRICING']._serialized_start=980
+  _globals['_TTTMODELPRICING']._serialized_end=1431
+  _globals['_TTCMODELCONFIG']._serialized_start=1433
+  _globals['_TTCMODELCONFIG']._serialized_end=1536
+  _globals['_TTCMODELPRICING']._serialized_start=1538
+  _globals['_TTCMODELPRICING']._serialized_end=1594
+  _globals['_TTSMODELCONFIG']._serialized_start=1596
+  _globals['_TTSMODELCONFIG']._serialized_end=1717
 # @@protoc_insertion_point(module_scope)

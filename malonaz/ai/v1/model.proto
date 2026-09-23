@@ -64,6 +64,8 @@ message Model {
   TttModelConfig ttt = 6;
   // Configuration for TTS model.
   TtsModelConfig tts = 7;
+  // Configuration for TTC model.
+  TtcModelConfig ttc = 9;
   // Provider-specific settings and metadata.
   // This allows flexibility for provider-specific features without
   // modifying the core schema.
@@ -107,6 +109,23 @@ message TttModelPricing {
   double input_image_token_cache_read_price_per_million = 8;
   // Price per million input image cache write tokens in dollars.
   double input_image_token_cache_write_price_per_million = 9;
+}
+
+// Configuration for a classification model. A classification model answers
+// typed questions (choice/score/noul) about a state, returning structured
+// answers rather than generated text.
+message TtcModelConfig {
+  // The maximum number of tokens in the model's context window.
+  int32 context_token_limit = 1 [(buf.validate.field).int32.gte = 1];
+  // Pricing for this model.
+  TtcModelPricing pricing = 2;
+}
+
+// Pricing configuration for a ttc model.
+message TtcModelPricing {
+  // Price per million input tokens in dollars. Classification models only
+  // bill input tokens; output is free.
+  double input_token_price_per_million = 1;
 }
 
 // Configuration for a tts model.
