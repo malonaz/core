@@ -225,9 +225,9 @@ func (s *Service) invoke(ctx context.Context, route *route, job *model.Job) (*an
 }
 
 // complete records an attempt's outcome: SUCCEEDED, PENDING again after the
-// backoff, FAILED once attempts are exhausted or the error is not retryable,
-// or released untouched when the instance is shutting down. A job that left
-// RUNNING meanwhile is left alone.
+// backoff, FAILED once attempts are exhausted, the error is not retryable or
+// the attempt was a manual retry, or released untouched when the instance is
+// shutting down. A job that left RUNNING meanwhile is left alone.
 func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job, policy *policypb.QueuePolicy, response *anypb.Any, err error) {
 	now := transition.Now()
 	outcome := func(job *schedulerpb.Job) error {
@@ -294,10 +294,13 @@ func retryDelayOf(err error) *durationpb.Duration {
 }
 
 // retryTime returns when the job's next attempt should run, or nil when the
-// job must fail instead: the error is not retryable, attempts are exhausted,
-// or the wait would reach past the expiry.
+// job must fail instead: the error is not retryable, the attempt was a manual
+// retry, attempts are exhausted, or the wait would reach past the expiry.
 func retryTime(job *schedulerpb.Job, policy *policypb.QueuePolicy, retryDelay *durationpb.Duration, now time.Time, err error) *timestamppb.Timestamp {
 	if err == nil || !slices.Contains(policy.GetRetryableCodes(), codepb.Code(grpcstatus.Code(err))) {
+		return nil
+	}
+	if transition.IsManual(job) {
 		return nil
 	}
 	if job.GetAttemptCount() >= policy.GetMaxAttempts() {

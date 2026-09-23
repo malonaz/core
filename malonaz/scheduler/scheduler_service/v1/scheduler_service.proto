@@ -282,10 +282,14 @@ service SchedulerService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "scheduler.malonaz.com/Job";
   }
 
-  // Retry a terminal job: returns it to PENDING with its attempts, outcome and
-  // `expire_time` reset, so it runs again immediately. Fails with
-  // FAILED_PRECONDITION on a PENDING or RUNNING job, and with ALREADY_EXISTS
-  // when the job's `unique_key` already has a PENDING job.
+  // Retry a FAILED or CANCELLED job by hand: returns it to PENDING with its
+  // outcome and `expire_time` cleared, so it runs again immediately, exactly
+  // once. The attempt history and `attempt_count` are kept; the new attempt is
+  // recorded as manual and, should it fail, the job fails again without
+  // retrying under the queue's policy. Fails with FAILED_PRECONDITION on any
+  // other state (a SUCCEEDED job's work is done: re-running it would repeat its
+  // side effects), and with ALREADY_EXISTS when the job's `unique_key` already
+  // has a PENDING job.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc RetryJob(RetryJobRequest) returns (scheduler.v1.Job) {

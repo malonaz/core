@@ -537,14 +537,14 @@ func TestCreateJob_UniqueKey(t *testing.T) {
 	t.Run("retry conflicts with a pending job", func(t *testing.T) {
 		t.Parallel()
 		key := uuid.MustNewV7().String()
-		done := createJob(t, &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key))
-		waitForState(t, done.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		cancelled := createJob(t, &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key), scheduler.WithScheduleTime(farFuture))
+		cancelJob(t, cancelled.GetName())
 		pending := createJob(t, &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key), scheduler.WithScheduleTime(farFuture))
 
-		_, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: done.GetName()})
+		_, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: cancelled.GetName()})
 		grpcrequire.Error(t, codes.AlreadyExists, err)
 		cancelJob(t, pending.GetName())
-		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: done.GetName()})
+		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: cancelled.GetName()})
 		require.NoError(t, err)
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, retried.GetState())
 	})

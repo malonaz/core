@@ -172,16 +172,18 @@ func (s *Service) DeleteJob(ctx context.Context, request *pb.DeleteJobRequest) (
 	return s.SchedulerServiceServer.DeleteJob(ctx, request)
 }
 
-// RetryJob returns a terminal job to PENDING with a clean slate. The expiry is
-// dropped: a retry asks for the job to run regardless. A keyed job whose key
-// already has a PENDING job is refused: that job is the retry.
+// RetryJob returns a FAILED or CANCELLED job to PENDING for one more, manual,
+// attempt, keeping its history. The expiry is dropped: a retry asks for the job
+// to run regardless. A keyed job whose key already has a PENDING job is
+// refused: that job is the retry.
 func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*schedulerpb.Job, error) {
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
-		if !transition.IsTerminal(job.GetState()) {
+		switch job.GetState() {
+		case schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
+		default:
 			return &statePreconditionError{state: job.GetState()}
 		}
 		job.State = schedulerpb.JobState_JOB_STATE_PENDING
-		job.AttemptCount = 0
 		job.ScheduleTime = nil
 		job.StartTime = nil
 		job.CompleteTime = nil
@@ -189,9 +191,7 @@ func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*s
 		job.ExpireTime = nil
 		job.PurgeTime = nil
 		job.Error = nil
-		job.Response = nil
 		job.Progress = nil
-		job.Metadata = nil
 		aip.SetLabel(job, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True)
 		return nil
 	})
