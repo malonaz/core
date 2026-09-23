@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+	"go.einride.tech/aip/resourcename"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -784,35 +785,30 @@ func buildJoinAggregate(message *protogen.Message, join *modelpb.Join) (*JoinAgg
 // resourceNameExpr composes the SQL expression reconstructing a resource's
 // name from its identifier columns, e.g.
 // "'shelves/' || shelf.shelf_id || '/books/' || book.book_id".
-// Bindings are consumed positionally: they are ordered like the pattern's
-// variables, whose names they do not necessarily share (id_column_name and
-// singular-derived overrides).
+// The literals between variables are sliced from the pattern itself, so its
+// slashes are kept as written. Bindings are consumed positionally: they are
+// ordered like the pattern's variables, whose names they do not necessarily
+// share (id_column_name and singular-derived overrides).
 func resourceNameExpr(pattern *resource.ParsedPattern, bindings []ColumnBinding, qualifier string) string {
 	var parts []string
-	// literal accumulates the text between variables, so consecutive literal
-	// segments (a singleton's collection: `…/activity/events/{event}`) join
-	// with a single slash.
-	var literal strings.Builder
-	flush := func() {
-		if literal.Len() > 0 {
-			parts = append(parts, "'"+literal.String()+"'")
-			literal.Reset()
+	appendLiteral := func(literal string) {
+		if literal != "" {
+			parts = append(parts, "'"+literal+"'")
 		}
 	}
-	next := 0
-	for i, segment := range strings.Split(pattern.Value, "/") {
-		if i > 0 {
-			literal.WriteString("/")
-		}
-		if !strings.HasPrefix(segment, "{") || !strings.HasSuffix(segment, "}") {
-			literal.WriteString(segment)
+	var sc resourcename.Scanner
+	sc.Init(pattern.Value)
+	literalStart, next := 0, 0
+	for sc.Scan() {
+		if !sc.Segment().IsVariable() {
 			continue
 		}
-		flush()
+		appendLiteral(pattern.Value[literalStart:sc.Start()])
 		parts = append(parts, qualifier+"."+bindings[next].Column)
 		next++
+		literalStart = sc.End()
 	}
-	flush()
+	appendLiteral(pattern.Value[literalStart:])
 	return strings.Join(parts, " || ")
 }
 
