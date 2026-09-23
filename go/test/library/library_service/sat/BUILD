@@ -8,6 +8,7 @@ go_test(
         "batch_get_test.go",
         "book_test.go",
         "cascade_delete_test.go",
+        "correlated_filter_test.go",
         "create_test.go",
         "date_test.go",
         "delete_test.go",

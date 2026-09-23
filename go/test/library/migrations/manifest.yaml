@@ -17,3 +17,5 @@ migrations:
     hash: 8c840406f46c94801cf84d5e46d6878e
   - path: library/008_dates.sql
     hash: ef82cb98a51a082cd1847bcb72553530
+  - path: library/009_shelf_inventory.sql
+    hash: 6fdfcadf2ea51b705703bfb8f98d8913

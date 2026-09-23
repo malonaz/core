@@ -92,34 +92,37 @@ func (x ShelfGenre) Number() protoreflect.EnumNumber {
 
 // Shelf represents a categorized collection of books.
 type Shelf struct {
-	state                         protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name               string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_CreateTime         *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_UpdateTime         *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
-	xxx_hidden_DeleteTime         *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
-	xxx_hidden_DisplayName        string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3"`
-	xxx_hidden_Genre              ShelfGenre             `protobuf:"varint,6,opt,name=genre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
-	xxx_hidden_ExternalId         string                 `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3"`
-	xxx_hidden_CorrelationId_2    string                 `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3"`
-	xxx_hidden_Duration           *durationpb.Duration   `protobuf:"bytes,9,opt,name=duration,proto3"`
-	xxx_hidden_Labels             map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Metadata           *ShelfMetadata         `protobuf:"bytes,11,opt,name=metadata,proto3"`
-	xxx_hidden_BestBook           string                 `protobuf:"bytes,12,opt,name=best_book,json=bestBook,proto3"`
-	xxx_hidden_BestBookPageCount  int32                  `protobuf:"varint,13,opt,name=best_book_page_count,json=bestBookPageCount,proto3"`
-	xxx_hidden_LatestBook         string                 `protobuf:"bytes,14,opt,name=latest_book,json=latestBook,proto3"`
-	xxx_hidden_LatestBookTitle    string                 `protobuf:"bytes,15,opt,name=latest_book_title,json=latestBookTitle,proto3"`
-	xxx_hidden_SecondaryGenre     ShelfGenre             `protobuf:"varint,16,opt,name=secondary_genre,json=secondaryGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
-	xxx_hidden_ShelfNumber        int32                  `protobuf:"varint,17,opt,name=shelf_number,json=shelfNumber,proto3"`
-	xxx_hidden_Featured           bool                   `protobuf:"varint,18,opt,name=featured,proto3"`
-	xxx_hidden_LatestDraftBook    string                 `protobuf:"bytes,20,opt,name=latest_draft_book,json=latestDraftBook,proto3"`
-	xxx_hidden_Extra              *ShelfExtra            `protobuf:"bytes,19,opt,name=extra,proto3"`
-	xxx_hidden_TotalPageCount     int64                  `protobuf:"varint,21,opt,name=total_page_count,json=totalPageCount,proto3"`
-	xxx_hidden_BookCount          int64                  `protobuf:"varint,22,opt,name=book_count,json=bookCount,proto3"`
-	xxx_hidden_TotalPrice         *decimal.Decimal       `protobuf:"bytes,24,opt,name=total_price,json=totalPrice,proto3"`
-	xxx_hidden_LastBookCreateTime *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=last_book_create_time,json=lastBookCreateTime,proto3"`
-	xxx_hidden_OpenedDate         *date.Date             `protobuf:"bytes,25,opt,name=opened_date,json=openedDate,proto3"`
-	unknownFields                 protoimpl.UnknownFields
-	sizeCache                     protoimpl.SizeCache
+	state                              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name                    string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_CreateTime              *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime              *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_DeleteTime              *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
+	xxx_hidden_DisplayName             string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3"`
+	xxx_hidden_Genre                   ShelfGenre             `protobuf:"varint,6,opt,name=genre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
+	xxx_hidden_ExternalId              string                 `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3"`
+	xxx_hidden_CorrelationId_2         string                 `protobuf:"bytes,8,opt,name=correlation_id_2,json=correlationId2,proto3"`
+	xxx_hidden_Duration                *durationpb.Duration   `protobuf:"bytes,9,opt,name=duration,proto3"`
+	xxx_hidden_Labels                  map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Metadata                *ShelfMetadata         `protobuf:"bytes,11,opt,name=metadata,proto3"`
+	xxx_hidden_BestBook                string                 `protobuf:"bytes,12,opt,name=best_book,json=bestBook,proto3"`
+	xxx_hidden_BestBookPageCount       int32                  `protobuf:"varint,13,opt,name=best_book_page_count,json=bestBookPageCount,proto3"`
+	xxx_hidden_LatestBook              string                 `protobuf:"bytes,14,opt,name=latest_book,json=latestBook,proto3"`
+	xxx_hidden_LatestBookTitle         string                 `protobuf:"bytes,15,opt,name=latest_book_title,json=latestBookTitle,proto3"`
+	xxx_hidden_SecondaryGenre          ShelfGenre             `protobuf:"varint,16,opt,name=secondary_genre,json=secondaryGenre,proto3,enum=malonaz.test.library.v1.ShelfGenre"`
+	xxx_hidden_ShelfNumber             int32                  `protobuf:"varint,17,opt,name=shelf_number,json=shelfNumber,proto3"`
+	xxx_hidden_Featured                bool                   `protobuf:"varint,18,opt,name=featured,proto3"`
+	xxx_hidden_LatestDraftBook         string                 `protobuf:"bytes,20,opt,name=latest_draft_book,json=latestDraftBook,proto3"`
+	xxx_hidden_Extra                   *ShelfExtra            `protobuf:"bytes,19,opt,name=extra,proto3"`
+	xxx_hidden_TotalPageCount          int64                  `protobuf:"varint,21,opt,name=total_page_count,json=totalPageCount,proto3"`
+	xxx_hidden_BookCount               int64                  `protobuf:"varint,22,opt,name=book_count,json=bookCount,proto3"`
+	xxx_hidden_TotalPrice              *decimal.Decimal       `protobuf:"bytes,24,opt,name=total_price,json=totalPrice,proto3"`
+	xxx_hidden_LastBookCreateTime      *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=last_book_create_time,json=lastBookCreateTime,proto3"`
+	xxx_hidden_OpenedDate              *date.Date             `protobuf:"bytes,25,opt,name=opened_date,json=openedDate,proto3"`
+	xxx_hidden_InventoryTime           *timestamppb.Timestamp `protobuf:"bytes,26,opt,name=inventory_time,json=inventoryTime,proto3"`
+	xxx_hidden_UninventoriedBookCount  int64                  `protobuf:"varint,27,opt,name=uninventoried_book_count,json=uninventoriedBookCount,proto3"`
+	xxx_hidden_OldestUninventoriedBook string                 `protobuf:"bytes,28,opt,name=oldest_uninventoried_book,json=oldestUninventoriedBook,proto3"`
+	unknownFields                      protoimpl.UnknownFields
+	sizeCache                          protoimpl.SizeCache
 }
 
 func (x *Shelf) Reset() {
@@ -322,6 +325,27 @@ func (x *Shelf) GetOpenedDate() *date.Date {
 	return nil
 }
 
+func (x *Shelf) GetInventoryTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_InventoryTime
+	}
+	return nil
+}
+
+func (x *Shelf) GetUninventoriedBookCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_UninventoriedBookCount
+	}
+	return 0
+}
+
+func (x *Shelf) GetOldestUninventoriedBook() string {
+	if x != nil {
+		return x.xxx_hidden_OldestUninventoriedBook
+	}
+	return ""
+}
+
 func (x *Shelf) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -422,6 +446,18 @@ func (x *Shelf) SetOpenedDate(v *date.Date) {
 	x.xxx_hidden_OpenedDate = v
 }
 
+func (x *Shelf) SetInventoryTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_InventoryTime = v
+}
+
+func (x *Shelf) SetUninventoriedBookCount(v int64) {
+	x.xxx_hidden_UninventoriedBookCount = v
+}
+
+func (x *Shelf) SetOldestUninventoriedBook(v string) {
+	x.xxx_hidden_OldestUninventoriedBook = v
+}
+
 func (x *Shelf) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -485,6 +521,13 @@ func (x *Shelf) HasOpenedDate() bool {
 	return x.xxx_hidden_OpenedDate != nil
 }
 
+func (x *Shelf) HasInventoryTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_InventoryTime != nil
+}
+
 func (x *Shelf) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
 }
@@ -519,6 +562,10 @@ func (x *Shelf) ClearLastBookCreateTime() {
 
 func (x *Shelf) ClearOpenedDate() {
 	x.xxx_hidden_OpenedDate = nil
+}
+
+func (x *Shelf) ClearInventoryTime() {
+	x.xxx_hidden_InventoryTime = nil
 }
 
 type Shelf_builder struct {
@@ -585,6 +632,15 @@ type Shelf_builder struct {
 	LastBookCreateTime *timestamppb.Timestamp
 	// The day the shelf opened: a nullable DATE column.
 	OpenedDate *date.Date
+	// When the shelf was last inventoried; unset until its first inventory.
+	InventoryTime *timestamppb.Timestamp
+	// The books added since the last inventory — every book before the first:
+	// an aggregate join whose filter correlates on this shelf's own columns.
+	UninventoriedBookCount int64
+	// The oldest book added since the last inventory, by the same correlated
+	// filter as uninventoried_book_count, in a query join.
+	// Format: organizations/{organization}/shelves/{shelf}/books/{book}
+	OldestUninventoriedBook string
 }
 
 func (b0 Shelf_builder) Build() *Shelf {
@@ -616,6 +672,9 @@ func (b0 Shelf_builder) Build() *Shelf {
 	x.xxx_hidden_TotalPrice = b.TotalPrice
 	x.xxx_hidden_LastBookCreateTime = b.LastBookCreateTime
 	x.xxx_hidden_OpenedDate = b.OpenedDate
+	x.xxx_hidden_InventoryTime = b.InventoryTime
+	x.xxx_hidden_UninventoriedBookCount = b.UninventoriedBookCount
+	x.xxx_hidden_OldestUninventoriedBook = b.OldestUninventoriedBook
 	return m0
 }
 
@@ -992,7 +1051,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\xb3\x14\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x94\x18\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1048,7 +1107,14 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\x15last_book_create_time\x18\x17 \x01(\v2\x1a.google.protobuf.TimestampB;\xe0A\x03\xba\xea\x0f4 \x01B0\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x12\vcreate_time*\x02\b\x04R\x12lastBookCreateTime\x12:\n" +
 	"\vopened_date\x18\x19 \x01(\v2\x11.google.type.DateB\x06\xba\xea\x0f\x02 \x01R\n" +
-	"openedDate\x1a9\n" +
+	"openedDate\x12I\n" +
+	"\x0einventory_time\x18\x1a \x01(\v2\x1a.google.protobuf.TimestampB\x06\xba\xea\x0f\x02 \x01R\rinventoryTime\x12\xae\x01\n" +
+	"\x18uninventoried_book_count\x18\x1b \x01(\x03Bt\xe0A\x03\xba\xea\x0fm \x01Bi\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name*B\b\x02\x12>NOT this.inventory_time:* OR create_time > this.inventory_timeR\x16uninventoriedBookCount\x12\xe2\x01\n" +
+	"\x19oldest_uninventoried_book\x18\x1c \x01(\tB\xa5\x01\xe0A\x03\xfaA\x1f\n" +
+	"\x1dlibrary.test.malonaz.com/Book\xba\xea\x0f| \x01Bx\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name\"Q\n" +
+	">NOT this.inventory_time:* OR create_time > this.inventory_time\x12\x0fcreate_time ascR\x17oldestUninventoriedBook\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xd5\x02\xeaA^\n" +
@@ -1119,16 +1185,17 @@ var file_malonaz_test_library_v1_shelf_proto_depIdxs = []int32{
 	10, // 9: malonaz.test.library.v1.Shelf.total_price:type_name -> google.type.Decimal
 	8,  // 10: malonaz.test.library.v1.Shelf.last_book_create_time:type_name -> google.protobuf.Timestamp
 	11, // 11: malonaz.test.library.v1.Shelf.opened_date:type_name -> google.type.Date
-	5,  // 12: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
-	7,  // 13: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
-	0,  // 14: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
-	3,  // 15: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
-	5,  // 16: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	8,  // 12: malonaz.test.library.v1.Shelf.inventory_time:type_name -> google.protobuf.Timestamp
+	5,  // 13: malonaz.test.library.v1.ShelfMetadata.notes:type_name -> malonaz.test.library.v1.ShelfNote
+	7,  // 14: malonaz.test.library.v1.ShelfMetadata.author_to_note:type_name -> malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry
+	0,  // 15: malonaz.test.library.v1.ShelfMetadata.theme:type_name -> malonaz.test.library.v1.ShelfGenre
+	3,  // 16: malonaz.test.library.v1.ShelfMetadata.location:type_name -> malonaz.test.library.v1.ShelfLocation
+	5,  // 17: malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntry.value:type_name -> malonaz.test.library.v1.ShelfNote
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_v1_shelf_proto_init() }

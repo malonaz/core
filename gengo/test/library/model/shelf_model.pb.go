@@ -26,32 +26,35 @@ var ErrShelfNotDeleted = errors.New("shelf is not deleted")
 var ErrShelfHasChildren = errors.New("shelf has child resources")
 
 type Shelf struct {
-	OrganizationID     string           `db:"organization_id" schema:"library" table:"shelf"`
-	ShelfID            string           `db:"shelf_id" schema:"library" table:"shelf"`
-	CreateTime         time.Time        `db:"create_time" schema:"library" table:"shelf"`
-	UpdateTime         time.Time        `db:"update_time" schema:"library" table:"shelf"`
-	DeleteTime         *time.Time       `db:"delete_time" schema:"library" table:"shelf"`
-	DisplayName        string           `db:"display_name" schema:"library" table:"shelf"`
-	Genre              int16            `db:"genre" schema:"library" table:"shelf"`
-	ExternalId         *string          `db:"ext_id" schema:"library" table:"shelf"`
-	CorrelationId_2    string           `db:"correlation_id" schema:"library" table:"shelf"`
-	Duration           *time.Duration   `db:"duration" schema:"library" table:"shelf"`
-	Labels             []byte           `db:"labels" schema:"library" table:"shelf"`
-	Metadata           []byte           `db:"legacy_meta" schema:"library" table:"shelf"`
-	BestBook           string           `db:"best_book" schema:"library" table:"shelf"`
-	BestBookPageCount  *int32           `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
-	LatestBook         *string          `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
-	LatestBookTitle    *string          `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
-	SecondaryGenre     *int16           `db:"secondary_genre" schema:"library" table:"shelf"`
-	ShelfNumber        *int32           `db:"shelf_number" schema:"library" table:"shelf"`
-	Featured           *bool            `db:"featured" schema:"library" table:"shelf"`
-	LatestDraftBook    *string          `db:"latest_draft_book" external:"true" join_schema:"library" join_table:"latest_draft_book" join_column:"name"`
-	Extra              []byte           `db:"extra" schema:"library" table:"shelf"`
-	TotalPageCount     *int64           `db:"total_page_count" external:"true" join_schema:"library" join_table:"total_page_count" join_column:"value"`
-	BookCount          *int64           `db:"book_count" external:"true" join_schema:"library" join_table:"book_count" join_column:"value"`
-	TotalPrice         *decimal.Decimal `db:"total_price" external:"true" join_schema:"library" join_table:"total_price" join_column:"value"`
-	LastBookCreateTime *time.Time       `db:"last_book_create_time" external:"true" join_schema:"library" join_table:"last_book_create_time" join_column:"value"`
-	OpenedDate         *pgtype.Date     `db:"opened_date" schema:"library" table:"shelf"`
+	OrganizationID          string           `db:"organization_id" schema:"library" table:"shelf"`
+	ShelfID                 string           `db:"shelf_id" schema:"library" table:"shelf"`
+	CreateTime              time.Time        `db:"create_time" schema:"library" table:"shelf"`
+	UpdateTime              time.Time        `db:"update_time" schema:"library" table:"shelf"`
+	DeleteTime              *time.Time       `db:"delete_time" schema:"library" table:"shelf"`
+	DisplayName             string           `db:"display_name" schema:"library" table:"shelf"`
+	Genre                   int16            `db:"genre" schema:"library" table:"shelf"`
+	ExternalId              *string          `db:"ext_id" schema:"library" table:"shelf"`
+	CorrelationId_2         string           `db:"correlation_id" schema:"library" table:"shelf"`
+	Duration                *time.Duration   `db:"duration" schema:"library" table:"shelf"`
+	Labels                  []byte           `db:"labels" schema:"library" table:"shelf"`
+	Metadata                []byte           `db:"legacy_meta" schema:"library" table:"shelf"`
+	BestBook                string           `db:"best_book" schema:"library" table:"shelf"`
+	BestBookPageCount       *int32           `db:"best_book_page_count" external:"true" join_schema:"library" join_table:"best_book" join_column:"page_count"`
+	LatestBook              *string          `db:"latest_book" external:"true" join_schema:"library" join_table:"latest_book" join_column:"name"`
+	LatestBookTitle         *string          `db:"latest_book_title" external:"true" join_schema:"library" join_table:"latest_book" join_column:"title"`
+	SecondaryGenre          *int16           `db:"secondary_genre" schema:"library" table:"shelf"`
+	ShelfNumber             *int32           `db:"shelf_number" schema:"library" table:"shelf"`
+	Featured                *bool            `db:"featured" schema:"library" table:"shelf"`
+	LatestDraftBook         *string          `db:"latest_draft_book" external:"true" join_schema:"library" join_table:"latest_draft_book" join_column:"name"`
+	Extra                   []byte           `db:"extra" schema:"library" table:"shelf"`
+	TotalPageCount          *int64           `db:"total_page_count" external:"true" join_schema:"library" join_table:"total_page_count" join_column:"value"`
+	BookCount               *int64           `db:"book_count" external:"true" join_schema:"library" join_table:"book_count" join_column:"value"`
+	TotalPrice              *decimal.Decimal `db:"total_price" external:"true" join_schema:"library" join_table:"total_price" join_column:"value"`
+	LastBookCreateTime      *time.Time       `db:"last_book_create_time" external:"true" join_schema:"library" join_table:"last_book_create_time" join_column:"value"`
+	OpenedDate              *pgtype.Date     `db:"opened_date" schema:"library" table:"shelf"`
+	InventoryTime           *time.Time       `db:"inventory_time" schema:"library" table:"shelf"`
+	UninventoriedBookCount  *int64           `db:"uninventoried_book_count" external:"true" join_schema:"library" join_table:"uninventoried_book_count" join_column:"value"`
+	OldestUninventoriedBook *string          `db:"oldest_uninventoried_book" external:"true" join_schema:"library" join_table:"oldest_uninventoried_book" join_column:"name"`
 }
 
 func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
@@ -174,33 +177,52 @@ func ShelfFromPb(m *v1.Shelf) (*Shelf, error) {
 		}
 		OpenedDate = &d
 	}
+	var InventoryTime *time.Time
+	if m.InventoryTime != nil {
+		if err := m.InventoryTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating inventory_time: %w", err)
+		}
+		t := m.InventoryTime.AsTime()
+		InventoryTime = &t
+	}
+	var UninventoriedBookCount *int64
+	if m.UninventoriedBookCount != 0 {
+		UninventoriedBookCount = &m.UninventoriedBookCount
+	}
+	var OldestUninventoriedBook *string
+	if m.OldestUninventoriedBook != "" {
+		OldestUninventoriedBook = &m.OldestUninventoriedBook
+	}
 	return &Shelf{
-		OrganizationID:     OrganizationID,
-		ShelfID:            ShelfID,
-		CreateTime:         m.CreateTime.AsTime(),
-		UpdateTime:         m.UpdateTime.AsTime(),
-		DeleteTime:         DeleteTime,
-		DisplayName:        m.DisplayName,
-		Genre:              int16(m.Genre),
-		ExternalId:         ExternalId,
-		CorrelationId_2:    m.CorrelationId_2,
-		Duration:           Duration,
-		Labels:             LabelsBytes,
-		Metadata:           MetadataBytes,
-		BestBook:           m.BestBook,
-		BestBookPageCount:  BestBookPageCount,
-		LatestBook:         LatestBook,
-		LatestBookTitle:    LatestBookTitle,
-		SecondaryGenre:     SecondaryGenre,
-		ShelfNumber:        ShelfNumber,
-		Featured:           Featured,
-		LatestDraftBook:    LatestDraftBook,
-		Extra:              ExtraBytes,
-		TotalPageCount:     TotalPageCount,
-		BookCount:          BookCount,
-		TotalPrice:         TotalPrice,
-		LastBookCreateTime: LastBookCreateTime,
-		OpenedDate:         OpenedDate,
+		OrganizationID:          OrganizationID,
+		ShelfID:                 ShelfID,
+		CreateTime:              m.CreateTime.AsTime(),
+		UpdateTime:              m.UpdateTime.AsTime(),
+		DeleteTime:              DeleteTime,
+		DisplayName:             m.DisplayName,
+		Genre:                   int16(m.Genre),
+		ExternalId:              ExternalId,
+		CorrelationId_2:         m.CorrelationId_2,
+		Duration:                Duration,
+		Labels:                  LabelsBytes,
+		Metadata:                MetadataBytes,
+		BestBook:                m.BestBook,
+		BestBookPageCount:       BestBookPageCount,
+		LatestBook:              LatestBook,
+		LatestBookTitle:         LatestBookTitle,
+		SecondaryGenre:          SecondaryGenre,
+		ShelfNumber:             ShelfNumber,
+		Featured:                Featured,
+		LatestDraftBook:         LatestDraftBook,
+		Extra:                   ExtraBytes,
+		TotalPageCount:          TotalPageCount,
+		BookCount:               BookCount,
+		TotalPrice:              TotalPrice,
+		LastBookCreateTime:      LastBookCreateTime,
+		OpenedDate:              OpenedDate,
+		InventoryTime:           InventoryTime,
+		UninventoriedBookCount:  UninventoriedBookCount,
+		OldestUninventoriedBook: OldestUninventoriedBook,
 	}, nil
 }
 
@@ -302,36 +324,54 @@ func (m *Shelf) ToPb() (*v1.Shelf, error) {
 	if m.OpenedDate != nil {
 		OpenedDate = postgres.DateToPb(*m.OpenedDate)
 	}
+	var InventoryTime *timestamppb.Timestamp
+	if m.InventoryTime != nil {
+		InventoryTime = timestamppb.New(*m.InventoryTime)
+		if err := InventoryTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating inventory_time: %w", err)
+		}
+	}
+	var UninventoriedBookCount int64
+	if m.UninventoriedBookCount != nil {
+		UninventoriedBookCount = *m.UninventoriedBookCount
+	}
+	var OldestUninventoriedBook string
+	if m.OldestUninventoriedBook != nil {
+		OldestUninventoriedBook = *m.OldestUninventoriedBook
+	}
 	name := resourcename.Sprint("organizations/{organization}/shelves/{shelf}", m.OrganizationID, m.ShelfID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Shelf{
-		Name:               name,
-		CreateTime:         CreateTime,
-		UpdateTime:         UpdateTime,
-		DeleteTime:         DeleteTime,
-		DisplayName:        m.DisplayName,
-		Genre:              v1.ShelfGenre(m.Genre),
-		ExternalId:         ExternalId,
-		CorrelationId_2:    m.CorrelationId_2,
-		Duration:           Duration,
-		Labels:             Labels,
-		Metadata:           Metadata,
-		BestBook:           m.BestBook,
-		BestBookPageCount:  BestBookPageCount,
-		LatestBook:         LatestBook,
-		LatestBookTitle:    LatestBookTitle,
-		SecondaryGenre:     v1.ShelfGenre(SecondaryGenre),
-		ShelfNumber:        ShelfNumber,
-		Featured:           Featured,
-		LatestDraftBook:    LatestDraftBook,
-		Extra:              Extra,
-		TotalPageCount:     TotalPageCount,
-		BookCount:          BookCount,
-		TotalPrice:         TotalPrice,
-		LastBookCreateTime: LastBookCreateTime,
-		OpenedDate:         OpenedDate,
+		Name:                    name,
+		CreateTime:              CreateTime,
+		UpdateTime:              UpdateTime,
+		DeleteTime:              DeleteTime,
+		DisplayName:             m.DisplayName,
+		Genre:                   v1.ShelfGenre(m.Genre),
+		ExternalId:              ExternalId,
+		CorrelationId_2:         m.CorrelationId_2,
+		Duration:                Duration,
+		Labels:                  Labels,
+		Metadata:                Metadata,
+		BestBook:                m.BestBook,
+		BestBookPageCount:       BestBookPageCount,
+		LatestBook:              LatestBook,
+		LatestBookTitle:         LatestBookTitle,
+		SecondaryGenre:          v1.ShelfGenre(SecondaryGenre),
+		ShelfNumber:             ShelfNumber,
+		Featured:                Featured,
+		LatestDraftBook:         LatestDraftBook,
+		Extra:                   Extra,
+		TotalPageCount:          TotalPageCount,
+		BookCount:               BookCount,
+		TotalPrice:              TotalPrice,
+		LastBookCreateTime:      LastBookCreateTime,
+		OpenedDate:              OpenedDate,
+		InventoryTime:           InventoryTime,
+		UninventoriedBookCount:  UninventoriedBookCount,
+		OldestUninventoriedBook: OldestUninventoriedBook,
 	}, nil
 }
 
