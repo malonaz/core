@@ -33,7 +33,8 @@ type Transpiler struct {
 type TranspilerOption func(*transpilerOptions)
 
 type transpilerOptions struct {
-	registry *protoregistry.Files
+	registry   *protoregistry.Files
+	correlated protoreflect.MessageDescriptor
 }
 
 // WithRegistry provides the file registry resolving resource types, for
@@ -42,20 +43,21 @@ func WithRegistry(registry *protoregistry.Files) TranspilerOption {
 	return func(o *transpilerOptions) { o.registry = registry }
 }
 
+// WithCorrelation lets filters address the stored scalar fields of the row a
+// subquery is correlated with, as `this.{field}`: a filter over books
+// correlated with their shelf may say `create_time > this.inventory_time`.
+// Only filters can; order_by stays over the resource's own fields.
+func WithCorrelation(descriptor protoreflect.MessageDescriptor) TranspilerOption {
+	return func(o *transpilerOptions) { o.correlated = descriptor }
+}
+
 // NewTranspiler builds a transpiler over the given resource message descriptor.
 func NewTranspiler(descriptor protoreflect.MessageDescriptor, opts ...TranspilerOption) (*Transpiler, error) {
 	var options transpilerOptions
 	for _, opt := range opts {
 		opt(&options)
 	}
-	treeOptions := []aip.TreeOption{aip.WithMaxDepth(1), aip.WithAllowedPaths([]string{"*"})}
-	if options.registry != nil {
-		treeOptions = append(treeOptions, aip.WithRegistry(options.registry))
-	}
-
-	// First pass surfaces every top-level node; the second restricts the tree
-	// to the addressable ones so declarations and error messages line up.
-	tree, err := aip.BuildResourceTreeFromDescriptor(descriptor, treeOptions...)
+	tree, err := addressableTree(descriptor, options.registry)
 	if err != nil {
 		return nil, err
 	}
@@ -63,32 +65,54 @@ func NewTranspiler(descriptor protoreflect.MessageDescriptor, opts ...Transpiler
 		enumByType: map[protoreflect.FullName]protoreflect.EnumDescriptor{},
 		pathToFQN:  map[string]string{},
 	}
-	var allowedPaths []string
 	for node := range tree.FilterableNodes() {
-		if !staticallyAddressable(node) {
-			continue
-		}
-		allowedPaths = append(allowedPaths, node.Path)
-		fqn := node.Path
+		column := node.Path
 		if node.ColumnName != "" {
-			fqn = node.ColumnName
+			column = node.ColumnName
 		}
-		t.pathToFQN[node.Path] = node.TableName + "." + fqn
-		if node.EnumType != nil {
-			enumDescriptor := node.EnumType.Descriptor()
-			t.enumByType[enumDescriptor.FullName()] = enumDescriptor
-		}
+		t.pathToFQN[node.Path] = node.TableName + "." + column
+		t.registerEnum(node)
 	}
-	tree, err = aip.BuildResourceTreeFromDescriptor(descriptor, aip.WithMaxDepth(1), aip.WithAllowedPaths(allowedPaths), aip.WithRegistry(options.registry))
-	if err != nil {
-		return nil, err
+	var correlated *aip.Tree
+	if options.correlated != nil {
+		if correlated, err = addressableTree(options.correlated, options.registry); err != nil {
+			return nil, fmt.Errorf("correlating %s: %w", options.correlated.FullName(), err)
+		}
+		for node := range correlated.FilterableNodes() {
+			t.registerEnum(node)
+		}
 	}
 
-	t.declarations, t.macroDeclarations, t.macros, err = aip.NewFilterDeclarations(tree, true /*withFQN*/)
+	t.declarations, t.macroDeclarations, t.macros, err = aip.NewFilterDeclarations(tree, true /*withFQN*/, correlated)
 	if err != nil {
 		return nil, err
 	}
 	return t, nil
+}
+
+func (t *Transpiler) registerEnum(node *aip.Node) {
+	if node.EnumType != nil {
+		enumDescriptor := node.EnumType.Descriptor()
+		t.enumByType[enumDescriptor.FullName()] = enumDescriptor
+	}
+}
+
+// addressableTree builds the resource tree of a descriptor restricted to its
+// statically addressable nodes. A first pass surfaces every top-level node;
+// the second restricts the tree to the addressable ones so declarations and
+// error messages line up.
+func addressableTree(descriptor protoreflect.MessageDescriptor, registry *protoregistry.Files) (*aip.Tree, error) {
+	tree, err := aip.BuildResourceTreeFromDescriptor(descriptor, aip.WithMaxDepth(1), aip.WithAllowedPaths([]string{"*"}), aip.WithRegistry(registry))
+	if err != nil {
+		return nil, err
+	}
+	var allowedPaths []string
+	for node := range tree.FilterableNodes() {
+		if staticallyAddressable(node) {
+			allowedPaths = append(allowedPaths, node.Path)
+		}
+	}
+	return aip.BuildResourceTreeFromDescriptor(descriptor, aip.WithMaxDepth(1), aip.WithAllowedPaths(allowedPaths), aip.WithRegistry(registry))
 }
 
 // TranspileFilter transpiles an AIP-160 filter into a bare SQL boolean
