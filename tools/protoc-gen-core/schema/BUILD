@@ -13,6 +13,7 @@ go_library(
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/go:github.com__huandu__xstrings",
+        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__compiler__protogen",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
