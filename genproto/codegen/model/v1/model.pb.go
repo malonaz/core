@@ -672,9 +672,12 @@ func (*Join_Aggregate) isJoin_Selector() {}
 type Query struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// Optional AIP-160 filter over the descendant resource, restricted to
-	// conjunctions of comparisons on scalar stored fields, e.g.
+	// comparisons on scalar stored fields, e.g.
 	// `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
-	// resolved to their numbers at generation time.
+	// resolved to their numbers at generation time. The stored scalar fields of
+	// the row the join is declared on are addressable as `this.{field}`, e.g.
+	// `create_time > this.last_read_time`; a comparison against a NULL column
+	// admits no row, so guard nullable ones with presence.
 	Filter string `protobuf:"bytes,1,opt,name=filter,proto3" json:"filter,omitempty"`
 	// Required AIP-132 order_by picking the winning row, e.g.
 	// "create_time desc".
@@ -734,9 +737,12 @@ type Query_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Optional AIP-160 filter over the descendant resource, restricted to
-	// conjunctions of comparisons on scalar stored fields, e.g.
+	// comparisons on scalar stored fields, e.g.
 	// `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
-	// resolved to their numbers at generation time.
+	// resolved to their numbers at generation time. The stored scalar fields of
+	// the row the join is declared on are addressable as `this.{field}`, e.g.
+	// `create_time > this.last_read_time`; a comparison against a NULL column
+	// admits no row, so guard nullable ones with presence.
 	Filter string
 	// Required AIP-132 order_by picking the winning row, e.g.
 	// "create_time desc".
@@ -758,10 +764,9 @@ type Aggregate struct {
 	// Required. The function folding the descendant rows.
 	Function Aggregate_Function `protobuf:"varint,1,opt,name=function,proto3,enum=malonaz.codegen.model.v1.Aggregate_Function" json:"function,omitempty"`
 	// Optional AIP-160 filter over the descendant, same grammar and limits as
-	// Query.filter: conjunctions of comparisons on scalar stored fields, enums
-	// unquoted. The aggregate sees exactly the rows the filter admits: when the
-	// descendant is soft-deletable and only live rows should count, say so with
-	// `NOT delete_time:*`.
+	// Query.filter, correlated fields included. The aggregate sees exactly the
+	// rows the filter admits: when the descendant is soft-deletable and only
+	// live rows should count, say so with `NOT delete_time:*`.
 	Filter        string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -820,10 +825,9 @@ type Aggregate_builder struct {
 	// Required. The function folding the descendant rows.
 	Function Aggregate_Function
 	// Optional AIP-160 filter over the descendant, same grammar and limits as
-	// Query.filter: conjunctions of comparisons on scalar stored fields, enums
-	// unquoted. The aggregate sees exactly the rows the filter admits: when the
-	// descendant is soft-deletable and only live rows should count, say so with
-	// `NOT delete_time:*`.
+	// Query.filter, correlated fields included. The aggregate sees exactly the
+	// rows the filter admits: when the descendant is soft-deletable and only
+	// live rows should count, say so with `NOT delete_time:*`.
 	Filter string
 }
 
