@@ -217,9 +217,12 @@ export const JoinSchema: GenMessage<Join, {validType: JoinValid}> = /*@__PURE__*
 export type Query = Message<"malonaz.codegen.model.v1.Query"> & {
   /**
    * Optional AIP-160 filter over the descendant resource, restricted to
-   * conjunctions of comparisons on scalar stored fields, e.g.
+   * comparisons on scalar stored fields, e.g.
    * `state != QUOTE_REVISION_STATE_DISCARDED`. Enum values are unquoted and
-   * resolved to their numbers at generation time.
+   * resolved to their numbers at generation time. The stored scalar fields of
+   * the row the join is declared on are addressable as `this.{field}`, e.g.
+   * `create_time > this.last_read_time`; a comparison against a NULL column
+   * admits no row, so guard nullable ones with presence.
    *
    * @generated from field: string filter = 1;
    */
@@ -258,10 +261,9 @@ export type Aggregate = Message<"malonaz.codegen.model.v1.Aggregate"> & {
 
   /**
    * Optional AIP-160 filter over the descendant, same grammar and limits as
-   * Query.filter: conjunctions of comparisons on scalar stored fields, enums
-   * unquoted. The aggregate sees exactly the rows the filter admits: when the
-   * descendant is soft-deletable and only live rows should count, say so with
-   * `NOT delete_time:*`.
+   * Query.filter, correlated fields included. The aggregate sees exactly the
+   * rows the filter admits: when the descendant is soft-deletable and only
+   * live rows should count, say so with `NOT delete_time:*`.
    *
    * @generated from field: string filter = 2;
    */

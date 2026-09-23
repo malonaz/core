@@ -272,6 +272,45 @@ message Shelf {
 
   // The day the shelf opened: a nullable DATE column.
   google.type.Date opened_date = 25 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // When the shelf was last inventoried; unset until its first inventory.
+  google.protobuf.Timestamp inventory_time = 26 [(malonaz.codegen.model.v1.field_opts).nullable = true];
+
+  // The books added since the last inventory — every book before the first:
+  // an aggregate join whose filter correlates on this shelf's own columns.
+  int64 uninventoried_book_count = 27 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        aggregate: {
+          function: FUNCTION_COUNT
+          filter: "NOT this.inventory_time:* OR create_time > this.inventory_time"
+        }
+      }
+    }
+  ];
+
+  // The oldest book added since the last inventory, by the same correlated
+  // filter as uninventoried_book_count, in a query join.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  string oldest_uninventoried_book = 28 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Book",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        query: {
+          filter: "NOT this.inventory_time:* OR create_time > this.inventory_time"
+          order_by: "create_time asc"
+        }
+      }
+    }
+  ];
 }
 
 // Metadata for a shelf.

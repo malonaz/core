@@ -72,7 +72,7 @@ func NewFilteringRequestParser[T filteringRequest, R proto.Message](opts ...Filt
 		return nil, err
 	}
 
-	declarations, macroDeclarations, macros, err := NewFilterDeclarations(tree, options.withFQN)
+	declarations, macroDeclarations, macros, err := NewFilterDeclarations(tree, options.withFQN, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -123,11 +123,20 @@ func (f *FilteringRequest) GetFilter() filtering.Filter {
 	return f.filter
 }
 
+// CorrelatedRoot prefixes the correlated row's fields in a filter, e.g.
+// `create_time > this.last_read_time`.
+const CorrelatedRoot = "this"
+
 // NewFilterDeclarations builds the filter declarations of a resource tree:
 // idents matching proto field paths, macro idents matching database column
 // references, and the macros rewriting the former into the latter. withFQN
 // qualifies column references with their table (or join alias).
-func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclarations *filtering.Declarations, macros []filtering.Macro, err error) {
+//
+// A non-nil correlated tree exposes the row a subquery is correlated with:
+// its fields are addressed as `this.{path}` and always render fully
+// qualified, as the row lives in another table. It must hold top-level stored
+// columns only: a nested path would read as a column of its root.
+func NewFilterDeclarations(tree *Tree, withFQN bool, correlated *Tree) (declarations, macroDeclarations *filtering.Declarations, macros []filtering.Macro, err error) {
 	sharedDeclarationOptions := append([]filtering.DeclarationOption{
 		filtering.DeclareIdent("true", filtering.TypeBool),
 		filtering.DeclareIdent("false", filtering.TypeBool),
@@ -137,14 +146,27 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 	macroDeclarationOptions := []filtering.DeclarationOption{} // ident declarations matching db column names.
 
 	identNameToFQN := map[string]string{}
+	// Correlated paths parse as select expressions, not idents.
+	correlatedPathToFQN := map[string]string{}
 	// Ident name (proto path or FQN) -> canonicalization rule, used to
 	// canonicalize filter values the same way stored values were canonicalized.
 	identNameToCanonicalizeRule := map[string]*canonicalizepb.Field{}
+
+	// declare declares a node under its filter path, and under the column
+	// reference the macros rewrite that path into.
+	declare := func(node *Node, path, fqn string) {
+		declarationOptions = append(declarationOptions, identDeclarations(node, path)...)
+		macroDeclarationOptions = append(macroDeclarationOptions, identDeclarations(node, fqn)...)
+		if node.Canonicalize != nil {
+			identNameToCanonicalizeRule[path] = node.Canonicalize
+			identNameToCanonicalizeRule[fqn] = node.Canonicalize
+		}
+	}
+
 	for node := range tree.FilterableNodes() {
 		if node.ExprType == nil && node.EnumType == nil {
 			continue
 		}
-
 		fqn := node.Path
 		if node.ReplacementPath != "" {
 			fqn = node.ReplacementPath
@@ -153,51 +175,28 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 			fqn = node.TableName + "." + fqn
 		}
 		identNameToFQN[node.Path] = fqn
-		if node.Canonicalize != nil {
-			identNameToCanonicalizeRule[node.Path] = node.Canonicalize
-			identNameToCanonicalizeRule[fqn] = node.Canonicalize
-		}
+		declare(node, node.Path, fqn)
+	}
 
-		if node.ExprType != nil {
-			ident := filtering.DeclareIdent(node.Path, node.ExprType)
-			function := filtering.DeclareFunction(filtering.FunctionHas,
-				filtering.NewFunctionOverload(
-					fmt.Sprintf("%s_%s_string", filtering.FunctionHas, node.Path),
-					filtering.TypeBool, node.ExprType, filtering.TypeString,
-				),
-			)
-			declarationOptions = append(declarationOptions, ident, function)
-			{
-				ident := filtering.DeclareIdent(fqn, node.ExprType)
-				function := filtering.DeclareFunction(filtering.FunctionHas,
-					filtering.NewFunctionOverload(
-						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, fqn),
-						filtering.TypeBool, node.ExprType, filtering.TypeString,
-					),
-				)
-				macroDeclarationOptions = append(macroDeclarationOptions, ident, function)
-			}
+	if correlated != nil {
+		if _, ok := identNameToFQN[CorrelatedRoot]; ok {
+			return nil, nil, nil, fmt.Errorf("field %q shadows the correlated row", CorrelatedRoot)
 		}
-
-		if node.EnumType != nil {
-			ident := filtering.DeclareEnumIdent(node.Path, node.EnumType)
-			function := filtering.DeclareFunction(filtering.FunctionHas,
-				filtering.NewFunctionOverload(
-					fmt.Sprintf("%s_%s_string", filtering.FunctionHas, node.Path),
-					filtering.TypeBool, filtering.TypeEnum(node.EnumType), filtering.TypeString,
-				),
-			)
-			declarationOptions = append(declarationOptions, ident, function)
-			{
-				ident := filtering.DeclareEnumIdent(fqn, node.EnumType)
-				function := filtering.DeclareFunction(filtering.FunctionHas,
-					filtering.NewFunctionOverload(
-						fmt.Sprintf("%s_%s_string", filtering.FunctionHas, fqn),
-						filtering.TypeBool, filtering.TypeEnum(node.EnumType), filtering.TypeString,
-					),
-				)
-				macroDeclarationOptions = append(macroDeclarationOptions, ident, function)
+		for node := range correlated.FilterableNodes() {
+			if node.ExprType == nil && node.EnumType == nil {
+				continue
 			}
+			path := CorrelatedRoot + "." + node.Path
+			if node.Depth > 0 || node.AsJsonBytes || node.AsProtoBytes {
+				return nil, nil, nil, fmt.Errorf("correlated field %s is not a top-level stored column", path)
+			}
+			column := node.Path
+			if node.ReplacementPath != "" {
+				column = node.ReplacementPath
+			}
+			fqn := node.TableName + "." + column
+			correlatedPathToFQN[path] = fqn
+			declare(node, path, fqn)
 		}
 	}
 
@@ -254,6 +253,17 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 		}
 	})
 
+	if len(correlatedPathToFQN) > 0 {
+		macros = append(macros, func(cursor *filtering.Cursor) {
+			if cursor.Expr().GetSelectExpr() == nil {
+				return
+			}
+			if fqn, ok := correlatedPathToFQN[exprPath(cursor.Expr())]; ok {
+				cursor.Replace(filtering.Text(fqn))
+			}
+		})
+	}
+
 	declarationOptions = append(declarationOptions, sharedDeclarationOptions...)
 	macroDeclarationOptions = append(macroDeclarationOptions, sharedDeclarationOptions...)
 
@@ -266,6 +276,19 @@ func NewFilterDeclarations(tree *Tree, withFQN bool) (declarations, macroDeclara
 		return nil, nil, nil, fmt.Errorf("creating filter macro declarations: %w", err)
 	}
 	return declarations, macroDeclarations, macros, nil
+}
+
+// identDeclarations declares a node's ident under the given name, with its
+// `:` overload.
+func identDeclarations(node *Node, name string) []filtering.DeclarationOption {
+	identType, ident := node.ExprType, filtering.DeclareIdent(name, node.ExprType)
+	if node.EnumType != nil {
+		identType, ident = filtering.TypeEnum(node.EnumType), filtering.DeclareEnumIdent(name, node.EnumType)
+	}
+	has := filtering.DeclareFunction(filtering.FunctionHas,
+		filtering.NewFunctionOverload(fmt.Sprintf("%s_%s_string", filtering.FunctionHas, name), filtering.TypeBool, identType, filtering.TypeString),
+	)
+	return []filtering.DeclarationOption{ident, has}
 }
 
 // dateComparisonDeclarations declares the comparisons of a date column

@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
+	"go.einride.tech/aip/filtering"
 
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
@@ -2073,4 +2074,22 @@ func TestFilteringRequestParser_NullSemantics(t *testing.T) {
 			})
 		}
 	})
+}
+
+// A correlated row is read as columns: a tree reaching into nested or
+// byte-serialized fields cannot be correlated.
+func TestNewFilterDeclarations_CorrelatedRejectsNestedFields(t *testing.T) {
+	bookTree, err := BuildResourceTree[*librarypb.Book](WithAllowedPaths([]string{"*"}))
+	require.NoError(t, err)
+	shelfTree, err := BuildResourceTree[*librarypb.Shelf](WithAllowedPaths([]string{"*"}))
+	require.NoError(t, err)
+	_, _, _, err = NewFilterDeclarations(bookTree, true, shelfTree)
+	require.ErrorContains(t, err, "is not a top-level stored column")
+}
+
+// A top-level `this` field would read as the correlated row.
+func TestNewFilterDeclarations_CorrelatedRejectsShadowingField(t *testing.T) {
+	tree := &Tree{Nodes: []*Node{{Path: CorrelatedRoot, TableName: "book", ExprType: filtering.TypeString, AllowedPath: true}}}
+	_, _, _, err := NewFilterDeclarations(tree, true, &Tree{})
+	require.ErrorContains(t, err, `field "this" shadows the correlated row`)
 }

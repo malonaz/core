@@ -25,7 +25,10 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["aggregate_join_test.go"],
+    srcs = [
+        "aggregate_join_test.go",
+        "correlated_filter_test.go",
+    ],
     external = True,
     deps = [
         ":schema",

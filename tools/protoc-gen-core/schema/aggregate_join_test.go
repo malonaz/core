@@ -45,6 +45,13 @@ func aggregate(function modelpb.Aggregate_Function, field, filter string) *model
 // the named message and resolves that message's joins, as generation would.
 func parseJoins(t *testing.T, messageName protoreflect.FullName, fields ...field) error {
 	t.Helper()
+	_, err := resolveJoins(t, messageName, fields...)
+	return err
+}
+
+// resolveJoins is parseJoins, returning the resolved joins.
+func resolveJoins(t *testing.T, messageName protoreflect.FullName, fields ...field) ([]schema.Join, error) {
+	t.Helper()
 	files := map[string]*descriptorpb.FileDescriptorProto{}
 	var order []string
 	var collect func(fd protoreflect.FileDescriptor)
@@ -128,13 +135,12 @@ func parseJoins(t *testing.T, messageName protoreflect.FullName, fields ...field
 	for _, f := range plugin.Files {
 		for _, m := range f.Messages {
 			if m.Desc.FullName() == messageName {
-				_, err := schema.ParseJoins(m)
-				return err
+				return schema.ParseJoins(m)
 			}
 		}
 	}
 	t.Fatalf("message %s not found", messageName)
-	return nil
+	return nil, nil
 }
 
 func TestAggregateJoin_Generation(t *testing.T) {

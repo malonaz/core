@@ -354,6 +354,9 @@ func TestFromMessage_AllFields_Shelf(t *testing.T) {
 		"total_price",
 		"last_book_create_time",
 		"opened_date",
+		"inventory_time",
+		"uninventoried_book_count",
+		"oldest_uninventoried_book",
 	}, paths)
 }
 

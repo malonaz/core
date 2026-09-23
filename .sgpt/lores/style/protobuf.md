@@ -41,6 +41,7 @@ labels:
   - reference — `join: {resource_type: "…/Book", reference: "best_book", field: "page_count"}`, following a stored resource-name field;
   - query — `join: {resource_type: "…/Book", field: "name", query: {filter: "page_count > 0", order_by: "create_time desc"}}`, one descendant row; other fields chain onto it via `reference: "<anchor field>"`;
   - aggregate — `join: {resource_type: "…/Book", field: "page_count", aggregate: {function: FUNCTION_SUM, filter: "page_count > 0"}}`, folding descendant rows (`FUNCTION_COUNT` over `field: "name"`, `FUNCTION_MIN`/`FUNCTION_MAX` keep the type); nullable, no chaining.
+  - query and aggregate filters may read the joining row's own columns as `this.{field}` — `aggregate: {function: FUNCTION_COUNT, filter: "NOT this.last_read_time:* OR create_time > this.last_read_time"}` — to derive what would otherwise be counters maintained on every child write; guard nullable columns with presence, as a NULL comparison admits no row.
 
 ### Codegen Options (resource messages)
 - **`malonaz.codegen.aip.v1.uuid_namespace`**: A fixed UUID per resource message — deterministic resource IDs.

@@ -970,18 +970,19 @@ const file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x05 \x01(\bR\fvalidateOnly\"S\n" +
 	"\x0fGetShelfRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
-	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\"\x80\x03\n" +
+	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x04name\"\x90\x03\n" +
 	"\x12UpdateShelfRequest\x12<\n" +
 	"\x05shelf\x18\x01 \x01(\v2\x1e.malonaz.test.library.v1.ShelfB\x06\xbaH\x03\xd8\x01\x03R\x05shelf\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\xe6\x01\xbaHE\x1aC\n" +
-	"\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03\x98\x01\n" +
+	"updateMask:\xf6\x01\xbaHE\x1aC\n" +
+	"\x13shelf.name_required\x12\x16shelf.name must be set\x1a\x14has(this.shelf.name)\xea\x9c\xc1\x03\xa8\x01\n" +
 	"\fdisplay_name\n" +
 	"\x05genre\n" +
 	"\x10correlation_id_2\n" +
 	"\vexternal_id\n" +
 	"\tbest_book\n" +
 	"\vopened_date\n" +
+	"\x0einventory_time\n" +
 	"\x11metadata.capacity\n" +
 	"\x0emetadata.dummy\n" +
 	"\x0emetadata.notes\n" +

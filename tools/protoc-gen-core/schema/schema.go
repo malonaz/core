@@ -711,7 +711,9 @@ func newDescendantQuery(message *protogen.Message, join *modelpb.Join) (*descend
 	if ownTable := TableOf(ownResource, ownModelOpts); ownTable.Name == childTable.Name {
 		return nil, fmt.Errorf("descendant join on %q shares this resource's table %q", join.GetResourceType(), ownTable.Name)
 	}
-	transpiler, err := static.NewTranspiler(child.message.Desc, static.WithRegistry(filesRegistry))
+	// Filters may also address this resource's own row, e.g.
+	// `create_time > this.inventory_time`: the subquery is correlated on it.
+	transpiler, err := static.NewTranspiler(child.message.Desc, static.WithRegistry(filesRegistry), static.WithCorrelation(message.Desc))
 	if err != nil {
 		return nil, fmt.Errorf("building transpiler for %q: %w", join.GetResourceType(), err)
 	}

@@ -69,6 +69,7 @@ go_test(
         "//malonaz/test/library/v1",
         "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
