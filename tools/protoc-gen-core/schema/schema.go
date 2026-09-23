@@ -789,19 +789,30 @@ func buildJoinAggregate(message *protogen.Message, join *modelpb.Join) (*JoinAgg
 // singular-derived overrides).
 func resourceNameExpr(pattern *resource.ParsedPattern, bindings []ColumnBinding, qualifier string) string {
 	var parts []string
-	next := 0
-	for _, segment := range strings.Split(pattern.Value, "/") {
-		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
-			parts = append(parts, qualifier+"."+bindings[next].Column)
-			next++
-			continue
+	// literal accumulates the text between variables, so consecutive literal
+	// segments (a singleton's collection: `…/activity/events/{event}`) join
+	// with a single slash.
+	var literal strings.Builder
+	flush := func() {
+		if literal.Len() > 0 {
+			parts = append(parts, "'"+literal.String()+"'")
+			literal.Reset()
 		}
-		if len(parts) == 0 {
-			parts = append(parts, "'"+segment+"/'")
-			continue
-		}
-		parts = append(parts, "'/"+segment+"/'")
 	}
+	next := 0
+	for i, segment := range strings.Split(pattern.Value, "/") {
+		if i > 0 {
+			literal.WriteString("/")
+		}
+		if !strings.HasPrefix(segment, "{") || !strings.HasSuffix(segment, "}") {
+			literal.WriteString(segment)
+			continue
+		}
+		flush()
+		parts = append(parts, qualifier+"."+bindings[next].Column)
+		next++
+	}
+	flush()
 	return strings.Join(parts, " || ")
 }
 

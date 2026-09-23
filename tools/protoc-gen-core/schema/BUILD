@@ -47,3 +47,13 @@ go_test(
         "//tools/protoc-gen-core/resource",
     ],
 )
+
+go_test(
+    name = "internal_test",
+    srcs = ["name_expr_test.go"],
+    deps = [
+        ":schema",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//tools/protoc-gen-core/resource",
+    ],
+)
