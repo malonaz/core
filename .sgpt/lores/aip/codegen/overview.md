@@ -94,6 +94,20 @@ registry is per package — cross-package parent/child links do not exist):
   `Shelf.{total_page_count,book_count,total_price,last_book_create_time}` +
   `sat/aggregate_join_test.go`; generation errors are covered by
   `tools/protoc-gen-core/schema/aggregate_join_test.go`.
+- **Correlated join filters**: a query or aggregate filter may compare the
+  descendant against the joining row's own stored scalar columns, spelled
+  `this.{field}` — `create_time > this.last_read_time` counts what arrived
+  since the last read, with no write on the parent when a child is created.
+  `this` is filter vocabulary only: generation rewrites it to the outer
+  table's bare name the correlation already uses (`shelf.inventory_time`), so
+  reads and RETURNING alike see the row being returned — an Update's response
+  already reflects its new `last_read_time`. Joined, JSONB and nested fields of
+  the row are not addressable (RETURNING has no joins), `order_by` cannot use
+  `this`, and a descendant field named `this` is a generation error. A
+  comparison against a NULL column admits no row, so guard nullable ones:
+  `NOT this.inventory_time:* OR create_time > this.inventory_time`.
+  Reference: `Shelf.{uninventoried_book_count,oldest_uninventoried_book}` +
+  `sat/correlated_filter_test.go`.
 - **Non-nullable columns**: a `repeated`/`bytes`/map field has no proto3
   presence, so an omitted one is stored empty (`{}`), never `NULL`. A
   message-typed field (incl. `Duration`/`Timestamp`) has presence, so a
