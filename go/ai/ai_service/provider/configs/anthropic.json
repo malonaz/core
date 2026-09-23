@@ -66,6 +66,36 @@ local p = "providers/anthropic/models/";
 
     // OPUS.
     {
+      "name": p + "claude-opus-5.5",
+      "provider_model_id": "claude-opus-5-5",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1000000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 4,
+          "output_token_price_per_million": 20,
+          "input_token_cache_read_price_per_million": 0.2,
+          "input_token_cache_write_price_per_million": 5
+        }
+      }
+      ,
+      "provider_settings": {
+        "thinking_config_key": "effort",
+        "sampling_parameters_unsupported": true,
+        // opus-5.5 thinking is always on, so unspecified falls back to the lowest effort.
+        "REASONING_EFFORT_UNSPECIFIED": "low",
+        // Matches the API default for opus-5.5.
+        "REASONING_EFFORT_DEFAULT": "medium",
+        "REASONING_EFFORT_LOW": "low",
+        "REASONING_EFFORT_MEDIUM": "medium",
+        "REASONING_EFFORT_HIGH": "high",
+        "REASONING_EFFORT_XHIGH": "xhigh",
+        "REASONING_EFFORT_MAX": "max"
+      }
+    },
+    {
       "name": p + "claude-opus-5",
       "provider_model_id": "claude-opus-5",
       "ttt": {
