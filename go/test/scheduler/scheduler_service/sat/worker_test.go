@@ -261,18 +261,19 @@ func TestCancelJob(t *testing.T) {
 func TestRetryJob(t *testing.T) {
 	t.Parallel()
 
-	t.Run("failed job runs again", func(t *testing.T) {
+	t.Run("failed job runs once more by hand", func(t *testing.T) {
 		t.Parallel()
-		// Fails through the first run (3 attempts) and the first two attempts of the retry.
+		// Fails through every attempt of the first run; the manual attempt succeeds.
 		key := uuid.MustNewV7().String()
-		created := createJob(t, &processorpb.FlakyRequest{Key: key, Failures: flakyMaxAttempts + 2, Code: int32(codes.Internal)})
+		created := createJob(t, &processorpb.FlakyRequest{Key: key, Failures: flakyMaxAttempts, Code: int32(codes.Internal)})
 		failed := waitForTerminal(t, created.GetName())
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, failed.GetState())
 
 		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
 		require.NoError(t, err)
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, retried.GetState())
-		require.Zero(t, retried.GetAttemptCount())
+		require.Equal(t, int32(flakyMaxAttempts), retried.GetAttemptCount())
+		require.Len(t, retried.GetMetadata().GetAttempts(), flakyMaxAttempts)
 		require.Nil(t, retried.GetError())
 		require.Nil(t, retried.GetCompleteTime())
 		require.Nil(t, retried.GetPurgeTime())
@@ -281,8 +282,36 @@ func TestRetryJob(t *testing.T) {
 
 		job := waitForTerminal(t, created.GetName())
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
-		require.Equal(t, int32(flakyMaxAttempts), job.GetAttemptCount())
-		require.Len(t, testProcessor.calls(key), 2*flakyMaxAttempts)
+		require.Equal(t, int32(flakyMaxAttempts+1), job.GetAttemptCount())
+		require.Len(t, testProcessor.calls(key), flakyMaxAttempts+1)
+		attempts := job.GetMetadata().GetAttempts()
+		require.Len(t, attempts, flakyMaxAttempts+1)
+		for i, attempt := range attempts {
+			require.Equal(t, int32(i+1), attempt.GetAttempt())
+			require.Equal(t, i == flakyMaxAttempts, attempt.GetManual())
+		}
+		require.Nil(t, attempts[flakyMaxAttempts].GetError())
+	})
+
+	t.Run("failed manual attempt is final", func(t *testing.T) {
+		t.Parallel()
+		// Cancelled before it ran, so the policy's attempts are untouched: a retryable
+		// failure would be retried, and succeed, were the attempt not manual.
+		key := uuid.MustNewV7().String()
+		created := createJob(t, &processorpb.FlakyRequest{Key: key, Failures: 1, Code: int32(codes.Internal)}, scheduler.WithScheduleTime(farFuture))
+		cancelJob(t, created.GetName())
+
+		_, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
+		require.NoError(t, err)
+		job := waitForTerminal(t, created.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
+		require.Equal(t, int32(1), job.GetAttemptCount())
+		require.Len(t, testProcessor.calls(key), 1)
+		attempts := job.GetMetadata().GetAttempts()
+		require.Len(t, attempts, 1)
+		require.True(t, attempts[0].GetManual())
+		require.Equal(t, int32(codes.Internal), attempts[0].GetError().GetCode())
+		require.Equal(t, int32(codes.Internal), job.GetError().GetCode())
 	})
 
 	t.Run("cancelled job runs again", func(t *testing.T) {
@@ -298,10 +327,18 @@ func TestRetryJob(t *testing.T) {
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
 	})
 
-	t.Run("non-terminal job is refused", func(t *testing.T) {
+	t.Run("only failed or cancelled jobs are retried", func(t *testing.T) {
 		t.Parallel()
+		// A succeeded job's work is done: re-running it would repeat its side effects.
+		value := uuid.MustNewV7().String()
+		succeeded := createJob(t, &processorpb.EchoRequest{Value: value})
+		waitForState(t, succeeded.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		_, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: succeeded.GetName()})
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		require.Len(t, testProcessor.calls(value), 1)
+
 		created := createJob(t, &processorpb.EchoRequest{Value: "retry-pending"}, scheduler.WithScheduleTime(farFuture))
-		_, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
+		_, err = schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 
 		key := uuid.MustNewV7().String()
@@ -464,6 +501,7 @@ func TestProcess_Metadata(t *testing.T) {
 		for i, attempt := range attempts {
 			require.Equal(t, int32(i+1), attempt.GetAttempt())
 			require.NotEmpty(t, attempt.GetWorker())
+			require.False(t, attempt.GetManual())
 			require.False(t, attempt.GetEndTime().AsTime().Before(attempt.GetStartTime().AsTime()))
 			if i > 0 {
 				require.True(t, attempt.GetStartTime().AsTime().After(attempts[i-1].GetStartTime().AsTime()))
@@ -474,12 +512,6 @@ func TestProcess_Metadata(t *testing.T) {
 		require.Equal(t, int32(codes.Internal), attempts[1].GetError().GetCode())
 		require.Nil(t, attempts[2].GetError())
 		require.True(t, attempts[2].GetStartTime().AsTime().Equal(job.GetStartTime().AsTime()))
-
-		// RetryJob wipes the history.
-		retried, err := schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: created.GetName()})
-		require.NoError(t, err)
-		require.Nil(t, retried.GetMetadata())
-		waitForTerminal(t, created.GetName())
 	})
 
 	t.Run("worker is recorded while running", func(t *testing.T) {

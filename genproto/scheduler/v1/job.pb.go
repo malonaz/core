@@ -168,7 +168,8 @@ type Job struct {
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32 `protobuf:"varint,17,opt,name=attempt_count,json=attemptCount,proto3" json:"attempt_count,omitempty"`
 	// The error of the last failed attempt. Cleared when the job is retried.
-	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
+	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED; each
+	// attempt's own failure stays in `metadata`.
 	Error *status.Status `protobuf:"bytes,18,opt,name=error,proto3" json:"error,omitempty"`
 	// The method's response, set on SUCCEEDED jobs.
 	Response *anypb.Any `protobuf:"bytes,19,opt,name=response,proto3" json:"response,omitempty"`
@@ -667,7 +668,8 @@ type Job_builder struct {
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32
 	// The error of the last failed attempt. Cleared when the job is retried.
-	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
+	// Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED; each
+	// attempt's own failure stays in `metadata`.
 	Error *status.Status
 	// The method's response, set on SUCCEEDED jobs.
 	Response *anypb.Any
@@ -711,7 +713,7 @@ func (b0 Job_builder) Build() *Job {
 type JobMetadata struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The attempts made so far, most recent last. Capped at the 20 most recent;
-	// cleared when the job is retried.
+	// kept across retries.
 	Attempts []*JobAttempt `protobuf:"bytes,1,rep,name=attempts,proto3" json:"attempts,omitempty"`
 	// The worker instance holding the lease while the job is RUNNING.
 	Worker        string `protobuf:"bytes,2,opt,name=worker,proto3" json:"worker,omitempty"`
@@ -770,7 +772,7 @@ type JobMetadata_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The attempts made so far, most recent last. Capped at the 20 most recent;
-	// cleared when the job is retried.
+	// kept across retries.
 	Attempts []*JobAttempt
 	// The worker instance holding the lease while the job is RUNNING.
 	Worker string
@@ -802,7 +804,10 @@ type JobAttempt struct {
 	// The wait before the next attempt requested by the method through a
 	// `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
 	// Unset when the method requested none.
-	RetryDelay    *durationpb.Duration `protobuf:"bytes,6,opt,name=retry_delay,json=retryDelay,proto3" json:"retry_delay,omitempty"`
+	RetryDelay *durationpb.Duration `protobuf:"bytes,6,opt,name=retry_delay,json=retryDelay,proto3" json:"retry_delay,omitempty"`
+	// Whether the attempt ran after a manual retry (RetryJob) rather than on the
+	// scheduler's own schedule.
+	Manual        bool `protobuf:"varint,7,opt,name=manual,proto3" json:"manual,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -874,6 +879,13 @@ func (x *JobAttempt) GetRetryDelay() *durationpb.Duration {
 	return nil
 }
 
+func (x *JobAttempt) GetManual() bool {
+	if x != nil {
+		return x.Manual
+	}
+	return false
+}
+
 func (x *JobAttempt) SetAttempt(v int32) {
 	x.Attempt = v
 }
@@ -896,6 +908,10 @@ func (x *JobAttempt) SetError(v *status.Status) {
 
 func (x *JobAttempt) SetRetryDelay(v *durationpb.Duration) {
 	x.RetryDelay = v
+}
+
+func (x *JobAttempt) SetManual(v bool) {
+	x.Manual = v
 }
 
 func (x *JobAttempt) HasStartTime() bool {
@@ -960,6 +976,9 @@ type JobAttempt_builder struct {
 	// `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
 	// Unset when the method requested none.
 	RetryDelay *durationpb.Duration
+	// Whether the attempt ran after a manual retry (RetryJob) rather than on the
+	// scheduler's own schedule.
+	Manual bool
 }
 
 func (b0 JobAttempt_builder) Build() *JobAttempt {
@@ -972,6 +991,7 @@ func (b0 JobAttempt_builder) Build() *JobAttempt {
 	x.Worker = b.Worker
 	x.Error = b.Error
 	x.RetryDelay = b.RetryDelay
+	x.Manual = b.Manual
 	return m0
 }
 
@@ -1022,7 +1042,7 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\tscheduler\x82\xf6,$8dba1872-9193-4ddd-a99e-68abf327ead3\"c\n" +
 	"\vJobMetadata\x12<\n" +
 	"\battempts\x18\x01 \x03(\v2 .malonaz.scheduler.v1.JobAttemptR\battempts\x12\x16\n" +
-	"\x06worker\x18\x02 \x01(\tR\x06worker\"\x96\x02\n" +
+	"\x06worker\x18\x02 \x01(\tR\x06worker\"\xae\x02\n" +
 	"\n" +
 	"JobAttempt\x12\x18\n" +
 	"\aattempt\x18\x01 \x01(\x05R\aattempt\x129\n" +
@@ -1032,7 +1052,8 @@ const file_malonaz_scheduler_v1_job_proto_rawDesc = "" +
 	"\x06worker\x18\x04 \x01(\tR\x06worker\x12(\n" +
 	"\x05error\x18\x05 \x01(\v2\x12.google.rpc.StatusR\x05error\x12:\n" +
 	"\vretry_delay\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\n" +
-	"retryDelay*\x9b\x01\n" +
+	"retryDelay\x12\x16\n" +
+	"\x06manual\x18\a \x01(\bR\x06manual*\x9b\x01\n" +
 	"\bJobState\x12\x19\n" +
 	"\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11JOB_STATE_PENDING\x10\x01\x12\x15\n" +

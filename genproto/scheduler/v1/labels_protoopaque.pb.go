@@ -27,8 +27,8 @@ var File_malonaz_scheduler_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/scheduler/v1/labels.proto\x12\x14malonaz.scheduler.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xdf\x02\x92\x95\x15\xab\x02\n" +
-	"\x1dscheduler.malonaz.com/retried\x1a\x83\x02Set by RetryJob when a terminal job is manually returned to PENDING. Distinguishes operator intervention from the scheduler's own attempt retries, which never set it. Filter `labels.\"scheduler.malonaz.com/retried\" = \"true\"` lists every job that needed a hand.\"\x04trueZ-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
+	"!malonaz/scheduler/v1/labels.proto\x12\x14malonaz.scheduler.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xe1\x03\x92\x95\x15\xad\x03\n" +
+	"\x1dscheduler.malonaz.com/retried\x1a\x85\x03Set by RetryJob when a FAILED or CANCELLED job is manually returned to PENDING. Distinguishes operator intervention from the scheduler's own attempt retries, which never set it. While set, every attempt is recorded as manual and a failed one is final rather than retried under the queue's policy. Filter `labels.\"scheduler.malonaz.com/retried\" = \"true\"` lists every job that needed a hand.\"\x04trueZ-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var file_malonaz_scheduler_v1_labels_proto_goTypes = []any{}
 var file_malonaz_scheduler_v1_labels_proto_depIdxs = []int32{

@@ -72,6 +72,13 @@ func Mutate(job *model.Job, now time.Time, fn func(*schedulerpb.Job) error) erro
 	return nil
 }
 
+// IsManual reports whether the job was retried by hand: its attempts are
+// manual, and a failed one is final.
+func IsManual(job *schedulerpb.Job) bool {
+	value, _ := aip.GetLabel(job, schedulerpb.Labels.Retried.GetKey())
+	return value == schedulerpb.Labels.Retried.True
+}
+
 // RecordAttempt closes the job's current attempt in its history with the given
 // outcome (nil on success) and releases the worker.
 func RecordAttempt(job *schedulerpb.Job, now time.Time, err error, retryDelay *durationpb.Duration) {
@@ -85,6 +92,7 @@ func RecordAttempt(job *schedulerpb.Job, now time.Time, err error, retryDelay *d
 		EndTime:    timestamppb.New(now),
 		Worker:     metadata.GetWorker(),
 		RetryDelay: retryDelay,
+		Manual:     IsManual(job),
 	}
 	if err != nil {
 		// Details may carry types this binary cannot resolve, which the JSON column cannot hold.

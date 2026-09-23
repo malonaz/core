@@ -184,7 +184,8 @@ message Job {
   int32 attempt_count = 17 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The error of the last failed attempt. Cleared when the job is retried.
-  // Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED.
+  // Set on FAILED jobs, and on CANCELLED jobs with code CANCELLED; each
+  // attempt's own failure stays in `metadata`.
   google.rpc.Status error = 18 [
     (malonaz.codegen.model.v1.field_opts).as_proto_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
@@ -216,7 +217,7 @@ message Job {
 // The execution history of a job, maintained by the scheduler.
 message JobMetadata {
   // The attempts made so far, most recent last. Capped at the 20 most recent;
-  // cleared when the job is retried.
+  // kept across retries.
   repeated JobAttempt attempts = 1;
 
   // The worker instance holding the lease while the job is RUNNING.
@@ -245,6 +246,10 @@ message JobAttempt {
   // `google.rpc.RetryInfo` error detail, which overrides the queue's backoff.
   // Unset when the method requested none.
   google.protobuf.Duration retry_delay = 6;
+
+  // Whether the attempt ran after a manual retry (RetryJob) rather than on the
+  // scheduler's own schedule.
+  bool manual = 7;
 }
 
 // The lifecycle state of a job.
