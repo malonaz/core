@@ -1,6 +1,7 @@
 package sat
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 // Boots a replica and fills every slot on every replica with sleeping jobs, so
 // the replica is sure to hold some when it is stopped. Sequential, like the
 // discovery tests: the parallel tests would compete for the slots.
-func fillReplica(t *testing.T, sleep time.Duration, args ...string) (*binary.Binary, []*schedulerpb.Job) {
+func fillReplica(t *testing.T, sleep time.Duration, args ...string) (*binary.Binary, *replicaOutput, []*schedulerpb.Job) {
 	t.Helper()
 	replica, output, err := startReplica(t, args, processorURL)
 	require.NoError(t, err, output.String())
@@ -35,12 +36,12 @@ func fillReplica(t *testing.T, sleep time.Duration, args ...string) (*binary.Bin
 		}
 		return len(held) == maxParallelJobs
 	}, waitTimeout, 20*time.Millisecond, "the replica never filled its slots")
-	return replica, held
+	return replica, output, held
 }
 
 func TestShutdown_DrainsInFlightJobs(t *testing.T) {
-	sleep := 2 * time.Second
-	replica, held := fillReplica(t, sleep)
+	sleep := 4 * time.Second
+	replica, output, held := fillReplica(t, sleep)
 
 	// From the signal on, jobs keep arriving; none may land on the stopping replica.
 	stopped := make(chan struct{})
@@ -56,6 +57,11 @@ func TestShutdown_DrainsInFlightJobs(t *testing.T) {
 	}
 	<-stopped
 	require.Less(t, time.Since(start), sleep+5*time.Second, "the replica exits once its jobs are done")
+	// The dispatcher drains ahead of the server, while the handlers it awaits can still be served.
+	logs := output.String()
+	drained, stopping := strings.Index(logs, "draining in-flight jobs"), strings.Index(logs, "gracefully stopping")
+	require.True(t, drained >= 0 && stopping > drained, logs)
+	require.NotContains(t, logs, "drain timeout exhausted")
 
 	for _, job := range held {
 		job = waitForTerminal(t, job.GetName())
@@ -73,12 +79,13 @@ func TestShutdown_DrainsInFlightJobs(t *testing.T) {
 
 func TestShutdown_ReleasesJobsOutlivingDrain(t *testing.T) {
 	drain := 500 * time.Millisecond
-	sleep := 3 * time.Second
-	replica, held := fillReplica(t, sleep, "--scheduler-dispatcher.drain-timeout", drain.String())
+	sleep := 5 * time.Second
+	replica, output, held := fillReplica(t, sleep, "--scheduler-dispatcher.drain-timeout", drain.String())
 
 	start := time.Now()
 	replica.Stop()
 	require.Less(t, time.Since(start), sleep, "the drain gave up before the jobs ended")
+	require.Contains(t, output.String(), "drain timeout exhausted")
 
 	// Released untouched: another replica runs what counts as the first attempt.
 	for _, job := range held {
