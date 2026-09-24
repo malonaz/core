@@ -78,7 +78,7 @@ func (f *importFixture) inlineRequest(books ...*librarypb.Book) *libraryservicep
 	return &libraryservicepb.ImportBooksRequest{
 		Parent:    f.shelf.GetName(),
 		RequestId: uuid.MustNewV7().String(),
-		Source:    &libraryservicepb.ImportBooksRequest_InlineSource{InlineSource: &libraryservicepb.InlineSource{Books: books}},
+		Source:    &libraryservicepb.ImportBooksRequest_InlineSource_{InlineSource: &libraryservicepb.ImportBooksRequest_InlineSource{Books: books}},
 	}
 }
 

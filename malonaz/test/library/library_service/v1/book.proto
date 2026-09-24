@@ -255,6 +255,12 @@ message ImportBooksRequest {
     (google.api.resource_reference).child_type = "library.test.malonaz.com/Book"
   ];
 
+  // InlineSource carries the books to import in the request.
+  message InlineSource {
+    // The books to import. A name, timestamps and labels are kept when set.
+    repeated malonaz.test.library.v1.Book books = 1;
+  }
+
   // Where the books come from.
   oneof source {
     option (buf.validate.oneof).required = true;
@@ -273,12 +279,6 @@ message ImportBooksRequest {
     (buf.validate.field).required = true,
     (buf.validate.field).string.uuid = true
   ];
-}
-
-// InlineSource carries the books to import in the request.
-message InlineSource {
-  // The books to import. A name, timestamps and labels are kept when set.
-  repeated malonaz.test.library.v1.Book books = 1;
 }
 
 // TitlesSource makes one book per title, by one author.

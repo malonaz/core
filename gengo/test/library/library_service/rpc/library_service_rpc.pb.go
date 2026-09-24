@@ -2862,7 +2862,7 @@ func (s *LibraryServiceServer) RunImportBooks(ctx context.Context, request *v12.
 	}
 	var sourceLabel string
 	switch request.GetSource().(type) {
-	case *v12.ImportBooksRequest_InlineSource:
+	case *v12.ImportBooksRequest_InlineSource_:
 		sourceLabel = "inline"
 	case *v12.ImportBooksRequest_TitlesSource:
 		sourceLabel = "titles"
@@ -2874,7 +2874,7 @@ func (s *LibraryServiceServer) RunImportBooks(ctx context.Context, request *v12.
 		return nil, err
 	}
 	switch source := request.GetSource().(type) {
-	case *v12.ImportBooksRequest_InlineSource:
+	case *v12.ImportBooksRequest_InlineSource_:
 		err = sink.importInline(ctx, source.InlineSource.GetBooks())
 	case *v12.ImportBooksRequest_TitlesSource:
 		err = s.runner.ImportBooksFromTitles(ctx, request, sink)

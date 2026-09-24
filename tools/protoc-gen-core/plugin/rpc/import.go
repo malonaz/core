@@ -128,6 +128,11 @@ func (imp *importMethod) parseRequest() error {
 		if imp.inline != nil {
 			return fmt.Errorf("%s.source declares %s twice", request.GoIdent.GoName, inlineSourceName)
 		}
+		// Nested in the request: a package holds one import per resource, and a top-level
+		// InlineSource would let it hold one import only.
+		if field.Message.Desc.Parent() != request.Desc {
+			return fmt.Errorf("%s.%s must be a message nested in the request (AIP-153)", request.GoIdent.GoName, field.Desc.Name())
+		}
 		imp.inline = field
 		items := field.Message.Fields
 		if len(items) != 1 || items[0].Desc.Cardinality() != protoreflect.Repeated || items[0].Message == nil ||
@@ -138,7 +143,7 @@ func (imp *importMethod) parseRequest() error {
 		imp.items = items[0]
 	}
 	if imp.inline == nil {
-		return fmt.Errorf("%s.source must declare `InlineSource inline_source` with `message InlineSource { repeated %s %s = 1; }` (AIP-153)",
+		return fmt.Errorf("%s.source must declare `InlineSource inline_source` with `message InlineSource { repeated %s %s = 1; }` nested in it (AIP-153)",
 			request.GoIdent.GoName, resource.Desc.FullName(), pluralSnake)
 	}
 	return nil
@@ -378,7 +383,6 @@ func (mc *methodCtx) generateRunImport(imp *importMethod) {
 	g := mc.g
 	method := imp.lro.method
 	serviceServer := mc.si.service.GoName + "Server"
-	requestGoName := method.Input.GoIdent.GoName
 
 	g.P(fmt.Sprintf("// Run%s imports %s from the request's source (AIP-153).", method.GoName, mc.pr.Desc.Plural))
 	g.P(fmt.Sprintf("func (s *%s) Run%s(ctx %s, request *%s) (*%s, error) {",
@@ -389,7 +393,7 @@ func (mc *methodCtx) generateRunImport(imp *importMethod) {
 	g.P("  var sourceLabel string")
 	g.P("  switch request.GetSource().(type) {")
 	for _, field := range append([]*protogen.Field{imp.inline}, imp.sources...) {
-		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(method.Input.GoIdent.GoImportPath.Ident(requestGoName+"_"+field.GoName))))
+		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(field.GoIdent)))
 		g.P(fmt.Sprintf("    sourceLabel = %q", sourceLabel(field)))
 	}
 	g.P("  default:")
@@ -400,10 +404,10 @@ func (mc *methodCtx) generateRunImport(imp *importMethod) {
 	g.P("    return nil, err")
 	g.P("  }")
 	g.P("  switch source := request.GetSource().(type) {")
-	g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(method.Input.GoIdent.GoImportPath.Ident(requestGoName+"_"+imp.inline.GoName))))
+	g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(imp.inline.GoIdent)))
 	g.P(fmt.Sprintf("    err = sink.importInline(ctx, source.%s.Get%s())", imp.inline.GoName, imp.items.GoName))
 	for _, field := range imp.sources {
-		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(method.Input.GoIdent.GoImportPath.Ident(requestGoName+"_"+field.GoName))))
+		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(field.GoIdent)))
 		g.P(fmt.Sprintf("    err = s.runner.%s(ctx, request, sink)", imp.runnerMethodGoName(field)))
 	}
 	g.P("  }")
