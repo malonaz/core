@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Import
-description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, what an import never does (events, updates), and why the x-migration-request header is on its way out.
+description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory nested InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, what an import never does (events, updates), and why the x-migration-request header is on its way out.
 labels:
     lang: go, protobuf
     repo: core
@@ -34,14 +34,14 @@ rpc ImportBooks(ImportBooksRequest) returns (google.longrunning.Operation) {
 
 message ImportBooksRequest {
   string parent = 1 [required, (google.api.resource_reference).child_type = "…/Book"];
+  message InlineSource { repeated Book books = 1; } // MUST be nested here, exactly one field: repeated {Resource} {plural}
   oneof source {                                   // MUST, even with one variant
     option (buf.validate.oneof).required = true;
-    InlineSource inline_source = 2;                // MUST exist, exactly this shape
+    InlineSource inline_source = 2;                // MUST exist
     TitlesSource titles_source = 3;                // any number of *Source messages, free-form
   }
   string request_id = 4 [required, uuid];         // MUST be required
 }
-message InlineSource { repeated Book books = 1; }   // exactly one field: repeated {Resource} {plural}
 message ImportBooksResponse {
   repeated string names = 1 [(google.api.resource_reference).type = "…/Book"];   // exactly this
 }
@@ -49,6 +49,11 @@ message ImportBooksResponse {
 
 - Data-level configuration common to every source goes at the top level of
   the request; source-specific configuration inside its `*Source` message.
+- `InlineSource` is nested in the request so a package can hold one import per
+  resource (Data Catalog's `ImportTaxonomiesRequest.InlineSource`). Its Go oneof
+  wrapper is therefore `Import{Plural}Request_InlineSource_` (trailing
+  underscore: protogen dodges the nested type) and the message
+  `Import{Plural}Request_InlineSource`.
 - `standard_method.emit_event` is rejected: **an import never emits events**
   (a backfill must not fan out).
 - The resource needs a `Create`/`BatchCreate` in the same service: the import
