@@ -145,11 +145,12 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(ctx context.Context, in *BatchGetBooksRequest, opts ...grpc.CallOption) (*BatchGetBooksResponse, error)
-	// Imports books onto a shelf, one per title, as a long-running operation
-	// (AIP-151) run by the scheduler. The operation's metadata reports
-	// progress; its response lists the books.
+	// Imports books onto a shelf from one of the request's sources: the books
+	// themselves, or titles to make books of. A long-running operation (AIP-151)
+	// run by the scheduler: its metadata tallies progress and partial failures,
+	// its response names the books imported.
 	//
-	// See: https://google.aip.dev/151 (Long-running operations).
+	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Gets a book review.
 	GetBookReview(ctx context.Context, in *GetBookReviewRequest, opts ...grpc.CallOption) (*v1.BookReview, error)
@@ -681,11 +682,12 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetBooks(context.Context, *BatchGetBooksRequest) (*BatchGetBooksResponse, error)
-	// Imports books onto a shelf, one per title, as a long-running operation
-	// (AIP-151) run by the scheduler. The operation's metadata reports
-	// progress; its response lists the books.
+	// Imports books onto a shelf from one of the request's sources: the books
+	// themselves, or titles to make books of. A long-running operation (AIP-151)
+	// run by the scheduler: its metadata tallies progress and partial failures,
+	// its response names the books imported.
 	//
-	// See: https://google.aip.dev/151 (Long-running operations).
+	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error)
 	// Gets a book review.
 	GetBookReview(context.Context, *GetBookReviewRequest) (*v1.BookReview, error)

@@ -252,53 +252,66 @@ message ImportBooksRequest {
   string parent = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "library.test.malonaz.com/Shelf"
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Book"
   ];
 
+  // Where the books come from.
+  oneof source {
+    option (buf.validate.oneof).required = true;
+
+    // The books themselves.
+    InlineSource inline_source = 2;
+
+    // Titles to make books of.
+    TitlesSource titles_source = 3;
+  }
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the operation it started instead of starting
+  // another, and a retried attempt finds the books an earlier one imported.
+  string request_id = 4 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// InlineSource carries the books to import in the request.
+message InlineSource {
+  // The books to import. A name, timestamps and labels are kept when set.
+  repeated malonaz.test.library.v1.Book books = 1;
+}
+
+// TitlesSource makes one book per title, by one author.
+message TitlesSource {
   // The author of every imported book.
   // Format: organizations/{organization}/authors/{author}
-  string author = 2 [
+  string author = 1 [
     (buf.validate.field).required = true,
     (google.api.resource_reference).type = "library.test.malonaz.com/Author"
   ];
 
   // The titles to import, one book each. A retry does not duplicate a title
   // already imported: book IDs are derived from the title.
-  repeated string titles = 3 [(buf.validate.field).repeated = {
+  repeated string titles = 2 [(buf.validate.field).repeated = {
     min_items: 1
     items: {
       string: {min_len: 1}
     }
   }];
 
-  // A unique identifier for this request. Must be a UUID. Repeating a request
-  // with the same ID returns the operation it started instead of starting another.
-  string request_id = 4 [
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
-    (buf.validate.field).string.uuid = true
-  ];
-
   // Test hook: fail with INTERNAL right after importing this many books, when
   // this attempt created the last of them; a retry finds it and carries on.
   // 0 disables it.
-  int32 fail_after = 5 [(buf.validate.field).int32.gte = 0];
+  int32 fail_after = 3 [(buf.validate.field).int32.gte = 0];
 
   // Test hook: wait this long before importing each book, so progress and
   // cancellation can be observed.
-  google.protobuf.Duration delay = 6 [(buf.validate.field).duration.gte = {}];
+  google.protobuf.Duration delay = 4 [(buf.validate.field).duration.gte = {}];
 }
 
 // Response message for LibraryService.ImportBooks, the operation's response.
 message ImportBooksResponse {
-  // The imported books, in title order.
-  repeated malonaz.test.library.v1.Book books = 1;
-}
-
-// Metadata of an ImportBooks operation: its progress.
-message ImportBooksMetadata {
-  // The number of books imported so far.
-  int32 imported = 1;
-
-  // The number of books to import.
-  int32 total = 2;
+  // The books imported, in import order.
+  // Format: organizations/{organization}/shelves/{shelf}/books/{book}
+  repeated string names = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Book"];
 }

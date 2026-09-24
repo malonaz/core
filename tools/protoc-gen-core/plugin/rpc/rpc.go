@@ -96,7 +96,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			}
 			if lro != nil {
 				si.lroMethods = append(si.lroMethods, lro)
-				continue
 			}
 			rpc, err := resource.ParseRPC(method)
 			if err != nil {
@@ -124,6 +123,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			}
 
 			mi := &methodInfo{method: method, rpc: rpc, natsEventOpts: natsEventOpts}
+			if lro != nil {
+				imp, err := parseImportMethod(lro, mi)
+				if err != nil {
+					return err
+				}
+				lro.imp = imp
+			}
 			allMethods = append(allMethods, methodEntry{si: si, mi: mi})
 		}
 		if err := requireUndelete(si); err != nil {
@@ -173,10 +179,27 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 	}
 
-	// Phase 4: Generate the long-running handlers.
+	// Phase 4: Generate the long-running handlers, and the imports they run.
 	for _, si := range services {
 		for _, lro := range si.lroMethods {
 			if err := gen.generateLongrunning(si, lro); err != nil {
+				return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
+			}
+			if lro.imp == nil {
+				continue
+			}
+			response, err := gen.responseMessage(lro)
+			if err != nil {
+				return err
+			}
+			if err := lro.imp.parseResponse(response); err != nil {
+				return err
+			}
+			mc, err := gen.newMethodCtx(si, lro.imp.mi)
+			if err != nil {
+				return err
+			}
+			if err := mc.generateImport(lro.imp); err != nil {
 				return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
 			}
 		}
@@ -581,6 +604,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		mc.generateList()
 	case mi.rpc.Search:
 		return mc.generateSearch()
+	case mi.rpc.Import:
+		// Generated with the long-running handlers, once every message is known.
 	}
 	return nil
 }

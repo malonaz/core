@@ -82,7 +82,7 @@ func newUserService_OrganizationServer(store userService_OrganizationStore, nats
 	}
 }
 
-func (s *userService_OrganizationServer) prepareCreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest) (*model.Organization, error) {
+func (s *userService_OrganizationServer) prepareCreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest, importing bool) (*model.Organization, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -94,16 +94,18 @@ func (s *userService_OrganizationServer) prepareCreateOrganization(ctx context.C
 
 	request.Organization.Name = resourcename.Sprint("organizations/{organization}", organizationId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.Organization.CreateTime == nil {
 			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.Organization.CreateTime == nil {
 		request.Organization.CreateTime = timestamppb.Now()
 	}
-	request.Organization.UpdateTime = request.Organization.CreateTime
+	if !importing || request.Organization.UpdateTime == nil {
+		request.Organization.UpdateTime = request.Organization.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -123,7 +125,7 @@ func (s *userService_OrganizationServer) prepareCreateOrganization(ctx context.C
 }
 
 func (s *userService_OrganizationServer) CreateOrganization(ctx context.Context, request *v11.CreateOrganizationRequest) (*v13.Organization, error) {
-	organizationModel, err := s.prepareCreateOrganization(ctx, request)
+	organizationModel, err := s.prepareCreateOrganization(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -521,7 +523,7 @@ func newUserService_UserServer(store userService_UserStore, natsClient *nats.Cli
 	}
 }
 
-func (s *userService_UserServer) prepareCreateUser(ctx context.Context, request *v11.CreateUserRequest) (*model.User, *model.UserProfile, error) {
+func (s *userService_UserServer) prepareCreateUser(ctx context.Context, request *v11.CreateUserRequest, importing bool) (*model.User, *model.UserProfile, error) {
 	// STEP 1: Set identifiers.
 	if request.RequestId == "" { // We always set a request id
 		request.RequestId = uuid.MustNewV7().String()
@@ -541,16 +543,18 @@ func (s *userService_UserServer) prepareCreateUser(ctx context.Context, request 
 
 	request.User.Name = resourcename.Sprint("organizations/{organization}/users/{user}", organizationId, userId)
 
-	// STEP 2: Instantiate timestamps.
-	// Check for x-migration-request header
-	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); len(values) > 0 {
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
 		if request.User.CreateTime == nil {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
 		}
-	} else {
+	} else if !importing || request.User.CreateTime == nil {
 		request.User.CreateTime = timestamppb.Now()
 	}
-	request.User.UpdateTime = request.User.CreateTime
+	if !importing || request.User.UpdateTime == nil {
+		request.User.UpdateTime = request.User.CreateTime
+	}
 
 	{ // Capture the Etag.
 		var err error
@@ -587,7 +591,7 @@ func (s *userService_UserServer) prepareCreateUser(ctx context.Context, request 
 }
 
 func (s *userService_UserServer) CreateUser(ctx context.Context, request *v11.CreateUserRequest) (*v13.User, error) {
-	userModel, userProfileModel, err := s.prepareCreateUser(ctx, request)
+	userModel, userProfileModel, err := s.prepareCreateUser(ctx, request, false)
 	if err != nil {
 		return nil, err
 	}

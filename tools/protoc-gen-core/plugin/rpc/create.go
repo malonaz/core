@@ -31,7 +31,8 @@ func (mc *methodCtx) prepareErrReturn() string {
 
 // generatePrepareCreate emits prepareCreate{X}: it resolves identifiers, the
 // resource name, timestamps and etag onto request.{X} (and any singleton
-// children) and returns the database models. Create and BatchCreate share it.
+// children) and returns the database models. Create, BatchCreate and
+// Import share it; an import keeps the timestamps it is given.
 func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 	g := mc.g
 	pr := mc.pr
@@ -42,7 +43,7 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 	for _, child := range mc.singletonChildren {
 		returns = append(returns, "*"+mc.gen.modelIdent(child.Message.GoIdent.GoName))
 	}
-	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (%s, error) {",
+	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s, importing bool) (%s, error) {",
 		mc.serverGoName, mc.prepareGoName(), mc.gen.ident(contextPkg, "Context"), createRequest, strings.Join(returns, ", ")))
 
 	// STEP 1: Set identifiers.
@@ -94,22 +95,26 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 	}
 
 	// STEP 2: Instantiate timestamps.
-	g.P("  // STEP 2: Instantiate timestamps.")
-	g.P("  // Check for x-migration-request header")
-	if mc.mi.rpc.Message.Desc.Fields().ByName("create_time") != nil {
-		g.P(fmt.Sprintf("  if values := %s(ctx, \"x-migration-request\"); len(values) > 0 {",
+	g.P("  // STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets")
+	g.P("  // them, unless the x-migration-request header vouches for the client's.")
+	hasCreateTime := mc.mi.rpc.Message.Desc.Fields().ByName("create_time") != nil
+	hasUpdateTime := mc.mi.rpc.Message.Desc.Fields().ByName("update_time") != nil
+	if hasCreateTime {
+		g.P(fmt.Sprintf("  if values := %s(ctx, \"x-migration-request\"); !importing && len(values) > 0 {",
 			mc.gen.ident(metadataPkg, "ValueFromIncomingContext")))
 		g.P(fmt.Sprintf("    if request.%s.CreateTime == nil {", resourceGoName))
 		g.P(fmt.Sprintf("      %s%s(%s, \"x-migration-request used without setting a create_time\").Err()",
 			errReturn, mc.statusErrorf(), mc.codes("InvalidArgument")))
 		g.P("    }")
-		g.P("  } else {")
+		g.P(fmt.Sprintf("  } else if !importing || request.%s.CreateTime == nil {", resourceGoName))
 		g.P(fmt.Sprintf("    request.%s.CreateTime = %s()",
 			resourceGoName, mc.gen.ident(timestamppbPkg, "Now")))
 		g.P("  }")
 	}
-	if mc.mi.rpc.Message.Desc.Fields().ByName("update_time") != nil {
-		g.P(fmt.Sprintf("  request.%s.UpdateTime = request.%s.CreateTime", resourceGoName, resourceGoName))
+	if hasUpdateTime && hasCreateTime {
+		g.P(fmt.Sprintf("  if !importing || request.%s.UpdateTime == nil {", resourceGoName))
+		g.P(fmt.Sprintf("    request.%s.UpdateTime = request.%s.CreateTime", resourceGoName, resourceGoName))
+		g.P("  }")
 	}
 	g.P()
 
@@ -206,7 +211,7 @@ func (mc *methodCtx) generateCreate() error {
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
 	models := mc.createModelVars()
-	g.P(fmt.Sprintf("  %s, err := s.%s(ctx, request)", strings.Join(models, ", "), mc.prepareGoName()))
+	g.P(fmt.Sprintf("  %s, err := s.%s(ctx, request, false)", strings.Join(models, ", "), mc.prepareGoName()))
 	g.P("  if err != nil {")
 	g.P("    return nil, err")
 	g.P("  }")

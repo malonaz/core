@@ -31,6 +31,11 @@ updated whenever a lore is added, renamed, or removed.
   BatchGet, list options and offset tokens, update allow-list and etag
   retry, the children guard and `force` cascade, mandatory Undelete for
   soft-deletable resources (restores lifecycle singletons only).
+- `lores/aip/codegen/import` — AIP-153 `Import{Plural}`: the enforced request
+  shape (oneof source, mandatory InlineSource, required request_id), names
+  response, shared ImportMetadata, the generated sink (stamping,
+  import-source/import-time labels, per-row fallback, progress), one runner
+  method per custom source, no events ever.
 - `lores/onyx/overview` — onyx: ServiceManifest/MainManifest (malonaz/onyx/v1),
   dependency and server kinds, build rules, generated flag namespaces,
   add-a-service / add-a-binary checklists, YAML traps.

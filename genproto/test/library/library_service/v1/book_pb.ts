@@ -20,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/book.proto.
  */
 export const file_malonaz_test_library_library_service_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhIoIBChFEZWxldGVCb29rUmVxdWVzdBI5CgRuYW1lGAEgASgJQivgQQL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCRINCgVmb3JjZRgEIAEoCCLaAQoSU2VhcmNoQm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESGgoFcXVlcnkYAiABKAlCC7pICHIDGIACyAEBEg4KBmZpbHRlchgDIAEoCRIdCglwYWdlX3NpemUYBCABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgFIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAYgASgIOg2C8y0CCGSS8y0DCgEqIo0BChNTZWFyY2hCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2sioAIKEkltcG9ydEJvb2tzUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjoKBmF1dGhvchgCIAEoCUIq+kEhCh9saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQXV0aG9yukgDyAEBEh4KBnRpdGxlcxgDIAMoCUIOukgLkgEICAEiBHICEAESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESGwoKZmFpbF9hZnRlchgFIAEoBUIHukgEGgIoABIyCgVkZWxheRgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIIukgFqgECMgAiQwoTSW1wb3J0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2siNgoTSW1wb3J0Qm9va3NNZXRhZGF0YRIQCghpbXBvcnRlZBgBIAEoBRINCgV0b3RhbBgCIAEoBUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhIoIBChFEZWxldGVCb29rUmVxdWVzdBI5CgRuYW1lGAEgASgJQivgQQL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCRINCgVmb3JjZRgEIAEoCCLaAQoSU2VhcmNoQm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESGgoFcXVlcnkYAiABKAlCC7pICHIDGIACyAEBEg4KBmZpbHRlchgDIAEoCRIdCglwYWdlX3NpemUYBCABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgFIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAYgASgIOg2C8y0CCGSS8y0DCgEqIo0BChNTZWFyY2hCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2siowIKEkltcG9ydEJvb2tzUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESTgoNaW5saW5lX3NvdXJjZRgCIAEoCzI1Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5JbmxpbmVTb3VyY2VIABJOCg10aXRsZXNfc291cmNlGAMgASgLMjUubWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxLlRpdGxlc1NvdXJjZUgAEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEByAEBQg8KBnNvdXJjZRIFukgCCAEiPAoMSW5saW5lU291cmNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vayK7AQoMVGl0bGVzU291cmNlEjoKBmF1dGhvchgBIAEoCUIq+kEhCh9saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQXV0aG9yukgDyAEBEh4KBnRpdGxlcxgCIAMoCUIOukgLkgEICAEiBHICEAESGwoKZmFpbF9hZnRlchgDIAEoBUIHukgEGgIoABIyCgVkZWxheRgEIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIIukgFqgECMgAiSAoTSW1wb3J0Qm9va3NSZXNwb25zZRIxCgVuYW1lcxgBIAMoCUIi+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va0JCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
 
 /**
  * Request message for LibraryService.CreateBook.
@@ -695,45 +695,36 @@ export type ImportBooksRequest = Message<"malonaz.test.library.library_service.v
   parent: string;
 
   /**
-   * The author of every imported book.
-   * Format: organizations/{organization}/authors/{author}
+   * Where the books come from.
    *
-   * @generated from field: string author = 2;
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportBooksRequest.source
    */
-  author: string;
-
-  /**
-   * The titles to import, one book each. A retry does not duplicate a title
-   * already imported: book IDs are derived from the title.
-   *
-   * @generated from field: repeated string titles = 3;
-   */
-  titles: string[];
+  source: {
+    /**
+     * The books themselves.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.InlineSource inline_source = 2;
+     */
+    value: InlineSource;
+    case: "inlineSource";
+  } | {
+    /**
+     * Titles to make books of.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.TitlesSource titles_source = 3;
+     */
+    value: TitlesSource;
+    case: "titlesSource";
+  } | { case: undefined; value?: undefined };
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the operation it started instead of starting another.
+   * with the same ID returns the operation it started instead of starting
+   * another, and a retried attempt finds the books an earlier one imported.
    *
    * @generated from field: string request_id = 4;
    */
   requestId: string;
-
-  /**
-   * Test hook: fail with INTERNAL right after importing this many books, when
-   * this attempt created the last of them; a retry finds it and carries on.
-   * 0 disables it.
-   *
-   * @generated from field: int32 fail_after = 5;
-   */
-  failAfter: number;
-
-  /**
-   * Test hook: wait this long before importing each book, so progress and
-   * cancellation can be observed.
-   *
-   * @generated from field: google.protobuf.Duration delay = 6;
-   */
-  delay?: Duration;
 };
 
 /**
@@ -751,45 +742,36 @@ export type ImportBooksRequestValid = Message<"malonaz.test.library.library_serv
   parent: string;
 
   /**
-   * The author of every imported book.
-   * Format: organizations/{organization}/authors/{author}
+   * Where the books come from.
    *
-   * @generated from field: string author = 2;
+   * @generated from oneof malonaz.test.library.library_service.v1.ImportBooksRequest.source
    */
-  author: string;
-
-  /**
-   * The titles to import, one book each. A retry does not duplicate a title
-   * already imported: book IDs are derived from the title.
-   *
-   * @generated from field: repeated string titles = 3;
-   */
-  titles: string[];
+  source: {
+    /**
+     * The books themselves.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.InlineSource inline_source = 2;
+     */
+    value: InlineSourceValid;
+    case: "inlineSource";
+  } | {
+    /**
+     * Titles to make books of.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.TitlesSource titles_source = 3;
+     */
+    value: TitlesSourceValid;
+    case: "titlesSource";
+  } | { case: undefined; value?: undefined };
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the operation it started instead of starting another.
+   * with the same ID returns the operation it started instead of starting
+   * another, and a retried attempt finds the books an earlier one imported.
    *
    * @generated from field: string request_id = 4;
    */
   requestId: string;
-
-  /**
-   * Test hook: fail with INTERNAL right after importing this many books, when
-   * this attempt created the last of them; a retry finds it and carries on.
-   * 0 disables it.
-   *
-   * @generated from field: int32 fail_after = 5;
-   */
-  failAfter: number;
-
-  /**
-   * Test hook: wait this long before importing each book, so progress and
-   * cancellation can be observed.
-   *
-   * @generated from field: google.protobuf.Duration delay = 6;
-   */
-  delay?: Duration;
 };
 
 /**
@@ -800,13 +782,13 @@ export const ImportBooksRequestSchema: GenMessage<ImportBooksRequest, {validType
   messageDesc(file_malonaz_test_library_library_service_v1_book, 10);
 
 /**
- * Response message for LibraryService.ImportBooks, the operation's response.
+ * InlineSource carries the books to import in the request.
  *
- * @generated from message malonaz.test.library.library_service.v1.ImportBooksResponse
+ * @generated from message malonaz.test.library.library_service.v1.InlineSource
  */
-export type ImportBooksResponse = Message<"malonaz.test.library.library_service.v1.ImportBooksResponse"> & {
+export type InlineSource = Message<"malonaz.test.library.library_service.v1.InlineSource"> & {
   /**
-   * The imported books, in title order.
+   * The books to import. A name, timestamps and labels are kept when set.
    *
    * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
    */
@@ -814,13 +796,13 @@ export type ImportBooksResponse = Message<"malonaz.test.library.library_service.
 };
 
 /**
- * Response message for LibraryService.ImportBooks, the operation's response.
+ * InlineSource carries the books to import in the request.
  *
- * @generated from message malonaz.test.library.library_service.v1.ImportBooksResponse
+ * @generated from message malonaz.test.library.library_service.v1.InlineSource
  */
-export type ImportBooksResponseValid = Message<"malonaz.test.library.library_service.v1.ImportBooksResponse"> & {
+export type InlineSourceValid = Message<"malonaz.test.library.library_service.v1.InlineSource"> & {
   /**
-   * The imported books, in title order.
+   * The books to import. A name, timestamps and labels are kept when set.
    *
    * @generated from field: repeated malonaz.test.library.v1.Book books = 1;
    */
@@ -828,39 +810,120 @@ export type ImportBooksResponseValid = Message<"malonaz.test.library.library_ser
 };
 
 /**
+ * Describes the message malonaz.test.library.library_service.v1.InlineSource.
+ * Use `create(InlineSourceSchema)` to create a new message.
+ */
+export const InlineSourceSchema: GenMessage<InlineSource, {validType: InlineSourceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 11);
+
+/**
+ * TitlesSource makes one book per title, by one author.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.TitlesSource
+ */
+export type TitlesSource = Message<"malonaz.test.library.library_service.v1.TitlesSource"> & {
+  /**
+   * The author of every imported book.
+   * Format: organizations/{organization}/authors/{author}
+   *
+   * @generated from field: string author = 1;
+   */
+  author: string;
+
+  /**
+   * The titles to import, one book each. A retry does not duplicate a title
+   * already imported: book IDs are derived from the title.
+   *
+   * @generated from field: repeated string titles = 2;
+   */
+  titles: string[];
+
+  /**
+   * Test hook: fail with INTERNAL right after importing this many books, when
+   * this attempt created the last of them; a retry finds it and carries on.
+   * 0 disables it.
+   *
+   * @generated from field: int32 fail_after = 3;
+   */
+  failAfter: number;
+
+  /**
+   * Test hook: wait this long before importing each book, so progress and
+   * cancellation can be observed.
+   *
+   * @generated from field: google.protobuf.Duration delay = 4;
+   */
+  delay?: Duration;
+};
+
+/**
+ * TitlesSource makes one book per title, by one author.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.TitlesSource
+ */
+export type TitlesSourceValid = Message<"malonaz.test.library.library_service.v1.TitlesSource"> & {
+  /**
+   * The author of every imported book.
+   * Format: organizations/{organization}/authors/{author}
+   *
+   * @generated from field: string author = 1;
+   */
+  author: string;
+
+  /**
+   * The titles to import, one book each. A retry does not duplicate a title
+   * already imported: book IDs are derived from the title.
+   *
+   * @generated from field: repeated string titles = 2;
+   */
+  titles: string[];
+
+  /**
+   * Test hook: fail with INTERNAL right after importing this many books, when
+   * this attempt created the last of them; a retry finds it and carries on.
+   * 0 disables it.
+   *
+   * @generated from field: int32 fail_after = 3;
+   */
+  failAfter: number;
+
+  /**
+   * Test hook: wait this long before importing each book, so progress and
+   * cancellation can be observed.
+   *
+   * @generated from field: google.protobuf.Duration delay = 4;
+   */
+  delay?: Duration;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.TitlesSource.
+ * Use `create(TitlesSourceSchema)` to create a new message.
+ */
+export const TitlesSourceSchema: GenMessage<TitlesSource, {validType: TitlesSourceValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 12);
+
+/**
+ * Response message for LibraryService.ImportBooks, the operation's response.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ImportBooksResponse
+ */
+export type ImportBooksResponse = Message<"malonaz.test.library.library_service.v1.ImportBooksResponse"> & {
+  /**
+   * The books imported, in import order.
+   * Format: organizations/{organization}/shelves/{shelf}/books/{book}
+   *
+   * @generated from field: repeated string names = 1;
+   */
+  names: string[];
+};
+
+export type ImportBooksResponseValid = ImportBooksResponse;
+
+/**
  * Describes the message malonaz.test.library.library_service.v1.ImportBooksResponse.
  * Use `create(ImportBooksResponseSchema)` to create a new message.
  */
 export const ImportBooksResponseSchema: GenMessage<ImportBooksResponse, {validType: ImportBooksResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 11);
-
-/**
- * Metadata of an ImportBooks operation: its progress.
- *
- * @generated from message malonaz.test.library.library_service.v1.ImportBooksMetadata
- */
-export type ImportBooksMetadata = Message<"malonaz.test.library.library_service.v1.ImportBooksMetadata"> & {
-  /**
-   * The number of books imported so far.
-   *
-   * @generated from field: int32 imported = 1;
-   */
-  imported: number;
-
-  /**
-   * The number of books to import.
-   *
-   * @generated from field: int32 total = 2;
-   */
-  total: number;
-};
-
-export type ImportBooksMetadataValid = ImportBooksMetadata;
-
-/**
- * Describes the message malonaz.test.library.library_service.v1.ImportBooksMetadata.
- * Use `create(ImportBooksMetadataSchema)` to create a new message.
- */
-export const ImportBooksMetadataSchema: GenMessage<ImportBooksMetadata, {validType: ImportBooksMetadataValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_book, 12);
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 13);
 

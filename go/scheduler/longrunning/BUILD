@@ -2,6 +2,7 @@ go_library(
     name = "longrunning",
     srcs = [
         "operation.go",
+        "progress.go",
         "runner.go",
         "server.go",
     ],
@@ -10,6 +11,7 @@ go_library(
         "//go/grpc/status",
         "//go/scheduler",
         "//go/scheduler/model",
+        "//malonaz/aip/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
