@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	aservice "example.com/repo/a/a_service"
@@ -246,12 +245,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("starting d-processor: %w", err)
 	}
-	dProcessorStop := sync.OnceFunc(dProcessorCleanup)
-	defer dProcessorStop()
-	gracefulStopFns = append(gracefulStopFns, func() error {
-		dProcessorStop()
-		return nil
-	})
+	defer dProcessorCleanup()
 	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
 	// d-http

@@ -9,7 +9,6 @@ go_test(
         "queue_test.go",
         "sat_test.go",
         "schedule_test.go",
-        "shutdown_test.go",
         "worker_test.go",
     ],
     data = [

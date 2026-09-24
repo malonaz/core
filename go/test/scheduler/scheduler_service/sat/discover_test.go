@@ -53,27 +53,17 @@ func (o *replicaOutput) String() string {
 // serves, returning its output and the error it exited with, if any.
 func runReplica(t *testing.T, endpoints ...string) (string, error) {
 	t.Helper()
-	replica, output, err := startReplica(t, nil, endpoints...)
-	if err != nil {
+	port := int(replicaPorts.Add(3))
+	sut := schedulerSUT(fmt.Sprintf("%s-replica-%d", schedulerServiceName, port), port, port+1, port+2, endpoints...)
+	output := &replicaOutput{}
+	replica, err := binary.New(sut.Path, append(sut.Args, "--logging.format", logging.FormatRaw)...)
+	require.NoError(t, err)
+	replica = replica.WithName(sut.Name).WithPort(sut.Port).WithLogger(slog.New(logging.NewRawHandler(output, nil)))
+	if err := replica.RunAsync(); err != nil {
 		return output.String(), err
 	}
 	replica.Stop()
 	return output.String(), nil
-}
-
-// startReplica boots a replica dispatching to the endpoints, with extra flags,
-// and returns once it serves. Its worker id is its name.
-func startReplica(t *testing.T, args []string, endpoints ...string) (*binary.Binary, *replicaOutput, error) {
-	t.Helper()
-	port := int(replicaPorts.Add(3))
-	sut := schedulerSUT(fmt.Sprintf("%s-replica-%d", schedulerServiceName, port), port, port+1, port+2, endpoints...)
-	output := &replicaOutput{}
-	args = append(append(sut.Args, args...), "--logging.format", logging.FormatRaw)
-	replica, err := binary.New(sut.Path, args...)
-	require.NoError(t, err)
-	replica = replica.WithName(sut.Name).WithPort(sut.Port).WithLogger(slog.New(logging.NewRawHandler(output, nil)))
-	t.Cleanup(replica.Stop)
-	return replica, output, replica.RunAsync()
 }
 
 func TestDiscover_Idempotent(t *testing.T) {

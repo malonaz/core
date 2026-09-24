@@ -447,18 +447,7 @@ func (g *generator) service(s *Service) {
 	g.P("if err != nil {")
 	g.P("return ", fmt_, `.Errorf("starting `, s.GetName(), `: %w", err)`)
 	g.P("}")
-	if !s.IsProcessor() {
-		g.P("defer ", v, "Cleanup()")
-		return
-	}
-	// A processor pulls work, so it stops in the graceful chain, ahead of the servers its handlers
-	// call. The deferred stop still covers a failed start.
-	g.P(v, "Stop := ", g.Qual("sync", "OnceFunc"), "(", v, "Cleanup)")
-	g.P("defer ", v, "Stop()")
-	g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
-	g.P(v, "Stop()")
-	g.P("return nil")
-	g.P("})")
+	g.P("defer ", v, "Cleanup()")
 }
 
 // healthChecks are what a service's health on a server depends on: its databases and the gRPC
