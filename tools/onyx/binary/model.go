@@ -69,6 +69,17 @@ type Service struct {
 	Servers []*Server
 }
 
+// IsProcessor reports whether the service is only run by processor servers: it pulls work and
+// serves nothing, so it can be stopped ahead of the servers.
+func (s *Service) IsProcessor() bool {
+	for _, server := range s.Servers {
+		if server.GetProcessor() == nil {
+			return false
+		}
+	}
+	return true
+}
+
 // Dependency is one resolved constructor argument.
 type Dependency struct {
 	GRPCClient *GRPCClient
