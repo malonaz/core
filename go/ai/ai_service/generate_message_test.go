@@ -3,7 +3,10 @@ package ai_service
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_service/v1"
@@ -164,4 +167,183 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 		}
 		require.Error(t, wrapper.Send(response))
 	})
+}
+
+func newTestToolCall(toolCallID string) *aipb.ToolCall {
+	return &aipb.ToolCall{Id: toolCallID, Name: "tool_" + toolCallID}
+}
+
+func newTestToolResult(toolCallID, content string) *aipb.ToolResult {
+	return ai.NewToolResult("tool_"+toolCallID, toolCallID, content)
+}
+
+func newTestInterruptedToolResult(toolCallID string) *aipb.ToolResult {
+	return ai.NewErrorToolResult("tool_"+toolCallID, toolCallID, errToolCallInterrupted)
+}
+
+func newTestToolCallMessage(toolCalls ...*aipb.ToolCall) *aipb.Message {
+	blocks := []*aipb.Block{ai.NewThoughtBlock("thinking")}
+	for _, toolCall := range toolCalls {
+		blocks = append(blocks, ai.NewToolCallBlock(toolCall))
+	}
+	return ai.NewAssistantMessage(blocks...)
+}
+
+func newTestToolResultMessage(toolResults ...*aipb.ToolResult) *aipb.Message {
+	blocks := make([]*aipb.Block, 0, len(toolResults))
+	for _, toolResult := range toolResults {
+		blocks = append(blocks, ai.NewToolResultBlock(toolResult))
+	}
+	return ai.NewToolMessage(blocks...)
+}
+
+func TestPairToolCalls(t *testing.T) {
+	userMessage := ai.NewUserMessage(ai.NewTextBlock("hi"))
+	assistantMessage := ai.NewAssistantMessage(ai.NewTextBlock("hello"))
+	discoveryResult := newTestToolResult("d", "discovered")
+	discoveryToolCall := newTestToolCall("d")
+	discoveryToolCall.Result = discoveryResult
+
+	for _, testCase := range []struct {
+		name     string
+		history  []*aipb.Message
+		expected []*aipb.Message
+	}{
+		{
+			name: "well-paired history is unchanged",
+			history: []*aipb.Message{
+				userMessage,
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("a", "A"), newTestToolResult("b", "B")),
+				assistantMessage,
+			},
+			expected: []*aipb.Message{
+				userMessage,
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("a", "A"), newTestToolResult("b", "B")),
+				assistantMessage,
+			},
+		},
+		{
+			name: "trailing unanswered call is answered with an error",
+			history: []*aipb.Message{
+				userMessage,
+				newTestToolCallMessage(newTestToolCall("a")),
+			},
+			expected: []*aipb.Message{
+				userMessage,
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+			},
+		},
+		{
+			name: "unanswered call is answered in place, before later messages",
+			history: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				userMessage,
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+				userMessage,
+			},
+		},
+		{
+			name: "partially answered calls are completed in call order",
+			history: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b"), newTestToolCall("c")),
+				newTestToolResultMessage(newTestToolResult("b", "B")),
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b"), newTestToolCall("c")),
+				newTestToolResultMessage(newTestInterruptedToolResult("a"), newTestToolResult("b", "B"), newTestInterruptedToolResult("c")),
+			},
+		},
+		{
+			name: "results split across tool messages merge in call order",
+			history: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("b", "B")),
+				newTestToolResultMessage(newTestToolResult("a", "A")),
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("a", "A"), newTestToolResult("b", "B")),
+			},
+		},
+		{
+			name: "unanswered server-resolved call falls back to its own result",
+			history: []*aipb.Message{
+				newTestToolCallMessage(discoveryToolCall),
+				userMessage,
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(discoveryToolCall),
+				newTestToolResultMessage(discoveryResult),
+				userMessage,
+			},
+		},
+		{
+			name: "duplicate results keep the first",
+			history: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestToolResult("a", "first")),
+				newTestToolResultMessage(newTestToolResult("a", "second")),
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestToolResult("a", "first")),
+			},
+		},
+		{
+			name: "results answering no call are dropped",
+			history: []*aipb.Message{
+				newTestToolResultMessage(newTestToolResult("x", "X")),
+				userMessage,
+				newTestToolResultMessage(newTestToolResult("x", "X")),
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestToolResult("a", "A"), newTestToolResult("x", "X")),
+				assistantMessage,
+				newTestToolResultMessage(newTestToolResult("a", "late")),
+			},
+			expected: []*aipb.Message{
+				userMessage,
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestToolResult("a", "A")),
+				assistantMessage,
+			},
+		},
+		{
+			name: "answers are scoped to the turn they follow",
+			history: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolCallMessage(newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("a", "A"), newTestToolResult("b", "B")),
+			},
+			expected: []*aipb.Message{
+				newTestToolCallMessage(newTestToolCall("a")),
+				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+				newTestToolCallMessage(newTestToolCall("b")),
+				newTestToolResultMessage(newTestToolResult("b", "B")),
+			},
+		},
+		{
+			name:     "history of stray results pairs to nothing",
+			history:  []*aipb.Message{newTestToolResultMessage(newTestToolResult("x", "X"))},
+			expected: []*aipb.Message{},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			historyBefore := make([]*aipb.Message, 0, len(testCase.history))
+			for _, message := range testCase.history {
+				historyBefore = append(historyBefore, proto.CloneOf(message))
+			}
+			pairedHistory := pairToolCalls(testCase.history)
+			diff := cmp.Diff(testCase.expected, pairedHistory, protocmp.Transform())
+			require.Empty(t, diff, diff)
+			// The stored history is never rewritten.
+			diff = cmp.Diff(historyBefore, testCase.history, protocmp.Transform())
+			require.Empty(t, diff, diff)
+		})
+	}
 }
