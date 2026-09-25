@@ -2,6 +2,7 @@ package ai_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -178,6 +179,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	history = slices.DeleteFunc(history, func(message *aipb.Message) bool {
 		return message.GetRole() == aipb.Role_ROLE_ASSISTANT && len(message.GetBlocks()) == 0
 	})
+	history = pairToolCalls(history)
 	if len(history) == 0 {
 		return status.Errorf(codes.FailedPrecondition, "chat %q has no messages to generate from", chatRn.String()).Err()
 	}
@@ -309,6 +311,67 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		Content: &pb.StreamGenerateMessageResponse_GeneratedMessage{GeneratedMessage: persistedMessage},
 	}
 	return srv.Send(finalResponse)
+}
+
+// errToolCallInterrupted answers a tool call whose result was never recorded.
+var errToolCallInterrupted = errors.New("no result was recorded for this tool call: it was interrupted and may not have run")
+
+// pairToolCalls follows every assistant message carrying tool calls with a
+// single tool message answering each call exactly once, in call order, and
+// drops results answering no call: the only shape every provider accepts. A
+// call loses its result whenever a turn dies before its tool message lands (a
+// crash, a failed generation excluding its input tool message, a fork
+// superseding it), which would otherwise poison the chat for good. Only the
+// provider-bound history is rewritten: clients may leave calls unanswered on
+// purpose, e.g. while a turn awaits the user.
+func pairToolCalls(history []*aipb.Message) []*aipb.Message {
+	pairedHistory := make([]*aipb.Message, 0, len(history))
+	for i, message := range history {
+		// Tool messages only ever answer the assistant message they follow.
+		if message.GetRole() == aipb.Role_ROLE_TOOL {
+			continue
+		}
+		pairedHistory = append(pairedHistory, message)
+		toolCallBlocks := ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall)
+		if len(toolCallBlocks) == 0 {
+			continue
+		}
+
+		toolCallIDToToolResultBlock := map[string]*aipb.Block{}
+		for _, followingMessage := range history[i+1:] {
+			if followingMessage.GetRole() != aipb.Role_ROLE_TOOL {
+				break
+			}
+			for _, block := range followingMessage.GetBlocks() {
+				toolCallID := block.GetToolResult().GetToolCallId()
+				// A later duplicate must not rewrite an answer already sent.
+				if _, ok := toolCallIDToToolResultBlock[toolCallID]; !ok {
+					toolCallIDToToolResultBlock[toolCallID] = block
+				}
+			}
+		}
+
+		toolResultBlocks := make([]*aipb.Block, 0, len(toolCallBlocks))
+		for _, toolCallBlock := range toolCallBlocks {
+			toolCall := toolCallBlock.GetToolCall()
+			toolResultBlock, ok := toolCallIDToToolResultBlock[toolCall.GetId()]
+			if !ok {
+				toolResultBlock = ai.NewToolResultBlock(missingToolResult(toolCall))
+			}
+			toolResultBlocks = append(toolResultBlocks, toolResultBlock)
+		}
+		pairedHistory = append(pairedHistory, ai.NewToolMessage(toolResultBlocks...))
+	}
+	return pairedHistory
+}
+
+// missingToolResult stands in for a tool call's unrecorded result: its
+// server-generated result if any, else an error saying it may not have run.
+func missingToolResult(toolCall *aipb.ToolCall) *aipb.ToolResult {
+	if toolCall.GetResult() != nil {
+		return toolCall.GetResult()
+	}
+	return ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
 }
 
 // markGenerationFailure flags the input messages of a failed generation (and
