@@ -313,17 +313,17 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	return srv.Send(finalResponse)
 }
 
-// errToolCallInterrupted answers a tool call whose result was never recorded.
-var errToolCallInterrupted = errors.New("no result was recorded for this tool call: it was interrupted and may not have run")
+// errToolResultMissing answers a tool call left without a result. Worded
+// neutrally: most are calls a client chose not to answer, not failures.
+var errToolResultMissing = errors.New("no result was provided for this tool call; it may or may not have run")
 
 // pairToolCalls follows every assistant message carrying tool calls with a
 // single tool message answering each call exactly once, in call order, and
 // drops results answering no call: the only shape every provider accepts. A
-// call loses its result whenever a turn dies before its tool message lands (a
-// crash, a failed generation excluding its input tool message, a fork
-// superseding it), which would otherwise poison the chat for good. Only the
-// provider-bound history is rewritten: clients may leave calls unanswered on
-// purpose, e.g. while a turn awaits the user.
+// call goes unanswered whenever a client skips it or a turn dies before its
+// tool message lands (a crash, a failed generation excluding its input tool
+// message, a fork superseding it). Only the provider-bound history is
+// rewritten, so a call awaiting the user stays open in storage.
 func pairToolCalls(history []*aipb.Message) []*aipb.Message {
 	pairedHistory := make([]*aipb.Message, 0, len(history))
 	for i, message := range history {
@@ -365,13 +365,13 @@ func pairToolCalls(history []*aipb.Message) []*aipb.Message {
 	return pairedHistory
 }
 
-// missingToolResult stands in for a tool call's unrecorded result: its
-// server-generated result if any, else an error saying it may not have run.
+// missingToolResult stands in for a tool call's missing result: its
+// server-generated result if any, else an error saying none was provided.
 func missingToolResult(toolCall *aipb.ToolCall) *aipb.ToolResult {
 	if toolCall.GetResult() != nil {
 		return toolCall.GetResult()
 	}
-	return ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
+	return ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolResultMissing)
 }
 
 // markGenerationFailure flags the input messages of a failed generation (and

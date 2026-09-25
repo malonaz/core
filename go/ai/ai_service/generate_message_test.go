@@ -177,8 +177,8 @@ func newTestToolResult(toolCallID, content string) *aipb.ToolResult {
 	return ai.NewToolResult("tool_"+toolCallID, toolCallID, content)
 }
 
-func newTestInterruptedToolResult(toolCallID string) *aipb.ToolResult {
-	return ai.NewErrorToolResult("tool_"+toolCallID, toolCallID, errToolCallInterrupted)
+func newTestMissingToolResult(toolCallID string) *aipb.ToolResult {
+	return ai.NewErrorToolResult("tool_"+toolCallID, toolCallID, errToolResultMissing)
 }
 
 func newTestToolCallMessage(toolCalls ...*aipb.ToolCall) *aipb.Message {
@@ -233,7 +233,7 @@ func TestPairToolCalls(t *testing.T) {
 			expected: []*aipb.Message{
 				userMessage,
 				newTestToolCallMessage(newTestToolCall("a")),
-				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+				newTestToolResultMessage(newTestMissingToolResult("a")),
 			},
 		},
 		{
@@ -244,7 +244,7 @@ func TestPairToolCalls(t *testing.T) {
 			},
 			expected: []*aipb.Message{
 				newTestToolCallMessage(newTestToolCall("a")),
-				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+				newTestToolResultMessage(newTestMissingToolResult("a")),
 				userMessage,
 			},
 		},
@@ -256,7 +256,7 @@ func TestPairToolCalls(t *testing.T) {
 			},
 			expected: []*aipb.Message{
 				newTestToolCallMessage(newTestToolCall("a"), newTestToolCall("b"), newTestToolCall("c")),
-				newTestToolResultMessage(newTestInterruptedToolResult("a"), newTestToolResult("b", "B"), newTestInterruptedToolResult("c")),
+				newTestToolResultMessage(newTestMissingToolResult("a"), newTestToolResult("b", "B"), newTestMissingToolResult("c")),
 			},
 		},
 		{
@@ -322,7 +322,7 @@ func TestPairToolCalls(t *testing.T) {
 			},
 			expected: []*aipb.Message{
 				newTestToolCallMessage(newTestToolCall("a")),
-				newTestToolResultMessage(newTestInterruptedToolResult("a")),
+				newTestToolResultMessage(newTestMissingToolResult("a")),
 				newTestToolCallMessage(newTestToolCall("b")),
 				newTestToolResultMessage(newTestToolResult("b", "B")),
 			},
