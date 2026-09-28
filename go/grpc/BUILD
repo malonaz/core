@@ -33,6 +33,7 @@ go_library(
         "//third_party/go:github.com__huandu__xstrings",
         "//third_party/go:github.com__prometheus__client_golang__prometheus",
         "//third_party/go:github.com__sercand__kuberesolver__v5",
+        "//third_party/proto:google__api__annotations",
         "//third_party/go:golang.org__x__net__context",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__balancer__roundrobin",
@@ -50,5 +51,16 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["custom_mime_test.go"],
+    deps = [
+        ":grpc",
+        "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/proto:google__api__annotations",
     ],
 )

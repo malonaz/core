@@ -35,6 +35,9 @@ const (
 	HeaderXOriginalURL    = "X-Original-Url"
 	HeaderXRequestBody    = "X-Request-Body-Bin"
 	HeaderXHTTPMethod     = "X-Http-Method"
+	// HeaderXOriginalContentType is the Content-Type a client sent, kept when a custom mime
+	// replaces it. A signature over the request's headers needs the value as sent.
+	HeaderXOriginalContentType = "X-Original-Content-Type"
 )
 
 // RegisterHandler is syntactice sugar for a gRPC gateway handler.
@@ -173,6 +176,11 @@ func (g *Gateway) Serve(ctx context.Context) error {
 		}),
 	)
 	g.options = append(g.options, withCustomMarshalers()...)
+	routeToCustomMime, err := getRouteToCustomMime()
+	if err != nil {
+		return fmt.Errorf("getting custom mimes: %w", err)
+	}
+	g.options = append(g.options, runtime.WithMiddlewares(customMimeMiddleware(routeToCustomMime)))
 
 	// Default dial options.
 	messageSizeDialOptions := grpc.WithDefaultCallOptions(
@@ -285,6 +293,9 @@ func (g *Gateway) incomingHeaderMatcher(key string) (string, bool) {
 	}
 
 	canonicalKey := textproto.CanonicalMIMEHeaderKey(key)
+	if canonicalKey == HeaderXOriginalContentType {
+		return canonicalKey, true
+	}
 	if _, ok := g.allowedIncomingHeaderSet[canonicalKey]; ok {
 		return canonicalKey, true
 	}
@@ -346,14 +357,23 @@ func (g *Gateway) gatewayOptionsMetadata(ctx context.Context, r *http.Request) m
 	return md
 }
 
-func customMimeWrapper(routeToGatewayOptions map[string]*grpcpb.GatewayOptions, h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gatewayOptions := routeToGatewayOptions[r.URL.Path]
-		if gatewayOptions.GetCustomMime() != "" {
-			r.Header.Set("Content-Type", gatewayOptions.CustomMime)
+// customMimeMiddleware sets a method's custom mime as the request's Content-Type, so the gateway
+// picks that marshaler, and keeps what the client sent in [HeaderXOriginalContentType].
+//
+// A middleware because it runs after routing, where the matched route is known, and before the
+// handler chooses a marshaler.
+func customMimeMiddleware(routeToCustomMime map[string]string) runtime.Middleware {
+	return func(next runtime.HandlerFunc) runtime.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			if pattern, ok := runtime.HTTPPattern(r.Context()); ok {
+				if customMime, ok := routeToCustomMime[r.Method+" "+pattern.String()]; ok {
+					r.Header.Set(HeaderXOriginalContentType, r.Header.Get("Content-Type"))
+					r.Header.Set("Content-Type", customMime)
+				}
+			}
+			next(w, r, pathParams)
 		}
-		h.ServeHTTP(w, r)
-	})
+	}
 }
 
 func preflightHandler(w http.ResponseWriter, r *http.Request) {
