@@ -108,3 +108,30 @@ func TestParseToolCallDirect(t *testing.T) {
 	require.Equal(t, serviceFullName+".CreateDiscoveryTool", rpc.GetMethodFullName())
 	require.Equal(t, "MyDiscover", rpc.GetRequest().AsMap()["name"])
 }
+
+func TestParseToolCallJSONNames(t *testing.T) {
+	// Models sometimes emit protojson's camelCase names instead of the proto
+	// names the schema shows; parsing must read them, never drop them.
+	toolSet := createServiceToolSet(t)
+	tool := toolByName(t, toolSet, "AiEngine_CreateTool")
+	arguments, err := structpb.NewStruct(map[string]any{
+		"descriptorReference": map[string]any{"message": "malonaz.ai.v1.ToolCall"},
+		"schemaConfiguration": map[string]any{"withMaxDepth": 3},
+	})
+	require.NoError(t, err)
+	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
+		ToolCall: &aipb.ToolCall{
+			Id:          "call-1",
+			Name:        tool.GetName(),
+			Arguments:   arguments,
+			Annotations: tool.GetAnnotations(),
+		},
+		ToolSets: []*aipb.ToolSet{toolSet},
+	}
+	parseToolCallResponse, err := aiEngineClient.ParseToolCall(ctx, parseToolCallRequest)
+	require.NoError(t, err)
+
+	request := parseToolCallResponse.GetRpc().GetRequest().AsMap()
+	require.Equal(t, map[string]any{"message": "malonaz.ai.v1.ToolCall"}, request["descriptor_reference"])
+	require.Equal(t, map[string]any{"with_max_depth": float64(3)}, request["schema_configuration"])
+}

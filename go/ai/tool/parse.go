@@ -149,6 +149,11 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 	}
 
 	arguments := unwrapArgumentsEnvelope(toolCall.GetArguments().AsMap())
+	// Normalize before pruning: the mask and the builder both speak proto names.
+	arguments, err := schemaBuilder.NormalizeArguments(protoreflect.FullName(messageFullName), arguments)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "normalizing arguments: %v", err).Err()
+	}
 
 	var fieldMask *pbfieldmask.FieldMask
 	if generationFieldMask, ok := aipb.Annotations.GenerationFieldMask.Get(toolCall); ok {

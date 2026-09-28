@@ -29,6 +29,22 @@ const (
 )
 
 func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args map[string]any) (*dynamicpb.Message, error) {
+	msgDesc, err := b.findMessageDescriptor(messageFullName)
+	if err != nil {
+		return nil, err
+	}
+	return BuildMessage(msgDesc, args)
+}
+
+func (b *SchemaBuilder) NormalizeArguments(messageFullName protoreflect.FullName, args map[string]any) (map[string]any, error) {
+	msgDesc, err := b.findMessageDescriptor(messageFullName)
+	if err != nil {
+		return nil, err
+	}
+	return NormalizeArguments(msgDesc, args), nil
+}
+
+func (b *SchemaBuilder) findMessageDescriptor(messageFullName protoreflect.FullName) (protoreflect.MessageDescriptor, error) {
 	desc, err := b.schema.FindDescriptorByName(messageFullName)
 	if err != nil {
 		return nil, fmt.Errorf("message not found: %s", messageFullName)
@@ -37,9 +53,77 @@ func (b *SchemaBuilder) BuildMessage(messageFullName protoreflect.FullName, args
 	if !ok {
 		return nil, fmt.Errorf("descriptor is not a message: %s", messageFullName)
 	}
-	return BuildMessage(msgDesc, args)
+	return msgDesc, nil
 }
 
+// NormalizeArguments returns a copy of args keyed by proto field names, as BuildMessage reads them.
+// protojson accepts a field's JSON name too (coverMessage for cover_message) and models emit either,
+// so JSON-name keys are renamed, recursively through nested messages; when both spellings are
+// present the proto name wins. Keys naming no field are kept as is, and free-form values (Struct,
+// Value, ListValue, map keys) are never touched.
+func NormalizeArguments(desc protoreflect.MessageDescriptor, args map[string]any) map[string]any {
+	fields := desc.Fields()
+	normalized := make(map[string]any, len(args))
+	for key, value := range args {
+		field := fields.ByName(protoreflect.Name(key))
+		if field == nil {
+			if field = fields.ByJSONName(key); field != nil {
+				if _, ok := args[string(field.Name())]; ok {
+					continue
+				}
+				key = string(field.Name())
+			}
+		}
+		if field != nil {
+			value = normalizeFieldValue(field, value)
+		}
+		normalized[key] = value
+	}
+	return normalized
+}
+
+func normalizeFieldValue(field protoreflect.FieldDescriptor, value any) any {
+	switch {
+	case field.IsMap():
+		entries, ok := value.(map[string]any)
+		if !ok || field.MapValue().Kind() != protoreflect.MessageKind {
+			return value
+		}
+		normalized := make(map[string]any, len(entries))
+		for key, entry := range entries {
+			normalized[key] = normalizeMessageValue(field.MapValue().Message(), entry)
+		}
+		return normalized
+	case field.Kind() != protoreflect.MessageKind:
+		return value
+	case field.IsList():
+		items, ok := value.([]any)
+		if !ok {
+			return value
+		}
+		normalized := make([]any, len(items))
+		for i, item := range items {
+			normalized[i] = normalizeMessageValue(field.Message(), item)
+		}
+		return normalized
+	default:
+		return normalizeMessageValue(field.Message(), value)
+	}
+}
+
+func normalizeMessageValue(desc protoreflect.MessageDescriptor, value any) any {
+	switch desc.FullName() {
+	case structFullName, valueFullName, listValueFullName:
+		return value
+	}
+	nested, ok := value.(map[string]any)
+	if !ok {
+		return value
+	}
+	return NormalizeArguments(desc, nested)
+}
+
+// BuildMessage builds desc from args keyed by proto field names (see NormalizeArguments).
 func BuildMessage(desc protoreflect.MessageDescriptor, args map[string]any) (*dynamicpb.Message, error) {
 	msg := dynamicpb.NewMessage(desc)
 	if err := populateMessage(msg, args); err != nil {
