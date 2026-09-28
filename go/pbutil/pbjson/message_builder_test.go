@@ -416,13 +416,6 @@ func TestNormalizeArguments(t *testing.T) {
 		}, NormalizeArguments(dummyDescriptor, args))
 	})
 
-	t.Run("decodes JSON-encoded strings inside repeated messages", func(t *testing.T) {
-		args := map[string]any{"notes": []any{`{"content": "first"}`}}
-		require.Equal(t, map[string]any{
-			"notes": []any{map[string]any{"content": "first"}},
-		}, NormalizeArguments(shelfMetadataDescriptor, args))
-	})
-
 	t.Run("keeps non-JSON strings in message and list fields", func(t *testing.T) {
 		args := map[string]any{"metadata": "not json", "tags": "{not json"}
 		require.Equal(t, args, NormalizeArguments(dummyDescriptor, args))

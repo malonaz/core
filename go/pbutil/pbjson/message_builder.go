@@ -135,7 +135,7 @@ func asJSONValue[T map[string]any | []any](value any) (T, bool) {
 	var decoded T
 	s, ok := value.(string)
 	// Most strings here are scalar forms (timestamps, money): keep them off the decoder.
-	if !ok || !strings.HasPrefix(s, "{") && !strings.HasPrefix(s, "[") {
+	if !ok || (!strings.HasPrefix(s, "{") && !strings.HasPrefix(s, "[")) {
 		return decoded, false
 	}
 	if err := json.Unmarshal([]byte(s), &decoded); err != nil {
