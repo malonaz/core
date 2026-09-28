@@ -236,31 +236,6 @@ func TestBuildMessage(t *testing.T) {
 		require.Equal(t, "en", metadata.Get(metadataFields.ByName("language")).String())
 	})
 
-	t.Run("nested message field as JSON-encoded string is coerced", func(t *testing.T) {
-		// Regression: models sometimes emit a nested message as a stringified
-		// JSON object.
-		args := map[string]any{
-			"metadata": `{"summary": "A great book", "language": "en"}`,
-		}
-		message, err := BuildMessage(dummyDescriptor, args)
-		require.NoError(t, err)
-		metadata := message.Get(dummyDescriptor.Fields().ByName("metadata")).Message()
-		require.Equal(t, "A great book", metadata.Get(metadata.Descriptor().Fields().ByName("summary")).String())
-	})
-
-	t.Run("repeated field as JSON-encoded string is coerced", func(t *testing.T) {
-		// Regression: model emitted a repeated string field as a stringified
-		// JSON array.
-		args := map[string]any{
-			"tags": `["roofing", "estimate"]`,
-		}
-		message, err := BuildMessage(dummyDescriptor, args)
-		require.NoError(t, err)
-		tags := message.Get(dummyDescriptor.Fields().ByName("tags")).List()
-		require.Equal(t, 2, tags.Len())
-		require.Equal(t, "roofing", tags.Get(0).String())
-	})
-
 	t.Run("nested message field as non-JSON string fails", func(t *testing.T) {
 		args := map[string]any{"metadata": "not json"}
 		_, err := BuildMessage(dummyDescriptor, args)
@@ -426,6 +401,31 @@ func TestNormalizeArguments(t *testing.T) {
 			"notes":          []any{map[string]any{"content": "first"}},
 			"author_to_note": map[string]any{"janeDoe": map[string]any{"content": "second"}},
 		}, NormalizeArguments(shelfMetadataDescriptor, args))
+	})
+
+	t.Run("decodes messages and lists emitted as JSON-encoded strings", func(t *testing.T) {
+		// Regression: models sometimes stringify a nested message or list, which hid its
+		// JSON-name keys from normalization.
+		args := map[string]any{
+			"metadata": `{"phoneNumber": "+15551234567"}`,
+			"tags":     `["roofing", "estimate"]`,
+		}
+		require.Equal(t, map[string]any{
+			"metadata": map[string]any{"phone_number": "+15551234567"},
+			"tags":     []any{"roofing", "estimate"},
+		}, NormalizeArguments(dummyDescriptor, args))
+	})
+
+	t.Run("decodes JSON-encoded strings inside repeated messages", func(t *testing.T) {
+		args := map[string]any{"notes": []any{`{"content": "first"}`}}
+		require.Equal(t, map[string]any{
+			"notes": []any{map[string]any{"content": "first"}},
+		}, NormalizeArguments(shelfMetadataDescriptor, args))
+	})
+
+	t.Run("keeps non-JSON strings in message and list fields", func(t *testing.T) {
+		args := map[string]any{"metadata": "not json", "tags": "{not json"}
+		require.Equal(t, args, NormalizeArguments(dummyDescriptor, args))
 	})
 
 	t.Run("leaves free-form struct contents untouched", func(t *testing.T) {
