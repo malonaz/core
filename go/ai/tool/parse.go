@@ -218,13 +218,6 @@ func pruneArguments(arguments map[string]any, prefix string, fieldMask *pbfieldm
 				prunedItems = append(prunedItems, item)
 			}
 			prunedArguments[key] = prunedItems
-		default:
-			// A scalar where the mask expects a subtree: models sometimes emit a
-			// nested message as a JSON-encoded string. Coerce it before giving up;
-			// otherwise drop it, since it cannot match the schema.
-			if coerced, ok := decodeJSONObject(value); ok {
-				prunedArguments[key] = pruneArguments(coerced, path, fieldMask)
-			}
 		}
 	}
 	return prunedArguments

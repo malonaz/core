@@ -59,8 +59,9 @@ func (b *SchemaBuilder) findMessageDescriptor(messageFullName protoreflect.FullN
 // NormalizeArguments returns a copy of args keyed by proto field names, as BuildMessage reads them.
 // protojson accepts a field's JSON name too (coverMessage for cover_message) and models emit either,
 // so JSON-name keys are renamed, recursively through nested messages; when both spellings are
-// present the proto name wins. Keys naming no field are kept as is, and free-form values (Struct,
-// Value, ListValue, map keys) are never touched.
+// present the proto name wins. Messages and lists a model emitted as JSON-encoded strings are
+// decoded first, so their contents are normalized too. Keys naming no field are kept as is, and
+// free-form values (Struct, Value, ListValue, map keys) are never touched.
 func NormalizeArguments(desc protoreflect.MessageDescriptor, args map[string]any) map[string]any {
 	fields := desc.Fields()
 	normalized := make(map[string]any, len(args))
@@ -94,20 +95,23 @@ func normalizeFieldValue(field protoreflect.FieldDescriptor, value any) any {
 			normalized[key] = normalizeMessageValue(field.MapValue().Message(), entry)
 		}
 		return normalized
-	case field.Kind() != protoreflect.MessageKind:
-		return value
 	case field.IsList():
-		items, ok := value.([]any)
+		items, ok := asJSONValue[[]any](value)
 		if !ok {
 			return value
+		}
+		if field.Kind() != protoreflect.MessageKind {
+			return items
 		}
 		normalized := make([]any, len(items))
 		for i, item := range items {
 			normalized[i] = normalizeMessageValue(field.Message(), item)
 		}
 		return normalized
-	default:
+	case field.Kind() == protoreflect.MessageKind:
 		return normalizeMessageValue(field.Message(), value)
+	default:
+		return value
 	}
 }
 
@@ -116,14 +120,31 @@ func normalizeMessageValue(desc protoreflect.MessageDescriptor, value any) any {
 	case structFullName, valueFullName, listValueFullName:
 		return value
 	}
-	nested, ok := value.(map[string]any)
+	nested, ok := asJSONValue[map[string]any](value)
 	if !ok {
 		return value
 	}
 	return NormalizeArguments(desc, nested)
 }
 
-// BuildMessage builds desc from args keyed by proto field names (see NormalizeArguments).
+// asJSONValue returns value as T, decoding it when a model emitted it as a JSON-encoded string.
+func asJSONValue[T map[string]any | []any](value any) (T, bool) {
+	if typed, ok := value.(T); ok {
+		return typed, true
+	}
+	var decoded T
+	s, ok := value.(string)
+	// Most strings here are scalar forms (timestamps, money): keep them off the decoder.
+	if !ok || (!strings.HasPrefix(s, "{") && !strings.HasPrefix(s, "[")) {
+		return decoded, false
+	}
+	if err := json.Unmarshal([]byte(s), &decoded); err != nil {
+		return decoded, false
+	}
+	return decoded, true
+}
+
+// BuildMessage builds desc from normalized args (see NormalizeArguments).
 func BuildMessage(desc protoreflect.MessageDescriptor, args map[string]any) (*dynamicpb.Message, error) {
 	msg := dynamicpb.NewMessage(desc)
 	if err := populateMessage(msg, args); err != nil {
@@ -183,16 +204,6 @@ func setField(msg *dynamicpb.Message, field protoreflect.FieldDescriptor, val an
 
 	if field.IsList() {
 		arr, ok := val.([]any)
-		if !ok {
-			// Models sometimes emit a list as a JSON-encoded string: coerce it
-			// before failing.
-			s, isString := val.(string)
-			if isString && len(s) > 0 && s[0] == '[' {
-				if err := json.Unmarshal([]byte(s), &arr); err == nil {
-					ok = true
-				}
-			}
-		}
 		if !ok {
 			return fmt.Errorf("expected JSON array for %s, got %T", field.Name(), val)
 		}
@@ -575,16 +586,6 @@ func convertMessageValue(msgDesc protoreflect.MessageDescriptor, val any) (proto
 
 	default:
 		nested, ok := val.(map[string]any)
-		if !ok {
-			// Models sometimes emit a nested message as a JSON-encoded string:
-			// coerce it before failing.
-			s, isString := val.(string)
-			if isString && len(s) > 0 && s[0] == '{' {
-				if err := json.Unmarshal([]byte(s), &nested); err == nil {
-					ok = true
-				}
-			}
-		}
 		if !ok {
 			return protoreflect.Value{}, fmt.Errorf("expected JSON object for message, got %T", val)
 		}

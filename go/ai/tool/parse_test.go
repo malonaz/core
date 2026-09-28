@@ -168,32 +168,6 @@ func TestMaskAllowsSubtree(t *testing.T) {
 	})
 }
 
-func TestPruneArgumentsCoercion(t *testing.T) {
-	t.Run("coerces a JSON-encoded string where the mask expects a subtree", func(t *testing.T) {
-		// Regression: model emitted the `project` message as a JSON-encoded
-		// string, which was silently dropped and later surfaced as a
-		// misleading "value is required" validation error.
-		fieldMask := pbfieldmask.FromPaths("parent", "project.title", "request_id")
-		arguments := map[string]any{
-			"parent":  "organizations/malonaz/contacts/zach",
-			"project": `{"title": "Roof Replacement", "external_id": "x"}`,
-		}
-		prunedArguments := pruneArguments(arguments, "", fieldMask)
-		require.Equal(t, map[string]any{
-			"parent": "organizations/malonaz/contacts/zach",
-			"project": map[string]any{
-				"title": "Roof Replacement",
-			},
-		}, prunedArguments)
-	})
-
-	t.Run("drops a non-JSON scalar where the mask expects a subtree", func(t *testing.T) {
-		fieldMask := pbfieldmask.FromPaths("project.title")
-		arguments := map[string]any{"project": "not json"}
-		require.Equal(t, map[string]any{}, pruneArguments(arguments, "", fieldMask))
-	})
-}
-
 func TestUnwrapArgumentsEnvelope(t *testing.T) {
 	t.Run("unwraps a single JSON-encoded arguments key", func(t *testing.T) {
 		// Regression: model emitted the whole request as one stringified
