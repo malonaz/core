@@ -85,6 +85,10 @@ message TttModelConfig {
   int32 output_token_limit = 4 [(buf.validate.field).int32.gte = 1];
   // Pricing for this model.
   TttModelPricing pricing = 5;
+  // True if the provider constrains tool call names to the declared tool
+  // list, so the model cannot call tools it only discovered at runtime.
+  // Such models are given an `execute_tool` proxy to call them through.
+  bool strict_tool_names = 6;
 }
 
 // Pricing configuration for a ttt model.

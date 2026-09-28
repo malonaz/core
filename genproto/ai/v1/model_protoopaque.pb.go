@@ -385,6 +385,7 @@ type TttModelConfig struct {
 	xxx_hidden_ContextTokenLimit int32                  `protobuf:"varint,3,opt,name=context_token_limit,json=contextTokenLimit,proto3"`
 	xxx_hidden_OutputTokenLimit  int32                  `protobuf:"varint,4,opt,name=output_token_limit,json=outputTokenLimit,proto3"`
 	xxx_hidden_Pricing           *TttModelPricing       `protobuf:"bytes,5,opt,name=pricing,proto3"`
+	xxx_hidden_StrictToolNames   bool                   `protobuf:"varint,6,opt,name=strict_tool_names,json=strictToolNames,proto3"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -449,6 +450,13 @@ func (x *TttModelConfig) GetPricing() *TttModelPricing {
 	return nil
 }
 
+func (x *TttModelConfig) GetStrictToolNames() bool {
+	if x != nil {
+		return x.xxx_hidden_StrictToolNames
+	}
+	return false
+}
+
 func (x *TttModelConfig) SetReasoning(v bool) {
 	x.xxx_hidden_Reasoning = v
 }
@@ -467,6 +475,10 @@ func (x *TttModelConfig) SetOutputTokenLimit(v int32) {
 
 func (x *TttModelConfig) SetPricing(v *TttModelPricing) {
 	x.xxx_hidden_Pricing = v
+}
+
+func (x *TttModelConfig) SetStrictToolNames(v bool) {
+	x.xxx_hidden_StrictToolNames = v
 }
 
 func (x *TttModelConfig) HasPricing() bool {
@@ -493,6 +505,10 @@ type TttModelConfig_builder struct {
 	OutputTokenLimit int32
 	// Pricing for this model.
 	Pricing *TttModelPricing
+	// True if the provider constrains tool call names to the declared tool
+	// list, so the model cannot call tools it only discovered at runtime.
+	// Such models are given an `execute_tool` proxy to call them through.
+	StrictToolNames bool
 }
 
 func (b0 TttModelConfig_builder) Build() *TttModelConfig {
@@ -504,6 +520,7 @@ func (b0 TttModelConfig_builder) Build() *TttModelConfig {
 	x.xxx_hidden_ContextTokenLimit = b.ContextTokenLimit
 	x.xxx_hidden_OutputTokenLimit = b.OutputTokenLimit
 	x.xxx_hidden_Pricing = b.Pricing
+	x.xxx_hidden_StrictToolNames = b.StrictToolNames
 	return m0
 }
 
@@ -792,13 +809,14 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12D\n" +
 	"\x11provider_settings\x18\b \x01(\v2\x17.google.protobuf.StructR\x10providerSettings:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
-	"\x0eSttModelConfig\"\xf5\x01\n" +
+	"\x0eSttModelConfig\"\xa1\x02\n" +
 	"\x0eTttModelConfig\x12\x1c\n" +
 	"\treasoning\x18\x01 \x01(\bR\treasoning\x12\x1b\n" +
 	"\ttool_call\x18\x02 \x01(\bR\btoolCall\x127\n" +
 	"\x13context_token_limit\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x125\n" +
 	"\x12output_token_limit\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x10outputTokenLimit\x128\n" +
-	"\apricing\x18\x05 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\xfc\x05\n" +
+	"\apricing\x18\x05 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\x12*\n" +
+	"\x11strict_tool_names\x18\x06 \x01(\bR\x0fstrictToolNames\"\xfc\x05\n" +
 	"\x0fTttModelPricing\x12@\n" +
 	"\x1dinput_token_price_per_million\x18\x01 \x01(\x01R\x19inputTokenPricePerMillion\x12B\n" +
 	"\x1eoutput_token_price_per_million\x18\x02 \x01(\x01R\x1aoutputTokenPricePerMillion\x12U\n" +

@@ -189,6 +189,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	// they are called directly by name once discovered, keeping the tool list
 	// static so the prompt cache survives discoveries.
 	toolSetNameToToolNameToTool := make(map[string]map[string]*aipb.Tool, len(request.GetToolSets()))
+	var hasDiscoverableTools bool
 	for _, toolSet := range request.GetToolSets() {
 		toolNameToTool := make(map[string]*aipb.Tool, len(toolSet.GetTools()))
 		var discoveredTools []*aipb.Tool
@@ -201,8 +202,15 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		toolSetNameToToolNameToTool[toolSet.GetName()] = toolNameToTool
 		if len(discoveredTools) != len(toolSet.GetTools()) {
 			request.Tools = append(request.Tools, toolSet.DiscoveryTool)
+			hasDiscoverableTools = true
 		}
 		request.Tools = append(request.Tools, discoveredTools...)
+	}
+	// Strict providers reject calls to undeclared names, so discovered tools
+	// are reached through a declared proxy that Send unwraps into the real call.
+	useExecuteTool := hasDiscoverableTools && model.GetTtt().GetStrictToolNames()
+	if useExecuteTool {
+		request.Tools = append(request.Tools, aitool.CreateExecuteTool())
 	}
 	toolNameToTool := make(map[string]*aipb.Tool, len(request.GetTools()))
 	for _, tool := range request.GetTools() {
@@ -250,6 +258,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		toolNameToTool:                        toolNameToTool,
 		toolSetNameToToolNameToTool:           toolSetNameToToolNameToTool,
 		toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+		useExecuteTool:                        useExecuteTool,
 	}
 
 	// The service owns the sender lifecycle; providers only emit events.
@@ -428,6 +437,7 @@ type generateMessageWrapper struct {
 	toolNameToTool              map[string]*aipb.Tool
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool
 	toolCallIDToToolCall        map[string]*aipb.ToolCall
+	useExecuteTool              bool
 }
 
 func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse) error {
@@ -441,6 +451,10 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 			toolCall = c.Block.GetPartialToolCall()
 		}
 		if toolCall != nil {
+			// Partial proxy calls carry nothing to forward until the target name streams in.
+			if w.useExecuteTool && toolCall.Name == aitool.ExecuteToolName && !aitool.UnwrapExecuteToolCall(toolCall) {
+				return nil
+			}
 			if toolCall.Annotations == nil {
 				toolCall.Annotations = map[string]string{}
 			}

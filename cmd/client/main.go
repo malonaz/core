@@ -16,6 +16,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
+	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/pbutil"
@@ -30,6 +31,7 @@ var (
 	temperature     = flag.Float64("temperature", 1.0, "Temperature 0.0-2.0")
 	reasoningEffort = flag.String("reasoning", "", "Reasoning effort: LOW, MEDIUM, HIGH")
 	useTool         = flag.Bool("use-tool", false, "Enable tool calling with a sample weather tool")
+	useToolSet      = flag.Bool("use-tool-set", false, "Expose the weather tool through a discovery tool set and loop tool results back")
 	stream          = flag.Bool("stream", true, "Use streaming API")
 	imagePath       = flag.String("image", "", "Path to an image file to include in the message")
 	imageURL        = flag.String("image-url", "", "URL of an image to include in the message")
@@ -363,7 +365,7 @@ func buildConfig() (*aiservicepb.MessageGenerationConfiguration, error) {
 		}
 	}
 
-	if *useTool {
+	if *useTool || *useToolSet {
 		config.ToolChoice = &aipb.ToolChoice{
 			Choice: &aipb.ToolChoice_Mode{
 				Mode: aipb.ToolChoiceMode_TOOL_CHOICE_MODE_AUTO,
@@ -427,6 +429,38 @@ func buildTools() []*aipb.Tool {
 	return []*aipb.Tool{buildWeatherTool()}
 }
 
+func buildToolSets() []*aipb.ToolSet {
+	if !*useToolSet {
+		return nil
+	}
+	const toolSetName = "weather"
+	weatherTool := buildWeatherTool()
+	aipb.Annotations.ToolSetName.Set(weatherTool, toolSetName)
+	aipb.Annotations.DiscoverableTool.Set(weatherTool, aip.LabelValueTrue)
+	tools := []*aipb.Tool{weatherTool}
+	discoveryTool := aitool.CreateDiscoveryTool(&aitool.CreateDiscoveryToolRequest{
+		Name:        "discover_weather_tools",
+		Description: "Discover weather tools.",
+		Tools:       tools,
+	})
+	aipb.Annotations.ToolSetName.Set(discoveryTool, toolSetName)
+	return []*aipb.ToolSet{{Name: toolSetName, DiscoveryTool: discoveryTool, Tools: tools}}
+}
+
+// toolResults answers the completed tool calls of a turn: discovery calls
+// carry a server-computed result, everything else gets a canned answer.
+func toolResults(toolCalls []*aipb.ToolCall) []*aipb.Block {
+	blocks := make([]*aipb.Block, 0, len(toolCalls))
+	for _, tc := range toolCalls {
+		result := tc.Result
+		if result == nil {
+			result = ai.NewToolResult(tc.Name, tc.Id, "18°C, sunny")
+		}
+		blocks = append(blocks, ai.NewToolResultBlock(result))
+	}
+	return blocks
+}
+
 func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 	config, err := buildConfig()
 	if err != nil {
@@ -438,34 +472,44 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		return err
 	}
 
-	request := &aiservicepb.GenerateMessageRequest{
-		Parent:        chat(),
-		Model:         *model,
-		Messages:      messages,
-		Tools:         buildTools(),
-		Configuration: config,
-	}
-
-	stream, err := client.StreamGenerateMessage(ctx, request)
-	if err != nil {
-		return fmt.Errorf("calling StreamGenerateMessage: %w", err)
-	}
-
-	imageIndex := 0
+	// Tool-set mode loops tool results back until the model ends its turn.
 	for {
-		response, err := stream.Recv()
-		if err == io.EOF {
-			break
+		request := &aiservicepb.GenerateMessageRequest{
+			Parent:        chat(),
+			Model:         *model,
+			Messages:      messages,
+			Tools:         buildTools(),
+			ToolSets:      buildToolSets(),
+			Configuration: config,
 		}
+
+		stream, err := client.StreamGenerateMessage(ctx, request)
 		if err != nil {
-			return fmt.Errorf("receiving stream: %w", err)
+			return fmt.Errorf("calling StreamGenerateMessage: %w", err)
 		}
 
-		handleStreamResponse(response, &imageIndex)
-	}
+		imageIndex := 0
+		var toolCalls []*aipb.ToolCall
+		for {
+			response, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("receiving stream: %w", err)
+			}
+			if tc := response.GetBlock().GetToolCall(); tc != nil {
+				toolCalls = append(toolCalls, tc)
+			}
+			handleStreamResponse(response, &imageIndex)
+		}
+		fmt.Println()
 
-	fmt.Println()
-	return nil
+		if !*useToolSet || len(toolCalls) == 0 {
+			return nil
+		}
+		messages = []*aipb.Message{ai.NewToolMessage(toolResults(toolCalls)...)}
+	}
 }
 
 func runUnary(ctx context.Context, client aiservicepb.AiServiceClient) error {

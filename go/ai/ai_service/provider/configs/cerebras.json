@@ -6,6 +6,7 @@ local p = "providers/cerebras/models/";
     {
       "name": p + "qwen3-235b",
       "provider_model_id": "qwen-3-235b-a22b-instruct-2507",
+      "deprecate_time": "2026-09-28T00:00:00Z",
       "description": "This non-thinking version offers powerful multilingual capabilities with significant improvements in instruction following, logical reasoning, mathematics, coding, and tool usage.",
       "ttt": {
         "tool_call": true,
@@ -20,6 +21,7 @@ local p = "providers/cerebras/models/";
     {
       "name": p + "glm-4.6",
       "provider_model_id": "zai-glm-4.6",
+      "deprecate_time": "2026-09-28T00:00:00Z",
       "description": "This model delivers strong coding performance with advanced reasoning capabilities, superior tool use, and enhanced real-world performance in agentic coding applications.",
       "ttt": {
         "reasoning": true,
@@ -29,6 +31,22 @@ local p = "providers/cerebras/models/";
         "pricing": {
           "input_token_price_per_million": 2.25,
           "output_token_price_per_million": 2.75
+        }
+      }
+    },
+    {
+      "name": p + "qwen3.8-27b",
+      "provider_model_id": "qwen-3.8-27b",
+      "description": "Alibaba's 27B dense multimodal model for agentic coding, tool use, research, and long-running workflows. It accepts text and image inputs and supports configurable reasoning.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 131072,
+        "output_token_limit": 40960,
+        "pricing": {
+          "input_token_price_per_million": 0.99,
+          "output_token_price_per_million": 1.49
         }
       }
     }

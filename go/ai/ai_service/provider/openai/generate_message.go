@@ -513,11 +513,13 @@ var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.Re
 		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:      shared.ReasoningEffortHigh,
 		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:        "max",
 	},
+	// Cerebras reasons by default (server default effort is "high").
 	provider.Cerebras: {
-		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "",
-		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "",
-		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  "",
-		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    "",
+		aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED: "none",
+		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT:     shared.ReasoningEffortMedium,
+		aipb.ReasoningEffort_REASONING_EFFORT_LOW:         shared.ReasoningEffortLow,
+		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:      shared.ReasoningEffortMedium,
+		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:        shared.ReasoningEffortHigh,
 	},
 	provider.Xai: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
