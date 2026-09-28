@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 )
 
@@ -386,6 +387,60 @@ func assertMoney(t *testing.T, message protoreflect.Message, fieldName string, w
 	require.Equal(t, wantCurrency, moneyMessage.Get(moneyFields.ByName("currency_code")).String())
 	require.Equal(t, wantUnits, moneyMessage.Get(moneyFields.ByName("units")).Int())
 	require.Equal(t, wantNanos, int32(moneyMessage.Get(moneyFields.ByName("nanos")).Int()))
+}
+
+func TestNormalizeArguments(t *testing.T) {
+	dummyDescriptor := findMessageDescriptor(t, (&librarypb.Dummy{}).ProtoReflect().Descriptor().FullName())
+	shelfMetadataDescriptor := findMessageDescriptor(t, (&librarypb.ShelfMetadata{}).ProtoReflect().Descriptor().FullName())
+	toolCallDescriptor := findMessageDescriptor(t, (&aipb.ToolCall{}).ProtoReflect().Descriptor().FullName())
+
+	t.Run("renames json names to proto names, recursively", func(t *testing.T) {
+		// Regression: a model emitted coverMessage for cover_message and the
+		// builder, which reads proto names only, silently zeroed it.
+		args := map[string]any{
+			"expireTime": "2026-01-01T00:00:00Z",
+			"metadata":   map[string]any{"phoneNumber": "+15551234567"},
+		}
+		require.Equal(t, map[string]any{
+			"expire_time": "2026-01-01T00:00:00Z",
+			"metadata":    map[string]any{"phone_number": "+15551234567"},
+		}, NormalizeArguments(dummyDescriptor, args))
+	})
+
+	t.Run("prefers the proto name when both spellings are present", func(t *testing.T) {
+		args := map[string]any{"expire_time": "proto", "expireTime": "json"}
+		require.Equal(t, map[string]any{"expire_time": "proto"}, NormalizeArguments(dummyDescriptor, args))
+	})
+
+	t.Run("keeps unknown keys", func(t *testing.T) {
+		args := map[string]any{"quote_title": "Deck"}
+		require.Equal(t, args, NormalizeArguments(dummyDescriptor, args))
+	})
+
+	t.Run("recurses into repeated and map message values, never map keys", func(t *testing.T) {
+		args := map[string]any{
+			"notes":        []any{map[string]any{"content": "first"}},
+			"authorToNote": map[string]any{"janeDoe": map[string]any{"content": "second"}},
+		}
+		require.Equal(t, map[string]any{
+			"notes":          []any{map[string]any{"content": "first"}},
+			"author_to_note": map[string]any{"janeDoe": map[string]any{"content": "second"}},
+		}, NormalizeArguments(shelfMetadataDescriptor, args))
+	})
+
+	t.Run("leaves free-form struct contents untouched", func(t *testing.T) {
+		args := map[string]any{"arguments": map[string]any{"coverMessage": "hi"}}
+		require.Equal(t, args, NormalizeArguments(toolCallDescriptor, args))
+	})
+
+	t.Run("builds what it normalizes", func(t *testing.T) {
+		message, err := BuildMessage(dummyDescriptor, NormalizeArguments(dummyDescriptor, map[string]any{
+			"metadata": map[string]any{"phoneNumber": "+15551234567"},
+		}))
+		require.NoError(t, err)
+		metadata := message.Get(dummyDescriptor.Fields().ByName("metadata")).Message()
+		require.Equal(t, "+15551234567", metadata.Get(metadata.Descriptor().Fields().ByName("phone_number")).String())
+	})
 }
 
 func findMessageDescriptor(t *testing.T, fullName protoreflect.FullName) protoreflect.MessageDescriptor {
