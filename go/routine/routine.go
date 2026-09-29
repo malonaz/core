@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"math/rand/v2"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -142,6 +143,7 @@ func (r *Routine) Start(ctx context.Context) *Routine {
 		func() {
 			defer func() {
 				if v := recover(); v != nil {
+					r.log.ErrorContext(ctx, "panic", "panic", v, "stack", string(debug.Stack()))
 					err = NewPermanentError("panic: %v", v)
 				}
 			}()

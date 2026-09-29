@@ -45,6 +45,7 @@ go_library(
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
+        "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",

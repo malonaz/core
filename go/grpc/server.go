@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -16,12 +17,14 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	_ "google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 	grpc_reflection_v1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/types/descriptorpb"
 
@@ -103,8 +106,9 @@ func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *promethe
 	var preUnaryInterceptors, postUnaryInterceptors []grpc.UnaryServerInterceptor
 	var preStreamInterceptors, postStreamInterceptors []grpc.StreamServerInterceptor
 	// PRE (1): Panic interceptor. We *never* want to panic.
-	preUnaryInterceptors = append(preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor())
-	preStreamInterceptors = append(preStreamInterceptors, grpc_recovery.StreamServerInterceptor())
+	recoveryHandler := grpc_recovery.WithRecoveryHandlerContext(s.recoverPanic)
+	preUnaryInterceptors = append(preUnaryInterceptors, grpc_recovery.UnaryServerInterceptor(recoveryHandler))
+	preStreamInterceptors = append(preStreamInterceptors, grpc_recovery.StreamServerInterceptor(recoveryHandler))
 	// PRE (2): Error debug info scrubber (acts on the response so needs to be placed early).
 	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerDebugInfoScrubber())
 	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerDebugInfoScrubber())
@@ -199,6 +203,14 @@ func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *promethe
 		getPrometheusServerMetrics().InitializeMetrics(s.Raw)
 	}
 	return s, nil
+}
+
+// recoverPanic logs the panic with its stack, which the logging interceptor never sees,
+// and keeps the stack from the client.
+func (s *Server) recoverPanic(ctx context.Context, p any) error {
+	method, _ := grpc.Method(ctx)
+	s.log.ErrorContext(ctx, "panic", "grpc.method", method, "panic", p, "stack", string(debug.Stack()))
+	return grpcstatus.Error(codes.Internal, "panic")
 }
 
 func (s *Server) WithLogger(logger *slog.Logger) *Server {

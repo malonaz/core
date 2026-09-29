@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -147,6 +148,7 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	}
 	p.consumer = consumer
 
+	routineName := fmt.Sprintf("nats-processor-%s", p.config.ConsumerName)
 	processFn := func(ctx context.Context) error {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout)
 		defer fetchCancel()
@@ -231,7 +233,17 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 			go func(group []*Message[T]) {
 				defer wg.Done()
 				for i, message := range group {
-					if err := p.processorFunc(ctxWithTimeout, message); err != nil {
+					// A panic becomes an error, so one message cannot crash the process.
+					err := func() (err error) {
+						defer func() {
+							if v := recover(); v != nil {
+								p.log.ErrorContext(ctx, "panic", "routine", routineName, "panic", v, "stack", string(debug.Stack()))
+								err = fmt.Errorf("panic: %v", v)
+							}
+						}()
+						return p.processorFunc(ctxWithTimeout, message)
+					}()
+					if err != nil {
 						var processingError *ProcessingError
 						if errors.As(err, &processingError) {
 							switch processingError.action {
@@ -281,7 +293,7 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	}
 
 	r := routine.New(
-		fmt.Sprintf("nats-processor-%s", p.config.ConsumerName),
+		routineName,
 		processFn,
 	).WithLogger(p.log).
 		WithConstantBackOff(backoffSeconds)
