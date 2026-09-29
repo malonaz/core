@@ -15,5 +15,29 @@ local p = "providers/elevenlabs/models/";
         "supported_sample_rates": [8000, 16000, 22050, 24000, 32000, 44100, 48000]
       }
     },
+    {
+      "name": p + "v4",
+      "provider_model_id": "eleven_v4",
+      "tts": {
+        "audio_format": {
+          "sample_rate": 16000,
+          "channels": 1,
+          "bits_per_sample": 16
+        },
+        "supported_sample_rates": [8000, 16000, 22050, 24000, 32000, 44100, 48000]
+      }
+    },
+    {
+      "name": p + "v4-turbo",
+      "provider_model_id": "eleven_v4_turbo",
+      "tts": {
+        "audio_format": {
+          "sample_rate": 16000,
+          "channels": 1,
+          "bits_per_sample": 16
+        },
+        "supported_sample_rates": [8000, 16000, 22050, 24000, 32000, 44100, 48000]
+      }
+    },
   ]
 }
