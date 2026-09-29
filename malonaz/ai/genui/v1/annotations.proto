@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package malonaz.ai.genui.v1;
+
+import "malonaz/codegen/aip/v1/annotation.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "genui.malonaz.com/input-response"
+  description: "The typed answer on the tool result of an answered input component, which the component renders from. Never sent to the model: it reads the result's content."
+  value_type: "InputResponse"
+};
