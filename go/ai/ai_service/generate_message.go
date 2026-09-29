@@ -279,7 +279,6 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 
 	// Persist the generated assistant message.
 	generatedMessage := accumulator.Message
-	redactInlineImageData(generatedMessage)
 	generatedMessage.Labels = request.GetLabels()
 	generatedMessage.Model = request.GetModel()
 	generatedMessage.ModelUsage = wrapper.modelUsage
@@ -417,7 +416,6 @@ func (s *Service) markGenerationFailure(
 	if len(partialMessage.GetBlocks()) == 0 {
 		return
 	}
-	redactInlineImageData(partialMessage)
 	partialMessage.Model = "" // Keep pricing off failed partials; usage was not finalized.
 	partialMessage.Status = errorStatus
 	createMessageRequest := &pb.CreateMessageRequest{
@@ -501,18 +499,6 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 		return status.Errorf(codes.Internal, "accumulating stream events: %v", err).Err()
 	}
 	return w.AiService_StreamGenerateMessageServer.Send(response)
-}
-
-func redactInlineImageData(messages ...*aipb.Message) {
-	for _, message := range messages {
-		for _, block := range message.GetBlocks() {
-			if img := block.GetImage(); img != nil {
-				if _, ok := img.Source.(*aipb.Image_Data); ok {
-					img.Source = &aipb.Image_Data{Data: nil}
-				}
-			}
-		}
-	}
 }
 
 func processDiscoveryToolCall(
