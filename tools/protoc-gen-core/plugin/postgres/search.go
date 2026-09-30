@@ -132,7 +132,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P("    if includeSnippets {")
 		for _, snippetField := range searchDoc.SnippetFields {
 			// Qualify column references: joined queries make bare names ambiguous.
-			expression, err := schema.SearchFieldExpression(mc.message, snippetField.Path, colPrefix)
+			expression, err := schema.SearchFieldExpression(mc.message, snippetField, colPrefix)
 			if err != nil {
 				panic(err) // Already resolved once by schema.SearchDocument.
 			}

@@ -550,12 +550,18 @@ type SearchOptions_Field struct {
 	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
 	// "metadata.postal_address". JSON keys are proto field names. The terminal
 	// segment may be a string, repeated string, or a message (whose whole JSON
-	// subtree is indexed).
+	// subtree is indexed). A path may traverse repeated message fields, e.g.
+	// "blocks.text" indexes the text of every block; such a path must end in a
+	// string or repeated string.
 	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	// The relevance weight of this field. Defaults to WEIGHT_D.
 	Weight SearchOptions_Weight `protobuf:"varint,2,opt,name=weight,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Weight" json:"weight,omitempty"`
 	// Extra tokenization applied to this field.
-	Split         SearchOptions_Split `protobuf:"varint,3,opt,name=split,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Split" json:"split,omitempty"`
+	Split SearchOptions_Split `protobuf:"varint,3,opt,name=split,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Split" json:"split,omitempty"`
+	// If set, only the first max_length characters of the field are indexed.
+	// Unbounded text fields should set it: postgres rejects a row whose
+	// tsvector exceeds 1MB, failing the write.
+	MaxLength     int32 `protobuf:"varint,5,opt,name=max_length,json=maxLength,proto3" json:"max_length,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -606,6 +612,13 @@ func (x *SearchOptions_Field) GetSplit() SearchOptions_Split {
 	return SearchOptions_SPLIT_UNSPECIFIED
 }
 
+func (x *SearchOptions_Field) GetMaxLength() int32 {
+	if x != nil {
+		return x.MaxLength
+	}
+	return 0
+}
+
 func (x *SearchOptions_Field) SetPath(v string) {
 	x.Path = v
 }
@@ -618,6 +631,10 @@ func (x *SearchOptions_Field) SetSplit(v SearchOptions_Split) {
 	x.Split = v
 }
 
+func (x *SearchOptions_Field) SetMaxLength(v int32) {
+	x.MaxLength = v
+}
+
 type SearchOptions_Field_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -626,12 +643,18 @@ type SearchOptions_Field_builder struct {
 	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
 	// "metadata.postal_address". JSON keys are proto field names. The terminal
 	// segment may be a string, repeated string, or a message (whose whole JSON
-	// subtree is indexed).
+	// subtree is indexed). A path may traverse repeated message fields, e.g.
+	// "blocks.text" indexes the text of every block; such a path must end in a
+	// string or repeated string.
 	Path string
 	// The relevance weight of this field. Defaults to WEIGHT_D.
 	Weight SearchOptions_Weight
 	// Extra tokenization applied to this field.
 	Split SearchOptions_Split
+	// If set, only the first max_length characters of the field are indexed.
+	// Unbounded text fields should set it: postgres rejects a row whose
+	// tsvector exceeds 1MB, failing the write.
+	MaxLength int32
 }
 
 func (b0 SearchOptions_Field_builder) Build() *SearchOptions_Field {
@@ -641,6 +664,7 @@ func (b0 SearchOptions_Field_builder) Build() *SearchOptions_Field {
 	x.Path = b.Path
 	x.Weight = b.Weight
 	x.Split = b.Split
+	x.MaxLength = b.MaxLength
 	return m0
 }
 
@@ -745,13 +769,15 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\n" +
 	" malonaz/codegen/aip/v1/aip.proto\x12\x16malonaz.codegen.aip.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\"(\n" +
 	"\x10FilteringOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"\xd2\x03\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"\xfa\x03\n" +
 	"\rSearchOptions\x12M\n" +
-	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xc6\x01\n" +
+	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xee\x01\n" +
 	"\x05Field\x12\x1a\n" +
 	"\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04path\x12N\n" +
 	"\x06weight\x18\x02 \x01(\x0e2,.malonaz.codegen.aip.v1.SearchOptions.WeightB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06weight\x12K\n" +
-	"\x05split\x18\x03 \x01(\x0e2+.malonaz.codegen.aip.v1.SearchOptions.SplitB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05splitJ\x04\b\x04\x10\x05\"X\n" +
+	"\x05split\x18\x03 \x01(\x0e2+.malonaz.codegen.aip.v1.SearchOptions.SplitB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05split\x12&\n" +
+	"\n" +
+	"max_length\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\tmaxLengthJ\x04\b\x04\x10\x05\"X\n" +
 	"\x06Weight\x12\x16\n" +
 	"\x12WEIGHT_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bWEIGHT_A\x10\x01\x12\f\n" +
