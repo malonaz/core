@@ -9,6 +9,7 @@ import "google/protobuf/field_mask.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/metrics.proto";
 import "malonaz/ai/v1/tool.proto";
+import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
@@ -394,4 +395,58 @@ message StreamGenerateMessageResponse {
     // event also carries the aggregate usage.
     .malonaz.ai.v1.ModelUsage model_usage = 5;
   }
+}
+
+// Request message for AiService.SearchMessages.
+message SearchMessagesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent chat whose messages to search. Use "-" as
+  // the chat to search across all of a user's chats.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // The free-text query, matched against the text blocks.
+  // Results are ranked by relevance. Must contain at least one searchable term.
+  string query = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
+  // An optional filter, ANDed with the query.
+  string filter = 3;
+
+  // If true, include soft-deleted messages.
+  bool show_deleted = 4;
+
+  // Maximum number of messages to return (max 1000).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `SearchMessages` call.
+  string page_token = 6;
+
+  // If true, highlighted snippets are computed and returned for each result.
+  bool include_snippets = 7;
+}
+
+// Response message for AiService.SearchMessages.
+message SearchMessagesResponse {
+  // The messages matching the query, ranked by relevance.
+  repeated ai.v1.Message messages = 1;
+
+  // Highlighted snippets, index-aligned with `messages`.
+  repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+
+  // A token to retrieve the next page.
+  string next_page_token = 3;
 }

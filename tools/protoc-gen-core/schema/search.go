@@ -44,6 +44,17 @@ const SearchArrayToStringFunction = "core_array_to_string"
 //	$$;
 const SearchPhoneNumberTokensFunction = "core_phone_number_tokens"
 
+// SearchJSONBPathTextFunction is an IMMUTABLE function space-joining the
+// values a jsonpath selects, as unescaped text. Search fields traversing
+// repeated message fields need it: plain JSONB extraction cannot fan out over
+// arrays, and jsonb_path_query is set-returning, unusable in generated
+// columns. Migrations using such fields must declare it:
+//
+//	CREATE OR REPLACE FUNCTION core_jsonb_path_text(jsonb, jsonpath) RETURNS text
+//	LANGUAGE sql IMMUTABLE PARALLEL SAFE
+//	AS $$ SELECT coalesce(string_agg(j #>> '{}', ' '), '') FROM jsonb_path_query($1, $2) AS j $$;
+const SearchJSONBPathTextFunction = "core_jsonb_path_text"
+
 // SearchDocument resolves a resource message's search options into the SQL
 // expression composing its tsvector search document. Returns nil when the
 // message declares no search option.
@@ -59,10 +70,11 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 	expressions := make([]string, 0, len(searchOptions.GetFields()))
 	var snippetFields []SnippetField
 	for _, searchField := range searchOptions.GetFields() {
-		base, err := searchFieldBase(message, searchField.GetPath(), "")
+		base, _, err := searchFieldBase(message, searchField.GetPath(), "")
 		if err != nil {
 			return nil, err
 		}
+		base = capLength(base, searchField.GetMaxLength())
 
 		expression, err := applySplit(base, searchField.GetSplit())
 		if err != nil {
@@ -75,7 +87,12 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		// Every search field is snippet-eligible; the client opts in per
 		// request. Snippets headline the raw text (no split variant), or
 		// fragments would surface mangled tokenized text.
-		snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base, Weight: weightLetter(searchField.GetWeight())})
+		snippetFields = append(snippetFields, SnippetField{
+			Path:       searchField.GetPath(),
+			Expression: base,
+			Weight:     weightLetter(searchField.GetWeight()),
+			MaxLength:  searchField.GetMaxLength(),
+		})
 	}
 	// Snippet matches surface in field-weight order (A first), declaration
 	// order breaking ties.
@@ -99,9 +116,11 @@ type SnippetField struct {
 	Expression string
 	// Weight is the field's tsvector weight letter (A-D).
 	Weight string
+	// MaxLength caps the indexed characters; 0 means uncapped.
+	MaxLength int32
 }
 
-// SearchFieldExpression resolves a search field path to the raw text SQL
+// SearchFieldExpression resolves a snippet field to the raw text SQL
 // expression headlined into snippets, with every column reference qualified
 // by the given prefix (e.g. "contact_activity_event."), for use inside
 // queries that join other tables where bare column names would be ambiguous.
@@ -110,24 +129,34 @@ type SnippetField struct {
 // text — ts_headline fragments must be human-readable. jsonb_path_query is a
 // set-returning function, unusable in the stored generated column, but
 // snippets are computed per query so it is fine here.
-func SearchFieldExpression(message *protogen.Message, path, columnPrefix string) (string, error) {
-	segments := strings.Split(path, ".")
-	terminal, err := resolveSearchField(message, path)
+func SearchFieldExpression(message *protogen.Message, snippetField SnippetField, columnPrefix string) (string, error) {
+	base, fansOut, err := searchFieldBase(message, snippetField.Path, columnPrefix)
 	if err != nil {
 		return "", err
 	}
-	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
-	if len(segments) == 1 {
-		return searchFieldBase(message, path, columnPrefix)
+	segments := strings.Split(snippetField.Path, ".")
+	terminal, err := resolveSearchField(message, snippetField.Path)
+	if err != nil {
+		return "", err
 	}
-	if terminal.Message != nil || terminal.Desc.IsList() {
+	// Fanned-out paths already select string values only.
+	if len(segments) > 1 && !fansOut && (terminal.Message != nil || terminal.Desc.IsList()) {
 		// String leaves of the JSON subtree, space-joined.
-		return fmt.Sprintf(
+		base = fmt.Sprintf(
 			`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s #> '{%s}', 'strict $.** ? (@.type() == "string")') AS j), '')`,
-			column, strings.Join(segments[1:], ","),
-		), nil
+			columnPrefix+xstrings.ToSnakeCase(segments[0]), strings.Join(segments[1:], ","),
+		)
 	}
-	return searchFieldBase(message, path, columnPrefix)
+	return capLength(base, snippetField.MaxLength), nil
+}
+
+// capLength truncates a text expression to maxLength characters; 0 leaves it
+// uncapped.
+func capLength(expression string, maxLength int32) string {
+	if maxLength == 0 {
+		return expression
+	}
+	return fmt.Sprintf("left(%s, %d)", expression, maxLength)
 }
 
 // resolveSearchField walks a search field path and returns its terminal
@@ -156,57 +185,64 @@ func resolveSearchField(message *protogen.Message, path string) (*protogen.Field
 // contributing that field to the search document (before split tokenization).
 // A dotted path reaches into an as_json_bytes message column via JSONB
 // extraction (which is IMMUTABLE, so generated columns keep working).
-func searchFieldBase(message *protogen.Message, path, columnPrefix string) (string, error) {
+// fansOut reports whether the path traverses a repeated message field, in
+// which case the expression selects string values via a jsonpath.
+func searchFieldBase(message *protogen.Message, path, columnPrefix string) (base string, fansOut bool, err error) {
 	segments := strings.Split(path, ".")
 	field := fieldByName(message, segments[0])
 	if field == nil {
-		return "", fmt.Errorf("search field %q not found on %s", path, message.GoIdent.GoName)
+		return "", false, fmt.Errorf("search field %q not found on %s", path, message.GoIdent.GoName)
 	}
 
 	fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
 	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
-		return "", fmt.Errorf("getting field opts for %s: %w", path, err)
+		return "", false, fmt.Errorf("getting field opts for %s: %w", path, err)
 	}
 	if fieldOpts.GetJoin() != nil {
 		// The search document is a stored generated column: it can only
 		// reference columns of its own row, never data projected from a
 		// joined table.
-		return "", fmt.Errorf("search field %q on %s is a joined field: joined fields cannot be indexed into the search document (denormalize the value onto this resource, or search the parent resource instead)", path, message.GoIdent.GoName)
+		return "", false, fmt.Errorf("search field %q on %s is a joined field: joined fields cannot be indexed into the search document (denormalize the value onto this resource, or search the parent resource instead)", path, message.GoIdent.GoName)
 	}
 
 	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
 	if len(segments) == 1 {
 		if field.Desc.Kind() != protoreflect.StringKind || field.Desc.IsMap() {
-			return "", fmt.Errorf("search field %q on %s must be a string or repeated string", path, message.GoIdent.GoName)
+			return "", false, fmt.Errorf("search field %q on %s must be a string or repeated string", path, message.GoIdent.GoName)
 		}
 		// Base text: the raw column, arrays joined on spaces, nulls coalesced away.
 		if field.Desc.IsList() {
 			if fieldOpts.GetNullable() {
-				return fmt.Sprintf("%s(coalesce(%s, ARRAY[]::text[]), ' ')", SearchArrayToStringFunction, column), nil
+				return fmt.Sprintf("%s(coalesce(%s, ARRAY[]::text[]), ' ')", SearchArrayToStringFunction, column), false, nil
 			}
-			return fmt.Sprintf("%s(%s, ' ')", SearchArrayToStringFunction, column), nil
+			return fmt.Sprintf("%s(%s, ' ')", SearchArrayToStringFunction, column), false, nil
 		}
-		return fmt.Sprintf("coalesce(%s, '')", column), nil
+		return fmt.Sprintf("coalesce(%s, '')", column), false, nil
 	}
 
 	// Dotted path: the first segment must be a message column stored as JSONB.
 	if !fieldOpts.GetAsJsonBytes() || field.Desc.IsMap() || field.Message == nil {
-		return "", fmt.Errorf("search field %q on %s: first segment %q must be a message field with as_json_bytes = true", path, message.GoIdent.GoName, segments[0])
+		return "", false, fmt.Errorf("search field %q on %s: first segment %q must be a message field with as_json_bytes = true", path, message.GoIdent.GoName, segments[0])
 	}
 
 	// Walk the message definition. JSONB keys are proto field names
 	// (pbutil.JSONMarshal sets UseProtoNames), which the segments already are.
+	// The jsonpath mirrors the walk, fanning out over repeated fields.
+	repeated := field.Desc.IsList()
+	jsonPath := "$" + arrayWildcard(field)
 	current := field.Message
 	for i, segment := range segments[1:] {
 		next := fieldByName(current, segment)
 		if next == nil {
-			return "", fmt.Errorf("search field %q on %s: segment %q not found on %s", path, message.GoIdent.GoName, segment, current.GoIdent.GoName)
+			return "", false, fmt.Errorf("search field %q on %s: segment %q not found on %s", path, message.GoIdent.GoName, segment, current.GoIdent.GoName)
 		}
+		jsonPath += "." + segment + arrayWildcard(next)
 		terminal := i == len(segments)-2
 		if !terminal {
 			if next.Message == nil || next.Desc.IsMap() {
-				return "", fmt.Errorf("search field %q on %s: segment %q on %s is not a message field", path, message.GoIdent.GoName, segment, current.GoIdent.GoName)
+				return "", false, fmt.Errorf("search field %q on %s: segment %q on %s is not a message field", path, message.GoIdent.GoName, segment, current.GoIdent.GoName)
 			}
+			repeated = repeated || next.Desc.IsList()
 			current = next.Message
 			continue
 		}
@@ -214,10 +250,18 @@ func searchFieldBase(message *protogen.Message, path, columnPrefix string) (stri
 		// JSON subtree is indexed: to_tsvector('simple', ...) tokenizes JSON
 		// text fine, punctuation and quotes being separators).
 		if next.Message == nil && next.Desc.Kind() != protoreflect.StringKind {
-			return "", fmt.Errorf("search field %q on %s: terminal segment %q must be a string, repeated string or message field", path, message.GoIdent.GoName, segment)
+			return "", false, fmt.Errorf("search field %q on %s: terminal segment %q must be a string, repeated string or message field", path, message.GoIdent.GoName, segment)
+		}
+		if repeated && next.Message != nil {
+			return "", false, fmt.Errorf("search field %q on %s: a path traversing a repeated field must end in a string or repeated string, not message %q", path, message.GoIdent.GoName, segment)
 		}
 	}
-	return fmt.Sprintf("coalesce(%s #>> '{%s}', '')", column, strings.Join(segments[1:], ",")), nil
+	if repeated {
+		// Lax mode: array elements lacking the key (e.g. other oneof
+		// variants) select nothing instead of raising.
+		return fmt.Sprintf("%s(%s, 'lax %s')", SearchJSONBPathTextFunction, column, jsonPath), true, nil
+	}
+	return fmt.Sprintf("coalesce(%s #>> '{%s}', '')", column, strings.Join(segments[1:], ",")), false, nil
 }
 
 // applySplit layers a field's extra tokenization behavior on its raw text expression.
@@ -251,6 +295,14 @@ func weightLetter(weight aippb.SearchOptions_Weight) string {
 	default:
 		return "D"
 	}
+}
+
+// arrayWildcard returns the jsonpath accessor fanning out over a repeated field.
+func arrayWildcard(field *protogen.Field) string {
+	if field.Desc.IsList() {
+		return "[*]"
+	}
+	return ""
 }
 
 func fieldByName(message *protogen.Message, name string) *protogen.Field {

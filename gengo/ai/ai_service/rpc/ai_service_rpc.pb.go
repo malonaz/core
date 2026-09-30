@@ -9,6 +9,7 @@ import (
 	model "github.com/malonaz/core/gengo/ai/model"
 	v1 "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	v11 "github.com/malonaz/core/genproto/ai/v1"
+	v12 "github.com/malonaz/core/genproto/aip/v1"
 	aip "github.com/malonaz/core/go/aip"
 	status "github.com/malonaz/core/go/grpc/status"
 	uuid "github.com/malonaz/core/go/uuid"
@@ -49,6 +50,7 @@ type aiService_ChatStore interface {
 	GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error)
 	BatchGetChats(ctx context.Context, organizationIds []string, userIds []string, chatIds []string) ([]*model.Chat, error)
 	ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Chat, error)
+	SearchChats(ctx context.Context, organizationId, userId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Chat, []map[string]string, error)
 }
 
 type aiService_ChatServer struct {
@@ -476,6 +478,68 @@ func (s *aiService_ChatServer) BatchGetChats(ctx context.Context, request *v1.Ba
 	}, nil
 }
 
+var searchChatsRequestParser = aip.MustNewSearchRequestParser[*v1.SearchChatsRequest, *v11.Chat](aip.WithFQN())
+
+func (s *aiService_ChatServer) SearchChats(ctx context.Context, request *v1.SearchChatsRequest) (*v1.SearchChatsResponse, error) {
+	// Parse parent names
+	var organizationId, userId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchChatsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbChats, dbSnippets, err := s.store.SearchChats(ctx, organizationId, userId, request.ShowDeleted, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching chats").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbChats))
+	if nextPageToken != "" {
+		dbChats = dbChats[:len(dbChats)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
+	}
+
+	var snippets []*v12.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v12.SearchSnippet, len(dbChats))
+		for i := range snippets {
+			snippet := &v12.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["title"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "title", Match: match})
+				}
+			}
+			snippets[i] = snippet
+		}
+	}
+
+	// Convert back to proto.
+	chats := make([]*v11.Chat, 0, len(dbChats))
+	for _, dbChat := range dbChats {
+		chat, err := dbChat.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Chat to Chat: %v", err).Err()
+		}
+		chats = append(chats, chat)
+	}
+
+	// Create and return response.
+	return &v1.SearchChatsResponse{
+		Chats:         chats,
+		Snippets:      snippets,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
 type aiService_MessageStore interface {
 	BatchInsertMessages(ctx context.Context, requestIDs []string, messages []*model.Message) ([]*model.Message, error)
 	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
@@ -484,6 +548,7 @@ type aiService_MessageStore interface {
 	GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error)
 	BatchGetMessages(ctx context.Context, organizationIds []string, userIds []string, chatIds []string, messageIds []string) ([]*model.Message, error)
 	ListMessages(ctx context.Context, organizationId, userId, chatId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Message, error)
+	SearchMessages(ctx context.Context, organizationId, userId, chatId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Message, []map[string]string, error)
 }
 
 type aiService_MessageServer struct {
@@ -907,5 +972,67 @@ func (s *aiService_MessageServer) BatchGetMessages(ctx context.Context, request 
 
 	return &v1.BatchGetMessagesResponse{
 		Messages: messages,
+	}, nil
+}
+
+var searchMessagesRequestParser = aip.MustNewSearchRequestParser[*v1.SearchMessagesRequest, *v11.Message](aip.WithFQN())
+
+func (s *aiService_MessageServer) SearchMessages(ctx context.Context, request *v1.SearchMessagesRequest) (*v1.SearchMessagesResponse, error) {
+	// Parse parent names
+	var organizationId, userId, chatId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}", &organizationId, &userId, &chatId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchMessagesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbMessages, dbSnippets, err := s.store.SearchMessages(ctx, organizationId, userId, chatId, request.ShowDeleted, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching messages").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbMessages))
+	if nextPageToken != "" {
+		dbMessages = dbMessages[:len(dbMessages)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
+	}
+
+	var snippets []*v12.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v12.SearchSnippet, len(dbMessages))
+		for i := range snippets {
+			snippet := &v12.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["blocks.text"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "blocks.text", Match: match})
+				}
+			}
+			snippets[i] = snippet
+		}
+	}
+
+	// Convert back to proto.
+	messages := make([]*v11.Message, 0, len(dbMessages))
+	for _, dbMessage := range dbMessages {
+		message, err := dbMessage.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Message to Message: %v", err).Err()
+		}
+		messages = append(messages, message)
+	}
+
+	// Create and return response.
+	return &v1.SearchMessagesResponse{
+		Messages:      messages,
+		Snippets:      snippets,
+		NextPageToken: nextPageToken,
 	}, nil
 }

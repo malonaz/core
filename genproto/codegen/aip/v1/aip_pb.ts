@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/aip/v1/aip.proto.
  */
 export const file_malonaz_codegen_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIrUDCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEasQEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAFKBAgEEAUiWAoGV2VpZ2h0EhYKEldFSUdIVF9VTlNQRUNJRklFRBAAEgwKCFdFSUdIVF9BEAESDAoIV0VJR0hUX0IQAhIMCghXRUlHSFRfQxADEgwKCFdFSUdIVF9EEAQiTwoFU3BsaXQSFQoRU1BMSVRfVU5TUEVDSUZJRUQQABIXChNTUExJVF9FTUFJTF9BRERSRVNTEAESFgoSU1BMSVRfUEhPTkVfTlVNQkVSEAIiNwoRUGFnaW5hdGlvbk9wdGlvbnMSIgoRZGVmYXVsdF9wYWdlX3NpemUYASABKAVCB7pIBBoCIAAiQQoPT3JkZXJpbmdPcHRpb25zEhUKBXBhdGhzGAEgAygJQga6SAPIAQESFwoHZGVmYXVsdBgCIAEoCUIGukgDyAEBIh4KDVVwZGF0ZU9wdGlvbnMSDQoFcGF0aHMYASADKAkiagoOU3RhbmRhcmRNZXRob2QSRAoIcmVzb3VyY2UYASABKAlCMrpIL3IqMiheW2EtejAtOV0rKFwuW2EtejAtOV0rKSsvW0EtWl1bYS16QS1aXSokyAEBEhIKCmVtaXRfZXZlbnQYAiABKAg6cQoPc3RhbmRhcmRfbWV0aG9kEh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYyNYFIAEoCzImLm1hbG9uYXouY29kZWdlbi5haXAudjEuU3RhbmRhcmRNZXRob2RSDnN0YW5kYXJkTWV0aG9kOkgKDnV1aWRfbmFtZXNwYWNlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGODOBSABKAlSDXV1aWROYW1lc3BhY2U6YAoGdXBkYXRlEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGM2TOCABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlVwZGF0ZU9wdGlvbnNSBnVwZGF0ZTpsCgpwYWdpbmF0aW9uEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLDeBSABKAsyKS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlBhZ2luYXRpb25PcHRpb25zUgpwYWdpbmF0aW9uOmYKCG9yZGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLHeBSABKAsyJy5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLk9yZGVyaW5nT3B0aW9uc1IIb3JkZXJpbmc6aQoJZmlsdGVyaW5nEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLLeBSABKAsyKC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLkZpbHRlcmluZ09wdGlvbnNSCWZpbHRlcmluZzpgCgZzZWFyY2gSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYs94FIAEoCzIlLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9uc1IGc2VhcmNoQjFaL2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor]);
+  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJItIDCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEazgEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAESGwoKbWF4X2xlbmd0aBgFIAEoBUIHukgEGgIoAEoECAQQBSJYCgZXZWlnaHQSFgoSV0VJR0hUX1VOU1BFQ0lGSUVEEAASDAoIV0VJR0hUX0EQARIMCghXRUlHSFRfQhACEgwKCFdFSUdIVF9DEAMSDAoIV0VJR0hUX0QQBCJPCgVTcGxpdBIVChFTUExJVF9VTlNQRUNJRklFRBAAEhcKE1NQTElUX0VNQUlMX0FERFJFU1MQARIWChJTUExJVF9QSE9ORV9OVU1CRVIQAiI3ChFQYWdpbmF0aW9uT3B0aW9ucxIiChFkZWZhdWx0X3BhZ2Vfc2l6ZRgBIAEoBUIHukgEGgIgACJBCg9PcmRlcmluZ09wdGlvbnMSFQoFcGF0aHMYASADKAlCBrpIA8gBARIXCgdkZWZhdWx0GAIgASgJQga6SAPIAQEiHgoNVXBkYXRlT3B0aW9ucxINCgVwYXRocxgBIAMoCSJqCg5TdGFuZGFyZE1ldGhvZBJECghyZXNvdXJjZRgBIAEoCUIyukgvcioyKF5bYS16MC05XSsoXC5bYS16MC05XSspKy9bQS1aXVthLXpBLVpdKiTIAQESEgoKZW1pdF9ldmVudBgCIAEoCDpxCg9zdGFuZGFyZF9tZXRob2QSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjI1gUgASgLMiYubWFsb25hei5jb2RlZ2VuLmFpcC52MS5TdGFuZGFyZE1ldGhvZFIOc3RhbmRhcmRNZXRob2Q6SAoOdXVpZF9uYW1lc3BhY2USHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMY4M4FIAEoCVINdXVpZE5hbWVzcGFjZTpgCgZ1cGRhdGUSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYzZM4IAEoCzIlLm1hbG9uYXouY29kZWdlbi5haXAudjEuVXBkYXRlT3B0aW9uc1IGdXBkYXRlOmwKCnBhZ2luYXRpb24SHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYsN4FIAEoCzIpLm1hbG9uYXouY29kZWdlbi5haXAudjEuUGFnaW5hdGlvbk9wdGlvbnNSCnBhZ2luYXRpb246ZgoIb3JkZXJpbmcSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYsd4FIAEoCzInLm1hbG9uYXouY29kZWdlbi5haXAudjEuT3JkZXJpbmdPcHRpb25zUghvcmRlcmluZzppCglmaWx0ZXJpbmcSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYst4FIAEoCzIoLm1hbG9uYXouY29kZWdlbi5haXAudjEuRmlsdGVyaW5nT3B0aW9uc1IJZmlsdGVyaW5nOmAKBnNlYXJjaBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiz3gUgASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5TZWFyY2hPcHRpb25zUgZzZWFyY2hCMVovZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_descriptor]);
 
 /**
  * Options for filtering.
@@ -92,7 +92,9 @@ export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.
    * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
    * "metadata.postal_address". JSON keys are proto field names. The terminal
    * segment may be a string, repeated string, or a message (whose whole JSON
-   * subtree is indexed).
+   * subtree is indexed). A path may traverse repeated message fields, e.g.
+   * "blocks.text" indexes the text of every block; such a path must end in a
+   * string or repeated string.
    *
    * @generated from field: string path = 1;
    */
@@ -111,6 +113,15 @@ export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.
    * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Split split = 3;
    */
   split: SearchOptions_Split;
+
+  /**
+   * If set, only the first max_length characters of the field are indexed.
+   * Unbounded text fields should set it: postgres rejects a row whose
+   * tsvector exceeds 1MB, failing the write.
+   *
+   * @generated from field: int32 max_length = 5;
+   */
+  maxLength: number;
 };
 
 /**
@@ -125,7 +136,9 @@ export type SearchOptions_FieldValid = Message<"malonaz.codegen.aip.v1.SearchOpt
    * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
    * "metadata.postal_address". JSON keys are proto field names. The terminal
    * segment may be a string, repeated string, or a message (whose whole JSON
-   * subtree is indexed).
+   * subtree is indexed). A path may traverse repeated message fields, e.g.
+   * "blocks.text" indexes the text of every block; such a path must end in a
+   * string or repeated string.
    *
    * @generated from field: string path = 1;
    */
@@ -144,6 +157,15 @@ export type SearchOptions_FieldValid = Message<"malonaz.codegen.aip.v1.SearchOpt
    * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Split split = 3;
    */
   split: SearchOptions_Split;
+
+  /**
+   * If set, only the first max_length characters of the field are indexed.
+   * Unbounded text fields should set it: postgres rejects a row whose
+   * tsvector exceeds 1MB, failing the write.
+   *
+   * @generated from field: int32 max_length = 5;
+   */
+  maxLength: number;
 };
 
 /**

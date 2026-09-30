@@ -11,6 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
+	v11 "github.com/malonaz/core/genproto/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1807,11 +1808,256 @@ func (*streamGenerateMessageResponse_GeneratedMessage) isStreamGenerateMessageRe
 
 func (*streamGenerateMessageResponse_ModelUsage) isStreamGenerateMessageResponse_Content() {}
 
+// Request message for AiService.SearchMessages.
+type SearchMessagesRequest struct {
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent          string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Query           string                 `protobuf:"bytes,2,opt,name=query,proto3"`
+	xxx_hidden_Filter          string                 `protobuf:"bytes,3,opt,name=filter,proto3"`
+	xxx_hidden_ShowDeleted     bool                   `protobuf:"varint,4,opt,name=show_deleted,json=showDeleted,proto3"`
+	xxx_hidden_PageSize        int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken       string                 `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_IncludeSnippets bool                   `protobuf:"varint,7,opt,name=include_snippets,json=includeSnippets,proto3"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *SearchMessagesRequest) Reset() {
+	*x = SearchMessagesRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchMessagesRequest) ProtoMessage() {}
+
+func (x *SearchMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchMessagesRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *SearchMessagesRequest) GetQuery() string {
+	if x != nil {
+		return x.xxx_hidden_Query
+	}
+	return ""
+}
+
+func (x *SearchMessagesRequest) GetFilter() string {
+	if x != nil {
+		return x.xxx_hidden_Filter
+	}
+	return ""
+}
+
+func (x *SearchMessagesRequest) GetShowDeleted() bool {
+	if x != nil {
+		return x.xxx_hidden_ShowDeleted
+	}
+	return false
+}
+
+func (x *SearchMessagesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.xxx_hidden_PageSize
+	}
+	return 0
+}
+
+func (x *SearchMessagesRequest) GetPageToken() string {
+	if x != nil {
+		return x.xxx_hidden_PageToken
+	}
+	return ""
+}
+
+func (x *SearchMessagesRequest) GetIncludeSnippets() bool {
+	if x != nil {
+		return x.xxx_hidden_IncludeSnippets
+	}
+	return false
+}
+
+func (x *SearchMessagesRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *SearchMessagesRequest) SetQuery(v string) {
+	x.xxx_hidden_Query = v
+}
+
+func (x *SearchMessagesRequest) SetFilter(v string) {
+	x.xxx_hidden_Filter = v
+}
+
+func (x *SearchMessagesRequest) SetShowDeleted(v bool) {
+	x.xxx_hidden_ShowDeleted = v
+}
+
+func (x *SearchMessagesRequest) SetPageSize(v int32) {
+	x.xxx_hidden_PageSize = v
+}
+
+func (x *SearchMessagesRequest) SetPageToken(v string) {
+	x.xxx_hidden_PageToken = v
+}
+
+func (x *SearchMessagesRequest) SetIncludeSnippets(v bool) {
+	x.xxx_hidden_IncludeSnippets = v
+}
+
+type SearchMessagesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the parent chat whose messages to search. Use "-" as
+	// the chat to search across all of a user's chats.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}
+	Parent string
+	// The free-text query, matched against the text blocks.
+	// Results are ranked by relevance. Must contain at least one searchable term.
+	Query string
+	// An optional filter, ANDed with the query.
+	Filter string
+	// If true, include soft-deleted messages.
+	ShowDeleted bool
+	// Maximum number of messages to return (max 1000).
+	PageSize int32
+	// A page token, received from a previous `SearchMessages` call.
+	PageToken string
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool
+}
+
+func (b0 SearchMessagesRequest_builder) Build() *SearchMessagesRequest {
+	m0 := &SearchMessagesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Query = b.Query
+	x.xxx_hidden_Filter = b.Filter
+	x.xxx_hidden_ShowDeleted = b.ShowDeleted
+	x.xxx_hidden_PageSize = b.PageSize
+	x.xxx_hidden_PageToken = b.PageToken
+	x.xxx_hidden_IncludeSnippets = b.IncludeSnippets
+	return m0
+}
+
+// Response message for AiService.SearchMessages.
+type SearchMessagesResponse struct {
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Messages      *[]*v1.Message         `protobuf:"bytes,1,rep,name=messages,proto3"`
+	xxx_hidden_Snippets      *[]*v11.SearchSnippet  `protobuf:"bytes,2,rep,name=snippets,proto3"`
+	xxx_hidden_NextPageToken string                 `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *SearchMessagesResponse) Reset() {
+	*x = SearchMessagesResponse{}
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchMessagesResponse) ProtoMessage() {}
+
+func (x *SearchMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_message_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchMessagesResponse) GetMessages() []*v1.Message {
+	if x != nil {
+		if x.xxx_hidden_Messages != nil {
+			return *x.xxx_hidden_Messages
+		}
+	}
+	return nil
+}
+
+func (x *SearchMessagesResponse) GetSnippets() []*v11.SearchSnippet {
+	if x != nil {
+		if x.xxx_hidden_Snippets != nil {
+			return *x.xxx_hidden_Snippets
+		}
+	}
+	return nil
+}
+
+func (x *SearchMessagesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.xxx_hidden_NextPageToken
+	}
+	return ""
+}
+
+func (x *SearchMessagesResponse) SetMessages(v []*v1.Message) {
+	x.xxx_hidden_Messages = &v
+}
+
+func (x *SearchMessagesResponse) SetSnippets(v []*v11.SearchSnippet) {
+	x.xxx_hidden_Snippets = &v
+}
+
+func (x *SearchMessagesResponse) SetNextPageToken(v string) {
+	x.xxx_hidden_NextPageToken = v
+}
+
+type SearchMessagesResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The messages matching the query, ranked by relevance.
+	Messages []*v1.Message
+	// Highlighted snippets, index-aligned with `messages`.
+	Snippets []*v11.SearchSnippet
+	// A token to retrieve the next page.
+	NextPageToken string
+}
+
+func (b0 SearchMessagesResponse_builder) Build() *SearchMessagesResponse {
+	m0 := &SearchMessagesResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Messages = &b.Messages
+	x.xxx_hidden_Snippets = &b.Snippets
+	x.xxx_hidden_NextPageToken = b.NextPageToken
+	return m0
+}
+
 var File_malonaz_ai_ai_service_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"&malonaz/ai/ai_service/v1/message.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xa5\x02\n" +
+	"&malonaz/ai/ai_service/v1/message.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xa5\x02\n" +
 	"\x14CreateMessageRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x12;\n" +
@@ -1910,7 +2156,23 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x11generated_message\x18\x04 \x01(\v2\x16.malonaz.ai.v1.MessageH\x00R\x10generatedMessage\x12<\n" +
 	"\vmodel_usage\x18\x05 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
 	"modelUsageB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01*\xce\x01\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xb2\x02\n" +
+	"\x15SearchMessagesRequest\x129\n" +
+	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
+	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
+	"\x05query\x18\x02 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x02R\x05query\x12\x16\n" +
+	"\x06filter\x18\x03 \x01(\tR\x06filter\x12!\n" +
+	"\fshow_deleted\x18\x04 \x01(\bR\vshowDeleted\x12'\n" +
+	"\tpage_size\x18\x05 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\x12)\n" +
+	"\x10include_snippets\x18\a \x01(\bR\x0fincludeSnippets:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"\x01*\"\xaf\x01\n" +
+	"\x16SearchMessagesResponse\x122\n" +
+	"\bmessages\x18\x01 \x03(\v2\x16.malonaz.ai.v1.MessageR\bmessages\x129\n" +
+	"\bsnippets\x18\x02 \x03(\v2\x1d.malonaz.aip.v1.SearchSnippetR\bsnippets\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken*\xce\x01\n" +
 	"\n" +
 	"StopReason\x12\x1b\n" +
 	"\x17STOP_REASON_UNSPECIFIED\x10\x00\x12\x18\n" +
@@ -1922,7 +2184,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x13STOP_REASON_REFUSAL\x10\x06B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
 var file_malonaz_ai_ai_service_v1_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_malonaz_ai_ai_service_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(StopReason)(0),                        // 0: malonaz.ai.ai_service.v1.StopReason
 	(*CreateMessageRequest)(nil),           // 1: malonaz.ai.ai_service.v1.CreateMessageRequest
@@ -1939,45 +2201,50 @@ var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(*GenerateMessageRequest)(nil),         // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest
 	(*GenerateMessageResponse)(nil),        // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse
 	(*StreamGenerateMessageResponse)(nil),  // 14: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
-	nil,                                    // 15: malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
-	(*v1.Message)(nil),                     // 16: malonaz.ai.v1.Message
-	(*fieldmaskpb.FieldMask)(nil),          // 17: google.protobuf.FieldMask
-	(*v1.ToolChoice)(nil),                  // 18: malonaz.ai.v1.ToolChoice
-	(v1.ReasoningEffort)(0),                // 19: malonaz.ai.v1.ReasoningEffort
-	(*v1.Tool)(nil),                        // 20: malonaz.ai.v1.Tool
-	(*v1.ToolSet)(nil),                     // 21: malonaz.ai.v1.ToolSet
-	(*v1.ModelUsage)(nil),                  // 22: malonaz.ai.v1.ModelUsage
-	(*v1.GenerationMetrics)(nil),           // 23: malonaz.ai.v1.GenerationMetrics
-	(*v1.Block)(nil),                       // 24: malonaz.ai.v1.Block
+	(*SearchMessagesRequest)(nil),          // 15: malonaz.ai.ai_service.v1.SearchMessagesRequest
+	(*SearchMessagesResponse)(nil),         // 16: malonaz.ai.ai_service.v1.SearchMessagesResponse
+	nil,                                    // 17: malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	(*v1.Message)(nil),                     // 18: malonaz.ai.v1.Message
+	(*fieldmaskpb.FieldMask)(nil),          // 19: google.protobuf.FieldMask
+	(*v1.ToolChoice)(nil),                  // 20: malonaz.ai.v1.ToolChoice
+	(v1.ReasoningEffort)(0),                // 21: malonaz.ai.v1.ReasoningEffort
+	(*v1.Tool)(nil),                        // 22: malonaz.ai.v1.Tool
+	(*v1.ToolSet)(nil),                     // 23: malonaz.ai.v1.ToolSet
+	(*v1.ModelUsage)(nil),                  // 24: malonaz.ai.v1.ModelUsage
+	(*v1.GenerationMetrics)(nil),           // 25: malonaz.ai.v1.GenerationMetrics
+	(*v1.Block)(nil),                       // 26: malonaz.ai.v1.Block
+	(*v11.SearchSnippet)(nil),              // 27: malonaz.aip.v1.SearchSnippet
 }
 var file_malonaz_ai_ai_service_v1_message_proto_depIdxs = []int32{
-	16, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	16, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
-	17, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
-	16, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
-	16, // 4: malonaz.ai.ai_service.v1.BatchGetMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
-	18, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
-	19, // 6: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	18, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	18, // 1: malonaz.ai.ai_service.v1.UpdateMessageRequest.message:type_name -> malonaz.ai.v1.Message
+	19, // 2: malonaz.ai.ai_service.v1.UpdateMessageRequest.update_mask:type_name -> google.protobuf.FieldMask
+	18, // 3: malonaz.ai.ai_service.v1.ListMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	18, // 4: malonaz.ai.ai_service.v1.BatchGetMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	20, // 5: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.tool_choice:type_name -> malonaz.ai.v1.ToolChoice
+	21, // 6: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
 	11, // 7: malonaz.ai.ai_service.v1.MessageGenerationConfiguration.image_configuration:type_name -> malonaz.ai.ai_service.v1.ImageGenerationConfiguration
-	16, // 8: malonaz.ai.ai_service.v1.GenerateMessageRequest.messages:type_name -> malonaz.ai.v1.Message
-	20, // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
-	21, // 10: malonaz.ai.ai_service.v1.GenerateMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
+	18, // 8: malonaz.ai.ai_service.v1.GenerateMessageRequest.messages:type_name -> malonaz.ai.v1.Message
+	22, // 9: malonaz.ai.ai_service.v1.GenerateMessageRequest.tools:type_name -> malonaz.ai.v1.Tool
+	23, // 10: malonaz.ai.ai_service.v1.GenerateMessageRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
 	10, // 11: malonaz.ai.ai_service.v1.GenerateMessageRequest.configuration:type_name -> malonaz.ai.ai_service.v1.MessageGenerationConfiguration
-	15, // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
-	16, // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	17, // 12: malonaz.ai.ai_service.v1.GenerateMessageRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateMessageRequest.LabelsEntry
+	18, // 13: malonaz.ai.ai_service.v1.GenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
 	0,  // 14: malonaz.ai.ai_service.v1.GenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
-	22, // 15: malonaz.ai.ai_service.v1.GenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	23, // 16: malonaz.ai.ai_service.v1.GenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	24, // 17: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.block:type_name -> malonaz.ai.v1.Block
+	24, // 15: malonaz.ai.ai_service.v1.GenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	25, // 16: malonaz.ai.ai_service.v1.GenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	26, // 17: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.block:type_name -> malonaz.ai.v1.Block
 	0,  // 18: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.stop_reason:type_name -> malonaz.ai.ai_service.v1.StopReason
-	23, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	16, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
-	22, // 21: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	25, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	18, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
+	24, // 21: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	18, // 22: malonaz.ai.ai_service.v1.SearchMessagesResponse.messages:type_name -> malonaz.ai.v1.Message
+	27, // 23: malonaz.ai.ai_service.v1.SearchMessagesResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_message_proto_init() }
@@ -1998,7 +2265,7 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_message_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_message_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

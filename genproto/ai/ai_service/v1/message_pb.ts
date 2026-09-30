@@ -15,6 +15,8 @@ import type { GenerationMetrics, GenerationMetricsValid, ModelUsage, ModelUsageV
 import { file_malonaz_ai_v1_metrics } from "../../v1/metrics_pb";
 import type { Tool, ToolChoice, ToolSet, ToolSetValid, ToolValid } from "../../v1/tool_pb";
 import { file_malonaz_ai_v1_tool } from "../../v1/tool_pb";
+import type { SearchSnippet, SearchSnippetValid } from "../../../aip/v1/aip_pb";
+import { file_malonaz_aip_v1_aip } from "../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -22,7 +24,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/message.proto.
  */
 export const file_malonaz_ai_ai_service_v1_message: GenFile = /*@__PURE__*/
-  fileDesc("CiZtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvbWVzc2FnZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIvABChRDcmVhdGVNZXNzYWdlUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIyCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQgngQQK6SAPIAQESOQoKbWVzc2FnZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkcKEUdldE1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBASL6AQoUVXBkYXRlTWVzc2FnZVJlcXVlc3QSLwoHbWVzc2FnZRgBIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOni6SEsaSQoVbWVzc2FnZS5uYW1lX3JlcXVpcmVkEhhtZXNzYWdlLm5hbWUgbXVzdCBiZSBzZXQaFmhhcyh0aGlzLm1lc3NhZ2UubmFtZSnqnMEDJQoGbGFiZWxzCgthbm5vdGF0aW9ucwoGYmxvY2tzCgZzdGF0dXMibwoURGVsZXRlTWVzc2FnZVJlcXVlc3QSMgoEbmFtZRgBIAEoCUIk4EEC+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSJaChZVbmRlbGV0ZU1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBARIMCgRldGFnGAIgASgJIvMBChNMaXN0TWVzc2FnZXNSZXF1ZXN0EjEKBnBhcmVudBgBIAEoCUIh4EEC+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6PoLzLQMI6AeK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKFExpc3RNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKCAQoXQmF0Y2hHZXRNZXNzYWdlc1JlcXVlc3QSKAoGcGFyZW50GAEgASgJQhj6QRUKE2FpLm1hbG9uYXouY29tL0NoYXQSPQoFbmFtZXMYAiADKAlCLvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIEJIBDQgBEOgHGAEiBHICEAEiRAoYQmF0Y2hHZXRNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlIs0CCh5NZXNzYWdlR2VuZXJhdGlvbkNvbmZpZ3VyYXRpb24SGwoKbWF4X3Rva2VucxgBIAEoBUIHukgEGgIoABIsCgt0ZW1wZXJhdHVyZRgCIAEoAUIXukgUEhIZAAAAAAAAAEApAAAAAAAAAAASLgoLdG9vbF9jaG9pY2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xDaG9pY2USOAoQcmVhc29uaW5nX2VmZm9ydBgEIAEoDjIeLm1hbG9uYXouYWkudjEuUmVhc29uaW5nRWZmb3J0EiEKGXN0cmVhbV9wYXJ0aWFsX3Rvb2xfY2FsbHMYBSABKAgSUwoTaW1hZ2VfY29uZmlndXJhdGlvbhgGIAEoCzI2Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5JbWFnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uIpsBChxJbWFnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uElIKDGFzcGVjdF9yYXRpbxgBIAEoCUI8ukg5cjdSAFIDMToxUgMyOjNSAzM6MlIDMzo0UgM0OjNSAzQ6NVIDNTo0UgQ5OjE2UgQxNjo5UgQyMTo5EicKCmltYWdlX3NpemUYAiABKAlCE7pIEHIOUgBSAjFLUgIyS1ICNEsiqQUKFkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESKAoIbWVzc2FnZXMYAyADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2USNQoQcHJldmlvdXNfbWVzc2FnZRgEIAEoCUIb+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlEiIKBXRvb2xzGAUgAygLMhMubWFsb25hei5haS52MS5Ub29sEikKCXRvb2xfc2V0cxgGIAMoCzIWLm1hbG9uYXouYWkudjEuVG9vbFNldBJPCg1jb25maWd1cmF0aW9uGAcgASgLMjgubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLk1lc3NhZ2VHZW5lcmF0aW9uQ29uZmlndXJhdGlvbhLaAQoGbGFiZWxzGAggAygLMjwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokEh8KCnJlcXVlc3RfaWQYCSABKAlCC7pICHIDsAEB2AEBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEi9QEKF0dlbmVyYXRlTWVzc2FnZVJlc3BvbnNlEjEKEWdlbmVyYXRlZF9tZXNzYWdlGAEgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlEjkKC3N0b3BfcmVhc29uGAIgASgOMiQubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0b3BSZWFzb24SLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyK8AgodU3RyZWFtR2VuZXJhdGVNZXNzYWdlUmVzcG9uc2USJQoFYmxvY2sYASABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASOwoLc3RvcF9yZWFzb24YAiABKA4yJC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RvcFJlYXNvbkgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgDIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIABIzChFnZW5lcmF0ZWRfbWVzc2FnZRgEIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEjAKC21vZGVsX3VzYWdlGAUgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlSABCEAoHY29udGVudBIFukgCCAEqzgEKClN0b3BSZWFzb24SGwoXU1RPUF9SRUFTT05fVU5TUEVDSUZJRUQQABIYChRTVE9QX1JFQVNPTl9FTkRfVFVSThABEhoKFlNUT1BfUkVBU09OX01BWF9UT0tFTlMQAhIZChVTVE9QX1JFQVNPTl9UT09MX0NBTEwQAxIdChlTVE9QX1JFQVNPTl9TVE9QX1NFUVVFTkNFEAQSGgoWU1RPUF9SRUFTT05fUEFVU0VfVFVSThAFEhcKE1NUT1BfUkVBU09OX1JFRlVTQUwQBkIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CiZtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvbWVzc2FnZS5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIvABChRDcmVhdGVNZXNzYWdlUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIyCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQgngQQK6SAPIAQESOQoKbWVzc2FnZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkcKEUdldE1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBASL6AQoUVXBkYXRlTWVzc2FnZVJlcXVlc3QSLwoHbWVzc2FnZRgBIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOni6SEsaSQoVbWVzc2FnZS5uYW1lX3JlcXVpcmVkEhhtZXNzYWdlLm5hbWUgbXVzdCBiZSBzZXQaFmhhcyh0aGlzLm1lc3NhZ2UubmFtZSnqnMEDJQoGbGFiZWxzCgthbm5vdGF0aW9ucwoGYmxvY2tzCgZzdGF0dXMibwoURGVsZXRlTWVzc2FnZVJlcXVlc3QSMgoEbmFtZRgBIAEoCUIk4EEC+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSJaChZVbmRlbGV0ZU1lc3NhZ2VSZXF1ZXN0EjIKBG5hbWUYASABKAlCJOBBAvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIA8gBARIMCgRldGFnGAIgASgJIvMBChNMaXN0TWVzc2FnZXNSZXF1ZXN0EjEKBnBhcmVudBgBIAEoCUIh4EEC+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6PoLzLQMI6AeK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKFExpc3RNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKCAQoXQmF0Y2hHZXRNZXNzYWdlc1JlcXVlc3QSKAoGcGFyZW50GAEgASgJQhj6QRUKE2FpLm1hbG9uYXouY29tL0NoYXQSPQoFbmFtZXMYAiADKAlCLvpBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZbpIEJIBDQgBEOgHGAEiBHICEAEiRAoYQmF0Y2hHZXRNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlIs0CCh5NZXNzYWdlR2VuZXJhdGlvbkNvbmZpZ3VyYXRpb24SGwoKbWF4X3Rva2VucxgBIAEoBUIHukgEGgIoABIsCgt0ZW1wZXJhdHVyZRgCIAEoAUIXukgUEhIZAAAAAAAAAEApAAAAAAAAAAASLgoLdG9vbF9jaG9pY2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xDaG9pY2USOAoQcmVhc29uaW5nX2VmZm9ydBgEIAEoDjIeLm1hbG9uYXouYWkudjEuUmVhc29uaW5nRWZmb3J0EiEKGXN0cmVhbV9wYXJ0aWFsX3Rvb2xfY2FsbHMYBSABKAgSUwoTaW1hZ2VfY29uZmlndXJhdGlvbhgGIAEoCzI2Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5JbWFnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uIpsBChxJbWFnZUdlbmVyYXRpb25Db25maWd1cmF0aW9uElIKDGFzcGVjdF9yYXRpbxgBIAEoCUI8ukg5cjdSAFIDMToxUgMyOjNSAzM6MlIDMzo0UgM0OjNSAzQ6NVIDNTo0UgQ5OjE2UgQxNjo5UgQyMTo5EicKCmltYWdlX3NpemUYAiABKAlCE7pIEHIOUgBSAjFLUgIyS1ICNEsiqQUKFkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESKAoIbWVzc2FnZXMYAyADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2USNQoQcHJldmlvdXNfbWVzc2FnZRgEIAEoCUIb+kEYChZhaS5tYWxvbmF6LmNvbS9NZXNzYWdlEiIKBXRvb2xzGAUgAygLMhMubWFsb25hei5haS52MS5Ub29sEikKCXRvb2xfc2V0cxgGIAMoCzIWLm1hbG9uYXouYWkudjEuVG9vbFNldBJPCg1jb25maWd1cmF0aW9uGAcgASgLMjgubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLk1lc3NhZ2VHZW5lcmF0aW9uQ29uZmlndXJhdGlvbhLaAQoGbGFiZWxzGAggAygLMjwubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdlbmVyYXRlTWVzc2FnZVJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokEh8KCnJlcXVlc3RfaWQYCSABKAlCC7pICHIDsAEB2AEBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEi9QEKF0dlbmVyYXRlTWVzc2FnZVJlc3BvbnNlEjEKEWdlbmVyYXRlZF9tZXNzYWdlGAEgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlEjkKC3N0b3BfcmVhc29uGAIgASgOMiQubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlN0b3BSZWFzb24SLgoLbW9kZWxfdXNhZ2UYAyABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAQgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyK8AgodU3RyZWFtR2VuZXJhdGVNZXNzYWdlUmVzcG9uc2USJQoFYmxvY2sYASABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASOwoLc3RvcF9yZWFzb24YAiABKA4yJC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3RvcFJlYXNvbkgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgDIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIABIzChFnZW5lcmF0ZWRfbWVzc2FnZRgEIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEjAKC21vZGVsX3VzYWdlGAUgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlSABCEAoHY29udGVudBIFukgCCAEi6AEKFVNlYXJjaE1lc3NhZ2VzUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEhQKDHNob3dfZGVsZXRlZBgEIAEoCBIdCglwYWdlX3NpemUYBSABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgGIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAcgASgIOg2C8y0CCGSS8y0DCgEqIowBChZTZWFyY2hNZXNzYWdlc1Jlc3BvbnNlEigKCG1lc3NhZ2VzGAEgAygLMhYubWFsb25hei5haS52MS5NZXNzYWdlEi8KCHNuaXBwZXRzGAIgAygLMh0ubWFsb25hei5haXAudjEuU2VhcmNoU25pcHBldBIXCg9uZXh0X3BhZ2VfdG9rZW4YAyABKAkqzgEKClN0b3BSZWFzb24SGwoXU1RPUF9SRUFTT05fVU5TUEVDSUZJRUQQABIYChRTVE9QX1JFQVNPTl9FTkRfVFVSThABEhoKFlNUT1BfUkVBU09OX01BWF9UT0tFTlMQAhIZChVTVE9QX1JFQVNPTl9UT09MX0NBTEwQAxIdChlTVE9QX1JFQVNPTl9TVE9QX1NFUVVFTkNFEAQSGgoWU1RPUF9SRUFTT05fUEFVU0VfVFVSThAFEhcKE1NUT1BfUkVBU09OX1JFRlVTQUwQBkIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics, file_malonaz_ai_v1_tool, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AiService.CreateMessage.
@@ -1035,6 +1037,194 @@ export type StreamGenerateMessageResponseValid = Message<"malonaz.ai.ai_service.
  */
 export const StreamGenerateMessageResponseSchema: GenMessage<StreamGenerateMessageResponse, {validType: StreamGenerateMessageResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_message, 13);
+
+/**
+ * Request message for AiService.SearchMessages.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchMessagesRequest
+ */
+export type SearchMessagesRequest = Message<"malonaz.ai.ai_service.v1.SearchMessagesRequest"> & {
+  /**
+   * The resource name of the parent chat whose messages to search. Use "-" as
+   * the chat to search across all of a user's chats.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text query, matched against the text blocks.
+   * Results are ranked by relevance. Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted messages.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of messages to return (max 1000).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchMessages` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Request message for AiService.SearchMessages.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchMessagesRequest
+ */
+export type SearchMessagesRequestValid = Message<"malonaz.ai.ai_service.v1.SearchMessagesRequest"> & {
+  /**
+   * The resource name of the parent chat whose messages to search. Use "-" as
+   * the chat to search across all of a user's chats.
+   * Format: organizations/{organization}/users/{user}/chats/{chat}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text query, matched against the text blocks.
+   * Results are ranked by relevance. Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted messages.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of messages to return (max 1000).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchMessages` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SearchMessagesRequest.
+ * Use `create(SearchMessagesRequestSchema)` to create a new message.
+ */
+export const SearchMessagesRequestSchema: GenMessage<SearchMessagesRequest, {validType: SearchMessagesRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_message, 14);
+
+/**
+ * Response message for AiService.SearchMessages.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchMessagesResponse
+ */
+export type SearchMessagesResponse = Message<"malonaz.ai.ai_service.v1.SearchMessagesResponse"> & {
+  /**
+   * The messages matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Message messages = 1;
+   */
+  messages: Message$1[];
+
+  /**
+   * Highlighted snippets, index-aligned with `messages`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippet[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Response message for AiService.SearchMessages.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchMessagesResponse
+ */
+export type SearchMessagesResponseValid = Message<"malonaz.ai.ai_service.v1.SearchMessagesResponse"> & {
+  /**
+   * The messages matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Message messages = 1;
+   */
+  messages: MessageValid[];
+
+  /**
+   * Highlighted snippets, index-aligned with `messages`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippetValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SearchMessagesResponse.
+ * Use `create(SearchMessagesResponseSchema)` to create a new message.
+ */
+export const SearchMessagesResponseSchema: GenMessage<SearchMessagesResponse, {validType: SearchMessagesResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_message, 15);
 
 /**
  * Reason why generation stopped.

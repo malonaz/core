@@ -353,3 +353,74 @@ func (s *Store) ListChats(ctx context.Context, organizationId, userId string, sh
 	}
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Chat])
 }
+
+// ChatSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const ChatSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(title, '')), 'A')`
+
+type chatSearchRow struct {
+	model.Chat
+	SnippetTitle *string `db:"__snippet_title"`
+}
+
+func (s *Store) SearchChats(ctx context.Context, organizationId, userId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Chat, []map[string]string, error) {
+	if columns == nil {
+		columns = ChatPostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+	if userId != "-" && userId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat.user_id = $%d", len(params)+1))
+		params = append(params, userId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "chat.delete_time IS NULL")
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY chat.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("chat.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(chat.search_document, to_tsquery('simple', $%d)) DESC, chat.create_time DESC", len(params)+1)
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(chat.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
+		}
+		params = append(params, tsQuery)
+	}
+
+	selectColumns := postgres.QualifyColumns(columns, "chat")
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query := "SELECT " + selectColumns + " FROM chat" + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting chats: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[chatSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	chats := make([]*model.Chat, 0, len(searchRows))
+	var snippets []map[string]string
+	for _, searchRow := range searchRows {
+		row := searchRow.Chat
+		chats = append(chats, &row)
+		if !includeSnippets {
+			continue
+		}
+		snippet := map[string]string{}
+		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
+			snippet["title"] = *searchRow.SnippetTitle
+		}
+		snippets = append(snippets, snippet)
+	}
+	return chats, snippets, nil
+}

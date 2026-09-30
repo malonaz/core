@@ -26,7 +26,7 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.protobuf import descriptor_pb2 as google_dot_protobuf_dot_descriptor__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/codegen/aip/v1/aip.proto\x12\x16malonaz.codegen.aip.v1\x1a\x1b\x62uf/validate/validate.proto\x1a google/protobuf/descriptor.proto\"!\n\x10\x46ilteringOptions\x12\r\n\x05paths\x18\x01 \x03(\t\"\xb5\x03\n\rSearchOptions\x12\x45\n\x06\x66ields\x18\x01 \x03(\x0b\x32+.malonaz.codegen.aip.v1.SearchOptions.FieldB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xb1\x01\n\x05\x46ield\x12\x14\n\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x46\n\x06weight\x18\x02 \x01(\x0e\x32,.malonaz.codegen.aip.v1.SearchOptions.WeightB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x44\n\x05split\x18\x03 \x01(\x0e\x32+.malonaz.codegen.aip.v1.SearchOptions.SplitB\x08\xbaH\x05\x82\x01\x02\x10\x01J\x04\x08\x04\x10\x05\"X\n\x06Weight\x12\x16\n\x12WEIGHT_UNSPECIFIED\x10\x00\x12\x0c\n\x08WEIGHT_A\x10\x01\x12\x0c\n\x08WEIGHT_B\x10\x02\x12\x0c\n\x08WEIGHT_C\x10\x03\x12\x0c\n\x08WEIGHT_D\x10\x04\"O\n\x05Split\x12\x15\n\x11SPLIT_UNSPECIFIED\x10\x00\x12\x17\n\x13SPLIT_EMAIL_ADDRESS\x10\x01\x12\x16\n\x12SPLIT_PHONE_NUMBER\x10\x02\"7\n\x11PaginationOptions\x12\"\n\x11\x64\x65\x66\x61ult_page_size\x18\x01 \x01(\x05\x42\x07\xbaH\x04\x1a\x02 \x00\"A\n\x0fOrderingOptions\x12\x15\n\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07\x64\x65\x66\x61ult\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x1e\n\rUpdateOptions\x12\r\n\x05paths\x18\x01 \x03(\t\"j\n\x0eStandardMethod\x12\x44\n\x08resource\x18\x01 \x01(\tB2\xbaH/r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$\xc8\x01\x01\x12\x12\n\nemit_event\x18\x02 \x01(\x08:a\n\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\x0b\x32&.malonaz.codegen.aip.v1.StandardMethod:9\n\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\t:X\n\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xcd\x93\x38 \x01(\x0b\x32%.malonaz.codegen.aip.v1.UpdateOptions:`\n\npagination\x12\x1f.google.protobuf.MessageOptions\x18\xb0\xde\x05 \x01(\x0b\x32).malonaz.codegen.aip.v1.PaginationOptions:\\\n\x08ordering\x12\x1f.google.protobuf.MessageOptions\x18\xb1\xde\x05 \x01(\x0b\x32\'.malonaz.codegen.aip.v1.OrderingOptions:^\n\tfiltering\x12\x1f.google.protobuf.MessageOptions\x18\xb2\xde\x05 \x01(\x0b\x32(.malonaz.codegen.aip.v1.FilteringOptions:X\n\x06search\x12\x1f.google.protobuf.MessageOptions\x18\xb3\xde\x05 \x01(\x0b\x32%.malonaz.codegen.aip.v1.SearchOptionsB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/codegen/aip/v1/aip.proto\x12\x16malonaz.codegen.aip.v1\x1a\x1b\x62uf/validate/validate.proto\x1a google/protobuf/descriptor.proto\"!\n\x10\x46ilteringOptions\x12\r\n\x05paths\x18\x01 \x03(\t\"\xd2\x03\n\rSearchOptions\x12\x45\n\x06\x66ields\x18\x01 \x03(\x0b\x32+.malonaz.codegen.aip.v1.SearchOptions.FieldB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xce\x01\n\x05\x46ield\x12\x14\n\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x46\n\x06weight\x18\x02 \x01(\x0e\x32,.malonaz.codegen.aip.v1.SearchOptions.WeightB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x44\n\x05split\x18\x03 \x01(\x0e\x32+.malonaz.codegen.aip.v1.SearchOptions.SplitB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x1b\n\nmax_length\x18\x05 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00J\x04\x08\x04\x10\x05\"X\n\x06Weight\x12\x16\n\x12WEIGHT_UNSPECIFIED\x10\x00\x12\x0c\n\x08WEIGHT_A\x10\x01\x12\x0c\n\x08WEIGHT_B\x10\x02\x12\x0c\n\x08WEIGHT_C\x10\x03\x12\x0c\n\x08WEIGHT_D\x10\x04\"O\n\x05Split\x12\x15\n\x11SPLIT_UNSPECIFIED\x10\x00\x12\x17\n\x13SPLIT_EMAIL_ADDRESS\x10\x01\x12\x16\n\x12SPLIT_PHONE_NUMBER\x10\x02\"7\n\x11PaginationOptions\x12\"\n\x11\x64\x65\x66\x61ult_page_size\x18\x01 \x01(\x05\x42\x07\xbaH\x04\x1a\x02 \x00\"A\n\x0fOrderingOptions\x12\x15\n\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07\x64\x65\x66\x61ult\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x1e\n\rUpdateOptions\x12\r\n\x05paths\x18\x01 \x03(\t\"j\n\x0eStandardMethod\x12\x44\n\x08resource\x18\x01 \x01(\tB2\xbaH/r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$\xc8\x01\x01\x12\x12\n\nemit_event\x18\x02 \x01(\x08:a\n\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\x0b\x32&.malonaz.codegen.aip.v1.StandardMethod:9\n\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\t:X\n\x06update\x12\x1f.google.protobuf.MessageOptions\x18\xcd\x93\x38 \x01(\x0b\x32%.malonaz.codegen.aip.v1.UpdateOptions:`\n\npagination\x12\x1f.google.protobuf.MessageOptions\x18\xb0\xde\x05 \x01(\x0b\x32).malonaz.codegen.aip.v1.PaginationOptions:\\\n\x08ordering\x12\x1f.google.protobuf.MessageOptions\x18\xb1\xde\x05 \x01(\x0b\x32\'.malonaz.codegen.aip.v1.OrderingOptions:^\n\tfiltering\x12\x1f.google.protobuf.MessageOptions\x18\xb2\xde\x05 \x01(\x0b\x32(.malonaz.codegen.aip.v1.FilteringOptions:X\n\x06search\x12\x1f.google.protobuf.MessageOptions\x18\xb3\xde\x05 \x01(\x0b\x32%.malonaz.codegen.aip.v1.SearchOptionsB1Z/github.com/malonaz/core/genproto/codegen/aip/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,6 +40,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SEARCHOPTIONS_FIELD'].fields_by_name['weight']._serialized_options = b'\272H\005\202\001\002\020\001'
   _globals['_SEARCHOPTIONS_FIELD'].fields_by_name['split']._loaded_options = None
   _globals['_SEARCHOPTIONS_FIELD'].fields_by_name['split']._serialized_options = b'\272H\005\202\001\002\020\001'
+  _globals['_SEARCHOPTIONS_FIELD'].fields_by_name['max_length']._loaded_options = None
+  _globals['_SEARCHOPTIONS_FIELD'].fields_by_name['max_length']._serialized_options = b'\272H\004\032\002(\000'
   _globals['_SEARCHOPTIONS'].fields_by_name['fields']._loaded_options = None
   _globals['_SEARCHOPTIONS'].fields_by_name['fields']._serialized_options = b'\272H\005\222\001\002\010\001'
   _globals['_PAGINATIONOPTIONS'].fields_by_name['default_page_size']._loaded_options = None
@@ -53,19 +55,19 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_FILTERINGOPTIONS']._serialized_start=123
   _globals['_FILTERINGOPTIONS']._serialized_end=156
   _globals['_SEARCHOPTIONS']._serialized_start=159
-  _globals['_SEARCHOPTIONS']._serialized_end=596
+  _globals['_SEARCHOPTIONS']._serialized_end=625
   _globals['_SEARCHOPTIONS_FIELD']._serialized_start=248
-  _globals['_SEARCHOPTIONS_FIELD']._serialized_end=425
-  _globals['_SEARCHOPTIONS_WEIGHT']._serialized_start=427
-  _globals['_SEARCHOPTIONS_WEIGHT']._serialized_end=515
-  _globals['_SEARCHOPTIONS_SPLIT']._serialized_start=517
-  _globals['_SEARCHOPTIONS_SPLIT']._serialized_end=596
-  _globals['_PAGINATIONOPTIONS']._serialized_start=598
-  _globals['_PAGINATIONOPTIONS']._serialized_end=653
-  _globals['_ORDERINGOPTIONS']._serialized_start=655
-  _globals['_ORDERINGOPTIONS']._serialized_end=720
-  _globals['_UPDATEOPTIONS']._serialized_start=722
-  _globals['_UPDATEOPTIONS']._serialized_end=752
-  _globals['_STANDARDMETHOD']._serialized_start=754
-  _globals['_STANDARDMETHOD']._serialized_end=860
+  _globals['_SEARCHOPTIONS_FIELD']._serialized_end=454
+  _globals['_SEARCHOPTIONS_WEIGHT']._serialized_start=456
+  _globals['_SEARCHOPTIONS_WEIGHT']._serialized_end=544
+  _globals['_SEARCHOPTIONS_SPLIT']._serialized_start=546
+  _globals['_SEARCHOPTIONS_SPLIT']._serialized_end=625
+  _globals['_PAGINATIONOPTIONS']._serialized_start=627
+  _globals['_PAGINATIONOPTIONS']._serialized_end=682
+  _globals['_ORDERINGOPTIONS']._serialized_start=684
+  _globals['_ORDERINGOPTIONS']._serialized_end=749
+  _globals['_UPDATEOPTIONS']._serialized_start=751
+  _globals['_UPDATEOPTIONS']._serialized_end=781
+  _globals['_STANDARDMETHOD']._serialized_start=783
+  _globals['_STANDARDMETHOD']._serialized_end=889
 # @@protoc_insertion_point(module_scope)

@@ -28,6 +28,17 @@ message Message {
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "d96e0fa8-568e-420f-bdb2-3c133ef3a50f";
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        // Text blocks only: thoughts, tool payloads and media are noise.
+        path: "blocks.text"
+        weight: WEIGHT_A
+        // Text blocks are unbounded (e.g. inlined documents).
+        max_length: 100000
+      }
+    ]
+  };
   option (buf.validate.message).cel = {
     id: "system_role_blocks"
     message: "SYSTEM messages can only have text blocks"

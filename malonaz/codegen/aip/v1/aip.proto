@@ -77,7 +77,9 @@ message SearchOptions {
     // JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
     // "metadata.postal_address". JSON keys are proto field names. The terminal
     // segment may be a string, repeated string, or a message (whose whole JSON
-    // subtree is indexed).
+    // subtree is indexed). A path may traverse repeated message fields, e.g.
+    // "blocks.text" indexes the text of every block; such a path must end in a
+    // string or repeated string.
     string path = 1 [(buf.validate.field).required = true];
     // The relevance weight of this field. Defaults to WEIGHT_D.
     Weight weight = 2 [(buf.validate.field).enum.defined_only = true];
@@ -87,6 +89,11 @@ message SearchOptions {
     // Formerly `bool snippet`: every field now produces snippets when the
     // request sets `include_snippets`.
     reserved 4;
+
+    // If set, only the first max_length characters of the field are indexed.
+    // Unbounded text fields should set it: postgres rejects a row whose
+    // tsvector exceeds 1MB, failing the write.
+    int32 max_length = 5 [(buf.validate.field).int32.gte = 0];
   }
 
   // The fields composing the search document.

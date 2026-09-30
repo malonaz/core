@@ -11,6 +11,7 @@ package v1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
+	v11 "github.com/malonaz/core/genproto/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -890,11 +891,263 @@ func (b0 BatchGetChatsResponse_builder) Build() *BatchGetChatsResponse {
 	return m0
 }
 
+// Request message for AiService.SearchChats.
+type SearchChatsRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the parent user whose chats to search.
+	// Format: organizations/{organization}/users/{user}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The free-text query, matched against the title.
+	// Results are ranked by relevance. Must contain at least one searchable term.
+	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	// An optional filter, ANDed with the query.
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// If true, include soft-deleted chats.
+	ShowDeleted bool `protobuf:"varint,4,opt,name=show_deleted,json=showDeleted,proto3" json:"show_deleted,omitempty"`
+	// Maximum number of chats to return (max 100).
+	PageSize int32 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A page token, received from a previous `SearchChats` call.
+	PageToken string `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool `protobuf:"varint,7,opt,name=include_snippets,json=includeSnippets,proto3" json:"include_snippets,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SearchChatsRequest) Reset() {
+	*x = SearchChatsRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchChatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchChatsRequest) ProtoMessage() {}
+
+func (x *SearchChatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchChatsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *SearchChatsRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchChatsRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *SearchChatsRequest) GetShowDeleted() bool {
+	if x != nil {
+		return x.ShowDeleted
+	}
+	return false
+}
+
+func (x *SearchChatsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchChatsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *SearchChatsRequest) GetIncludeSnippets() bool {
+	if x != nil {
+		return x.IncludeSnippets
+	}
+	return false
+}
+
+func (x *SearchChatsRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *SearchChatsRequest) SetQuery(v string) {
+	x.Query = v
+}
+
+func (x *SearchChatsRequest) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *SearchChatsRequest) SetShowDeleted(v bool) {
+	x.ShowDeleted = v
+}
+
+func (x *SearchChatsRequest) SetPageSize(v int32) {
+	x.PageSize = v
+}
+
+func (x *SearchChatsRequest) SetPageToken(v string) {
+	x.PageToken = v
+}
+
+func (x *SearchChatsRequest) SetIncludeSnippets(v bool) {
+	x.IncludeSnippets = v
+}
+
+type SearchChatsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the parent user whose chats to search.
+	// Format: organizations/{organization}/users/{user}
+	Parent string
+	// The free-text query, matched against the title.
+	// Results are ranked by relevance. Must contain at least one searchable term.
+	Query string
+	// An optional filter, ANDed with the query.
+	Filter string
+	// If true, include soft-deleted chats.
+	ShowDeleted bool
+	// Maximum number of chats to return (max 100).
+	PageSize int32
+	// A page token, received from a previous `SearchChats` call.
+	PageToken string
+	// If true, highlighted snippets are computed and returned for each result.
+	IncludeSnippets bool
+}
+
+func (b0 SearchChatsRequest_builder) Build() *SearchChatsRequest {
+	m0 := &SearchChatsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Query = b.Query
+	x.Filter = b.Filter
+	x.ShowDeleted = b.ShowDeleted
+	x.PageSize = b.PageSize
+	x.PageToken = b.PageToken
+	x.IncludeSnippets = b.IncludeSnippets
+	return m0
+}
+
+// Response message for AiService.SearchChats.
+type SearchChatsResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The chats matching the query, ranked by relevance.
+	Chats []*v1.Chat `protobuf:"bytes,1,rep,name=chats,proto3" json:"chats,omitempty"`
+	// Highlighted snippets, index-aligned with `chats`.
+	Snippets []*v11.SearchSnippet `protobuf:"bytes,2,rep,name=snippets,proto3" json:"snippets,omitempty"`
+	// A token to retrieve the next page.
+	NextPageToken string `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchChatsResponse) Reset() {
+	*x = SearchChatsResponse{}
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchChatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchChatsResponse) ProtoMessage() {}
+
+func (x *SearchChatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_chat_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SearchChatsResponse) GetChats() []*v1.Chat {
+	if x != nil {
+		return x.Chats
+	}
+	return nil
+}
+
+func (x *SearchChatsResponse) GetSnippets() []*v11.SearchSnippet {
+	if x != nil {
+		return x.Snippets
+	}
+	return nil
+}
+
+func (x *SearchChatsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+func (x *SearchChatsResponse) SetChats(v []*v1.Chat) {
+	x.Chats = v
+}
+
+func (x *SearchChatsResponse) SetSnippets(v []*v11.SearchSnippet) {
+	x.Snippets = v
+}
+
+func (x *SearchChatsResponse) SetNextPageToken(v string) {
+	x.NextPageToken = v
+}
+
+type SearchChatsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The chats matching the query, ranked by relevance.
+	Chats []*v1.Chat
+	// Highlighted snippets, index-aligned with `chats`.
+	Snippets []*v11.SearchSnippet
+	// A token to retrieve the next page.
+	NextPageToken string
+}
+
+func (b0 SearchChatsResponse_builder) Build() *SearchChatsResponse {
+	m0 := &SearchChatsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Chats = b.Chats
+	x.Snippets = b.Snippets
+	x.NextPageToken = b.NextPageToken
+	return m0
+}
+
 var File_malonaz_ai_ai_service_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/ai_service/v1/chat.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\x90\x02\n" +
+	"#malonaz/ai/ai_service/v1/chat.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\x90\x02\n" +
 	"\x11CreateChatRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12/\n" +
@@ -948,9 +1201,24 @@ const file_malonaz_ai_ai_service_v1_chat_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB+\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"B\n" +
 	"\x15BatchGetChatsResponse\x12)\n" +
-	"\x05chats\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ChatR\x05chatsB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
+	"\x05chats\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ChatR\x05chats\"\xae\x02\n" +
+	"\x12SearchChatsRequest\x129\n" +
+	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
+	"\x13ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12!\n" +
+	"\x05query\x18\x02 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x02R\x05query\x12\x16\n" +
+	"\x06filter\x18\x03 \x01(\tR\x06filter\x12!\n" +
+	"\fshow_deleted\x18\x04 \x01(\bR\vshowDeleted\x12&\n" +
+	"\tpage_size\x18\x05 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\x12)\n" +
+	"\x10include_snippets\x18\a \x01(\bR\x0fincludeSnippets:\r\x82\xf3-\x02\bd\x92\xf3-\x03\n" +
+	"\x01*\"\xa3\x01\n" +
+	"\x13SearchChatsResponse\x12)\n" +
+	"\x05chats\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ChatR\x05chats\x129\n" +
+	"\bsnippets\x18\x02 \x03(\v2\x1d.malonaz.aip.v1.SearchSnippetR\bsnippets\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageTokenB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_malonaz_ai_ai_service_v1_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_ai_ai_service_v1_chat_proto_goTypes = []any{
 	(*CreateChatRequest)(nil),     // 0: malonaz.ai.ai_service.v1.CreateChatRequest
 	(*GetChatRequest)(nil),        // 1: malonaz.ai.ai_service.v1.GetChatRequest
@@ -961,20 +1229,25 @@ var file_malonaz_ai_ai_service_v1_chat_proto_goTypes = []any{
 	(*ListChatsResponse)(nil),     // 6: malonaz.ai.ai_service.v1.ListChatsResponse
 	(*BatchGetChatsRequest)(nil),  // 7: malonaz.ai.ai_service.v1.BatchGetChatsRequest
 	(*BatchGetChatsResponse)(nil), // 8: malonaz.ai.ai_service.v1.BatchGetChatsResponse
-	(*v1.Chat)(nil),               // 9: malonaz.ai.v1.Chat
-	(*fieldmaskpb.FieldMask)(nil), // 10: google.protobuf.FieldMask
+	(*SearchChatsRequest)(nil),    // 9: malonaz.ai.ai_service.v1.SearchChatsRequest
+	(*SearchChatsResponse)(nil),   // 10: malonaz.ai.ai_service.v1.SearchChatsResponse
+	(*v1.Chat)(nil),               // 11: malonaz.ai.v1.Chat
+	(*fieldmaskpb.FieldMask)(nil), // 12: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),     // 13: malonaz.aip.v1.SearchSnippet
 }
 var file_malonaz_ai_ai_service_v1_chat_proto_depIdxs = []int32{
-	9,  // 0: malonaz.ai.ai_service.v1.CreateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
-	9,  // 1: malonaz.ai.ai_service.v1.UpdateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
-	10, // 2: malonaz.ai.ai_service.v1.UpdateChatRequest.update_mask:type_name -> google.protobuf.FieldMask
-	9,  // 3: malonaz.ai.ai_service.v1.ListChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
-	9,  // 4: malonaz.ai.ai_service.v1.BatchGetChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
-	5,  // [5:5] is the sub-list for method output_type
-	5,  // [5:5] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	11, // 0: malonaz.ai.ai_service.v1.CreateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
+	11, // 1: malonaz.ai.ai_service.v1.UpdateChatRequest.chat:type_name -> malonaz.ai.v1.Chat
+	12, // 2: malonaz.ai.ai_service.v1.UpdateChatRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 3: malonaz.ai.ai_service.v1.ListChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
+	11, // 4: malonaz.ai.ai_service.v1.BatchGetChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
+	11, // 5: malonaz.ai.ai_service.v1.SearchChatsResponse.chats:type_name -> malonaz.ai.v1.Chat
+	13, // 6: malonaz.ai.ai_service.v1.SearchChatsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_chat_proto_init() }
@@ -988,7 +1261,7 @@ func file_malonaz_ai_ai_service_v1_chat_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_chat_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -224,6 +224,15 @@ func (c *Client) BatchGetChats(
 	return c.server.BatchGetChats(ctx, request)
 }
 
+// SearchChats searches a user's chats by title.
+func (c *Client) SearchChats(
+	ctx context.Context,
+	request *aiservicepb.SearchChatsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.SearchChatsResponse, error) {
+	return c.server.SearchChats(ctx, request)
+}
+
 // CreateMessage creates a new message within a chat and returns the created resource.
 func (c *Client) CreateMessage(
 	ctx context.Context,
@@ -285,6 +294,15 @@ func (c *Client) BatchGetMessages(
 	opts ...grpc.CallOption,
 ) (*aiservicepb.BatchGetMessagesResponse, error) {
 	return c.server.BatchGetMessages(ctx, request)
+}
+
+// SearchMessages searches messages by the text of their blocks.
+func (c *Client) SearchMessages(
+	ctx context.Context,
+	request *aiservicepb.SearchMessagesRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.SearchMessagesResponse, error) {
+	return c.server.SearchMessages(ctx, request)
 }
 
 // ComputeStats computes a user's or an organization's AI consumption stats.
