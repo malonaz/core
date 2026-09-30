@@ -323,3 +323,78 @@ func (s *Store) ListMessages(ctx context.Context, organizationId, userId, chatId
 	}
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Message])
 }
+
+// MessageSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const MessageSearchDocumentExpression = `setweight(to_tsvector('simple', left(core_jsonb_path_text(blocks, 'lax $[*].text'), 100000)), 'A')`
+
+type messageSearchRow struct {
+	model.Message
+	SnippetBlocksText *string `db:"__snippet_blocks_text"`
+}
+
+func (s *Store) SearchMessages(ctx context.Context, organizationId, userId, chatId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Message, []map[string]string, error) {
+	if columns == nil {
+		columns = MessagePostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+	if userId != "-" && userId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.user_id = $%d", len(params)+1))
+		params = append(params, userId)
+	}
+	if chatId != "-" && chatId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.chat_id = $%d", len(params)+1))
+		params = append(params, chatId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "message.delete_time IS NULL")
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY message.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("message.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(message.search_document, to_tsquery('simple', $%d)) DESC, message.create_time DESC", len(params)+1)
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', left(core_jsonb_path_text(message.blocks, 'lax $[*].text'), 100000), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_blocks_text`, len(params)+1))
+		}
+		params = append(params, tsQuery)
+	}
+
+	selectColumns := postgres.QualifyColumns(columns, "message")
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query := "SELECT " + selectColumns + " FROM message" + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting messages: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[messageSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	messages := make([]*model.Message, 0, len(searchRows))
+	var snippets []map[string]string
+	for _, searchRow := range searchRows {
+		row := searchRow.Message
+		messages = append(messages, &row)
+		if !includeSnippets {
+			continue
+		}
+		snippet := map[string]string{}
+		if searchRow.SnippetBlocksText != nil && strings.Contains(*searchRow.SnippetBlocksText, "**") {
+			snippet["blocks.text"] = *searchRow.SnippetBlocksText
+		}
+		snippets = append(snippets, snippet)
+	}
+	return messages, snippets, nil
+}

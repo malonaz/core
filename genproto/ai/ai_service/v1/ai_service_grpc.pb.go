@@ -38,6 +38,7 @@ const (
 	AiService_UndeleteChat_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/UndeleteChat"
 	AiService_ListChats_FullMethodName             = "/malonaz.ai.ai_service.v1.AiService/ListChats"
 	AiService_BatchGetChats_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/BatchGetChats"
+	AiService_SearchChats_FullMethodName           = "/malonaz.ai.ai_service.v1.AiService/SearchChats"
 	AiService_CreateMessage_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/CreateMessage"
 	AiService_GetMessage_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/GetMessage"
 	AiService_UpdateMessage_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/UpdateMessage"
@@ -45,6 +46,7 @@ const (
 	AiService_UndeleteMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/UndeleteMessage"
 	AiService_ListMessages_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ListMessages"
 	AiService_BatchGetMessages_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/BatchGetMessages"
+	AiService_SearchMessages_FullMethodName        = "/malonaz.ai.ai_service.v1.AiService/SearchMessages"
 	AiService_GenerateMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/GenerateMessage"
 	AiService_StreamGenerateMessage_FullMethodName = "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage"
 	AiService_ComputeStats_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ComputeStats"
@@ -170,6 +172,10 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetChats(ctx context.Context, in *BatchGetChatsRequest, opts ...grpc.CallOption) (*BatchGetChatsResponse, error)
+	// Search a user's chats by title.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchChats(ctx context.Context, in *SearchChatsRequest, opts ...grpc.CallOption) (*SearchChatsResponse, error)
 	// Create a message within a chat.
 	//
 	// Persists the message as-is; no generation is performed. Use
@@ -208,6 +214,10 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetMessages(ctx context.Context, in *BatchGetMessagesRequest, opts ...grpc.CallOption) (*BatchGetMessagesResponse, error)
+	// Search messages by the text of their blocks.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchMessages(ctx context.Context, in *SearchMessagesRequest, opts ...grpc.CallOption) (*SearchMessagesResponse, error)
 	// Generates an assistant message from the chat's message history.
 	//
 	// The input `messages` are appended to the chat before generating; the
@@ -443,6 +453,16 @@ func (c *aiServiceClient) BatchGetChats(ctx context.Context, in *BatchGetChatsRe
 	return out, nil
 }
 
+func (c *aiServiceClient) SearchChats(ctx context.Context, in *SearchChatsRequest, opts ...grpc.CallOption) (*SearchChatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchChatsResponse)
+	err := c.cc.Invoke(ctx, AiService_SearchChats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiServiceClient) CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*v1.Message, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Message)
@@ -507,6 +527,16 @@ func (c *aiServiceClient) BatchGetMessages(ctx context.Context, in *BatchGetMess
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetMessagesResponse)
 	err := c.cc.Invoke(ctx, AiService_BatchGetMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) SearchMessages(ctx context.Context, in *SearchMessagesRequest, opts ...grpc.CallOption) (*SearchMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchMessagesResponse)
+	err := c.cc.Invoke(ctx, AiService_SearchMessages_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -701,6 +731,10 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetChats(context.Context, *BatchGetChatsRequest) (*BatchGetChatsResponse, error)
+	// Search a user's chats by title.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchChats(context.Context, *SearchChatsRequest) (*SearchChatsResponse, error)
 	// Create a message within a chat.
 	//
 	// Persists the message as-is; no generation is performed. Use
@@ -739,6 +773,10 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetMessages(context.Context, *BatchGetMessagesRequest) (*BatchGetMessagesResponse, error)
+	// Search messages by the text of their blocks.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchMessages(context.Context, *SearchMessagesRequest) (*SearchMessagesResponse, error)
 	// Generates an assistant message from the chat's message history.
 	//
 	// The input `messages` are appended to the chat before generating; the
@@ -832,6 +870,9 @@ func (UnimplementedAiServiceServer) ListChats(context.Context, *ListChatsRequest
 func (UnimplementedAiServiceServer) BatchGetChats(context.Context, *BatchGetChatsRequest) (*BatchGetChatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetChats not implemented")
 }
+func (UnimplementedAiServiceServer) SearchChats(context.Context, *SearchChatsRequest) (*SearchChatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchChats not implemented")
+}
 func (UnimplementedAiServiceServer) CreateMessage(context.Context, *CreateMessageRequest) (*v1.Message, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMessage not implemented")
 }
@@ -852,6 +893,9 @@ func (UnimplementedAiServiceServer) ListMessages(context.Context, *ListMessagesR
 }
 func (UnimplementedAiServiceServer) BatchGetMessages(context.Context, *BatchGetMessagesRequest) (*BatchGetMessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetMessages not implemented")
+}
+func (UnimplementedAiServiceServer) SearchMessages(context.Context, *SearchMessagesRequest) (*SearchMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchMessages not implemented")
 }
 func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMessageRequest) (*GenerateMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GenerateMessage not implemented")
@@ -1183,6 +1227,24 @@ func _AiService_BatchGetChats_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_SearchChats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchChatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).SearchChats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_SearchChats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).SearchChats(ctx, req.(*SearchChatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_CreateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateMessageRequest)
 	if err := dec(in); err != nil {
@@ -1305,6 +1367,24 @@ func _AiService_BatchGetMessages_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).BatchGetMessages(ctx, req.(*BatchGetMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_SearchMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).SearchMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_SearchMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).SearchMessages(ctx, req.(*SearchMessagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1453,6 +1533,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_BatchGetChats_Handler,
 		},
 		{
+			MethodName: "SearchChats",
+			Handler:    _AiService_SearchChats_Handler,
+		},
+		{
 			MethodName: "CreateMessage",
 			Handler:    _AiService_CreateMessage_Handler,
 		},
@@ -1479,6 +1563,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetMessages",
 			Handler:    _AiService_BatchGetMessages_Handler,
+		},
+		{
+			MethodName: "SearchMessages",
+			Handler:    _AiService_SearchMessages_Handler,
 		},
 		{
 			MethodName: "GenerateMessage",

@@ -243,6 +243,16 @@ service AiService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
   }
 
+  // Search a user's chats by title.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchChats(SearchChatsRequest) returns (SearchChatsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/chats:search"};
+    option (google.api.method_signature) = "parent,query";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Chat";
+  }
+
   // ===================== Message Management =====================
 
   // Create a message within a chat.
@@ -327,6 +337,16 @@ service AiService {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages:batchGet"};
     option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
+  }
+
+  // Search messages by the text of their blocks.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchMessages(SearchMessagesRequest) returns (SearchMessagesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*}/messages:search"};
+    option (google.api.method_signature) = "parent,query";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Message";
   }
 

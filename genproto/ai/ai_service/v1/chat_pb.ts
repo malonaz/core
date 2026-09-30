@@ -11,6 +11,8 @@ import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import type { Chat, ChatValid } from "../../v1/chat_pb";
 import { file_malonaz_ai_v1_chat } from "../../v1/chat_pb";
+import type { SearchSnippet } from "../../../aip/v1/aip_pb";
+import { file_malonaz_aip_v1_aip } from "../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/chat.proto.
  */
 export const file_malonaz_ai_ai_service_v1_chat: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvY2hhdC5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIuEBChFDcmVhdGVDaGF0UmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIpCgRjaGF0GAIgASgLMhMubWFsb25hei5haS52MS5DaGF0Qga6SAPIAQESNgoHY2hhdF9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkEKDkdldENoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBASKIAgoRVXBkYXRlQ2hhdFJlcXVlc3QSKQoEY2hhdBgBIAEoCzITLm1hbG9uYXouYWkudjEuQ2hhdEIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOo4BukhCGkAKEmNoYXQubmFtZV9yZXF1aXJlZBIVY2hhdC5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5jaGF0Lm5hbWUp6pzBA0QKBmxhYmVscwoFdGl0bGUKC2Fubm90YXRpb25zCgVwcmljZQoRbGFzdF91c2VyX21lc3NhZ2UKDG1vZGVsX3VzYWdlcyJ4ChFEZWxldGVDaGF0UmVxdWVzdBIvCgRuYW1lGAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlQKE1VuZGVsZXRlQ2hhdFJlcXVlc3QSLwoEbmFtZRgBIAEoCUIh4EEC+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgDyAEBEgwKBGV0YWcYAiABKAki7gEKEExpc3RDaGF0c1JlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlAKEUxpc3RDaGF0c1Jlc3BvbnNlEiIKBWNoYXRzGAEgAygLMhMubWFsb25hei5haS52MS5DaGF0EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChRCYXRjaEdldENoYXRzUmVxdWVzdBIoCgZwYXJlbnQYASABKAlCGPpBFQoTYWkubWFsb25hei5jb20vVXNlchI6CgVuYW1lcxgCIAMoCUIr+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgQkgENCAEQ6AcYASIEcgIQASI7ChVCYXRjaEdldENoYXRzUmVzcG9uc2USIgoFY2hhdHMYASADKAsyEy5tYWxvbmF6LmFpLnYxLkNoYXRCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_chat, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CiNtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvY2hhdC5wcm90bxIYbWFsb25hei5haS5haV9zZXJ2aWNlLnYxIuEBChFDcmVhdGVDaGF0UmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIpCgRjaGF0GAIgASgLMhMubWFsb25hei5haS52MS5DaGF0Qga6SAPIAQESNgoHY2hhdF9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkEKDkdldENoYXRSZXF1ZXN0Ei8KBG5hbWUYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vQ2hhdLpIA8gBASKIAgoRVXBkYXRlQ2hhdFJlcXVlc3QSKQoEY2hhdBgBIAEoCzITLm1hbG9uYXouYWkudjEuQ2hhdEIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOo4BukhCGkAKEmNoYXQubmFtZV9yZXF1aXJlZBIVY2hhdC5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5jaGF0Lm5hbWUp6pzBA0QKBmxhYmVscwoFdGl0bGUKC2Fubm90YXRpb25zCgVwcmljZQoRbGFzdF91c2VyX21lc3NhZ2UKDG1vZGVsX3VzYWdlcyJ4ChFEZWxldGVDaGF0UmVxdWVzdBIvCgRuYW1lGAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL0NoYXS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlQKE1VuZGVsZXRlQ2hhdFJlcXVlc3QSLwoEbmFtZRgBIAEoCUIh4EEC+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgDyAEBEgwKBGV0YWcYAiABKAki7gEKEExpc3RDaGF0c1JlcXVlc3QSMQoGcGFyZW50GAEgASgJQiHgQQL6QRUKE2FpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlAKEUxpc3RDaGF0c1Jlc3BvbnNlEiIKBWNoYXRzGAEgAygLMhMubWFsb25hei5haS52MS5DaGF0EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChRCYXRjaEdldENoYXRzUmVxdWVzdBIoCgZwYXJlbnQYASABKAlCGPpBFQoTYWkubWFsb25hei5jb20vVXNlchI6CgVuYW1lcxgCIAMoCUIr+kEVChNhaS5tYWxvbmF6LmNvbS9DaGF0ukgQkgENCAEQ6AcYASIEcgIQASI7ChVCYXRjaEdldENoYXRzUmVzcG9uc2USIgoFY2hhdHMYASADKAsyEy5tYWxvbmF6LmFpLnYxLkNoYXQi5AEKElNlYXJjaENoYXRzUmVxdWVzdBIxCgZwYXJlbnQYASABKAlCIeBBAvpBFQoTYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEhQKDHNob3dfZGVsZXRlZBgEIAEoCBIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYByABKAg6DYLzLQIIZJLzLQMKASoigwEKE1NlYXJjaENoYXRzUmVzcG9uc2USIgoFY2hhdHMYASADKAsyEy5tYWxvbmF6LmFpLnYxLkNoYXQSLwoIc25pcHBldHMYAiADKAsyHS5tYWxvbmF6LmFpcC52MS5TZWFyY2hTbmlwcGV0EhcKD25leHRfcGFnZV90b2tlbhgDIAEoCUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_v1_chat, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AiService.CreateChat.
@@ -536,4 +538,164 @@ export type BatchGetChatsResponseValid = BatchGetChatsResponse;
  */
 export const BatchGetChatsResponseSchema: GenMessage<BatchGetChatsResponse, {validType: BatchGetChatsResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_chat, 8);
+
+/**
+ * Request message for AiService.SearchChats.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchChatsRequest
+ */
+export type SearchChatsRequest = Message<"malonaz.ai.ai_service.v1.SearchChatsRequest"> & {
+  /**
+   * The resource name of the parent user whose chats to search.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text query, matched against the title.
+   * Results are ranked by relevance. Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted chats.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of chats to return (max 100).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchChats` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Request message for AiService.SearchChats.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchChatsRequest
+ */
+export type SearchChatsRequestValid = Message<"malonaz.ai.ai_service.v1.SearchChatsRequest"> & {
+  /**
+   * The resource name of the parent user whose chats to search.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text query, matched against the title.
+   * Results are ranked by relevance. Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted chats.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of chats to return (max 100).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchChats` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SearchChatsRequest.
+ * Use `create(SearchChatsRequestSchema)` to create a new message.
+ */
+export const SearchChatsRequestSchema: GenMessage<SearchChatsRequest, {validType: SearchChatsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_chat, 9);
+
+/**
+ * Response message for AiService.SearchChats.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SearchChatsResponse
+ */
+export type SearchChatsResponse = Message<"malonaz.ai.ai_service.v1.SearchChatsResponse"> & {
+  /**
+   * The chats matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.ai.v1.Chat chats = 1;
+   */
+  chats: Chat[];
+
+  /**
+   * Highlighted snippets, index-aligned with `chats`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippet[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+export type SearchChatsResponseValid = SearchChatsResponse;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SearchChatsResponse.
+ * Use `create(SearchChatsResponseSchema)` to create a new message.
+ */
+export const SearchChatsResponseSchema: GenMessage<SearchChatsResponse, {validType: SearchChatsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_chat, 10);
 

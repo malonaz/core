@@ -37,6 +37,14 @@ message Chat {
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "e0c2a046-05dc-4853-9be5-b47e3889f242";
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "title"
+        weight: WEIGHT_A
+      }
+    ]
+  };
 
   // The resource name of the chat.
   // Format: organizations/{organization}/users/{user}/chats/{chat}
