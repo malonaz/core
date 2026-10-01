@@ -14,15 +14,17 @@ const baseURL = "https://api.typesafe.ai/v1/systemone"
 
 // Client implements provider.DecisionClient against the TypeSafe API.
 type Client struct {
-	apiKey     string
-	httpClient *http.Client
+	apiKey       string
+	httpClient   *http.Client
+	modelService *provider.ModelService
 }
 
 // NewClient creates a new Jev client.
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey string, modelService *provider.ModelService) *Client {
 	return &Client{
-		apiKey:     apiKey,
-		httpClient: &http.Client{Timeout: 60 * time.Second},
+		apiKey:       apiKey,
+		httpClient:   &http.Client{Timeout: 60 * time.Second},
+		modelService: modelService,
 	}
 }
 

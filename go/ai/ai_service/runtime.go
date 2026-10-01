@@ -101,7 +101,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		providers = append(providers, google.NewVertexClient(opts.Google, modelService))
 	}
 	if opts.TypesafeApiKey != "" {
-		providers = append(providers, typesafe.NewClient(opts.TypesafeApiKey))
+		providers = append(providers, typesafe.NewClient(opts.TypesafeApiKey, modelService))
 	}
 	if opts.MockProvider {
 		providers = append(providers, mock.NewClient())

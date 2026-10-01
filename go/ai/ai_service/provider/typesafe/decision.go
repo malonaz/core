@@ -52,9 +52,15 @@ type answerDTO struct {
 
 // GetDecision implements provider.DecisionClient.
 func (c *Client) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
+	getModelRequest := &aiservicepb.GetModelRequest{Name: request.GetModel()}
+	model, err := c.modelService.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, err
+	}
+
 	body := &requestBody{
 		State:     request.GetState().AsInterface(),
-		Model:     "jev-latest",
+		Model:     model.ProviderModelId,
 		Questions: make(map[string]questionDTO, len(request.GetQuestions())),
 	}
 	for id, question := range request.GetQuestions() {
