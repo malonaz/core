@@ -325,15 +325,15 @@ export type ChoiceAnswer = Message<"malonaz.ai.ai_service.v1.ChoiceAnswer"> & {
   choice: string;
 
   /**
-   * Probability mass per option. Empty when the classifier cannot report
-   * calibrated probabilities (e.g. a TTT model used as a classifier).
+   * Probability mass per option. Empty when the decision model cannot report
+   * calibrated probabilities (e.g. a TTT model used as a decision model).
    *
    * @generated from field: map<string, double> probabilities = 2;
    */
   probabilities: { [key: string]: number };
 
   /**
-   * Confidence in the selected choice, in [0, 1]. Unset when the classifier
+   * Confidence in the selected choice, in [0, 1]. Unset when the decision model
    * cannot report a calibrated confidence.
    *
    * @generated from field: optional double confidence = 3;
@@ -372,14 +372,14 @@ export type ScoreAnswer = Message<"malonaz.ai.ai_service.v1.ScoreAnswer"> & {
 
   /**
    * Probability mass per rubric level index (as a string). Empty when the
-   * classifier cannot report calibrated probabilities.
+   * decision model cannot report calibrated probabilities.
    *
    * @generated from field: map<string, double> probabilities = 3;
    */
   probabilities: { [key: string]: number };
 
   /**
-   * Confidence in the score, in [0, 1]. Unset when the classifier cannot
+   * Confidence in the score, in [0, 1]. Unset when the decision model cannot
    * report a calibrated confidence.
    *
    * @generated from field: optional double confidence = 4;

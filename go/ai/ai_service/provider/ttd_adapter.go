@@ -1,10 +1,10 @@
 package provider
 
-// Adapts any tool-call-capable TTT model into a classifier: forces a single
+// Adapts any tool-call-capable TTT model into a decision model: forces a single
 // structured tool call shaped by the requested questions and parses the
 // result back into typed answers.
 //
-// Unlike a native classifier (e.g. TypeSafe), a TTT model cannot report calibrated
+// Unlike a native decision model (e.g. TypeSafe), a TTT model cannot report calibrated
 // probabilities or confidence, so those fields are always left unset on the
 // returned answers. Kept in this package (rather than a separate one) to
 // avoid an import cycle: it needs GenerateMessageClient and

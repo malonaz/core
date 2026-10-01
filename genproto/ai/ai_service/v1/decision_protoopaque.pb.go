@@ -857,10 +857,10 @@ type ChoiceAnswer_builder struct {
 
 	// The selected option name.
 	Choice string
-	// Probability mass per option. Empty when the classifier cannot report
-	// calibrated probabilities (e.g. a TTT model used as a classifier).
+	// Probability mass per option. Empty when the decision model cannot report
+	// calibrated probabilities (e.g. a TTT model used as a decision model).
 	Probabilities map[string]float64
-	// Confidence in the selected choice, in [0, 1]. Unset when the classifier
+	// Confidence in the selected choice, in [0, 1]. Unset when the decision model
 	// cannot report a calibrated confidence.
 	Confidence *float64
 }
@@ -981,9 +981,9 @@ type ScoreAnswer_builder struct {
 	// Maps a rubric level index (as a string) to its description.
 	Legend map[string]string
 	// Probability mass per rubric level index (as a string). Empty when the
-	// classifier cannot report calibrated probabilities.
+	// decision model cannot report calibrated probabilities.
 	Probabilities map[string]float64
-	// Confidence in the score, in [0, 1]. Unset when the classifier cannot
+	// Confidence in the score, in [0, 1]. Unset when the decision model cannot
 	// report a calibrated confidence.
 	Confidence *float64
 }

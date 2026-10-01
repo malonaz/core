@@ -297,7 +297,7 @@ func (c *Client) ComputeStats(
 }
 
 // GetDecision provides a client-facing interface for the stateless
-// classification API.
+// decision API.
 func (c *Client) GetDecision(
 	ctx context.Context,
 	request *aiservicepb.GetDecisionRequest,
