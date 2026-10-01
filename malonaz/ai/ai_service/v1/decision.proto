@@ -9,7 +9,7 @@ import "malonaz/ai/v1/metrics.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
-// A typed question asked of a classification model about a state.
+// A typed question asked of a decision model about a state.
 message Question {
   // The question's type.
   oneof type {

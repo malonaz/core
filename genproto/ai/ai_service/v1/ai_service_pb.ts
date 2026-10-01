@@ -427,7 +427,7 @@ export const AiService: GenService<{
     output: typeof StreamGenerateMessageResponseSchema;
   },
   /**
-   * Answers typed questions about a state using a classification model.
+   * Answers typed questions about a state using a decision model.
    * Stateless: unlike GenerateMessage, no chat is involved.
    *
    * See: https://google.aip.dev/136 (Custom methods).

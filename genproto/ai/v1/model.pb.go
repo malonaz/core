@@ -129,8 +129,8 @@ type Model struct {
 	Ttt *TttModelConfig `protobuf:"bytes,6,opt,name=ttt,proto3" json:"ttt,omitempty"`
 	// Configuration for TTS model.
 	Tts *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
-	// Configuration for TTC model.
-	Ttc *TtcModelConfig `protobuf:"bytes,9,opt,name=ttc,proto3" json:"ttc,omitempty"`
+	// Configuration for TTD model.
+	Ttd *TtdModelConfig `protobuf:"bytes,9,opt,name=ttd,proto3" json:"ttd,omitempty"`
 	// Provider-specific settings and metadata.
 	// This allows flexibility for provider-specific features without
 	// modifying the core schema.
@@ -213,9 +213,9 @@ func (x *Model) GetTts() *TtsModelConfig {
 	return nil
 }
 
-func (x *Model) GetTtc() *TtcModelConfig {
+func (x *Model) GetTtd() *TtdModelConfig {
 	if x != nil {
-		return x.Ttc
+		return x.Ttd
 	}
 	return nil
 }
@@ -255,8 +255,8 @@ func (x *Model) SetTts(v *TtsModelConfig) {
 	x.Tts = v
 }
 
-func (x *Model) SetTtc(v *TtcModelConfig) {
-	x.Ttc = v
+func (x *Model) SetTtd(v *TtdModelConfig) {
+	x.Ttd = v
 }
 
 func (x *Model) SetProviderSettings(v *structpb.Struct) {
@@ -291,11 +291,11 @@ func (x *Model) HasTts() bool {
 	return x.Tts != nil
 }
 
-func (x *Model) HasTtc() bool {
+func (x *Model) HasTtd() bool {
 	if x == nil {
 		return false
 	}
-	return x.Ttc != nil
+	return x.Ttd != nil
 }
 
 func (x *Model) HasProviderSettings() bool {
@@ -321,8 +321,8 @@ func (x *Model) ClearTts() {
 	x.Tts = nil
 }
 
-func (x *Model) ClearTtc() {
-	x.Ttc = nil
+func (x *Model) ClearTtd() {
+	x.Ttd = nil
 }
 
 func (x *Model) ClearProviderSettings() {
@@ -354,8 +354,8 @@ type Model_builder struct {
 	Ttt *TttModelConfig
 	// Configuration for TTS model.
 	Tts *TtsModelConfig
-	// Configuration for TTC model.
-	Ttc *TtcModelConfig
+	// Configuration for TTD model.
+	Ttd *TtdModelConfig
 	// Provider-specific settings and metadata.
 	// This allows flexibility for provider-specific features without
 	// modifying the core schema.
@@ -373,7 +373,7 @@ func (b0 Model_builder) Build() *Model {
 	x.Stt = b.Stt
 	x.Ttt = b.Ttt
 	x.Tts = b.Tts
-	x.Ttc = b.Ttc
+	x.Ttd = b.Ttd
 	x.ProviderSettings = b.ProviderSettings
 	return m0
 }
@@ -765,33 +765,33 @@ func (b0 TttModelPricing_builder) Build() *TttModelPricing {
 	return m0
 }
 
-// Configuration for a classification model. A classification model answers
+// Configuration for a decision model. A decision model answers
 // typed questions (choice/score/noul) about a state, returning structured
 // answers rather than generated text.
-type TtcModelConfig struct {
+type TtdModelConfig struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The maximum number of tokens in the model's context window.
 	ContextTokenLimit int32 `protobuf:"varint,1,opt,name=context_token_limit,json=contextTokenLimit,proto3" json:"context_token_limit,omitempty"`
 	// Pricing for this model.
-	Pricing       *TtcModelPricing `protobuf:"bytes,2,opt,name=pricing,proto3" json:"pricing,omitempty"`
+	Pricing       *TtdModelPricing `protobuf:"bytes,2,opt,name=pricing,proto3" json:"pricing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TtcModelConfig) Reset() {
-	*x = TtcModelConfig{}
+func (x *TtdModelConfig) Reset() {
+	*x = TtdModelConfig{}
 	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TtcModelConfig) String() string {
+func (x *TtdModelConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TtcModelConfig) ProtoMessage() {}
+func (*TtdModelConfig) ProtoMessage() {}
 
-func (x *TtcModelConfig) ProtoReflect() protoreflect.Message {
+func (x *TtdModelConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -803,50 +803,50 @@ func (x *TtcModelConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TtcModelConfig) GetContextTokenLimit() int32 {
+func (x *TtdModelConfig) GetContextTokenLimit() int32 {
 	if x != nil {
 		return x.ContextTokenLimit
 	}
 	return 0
 }
 
-func (x *TtcModelConfig) GetPricing() *TtcModelPricing {
+func (x *TtdModelConfig) GetPricing() *TtdModelPricing {
 	if x != nil {
 		return x.Pricing
 	}
 	return nil
 }
 
-func (x *TtcModelConfig) SetContextTokenLimit(v int32) {
+func (x *TtdModelConfig) SetContextTokenLimit(v int32) {
 	x.ContextTokenLimit = v
 }
 
-func (x *TtcModelConfig) SetPricing(v *TtcModelPricing) {
+func (x *TtdModelConfig) SetPricing(v *TtdModelPricing) {
 	x.Pricing = v
 }
 
-func (x *TtcModelConfig) HasPricing() bool {
+func (x *TtdModelConfig) HasPricing() bool {
 	if x == nil {
 		return false
 	}
 	return x.Pricing != nil
 }
 
-func (x *TtcModelConfig) ClearPricing() {
+func (x *TtdModelConfig) ClearPricing() {
 	x.Pricing = nil
 }
 
-type TtcModelConfig_builder struct {
+type TtdModelConfig_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The maximum number of tokens in the model's context window.
 	ContextTokenLimit int32
 	// Pricing for this model.
-	Pricing *TtcModelPricing
+	Pricing *TtdModelPricing
 }
 
-func (b0 TtcModelConfig_builder) Build() *TtcModelConfig {
-	m0 := &TtcModelConfig{}
+func (b0 TtdModelConfig_builder) Build() *TtdModelConfig {
+	m0 := &TtdModelConfig{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.ContextTokenLimit = b.ContextTokenLimit
@@ -854,30 +854,30 @@ func (b0 TtcModelConfig_builder) Build() *TtcModelConfig {
 	return m0
 }
 
-// Pricing configuration for a ttc model.
-type TtcModelPricing struct {
+// Pricing configuration for a ttd model.
+type TtdModelPricing struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Price per million input tokens in dollars. Classification models only
+	// Price per million input tokens in dollars. Decision models only
 	// bill input tokens; output is free.
 	InputTokenPricePerMillion float64 `protobuf:"fixed64,1,opt,name=input_token_price_per_million,json=inputTokenPricePerMillion,proto3" json:"input_token_price_per_million,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
 
-func (x *TtcModelPricing) Reset() {
-	*x = TtcModelPricing{}
+func (x *TtdModelPricing) Reset() {
+	*x = TtdModelPricing{}
 	mi := &file_malonaz_ai_v1_model_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TtcModelPricing) String() string {
+func (x *TtdModelPricing) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TtcModelPricing) ProtoMessage() {}
+func (*TtdModelPricing) ProtoMessage() {}
 
-func (x *TtcModelPricing) ProtoReflect() protoreflect.Message {
+func (x *TtdModelPricing) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_v1_model_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -889,27 +889,27 @@ func (x *TtcModelPricing) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TtcModelPricing) GetInputTokenPricePerMillion() float64 {
+func (x *TtdModelPricing) GetInputTokenPricePerMillion() float64 {
 	if x != nil {
 		return x.InputTokenPricePerMillion
 	}
 	return 0
 }
 
-func (x *TtcModelPricing) SetInputTokenPricePerMillion(v float64) {
+func (x *TtdModelPricing) SetInputTokenPricePerMillion(v float64) {
 	x.InputTokenPricePerMillion = v
 }
 
-type TtcModelPricing_builder struct {
+type TtdModelPricing_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Price per million input tokens in dollars. Classification models only
+	// Price per million input tokens in dollars. Decision models only
 	// bill input tokens; output is free.
 	InputTokenPricePerMillion float64
 }
 
-func (b0 TtcModelPricing_builder) Build() *TtcModelPricing {
-	m0 := &TtcModelPricing{}
+func (b0 TtdModelPricing_builder) Build() *TtdModelPricing {
+	m0 := &TtdModelPricing{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.InputTokenPricePerMillion = b.InputTokenPricePerMillion
@@ -1022,7 +1022,7 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x03stt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
 	"\x03ttt\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
 	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12/\n" +
-	"\x03ttc\x18\t \x01(\v2\x1d.malonaz.ai.v1.TtcModelConfigR\x03ttc\x12D\n" +
+	"\x03ttd\x18\t \x01(\v2\x1d.malonaz.ai.v1.TtdModelConfigR\x03ttd\x12D\n" +
 	"\x11provider_settings\x18\b \x01(\v2\x17.google.protobuf.StructR\x10providerSettings:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
 	"\x0eSttModelConfig\"\xa1\x02\n" +
@@ -1043,10 +1043,10 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"$output_image_token_price_per_million\x18\a \x01(\x01R\x1foutputImageTokenPricePerMillion\x12_\n" +
 	".input_image_token_cache_read_price_per_million\x18\b \x01(\x01R'inputImageTokenCacheReadPricePerMillion\x12a\n" +
 	"/input_image_token_cache_write_price_per_million\x18\t \x01(\x01R(inputImageTokenCacheWritePricePerMillion\"\x83\x01\n" +
-	"\x0eTtcModelConfig\x127\n" +
+	"\x0eTtdModelConfig\x127\n" +
 	"\x13context_token_limit\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x128\n" +
-	"\apricing\x18\x02 \x01(\v2\x1e.malonaz.ai.v1.TtcModelPricingR\apricing\"S\n" +
-	"\x0fTtcModelPricing\x12@\n" +
+	"\apricing\x18\x02 \x01(\v2\x1e.malonaz.ai.v1.TtdModelPricingR\apricing\"S\n" +
+	"\x0fTtdModelPricing\x12@\n" +
 	"\x1dinput_token_price_per_million\x18\x01 \x01(\x01R\x19inputTokenPricePerMillion\"\x9c\x01\n" +
 	"\x0eTtsModelConfig\x12C\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
@@ -1060,8 +1060,8 @@ var file_malonaz_ai_v1_model_proto_goTypes = []any{
 	(*SttModelConfig)(nil),        // 2: malonaz.ai.v1.SttModelConfig
 	(*TttModelConfig)(nil),        // 3: malonaz.ai.v1.TttModelConfig
 	(*TttModelPricing)(nil),       // 4: malonaz.ai.v1.TttModelPricing
-	(*TtcModelConfig)(nil),        // 5: malonaz.ai.v1.TtcModelConfig
-	(*TtcModelPricing)(nil),       // 6: malonaz.ai.v1.TtcModelPricing
+	(*TtdModelConfig)(nil),        // 5: malonaz.ai.v1.TtdModelConfig
+	(*TtdModelPricing)(nil),       // 6: malonaz.ai.v1.TtdModelPricing
 	(*TtsModelConfig)(nil),        // 7: malonaz.ai.v1.TtsModelConfig
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 	(*structpb.Struct)(nil),       // 9: google.protobuf.Struct
@@ -1073,10 +1073,10 @@ var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
 	2,  // 2: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
 	3,  // 3: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
 	7,  // 4: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
-	5,  // 5: malonaz.ai.v1.Model.ttc:type_name -> malonaz.ai.v1.TtcModelConfig
+	5,  // 5: malonaz.ai.v1.Model.ttd:type_name -> malonaz.ai.v1.TtdModelConfig
 	9,  // 6: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
 	4,  // 7: malonaz.ai.v1.TttModelConfig.pricing:type_name -> malonaz.ai.v1.TttModelPricing
-	6,  // 8: malonaz.ai.v1.TtcModelConfig.pricing:type_name -> malonaz.ai.v1.TtcModelPricing
+	6,  // 8: malonaz.ai.v1.TtdModelConfig.pricing:type_name -> malonaz.ai.v1.TtdModelPricing
 	10, // 9: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type

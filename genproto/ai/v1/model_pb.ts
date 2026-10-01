@@ -16,7 +16,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/model.proto.
  */
 export const file_malonaz_ai_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("ChltYWxvbmF6L2FpL3YxL21vZGVsLnByb3RvEg1tYWxvbmF6LmFpLnYxIlAKE1Byb3ZpZGVyTW9kZWxDb25maWcSEwoLcHJvdmlkZXJfaWQYASABKAkSJAoGbW9kZWxzGAIgAygLMhQubWFsb25hei5haS52MS5Nb2RlbCLUAwoFTW9kZWwSGwoEbmFtZRgBIAEoCUINukgKcgUQARiAAcgBARIoChFwcm92aWRlcl9tb2RlbF9pZBgCIAEoCUINukgKcgUQARiAAcgBARIdCgtkZXNjcmlwdGlvbhgDIAEoCUIIukgFcgMYgAgSMgoOZGVwcmVjYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKA3N0dBgFIAEoCzIdLm1hbG9uYXouYWkudjEuU3R0TW9kZWxDb25maWcSKgoDdHR0GAYgASgLMh0ubWFsb25hei5haS52MS5UdHRNb2RlbENvbmZpZxIqCgN0dHMYByABKAsyHS5tYWxvbmF6LmFpLnYxLlR0c01vZGVsQ29uZmlnEioKA3R0YxgJIAEoCzIdLm1hbG9uYXouYWkudjEuVHRjTW9kZWxDb25maWcSMgoRcHJvdmlkZXJfc2V0dGluZ3MYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ok3qQUoKFGFpLm1hbG9uYXouY29tL01vZGVsEiNwcm92aWRlcnMve3Byb3ZpZGVyfS9tb2RlbHMve21vZGVsfSoGbW9kZWxzMgVtb2RlbCIQCg5TdHRNb2RlbENvbmZpZyLNAQoOVHR0TW9kZWxDb25maWcSEQoJcmVhc29uaW5nGAEgASgIEhEKCXRvb2xfY2FsbBgCIAEoCBIkChNjb250ZXh0X3Rva2VuX2xpbWl0GAMgASgFQge6SAQaAigBEiMKEm91dHB1dF90b2tlbl9saW1pdBgEIAEoBUIHukgEGgIoARIvCgdwcmljaW5nGAUgASgLMh4ubWFsb25hei5haS52MS5UdHRNb2RlbFByaWNpbmcSGQoRc3RyaWN0X3Rvb2xfbmFtZXMYBiABKAgiwwMKD1R0dE1vZGVsUHJpY2luZxIlCh1pbnB1dF90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgBIAEoARImCh5vdXRwdXRfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YAiABKAESMAoob3V0cHV0X3JlYXNvbmluZ190b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgDIAEoARIwCihpbnB1dF90b2tlbl9jYWNoZV9yZWFkX3ByaWNlX3Blcl9taWxsaW9uGAQgASgBEjEKKWlucHV0X3Rva2VuX2NhY2hlX3dyaXRlX3ByaWNlX3Blcl9taWxsaW9uGAUgASgBEisKI2lucHV0X2ltYWdlX3Rva2VuX3ByaWNlX3Blcl9taWxsaW9uGAYgASgBEiwKJG91dHB1dF9pbWFnZV90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgHIAEoARI2Ci5pbnB1dF9pbWFnZV90b2tlbl9jYWNoZV9yZWFkX3ByaWNlX3Blcl9taWxsaW9uGAggASgBEjcKL2lucHV0X2ltYWdlX3Rva2VuX2NhY2hlX3dyaXRlX3ByaWNlX3Blcl9taWxsaW9uGAkgASgBImcKDlR0Y01vZGVsQ29uZmlnEiQKE2NvbnRleHRfdG9rZW5fbGltaXQYASABKAVCB7pIBBoCKAESLwoHcHJpY2luZxgCIAEoCzIeLm1hbG9uYXouYWkudjEuVHRjTW9kZWxQcmljaW5nIjgKD1R0Y01vZGVsUHJpY2luZxIlCh1pbnB1dF90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgBIAEoASJ5Cg5UdHNNb2RlbENvbmZpZxI2CgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEi8KFnN1cHBvcnRlZF9zYW1wbGVfcmF0ZXMYAiADKAVCD7pIDJIBCQgBIgUaAyjAPkJvWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBRAoXYWkubWFsb25hei5jb20vUHJvdmlkZXISFHByb3ZpZGVycy97cHJvdmlkZXJ9Kglwcm92aWRlcnMyCHByb3ZpZGVyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_audio_v1_audio]);
+  fileDesc("ChltYWxvbmF6L2FpL3YxL21vZGVsLnByb3RvEg1tYWxvbmF6LmFpLnYxIlAKE1Byb3ZpZGVyTW9kZWxDb25maWcSEwoLcHJvdmlkZXJfaWQYASABKAkSJAoGbW9kZWxzGAIgAygLMhQubWFsb25hei5haS52MS5Nb2RlbCLUAwoFTW9kZWwSGwoEbmFtZRgBIAEoCUINukgKcgUQARiAAcgBARIoChFwcm92aWRlcl9tb2RlbF9pZBgCIAEoCUINukgKcgUQARiAAcgBARIdCgtkZXNjcmlwdGlvbhgDIAEoCUIIukgFcgMYgAgSMgoOZGVwcmVjYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKA3N0dBgFIAEoCzIdLm1hbG9uYXouYWkudjEuU3R0TW9kZWxDb25maWcSKgoDdHR0GAYgASgLMh0ubWFsb25hei5haS52MS5UdHRNb2RlbENvbmZpZxIqCgN0dHMYByABKAsyHS5tYWxvbmF6LmFpLnYxLlR0c01vZGVsQ29uZmlnEioKA3R0ZBgJIAEoCzIdLm1hbG9uYXouYWkudjEuVHRkTW9kZWxDb25maWcSMgoRcHJvdmlkZXJfc2V0dGluZ3MYCCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Ok3qQUoKFGFpLm1hbG9uYXouY29tL01vZGVsEiNwcm92aWRlcnMve3Byb3ZpZGVyfS9tb2RlbHMve21vZGVsfSoGbW9kZWxzMgVtb2RlbCIQCg5TdHRNb2RlbENvbmZpZyLNAQoOVHR0TW9kZWxDb25maWcSEQoJcmVhc29uaW5nGAEgASgIEhEKCXRvb2xfY2FsbBgCIAEoCBIkChNjb250ZXh0X3Rva2VuX2xpbWl0GAMgASgFQge6SAQaAigBEiMKEm91dHB1dF90b2tlbl9saW1pdBgEIAEoBUIHukgEGgIoARIvCgdwcmljaW5nGAUgASgLMh4ubWFsb25hei5haS52MS5UdHRNb2RlbFByaWNpbmcSGQoRc3RyaWN0X3Rvb2xfbmFtZXMYBiABKAgiwwMKD1R0dE1vZGVsUHJpY2luZxIlCh1pbnB1dF90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgBIAEoARImCh5vdXRwdXRfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YAiABKAESMAoob3V0cHV0X3JlYXNvbmluZ190b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgDIAEoARIwCihpbnB1dF90b2tlbl9jYWNoZV9yZWFkX3ByaWNlX3Blcl9taWxsaW9uGAQgASgBEjEKKWlucHV0X3Rva2VuX2NhY2hlX3dyaXRlX3ByaWNlX3Blcl9taWxsaW9uGAUgASgBEisKI2lucHV0X2ltYWdlX3Rva2VuX3ByaWNlX3Blcl9taWxsaW9uGAYgASgBEiwKJG91dHB1dF9pbWFnZV90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgHIAEoARI2Ci5pbnB1dF9pbWFnZV90b2tlbl9jYWNoZV9yZWFkX3ByaWNlX3Blcl9taWxsaW9uGAggASgBEjcKL2lucHV0X2ltYWdlX3Rva2VuX2NhY2hlX3dyaXRlX3ByaWNlX3Blcl9taWxsaW9uGAkgASgBImcKDlR0ZE1vZGVsQ29uZmlnEiQKE2NvbnRleHRfdG9rZW5fbGltaXQYASABKAVCB7pIBBoCKAESLwoHcHJpY2luZxgCIAEoCzIeLm1hbG9uYXouYWkudjEuVHRkTW9kZWxQcmljaW5nIjgKD1R0ZE1vZGVsUHJpY2luZxIlCh1pbnB1dF90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgBIAEoASJ5Cg5UdHNNb2RlbENvbmZpZxI2CgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEi8KFnN1cHBvcnRlZF9zYW1wbGVfcmF0ZXMYAiADKAVCD7pIDJIBCQgBIgUaAyjAPkJvWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBRAoXYWkubWFsb25hei5jb20vUHJvdmlkZXISFHByb3ZpZGVycy97cHJvdmlkZXJ9Kglwcm92aWRlcnMyCHByb3ZpZGVyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_audio_v1_audio]);
 
 /**
  * Holds a provider config.
@@ -131,11 +131,11 @@ export type Model = Message<"malonaz.ai.v1.Model"> & {
   tts?: TtsModelConfig;
 
   /**
-   * Configuration for TTC model.
+   * Configuration for TTD model.
    *
-   * @generated from field: malonaz.ai.v1.TtcModelConfig ttc = 9;
+   * @generated from field: malonaz.ai.v1.TtdModelConfig ttd = 9;
    */
-  ttc?: TtcModelConfig;
+  ttd?: TtdModelConfig;
 
   /**
    * Provider-specific settings and metadata.
@@ -211,11 +211,11 @@ export type ModelValid = Message<"malonaz.ai.v1.Model"> & {
   tts?: TtsModelConfigValid;
 
   /**
-   * Configuration for TTC model.
+   * Configuration for TTD model.
    *
-   * @generated from field: malonaz.ai.v1.TtcModelConfig ttc = 9;
+   * @generated from field: malonaz.ai.v1.TtdModelConfig ttd = 9;
    */
-  ttc?: TtcModelConfigValid;
+  ttd?: TtdModelConfigValid;
 
   /**
    * Provider-specific settings and metadata.
@@ -391,13 +391,13 @@ export const TttModelPricingSchema: GenMessage<TttModelPricing, {validType: TttM
   messageDesc(file_malonaz_ai_v1_model, 4);
 
 /**
- * Configuration for a classification model. A classification model answers
+ * Configuration for a decision model. A decision model answers
  * typed questions (choice/score/noul) about a state, returning structured
  * answers rather than generated text.
  *
- * @generated from message malonaz.ai.v1.TtcModelConfig
+ * @generated from message malonaz.ai.v1.TtdModelConfig
  */
-export type TtcModelConfig = Message<"malonaz.ai.v1.TtcModelConfig"> & {
+export type TtdModelConfig = Message<"malonaz.ai.v1.TtdModelConfig"> & {
   /**
    * The maximum number of tokens in the model's context window.
    *
@@ -408,28 +408,28 @@ export type TtcModelConfig = Message<"malonaz.ai.v1.TtcModelConfig"> & {
   /**
    * Pricing for this model.
    *
-   * @generated from field: malonaz.ai.v1.TtcModelPricing pricing = 2;
+   * @generated from field: malonaz.ai.v1.TtdModelPricing pricing = 2;
    */
-  pricing?: TtcModelPricing;
+  pricing?: TtdModelPricing;
 };
 
-export type TtcModelConfigValid = TtcModelConfig;
+export type TtdModelConfigValid = TtdModelConfig;
 
 /**
- * Describes the message malonaz.ai.v1.TtcModelConfig.
- * Use `create(TtcModelConfigSchema)` to create a new message.
+ * Describes the message malonaz.ai.v1.TtdModelConfig.
+ * Use `create(TtdModelConfigSchema)` to create a new message.
  */
-export const TtcModelConfigSchema: GenMessage<TtcModelConfig, {validType: TtcModelConfigValid}> = /*@__PURE__*/
+export const TtdModelConfigSchema: GenMessage<TtdModelConfig, {validType: TtdModelConfigValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_model, 5);
 
 /**
- * Pricing configuration for a ttc model.
+ * Pricing configuration for a ttd model.
  *
- * @generated from message malonaz.ai.v1.TtcModelPricing
+ * @generated from message malonaz.ai.v1.TtdModelPricing
  */
-export type TtcModelPricing = Message<"malonaz.ai.v1.TtcModelPricing"> & {
+export type TtdModelPricing = Message<"malonaz.ai.v1.TtdModelPricing"> & {
   /**
-   * Price per million input tokens in dollars. Classification models only
+   * Price per million input tokens in dollars. Decision models only
    * bill input tokens; output is free.
    *
    * @generated from field: double input_token_price_per_million = 1;
@@ -437,13 +437,13 @@ export type TtcModelPricing = Message<"malonaz.ai.v1.TtcModelPricing"> & {
   inputTokenPricePerMillion: number;
 };
 
-export type TtcModelPricingValid = TtcModelPricing;
+export type TtdModelPricingValid = TtdModelPricing;
 
 /**
- * Describes the message malonaz.ai.v1.TtcModelPricing.
- * Use `create(TtcModelPricingSchema)` to create a new message.
+ * Describes the message malonaz.ai.v1.TtdModelPricing.
+ * Use `create(TtdModelPricingSchema)` to create a new message.
  */
-export const TtcModelPricingSchema: GenMessage<TtcModelPricing, {validType: TtcModelPricingValid}> = /*@__PURE__*/
+export const TtdModelPricingSchema: GenMessage<TtdModelPricing, {validType: TtdModelPricingValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_model, 6);
 
 /**

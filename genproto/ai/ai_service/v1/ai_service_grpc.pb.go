@@ -223,7 +223,7 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamGenerateMessageResponse], error)
-	// Answers typed questions about a state using a classification model.
+	// Answers typed questions about a state using a decision model.
 	// Stateless: unlike GenerateMessage, no chat is involved.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -769,7 +769,7 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error
-	// Answers typed questions about a state using a classification model.
+	// Answers typed questions about a state using a decision model.
 	// Stateless: unlike GenerateMessage, no chat is involved.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
