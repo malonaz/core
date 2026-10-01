@@ -1,7 +1,7 @@
 go_library(
     name = "typesafe",
     srcs = [
-        "classify.go",
+        "decision.go",
         "typesafe.go",
     ],
     visibility = ["//..."],

@@ -50,8 +50,8 @@ type answerDTO struct {
 	Confidence    *float64           `json:"confidence,omitempty"`
 }
 
-// Classify implements provider.ClassificationClient.
-func (c *Client) Classify(ctx context.Context, request *aiservicepb.ClassifyRequest) (*aiservicepb.ClassifyResponse, error) {
+// GetDecision implements provider.DecisionClient.
+func (c *Client) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
 	body := &requestBody{
 		State:     request.GetState().AsInterface(),
 		Model:     "jev-latest",
@@ -83,7 +83,7 @@ func (c *Client) Classify(ctx context.Context, request *aiservicepb.ClassifyRequ
 		modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: response.Usage.OutputTokens}
 	}
 
-	return &aiservicepb.ClassifyResponse{Answers: answers, ModelUsage: modelUsage}, nil
+	return &aiservicepb.GetDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
 }
 
 // post sends the request, retrying on 429/529 with exponential backoff.

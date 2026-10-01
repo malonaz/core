@@ -29,14 +29,14 @@ import (
 // ttcAnswerToolName is the name of the single tool forced on the wrapped model.
 const ttcAnswerToolName = "answer_questions"
 
-// ttcAdapter wraps a GenerateMessageClient so it satisfies ClassificationClient.
+// ttcAdapter wraps a GenerateMessageClient so it satisfies DecisionClient.
 type ttcAdapter struct {
 	client GenerateMessageClient
 	model  *aipb.Model
 }
 
 // newTTCAdapter wraps client, whose model must have ttt.tool_call set.
-func newTTCAdapter(client GenerateMessageClient, model *aipb.Model) ClassificationClient {
+func newTTCAdapter(client GenerateMessageClient, model *aipb.Model) DecisionClient {
 	return &ttcAdapter{client: client, model: model}
 }
 
@@ -49,9 +49,9 @@ func (a *ttcAdapter) Start(ctx context.Context) error { return a.client.Start(ct
 // Stop implements the Provider interface.
 func (a *ttcAdapter) Stop() { a.client.Stop() }
 
-// Classify implements ClassificationClient by forcing the wrapped model to
+// GetDecision implements DecisionClient by forcing the wrapped model to
 // call a single tool shaped by the request's questions.
-func (a *ttcAdapter) Classify(ctx context.Context, request *aiservicepb.ClassifyRequest) (*aiservicepb.ClassifyResponse, error) {
+func (a *ttcAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
 	tool, err := ttcBuildTool(request.GetQuestions())
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (a *ttcAdapter) Classify(ctx context.Context, request *aiservicepb.Classify
 	if err != nil {
 		return nil, err
 	}
-	return &aiservicepb.ClassifyResponse{Answers: answers, ModelUsage: modelUsage}, nil
+	return &aiservicepb.GetDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
 }
 
 // ttcCollectorStream is a minimal MessageStream that records every response
