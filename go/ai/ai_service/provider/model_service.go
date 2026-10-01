@@ -239,7 +239,7 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 }
 
 // GetDecisionProvider resolves the classifier for a model. A model
-// classifies either natively (model.Ttc set, provider implements
+// classifies either natively (model.Ttd set, provider implements
 // DecisionClient directly) or via a generic adapter that forces a
 // structured tool call on any tool-call-capable TTT model.
 func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string) (DecisionClient, *aipb.Model, error) {
@@ -263,7 +263,7 @@ func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string
 	}
 
 	switch {
-	case model.Ttc != nil:
+	case model.Ttd != nil:
 		// Native classifier (e.g. TypeSafe).
 		decisionClient, ok := registeredProvider.(DecisionClient)
 		if !ok {
@@ -277,7 +277,7 @@ func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string
 		if !ok {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", registeredProvider.ProviderId()).Err()
 		}
-		return newTTCAdapter(generateMessageClient, model), model, nil
+		return newTTDAdapter(generateMessageClient, model), model, nil
 
 	default:
 		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support classification", modelName).Err()

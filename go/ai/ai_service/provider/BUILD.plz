@@ -5,7 +5,7 @@ go_library(
         "model_service.go",
         "provider.go",
         "tool_accumulator.go",
-        "ttc_adapter.go",
+        "ttd_adapter.go",
         "utils.go",
         "voice_service.go",
     ],

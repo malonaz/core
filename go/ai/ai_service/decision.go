@@ -10,7 +10,7 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// GetDecision answers typed questions about a state using a classification
+// GetDecision answers typed questions about a state using a decision
 // model. Unlike GenerateMessage, this is stateless: no chat is involved.
 func (s *Service) GetDecision(ctx context.Context, request *pb.GetDecisionRequest) (*pb.GetDecisionResponse, error) {
 	providerClient, model, err := s.GetDecisionProvider(ctx, request.GetModel())
@@ -26,15 +26,15 @@ func (s *Service) GetDecision(ctx context.Context, request *pb.GetDecisionReques
 		return nil, err
 	}
 
-	setTtcModelUsagePrice(response.GetModelUsage(), model.GetTtc().GetPricing())
+	setTtdModelUsagePrice(response.GetModelUsage(), model.GetTtd().GetPricing())
 	recordModelUsage(response.GetModelUsage())
 	return response, nil
 }
 
-// setTtcModelUsagePrice prices input tokens against ttc pricing. Output
-// tokens are free for classification models and are left unpriced. Nil for
-// a TTT model used through the adapter, which has no ttc pricing.
-func setTtcModelUsagePrice(usage *aipb.ModelUsage, pricing *aipb.TtcModelPricing) {
+// setTtdModelUsagePrice prices input tokens against ttd pricing. Output
+// tokens are free for decision models and are left unpriced. Nil for
+// a TTT model used through the adapter, which has no ttd pricing.
+func setTtdModelUsagePrice(usage *aipb.ModelUsage, pricing *aipb.TtdModelPricing) {
 	if usage.GetInputToken() == nil || pricing == nil {
 		return
 	}

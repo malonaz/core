@@ -26,7 +26,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A typed question asked of a classification model about a state.
+// A typed question asked of a decision model about a state.
 type Question struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The question's type.

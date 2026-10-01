@@ -26,33 +26,33 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// ttcAnswerToolName is the name of the single tool forced on the wrapped model.
-const ttcAnswerToolName = "answer_questions"
+// ttdAnswerToolName is the name of the single tool forced on the wrapped model.
+const ttdAnswerToolName = "answer_questions"
 
-// ttcAdapter wraps a GenerateMessageClient so it satisfies DecisionClient.
-type ttcAdapter struct {
+// ttdAdapter wraps a GenerateMessageClient so it satisfies DecisionClient.
+type ttdAdapter struct {
 	client GenerateMessageClient
 	model  *aipb.Model
 }
 
-// newTTCAdapter wraps client, whose model must have ttt.tool_call set.
-func newTTCAdapter(client GenerateMessageClient, model *aipb.Model) DecisionClient {
-	return &ttcAdapter{client: client, model: model}
+// newTTDAdapter wraps client, whose model must have ttt.tool_call set.
+func newTTDAdapter(client GenerateMessageClient, model *aipb.Model) DecisionClient {
+	return &ttdAdapter{client: client, model: model}
 }
 
 // ProviderId implements the Provider interface.
-func (a *ttcAdapter) ProviderId() string { return a.client.ProviderId() }
+func (a *ttdAdapter) ProviderId() string { return a.client.ProviderId() }
 
 // Start implements the Provider interface.
-func (a *ttcAdapter) Start(ctx context.Context) error { return a.client.Start(ctx) }
+func (a *ttdAdapter) Start(ctx context.Context) error { return a.client.Start(ctx) }
 
 // Stop implements the Provider interface.
-func (a *ttcAdapter) Stop() { a.client.Stop() }
+func (a *ttdAdapter) Stop() { a.client.Stop() }
 
 // GetDecision implements DecisionClient by forcing the wrapped model to
 // call a single tool shaped by the request's questions.
-func (a *ttcAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
-	tool, err := ttcBuildTool(request.GetQuestions())
+func (a *ttdAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
+	tool, err := ttdBuildTool(request.GetQuestions())
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +63,13 @@ func (a *ttcAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDe
 		Configuration: &aiservicepb.MessageGenerationConfiguration{
 			MaxTokens: a.model.GetTtt().GetOutputTokenLimit(),
 			ToolChoice: &aipb.ToolChoice{
-				Choice: &aipb.ToolChoice_ToolName{ToolName: ttcAnswerToolName},
+				Choice: &aipb.ToolChoice_ToolName{ToolName: ttdAnswerToolName},
 			},
 		},
 	}
-	messages := []*aipb.Message{ai.NewUserMessage(ai.NewTextBlock(ttcValueToText(request.GetState())))}
+	messages := []*aipb.Message{ai.NewUserMessage(ai.NewTextBlock(ttdValueToText(request.GetState())))}
 
-	stream := &ttcCollectorStream{ctx: ctx}
+	stream := &ttdCollectorStream{ctx: ctx}
 	sender := NewAsyncMessageContentSender(stream, 16)
 	generationError := a.client.StreamGenerateMessage(ctx, generateRequest, messages, sender)
 	sender.Close()
@@ -80,35 +80,35 @@ func (a *ttcAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDe
 		return nil, generationError
 	}
 
-	toolCall, modelUsage := stream.result(ttcAnswerToolName)
+	toolCall, modelUsage := stream.result(ttdAnswerToolName)
 	if toolCall == nil {
 		return nil, status.Errorf(codes.Internal, "model %s did not answer with the forced tool call", request.GetModel()).Err()
 	}
 
-	answers, err := ttcBuildAnswers(request.GetQuestions(), toolCall.GetArguments().AsMap())
+	answers, err := ttdBuildAnswers(request.GetQuestions(), toolCall.GetArguments().AsMap())
 	if err != nil {
 		return nil, err
 	}
 	return &aiservicepb.GetDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
 }
 
-// ttcCollectorStream is a minimal MessageStream that records every response
+// ttdCollectorStream is a minimal MessageStream that records every response
 // sent by the provider, instead of forwarding it anywhere.
-type ttcCollectorStream struct {
+type ttdCollectorStream struct {
 	ctx       context.Context
 	responses []*aiservicepb.StreamGenerateMessageResponse
 }
 
-func (s *ttcCollectorStream) Send(response *aiservicepb.StreamGenerateMessageResponse) error {
+func (s *ttdCollectorStream) Send(response *aiservicepb.StreamGenerateMessageResponse) error {
 	s.responses = append(s.responses, response)
 	return nil
 }
 
-func (s *ttcCollectorStream) Context() context.Context { return s.ctx }
+func (s *ttdCollectorStream) Context() context.Context { return s.ctx }
 
 // result scans the recorded responses for the forced tool call and the final
 // model usage.
-func (s *ttcCollectorStream) result(toolName string) (*aipb.ToolCall, *aipb.ModelUsage) {
+func (s *ttdCollectorStream) result(toolName string) (*aipb.ToolCall, *aipb.ModelUsage) {
 	var toolCall *aipb.ToolCall
 	var modelUsage *aipb.ModelUsage
 	for _, response := range s.responses {
@@ -124,13 +124,13 @@ func (s *ttcCollectorStream) result(toolName string) (*aipb.ToolCall, *aipb.Mode
 	return toolCall, modelUsage
 }
 
-// ttcBuildTool builds the single tool whose schema has one property per
+// ttdBuildTool builds the single tool whose schema has one property per
 // question id, forced via ToolChoice so the model must answer all of them.
-func ttcBuildTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, error) {
+func ttdBuildTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, error) {
 	properties := make(map[string]*jsonpb.Schema, len(questions))
 	required := make([]string, 0, len(questions))
 	for id, question := range questions {
-		schema, err := ttcQuestionSchema(question)
+		schema, err := ttdQuestionSchema(question)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func ttcBuildTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, error
 	sort.Strings(required)
 
 	return &aipb.Tool{
-		Name:        ttcAnswerToolName,
+		Name:        ttdAnswerToolName,
 		Description: "Answer every question about the given state.",
 		JsonSchema: &jsonpb.Schema{
 			Type:       "object",
@@ -150,7 +150,7 @@ func ttcBuildTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, error
 	}, nil
 }
 
-func ttcQuestionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
+func ttdQuestionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 	switch questionType := question.GetType().(type) {
 	case *aiservicepb.Question_Choice:
 		choice := questionType.Choice
@@ -159,18 +159,18 @@ func ttcQuestionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 			names = append(names, name)
 		}
 		sort.Strings(names)
-		description := ttcValueToText(choice.GetInstructions())
+		description := ttdValueToText(choice.GetInstructions())
 		for _, name := range names {
-			description += fmt.Sprintf("\n- %s: %s", name, ttcValueToText(choice.GetCriteria()[name]))
+			description += fmt.Sprintf("\n- %s: %s", name, ttdValueToText(choice.GetCriteria()[name]))
 		}
 		return &jsonpb.Schema{Type: "string", Description: description, Enum: names}, nil
 
 	case *aiservicepb.Question_Score:
 		score := questionType.Score
 		levels := score.GetCriteria()
-		description := ttcValueToText(score.GetInstructions())
+		description := ttdValueToText(score.GetInstructions())
 		for i, level := range levels {
-			description += fmt.Sprintf("\n- %d: %s", i, ttcValueToText(level))
+			description += fmt.Sprintf("\n- %d: %s", i, ttdValueToText(level))
 		}
 		// Integer, not number: unlike Jev's calibrated fractional score, a tool
 		// call can only pick one discrete rubric level.
@@ -183,9 +183,9 @@ func ttcQuestionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 
 	case *aiservicepb.Question_Noul:
 		noul := questionType.Noul
-		description := ttcValueToText(noul.GetInstructions())
+		description := ttdValueToText(noul.GetInstructions())
 		if noul.GetCriteriaTrue() != nil || noul.GetCriteriaFalse() != nil {
-			description += fmt.Sprintf("\ntrue: %s\nfalse: %s", ttcValueToText(noul.GetCriteriaTrue()), ttcValueToText(noul.GetCriteriaFalse()))
+			description += fmt.Sprintf("\ntrue: %s\nfalse: %s", ttdValueToText(noul.GetCriteriaTrue()), ttdValueToText(noul.GetCriteriaFalse()))
 		}
 		return &jsonpb.Schema{Type: "boolean", Description: description}, nil
 
@@ -194,10 +194,10 @@ func ttcQuestionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 	}
 }
 
-// ttcBuildAnswers converts the forced tool call's parsed arguments into typed
+// ttdBuildAnswers converts the forced tool call's parsed arguments into typed
 // Answers. probabilities/confidence are always left unset: a TTT model
 // cannot report a calibrated distribution.
-func ttcBuildAnswers(questions map[string]*aiservicepb.Question, arguments map[string]any) (map[string]*aiservicepb.Answer, error) {
+func ttdBuildAnswers(questions map[string]*aiservicepb.Question, arguments map[string]any) (map[string]*aiservicepb.Answer, error) {
 	answers := make(map[string]*aiservicepb.Answer, len(questions))
 	for id, question := range questions {
 		value, ok := arguments[id]
@@ -214,13 +214,13 @@ func ttcBuildAnswers(questions map[string]*aiservicepb.Question, arguments map[s
 
 		case *aiservicepb.Question_Score:
 			levels := questionType.Score.GetCriteria()
-			index, ok := ttcNumberToInt(value)
+			index, ok := ttdNumberToInt(value)
 			if !ok {
 				return nil, status.Errorf(codes.Internal, "question %q: expected number, got %T", id, value).Err()
 			}
 			legend := make(map[string]string, len(levels))
 			for i, level := range levels {
-				legend[strconv.Itoa(i)] = ttcValueToText(level)
+				legend[strconv.Itoa(i)] = ttdValueToText(level)
 			}
 			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Score{Score: &aiservicepb.ScoreAnswer{Score: float64(index), Legend: legend}}}
 
@@ -239,7 +239,7 @@ func ttcBuildAnswers(questions map[string]*aiservicepb.Question, arguments map[s
 	return answers, nil
 }
 
-func ttcNumberToInt(value any) (int, bool) {
+func ttdNumberToInt(value any) (int, bool) {
 	f, ok := value.(float64)
 	if !ok {
 		return 0, false
@@ -247,9 +247,9 @@ func ttcNumberToInt(value any) (int, bool) {
 	return int(f), true
 }
 
-// ttcValueToText renders a google.protobuf.Value the way it would appear in
+// ttdValueToText renders a google.protobuf.Value the way it would appear in
 // a prompt: a plain string as itself, anything else as JSON.
-func ttcValueToText(value interface{ AsInterface() any }) string {
+func ttdValueToText(value interface{ AsInterface() any }) string {
 	if value == nil {
 		return ""
 	}
