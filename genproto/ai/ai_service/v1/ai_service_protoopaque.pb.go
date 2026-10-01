@@ -29,7 +29,7 @@ var File_malonaz_ai_ai_service_v1_ai_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\n" +
-	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a'malonaz/ai/ai_service/v1/classify.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a$malonaz/ai/ai_service/v1/stats.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xa0,\n" +
+	")malonaz/ai/ai_service/v1/ai_service.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#malonaz/ai/ai_service/v1/chat.proto\x1a'malonaz/ai/ai_service/v1/decision.proto\x1a&malonaz/ai/ai_service/v1/message.proto\x1a$malonaz/ai/ai_service/v1/model.proto\x1a-malonaz/ai/ai_service/v1/speech_to_text.proto\x1a$malonaz/ai/ai_service/v1/stats.proto\x1a-malonaz/ai/ai_service/v1/text_to_speech.proto\x1a+malonaz/ai/ai_service/v1/text_to_text.proto\x1a$malonaz/ai/ai_service/v1/voice.proto\x1a\x18malonaz/ai/v1/chat.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x19malonaz/ai/v1/model.proto\x1a\x19malonaz/ai/v1/voice.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xac,\n" +
 	"\tAiService\x12\x89\x01\n" +
 	"\vCreateModel\x12,.malonaz.ai.ai_service.v1.CreateModelRequest\x1a\x14.malonaz.ai.v1.Model\"6\xdaA\fparent,model\x82\xd3\xe4\x93\x02!\"\x1f/v1/{parent=providers/*}/models\x12~\n" +
 	"\bGetModel\x12).malonaz.ai.ai_service.v1.GetModelRequest\x1a\x14.malonaz.ai.v1.Model\"1\xdaA\x04name\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=providers/*/models/*}\x90\x02\x01\x12\x9c\x01\n" +
@@ -79,8 +79,8 @@ const file_malonaz_ai_ai_service_v1_ai_service_proto_rawDesc = "" +
 	"\x10BatchGetMessages\x121.malonaz.ai.ai_service.v1.BatchGetMessagesRequest\x1a2.malonaz.ai.ai_service.v1.BatchGetMessagesResponse\"t\xdaA\fparent,names´-\x18\n" +
 	"\x16ai.malonaz.com/Message\x82\xd3\xe4\x93\x02@\x12>/v1/{parent=organizations/*/users/*/chats/*}/messages:batchGet\x90\x02\x01\x12\xc1\x01\n" +
 	"\x0fGenerateMessage\x120.malonaz.ai.ai_service.v1.GenerateMessageRequest\x1a1.malonaz.ai.ai_service.v1.GenerateMessageResponse\"I\x82\xd3\xe4\x93\x02C:\x01*\">/v1/{parent=organizations/*/users/*/chats/*}/messages:generate\x12\xd5\x01\n" +
-	"\x15StreamGenerateMessage\x120.malonaz.ai.ai_service.v1.GenerateMessageRequest\x1a7.malonaz.ai.ai_service.v1.StreamGenerateMessageResponse\"O\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate0\x01\x12\x9a\x01\n" +
-	"\bClassify\x12).malonaz.ai.ai_service.v1.ClassifyRequest\x1a*.malonaz.ai.ai_service.v1.ClassifyResponse\"7\x82\xd3\xe4\x93\x02.:\x01*\")/v1/{model=providers/*/models/*}:classify\x90\x02\x01\x12\xdb\x01\n" +
+	"\x15StreamGenerateMessage\x120.malonaz.ai.ai_service.v1.GenerateMessageRequest\x1a7.malonaz.ai.ai_service.v1.StreamGenerateMessageResponse\"O\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate0\x01\x12\xa6\x01\n" +
+	"\vGetDecision\x12,.malonaz.ai.ai_service.v1.GetDecisionRequest\x1a-.malonaz.ai.ai_service.v1.GetDecisionResponse\":\x82\xd3\xe4\x93\x021:\x01*\",/v1/{model=providers/*/models/*}:getDecision\x90\x02\x01\x12\xdb\x01\n" +
 	"\fComputeStats\x12-.malonaz.ai.ai_service.v1.ComputeStatsRequest\x1a..malonaz.ai.ai_service.v1.ComputeStatsResponse\"l\xdaA\x04name\x82\xd3\xe4\x93\x02\\Z1\x12//v1/{name=organizations/*/users/*}:computeStats\x12'/v1/{name=organizations/*}:computeStats\x90\x02\x01\x12\xa4\x01\n" +
 	"\n" +
 	"TextToText\x12+.malonaz.ai.ai_service.v1.TextToTextRequest\x1a,.malonaz.ai.ai_service.v1.TextToTextResponse\";\x82\xd3\xe4\x93\x022:\x01*\"-/v1/{model=providers/*/models/*}/text-to-text\x88\x02\x01\x12\xbf\x01\n" +
@@ -113,7 +113,7 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_goTypes = []any{
 	(*ListMessagesRequest)(nil),           // 23: malonaz.ai.ai_service.v1.ListMessagesRequest
 	(*BatchGetMessagesRequest)(nil),       // 24: malonaz.ai.ai_service.v1.BatchGetMessagesRequest
 	(*GenerateMessageRequest)(nil),        // 25: malonaz.ai.ai_service.v1.GenerateMessageRequest
-	(*ClassifyRequest)(nil),               // 26: malonaz.ai.ai_service.v1.ClassifyRequest
+	(*GetDecisionRequest)(nil),            // 26: malonaz.ai.ai_service.v1.GetDecisionRequest
 	(*ComputeStatsRequest)(nil),           // 27: malonaz.ai.ai_service.v1.ComputeStatsRequest
 	(*TextToTextRequest)(nil),             // 28: malonaz.ai.ai_service.v1.TextToTextRequest
 	(*TextToTextStreamRequest)(nil),       // 29: malonaz.ai.ai_service.v1.TextToTextStreamRequest
@@ -134,7 +134,7 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_goTypes = []any{
 	(*BatchGetMessagesResponse)(nil),      // 44: malonaz.ai.ai_service.v1.BatchGetMessagesResponse
 	(*GenerateMessageResponse)(nil),       // 45: malonaz.ai.ai_service.v1.GenerateMessageResponse
 	(*StreamGenerateMessageResponse)(nil), // 46: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
-	(*ClassifyResponse)(nil),              // 47: malonaz.ai.ai_service.v1.ClassifyResponse
+	(*GetDecisionResponse)(nil),           // 47: malonaz.ai.ai_service.v1.GetDecisionResponse
 	(*ComputeStatsResponse)(nil),          // 48: malonaz.ai.ai_service.v1.ComputeStatsResponse
 	(*TextToTextResponse)(nil),            // 49: malonaz.ai.ai_service.v1.TextToTextResponse
 	(*TextToTextStreamResponse)(nil),      // 50: malonaz.ai.ai_service.v1.TextToTextStreamResponse
@@ -167,7 +167,7 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
 	24, // 24: malonaz.ai.ai_service.v1.AiService.BatchGetMessages:input_type -> malonaz.ai.ai_service.v1.BatchGetMessagesRequest
 	25, // 25: malonaz.ai.ai_service.v1.AiService.GenerateMessage:input_type -> malonaz.ai.ai_service.v1.GenerateMessageRequest
 	25, // 26: malonaz.ai.ai_service.v1.AiService.StreamGenerateMessage:input_type -> malonaz.ai.ai_service.v1.GenerateMessageRequest
-	26, // 27: malonaz.ai.ai_service.v1.AiService.Classify:input_type -> malonaz.ai.ai_service.v1.ClassifyRequest
+	26, // 27: malonaz.ai.ai_service.v1.AiService.GetDecision:input_type -> malonaz.ai.ai_service.v1.GetDecisionRequest
 	27, // 28: malonaz.ai.ai_service.v1.AiService.ComputeStats:input_type -> malonaz.ai.ai_service.v1.ComputeStatsRequest
 	28, // 29: malonaz.ai.ai_service.v1.AiService.TextToText:input_type -> malonaz.ai.ai_service.v1.TextToTextRequest
 	29, // 30: malonaz.ai.ai_service.v1.AiService.TextToTextStream:input_type -> malonaz.ai.ai_service.v1.TextToTextStreamRequest
@@ -198,7 +198,7 @@ var file_malonaz_ai_ai_service_v1_ai_service_proto_depIdxs = []int32{
 	44, // 55: malonaz.ai.ai_service.v1.AiService.BatchGetMessages:output_type -> malonaz.ai.ai_service.v1.BatchGetMessagesResponse
 	45, // 56: malonaz.ai.ai_service.v1.AiService.GenerateMessage:output_type -> malonaz.ai.ai_service.v1.GenerateMessageResponse
 	46, // 57: malonaz.ai.ai_service.v1.AiService.StreamGenerateMessage:output_type -> malonaz.ai.ai_service.v1.StreamGenerateMessageResponse
-	47, // 58: malonaz.ai.ai_service.v1.AiService.Classify:output_type -> malonaz.ai.ai_service.v1.ClassifyResponse
+	47, // 58: malonaz.ai.ai_service.v1.AiService.GetDecision:output_type -> malonaz.ai.ai_service.v1.GetDecisionResponse
 	48, // 59: malonaz.ai.ai_service.v1.AiService.ComputeStats:output_type -> malonaz.ai.ai_service.v1.ComputeStatsResponse
 	49, // 60: malonaz.ai.ai_service.v1.AiService.TextToText:output_type -> malonaz.ai.ai_service.v1.TextToTextResponse
 	50, // 61: malonaz.ai.ai_service.v1.AiService.TextToTextStream:output_type -> malonaz.ai.ai_service.v1.TextToTextStreamResponse
@@ -215,7 +215,7 @@ func file_malonaz_ai_ai_service_v1_ai_service_proto_init() {
 		return
 	}
 	file_malonaz_ai_ai_service_v1_chat_proto_init()
-	file_malonaz_ai_ai_service_v1_classify_proto_init()
+	file_malonaz_ai_ai_service_v1_decision_proto_init()
 	file_malonaz_ai_ai_service_v1_message_proto_init()
 	file_malonaz_ai_ai_service_v1_model_proto_init()
 	file_malonaz_ai_ai_service_v1_speech_to_text_proto_init()

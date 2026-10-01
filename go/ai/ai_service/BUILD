@@ -15,7 +15,7 @@ go_library(
     name = "ai_service",
     srcs = [
         "chat.go",
-        "classify.go",
+        "decision.go",
         "generate_message.go",
         "metrics.go",
         "runtime.go",

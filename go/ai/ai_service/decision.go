@@ -10,10 +10,10 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// Classify answers typed questions about a state using a classification
+// GetDecision answers typed questions about a state using a classification
 // model. Unlike GenerateMessage, this is stateless: no chat is involved.
-func (s *Service) Classify(ctx context.Context, request *pb.ClassifyRequest) (*pb.ClassifyResponse, error) {
-	providerClient, model, err := s.GetClassificationProvider(ctx, request.GetModel())
+func (s *Service) GetDecision(ctx context.Context, request *pb.GetDecisionRequest) (*pb.GetDecisionResponse, error) {
+	providerClient, model, err := s.GetDecisionProvider(ctx, request.GetModel())
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func (s *Service) Classify(ctx context.Context, request *pb.ClassifyRequest) (*p
 		return nil, status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 
-	response, err := providerClient.Classify(ctx, request)
+	response, err := providerClient.GetDecision(ctx, request)
 	if err != nil {
 		return nil, err
 	}

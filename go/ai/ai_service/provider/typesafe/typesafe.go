@@ -1,4 +1,4 @@
-// Package typesafe implements a ClassificationClient against TypeSafe's Jev
+// Package typesafe implements a DecisionClient against TypeSafe's Jev
 // model: https://docs.typesafe.ai.
 package typesafe
 
@@ -12,7 +12,7 @@ import (
 
 const baseURL = "https://api.typesafe.ai/v1/systemone"
 
-// Client implements provider.ClassificationClient against the TypeSafe API.
+// Client implements provider.DecisionClient against the TypeSafe API.
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
@@ -36,4 +36,4 @@ func (c *Client) Start(context.Context) error { return nil }
 func (c *Client) Stop() {}
 
 // Verify interface compliance at compile time.
-var _ provider.ClassificationClient = (*Client)(nil)
+var _ provider.DecisionClient = (*Client)(nil)

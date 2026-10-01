@@ -112,8 +112,8 @@ message NoulAnswer {
   }];
 }
 
-// Request message for AiService.Classify.
-message ClassifyRequest {
+// Request message for AiService.GetDecision.
+message GetDecisionRequest {
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
   string model = 1 [
@@ -128,8 +128,8 @@ message ClassifyRequest {
   map<string, string> labels = 4;
 }
 
-// Response message for AiService.Classify.
-message ClassifyResponse {
+// Response message for AiService.GetDecision.
+message GetDecisionResponse {
   // The answers, keyed by the same ids as the request's questions.
   map<string, Answer> answers = 1;
   // Model usage metrics.

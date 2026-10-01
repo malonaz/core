@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.32.1
-// source: malonaz/ai/ai_service/v1/classify.proto
+// source: malonaz/ai/ai_service/v1/decision.proto
 
-//go:build protoopaque
+//go:build !protoopaque
 
 package v1
 
@@ -28,15 +28,22 @@ const (
 
 // A typed question asked of a classification model about a state.
 type Question struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Type isQuestion_Type        `protobuf_oneof:"type"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The question's type.
+	//
+	// Types that are valid to be assigned to Type:
+	//
+	//	*Question_Choice
+	//	*Question_Score
+	//	*Question_Noul
+	Type          isQuestion_Type `protobuf_oneof:"type"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Question) Reset() {
 	*x = Question{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[0]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +55,7 @@ func (x *Question) String() string {
 func (*Question) ProtoMessage() {}
 
 func (x *Question) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[0]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,9 +66,16 @@ func (x *Question) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *Question) GetType() isQuestion_Type {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
 func (x *Question) GetChoice() *ChoiceQuestion {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*question_Choice); ok {
+		if x, ok := x.Type.(*Question_Choice); ok {
 			return x.Choice
 		}
 	}
@@ -70,7 +84,7 @@ func (x *Question) GetChoice() *ChoiceQuestion {
 
 func (x *Question) GetScore() *ScoreQuestion {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*question_Score); ok {
+		if x, ok := x.Type.(*Question_Score); ok {
 			return x.Score
 		}
 	}
@@ -79,7 +93,7 @@ func (x *Question) GetScore() *ScoreQuestion {
 
 func (x *Question) GetNoul() *NoulQuestion {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*question_Noul); ok {
+		if x, ok := x.Type.(*Question_Noul); ok {
 			return x.Noul
 		}
 	}
@@ -88,40 +102,40 @@ func (x *Question) GetNoul() *NoulQuestion {
 
 func (x *Question) SetChoice(v *ChoiceQuestion) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &question_Choice{v}
+	x.Type = &Question_Choice{v}
 }
 
 func (x *Question) SetScore(v *ScoreQuestion) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &question_Score{v}
+	x.Type = &Question_Score{v}
 }
 
 func (x *Question) SetNoul(v *NoulQuestion) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &question_Noul{v}
+	x.Type = &Question_Noul{v}
 }
 
 func (x *Question) HasType() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Type != nil
+	return x.Type != nil
 }
 
 func (x *Question) HasChoice() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*question_Choice)
+	_, ok := x.Type.(*Question_Choice)
 	return ok
 }
 
@@ -129,7 +143,7 @@ func (x *Question) HasScore() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*question_Score)
+	_, ok := x.Type.(*Question_Score)
 	return ok
 }
 
@@ -137,29 +151,29 @@ func (x *Question) HasNoul() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*question_Noul)
+	_, ok := x.Type.(*Question_Noul)
 	return ok
 }
 
 func (x *Question) ClearType() {
-	x.xxx_hidden_Type = nil
+	x.Type = nil
 }
 
 func (x *Question) ClearChoice() {
-	if _, ok := x.xxx_hidden_Type.(*question_Choice); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Question_Choice); ok {
+		x.Type = nil
 	}
 }
 
 func (x *Question) ClearScore() {
-	if _, ok := x.xxx_hidden_Type.(*question_Score); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Question_Score); ok {
+		x.Type = nil
 	}
 }
 
 func (x *Question) ClearNoul() {
-	if _, ok := x.xxx_hidden_Type.(*question_Noul); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Question_Noul); ok {
+		x.Type = nil
 	}
 }
 
@@ -172,12 +186,12 @@ func (x *Question) WhichType() case_Question_Type {
 	if x == nil {
 		return Question_Type_not_set_case
 	}
-	switch x.xxx_hidden_Type.(type) {
-	case *question_Choice:
+	switch x.Type.(type) {
+	case *Question_Choice:
 		return Question_Choice_case
-	case *question_Score:
+	case *Question_Score:
 		return Question_Score_case
-	case *question_Noul:
+	case *Question_Noul:
 		return Question_Noul_case
 	default:
 		return Question_Type_not_set_case
@@ -189,14 +203,14 @@ type Question_builder struct {
 
 	// The question's type.
 
-	// Fields of oneof xxx_hidden_Type:
+	// Fields of oneof Type:
 	// Selects one option from a fixed set.
 	Choice *ChoiceQuestion
 	// Places the state on a fixed rubric.
 	Score *ScoreQuestion
 	// Evaluates a yes/no question.
 	Noul *NoulQuestion
-	// -- end of xxx_hidden_Type
+	// -- end of Type
 }
 
 func (b0 Question_builder) Build() *Question {
@@ -204,13 +218,13 @@ func (b0 Question_builder) Build() *Question {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Choice != nil {
-		x.xxx_hidden_Type = &question_Choice{b.Choice}
+		x.Type = &Question_Choice{b.Choice}
 	}
 	if b.Score != nil {
-		x.xxx_hidden_Type = &question_Score{b.Score}
+		x.Type = &Question_Score{b.Score}
 	}
 	if b.Noul != nil {
-		x.xxx_hidden_Type = &question_Noul{b.Noul}
+		x.Type = &Question_Noul{b.Noul}
 	}
 	return m0
 }
@@ -218,7 +232,7 @@ func (b0 Question_builder) Build() *Question {
 type case_Question_Type protoreflect.FieldNumber
 
 func (x case_Question_Type) String() string {
-	md := file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[0].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[0].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -229,39 +243,41 @@ type isQuestion_Type interface {
 	isQuestion_Type()
 }
 
-type question_Choice struct {
+type Question_Choice struct {
 	// Selects one option from a fixed set.
 	Choice *ChoiceQuestion `protobuf:"bytes,1,opt,name=choice,proto3,oneof"`
 }
 
-type question_Score struct {
+type Question_Score struct {
 	// Places the state on a fixed rubric.
 	Score *ScoreQuestion `protobuf:"bytes,2,opt,name=score,proto3,oneof"`
 }
 
-type question_Noul struct {
+type Question_Noul struct {
 	// Evaluates a yes/no question.
 	Noul *NoulQuestion `protobuf:"bytes,3,opt,name=noul,proto3,oneof"`
 }
 
-func (*question_Choice) isQuestion_Type() {}
+func (*Question_Choice) isQuestion_Type() {}
 
-func (*question_Score) isQuestion_Type() {}
+func (*Question_Score) isQuestion_Type() {}
 
-func (*question_Noul) isQuestion_Type() {}
+func (*Question_Noul) isQuestion_Type() {}
 
 // Asks the model to select one option from a fixed set.
 type ChoiceQuestion struct {
-	state                   protoimpl.MessageState     `protogen:"opaque.v1"`
-	xxx_hidden_Instructions *structpb.Value            `protobuf:"bytes,1,opt,name=instructions,proto3"`
-	xxx_hidden_Criteria     map[string]*structpb.Value `protobuf:"bytes,2,rep,name=criteria,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// What is being asked. String, object, or array.
+	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
+	// Maps an option name to a description of when it applies.
+	Criteria      map[string]*structpb.Value `protobuf:"bytes,2,rep,name=criteria,proto3" json:"criteria,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ChoiceQuestion) Reset() {
 	*x = ChoiceQuestion{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -273,7 +289,7 @@ func (x *ChoiceQuestion) String() string {
 func (*ChoiceQuestion) ProtoMessage() {}
 
 func (x *ChoiceQuestion) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[1]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -286,35 +302,35 @@ func (x *ChoiceQuestion) ProtoReflect() protoreflect.Message {
 
 func (x *ChoiceQuestion) GetInstructions() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_Instructions
+		return x.Instructions
 	}
 	return nil
 }
 
 func (x *ChoiceQuestion) GetCriteria() map[string]*structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_Criteria
+		return x.Criteria
 	}
 	return nil
 }
 
 func (x *ChoiceQuestion) SetInstructions(v *structpb.Value) {
-	x.xxx_hidden_Instructions = v
+	x.Instructions = v
 }
 
 func (x *ChoiceQuestion) SetCriteria(v map[string]*structpb.Value) {
-	x.xxx_hidden_Criteria = v
+	x.Criteria = v
 }
 
 func (x *ChoiceQuestion) HasInstructions() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Instructions != nil
+	return x.Instructions != nil
 }
 
 func (x *ChoiceQuestion) ClearInstructions() {
-	x.xxx_hidden_Instructions = nil
+	x.Instructions = nil
 }
 
 type ChoiceQuestion_builder struct {
@@ -330,23 +346,25 @@ func (b0 ChoiceQuestion_builder) Build() *ChoiceQuestion {
 	m0 := &ChoiceQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Instructions = b.Instructions
-	x.xxx_hidden_Criteria = b.Criteria
+	x.Instructions = b.Instructions
+	x.Criteria = b.Criteria
 	return m0
 }
 
 // Asks the model to place the state on a fixed rubric.
 type ScoreQuestion struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Instructions *structpb.Value        `protobuf:"bytes,1,opt,name=instructions,proto3"`
-	xxx_hidden_Criteria     *[]*structpb.Value     `protobuf:"bytes,2,rep,name=criteria,proto3"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// What is being asked. String, object, or array.
+	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
+	// Ordered rubric levels, from lowest to highest.
+	Criteria      []*structpb.Value `protobuf:"bytes,2,rep,name=criteria,proto3" json:"criteria,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ScoreQuestion) Reset() {
 	*x = ScoreQuestion{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +376,7 @@ func (x *ScoreQuestion) String() string {
 func (*ScoreQuestion) ProtoMessage() {}
 
 func (x *ScoreQuestion) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,37 +389,35 @@ func (x *ScoreQuestion) ProtoReflect() protoreflect.Message {
 
 func (x *ScoreQuestion) GetInstructions() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_Instructions
+		return x.Instructions
 	}
 	return nil
 }
 
 func (x *ScoreQuestion) GetCriteria() []*structpb.Value {
 	if x != nil {
-		if x.xxx_hidden_Criteria != nil {
-			return *x.xxx_hidden_Criteria
-		}
+		return x.Criteria
 	}
 	return nil
 }
 
 func (x *ScoreQuestion) SetInstructions(v *structpb.Value) {
-	x.xxx_hidden_Instructions = v
+	x.Instructions = v
 }
 
 func (x *ScoreQuestion) SetCriteria(v []*structpb.Value) {
-	x.xxx_hidden_Criteria = &v
+	x.Criteria = v
 }
 
 func (x *ScoreQuestion) HasInstructions() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Instructions != nil
+	return x.Instructions != nil
 }
 
 func (x *ScoreQuestion) ClearInstructions() {
-	x.xxx_hidden_Instructions = nil
+	x.Instructions = nil
 }
 
 type ScoreQuestion_builder struct {
@@ -417,25 +433,28 @@ func (b0 ScoreQuestion_builder) Build() *ScoreQuestion {
 	m0 := &ScoreQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Instructions = b.Instructions
-	x.xxx_hidden_Criteria = &b.Criteria
+	x.Instructions = b.Instructions
+	x.Criteria = b.Criteria
 	return m0
 }
 
 // Asks the model to evaluate a yes/no question and return the probability
 // that the answer is yes.
 type NoulQuestion struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Instructions  *structpb.Value        `protobuf:"bytes,1,opt,name=instructions,proto3"`
-	xxx_hidden_CriteriaTrue  *structpb.Value        `protobuf:"bytes,2,opt,name=criteria_true,json=criteriaTrue,proto3"`
-	xxx_hidden_CriteriaFalse *structpb.Value        `protobuf:"bytes,3,opt,name=criteria_false,json=criteriaFalse,proto3"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// What is being asked. String, object, or array.
+	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
+	// Describes what a "yes" answer looks like. Optional.
+	CriteriaTrue *structpb.Value `protobuf:"bytes,2,opt,name=criteria_true,json=criteriaTrue,proto3" json:"criteria_true,omitempty"`
+	// Describes what a "no" answer looks like. Optional.
+	CriteriaFalse *structpb.Value `protobuf:"bytes,3,opt,name=criteria_false,json=criteriaFalse,proto3" json:"criteria_false,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NoulQuestion) Reset() {
 	*x = NoulQuestion{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +466,7 @@ func (x *NoulQuestion) String() string {
 func (*NoulQuestion) ProtoMessage() {}
 
 func (x *NoulQuestion) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,68 +479,68 @@ func (x *NoulQuestion) ProtoReflect() protoreflect.Message {
 
 func (x *NoulQuestion) GetInstructions() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_Instructions
+		return x.Instructions
 	}
 	return nil
 }
 
 func (x *NoulQuestion) GetCriteriaTrue() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_CriteriaTrue
+		return x.CriteriaTrue
 	}
 	return nil
 }
 
 func (x *NoulQuestion) GetCriteriaFalse() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_CriteriaFalse
+		return x.CriteriaFalse
 	}
 	return nil
 }
 
 func (x *NoulQuestion) SetInstructions(v *structpb.Value) {
-	x.xxx_hidden_Instructions = v
+	x.Instructions = v
 }
 
 func (x *NoulQuestion) SetCriteriaTrue(v *structpb.Value) {
-	x.xxx_hidden_CriteriaTrue = v
+	x.CriteriaTrue = v
 }
 
 func (x *NoulQuestion) SetCriteriaFalse(v *structpb.Value) {
-	x.xxx_hidden_CriteriaFalse = v
+	x.CriteriaFalse = v
 }
 
 func (x *NoulQuestion) HasInstructions() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Instructions != nil
+	return x.Instructions != nil
 }
 
 func (x *NoulQuestion) HasCriteriaTrue() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_CriteriaTrue != nil
+	return x.CriteriaTrue != nil
 }
 
 func (x *NoulQuestion) HasCriteriaFalse() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_CriteriaFalse != nil
+	return x.CriteriaFalse != nil
 }
 
 func (x *NoulQuestion) ClearInstructions() {
-	x.xxx_hidden_Instructions = nil
+	x.Instructions = nil
 }
 
 func (x *NoulQuestion) ClearCriteriaTrue() {
-	x.xxx_hidden_CriteriaTrue = nil
+	x.CriteriaTrue = nil
 }
 
 func (x *NoulQuestion) ClearCriteriaFalse() {
-	x.xxx_hidden_CriteriaFalse = nil
+	x.CriteriaFalse = nil
 }
 
 type NoulQuestion_builder struct {
@@ -539,23 +558,30 @@ func (b0 NoulQuestion_builder) Build() *NoulQuestion {
 	m0 := &NoulQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Instructions = b.Instructions
-	x.xxx_hidden_CriteriaTrue = b.CriteriaTrue
-	x.xxx_hidden_CriteriaFalse = b.CriteriaFalse
+	x.Instructions = b.Instructions
+	x.CriteriaTrue = b.CriteriaTrue
+	x.CriteriaFalse = b.CriteriaFalse
 	return m0
 }
 
 // The typed answer to a Question.
 type Answer struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Type isAnswer_Type          `protobuf_oneof:"type"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The answer's type.
+	//
+	// Types that are valid to be assigned to Type:
+	//
+	//	*Answer_Choice
+	//	*Answer_Score
+	//	*Answer_Noul
+	Type          isAnswer_Type `protobuf_oneof:"type"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Answer) Reset() {
 	*x = Answer{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -567,7 +593,7 @@ func (x *Answer) String() string {
 func (*Answer) ProtoMessage() {}
 
 func (x *Answer) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,9 +604,16 @@ func (x *Answer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *Answer) GetType() isAnswer_Type {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
 func (x *Answer) GetChoice() *ChoiceAnswer {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*answer_Choice); ok {
+		if x, ok := x.Type.(*Answer_Choice); ok {
 			return x.Choice
 		}
 	}
@@ -589,7 +622,7 @@ func (x *Answer) GetChoice() *ChoiceAnswer {
 
 func (x *Answer) GetScore() *ScoreAnswer {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*answer_Score); ok {
+		if x, ok := x.Type.(*Answer_Score); ok {
 			return x.Score
 		}
 	}
@@ -598,7 +631,7 @@ func (x *Answer) GetScore() *ScoreAnswer {
 
 func (x *Answer) GetNoul() *NoulAnswer {
 	if x != nil {
-		if x, ok := x.xxx_hidden_Type.(*answer_Noul); ok {
+		if x, ok := x.Type.(*Answer_Noul); ok {
 			return x.Noul
 		}
 	}
@@ -607,40 +640,40 @@ func (x *Answer) GetNoul() *NoulAnswer {
 
 func (x *Answer) SetChoice(v *ChoiceAnswer) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &answer_Choice{v}
+	x.Type = &Answer_Choice{v}
 }
 
 func (x *Answer) SetScore(v *ScoreAnswer) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &answer_Score{v}
+	x.Type = &Answer_Score{v}
 }
 
 func (x *Answer) SetNoul(v *NoulAnswer) {
 	if v == nil {
-		x.xxx_hidden_Type = nil
+		x.Type = nil
 		return
 	}
-	x.xxx_hidden_Type = &answer_Noul{v}
+	x.Type = &Answer_Noul{v}
 }
 
 func (x *Answer) HasType() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Type != nil
+	return x.Type != nil
 }
 
 func (x *Answer) HasChoice() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*answer_Choice)
+	_, ok := x.Type.(*Answer_Choice)
 	return ok
 }
 
@@ -648,7 +681,7 @@ func (x *Answer) HasScore() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*answer_Score)
+	_, ok := x.Type.(*Answer_Score)
 	return ok
 }
 
@@ -656,29 +689,29 @@ func (x *Answer) HasNoul() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_Type.(*answer_Noul)
+	_, ok := x.Type.(*Answer_Noul)
 	return ok
 }
 
 func (x *Answer) ClearType() {
-	x.xxx_hidden_Type = nil
+	x.Type = nil
 }
 
 func (x *Answer) ClearChoice() {
-	if _, ok := x.xxx_hidden_Type.(*answer_Choice); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Answer_Choice); ok {
+		x.Type = nil
 	}
 }
 
 func (x *Answer) ClearScore() {
-	if _, ok := x.xxx_hidden_Type.(*answer_Score); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Answer_Score); ok {
+		x.Type = nil
 	}
 }
 
 func (x *Answer) ClearNoul() {
-	if _, ok := x.xxx_hidden_Type.(*answer_Noul); ok {
-		x.xxx_hidden_Type = nil
+	if _, ok := x.Type.(*Answer_Noul); ok {
+		x.Type = nil
 	}
 }
 
@@ -691,12 +724,12 @@ func (x *Answer) WhichType() case_Answer_Type {
 	if x == nil {
 		return Answer_Type_not_set_case
 	}
-	switch x.xxx_hidden_Type.(type) {
-	case *answer_Choice:
+	switch x.Type.(type) {
+	case *Answer_Choice:
 		return Answer_Choice_case
-	case *answer_Score:
+	case *Answer_Score:
 		return Answer_Score_case
-	case *answer_Noul:
+	case *Answer_Noul:
 		return Answer_Noul_case
 	default:
 		return Answer_Type_not_set_case
@@ -708,14 +741,14 @@ type Answer_builder struct {
 
 	// The answer's type.
 
-	// Fields of oneof xxx_hidden_Type:
+	// Fields of oneof Type:
 	// Answer to a ChoiceQuestion.
 	Choice *ChoiceAnswer
 	// Answer to a ScoreQuestion.
 	Score *ScoreAnswer
 	// Answer to a NoulQuestion.
 	Noul *NoulAnswer
-	// -- end of xxx_hidden_Type
+	// -- end of Type
 }
 
 func (b0 Answer_builder) Build() *Answer {
@@ -723,13 +756,13 @@ func (b0 Answer_builder) Build() *Answer {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Choice != nil {
-		x.xxx_hidden_Type = &answer_Choice{b.Choice}
+		x.Type = &Answer_Choice{b.Choice}
 	}
 	if b.Score != nil {
-		x.xxx_hidden_Type = &answer_Score{b.Score}
+		x.Type = &Answer_Score{b.Score}
 	}
 	if b.Noul != nil {
-		x.xxx_hidden_Type = &answer_Noul{b.Noul}
+		x.Type = &Answer_Noul{b.Noul}
 	}
 	return m0
 }
@@ -737,7 +770,7 @@ func (b0 Answer_builder) Build() *Answer {
 type case_Answer_Type protoreflect.FieldNumber
 
 func (x case_Answer_Type) String() string {
-	md := file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[4].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[4].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -748,42 +781,45 @@ type isAnswer_Type interface {
 	isAnswer_Type()
 }
 
-type answer_Choice struct {
+type Answer_Choice struct {
 	// Answer to a ChoiceQuestion.
 	Choice *ChoiceAnswer `protobuf:"bytes,1,opt,name=choice,proto3,oneof"`
 }
 
-type answer_Score struct {
+type Answer_Score struct {
 	// Answer to a ScoreQuestion.
 	Score *ScoreAnswer `protobuf:"bytes,2,opt,name=score,proto3,oneof"`
 }
 
-type answer_Noul struct {
+type Answer_Noul struct {
 	// Answer to a NoulQuestion.
 	Noul *NoulAnswer `protobuf:"bytes,3,opt,name=noul,proto3,oneof"`
 }
 
-func (*answer_Choice) isAnswer_Type() {}
+func (*Answer_Choice) isAnswer_Type() {}
 
-func (*answer_Score) isAnswer_Type() {}
+func (*Answer_Score) isAnswer_Type() {}
 
-func (*answer_Noul) isAnswer_Type() {}
+func (*Answer_Noul) isAnswer_Type() {}
 
 // Answer to a ChoiceQuestion.
 type ChoiceAnswer struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Choice        string                 `protobuf:"bytes,1,opt,name=choice,proto3"`
-	xxx_hidden_Probabilities map[string]float64     `protobuf:"bytes,2,rep,name=probabilities,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	xxx_hidden_Confidence    float64                `protobuf:"fixed64,3,opt,name=confidence,proto3,oneof"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The selected option name.
+	Choice string `protobuf:"bytes,1,opt,name=choice,proto3" json:"choice,omitempty"`
+	// Probability mass per option. Empty when the classifier cannot report
+	// calibrated probabilities (e.g. a TTT model used as a classifier).
+	Probabilities map[string]float64 `protobuf:"bytes,2,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	// Confidence in the selected choice, in [0, 1]. Unset when the classifier
+	// cannot report a calibrated confidence.
+	Confidence    *float64 `protobuf:"fixed64,3,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ChoiceAnswer) Reset() {
 	*x = ChoiceAnswer{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -795,7 +831,7 @@ func (x *ChoiceAnswer) String() string {
 func (*ChoiceAnswer) ProtoMessage() {}
 
 func (x *ChoiceAnswer) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -808,48 +844,46 @@ func (x *ChoiceAnswer) ProtoReflect() protoreflect.Message {
 
 func (x *ChoiceAnswer) GetChoice() string {
 	if x != nil {
-		return x.xxx_hidden_Choice
+		return x.Choice
 	}
 	return ""
 }
 
 func (x *ChoiceAnswer) GetProbabilities() map[string]float64 {
 	if x != nil {
-		return x.xxx_hidden_Probabilities
+		return x.Probabilities
 	}
 	return nil
 }
 
 func (x *ChoiceAnswer) GetConfidence() float64 {
-	if x != nil {
-		return x.xxx_hidden_Confidence
+	if x != nil && x.Confidence != nil {
+		return *x.Confidence
 	}
 	return 0
 }
 
 func (x *ChoiceAnswer) SetChoice(v string) {
-	x.xxx_hidden_Choice = v
+	x.Choice = v
 }
 
 func (x *ChoiceAnswer) SetProbabilities(v map[string]float64) {
-	x.xxx_hidden_Probabilities = v
+	x.Probabilities = v
 }
 
 func (x *ChoiceAnswer) SetConfidence(v float64) {
-	x.xxx_hidden_Confidence = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+	x.Confidence = &v
 }
 
 func (x *ChoiceAnswer) HasConfidence() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+	return x.Confidence != nil
 }
 
 func (x *ChoiceAnswer) ClearConfidence() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Confidence = 0
+	x.Confidence = nil
 }
 
 type ChoiceAnswer_builder struct {
@@ -869,31 +903,32 @@ func (b0 ChoiceAnswer_builder) Build() *ChoiceAnswer {
 	m0 := &ChoiceAnswer{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Choice = b.Choice
-	x.xxx_hidden_Probabilities = b.Probabilities
-	if b.Confidence != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
-		x.xxx_hidden_Confidence = *b.Confidence
-	}
+	x.Choice = b.Choice
+	x.Probabilities = b.Probabilities
+	x.Confidence = b.Confidence
 	return m0
 }
 
 // Answer to a ScoreQuestion.
 type ScoreAnswer struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Score         float64                `protobuf:"fixed64,1,opt,name=score,proto3"`
-	xxx_hidden_Legend        map[string]string      `protobuf:"bytes,2,rep,name=legend,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Probabilities map[string]float64     `protobuf:"bytes,3,rep,name=probabilities,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	xxx_hidden_Confidence    float64                `protobuf:"fixed64,4,opt,name=confidence,proto3,oneof"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The score, as an index into the rubric levels (may be fractional).
+	Score float64 `protobuf:"fixed64,1,opt,name=score,proto3" json:"score,omitempty"`
+	// Maps a rubric level index (as a string) to its description.
+	Legend map[string]string `protobuf:"bytes,2,rep,name=legend,proto3" json:"legend,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Probability mass per rubric level index (as a string). Empty when the
+	// classifier cannot report calibrated probabilities.
+	Probabilities map[string]float64 `protobuf:"bytes,3,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	// Confidence in the score, in [0, 1]. Unset when the classifier cannot
+	// report a calibrated confidence.
+	Confidence    *float64 `protobuf:"fixed64,4,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ScoreAnswer) Reset() {
 	*x = ScoreAnswer{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -905,7 +940,7 @@ func (x *ScoreAnswer) String() string {
 func (*ScoreAnswer) ProtoMessage() {}
 
 func (x *ScoreAnswer) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,59 +953,57 @@ func (x *ScoreAnswer) ProtoReflect() protoreflect.Message {
 
 func (x *ScoreAnswer) GetScore() float64 {
 	if x != nil {
-		return x.xxx_hidden_Score
+		return x.Score
 	}
 	return 0
 }
 
 func (x *ScoreAnswer) GetLegend() map[string]string {
 	if x != nil {
-		return x.xxx_hidden_Legend
+		return x.Legend
 	}
 	return nil
 }
 
 func (x *ScoreAnswer) GetProbabilities() map[string]float64 {
 	if x != nil {
-		return x.xxx_hidden_Probabilities
+		return x.Probabilities
 	}
 	return nil
 }
 
 func (x *ScoreAnswer) GetConfidence() float64 {
-	if x != nil {
-		return x.xxx_hidden_Confidence
+	if x != nil && x.Confidence != nil {
+		return *x.Confidence
 	}
 	return 0
 }
 
 func (x *ScoreAnswer) SetScore(v float64) {
-	x.xxx_hidden_Score = v
+	x.Score = v
 }
 
 func (x *ScoreAnswer) SetLegend(v map[string]string) {
-	x.xxx_hidden_Legend = v
+	x.Legend = v
 }
 
 func (x *ScoreAnswer) SetProbabilities(v map[string]float64) {
-	x.xxx_hidden_Probabilities = v
+	x.Probabilities = v
 }
 
 func (x *ScoreAnswer) SetConfidence(v float64) {
-	x.xxx_hidden_Confidence = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+	x.Confidence = &v
 }
 
 func (x *ScoreAnswer) HasConfidence() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+	return x.Confidence != nil
 }
 
 func (x *ScoreAnswer) ClearConfidence() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_Confidence = 0
+	x.Confidence = nil
 }
 
 type ScoreAnswer_builder struct {
@@ -992,27 +1025,26 @@ func (b0 ScoreAnswer_builder) Build() *ScoreAnswer {
 	m0 := &ScoreAnswer{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Score = b.Score
-	x.xxx_hidden_Legend = b.Legend
-	x.xxx_hidden_Probabilities = b.Probabilities
-	if b.Confidence != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
-		x.xxx_hidden_Confidence = *b.Confidence
-	}
+	x.Score = b.Score
+	x.Legend = b.Legend
+	x.Probabilities = b.Probabilities
+	x.Confidence = b.Confidence
 	return m0
 }
 
 // Answer to a NoulQuestion.
 type NoulAnswer struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Noul float64                `protobuf:"fixed64,1,opt,name=noul,proto3"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Probability that the answer is yes, in [0, 1]. A two-outcome
+	// distribution carries no separate confidence value.
+	Noul          float64 `protobuf:"fixed64,1,opt,name=noul,proto3" json:"noul,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NoulAnswer) Reset() {
 	*x = NoulAnswer{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1024,7 +1056,7 @@ func (x *NoulAnswer) String() string {
 func (*NoulAnswer) ProtoMessage() {}
 
 func (x *NoulAnswer) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[7]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1037,13 +1069,13 @@ func (x *NoulAnswer) ProtoReflect() protoreflect.Message {
 
 func (x *NoulAnswer) GetNoul() float64 {
 	if x != nil {
-		return x.xxx_hidden_Noul
+		return x.Noul
 	}
 	return 0
 }
 
 func (x *NoulAnswer) SetNoul(v float64) {
-	x.xxx_hidden_Noul = v
+	x.Noul = v
 }
 
 type NoulAnswer_builder struct {
@@ -1058,36 +1090,41 @@ func (b0 NoulAnswer_builder) Build() *NoulAnswer {
 	m0 := &NoulAnswer{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Noul = b.Noul
+	x.Noul = b.Noul
 	return m0
 }
 
-// Request message for AiService.Classify.
-type ClassifyRequest struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Model     string                 `protobuf:"bytes,1,opt,name=model,proto3"`
-	xxx_hidden_State     *structpb.Value        `protobuf:"bytes,2,opt,name=state,proto3"`
-	xxx_hidden_Questions map[string]*Question   `protobuf:"bytes,3,rep,name=questions,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Labels    map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+// Request message for AiService.GetDecision.
+type GetDecisionRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The resource name of the model used.
+	// Format: providers/{provider}/models/{model}
+	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
+	// The state to evaluate. String, object, or array.
+	State *structpb.Value `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// The questions to answer about the state, keyed by caller-defined id.
+	Questions map[string]*Question `protobuf:"bytes,3,rep,name=questions,proto3" json:"questions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Labels for this call.
+	Labels        map[string]string `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ClassifyRequest) Reset() {
-	*x = ClassifyRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[8]
+func (x *GetDecisionRequest) Reset() {
+	*x = GetDecisionRequest{}
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ClassifyRequest) String() string {
+func (x *GetDecisionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ClassifyRequest) ProtoMessage() {}
+func (*GetDecisionRequest) ProtoMessage() {}
 
-func (x *ClassifyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[8]
+func (x *GetDecisionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1098,62 +1135,62 @@ func (x *ClassifyRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ClassifyRequest) GetModel() string {
+func (x *GetDecisionRequest) GetModel() string {
 	if x != nil {
-		return x.xxx_hidden_Model
+		return x.Model
 	}
 	return ""
 }
 
-func (x *ClassifyRequest) GetState() *structpb.Value {
+func (x *GetDecisionRequest) GetState() *structpb.Value {
 	if x != nil {
-		return x.xxx_hidden_State
+		return x.State
 	}
 	return nil
 }
 
-func (x *ClassifyRequest) GetQuestions() map[string]*Question {
+func (x *GetDecisionRequest) GetQuestions() map[string]*Question {
 	if x != nil {
-		return x.xxx_hidden_Questions
+		return x.Questions
 	}
 	return nil
 }
 
-func (x *ClassifyRequest) GetLabels() map[string]string {
+func (x *GetDecisionRequest) GetLabels() map[string]string {
 	if x != nil {
-		return x.xxx_hidden_Labels
+		return x.Labels
 	}
 	return nil
 }
 
-func (x *ClassifyRequest) SetModel(v string) {
-	x.xxx_hidden_Model = v
+func (x *GetDecisionRequest) SetModel(v string) {
+	x.Model = v
 }
 
-func (x *ClassifyRequest) SetState(v *structpb.Value) {
-	x.xxx_hidden_State = v
+func (x *GetDecisionRequest) SetState(v *structpb.Value) {
+	x.State = v
 }
 
-func (x *ClassifyRequest) SetQuestions(v map[string]*Question) {
-	x.xxx_hidden_Questions = v
+func (x *GetDecisionRequest) SetQuestions(v map[string]*Question) {
+	x.Questions = v
 }
 
-func (x *ClassifyRequest) SetLabels(v map[string]string) {
-	x.xxx_hidden_Labels = v
+func (x *GetDecisionRequest) SetLabels(v map[string]string) {
+	x.Labels = v
 }
 
-func (x *ClassifyRequest) HasState() bool {
+func (x *GetDecisionRequest) HasState() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_State != nil
+	return x.State != nil
 }
 
-func (x *ClassifyRequest) ClearState() {
-	x.xxx_hidden_State = nil
+func (x *GetDecisionRequest) ClearState() {
+	x.State = nil
 }
 
-type ClassifyRequest_builder struct {
+type GetDecisionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The resource name of the model used.
@@ -1167,41 +1204,43 @@ type ClassifyRequest_builder struct {
 	Labels map[string]string
 }
 
-func (b0 ClassifyRequest_builder) Build() *ClassifyRequest {
-	m0 := &ClassifyRequest{}
+func (b0 GetDecisionRequest_builder) Build() *GetDecisionRequest {
+	m0 := &GetDecisionRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Model = b.Model
-	x.xxx_hidden_State = b.State
-	x.xxx_hidden_Questions = b.Questions
-	x.xxx_hidden_Labels = b.Labels
+	x.Model = b.Model
+	x.State = b.State
+	x.Questions = b.Questions
+	x.Labels = b.Labels
 	return m0
 }
 
-// Response message for AiService.Classify.
-type ClassifyResponse struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Answers    map[string]*Answer     `protobuf:"bytes,1,rep,name=answers,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_ModelUsage *v1.ModelUsage         `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+// Response message for AiService.GetDecision.
+type GetDecisionResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The answers, keyed by the same ids as the request's questions.
+	Answers map[string]*Answer `protobuf:"bytes,1,rep,name=answers,proto3" json:"answers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Model usage metrics.
+	ModelUsage    *v1.ModelUsage `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ClassifyResponse) Reset() {
-	*x = ClassifyResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[9]
+func (x *GetDecisionResponse) Reset() {
+	*x = GetDecisionResponse{}
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ClassifyResponse) String() string {
+func (x *GetDecisionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ClassifyResponse) ProtoMessage() {}
+func (*GetDecisionResponse) ProtoMessage() {}
 
-func (x *ClassifyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[9]
+func (x *GetDecisionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,40 +1251,40 @@ func (x *ClassifyResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ClassifyResponse) GetAnswers() map[string]*Answer {
+func (x *GetDecisionResponse) GetAnswers() map[string]*Answer {
 	if x != nil {
-		return x.xxx_hidden_Answers
+		return x.Answers
 	}
 	return nil
 }
 
-func (x *ClassifyResponse) GetModelUsage() *v1.ModelUsage {
+func (x *GetDecisionResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
-		return x.xxx_hidden_ModelUsage
+		return x.ModelUsage
 	}
 	return nil
 }
 
-func (x *ClassifyResponse) SetAnswers(v map[string]*Answer) {
-	x.xxx_hidden_Answers = v
+func (x *GetDecisionResponse) SetAnswers(v map[string]*Answer) {
+	x.Answers = v
 }
 
-func (x *ClassifyResponse) SetModelUsage(v *v1.ModelUsage) {
-	x.xxx_hidden_ModelUsage = v
+func (x *GetDecisionResponse) SetModelUsage(v *v1.ModelUsage) {
+	x.ModelUsage = v
 }
 
-func (x *ClassifyResponse) HasModelUsage() bool {
+func (x *GetDecisionResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_ModelUsage != nil
+	return x.ModelUsage != nil
 }
 
-func (x *ClassifyResponse) ClearModelUsage() {
-	x.xxx_hidden_ModelUsage = nil
+func (x *GetDecisionResponse) ClearModelUsage() {
+	x.ModelUsage = nil
 }
 
-type ClassifyResponse_builder struct {
+type GetDecisionResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The answers, keyed by the same ids as the request's questions.
@@ -1254,20 +1293,20 @@ type ClassifyResponse_builder struct {
 	ModelUsage *v1.ModelUsage
 }
 
-func (b0 ClassifyResponse_builder) Build() *ClassifyResponse {
-	m0 := &ClassifyResponse{}
+func (b0 GetDecisionResponse_builder) Build() *GetDecisionResponse {
+	m0 := &GetDecisionResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Answers = b.Answers
-	x.xxx_hidden_ModelUsage = b.ModelUsage
+	x.Answers = b.Answers
+	x.ModelUsage = b.ModelUsage
 	return m0
 }
 
-var File_malonaz_ai_ai_service_v1_classify_proto protoreflect.FileDescriptor
+var File_malonaz_ai_ai_service_v1_decision_proto protoreflect.FileDescriptor
 
-const file_malonaz_ai_ai_service_v1_classify_proto_rawDesc = "" +
+const file_malonaz_ai_ai_service_v1_decision_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_service/v1/classify.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xdc\x01\n" +
+	"'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xdc\x01\n" +
 	"\bQuestion\x12B\n" +
 	"\x06choice\x18\x01 \x01(\v2(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00R\x06choice\x12?\n" +
 	"\x05score\x18\x02 \x01(\v2'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00R\x05score\x12<\n" +
@@ -1319,50 +1358,50 @@ const file_malonaz_ai_ai_service_v1_classify_proto_rawDesc = "" +
 	"\v_confidence\"9\n" +
 	"\n" +
 	"NoulAnswer\x12+\n" +
-	"\x04noul\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x04noul\"\xcc\x03\n" +
-	"\x0fClassifyRequest\x125\n" +
+	"\x04noul\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x04noul\"\xd5\x03\n" +
+	"\x12GetDecisionRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x124\n" +
-	"\x05state\x18\x02 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\x05state\x12`\n" +
-	"\tquestions\x18\x03 \x03(\v28.malonaz.ai.ai_service.v1.ClassifyRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12M\n" +
-	"\x06labels\x18\x04 \x03(\v25.malonaz.ai.ai_service.v1.ClassifyRequest.LabelsEntryR\x06labels\x1a`\n" +
+	"\x05state\x18\x02 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\x05state\x12c\n" +
+	"\tquestions\x18\x03 \x03(\v2;.malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12P\n" +
+	"\x06labels\x18\x04 \x03(\v28.malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntryR\x06labels\x1a`\n" +
 	"\x0eQuestionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x128\n" +
 	"\x05value\x18\x02 \x01(\v2\".malonaz.ai.ai_service.v1.QuestionR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xff\x01\n" +
-	"\x10ClassifyResponse\x12Q\n" +
-	"\aanswers\x18\x01 \x03(\v27.malonaz.ai.ai_service.v1.ClassifyResponse.AnswersEntryR\aanswers\x12:\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x85\x02\n" +
+	"\x13GetDecisionResponse\x12T\n" +
+	"\aanswers\x18\x01 \x03(\v2:.malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntryR\aanswers\x12:\n" +
 	"\vmodel_usage\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x1a\\\n" +
 	"\fAnswersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x126\n" +
 	"\x05value\x18\x02 \x01(\v2 .malonaz.ai.ai_service.v1.AnswerR\x05value:\x028\x01B3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_classify_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
-var file_malonaz_ai_ai_service_v1_classify_proto_goTypes = []any{
-	(*Question)(nil),         // 0: malonaz.ai.ai_service.v1.Question
-	(*ChoiceQuestion)(nil),   // 1: malonaz.ai.ai_service.v1.ChoiceQuestion
-	(*ScoreQuestion)(nil),    // 2: malonaz.ai.ai_service.v1.ScoreQuestion
-	(*NoulQuestion)(nil),     // 3: malonaz.ai.ai_service.v1.NoulQuestion
-	(*Answer)(nil),           // 4: malonaz.ai.ai_service.v1.Answer
-	(*ChoiceAnswer)(nil),     // 5: malonaz.ai.ai_service.v1.ChoiceAnswer
-	(*ScoreAnswer)(nil),      // 6: malonaz.ai.ai_service.v1.ScoreAnswer
-	(*NoulAnswer)(nil),       // 7: malonaz.ai.ai_service.v1.NoulAnswer
-	(*ClassifyRequest)(nil),  // 8: malonaz.ai.ai_service.v1.ClassifyRequest
-	(*ClassifyResponse)(nil), // 9: malonaz.ai.ai_service.v1.ClassifyResponse
-	nil,                      // 10: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
-	nil,                      // 11: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
-	nil,                      // 12: malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
-	nil,                      // 13: malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	nil,                      // 14: malonaz.ai.ai_service.v1.ClassifyRequest.QuestionsEntry
-	nil,                      // 15: malonaz.ai.ai_service.v1.ClassifyRequest.LabelsEntry
-	nil,                      // 16: malonaz.ai.ai_service.v1.ClassifyResponse.AnswersEntry
-	(*structpb.Value)(nil),   // 17: google.protobuf.Value
-	(*v1.ModelUsage)(nil),    // 18: malonaz.ai.v1.ModelUsage
+var file_malonaz_ai_ai_service_v1_decision_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_malonaz_ai_ai_service_v1_decision_proto_goTypes = []any{
+	(*Question)(nil),            // 0: malonaz.ai.ai_service.v1.Question
+	(*ChoiceQuestion)(nil),      // 1: malonaz.ai.ai_service.v1.ChoiceQuestion
+	(*ScoreQuestion)(nil),       // 2: malonaz.ai.ai_service.v1.ScoreQuestion
+	(*NoulQuestion)(nil),        // 3: malonaz.ai.ai_service.v1.NoulQuestion
+	(*Answer)(nil),              // 4: malonaz.ai.ai_service.v1.Answer
+	(*ChoiceAnswer)(nil),        // 5: malonaz.ai.ai_service.v1.ChoiceAnswer
+	(*ScoreAnswer)(nil),         // 6: malonaz.ai.ai_service.v1.ScoreAnswer
+	(*NoulAnswer)(nil),          // 7: malonaz.ai.ai_service.v1.NoulAnswer
+	(*GetDecisionRequest)(nil),  // 8: malonaz.ai.ai_service.v1.GetDecisionRequest
+	(*GetDecisionResponse)(nil), // 9: malonaz.ai.ai_service.v1.GetDecisionResponse
+	nil,                         // 10: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
+	nil,                         // 11: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
+	nil,                         // 12: malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
+	nil,                         // 13: malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
+	nil,                         // 14: malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry
+	nil,                         // 15: malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntry
+	nil,                         // 16: malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry
+	(*structpb.Value)(nil),      // 17: google.protobuf.Value
+	(*v1.ModelUsage)(nil),       // 18: malonaz.ai.v1.ModelUsage
 }
-var file_malonaz_ai_ai_service_v1_classify_proto_depIdxs = []int32{
+var file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = []int32{
 	1,  // 0: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
 	2,  // 1: malonaz.ai.ai_service.v1.Question.score:type_name -> malonaz.ai.ai_service.v1.ScoreQuestion
 	3,  // 2: malonaz.ai.ai_service.v1.Question.noul:type_name -> malonaz.ai.ai_service.v1.NoulQuestion
@@ -1379,14 +1418,14 @@ var file_malonaz_ai_ai_service_v1_classify_proto_depIdxs = []int32{
 	11, // 13: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
 	12, // 14: malonaz.ai.ai_service.v1.ScoreAnswer.legend:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
 	13, // 15: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	17, // 16: malonaz.ai.ai_service.v1.ClassifyRequest.state:type_name -> google.protobuf.Value
-	14, // 17: malonaz.ai.ai_service.v1.ClassifyRequest.questions:type_name -> malonaz.ai.ai_service.v1.ClassifyRequest.QuestionsEntry
-	15, // 18: malonaz.ai.ai_service.v1.ClassifyRequest.labels:type_name -> malonaz.ai.ai_service.v1.ClassifyRequest.LabelsEntry
-	16, // 19: malonaz.ai.ai_service.v1.ClassifyResponse.answers:type_name -> malonaz.ai.ai_service.v1.ClassifyResponse.AnswersEntry
-	18, // 20: malonaz.ai.ai_service.v1.ClassifyResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	17, // 16: malonaz.ai.ai_service.v1.GetDecisionRequest.state:type_name -> google.protobuf.Value
+	14, // 17: malonaz.ai.ai_service.v1.GetDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry
+	15, // 18: malonaz.ai.ai_service.v1.GetDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntry
+	16, // 19: malonaz.ai.ai_service.v1.GetDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry
+	18, // 20: malonaz.ai.ai_service.v1.GetDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
 	17, // 21: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry.value:type_name -> google.protobuf.Value
-	0,  // 22: malonaz.ai.ai_service.v1.ClassifyRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
-	4,  // 23: malonaz.ai.ai_service.v1.ClassifyResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
+	0,  // 22: malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
+	4,  // 23: malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
 	24, // [24:24] is the sub-list for method output_type
 	24, // [24:24] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name
@@ -1394,38 +1433,38 @@ var file_malonaz_ai_ai_service_v1_classify_proto_depIdxs = []int32{
 	0,  // [0:24] is the sub-list for field type_name
 }
 
-func init() { file_malonaz_ai_ai_service_v1_classify_proto_init() }
-func file_malonaz_ai_ai_service_v1_classify_proto_init() {
-	if File_malonaz_ai_ai_service_v1_classify_proto != nil {
+func init() { file_malonaz_ai_ai_service_v1_decision_proto_init() }
+func file_malonaz_ai_ai_service_v1_decision_proto_init() {
+	if File_malonaz_ai_ai_service_v1_decision_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[0].OneofWrappers = []any{
-		(*question_Choice)(nil),
-		(*question_Score)(nil),
-		(*question_Noul)(nil),
+	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[0].OneofWrappers = []any{
+		(*Question_Choice)(nil),
+		(*Question_Score)(nil),
+		(*Question_Noul)(nil),
 	}
-	file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[4].OneofWrappers = []any{
-		(*answer_Choice)(nil),
-		(*answer_Score)(nil),
-		(*answer_Noul)(nil),
+	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[4].OneofWrappers = []any{
+		(*Answer_Choice)(nil),
+		(*Answer_Score)(nil),
+		(*Answer_Noul)(nil),
 	}
-	file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[5].OneofWrappers = []any{}
-	file_malonaz_ai_ai_service_v1_classify_proto_msgTypes[6].OneofWrappers = []any{}
+	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[5].OneofWrappers = []any{}
+	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_classify_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_classify_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_decision_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_decision_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_malonaz_ai_ai_service_v1_classify_proto_goTypes,
-		DependencyIndexes: file_malonaz_ai_ai_service_v1_classify_proto_depIdxs,
-		MessageInfos:      file_malonaz_ai_ai_service_v1_classify_proto_msgTypes,
+		GoTypes:           file_malonaz_ai_ai_service_v1_decision_proto_goTypes,
+		DependencyIndexes: file_malonaz_ai_ai_service_v1_decision_proto_depIdxs,
+		MessageInfos:      file_malonaz_ai_ai_service_v1_decision_proto_msgTypes,
 	}.Build()
-	File_malonaz_ai_ai_service_v1_classify_proto = out.File
-	file_malonaz_ai_ai_service_v1_classify_proto_goTypes = nil
-	file_malonaz_ai_ai_service_v1_classify_proto_depIdxs = nil
+	File_malonaz_ai_ai_service_v1_decision_proto = out.File
+	file_malonaz_ai_ai_service_v1_decision_proto_goTypes = nil
+	file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = nil
 }
