@@ -74,10 +74,10 @@ message Answer {
 message ChoiceAnswer {
   // The selected option name.
   string choice = 1;
-  // Probability mass per option. Empty when the classifier cannot report
-  // calibrated probabilities (e.g. a TTT model used as a classifier).
+  // Probability mass per option. Empty when the decision model cannot report
+  // calibrated probabilities (e.g. a TTT model used as a decision model).
   map<string, double> probabilities = 2;
-  // Confidence in the selected choice, in [0, 1]. Unset when the classifier
+  // Confidence in the selected choice, in [0, 1]. Unset when the decision model
   // cannot report a calibrated confidence.
   optional double confidence = 3 [(buf.validate.field).double = {
     gte: 0.0
@@ -92,9 +92,9 @@ message ScoreAnswer {
   // Maps a rubric level index (as a string) to its description.
   map<string, string> legend = 2;
   // Probability mass per rubric level index (as a string). Empty when the
-  // classifier cannot report calibrated probabilities.
+  // decision model cannot report calibrated probabilities.
   map<string, double> probabilities = 3;
-  // Confidence in the score, in [0, 1]. Unset when the classifier cannot
+  // Confidence in the score, in [0, 1]. Unset when the decision model cannot
   // report a calibrated confidence.
   optional double confidence = 4 [(buf.validate.field).double = {
     gte: 0.0

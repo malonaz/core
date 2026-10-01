@@ -807,10 +807,10 @@ type ChoiceAnswer struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The selected option name.
 	Choice string `protobuf:"bytes,1,opt,name=choice,proto3" json:"choice,omitempty"`
-	// Probability mass per option. Empty when the classifier cannot report
-	// calibrated probabilities (e.g. a TTT model used as a classifier).
+	// Probability mass per option. Empty when the decision model cannot report
+	// calibrated probabilities (e.g. a TTT model used as a decision model).
 	Probabilities map[string]float64 `protobuf:"bytes,2,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	// Confidence in the selected choice, in [0, 1]. Unset when the classifier
+	// Confidence in the selected choice, in [0, 1]. Unset when the decision model
 	// cannot report a calibrated confidence.
 	Confidence    *float64 `protobuf:"fixed64,3,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -891,10 +891,10 @@ type ChoiceAnswer_builder struct {
 
 	// The selected option name.
 	Choice string
-	// Probability mass per option. Empty when the classifier cannot report
-	// calibrated probabilities (e.g. a TTT model used as a classifier).
+	// Probability mass per option. Empty when the decision model cannot report
+	// calibrated probabilities (e.g. a TTT model used as a decision model).
 	Probabilities map[string]float64
-	// Confidence in the selected choice, in [0, 1]. Unset when the classifier
+	// Confidence in the selected choice, in [0, 1]. Unset when the decision model
 	// cannot report a calibrated confidence.
 	Confidence *float64
 }
@@ -917,9 +917,9 @@ type ScoreAnswer struct {
 	// Maps a rubric level index (as a string) to its description.
 	Legend map[string]string `protobuf:"bytes,2,rep,name=legend,proto3" json:"legend,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Probability mass per rubric level index (as a string). Empty when the
-	// classifier cannot report calibrated probabilities.
+	// decision model cannot report calibrated probabilities.
 	Probabilities map[string]float64 `protobuf:"bytes,3,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	// Confidence in the score, in [0, 1]. Unset when the classifier cannot
+	// Confidence in the score, in [0, 1]. Unset when the decision model cannot
 	// report a calibrated confidence.
 	Confidence    *float64 `protobuf:"fixed64,4,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1014,9 +1014,9 @@ type ScoreAnswer_builder struct {
 	// Maps a rubric level index (as a string) to its description.
 	Legend map[string]string
 	// Probability mass per rubric level index (as a string). Empty when the
-	// classifier cannot report calibrated probabilities.
+	// decision model cannot report calibrated probabilities.
 	Probabilities map[string]float64
-	// Confidence in the score, in [0, 1]. Unset when the classifier cannot
+	// Confidence in the score, in [0, 1]. Unset when the decision model cannot
 	// report a calibrated confidence.
 	Confidence *float64
 }

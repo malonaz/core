@@ -238,8 +238,8 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 	return generateMessageClient, model, nil
 }
 
-// GetDecisionProvider resolves the classifier for a model. A model
-// classifies either natively (model.Ttd set, provider implements
+// GetDecisionProvider resolves the DecisionClient for a model. A model
+// decides either natively (model.Ttd set, provider implements
 // DecisionClient directly) or via a generic adapter that forces a
 // structured tool call on any tool-call-capable TTT model.
 func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string) (DecisionClient, *aipb.Model, error) {
@@ -264,15 +264,15 @@ func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string
 
 	switch {
 	case model.Ttd != nil:
-		// Native classifier (e.g. TypeSafe).
+		// Native decision model (e.g. TypeSafe).
 		decisionClient, ok := registeredProvider.(DecisionClient)
 		if !ok {
-			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support classification", registeredProvider.ProviderId()).Err()
+			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support decisions", registeredProvider.ProviderId()).Err()
 		}
 		return decisionClient, model, nil
 
 	case model.GetTtt().GetToolCall():
-		// Any tool-call-capable TTT model is automatically usable as a classifier.
+		// Any tool-call-capable TTT model is automatically usable as a decision model.
 		generateMessageClient, ok := registeredProvider.(GenerateMessageClient)
 		if !ok {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", registeredProvider.ProviderId()).Err()
@@ -280,7 +280,7 @@ func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string
 		return newTTDAdapter(generateMessageClient, model), model, nil
 
 	default:
-		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support classification", modelName).Err()
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support decisions", modelName).Err()
 	}
 }
 
