@@ -591,11 +591,12 @@ type Job_builder struct {
 	// The claim priority among due jobs: higher runs first, ties run in due
 	// order. Defaults to 0. May only be updated on a PENDING job.
 	Priority int32
-	// An optional producer-chosen key coalescing work: at most one PENDING and
-	// one RUNNING job exist per key at any time. Creating a job whose key already
-	// has a PENDING job returns that job instead; creating one while the key's
-	// job is RUNNING queues a single trailing run. Keys are global, so producers
-	// namespace them.
+	// An optional producer-chosen key coalescing work: at most one job not yet
+	// started and one started job (RUNNING, or PENDING a retry) exist per key at
+	// any time. Creating a job whose key already has a job not yet started
+	// returns that job instead; creating one while the key's job has started
+	// queues a single trailing run, claimed once the started job is terminal.
+	// Keys are global, so producers namespace them.
 	UniqueKey string
 	// The earliest time the job may run. Runs immediately if unset. Also holds
 	// the time of the next attempt while a failed job waits out its backoff.
@@ -605,7 +606,8 @@ type Job_builder struct {
 	// backoff would reach past it fails at once instead of waiting. Cleared by
 	// RetryJob, which is an explicit request to run regardless.
 	ExpireTime *timestamppb.Timestamp
-	// The time the current (or last) attempt started.
+	// The time the current (or last) attempt started. Set from the first claim
+	// until RetryJob, it marks the job as started for its `unique_key`.
 	StartTime *timestamppb.Timestamp
 	// The time the job reached a terminal state.
 	CompleteTime *timestamppb.Timestamp

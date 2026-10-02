@@ -63,8 +63,8 @@ func WithPriority(priority int32) CreateJobOption {
 	}
 }
 
-// WithUniqueKey coalesces the job with any PENDING job sharing the key. Keys
-// are global: namespace them.
+// WithUniqueKey coalesces the job with the job sharing the key that has not yet
+// started, if any. Keys are global: namespace them.
 func WithUniqueKey(uniqueKey string) CreateJobOption {
 	return func(request *pb.CreateJobRequest) {
 		request.Job.UniqueKey = uniqueKey
