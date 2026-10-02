@@ -382,18 +382,27 @@ func (b0 Queue_builder) Build() *Queue {
 	return m0
 }
 
-// The backlog of a queue.
+// The backlog of a queue. PENDING jobs split into due and scheduled; retrying
+// is a subset of them.
 type QueueStats struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The number of PENDING jobs.
-	PendingCount int32 `protobuf:"varint,1,opt,name=pending_count,json=pendingCount,proto3" json:"pending_count,omitempty"`
 	// The number of RUNNING jobs.
 	RunningCount int32 `protobuf:"varint,2,opt,name=running_count,json=runningCount,proto3" json:"running_count,omitempty"`
-	// The earliest due time among PENDING jobs: the schedule time, or the
-	// creation time of a job without one. Unset when nothing is pending.
-	OldestPendingScheduleTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=oldest_pending_schedule_time,json=oldestPendingScheduleTime,proto3" json:"oldest_pending_schedule_time,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	// The number of PENDING jobs that are due: unscheduled, or scheduled at or
+	// before now. This is the backlog awaiting a worker.
+	DueCount int32 `protobuf:"varint,4,opt,name=due_count,json=dueCount,proto3" json:"due_count,omitempty"`
+	// The number of PENDING jobs scheduled after now, including policy retries
+	// waiting out their backoff.
+	ScheduledCount int32 `protobuf:"varint,5,opt,name=scheduled_count,json=scheduledCount,proto3" json:"scheduled_count,omitempty"`
+	// The number of PENDING jobs with at least one attempt behind them.
+	RetryingCount int32 `protobuf:"varint,6,opt,name=retrying_count,json=retryingCount,proto3" json:"retrying_count,omitempty"`
+	// The number of FAILED jobs, held until retried or purged past retention.
+	FailedCount int32 `protobuf:"varint,7,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	// The earliest due time among due jobs: the schedule time, or the creation
+	// time of a job without one. Unset when nothing is due.
+	OldestDueTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=oldest_due_time,json=oldestDueTime,proto3" json:"oldest_due_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *QueueStats) Reset() {
@@ -421,13 +430,6 @@ func (x *QueueStats) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *QueueStats) GetPendingCount() int32 {
-	if x != nil {
-		return x.PendingCount
-	}
-	return 0
-}
-
 func (x *QueueStats) GetRunningCount() int32 {
 	if x != nil {
 		return x.RunningCount
@@ -435,55 +437,106 @@ func (x *QueueStats) GetRunningCount() int32 {
 	return 0
 }
 
-func (x *QueueStats) GetOldestPendingScheduleTime() *timestamppb.Timestamp {
+func (x *QueueStats) GetDueCount() int32 {
 	if x != nil {
-		return x.OldestPendingScheduleTime
+		return x.DueCount
 	}
-	return nil
+	return 0
 }
 
-func (x *QueueStats) SetPendingCount(v int32) {
-	x.PendingCount = v
+func (x *QueueStats) GetScheduledCount() int32 {
+	if x != nil {
+		return x.ScheduledCount
+	}
+	return 0
+}
+
+func (x *QueueStats) GetRetryingCount() int32 {
+	if x != nil {
+		return x.RetryingCount
+	}
+	return 0
+}
+
+func (x *QueueStats) GetFailedCount() int32 {
+	if x != nil {
+		return x.FailedCount
+	}
+	return 0
+}
+
+func (x *QueueStats) GetOldestDueTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.OldestDueTime
+	}
+	return nil
 }
 
 func (x *QueueStats) SetRunningCount(v int32) {
 	x.RunningCount = v
 }
 
-func (x *QueueStats) SetOldestPendingScheduleTime(v *timestamppb.Timestamp) {
-	x.OldestPendingScheduleTime = v
+func (x *QueueStats) SetDueCount(v int32) {
+	x.DueCount = v
 }
 
-func (x *QueueStats) HasOldestPendingScheduleTime() bool {
+func (x *QueueStats) SetScheduledCount(v int32) {
+	x.ScheduledCount = v
+}
+
+func (x *QueueStats) SetRetryingCount(v int32) {
+	x.RetryingCount = v
+}
+
+func (x *QueueStats) SetFailedCount(v int32) {
+	x.FailedCount = v
+}
+
+func (x *QueueStats) SetOldestDueTime(v *timestamppb.Timestamp) {
+	x.OldestDueTime = v
+}
+
+func (x *QueueStats) HasOldestDueTime() bool {
 	if x == nil {
 		return false
 	}
-	return x.OldestPendingScheduleTime != nil
+	return x.OldestDueTime != nil
 }
 
-func (x *QueueStats) ClearOldestPendingScheduleTime() {
-	x.OldestPendingScheduleTime = nil
+func (x *QueueStats) ClearOldestDueTime() {
+	x.OldestDueTime = nil
 }
 
 type QueueStats_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The number of PENDING jobs.
-	PendingCount int32
 	// The number of RUNNING jobs.
 	RunningCount int32
-	// The earliest due time among PENDING jobs: the schedule time, or the
-	// creation time of a job without one. Unset when nothing is pending.
-	OldestPendingScheduleTime *timestamppb.Timestamp
+	// The number of PENDING jobs that are due: unscheduled, or scheduled at or
+	// before now. This is the backlog awaiting a worker.
+	DueCount int32
+	// The number of PENDING jobs scheduled after now, including policy retries
+	// waiting out their backoff.
+	ScheduledCount int32
+	// The number of PENDING jobs with at least one attempt behind them.
+	RetryingCount int32
+	// The number of FAILED jobs, held until retried or purged past retention.
+	FailedCount int32
+	// The earliest due time among due jobs: the schedule time, or the creation
+	// time of a job without one. Unset when nothing is due.
+	OldestDueTime *timestamppb.Timestamp
 }
 
 func (b0 QueueStats_builder) Build() *QueueStats {
 	m0 := &QueueStats{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.PendingCount = b.PendingCount
 	x.RunningCount = b.RunningCount
-	x.OldestPendingScheduleTime = b.OldestPendingScheduleTime
+	x.DueCount = b.DueCount
+	x.ScheduledCount = b.ScheduledCount
+	x.RetryingCount = b.RetryingCount
+	x.FailedCount = b.FailedCount
+	x.OldestDueTime = b.OldestDueTime
 	return m0
 }
 
@@ -509,12 +562,15 @@ const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\x06policy\x18\v \x01(\v2(.malonaz.scheduler.policy.v1.QueuePolicyB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\x06policy\x12A\n" +
 	"\x05stats\x18\f \x01(\v2 .malonaz.scheduler.v1.QueueStatsB\t\xe0A\x03\xba\xea\x0f\x02(\x01R\x05stats:v\xeaA<\n" +
 	"\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queueҦ\x04\v\n" +
-	"\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xb3\x01\n" +
+	"\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xbe\x02\n" +
 	"\n" +
 	"QueueStats\x12#\n" +
-	"\rpending_count\x18\x01 \x01(\x05R\fpendingCount\x12#\n" +
-	"\rrunning_count\x18\x02 \x01(\x05R\frunningCount\x12[\n" +
-	"\x1coldest_pending_schedule_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x19oldestPendingScheduleTime*Z\n" +
+	"\rrunning_count\x18\x02 \x01(\x05R\frunningCount\x12\x1b\n" +
+	"\tdue_count\x18\x04 \x01(\x05R\bdueCount\x12'\n" +
+	"\x0fscheduled_count\x18\x05 \x01(\x05R\x0escheduledCount\x12%\n" +
+	"\x0eretrying_count\x18\x06 \x01(\x05R\rretryingCount\x12!\n" +
+	"\ffailed_count\x18\a \x01(\x05R\vfailedCount\x12B\n" +
+	"\x0foldest_due_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\roldestDueTimeJ\x04\b\x01\x10\x02J\x04\b\x03\x10\x04R\rpending_countR\x1coldest_pending_schedule_time*Z\n" +
 	"\n" +
 	"QueueState\x12\x1b\n" +
 	"\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -536,7 +592,7 @@ var file_malonaz_scheduler_v1_queue_proto_depIdxs = []int32{
 	0, // 2: malonaz.scheduler.v1.Queue.state:type_name -> malonaz.scheduler.v1.QueueState
 	4, // 3: malonaz.scheduler.v1.Queue.policy:type_name -> malonaz.scheduler.policy.v1.QueuePolicy
 	2, // 4: malonaz.scheduler.v1.Queue.stats:type_name -> malonaz.scheduler.v1.QueueStats
-	3, // 5: malonaz.scheduler.v1.QueueStats.oldest_pending_schedule_time:type_name -> google.protobuf.Timestamp
+	3, // 5: malonaz.scheduler.v1.QueueStats.oldest_due_time:type_name -> google.protobuf.Timestamp
 	6, // [6:6] is the sub-list for method output_type
 	6, // [6:6] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name

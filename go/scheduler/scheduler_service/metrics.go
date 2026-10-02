@@ -32,6 +32,13 @@ var (
 		Help:      "RUNNING jobs by queue, refreshed on the reaper tick.",
 	}, []string{"queue"})
 
+	failedGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "scheduler",
+		Subsystem: "jobs",
+		Name:      "failed",
+		Help:      "FAILED jobs by queue, held until retried or purged, refreshed on the reaper tick.",
+	}, []string{"queue"})
+
 	scheduleTicksCounter = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "scheduler",
 		Subsystem: "schedule",
@@ -50,7 +57,7 @@ var (
 		Namespace: "scheduler",
 		Subsystem: "job",
 		Name:      "oldest_pending_age_seconds",
-		Help:      "Seconds since the earliest due time among a queue's PENDING jobs; 0 when nothing is pending.",
+		Help:      "Seconds since the earliest due time among a queue's due PENDING jobs; 0 when nothing is due.",
 	}, []string{"queue"})
 )
 
@@ -59,14 +66,16 @@ var (
 func observeQueueStats(stats []*store.QueueStats, now time.Time) {
 	pendingGauge.Reset()
 	runningGauge.Reset()
+	failedGauge.Reset()
 	oldestPendingAgeGauge.Reset()
 	for _, queueStats := range stats {
 		queue := (&schedulerpb.QueueRn{Queue: queueStats.QueueID}).String()
-		pendingGauge.WithLabelValues(queue).Set(float64(queueStats.PendingCount))
+		pendingGauge.WithLabelValues(queue).Set(float64(queueStats.DueCount + queueStats.ScheduledCount))
 		runningGauge.WithLabelValues(queue).Set(float64(queueStats.RunningCount))
+		failedGauge.WithLabelValues(queue).Set(float64(queueStats.FailedCount))
 		var oldestPendingAge float64
-		if queueStats.OldestPendingScheduleTime != nil {
-			oldestPendingAge = max(now.Sub(*queueStats.OldestPendingScheduleTime).Seconds(), 0)
+		if queueStats.OldestDueTime != nil {
+			oldestPendingAge = max(now.Sub(*queueStats.OldestDueTime).Seconds(), 0)
 		}
 		oldestPendingAgeGauge.WithLabelValues(queue).Set(oldestPendingAge)
 	}

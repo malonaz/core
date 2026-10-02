@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/v1/queue.proto.
  */
 export const file_malonaz_scheduler_v1_queue: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi6wUKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESTgoHc2VydmljZRgGIAEoCUI9ukg6cjUyM15bYS16QS1aX11bYS16QS1aMC05X10qKFwuW2EtekEtWl9dW2EtekEtWjAtOV9dKikrJMgBARIyCgZtZXRob2QYByABKAlCIrpIH3IaMhheW2EtekEtWl9dW2EtekEtWjAtOV9dKiTIAQESGAoIZW5kcG9pbnQYCCABKAlCBrpIA8gBARI9CgxyZXF1ZXN0X3R5cGUYCSABKAlCJ7pIJHIfMh1edHlwZVwuZ29vZ2xlYXBpc1wuY29tL1teL10rJMgBARI+Cg1yZXNwb25zZV90eXBlGAogASgJQie6SCRyHzIdXnR5cGVcLmdvb2dsZWFwaXNcLmNvbS9bXi9dKyTIAQESRgoGcG9saWN5GAsgASgLMigubWFsb25hei5zY2hlZHVsZXIucG9saWN5LnYxLlF1ZXVlUG9saWN5Qgy6SAPIAQG66g8CEAESOgoFc3RhdHMYDCABKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzQgngQQO66g8CKAE6dupBPAobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlEg5xdWV1ZXMve3F1ZXVlfSoGcXVldWVzMgVxdWV1ZdKmBAsKCXNjaGVkdWxlcoL2LCQwYjBiZjliNi1kOGVlLTQwYzAtODQ4My03YjI0NWMxOWFmZWMifAoKUXVldWVTdGF0cxIVCg1wZW5kaW5nX2NvdW50GAEgASgFEhUKDXJ1bm5pbmdfY291bnQYAiABKAUSQAocb2xkZXN0X3BlbmRpbmdfc2NoZWR1bGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAqWgoKUXVldWVTdGF0ZRIbChdRVUVVRV9TVEFURV9VTlNQRUNJRklFRBAAEhcKE1FVRVVFX1NUQVRFX1JVTk5JTkcQARIWChJRVUVVRV9TVEFURV9QQVVTRUQQAkIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_policy_v1_policy]);
+  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi6wUKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESTgoHc2VydmljZRgGIAEoCUI9ukg6cjUyM15bYS16QS1aX11bYS16QS1aMC05X10qKFwuW2EtekEtWl9dW2EtekEtWjAtOV9dKikrJMgBARIyCgZtZXRob2QYByABKAlCIrpIH3IaMhheW2EtekEtWl9dW2EtekEtWjAtOV9dKiTIAQESGAoIZW5kcG9pbnQYCCABKAlCBrpIA8gBARI9CgxyZXF1ZXN0X3R5cGUYCSABKAlCJ7pIJHIfMh1edHlwZVwuZ29vZ2xlYXBpc1wuY29tL1teL10rJMgBARI+Cg1yZXNwb25zZV90eXBlGAogASgJQie6SCRyHzIdXnR5cGVcLmdvb2dsZWFwaXNcLmNvbS9bXi9dKyTIAQESRgoGcG9saWN5GAsgASgLMigubWFsb25hei5zY2hlZHVsZXIucG9saWN5LnYxLlF1ZXVlUG9saWN5Qgy6SAPIAQG66g8CEAESOgoFc3RhdHMYDCABKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzQgngQQO66g8CKAE6dupBPAobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlEg5xdWV1ZXMve3F1ZXVlfSoGcXVldWVzMgVxdWV1ZdKmBAsKCXNjaGVkdWxlcoL2LCQwYjBiZjliNi1kOGVlLTQwYzAtODQ4My03YjI0NWMxOWFmZWMi6wEKClF1ZXVlU3RhdHMSFQoNcnVubmluZ19jb3VudBgCIAEoBRIRCglkdWVfY291bnQYBCABKAUSFwoPc2NoZWR1bGVkX2NvdW50GAUgASgFEhYKDnJldHJ5aW5nX2NvdW50GAYgASgFEhQKDGZhaWxlZF9jb3VudBgHIAEoBRIzCg9vbGRlc3RfZHVlX3RpbWUYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSgQIARACSgQIAxAEUg1wZW5kaW5nX2NvdW50UhxvbGRlc3RfcGVuZGluZ19zY2hlZHVsZV90aW1lKloKClF1ZXVlU3RhdGUSGwoXUVVFVUVfU1RBVEVfVU5TUEVDSUZJRUQQABIXChNRVUVVRV9TVEFURV9SVU5OSU5HEAESFgoSUVVFVUVfU1RBVEVfUEFVU0VEEAJCL1otZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_policy_v1_policy]);
 
 /**
  * A Queue is one gRPC method the scheduler delivers jobs to, with the policy
@@ -245,18 +245,12 @@ export const QueueSchema: GenMessage<Queue, {validType: QueueValid}> = /*@__PURE
   messageDesc(file_malonaz_scheduler_v1_queue, 0);
 
 /**
- * The backlog of a queue.
+ * The backlog of a queue. PENDING jobs split into due and scheduled; retrying
+ * is a subset of them.
  *
  * @generated from message malonaz.scheduler.v1.QueueStats
  */
 export type QueueStats = Message<"malonaz.scheduler.v1.QueueStats"> & {
-  /**
-   * The number of PENDING jobs.
-   *
-   * @generated from field: int32 pending_count = 1;
-   */
-  pendingCount: number;
-
   /**
    * The number of RUNNING jobs.
    *
@@ -265,12 +259,42 @@ export type QueueStats = Message<"malonaz.scheduler.v1.QueueStats"> & {
   runningCount: number;
 
   /**
-   * The earliest due time among PENDING jobs: the schedule time, or the
-   * creation time of a job without one. Unset when nothing is pending.
+   * The number of PENDING jobs that are due: unscheduled, or scheduled at or
+   * before now. This is the backlog awaiting a worker.
    *
-   * @generated from field: google.protobuf.Timestamp oldest_pending_schedule_time = 3;
+   * @generated from field: int32 due_count = 4;
    */
-  oldestPendingScheduleTime?: Timestamp;
+  dueCount: number;
+
+  /**
+   * The number of PENDING jobs scheduled after now, including policy retries
+   * waiting out their backoff.
+   *
+   * @generated from field: int32 scheduled_count = 5;
+   */
+  scheduledCount: number;
+
+  /**
+   * The number of PENDING jobs with at least one attempt behind them.
+   *
+   * @generated from field: int32 retrying_count = 6;
+   */
+  retryingCount: number;
+
+  /**
+   * The number of FAILED jobs, held until retried or purged past retention.
+   *
+   * @generated from field: int32 failed_count = 7;
+   */
+  failedCount: number;
+
+  /**
+   * The earliest due time among due jobs: the schedule time, or the creation
+   * time of a job without one. Unset when nothing is due.
+   *
+   * @generated from field: google.protobuf.Timestamp oldest_due_time = 8;
+   */
+  oldestDueTime?: Timestamp;
 };
 
 export type QueueStatsValid = QueueStats;
