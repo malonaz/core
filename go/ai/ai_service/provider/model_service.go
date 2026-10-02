@@ -31,6 +31,7 @@ const (
 	Moonshot     = "moonshot"
 	Baseten      = "baseten"
 	Deepgram     = "deepgram"
+	TypeSafe     = "typesafe"
 	Mock         = "mock"
 )
 
@@ -235,6 +236,52 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", provider.ProviderId()).Err()
 	}
 	return generateMessageClient, model, nil
+}
+
+// GetDecisionProvider resolves the DecisionClient for a model. A model
+// decides either natively (model.Ttd set, provider implements
+// DecisionClient directly) or via a generic adapter that forces a
+// structured tool call on any tool-call-capable TTT model.
+func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string) (DecisionClient, *aipb.Model, error) {
+	// Get the model.
+	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
+	model, err := s.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Parse the model name.
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+	}
+
+	// Get the provider.
+	registeredProvider, ok := s.providerIdToProvider[modelRn.Provider]
+	if !ok {
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+	}
+
+	switch {
+	case model.Ttd != nil:
+		// Native decision model (e.g. TypeSafe).
+		decisionClient, ok := registeredProvider.(DecisionClient)
+		if !ok {
+			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support decisions", registeredProvider.ProviderId()).Err()
+		}
+		return decisionClient, model, nil
+
+	case model.GetTtt().GetToolCall():
+		// Any tool-call-capable TTT model is automatically usable as a decision model.
+		generateMessageClient, ok := registeredProvider.(GenerateMessageClient)
+		if !ok {
+			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", registeredProvider.ProviderId()).Err()
+		}
+		return newTTDAdapter(generateMessageClient, model), model, nil
+
+	default:
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support decisions", modelName).Err()
+	}
 }
 
 func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName string) (SpeechToTextClient, *aipb.Model, error) {
