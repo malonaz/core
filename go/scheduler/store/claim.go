@@ -29,12 +29,15 @@ type ClaimedJob struct {
 
 // jobClaimCandidatesQuery ranks due PENDING jobs within their queue and keeps
 // those fitting under the queue's remaining concurrency. Jobs of PAUSED queues
-// are skipped; jobs whose queue is gone are claimed so the worker can fail
-// them. FOR UPDATE is illegal beside window functions, so the chosen rows are
-// locked by a second statement.
+// are skipped, as are jobs whose unique key is already RUNNING (they would
+// violate job_unique_key_live_idx); jobs whose queue is gone are claimed so
+// the worker can fail them. FOR UPDATE is illegal beside window functions, so
+// the chosen rows are locked by a second statement.
 const jobClaimCandidatesQuery = `
 WITH running AS (
     SELECT queue, count(*) AS count FROM scheduler.job WHERE state = $2 GROUP BY queue
+), running_key AS (
+    SELECT unique_key FROM scheduler.job WHERE state = $2 AND unique_key IS NOT NULL
 ), candidate AS (
     SELECT job.job_id, job.priority, COALESCE(job.schedule_time, job.create_time) AS due_time, job.create_time,
         row_number() OVER (PARTITION BY job.queue ORDER BY job.priority DESC, COALESCE(job.schedule_time, job.create_time), job.create_time) AS rank,
@@ -43,14 +46,12 @@ WITH running AS (
     FROM scheduler.job
     LEFT JOIN scheduler.queue ON 'queues/' || queue.queue_id = job.queue
     LEFT JOIN running ON running.queue = job.queue
+    LEFT JOIN running_key ON running_key.unique_key = job.unique_key
     WHERE job.state = $1
         AND (job.schedule_time IS NULL OR job.schedule_time <= $3)
         AND (job.expire_time IS NULL OR job.expire_time > $3)
         AND (queue.queue_id IS NULL OR queue.state = $4)
-        -- A trailing keyed job waits for its RUNNING twin: claiming it would violate job_unique_key_live_idx.
-        AND (job.unique_key IS NULL OR NOT EXISTS (
-            SELECT 1 FROM scheduler.job live WHERE live.unique_key = job.unique_key AND live.state = $2
-        ))
+        AND running_key.unique_key IS NULL
 )
 SELECT job_id FROM candidate
 WHERE max_concurrency = 0 OR rank <= max_concurrency - running_count
