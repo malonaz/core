@@ -144,6 +144,34 @@ local p = "providers/google/models/";
     },
 
     {
+      "name": p + "gemini-3.1-flash-lite-image",
+      "provider_model_id": "gemini-3.1-flash-lite-image",
+      "description": "Nano Banana 2 Lite: the efficiency specialist of the image generation family, offering ultra-low latency (sub-2s) and cost-effective image generation and editing. Interleaved text and image output, fast multi-turn local edits. Optimized for 1K resolution only (2K and 4K unsupported).",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": false,
+        "context_token_limit": 65536,
+        "output_token_limit": 4096,
+        "pricing": {
+          "input_token_price_per_million": 0.25,
+          "output_token_price_per_million": 1.5,
+          "input_image_token_price_per_million": 0.25,
+          "output_image_token_price_per_million": 30
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MINIMAL",
+        "REASONING_EFFORT_LOW": "MINIMAL",
+        "REASONING_EFFORT_MEDIUM": "HIGH",
+        "REASONING_EFFORT_HIGH": "HIGH",
+        "REASONING_EFFORT_XHIGH": "HIGH",
+        "REASONING_EFFORT_MAX": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.1-flash-image",
       "provider_model_id": "gemini-3.1-flash-image",
       "description": "High-quality image generation and conversational editing at mainstream pricing and low latency. High-efficiency counterpart to Gemini 3 Pro Image, optimized for speed and high-volume developer use cases. Supports new output resolutions (0.5K-4K), image search grounding, and extended aspect ratios. Visit the Image generation page for full coverage of features and capabilities.",
