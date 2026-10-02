@@ -216,7 +216,7 @@ func (s *Service) attachQueueStats(ctx context.Context, queues []*schedulerpb.Qu
 		}
 		queueIDs[i] = queueID
 	}
-	stats, err := s.schedulerPostgresStore.ListQueueStats(ctx, queueIDs)
+	stats, err := s.schedulerPostgresStore.ListQueueStats(ctx, queueIDs, transition.Now())
 	if err != nil {
 		return status.FromError(err, "listing queue stats").Err()
 	}
@@ -232,11 +232,14 @@ func (s *Service) attachQueueStats(ctx context.Context, queues []*schedulerpb.Qu
 
 func queueStatsToPb(stats *store.QueueStats) *schedulerpb.QueueStats {
 	queueStats := &schedulerpb.QueueStats{
-		PendingCount: int32(stats.PendingCount),
-		RunningCount: int32(stats.RunningCount),
+		RunningCount:   int32(stats.RunningCount),
+		DueCount:       int32(stats.DueCount),
+		ScheduledCount: int32(stats.ScheduledCount),
+		RetryingCount:  int32(stats.RetryingCount),
+		FailedCount:    int32(stats.FailedCount),
 	}
-	if stats.OldestPendingScheduleTime != nil {
-		queueStats.OldestPendingScheduleTime = timestamppb.New(*stats.OldestPendingScheduleTime)
+	if stats.OldestDueTime != nil {
+		queueStats.OldestDueTime = timestamppb.New(*stats.OldestDueTime)
 	}
 	return queueStats
 }

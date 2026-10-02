@@ -85,11 +85,12 @@ func (s *Service) reapExpiredJobs(ctx context.Context) error {
 
 // observeBacklog refreshes the per-queue backlog gauges.
 func (s *Service) observeBacklog(ctx context.Context) error {
-	stats, err := s.schedulerPostgresStore.ListQueueStats(ctx, nil)
+	now := transition.Now()
+	stats, err := s.schedulerPostgresStore.ListQueueStats(ctx, nil, now)
 	if err != nil {
 		return err
 	}
-	observeQueueStats(stats, transition.Now())
+	observeQueueStats(stats, now)
 	return nil
 }
 

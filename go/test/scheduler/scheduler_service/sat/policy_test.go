@@ -44,7 +44,7 @@ func TestProcess_MaxConcurrency(t *testing.T) {
 	for time.Now().Before(deadline) {
 		require.LessOrEqual(t, countRunning(t, run), limitedConcurrency)
 		stats := getQueue(t, limitedQueue).GetStats()
-		if stats.GetPendingCount()+stats.GetRunningCount() == 0 {
+		if stats.GetDueCount()+stats.GetRunningCount() == 0 {
 			break
 		}
 		time.Sleep(50 * time.Millisecond)

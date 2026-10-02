@@ -21,7 +21,6 @@ import (
 	processorpb "github.com/malonaz/core/genproto/test/scheduler/processor/v1"
 	"github.com/malonaz/core/go/aip"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
-	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -193,26 +192,53 @@ func TestQueue_Validation(t *testing.T) {
 }
 
 func TestQueue_Stats(t *testing.T) {
-	// Shares the pausable queue with TestQueue_PauseResume, so not parallel.
-	key := uuid.MustNewV7().String()
-	running := createJob(t, &processorpb.PausableRequest{Key: key, Duration: durationpb.New(sleepTimeout)})
-	waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
-	later := createJob(t, &processorpb.PausableRequest{Key: key}, scheduler.WithScheduleTime(farFuture))
-	sooner := createJob(t, &processorpb.PausableRequest{Key: key}, scheduler.WithScheduleTime(farFuture.Add(-time.Hour)))
+	t.Parallel()
+	// The endpoint is dead, so every attempt fails Unavailable; the long backoff
+	// parks a failed attempt in the future as a retry.
+	policy := newPolicy()
+	policy.MaxAttempts = 2
+	policy.RetryBackoff = &policypb.RetryBackoff{Initial: durationpb.New(time.Hour), Max: durationpb.New(time.Hour), Multiplier: 1}
+	queue := declareQueue(t, deadURL, policy)
+	grpcrequire.Equal(t, &schedulerpb.QueueStats{}, getQueue(t, queue.GetName()).GetStats())
+	create := func(job *schedulerpb.Job) *schedulerpb.Job {
+		// No Go type exists for the fake request: the payload is built by hand.
+		job.Payload = &anypb.Any{TypeUrl: queue.GetRequestType()}
+		created, err := schedulerServiceClient.CreateJob(ctx, &schedulerservicepb.CreateJobRequest{Job: job})
+		require.NoError(t, err)
+		return created
+	}
 
-	stats := getQueue(t, pausableQueue).GetStats()
-	require.Equal(t, int32(2), stats.GetPendingCount())
-	require.Equal(t, int32(1), stats.GetRunningCount())
-	require.True(t, sooner.GetScheduleTime().AsTime().Equal(stats.GetOldestPendingScheduleTime().AsTime()))
+	// Each attempt fails and is parked an hour out as a policy retry.
+	awaitingRetry := func(job *schedulerpb.Job) bool {
+		return job.GetState() == schedulerpb.JobState_JOB_STATE_PENDING && job.GetAttemptCount() == 1
+	}
+	retrying := waitForJob(t, create(&schedulerpb.Job{}).GetName(), awaitingRetry)
+	manual := waitForJob(t, create(&schedulerpb.Job{}).GetName(), awaitingRetry)
+	cancelJob(t, manual.GetName())
+	_, err := schedulerServiceClient.PauseQueue(ctx, &schedulerservicepb.PauseQueueRequest{Name: queue.GetName()})
+	require.NoError(t, err)
+	// Paused, nothing is claimed: the manual retry stays due, not retrying.
+	_, err = schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: manual.GetName()})
+	require.NoError(t, err)
+	due := create(&schedulerpb.Job{})
+	scheduled := create(&schedulerpb.Job{ScheduleTime: timestamppb.New(farFuture)})
+	// The reaper fails it once it expires.
+	expired := create(&schedulerpb.Job{ExpireTime: timestamppb.New(time.Now().Add(time.Second))})
+	waitForState(t, expired.GetName(), schedulerpb.JobState_JOB_STATE_FAILED)
 
-	cancelJob(t, sooner.GetName())
-	stats = getQueue(t, pausableQueue).GetStats()
-	require.Equal(t, int32(1), stats.GetPendingCount())
-	require.True(t, later.GetScheduleTime().AsTime().Equal(stats.GetOldestPendingScheduleTime().AsTime()))
+	grpcrequire.Equal(t, &schedulerpb.QueueStats{
+		DueCount:       2,
+		ScheduledCount: 2,
+		RetryingCount:  1,
+		FailedCount:    1,
+		OldestDueTime:  manual.GetCreateTime(),
+	}, getQueue(t, queue.GetName()).GetStats())
 
-	cancelJob(t, later.GetName())
-	cancelJob(t, running.GetName())
-	grpcrequire.Equal(t, &schedulerpb.QueueStats{}, getQueue(t, pausableQueue).GetStats())
+	// Terminal jobs other than FAILED are not counted.
+	for _, job := range []*schedulerpb.Job{retrying, manual, due, scheduled} {
+		cancelJob(t, job.GetName())
+	}
+	grpcrequire.Equal(t, &schedulerpb.QueueStats{FailedCount: 1}, getQueue(t, queue.GetName()).GetStats())
 }
 
 func TestQueue_DeleteWithJobs(t *testing.T) {
@@ -245,7 +271,7 @@ func TestQueue_DeleteWithJobs(t *testing.T) {
 }
 
 func TestQueue_PauseResume(t *testing.T) {
-	// Shares the pausable queue with TestQueue_Stats, so not parallel.
+	t.Parallel()
 	queue := getQueue(t, pausableQueue)
 	key := uuid.MustNewV7().String()
 	running := createJob(t, &processorpb.PausableRequest{Key: key, Duration: durationpb.New(2 * time.Second)})
@@ -281,7 +307,7 @@ func TestQueue_PauseResume(t *testing.T) {
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, getJob(t, job.GetName()).GetState())
 		require.Empty(t, testProcessor.calls(keys[i]))
 	}
-	require.Equal(t, int32(3), getQueue(t, queue.GetName()).GetStats().GetPendingCount())
+	require.Equal(t, int32(3), getQueue(t, queue.GetName()).GetStats().GetDueCount())
 
 	resumeQueueRequest := &schedulerservicepb.ResumeQueueRequest{Name: queue.GetName(), Etag: "stale"}
 	_, err = schedulerServiceClient.ResumeQueue(ctx, resumeQueueRequest)

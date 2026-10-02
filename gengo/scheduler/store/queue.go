@@ -55,28 +55,37 @@ func (s *Store) TransitionQueue(ctx context.Context, queueID string, transition 
 	return queue, nil
 }
 
-// QueueStats is a queue's live backlog.
+// QueueStats is a queue's live backlog and its unresolved failures.
 type QueueStats struct {
-	QueueID                   string     `db:"queue_id"`
-	PendingCount              int64      `db:"pending_count"`
-	RunningCount              int64      `db:"running_count"`
-	OldestPendingScheduleTime *time.Time `db:"oldest_pending_schedule_time"`
+	QueueID        string     `db:"queue_id"`
+	RunningCount   int64      `db:"running_count"`
+	DueCount       int64      `db:"due_count"`
+	ScheduledCount int64      `db:"scheduled_count"`
+	RetryingCount  int64      `db:"retrying_count"`
+	FailedCount    int64      `db:"failed_count"`
+	OldestDueTime  *time.Time `db:"oldest_due_time"`
 }
 
-const queueStatsQuery = `
+// States are inlined, not bound, so even a cached generic plan can prove the
+// join matches job_queue_state_idx. Due uses the claim's schedule predicate;
+// retrying excludes manual retries, which await one final attempt.
+var queueStatsQuery = fmt.Sprintf(`
 SELECT queue.queue_id,
-    count(job.job_id) FILTER (WHERE job.state = $1) AS pending_count,
-    count(job.job_id) FILTER (WHERE job.state = $2) AS running_count,
-    min(COALESCE(job.schedule_time, job.create_time)) FILTER (WHERE job.state = $1) AS oldest_pending_schedule_time
+    count(job.job_id) FILTER (WHERE job.state = %[2]d) AS running_count,
+    count(job.job_id) FILTER (WHERE job.state = %[1]d AND (job.schedule_time IS NULL OR job.schedule_time <= $1)) AS due_count,
+    count(job.job_id) FILTER (WHERE job.state = %[1]d AND job.schedule_time > $1) AS scheduled_count,
+    count(job.job_id) FILTER (WHERE job.state = %[1]d AND job.attempt_count > 0 AND COALESCE(job.labels->>$2, '') <> $3) AS retrying_count,
+    count(job.job_id) FILTER (WHERE job.state = %[3]d) AS failed_count,
+    min(COALESCE(job.schedule_time, job.create_time)) FILTER (WHERE job.state = %[1]d AND (job.schedule_time IS NULL OR job.schedule_time <= $1)) AS oldest_due_time
 FROM scheduler.queue
-LEFT JOIN scheduler.job ON job.queue = 'queues/' || queue.queue_id AND job.state IN ($1, $2)
-WHERE $3::text[] IS NULL OR queue.queue_id = ANY($3)
-GROUP BY queue.queue_id`
+LEFT JOIN scheduler.job ON job.queue = 'queues/' || queue.queue_id AND job.state IN (%[1]d, %[2]d, %[3]d)
+WHERE $4::text[] IS NULL OR queue.queue_id = ANY($4)
+GROUP BY queue.queue_id`, schedulerpb.JobState_JOB_STATE_PENDING, schedulerpb.JobState_JOB_STATE_RUNNING, schedulerpb.JobState_JOB_STATE_FAILED)
 
-// ListQueueStats returns the backlog of the given queues, or of every queue
-// when queueIDs is nil. Queues without live jobs are reported with zero counts.
-func (s *Store) ListQueueStats(ctx context.Context, queueIDs []string) ([]*QueueStats, error) {
-	rows, err := s.client.Query(ctx, queueStatsQuery, int16(schedulerpb.JobState_JOB_STATE_PENDING), int16(schedulerpb.JobState_JOB_STATE_RUNNING), queueIDs)
+// ListQueueStats returns the stats of the given queues as of now, or of every
+// queue when queueIDs is nil. Queues without jobs are reported with zero counts.
+func (s *Store) ListQueueStats(ctx context.Context, queueIDs []string, now time.Time) ([]*QueueStats, error) {
+	rows, err := s.client.Query(ctx, queueStatsQuery, now, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True, queueIDs)
 	if err != nil {
 		return nil, fmt.Errorf("listing queue stats: %w", err)
 	}
