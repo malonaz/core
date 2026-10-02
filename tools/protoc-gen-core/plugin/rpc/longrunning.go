@@ -32,8 +32,10 @@ type longrunningMethod struct {
 	requestIDField *protogen.Field
 	responseType   protoreflect.FullName
 	operationInfo  *longrunningpb.OperationInfo
-	// Set when the method is Import{Plural} (AIP-153), which is generated rather than run by the runner.
+	// Set when the method is Import{Plural} or Export{Plural} (AIP-153), which are
+	// generated rather than run by the runner.
 	imp *importMethod
+	exp *exportMethod
 }
 
 // parseLongrunningMethod returns nil when the method does not return an
@@ -110,6 +112,11 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 			}
 			continue
 		}
+		if lro.exp != nil {
+			// The export itself is generated; the runner supplies its aggregate and custom destinations.
+			gen.generateExportRunnerMethods(lro.exp)
+			continue
+		}
 		responseType, err := gen.responseTypeIdent(lro)
 		if err != nil {
 			return err
@@ -163,7 +170,7 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 	g.P(fmt.Sprintf("    return %s(ctx, s.schedulerServiceClient, startRequest)", gen.ident(longrunningPkg, "Start")))
 	g.P("  }")
 	runner := "s.runner."
-	if lro.imp != nil {
+	if lro.imp != nil || lro.exp != nil {
 		runner = "s."
 	}
 	g.P(fmt.Sprintf("  response, err := %sRun%s(ctx, request)", runner, method.GoName))

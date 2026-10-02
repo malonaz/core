@@ -123,16 +123,25 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 			}
 
 			mi := &methodInfo{method: method, rpc: rpc, natsEventOpts: natsEventOpts}
-			if lro != nil {
-				imp, err := parseImportMethod(lro, mi)
-				if err != nil {
+			switch {
+			case lro == nil:
+			case rpc.Import:
+				if lro.imp, err = parseImportMethod(lro, mi); err != nil {
 					return err
 				}
-				lro.imp = imp
+			case rpc.Export:
+				if lro.exp, err = parseExportMethod(gen, lro, mi); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("%s: only Import{Plural} and Export{Plural} may be both a standard method and long-running", method.GoName)
 			}
 			allMethods = append(allMethods, methodEntry{si: si, mi: mi})
 		}
 		if err := requireUndelete(si); err != nil {
+			return err
+		}
+		if err := checkInlineFormats(si); err != nil {
 			return err
 		}
 		if len(si.resources) > 0 || si.longrunning() {
@@ -179,11 +188,21 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		}
 	}
 
-	// Phase 4: Generate the long-running handlers, and the imports they run.
+	// Phase 4: Generate the long-running handlers, and the imports and exports they run.
 	for _, si := range services {
 		for _, lro := range si.lroMethods {
 			if err := gen.generateLongrunning(si, lro); err != nil {
 				return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
+			}
+			if lro.exp != nil {
+				mc, err := gen.newMethodCtx(si, lro.exp.mi)
+				if err != nil {
+					return err
+				}
+				if err := mc.generateExport(lro.exp); err != nil {
+					return fmt.Errorf("generating %s: %w", lro.method.GoName, err)
+				}
+				continue
 			}
 			if lro.imp == nil {
 				continue
@@ -604,8 +623,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		mc.generateList()
 	case mi.rpc.Search:
 		return mc.generateSearch()
-	case mi.rpc.Import:
-		// Generated with the long-running handlers, once every message is known.
+	case mi.rpc.Import, mi.rpc.Export:
+		// Generated with the long-running handlers.
 	}
 	return nil
 }

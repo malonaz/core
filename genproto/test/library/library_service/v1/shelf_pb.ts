@@ -10,6 +10,8 @@ import { file_google_api_resource } from "../../../../../google/api/resource_pb"
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
+import type { Book, BookValid } from "../../v1/book_pb";
+import { file_malonaz_test_library_v1_book } from "../../v1/book_pb";
 import type { Shelf, ShelfValid } from "../../v1/shelf_pb";
 import { file_malonaz_test_library_v1_shelf } from "../../v1/shelf_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/shelf.proto.
  */
 export const file_malonaz_test_library_library_service_v1_shelf: GenFile = /*@__PURE__*/
-  fileDesc("CjNtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvc2hlbGYucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKBAgoSQ3JlYXRlU2hlbGZSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjUKBXNoZWxmGAMgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIk0KD0dldFNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASL9AgoSVXBkYXRlU2hlbGZSZXF1ZXN0EjUKBXNoZWxmGAEgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATr2AbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQOoAQoMZGlzcGxheV9uYW1lCgVnZW5yZQoQY29ycmVsYXRpb25faWRfMgoLZXh0ZXJuYWxfaWQKCWJlc3RfYm9vawoLb3BlbmVkX2RhdGUKDmludmVudG9yeV90aW1lChFtZXRhZGF0YS5jYXBhY2l0eQoObWV0YWRhdGEuZHVtbXkKDm1ldGFkYXRhLm5vdGVzChdtZXRhZGF0YS5hdXRob3JfdG9fbm90ZSJ2ChJEZWxldGVTaGVsZlJlcXVlc3QSOgoEbmFtZRgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBINCgVmb3JjZRgDIAEoCCJSChRVbmRlbGV0ZVNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASLsAQoSTGlzdFNoZWx2ZXNSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6JoLzLQIIZIrzLRUKASoSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIl8KE0xpc3RTaGVsdmVzUmVzcG9uc2USLwoHc2hlbHZlcxgBIAMoCzIeLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSK5AQoZQmF0Y2hDcmVhdGVTaGVsdmVzUmVxdWVzdBI6CgZwYXJlbnQYASABKAlCKvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJgCghyZXF1ZXN0cxgCIAMoCzI7Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5DcmVhdGVTaGVsZlJlcXVlc3RCEeBBArpIC5IBBQgBEOgHyAEBIk0KGkJhdGNoQ3JlYXRlU2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZiKbAQoWQmF0Y2hHZXRTaGVsdmVzUmVxdWVzdBI6CgZwYXJlbnQYASABKAlCKvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJFCgVuYW1lcxgCIAMoCUI2+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SBCSAQ0IARDoBxgBIgRyAhABIkoKF0JhdGNoR2V0U2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZkJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_shelf]);
+  fileDesc("CjNtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvc2hlbGYucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKBAgoSQ3JlYXRlU2hlbGZSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEjcKCHNoZWxmX2lkGAIgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEjUKBXNoZWxmGAMgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIk0KD0dldFNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASL9AgoSVXBkYXRlU2hlbGZSZXF1ZXN0EjUKBXNoZWxmGAEgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGZCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATr2AbpIRRpDChNzaGVsZi5uYW1lX3JlcXVpcmVkEhZzaGVsZi5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5zaGVsZi5uYW1lKeqcwQOoAQoMZGlzcGxheV9uYW1lCgVnZW5yZQoQY29ycmVsYXRpb25faWRfMgoLZXh0ZXJuYWxfaWQKCWJlc3RfYm9vawoLb3BlbmVkX2RhdGUKDmludmVudG9yeV90aW1lChFtZXRhZGF0YS5jYXBhY2l0eQoObWV0YWRhdGEuZHVtbXkKDm1ldGFkYXRhLm5vdGVzChdtZXRhZGF0YS5hdXRob3JfdG9fbm90ZSJ2ChJEZWxldGVTaGVsZlJlcXVlc3QSOgoEbmFtZRgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBINCgVmb3JjZRgDIAEoCCJSChRVbmRlbGV0ZVNoZWxmUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBASLsAQoSTGlzdFNoZWx2ZXNSZXF1ZXN0EkMKBnBhcmVudBgBIAEoCUIz4EEC+kEnCiVsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vT3JnYW5pemF0aW9uukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHQoJcGFnZV9zaXplGAUgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBiABKAk6JoLzLQIIZIrzLRUKASoSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIl8KE0xpc3RTaGVsdmVzUmVzcG9uc2USLwoHc2hlbHZlcxgBIAMoCzIeLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLlNoZWxmEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSK5AQoZQmF0Y2hDcmVhdGVTaGVsdmVzUmVxdWVzdBI6CgZwYXJlbnQYASABKAlCKvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJgCghyZXF1ZXN0cxgCIAMoCzI7Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5DcmVhdGVTaGVsZlJlcXVlc3RCEeBBArpIC5IBBQgBEOgHyAEBIk0KGkJhdGNoQ3JlYXRlU2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZiKbAQoWQmF0Y2hHZXRTaGVsdmVzUmVxdWVzdBI6CgZwYXJlbnQYASABKAlCKvpBJwolbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhJFCgVuYW1lcxgCIAMoCUI2+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SBCSAQ0IARDoBxgBIgRyAhABIkoKF0JhdGNoR2V0U2hlbHZlc1Jlc3BvbnNlEi8KB3NoZWx2ZXMYASADKAsyHi5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5TaGVsZiK+AgoURXhwb3J0U2hlbHZlc1JlcXVlc3QSPAoGcGFyZW50GAEgASgJQizgQQL6QSASHmxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9TaGVsZrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEm0KEmlubGluZV9kZXN0aW5hdGlvbhgEIAEoCzJPLm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5FeHBvcnRTaGVsdmVzUmVxdWVzdC5JbmxpbmVEZXN0aW5hdGlvbkgAEh8KCnJlcXVlc3RfaWQYBSABKAlCC7pICHIDsAEByAEBGhMKEUlubGluZURlc3RpbmF0aW9uOgeS8y0DCgEqQhQKC2Rlc3RpbmF0aW9uEgW6SAIIASJsCg1FeHBvcnRlZFNoZWxmEi0KBXNoZWxmGAEgASgLMh4ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuU2hlbGYSLAoFYm9va3MYAiADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rImAKFUV4cG9ydFNoZWx2ZXNSZXNwb25zZRJHCgdzaGVsdmVzGAEgAygLMjYubWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxLkV4cG9ydGVkU2hlbGZCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vdGVzdC9saWJyYXJ5L2xpYnJhcnlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book, file_malonaz_test_library_v1_shelf]);
 
 /**
  * Request message for LibraryService.CreateShelf.
@@ -618,4 +620,214 @@ export type BatchGetShelvesResponseValid = Message<"malonaz.test.library.library
  */
 export const BatchGetShelvesResponseSchema: GenMessage<BatchGetShelvesResponse, {validType: BatchGetShelvesResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_library_service_v1_shelf, 10);
+
+/**
+ * Request message for LibraryService.ExportShelves.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportShelvesRequest
+ */
+export type ExportShelvesRequest = Message<"malonaz.test.library.library_service.v1.ExportShelvesRequest"> & {
+  /**
+   * The organization to export the shelves of.
+   * Format: organizations/{organization}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * Restricts the export to the shelves matching this filter (AIP-160).
+   *
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * If set to true, soft deleted shelves are exported too.
+   *
+   * @generated from field: bool show_deleted = 3;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Where the shelves go.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ExportShelvesRequest.destination
+   */
+  destination: {
+    /**
+     * The operation's response.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ExportShelvesRequest.InlineDestination inline_destination = 4;
+     */
+    value: ExportShelvesRequest_InlineDestination;
+    case: "inlineDestination";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * A unique identifier for this request. Must be a UUID.
+   *
+   * @generated from field: string request_id = 5;
+   */
+  requestId: string;
+};
+
+/**
+ * Request message for LibraryService.ExportShelves.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportShelvesRequest
+ */
+export type ExportShelvesRequestValid = Message<"malonaz.test.library.library_service.v1.ExportShelvesRequest"> & {
+  /**
+   * The organization to export the shelves of.
+   * Format: organizations/{organization}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * Restricts the export to the shelves matching this filter (AIP-160).
+   *
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * If set to true, soft deleted shelves are exported too.
+   *
+   * @generated from field: bool show_deleted = 3;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Where the shelves go.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ExportShelvesRequest.destination
+   */
+  destination: {
+    /**
+     * The operation's response.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.ExportShelvesRequest.InlineDestination inline_destination = 4;
+     */
+    value: ExportShelvesRequest_InlineDestinationValid;
+    case: "inlineDestination";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * A unique identifier for this request. Must be a UUID.
+   *
+   * @generated from field: string request_id = 5;
+   */
+  requestId: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ExportShelvesRequest.
+ * Use `create(ExportShelvesRequestSchema)` to create a new message.
+ */
+export const ExportShelvesRequestSchema: GenMessage<ExportShelvesRequest, {validType: ExportShelvesRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 11);
+
+/**
+ * InlineDestination answers with the exported shelves in the operation's response.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportShelvesRequest.InlineDestination
+ */
+export type ExportShelvesRequest_InlineDestination = Message<"malonaz.test.library.library_service.v1.ExportShelvesRequest.InlineDestination"> & {
+};
+
+export type ExportShelvesRequest_InlineDestinationValid = ExportShelvesRequest_InlineDestination;
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ExportShelvesRequest.InlineDestination.
+ * Use `create(ExportShelvesRequest_InlineDestinationSchema)` to create a new message.
+ */
+export const ExportShelvesRequest_InlineDestinationSchema: GenMessage<ExportShelvesRequest_InlineDestination, {validType: ExportShelvesRequest_InlineDestinationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 11, 0);
+
+/**
+ * ExportedShelf is a shelf as exported: the shelf and its books.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportedShelf
+ */
+export type ExportedShelf = Message<"malonaz.test.library.library_service.v1.ExportedShelf"> & {
+  /**
+   * The shelf.
+   *
+   * @generated from field: malonaz.test.library.v1.Shelf shelf = 1;
+   */
+  shelf?: Shelf;
+
+  /**
+   * The shelf's books.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 2;
+   */
+  books: Book[];
+};
+
+/**
+ * ExportedShelf is a shelf as exported: the shelf and its books.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportedShelf
+ */
+export type ExportedShelfValid = Message<"malonaz.test.library.library_service.v1.ExportedShelf"> & {
+  /**
+   * The shelf.
+   *
+   * @generated from field: malonaz.test.library.v1.Shelf shelf = 1;
+   */
+  shelf?: ShelfValid;
+
+  /**
+   * The shelf's books.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Book books = 2;
+   */
+  books: BookValid[];
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ExportedShelf.
+ * Use `create(ExportedShelfSchema)` to create a new message.
+ */
+export const ExportedShelfSchema: GenMessage<ExportedShelf, {validType: ExportedShelfValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 12);
+
+/**
+ * Response message for LibraryService.ExportShelves, the operation's response.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportShelvesResponse
+ */
+export type ExportShelvesResponse = Message<"malonaz.test.library.library_service.v1.ExportShelvesResponse"> & {
+  /**
+   * The shelves exported.
+   *
+   * @generated from field: repeated malonaz.test.library.library_service.v1.ExportedShelf shelves = 1;
+   */
+  shelves: ExportedShelf[];
+};
+
+/**
+ * Response message for LibraryService.ExportShelves, the operation's response.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.ExportShelvesResponse
+ */
+export type ExportShelvesResponseValid = Message<"malonaz.test.library.library_service.v1.ExportShelvesResponse"> & {
+  /**
+   * The shelves exported.
+   *
+   * @generated from field: repeated malonaz.test.library.library_service.v1.ExportedShelf shelves = 1;
+   */
+  shelves: ExportedShelfValid[];
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.ExportShelvesResponse.
+ * Use `create(ExportShelvesResponseSchema)` to create a new message.
+ */
+export const ExportShelvesResponseSchema: GenMessage<ExportShelvesResponse, {validType: ExportShelvesResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_shelf, 13);
 

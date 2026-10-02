@@ -27,40 +27,7 @@ func (mc *methodCtx) generateList() {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 
-	if mc.multiPattern {
-		// The parent can follow any of the resource's parent patterns; the
-		// identifiers of the unmatched patterns stay empty and are not filtered on.
-		parentIDNames := mc.parentIDNames()
-		g.P("// Parse parent names")
-		g.P(fmt.Sprintf("  var %s string", strings.Join(parentIDNames, ", ")))
-		g.P("  switch {")
-		if mc.rootPattern() != nil {
-			g.P("  case request.Parent == \"\":")
-		}
-		for _, parent := range mc.uniqueParentPatterns() {
-			g.P(fmt.Sprintf("  case %s(\"%s\", request.Parent):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value))
-			g.P(fmt.Sprintf("    if err := %s(request.Parent, \"%s\", %s); err != nil {",
-				mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
-			g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
-				mc.statusErrorf(), mc.codes("InvalidArgument")))
-			g.P("    }")
-		}
-		g.P("  default:")
-		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name %%q\", request.Parent).Err()",
-			mc.statusErrorf(), mc.codes("InvalidArgument")))
-		g.P("  }")
-		g.P()
-	} else if mc.pattern.Parent != nil {
-		parent := mc.pattern.Parent
-		g.P("// Parse parent names")
-		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
-		g.P(fmt.Sprintf("  if err := %s(request.Parent, \"%s\", %s); err != nil {",
-			mc.gen.ident(resourcenamePkg, "Sscan"), parent.Value, parent.VariableIDPtrs()))
-		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
-			mc.statusErrorf(), mc.codes("InvalidArgument")))
-		g.P("  }")
-		g.P()
-	}
+	mc.generateParseParent("request.Parent")
 
 	g.P("  // Parse request")
 	g.P(fmt.Sprintf("  parsedRequest, err := %sParser.Parse(request)",
@@ -118,4 +85,45 @@ func (mc *methodCtx) generateList() {
 	g.P("  }, nil")
 	g.P("}")
 	g.P()
+}
+
+// generateParseParent declares parentIDNames() and scans them out of the parent
+// expression, returning `nil, InvalidArgument` from the enclosing function when
+// it matches none of the resource's parent patterns.
+func (mc *methodCtx) generateParseParent(parentExpr string) {
+	g := mc.g
+	if mc.multiPattern {
+		// The parent can follow any of the resource's parent patterns; the
+		// identifiers of the unmatched patterns stay empty and are not filtered on.
+		parentIDNames := mc.parentIDNames()
+		g.P("// Parse parent names")
+		g.P(fmt.Sprintf("  var %s string", strings.Join(parentIDNames, ", ")))
+		g.P("  switch {")
+		if mc.rootPattern() != nil {
+			g.P(fmt.Sprintf("  case %s == \"\":", parentExpr))
+		}
+		for _, parent := range mc.uniqueParentPatterns() {
+			g.P(fmt.Sprintf("  case %s(\"%s\", %s):", mc.gen.ident(resourcenamePkg, "Match"), parent.Value, parentExpr))
+			g.P(fmt.Sprintf("    if err := %s(%s, \"%s\", %s); err != nil {",
+				mc.gen.ident(resourcenamePkg, "Sscan"), parentExpr, parent.Value, parent.VariableIDPtrs()))
+			g.P(fmt.Sprintf("      return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
+				mc.statusErrorf(), mc.codes("InvalidArgument")))
+			g.P("    }")
+		}
+		g.P("  default:")
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name %%q\", %s).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument"), parentExpr))
+		g.P("  }")
+		g.P()
+	} else if mc.pattern.Parent != nil {
+		parent := mc.pattern.Parent
+		g.P("// Parse parent names")
+		g.P(fmt.Sprintf("  var %s string", parent.VariableIDs(true)))
+		g.P(fmt.Sprintf("  if err := %s(%s, \"%s\", %s); err != nil {",
+			mc.gen.ident(resourcenamePkg, "Sscan"), parentExpr, parent.Value, parent.VariableIDPtrs()))
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"invalid parent name: %%v\", err).Err()",
+			mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("  }")
+		g.P()
+	}
 }
