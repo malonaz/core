@@ -111,6 +111,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def ExportShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.ExportShelvesRequest, google.longrunning.operations_pb2.Operation]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def BatchCreateShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesRequest, malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesResponse]') -> None:
         pass
 
@@ -148,6 +152,10 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ImportBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest, google.longrunning.operations_pb2.Operation]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ExportBooks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.book_pb2.ExportBooksRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -314,6 +322,12 @@ class LibraryServiceBase(abc.ABC):
                 malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesRequest,
                 malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesResponse,
             ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ExportShelves': grpclib.const.Handler(
+                self.ExportShelves,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.shelf_pb2.ExportShelvesRequest,
+                google.longrunning.operations_pb2.Operation,
+            ),
             '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves': grpclib.const.Handler(
                 self.BatchCreateShelves,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -372,6 +386,12 @@ class LibraryServiceBase(abc.ABC):
                 self.ImportBooks,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+                google.longrunning.operations_pb2.Operation,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ExportBooks': grpclib.const.Handler(
+                self.ExportBooks,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.book_pb2.ExportBooksRequest,
                 google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/GetBookReview': grpclib.const.Handler(
@@ -566,6 +586,12 @@ class LibraryServiceStub:
             malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesRequest,
             malonaz.test.library.library_service.v1.shelf_pb2.ListShelvesResponse,
         )
+        self.ExportShelves = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ExportShelves',
+            malonaz.test.library.library_service.v1.shelf_pb2.ExportShelvesRequest,
+            google.longrunning.operations_pb2.Operation,
+        )
         self.BatchCreateShelves = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves',
@@ -624,6 +650,12 @@ class LibraryServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/ImportBooks',
             malonaz.test.library.library_service.v1.book_pb2.ImportBooksRequest,
+            google.longrunning.operations_pb2.Operation,
+        )
+        self.ExportBooks = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ExportBooks',
+            malonaz.test.library.library_service.v1.book_pb2.ExportBooksRequest,
             google.longrunning.operations_pb2.Operation,
         )
         self.GetBookReview = grpclib.client.UnaryUnaryMethod(

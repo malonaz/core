@@ -1456,6 +1456,391 @@ func (b0 ImportBooksResponse_builder) Build() *ImportBooksResponse {
 	return m0
 }
 
+// Request message for LibraryService.ExportBooks.
+type ExportBooksRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The shelf to export the books of; `organizations/{organization}/shelves/-`
+	// exports every shelf of the organization.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// Restricts the export to the books matching this filter (AIP-160).
+	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Where the books go.
+	//
+	// Types that are valid to be assigned to Destination:
+	//
+	//	*ExportBooksRequest_InlineDestination_
+	//	*ExportBooksRequest_CsvDestination
+	Destination isExportBooksRequest_Destination `protobuf_oneof:"destination"`
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId     string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportBooksRequest) Reset() {
+	*x = ExportBooksRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportBooksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportBooksRequest) ProtoMessage() {}
+
+func (x *ExportBooksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ExportBooksRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *ExportBooksRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *ExportBooksRequest) GetDestination() isExportBooksRequest_Destination {
+	if x != nil {
+		return x.Destination
+	}
+	return nil
+}
+
+func (x *ExportBooksRequest) GetInlineDestination() *ExportBooksRequest_InlineDestination {
+	if x != nil {
+		if x, ok := x.Destination.(*ExportBooksRequest_InlineDestination_); ok {
+			return x.InlineDestination
+		}
+	}
+	return nil
+}
+
+func (x *ExportBooksRequest) GetCsvDestination() *CsvDestination {
+	if x != nil {
+		if x, ok := x.Destination.(*ExportBooksRequest_CsvDestination); ok {
+			return x.CsvDestination
+		}
+	}
+	return nil
+}
+
+func (x *ExportBooksRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *ExportBooksRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *ExportBooksRequest) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *ExportBooksRequest) SetInlineDestination(v *ExportBooksRequest_InlineDestination) {
+	if v == nil {
+		x.Destination = nil
+		return
+	}
+	x.Destination = &ExportBooksRequest_InlineDestination_{v}
+}
+
+func (x *ExportBooksRequest) SetCsvDestination(v *CsvDestination) {
+	if v == nil {
+		x.Destination = nil
+		return
+	}
+	x.Destination = &ExportBooksRequest_CsvDestination{v}
+}
+
+func (x *ExportBooksRequest) SetRequestId(v string) {
+	x.RequestId = v
+}
+
+func (x *ExportBooksRequest) HasDestination() bool {
+	if x == nil {
+		return false
+	}
+	return x.Destination != nil
+}
+
+func (x *ExportBooksRequest) HasInlineDestination() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Destination.(*ExportBooksRequest_InlineDestination_)
+	return ok
+}
+
+func (x *ExportBooksRequest) HasCsvDestination() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Destination.(*ExportBooksRequest_CsvDestination)
+	return ok
+}
+
+func (x *ExportBooksRequest) ClearDestination() {
+	x.Destination = nil
+}
+
+func (x *ExportBooksRequest) ClearInlineDestination() {
+	if _, ok := x.Destination.(*ExportBooksRequest_InlineDestination_); ok {
+		x.Destination = nil
+	}
+}
+
+func (x *ExportBooksRequest) ClearCsvDestination() {
+	if _, ok := x.Destination.(*ExportBooksRequest_CsvDestination); ok {
+		x.Destination = nil
+	}
+}
+
+const ExportBooksRequest_Destination_not_set_case case_ExportBooksRequest_Destination = 0
+const ExportBooksRequest_InlineDestination_case case_ExportBooksRequest_Destination = 3
+const ExportBooksRequest_CsvDestination_case case_ExportBooksRequest_Destination = 4
+
+func (x *ExportBooksRequest) WhichDestination() case_ExportBooksRequest_Destination {
+	if x == nil {
+		return ExportBooksRequest_Destination_not_set_case
+	}
+	switch x.Destination.(type) {
+	case *ExportBooksRequest_InlineDestination_:
+		return ExportBooksRequest_InlineDestination_case
+	case *ExportBooksRequest_CsvDestination:
+		return ExportBooksRequest_CsvDestination_case
+	default:
+		return ExportBooksRequest_Destination_not_set_case
+	}
+}
+
+type ExportBooksRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The shelf to export the books of; `organizations/{organization}/shelves/-`
+	// exports every shelf of the organization.
+	// Format: organizations/{organization}/shelves/{shelf}
+	Parent string
+	// Restricts the export to the books matching this filter (AIP-160).
+	Filter string
+	// Where the books go.
+
+	// Fields of oneof Destination:
+	// The operation's response.
+	InlineDestination *ExportBooksRequest_InlineDestination
+	// A CSV document in the operation's response.
+	CsvDestination *CsvDestination
+	// -- end of Destination
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId string
+}
+
+func (b0 ExportBooksRequest_builder) Build() *ExportBooksRequest {
+	m0 := &ExportBooksRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Filter = b.Filter
+	if b.InlineDestination != nil {
+		x.Destination = &ExportBooksRequest_InlineDestination_{b.InlineDestination}
+	}
+	if b.CsvDestination != nil {
+		x.Destination = &ExportBooksRequest_CsvDestination{b.CsvDestination}
+	}
+	x.RequestId = b.RequestId
+	return m0
+}
+
+type case_ExportBooksRequest_Destination protoreflect.FieldNumber
+
+func (x case_ExportBooksRequest_Destination) String() string {
+	md := file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isExportBooksRequest_Destination interface {
+	isExportBooksRequest_Destination()
+}
+
+type ExportBooksRequest_InlineDestination_ struct {
+	// The operation's response.
+	InlineDestination *ExportBooksRequest_InlineDestination `protobuf:"bytes,3,opt,name=inline_destination,json=inlineDestination,proto3,oneof"`
+}
+
+type ExportBooksRequest_CsvDestination struct {
+	// A CSV document in the operation's response.
+	CsvDestination *CsvDestination `protobuf:"bytes,4,opt,name=csv_destination,json=csvDestination,proto3,oneof"`
+}
+
+func (*ExportBooksRequest_InlineDestination_) isExportBooksRequest_Destination() {}
+
+func (*ExportBooksRequest_CsvDestination) isExportBooksRequest_Destination() {}
+
+// CsvDestination renders one `name,title` row per book.
+type CsvDestination struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Test hook: books with this title are recorded as partial failures instead
+	// of rows. Empty disables it.
+	RejectTitle   string `protobuf:"bytes,1,opt,name=reject_title,json=rejectTitle,proto3" json:"reject_title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CsvDestination) Reset() {
+	*x = CsvDestination{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CsvDestination) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CsvDestination) ProtoMessage() {}
+
+func (x *CsvDestination) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CsvDestination) GetRejectTitle() string {
+	if x != nil {
+		return x.RejectTitle
+	}
+	return ""
+}
+
+func (x *CsvDestination) SetRejectTitle(v string) {
+	x.RejectTitle = v
+}
+
+type CsvDestination_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Test hook: books with this title are recorded as partial failures instead
+	// of rows. Empty disables it.
+	RejectTitle string
+}
+
+func (b0 CsvDestination_builder) Build() *CsvDestination {
+	m0 := &CsvDestination{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.RejectTitle = b.RejectTitle
+	return m0
+}
+
+// Response message for LibraryService.ExportBooks, the operation's response.
+type ExportBooksResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The books exported, in ImportBooks' inline format (AIP-153). Set by the
+	// inline destination.
+	Books []*v1.Book `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	// The CSV document. Set by the CSV destination.
+	Csv           string `protobuf:"bytes,2,opt,name=csv,proto3" json:"csv,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportBooksResponse) Reset() {
+	*x = ExportBooksResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportBooksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportBooksResponse) ProtoMessage() {}
+
+func (x *ExportBooksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ExportBooksResponse) GetBooks() []*v1.Book {
+	if x != nil {
+		return x.Books
+	}
+	return nil
+}
+
+func (x *ExportBooksResponse) GetCsv() string {
+	if x != nil {
+		return x.Csv
+	}
+	return ""
+}
+
+func (x *ExportBooksResponse) SetBooks(v []*v1.Book) {
+	x.Books = v
+}
+
+func (x *ExportBooksResponse) SetCsv(v string) {
+	x.Csv = v
+}
+
+type ExportBooksResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The books exported, in ImportBooks' inline format (AIP-153). Set by the
+	// inline destination.
+	Books []*v1.Book
+	// The CSV document. Set by the CSV destination.
+	Csv string
+}
+
+func (b0 ExportBooksResponse_builder) Build() *ExportBooksResponse {
+	m0 := &ExportBooksResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Books = b.Books
+	x.Csv = b.Csv
+	return m0
+}
+
 // InlineSource carries the books to import in the request.
 type ImportBooksRequest_InlineSource struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -1467,7 +1852,7 @@ type ImportBooksRequest_InlineSource struct {
 
 func (x *ImportBooksRequest_InlineSource) Reset() {
 	*x = ImportBooksRequest_InlineSource{}
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1479,7 +1864,7 @@ func (x *ImportBooksRequest_InlineSource) String() string {
 func (*ImportBooksRequest_InlineSource) ProtoMessage() {}
 
 func (x *ImportBooksRequest_InlineSource) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13]
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1513,6 +1898,50 @@ func (b0 ImportBooksRequest_InlineSource_builder) Build() *ImportBooksRequest_In
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Books = b.Books
+	return m0
+}
+
+// InlineDestination answers with the exported books in the operation's response.
+type ExportBooksRequest_InlineDestination struct {
+	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportBooksRequest_InlineDestination) Reset() {
+	*x = ExportBooksRequest_InlineDestination{}
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportBooksRequest_InlineDestination) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportBooksRequest_InlineDestination) ProtoMessage() {}
+
+func (x *ExportBooksRequest_InlineDestination) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_book_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type ExportBooksRequest_InlineDestination_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 ExportBooksRequest_InlineDestination_builder) Build() *ExportBooksRequest_InlineDestination {
+	m0 := &ExportBooksRequest_InlineDestination{}
+	b, x := &b0, m0
+	_, _ = b, x
 	return m0
 }
 
@@ -1617,46 +2046,69 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x05delay\x18\x04 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\x05delay\"O\n" +
 	"\x13ImportBooksResponse\x128\n" +
 	"\x05names\x18\x01 \x03(\tB\"\xfaA\x1f\n" +
-	"\x1dlibrary.test.malonaz.com/BookR\x05namesBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
+	"\x1dlibrary.test.malonaz.com/BookR\x05names\"\xc1\x03\n" +
+	"\x12ExportBooksRequest\x12C\n" +
+	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12~\n" +
+	"\x12inline_destination\x18\x03 \x01(\v2M.malonaz.test.library.library_service.v1.ExportBooksRequest.InlineDestinationH\x00R\x11inlineDestination\x12b\n" +
+	"\x0fcsv_destination\x18\x04 \x01(\v27.malonaz.test.library.library_service.v1.CsvDestinationH\x00R\x0ecsvDestination\x12*\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId\x1a\x13\n" +
+	"\x11InlineDestination:\x13\x92\xf3-\x0f\n" +
+	"\x05title\n" +
+	"\x06authorB\x14\n" +
+	"\vdestination\x12\x05\xbaH\x02\b\x01\"3\n" +
+	"\x0eCsvDestination\x12!\n" +
+	"\freject_title\x18\x01 \x01(\tR\vrejectTitle\"\\\n" +
+	"\x13ExportBooksResponse\x123\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\x12\x10\n" +
+	"\x03csv\x18\x02 \x01(\tR\x03csvBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_malonaz_test_library_library_service_v1_book_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_malonaz_test_library_library_service_v1_book_proto_goTypes = []any{
-	(*CreateBookRequest)(nil),               // 0: malonaz.test.library.library_service.v1.CreateBookRequest
-	(*GetBookRequest)(nil),                  // 1: malonaz.test.library.library_service.v1.GetBookRequest
-	(*UpdateBookRequest)(nil),               // 2: malonaz.test.library.library_service.v1.UpdateBookRequest
-	(*DeleteBookRequest)(nil),               // 3: malonaz.test.library.library_service.v1.DeleteBookRequest
-	(*SearchBooksRequest)(nil),              // 4: malonaz.test.library.library_service.v1.SearchBooksRequest
-	(*SearchBooksResponse)(nil),             // 5: malonaz.test.library.library_service.v1.SearchBooksResponse
-	(*ListBooksRequest)(nil),                // 6: malonaz.test.library.library_service.v1.ListBooksRequest
-	(*ListBooksResponse)(nil),               // 7: malonaz.test.library.library_service.v1.ListBooksResponse
-	(*BatchGetBooksRequest)(nil),            // 8: malonaz.test.library.library_service.v1.BatchGetBooksRequest
-	(*BatchGetBooksResponse)(nil),           // 9: malonaz.test.library.library_service.v1.BatchGetBooksResponse
-	(*ImportBooksRequest)(nil),              // 10: malonaz.test.library.library_service.v1.ImportBooksRequest
-	(*TitlesSource)(nil),                    // 11: malonaz.test.library.library_service.v1.TitlesSource
-	(*ImportBooksResponse)(nil),             // 12: malonaz.test.library.library_service.v1.ImportBooksResponse
-	(*ImportBooksRequest_InlineSource)(nil), // 13: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
-	(*v1.Book)(nil),                         // 14: malonaz.test.library.v1.Book
-	(*fieldmaskpb.FieldMask)(nil),           // 15: google.protobuf.FieldMask
-	(*v11.SearchSnippet)(nil),               // 16: malonaz.aip.v1.SearchSnippet
-	(*durationpb.Duration)(nil),             // 17: google.protobuf.Duration
+	(*CreateBookRequest)(nil),                    // 0: malonaz.test.library.library_service.v1.CreateBookRequest
+	(*GetBookRequest)(nil),                       // 1: malonaz.test.library.library_service.v1.GetBookRequest
+	(*UpdateBookRequest)(nil),                    // 2: malonaz.test.library.library_service.v1.UpdateBookRequest
+	(*DeleteBookRequest)(nil),                    // 3: malonaz.test.library.library_service.v1.DeleteBookRequest
+	(*SearchBooksRequest)(nil),                   // 4: malonaz.test.library.library_service.v1.SearchBooksRequest
+	(*SearchBooksResponse)(nil),                  // 5: malonaz.test.library.library_service.v1.SearchBooksResponse
+	(*ListBooksRequest)(nil),                     // 6: malonaz.test.library.library_service.v1.ListBooksRequest
+	(*ListBooksResponse)(nil),                    // 7: malonaz.test.library.library_service.v1.ListBooksResponse
+	(*BatchGetBooksRequest)(nil),                 // 8: malonaz.test.library.library_service.v1.BatchGetBooksRequest
+	(*BatchGetBooksResponse)(nil),                // 9: malonaz.test.library.library_service.v1.BatchGetBooksResponse
+	(*ImportBooksRequest)(nil),                   // 10: malonaz.test.library.library_service.v1.ImportBooksRequest
+	(*TitlesSource)(nil),                         // 11: malonaz.test.library.library_service.v1.TitlesSource
+	(*ImportBooksResponse)(nil),                  // 12: malonaz.test.library.library_service.v1.ImportBooksResponse
+	(*ExportBooksRequest)(nil),                   // 13: malonaz.test.library.library_service.v1.ExportBooksRequest
+	(*CsvDestination)(nil),                       // 14: malonaz.test.library.library_service.v1.CsvDestination
+	(*ExportBooksResponse)(nil),                  // 15: malonaz.test.library.library_service.v1.ExportBooksResponse
+	(*ImportBooksRequest_InlineSource)(nil),      // 16: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
+	(*ExportBooksRequest_InlineDestination)(nil), // 17: malonaz.test.library.library_service.v1.ExportBooksRequest.InlineDestination
+	(*v1.Book)(nil),                              // 18: malonaz.test.library.v1.Book
+	(*fieldmaskpb.FieldMask)(nil),                // 19: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),                    // 20: malonaz.aip.v1.SearchSnippet
+	(*durationpb.Duration)(nil),                  // 21: google.protobuf.Duration
 }
 var file_malonaz_test_library_library_service_v1_book_proto_depIdxs = []int32{
-	14, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	14, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
-	15, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
-	14, // 3: malonaz.test.library.library_service.v1.SearchBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	16, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
-	14, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	14, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
-	13, // 7: malonaz.test.library.library_service.v1.ImportBooksRequest.inline_source:type_name -> malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
+	18, // 0: malonaz.test.library.library_service.v1.CreateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	18, // 1: malonaz.test.library.library_service.v1.UpdateBookRequest.book:type_name -> malonaz.test.library.v1.Book
+	19, // 2: malonaz.test.library.library_service.v1.UpdateBookRequest.update_mask:type_name -> google.protobuf.FieldMask
+	18, // 3: malonaz.test.library.library_service.v1.SearchBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	20, // 4: malonaz.test.library.library_service.v1.SearchBooksResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	18, // 5: malonaz.test.library.library_service.v1.ListBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	18, // 6: malonaz.test.library.library_service.v1.BatchGetBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	16, // 7: malonaz.test.library.library_service.v1.ImportBooksRequest.inline_source:type_name -> malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource
 	11, // 8: malonaz.test.library.library_service.v1.ImportBooksRequest.titles_source:type_name -> malonaz.test.library.library_service.v1.TitlesSource
-	17, // 9: malonaz.test.library.library_service.v1.TitlesSource.delay:type_name -> google.protobuf.Duration
-	14, // 10: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource.books:type_name -> malonaz.test.library.v1.Book
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	21, // 9: malonaz.test.library.library_service.v1.TitlesSource.delay:type_name -> google.protobuf.Duration
+	17, // 10: malonaz.test.library.library_service.v1.ExportBooksRequest.inline_destination:type_name -> malonaz.test.library.library_service.v1.ExportBooksRequest.InlineDestination
+	14, // 11: malonaz.test.library.library_service.v1.ExportBooksRequest.csv_destination:type_name -> malonaz.test.library.library_service.v1.CsvDestination
+	18, // 12: malonaz.test.library.library_service.v1.ExportBooksResponse.books:type_name -> malonaz.test.library.v1.Book
+	18, // 13: malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSource.books:type_name -> malonaz.test.library.v1.Book
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_book_proto_init() }
@@ -1668,13 +2120,17 @@ func file_malonaz_test_library_library_service_v1_book_proto_init() {
 		(*ImportBooksRequest_InlineSource_)(nil),
 		(*ImportBooksRequest_TitlesSource)(nil),
 	}
+	file_malonaz_test_library_library_service_v1_book_proto_msgTypes[13].OneofWrappers = []any{
+		(*ExportBooksRequest_InlineDestination_)(nil),
+		(*ExportBooksRequest_CsvDestination)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_book_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_book_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

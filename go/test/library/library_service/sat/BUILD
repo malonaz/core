@@ -13,6 +13,7 @@ go_test(
         "date_test.go",
         "delete_test.go",
         "etag_test.go",
+        "export_test.go",
         "filter_canonicalize_test.go",
         "filter_null_test.go",
         "filter_test.go",
