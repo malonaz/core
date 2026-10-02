@@ -253,15 +253,20 @@ message ImageGenerationConfiguration {
       "5:4",
       "9:16",
       "16:9",
-      "21:9"
+      "21:9",
+      "1:4",
+      "4:1",
+      "1:8",
+      "8:1"
     ]
   }];
 
-  // Resolution of generated images. Only supported by Gemini 3 Pro Image.
+  // Resolution of generated images; support varies by model ("512" is Gemini 3.1 Flash Image only).
   // Defaults to "1K".
   string image_size = 2 [(buf.validate.field).string = {
     in: [
       "",
+      "512",
       "1K",
       "2K",
       "4K"
