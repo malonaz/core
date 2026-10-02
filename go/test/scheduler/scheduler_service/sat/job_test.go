@@ -534,6 +534,22 @@ func TestCreateJob_UniqueKey(t *testing.T) {
 		require.Empty(t, testProcessor.calls(key+"-coalesced"))
 	})
 
+	t.Run("trailing job does not block other claims", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		running := createJob(t, &processorpb.SleepRequest{Key: key, Duration: durationpb.New(sleepTimeout)}, scheduler.WithUniqueKey(key))
+		waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
+		trailing := createJob(t, &processorpb.EchoRequest{Value: key + "-trailing"}, scheduler.WithUniqueKey(key))
+
+		// An unrelated job runs while the trailing one waits.
+		unrelated := createJob(t, &processorpb.EchoRequest{Value: key + "-unrelated"})
+		waitForState(t, unrelated.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_RUNNING, getJob(t, running.GetName()).GetState())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, getJob(t, trailing.GetName()).GetState())
+		cancelJob(t, running.GetName())
+		waitForState(t, trailing.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+	})
+
 	t.Run("retry conflicts with a pending job", func(t *testing.T) {
 		t.Parallel()
 		key := uuid.MustNewV7().String()

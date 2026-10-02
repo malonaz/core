@@ -47,6 +47,10 @@ WITH running AS (
         AND (job.schedule_time IS NULL OR job.schedule_time <= $3)
         AND (job.expire_time IS NULL OR job.expire_time > $3)
         AND (queue.queue_id IS NULL OR queue.state = $4)
+        -- A trailing keyed job waits for its RUNNING twin: claiming it would violate job_unique_key_live_idx.
+        AND (job.unique_key IS NULL OR NOT EXISTS (
+            SELECT 1 FROM scheduler.job live WHERE live.unique_key = job.unique_key AND live.state = $2
+        ))
 )
 SELECT job_id FROM candidate
 WHERE max_concurrency = 0 OR rank <= max_concurrency - running_count
