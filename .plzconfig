@@ -130,6 +130,15 @@ DefaultValue = //tools/proto:protoc-gen-python-dep
 ConfigKey = ProtocGenGrpcPythonDep
 DefaultValue = //tools/proto:protoc-gen-grpc-python-dep
 
+; Python package first-party (non root_dir) protos are generated under, e.g. `onikisu`.
+[PluginConfig "python_proto_package"]
+ConfigKey = PythonProtoPackage
+Optional = true
+
+[PluginConfig "python_proto_package_tool"]
+ConfigKey = PythonProtoPackageTool
+DefaultValue = //tools/python-proto-package
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ALIASES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [alias "tidy"]
 desc = Tidy generates build targets for dependencies and makes sure that BUILD files are up-to-date.

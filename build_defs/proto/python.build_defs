@@ -23,14 +23,7 @@ def python_grpc_library(name:str, srcs:list, deps:list=[], visibility:list=None,
         visibility = visibility,
     )
 
-    return python_library(
-        name = f"_{name}#py",
-        srcs = [protoc],
-        deps = deps,
-        test_only = test_only,
-        labels = labels,
-        visibility = visibility,
-    )
+    return _python_proto_library(name, protoc, deps, root_dir, labels, test_only, visibility)
 
 def python_proto_library(name:str, srcs:list, deps:list=[], visibility:list=None, labels:list&features&tags=[],
                       test_only:bool&testonly=False, root_dir:str='', protoc_flags:list=[], additional_context:dict=None):
@@ -50,13 +43,55 @@ def python_proto_library(name:str, srcs:list, deps:list=[], visibility:list=None
         visibility = visibility,
     )
 
-    return python_library(
+    return _python_proto_library(name, protoc, deps, root_dir, labels, test_only, visibility)
+
+def _python_proto_library(name:str, protoc:str, deps:list, root_dir:str, labels:list, test_only:bool, visibility:list):
+    package = CONFIG.CORE.PYTHON_PROTO_PACKAGE
+    # Third-party protos (compiled from a root_dir) keep their canonical module paths.
+    if not package or root_dir:
+        return python_library(
+            name = f"_{name}#py",
+            srcs = [protoc],
+            deps = deps,
+            test_only = test_only,
+            labels = labels,
+            visibility = visibility,
+        )
+
+    # Mirrors python_library's pre-zip, with sources rewritten under the package.
+    zip_rule = build_rule(
         name = f"_{name}#py",
+        tag = "zip",
         srcs = [protoc],
+        outs = [f".{name}.pex.zip"],
+        cmd = " && ".join([
+            f"$TOOLS_REWRITE --prefix {package} --out _py $SRCS",
+            "cd _py",
+            "$TOOLS_INT -S -m compileall -b -f -q .",
+            "$TOOLS_ARCAT z -d -o $TMP_DIR/$OUTS -i .",
+        ]),
         deps = deps,
+        # The rewrite resolves which imports are first-party from the transitive .proto files.
+        needs_transitive_deps = True,
+        building_description = "Compressing...",
+        requires = ["py"],
+        test_only = test_only,
+        output_is_complete = True,
+        tools = {
+            "int": [CONFIG.PYTHON.DEFAULT_INTERPRETER],
+            "arcat": [CONFIG.ARCAT_TOOL],
+            "rewrite": [CONFIG.CORE.PYTHON_PROTO_PACKAGE_TOOL],
+        },
+        labels = labels,
+    )
+    return filegroup(
+        name = f"_{name}#py",
+        deps = deps + [zip_rule],
+        visibility = visibility,
+        output_is_complete = False,
+        requires = ["py"],
         test_only = test_only,
         labels = labels,
-        visibility = visibility,
     )
 
 def grpclib_protoc_plugin(name: str, protoclib_dep:str, visibility:list=["PUBLIC"]):
