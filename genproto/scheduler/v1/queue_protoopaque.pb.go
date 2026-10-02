@@ -488,7 +488,8 @@ type QueueStats_builder struct {
 	// The number of PENDING jobs scheduled after now, including policy retries
 	// waiting out their backoff.
 	ScheduledCount int32
-	// The number of PENDING jobs with at least one attempt behind them.
+	// The number of PENDING jobs awaiting a policy retry after a failed attempt.
+	// Manual retries (the `scheduler.malonaz.com/retried` label) are excluded.
 	RetryingCount int32
 	// The number of FAILED jobs, held until retried or purged past retention.
 	FailedCount int32

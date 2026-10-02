@@ -208,27 +208,34 @@ func TestQueue_Stats(t *testing.T) {
 		return created
 	}
 
-	retrying := waitForJob(t, create(&schedulerpb.Job{}).GetName(), func(job *schedulerpb.Job) bool {
+	// Each attempt fails and is parked an hour out as a policy retry.
+	awaitingRetry := func(job *schedulerpb.Job) bool {
 		return job.GetState() == schedulerpb.JobState_JOB_STATE_PENDING && job.GetAttemptCount() == 1
-	})
+	}
+	retrying := waitForJob(t, create(&schedulerpb.Job{}).GetName(), awaitingRetry)
+	manual := waitForJob(t, create(&schedulerpb.Job{}).GetName(), awaitingRetry)
+	cancelJob(t, manual.GetName())
 	_, err := schedulerServiceClient.PauseQueue(ctx, &schedulerservicepb.PauseQueueRequest{Name: queue.GetName()})
+	require.NoError(t, err)
+	// Paused, nothing is claimed: the manual retry stays due, not retrying.
+	_, err = schedulerServiceClient.RetryJob(ctx, &schedulerservicepb.RetryJobRequest{Name: manual.GetName()})
 	require.NoError(t, err)
 	due := create(&schedulerpb.Job{})
 	scheduled := create(&schedulerpb.Job{ScheduleTime: timestamppb.New(farFuture)})
-	// Paused, it is never claimed: the reaper fails it once it expires.
+	// The reaper fails it once it expires.
 	expired := create(&schedulerpb.Job{ExpireTime: timestamppb.New(time.Now().Add(time.Second))})
 	waitForState(t, expired.GetName(), schedulerpb.JobState_JOB_STATE_FAILED)
 
 	grpcrequire.Equal(t, &schedulerpb.QueueStats{
-		DueCount:       1,
+		DueCount:       2,
 		ScheduledCount: 2,
 		RetryingCount:  1,
 		FailedCount:    1,
-		OldestDueTime:  due.GetCreateTime(),
+		OldestDueTime:  manual.GetCreateTime(),
 	}, getQueue(t, queue.GetName()).GetStats())
 
 	// Terminal jobs other than FAILED are not counted.
-	for _, job := range []*schedulerpb.Job{retrying, due, scheduled} {
+	for _, job := range []*schedulerpb.Job{retrying, manual, due, scheduled} {
 		cancelJob(t, job.GetName())
 	}
 	grpcrequire.Equal(t, &schedulerpb.QueueStats{FailedCount: 1}, getQueue(t, queue.GetName()).GetStats())

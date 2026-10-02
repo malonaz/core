@@ -275,7 +275,8 @@ export type QueueStats = Message<"malonaz.scheduler.v1.QueueStats"> & {
   scheduledCount: number;
 
   /**
-   * The number of PENDING jobs with at least one attempt behind them.
+   * The number of PENDING jobs awaiting a policy retry after a failed attempt.
+   * Manual retries (the `scheduler.malonaz.com/retried` label) are excluded.
    *
    * @generated from field: int32 retrying_count = 6;
    */

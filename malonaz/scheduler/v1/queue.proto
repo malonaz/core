@@ -115,7 +115,8 @@ message QueueStats {
   // waiting out their backoff.
   int32 scheduled_count = 5;
 
-  // The number of PENDING jobs with at least one attempt behind them.
+  // The number of PENDING jobs awaiting a policy retry after a failed attempt.
+  // Manual retries (the `scheduler.malonaz.com/retried` label) are excluded.
   int32 retrying_count = 6;
 
   // The number of FAILED jobs, held until retried or purged past retention.
