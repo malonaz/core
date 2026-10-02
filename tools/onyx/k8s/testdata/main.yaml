@@ -1,0 +1,43 @@
+name: test
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+servers:
+  - name: a-service
+    internal: true
+    grpc:
+      services:
+        - service: a-service
+          proto: //a/v1
+          manifest: //a/a_service:manifest
+  - name: b-service
+    grpc:
+      services:
+        - service: b-service
+          proto: //b/v1
+          manifest: //b/b_service:manifest
+  - name: external
+    public: true
+    port: 45322
+    grpc:
+      gateway_port: 45323
+      services:
+        - service: b-service
+          proto: //b/v1
+          manifest: //b/b_service:manifest
+          gateway: true
+  - name: d-processor
+    processor:
+      manifest: //d/d_processor:manifest
+  - name: d-http
+    internal: true
+    port: 45329
+    http:
+      services:
+        - manifest: //h/h_service:manifest
+  - name: web
+    public: true
+    grpc_web_proxy: {}

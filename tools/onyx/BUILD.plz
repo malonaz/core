@@ -6,6 +6,7 @@ go_binary(
         "//go/flags",
         "//malonaz/onyx/v1",
         "//tools/onyx/binary",
+        "//tools/onyx/k8s",
         "//tools/onyx/manifest",
         "//tools/onyx/service",
     ],
