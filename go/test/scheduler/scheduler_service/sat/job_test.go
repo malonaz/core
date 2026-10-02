@@ -534,6 +534,80 @@ func TestCreateJob_UniqueKey(t *testing.T) {
 		require.Empty(t, testProcessor.calls(key+"-coalesced"))
 	})
 
+	t.Run("trailing run does not hold up other jobs", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		running := createJob(t, &processorpb.SleepRequest{Key: key, Duration: durationpb.New(sleepTimeout)}, scheduler.WithUniqueKey(key))
+		waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
+		trailing := createJob(t, &processorpb.EchoRequest{Value: key + "-trailing"}, scheduler.WithUniqueKey(key))
+
+		// Claimed beside the waiting trailing run, an unrelated job still runs.
+		unrelated := createJob(t, &processorpb.EchoRequest{Value: key + "-unrelated"})
+		waitForState(t, unrelated.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_RUNNING, getJob(t, running.GetName()).GetState())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, getJob(t, trailing.GetName()).GetState())
+		cancelJob(t, running.GetName())
+		waitForState(t, trailing.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+	})
+
+	t.Run("started job retries before its trailing run", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		started := createJob(t, &processorpb.DeadlineRequest{Key: key, Duration: durationpb.New(sleepTimeout)}, scheduler.WithUniqueKey(key))
+		waitForState(t, started.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
+		trailing := createJob(t, &processorpb.EchoRequest{Value: key + "-trailing"}, scheduler.WithUniqueKey(key))
+
+		// Every attempt times out and is retried; the trailing run waits through the backoff.
+		job := waitForTerminal(t, started.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
+		require.Equal(t, int32(deadlineMaxAttempts), job.GetAttemptCount())
+		waitForState(t, trailing.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		calls := testProcessor.calls(key + "-trailing")
+		require.Len(t, calls, 1)
+		require.True(t, calls[0].time.After(job.GetCompleteTime().AsTime()), "the trailing run starts once the started job is terminal")
+	})
+
+	t.Run("job awaiting a retry gets a trailing run", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		started := createJob(t, &processorpb.FlakyRequest{Key: key, Failures: 1, Code: int32(codes.Unavailable), RetryDelay: durationpb.New(2 * time.Second)}, scheduler.WithUniqueKey(key))
+		waitForJob(t, started.GetName(), func(job *schedulerpb.Job) bool {
+			return job.GetState() == schedulerpb.JobState_JOB_STATE_PENDING && job.GetAttemptCount() == 1
+		})
+
+		// The retry holds the started slot, so the create queues a trailing run rather than coalescing onto it.
+		trailing := createJob(t, &processorpb.EchoRequest{Value: key + "-trailing"}, scheduler.WithUniqueKey(key))
+		require.NotEqual(t, started.GetName(), trailing.GetName())
+		job := waitForTerminal(t, started.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
+		require.Equal(t, int32(2), job.GetAttemptCount())
+		waitForState(t, trailing.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		require.True(t, testProcessor.calls(key + "-trailing")[0].time.After(job.GetCompleteTime().AsTime()))
+	})
+
+	t.Run("lapsed lease keeps the started slot", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		lapsed := createJob(t, &processorpb.EchoRequest{Value: key}, scheduler.WithUniqueKey(key), scheduler.WithScheduleTime(farFuture))
+
+		// A job stuck RUNNING with an expired lease is what a crashed worker leaves behind.
+		postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
+		require.NoError(t, err)
+		_, err = postgresClient.Exec(ctx,
+			"UPDATE scheduler.job SET state = $2, schedule_time = NULL, start_time = $3, lock_time = $3, attempt_count = 1 WHERE job_id = $1",
+			lapsed.GetName()[len("jobs/"):], int16(schedulerpb.JobState_JOB_STATE_RUNNING), time.Now().UTC().Add(-time.Hour))
+		require.NoError(t, err)
+		trailing := createJob(t, &processorpb.EchoRequest{Value: key + "-trailing"}, scheduler.WithUniqueKey(key))
+
+		// Reaped back to PENDING, the job runs again before its trailing run.
+		job := waitForTerminal(t, lapsed.GetName())
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
+		require.Equal(t, int32(2), job.GetAttemptCount())
+		require.Equal(t, "lease lapsed", job.GetMetadata().GetAttempts()[0].GetError().GetMessage())
+		waitForState(t, trailing.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+		require.True(t, testProcessor.calls(key + "-trailing")[0].time.After(job.GetCompleteTime().AsTime()))
+	})
+
 	t.Run("retry conflicts with a pending job", func(t *testing.T) {
 		t.Parallel()
 		key := uuid.MustNewV7().String()

@@ -33,12 +33,12 @@ func (e *statePreconditionError) Error() string {
 }
 
 // uniqueKeyCreateAttempts bounds the passes a keyed create makes when the
-// key's PENDING job keeps being claimed between the lookup and the insert.
+// key's unstarted job keeps being claimed between the lookup and the insert.
 const uniqueKeyCreateAttempts = 3
 
 // CreateJob accepts only the producer-owned fields and routes the job to the
-// queue its payload type selects. A keyed job coalesces onto the key's PENDING
-// job when there is one.
+// queue its payload type selects. A keyed job coalesces onto the key's job not
+// yet started when there is one.
 func (s *Service) CreateJob(ctx context.Context, request *pb.CreateJobRequest) (*schedulerpb.Job, error) {
 	return s.createJob(ctx, request, "")
 }
@@ -69,19 +69,19 @@ func (s *Service) createJob(ctx context.Context, request *pb.CreateJobRequest, s
 	uniqueKey := job.GetUniqueKey()
 	for attempt := 1; ; attempt++ {
 		if uniqueKey != "" {
-			pending, err := s.pendingJobByUniqueKey(ctx, uniqueKey)
+			unstarted, err := s.unstartedJobByUniqueKey(ctx, uniqueKey)
 			if err != nil {
 				return nil, err
 			}
-			if pending != nil {
-				return pending, nil
+			if unstarted != nil {
+				return unstarted, nil
 			}
 		}
 		created, err := s.SchedulerServiceServer.CreateJob(ctx, request)
 		if err == nil {
 			return created, nil
 		}
-		// A keyed insert conflicts when a PENDING job appeared since the lookup: pick it up on the next pass.
+		// A keyed insert conflicts when an unstarted job appeared since the lookup: pick it up on the next pass.
 		if uniqueKey == "" || !status.HasCode(err, codes.AlreadyExists) || attempt == uniqueKeyCreateAttempts {
 			return nil, err
 		}
@@ -108,9 +108,9 @@ func (s *Service) queueByRequestType(ctx context.Context, requestType string) (*
 	return queue, nil
 }
 
-// pendingJobByUniqueKey returns the PENDING job holding the key, or nil.
-func (s *Service) pendingJobByUniqueKey(ctx context.Context, uniqueKey string) (*schedulerpb.Job, error) {
-	jobModel, err := s.schedulerPostgresStore.GetPendingJobByUniqueKey(ctx, uniqueKey)
+// unstartedJobByUniqueKey returns the key's job not yet started, or nil.
+func (s *Service) unstartedJobByUniqueKey(ctx context.Context, uniqueKey string) (*schedulerpb.Job, error) {
+	jobModel, err := s.schedulerPostgresStore.GetUnstartedJobByUniqueKey(ctx, uniqueKey)
 	if err != nil {
 		if errors.Is(err, model.ErrJobNotExist) {
 			return nil, nil
@@ -174,8 +174,8 @@ func (s *Service) DeleteJob(ctx context.Context, request *pb.DeleteJobRequest) (
 
 // RetryJob returns a FAILED or CANCELLED job to PENDING for one more, manual,
 // attempt, keeping its history. The expiry is dropped: a retry asks for the job
-// to run regardless. A keyed job whose key already has a PENDING job is
-// refused: that job is the retry.
+// to run regardless. A keyed job whose key already has a job not yet started
+// is refused: that job is the retry.
 func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*schedulerpb.Job, error) {
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		switch job.GetState() {
@@ -289,7 +289,7 @@ func (s *Service) transitionJob(ctx context.Context, name string, fn func(*sched
 		case errors.As(err, &preconditionErr):
 			return nil, status.Errorf(codes.FailedPrecondition, "%v", preconditionErr).Err()
 		case store.IsUniqueKeyConflict(err):
-			return nil, status.Errorf(codes.AlreadyExists, "unique key already has a pending job").Err()
+			return nil, status.Errorf(codes.AlreadyExists, "unique key already has a job not yet started").Err()
 		}
 		return nil, status.FromError(err, "transitioning job").Err()
 	}

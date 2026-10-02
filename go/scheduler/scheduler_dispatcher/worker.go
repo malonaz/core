@@ -234,8 +234,8 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 		job.LockTime = nil
 		if ctx.Err() != nil && err != nil {
 			// Shutdown, not a failure: hand the job back without spending an attempt.
+			// start_time stays: the job keeps its unique key's started slot.
 			job.State = schedulerpb.JobState_JOB_STATE_PENDING
-			job.StartTime = nil
 			job.AttemptCount--
 			if job.Metadata != nil {
 				job.Metadata.Worker = ""

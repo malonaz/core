@@ -130,11 +130,12 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   priority: number;
 
   /**
-   * An optional producer-chosen key coalescing work: at most one PENDING and
-   * one RUNNING job exist per key at any time. Creating a job whose key already
-   * has a PENDING job returns that job instead; creating one while the key's
-   * job is RUNNING queues a single trailing run. Keys are global, so producers
-   * namespace them.
+   * An optional producer-chosen key coalescing work: at most one job not yet
+   * started and one started job (RUNNING, or PENDING a retry) exist per key at
+   * any time. Creating a job whose key already has a job not yet started
+   * returns that job instead; creating one while the key's job has started
+   * queues a single trailing run, claimed once the started job is terminal.
+   * Keys are global, so producers namespace them.
    *
    * @generated from field: string unique_key = 10;
    */
@@ -159,7 +160,8 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
   expireTime?: Timestamp;
 
   /**
-   * The time the current (or last) attempt started.
+   * The time the current (or last) attempt started. Set from the first claim
+   * until RetryJob, it marks the job as started for its `unique_key`.
    *
    * @generated from field: google.protobuf.Timestamp start_time = 13;
    */
@@ -336,11 +338,12 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   priority: number;
 
   /**
-   * An optional producer-chosen key coalescing work: at most one PENDING and
-   * one RUNNING job exist per key at any time. Creating a job whose key already
-   * has a PENDING job returns that job instead; creating one while the key's
-   * job is RUNNING queues a single trailing run. Keys are global, so producers
-   * namespace them.
+   * An optional producer-chosen key coalescing work: at most one job not yet
+   * started and one started job (RUNNING, or PENDING a retry) exist per key at
+   * any time. Creating a job whose key already has a job not yet started
+   * returns that job instead; creating one while the key's job has started
+   * queues a single trailing run, claimed once the started job is terminal.
+   * Keys are global, so producers namespace them.
    *
    * @generated from field: string unique_key = 10;
    */
@@ -365,7 +368,8 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
   expireTime?: Timestamp;
 
   /**
-   * The time the current (or last) attempt started.
+   * The time the current (or last) attempt started. Set from the first claim
+   * until RetryJob, it marks the job as started for its `unique_key`.
    *
    * @generated from field: google.protobuf.Timestamp start_time = 13;
    */

@@ -20,12 +20,13 @@ import (
 // under the worker's feet (cancelled, or reaped after its lease lapsed).
 var ErrJobNotRunning = errors.New("job is not running")
 
-// jobUniqueKeyLiveIndex allows one PENDING and one RUNNING job per unique key;
-// see the job migration.
+// jobUniqueKeyLiveIndex allows one live job not yet started and one started
+// (RUNNING, or PENDING a retry) per unique key; see the job migrations.
 const jobUniqueKeyLiveIndex = "job_unique_key_live_idx"
 
 // IsUniqueKeyConflict reports whether err is a violation of the unique key
-// index, i.e. a transition that would give a key a second PENDING or RUNNING job.
+// index, i.e. a transition that would give a key a second job not yet started,
+// or a second started one.
 func IsUniqueKeyConflict(err error) bool {
 	var pgErr *pgconn.PgError
 	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == jobUniqueKeyLiveIndex
@@ -133,15 +134,15 @@ func (s *Store) UpdateRunningJob(ctx context.Context, job *model.Job, columns ..
 	return row, nil
 }
 
-var jobGetPendingByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM scheduler.job WHERE unique_key = $1 AND state = $2", JobPostgresColumns)
+var jobGetUnstartedByUniqueKeyQuery = postgres.SelectQuery("SELECT %s FROM scheduler.job WHERE unique_key = $1 AND state = $2 AND start_time IS NULL", JobPostgresColumns)
 
-// GetPendingJobByUniqueKey returns the PENDING job holding the unique key, the
-// one a keyed create coalesces onto. Returns model.ErrJobNotExist when there is
-// none.
-func (s *Store) GetPendingJobByUniqueKey(ctx context.Context, uniqueKey string) (*model.Job, error) {
-	rows, err := s.client.Query(ctx, jobGetPendingByUniqueKeyQuery, uniqueKey, int16(schedulerpb.JobState_JOB_STATE_PENDING))
+// GetUnstartedJobByUniqueKey returns the PENDING job holding the unique key
+// that has not started, the one a keyed create coalesces onto. Returns
+// model.ErrJobNotExist when there is none.
+func (s *Store) GetUnstartedJobByUniqueKey(ctx context.Context, uniqueKey string) (*model.Job, error) {
+	rows, err := s.client.Query(ctx, jobGetUnstartedByUniqueKeyQuery, uniqueKey, int16(schedulerpb.JobState_JOB_STATE_PENDING))
 	if err != nil {
-		return nil, fmt.Errorf("getting pending job by unique key: %w", err)
+		return nil, fmt.Errorf("getting unstarted job by unique key: %w", err)
 	}
 	job, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Job])
 	if err != nil {

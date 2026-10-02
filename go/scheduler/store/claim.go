@@ -30,8 +30,10 @@ type ClaimedJob struct {
 // jobClaimCandidatesQuery ranks due PENDING jobs within their queue and keeps
 // those fitting under the queue's remaining concurrency. Jobs of PAUSED queues
 // are skipped; jobs whose queue is gone are claimed so the worker can fail
-// them. FOR UPDATE is illegal beside window functions, so the chosen rows are
-// locked by a second statement.
+// them. A keyed job waits while another job of its key has started: claiming
+// it would violate job_unique_key_live_idx and abort the whole claim. FOR
+// UPDATE is illegal beside window functions, so the chosen rows are locked by a
+// second statement.
 const jobClaimCandidatesQuery = `
 WITH running AS (
     SELECT queue, count(*) AS count FROM scheduler.job WHERE state = $2 GROUP BY queue
@@ -47,6 +49,11 @@ WITH running AS (
         AND (job.schedule_time IS NULL OR job.schedule_time <= $3)
         AND (job.expire_time IS NULL OR job.expire_time > $3)
         AND (queue.queue_id IS NULL OR queue.state = $4)
+        AND NOT EXISTS (
+            SELECT 1 FROM scheduler.job sibling
+            WHERE sibling.unique_key = job.unique_key AND sibling.job_id <> job.job_id
+                AND sibling.state IN ($1, $2) AND sibling.start_time IS NOT NULL
+        )
 )
 SELECT job_id FROM candidate
 WHERE max_concurrency = 0 OR rank <= max_concurrency - running_count
