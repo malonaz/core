@@ -21,34 +21,59 @@ import (
 // /////////////////////////////// COOKIE CONVERSION METHODS ///////////////////////////////
 // /////////////////////////////////////////////////////////////////////////////////////////
 func cookieToProto(httpCookie *http.Cookie) *grpcpb.HttpCookie {
+	var expires uint64
+	// The zero time predates the epoch, which would wrap around as a uint64.
+	if !httpCookie.Expires.IsZero() {
+		expires = uint64(httpCookie.Expires.UnixMicro())
+	}
 	return &grpcpb.HttpCookie{
 		Name:  httpCookie.Name,
 		Value: httpCookie.Value,
 
 		Path:    httpCookie.Path,
 		Domain:  httpCookie.Domain,
-		Expires: uint64(httpCookie.Expires.UnixMicro()),
+		Expires: expires,
 		MaxAge:  int64(httpCookie.MaxAge),
 
 		HttpOnly: httpCookie.HttpOnly,
 		Secure:   httpCookie.Secure,
+		SameSite: httpSameSiteToProtoSameSite[httpCookie.SameSite],
 	}
 }
 
 func cookieFromProto(httpCookie *grpcpb.HttpCookie) *http.Cookie {
+	var expires time.Time
+	// Unset stays the zero time, which net/http omits; the epoch would be sent.
+	if httpCookie.Expires != 0 {
+		expires = time.UnixMicro(int64(httpCookie.Expires))
+	}
 	return &http.Cookie{
 		Name:  httpCookie.Name,
 		Value: httpCookie.Value,
 
 		Path:    httpCookie.Path,
 		Domain:  httpCookie.Domain,
-		Expires: time.UnixMicro(int64(httpCookie.Expires)),
+		Expires: expires,
 		MaxAge:  int(httpCookie.MaxAge),
 
 		HttpOnly: httpCookie.HttpOnly,
 		Secure:   httpCookie.Secure,
+		SameSite: protoSameSiteToHTTPSameSite[httpCookie.SameSite],
 	}
 }
+
+var (
+	httpSameSiteToProtoSameSite = map[http.SameSite]grpcpb.SameSite{
+		http.SameSiteLaxMode:    grpcpb.SameSite_SAME_SITE_LAX,
+		http.SameSiteStrictMode: grpcpb.SameSite_SAME_SITE_STRICT,
+		http.SameSiteNoneMode:   grpcpb.SameSite_SAME_SITE_NONE,
+	}
+	protoSameSiteToHTTPSameSite = map[grpcpb.SameSite]http.SameSite{
+		grpcpb.SameSite_SAME_SITE_LAX:    http.SameSiteLaxMode,
+		grpcpb.SameSite_SAME_SITE_STRICT: http.SameSiteStrictMode,
+		grpcpb.SameSite_SAME_SITE_NONE:   http.SameSiteNoneMode,
+	}
+)
 
 // /////////////////////////////////////////////////////////////////////////////////////////
 // /////////////////////////////// GRPC GATEWAY METHODS BELOW //////////////////////////////

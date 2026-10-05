@@ -2,15 +2,15 @@
 // @generated from file malonaz/grpc/v1/http_cookie.proto (package malonaz.grpc.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/grpc/v1/http_cookie.proto.
  */
 export const file_malonaz_grpc_v1_http_cookie: GenFile = /*@__PURE__*/
-  fileDesc("CiFtYWxvbmF6L2dycGMvdjEvaHR0cF9jb29raWUucHJvdG8SD21hbG9uYXouZ3JwYy52MSKMAQoKSHR0cENvb2tpZRIMCgRuYW1lGAEgASgJEg0KBXZhbHVlGAIgASgJEgwKBHBhdGgYAyABKAkSDgoGZG9tYWluGAQgASgJEg8KB2V4cGlyZXMYBSABKAQSDwoHbWF4X2FnZRgGIAEoAxIRCglodHRwX29ubHkYByABKAgSDgoGc2VjdXJlGAggASgIQipaKGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2dycGMvdjFiBnByb3RvMw");
+  fileDesc("CiFtYWxvbmF6L2dycGMvdjEvaHR0cF9jb29raWUucHJvdG8SD21hbG9uYXouZ3JwYy52MSK6AQoKSHR0cENvb2tpZRIMCgRuYW1lGAEgASgJEg0KBXZhbHVlGAIgASgJEgwKBHBhdGgYAyABKAkSDgoGZG9tYWluGAQgASgJEg8KB2V4cGlyZXMYBSABKAQSDwoHbWF4X2FnZRgGIAEoAxIRCglodHRwX29ubHkYByABKAgSDgoGc2VjdXJlGAggASgIEiwKCXNhbWVfc2l0ZRgJIAEoDjIZLm1hbG9uYXouZ3JwYy52MS5TYW1lU2l0ZSpiCghTYW1lU2l0ZRIZChVTQU1FX1NJVEVfVU5TUEVDSUZJRUQQABIRCg1TQU1FX1NJVEVfTEFYEAESFAoQU0FNRV9TSVRFX1NUUklDVBACEhIKDlNBTUVfU0lURV9OT05FEANCKlooZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vZ3JwYy92MWIGcHJvdG8z");
 
 /**
  * HttpCookie represents an HTTP cookie with all standard cookie attributes.
@@ -57,6 +57,7 @@ export type HttpCookie = Message<"malonaz.grpc.v1.HttpCookie"> & {
   /**
    * expires is the Unix timestamp (in microseconds) indicating when the cookie
    * will expire. After this time, the browser will automatically delete the cookie.
+   * Zero means no 'Expires' attribute is specified.
    *
    * @generated from field: uint64 expires = 5;
    */
@@ -90,6 +91,14 @@ export type HttpCookie = Message<"malonaz.grpc.v1.HttpCookie"> & {
    * @generated from field: bool secure = 8;
    */
   secure: boolean;
+
+  /**
+   * same_site controls whether the browser sends the cookie on cross-site
+   * requests, the defense against cross-site request forgery.
+   *
+   * @generated from field: malonaz.grpc.v1.SameSite same_site = 9;
+   */
+  sameSite: SameSite;
 };
 
 export type HttpCookieValid = HttpCookie;
@@ -100,4 +109,45 @@ export type HttpCookieValid = HttpCookie;
  */
 export const HttpCookieSchema: GenMessage<HttpCookie, {validType: HttpCookieValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_grpc_v1_http_cookie, 0);
+
+/**
+ * SameSite is the SameSite attribute of an HTTP cookie.
+ *
+ * @generated from enum malonaz.grpc.v1.SameSite
+ */
+export enum SameSite {
+  /**
+   * Used to detect an unset field. No SameSite attribute is sent.
+   *
+   * @generated from enum value: SAME_SITE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Sent on same-site requests and on top-level navigations to the site.
+   *
+   * @generated from enum value: SAME_SITE_LAX = 1;
+   */
+  LAX = 1,
+
+  /**
+   * Sent on same-site requests only.
+   *
+   * @generated from enum value: SAME_SITE_STRICT = 2;
+   */
+  STRICT = 2,
+
+  /**
+   * Sent on every request, cross-site included. Requires secure.
+   *
+   * @generated from enum value: SAME_SITE_NONE = 3;
+   */
+  NONE = 3,
+}
+
+/**
+ * Describes the enum malonaz.grpc.v1.SameSite.
+ */
+export const SameSiteSchema: GenEnum<SameSite> = /*@__PURE__*/
+  enumDesc(file_malonaz_grpc_v1_http_cookie, 0);
 

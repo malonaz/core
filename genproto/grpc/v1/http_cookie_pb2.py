@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/grpc/v1/http_cookie.proto\x12\x0fmalonaz.grpc.v1\"\x8c\x01\n\nHttpCookie\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x0e\n\x06\x64omain\x18\x04 \x01(\t\x12\x0f\n\x07\x65xpires\x18\x05 \x01(\x04\x12\x0f\n\x07max_age\x18\x06 \x01(\x03\x12\x11\n\thttp_only\x18\x07 \x01(\x08\x12\x0e\n\x06secure\x18\x08 \x01(\x08\x42*Z(github.com/malonaz/core/genproto/grpc/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!malonaz/grpc/v1/http_cookie.proto\x12\x0fmalonaz.grpc.v1\"\xba\x01\n\nHttpCookie\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x0e\n\x06\x64omain\x18\x04 \x01(\t\x12\x0f\n\x07\x65xpires\x18\x05 \x01(\x04\x12\x0f\n\x07max_age\x18\x06 \x01(\x03\x12\x11\n\thttp_only\x18\x07 \x01(\x08\x12\x0e\n\x06secure\x18\x08 \x01(\x08\x12,\n\tsame_site\x18\t \x01(\x0e\x32\x19.malonaz.grpc.v1.SameSite*b\n\x08SameSite\x12\x19\n\x15SAME_SITE_UNSPECIFIED\x10\x00\x12\x11\n\rSAME_SITE_LAX\x10\x01\x12\x14\n\x10SAME_SITE_STRICT\x10\x02\x12\x12\n\x0eSAME_SITE_NONE\x10\x03\x42*Z(github.com/malonaz/core/genproto/grpc/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,6 +32,8 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.grpc.v1.http_cookie
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z(github.com/malonaz/core/genproto/grpc/v1'
+  _globals['_SAMESITE']._serialized_start=243
+  _globals['_SAMESITE']._serialized_end=341
   _globals['_HTTPCOOKIE']._serialized_start=55
-  _globals['_HTTPCOOKIE']._serialized_end=195
+  _globals['_HTTPCOOKIE']._serialized_end=241
 # @@protoc_insertion_point(module_scope)

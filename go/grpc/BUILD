@@ -53,3 +53,16 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = ["cookie_test.go"],
+    deps = [
+        ":grpc",
+        "//malonaz/grpc/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__proto",
+    ],
+)
