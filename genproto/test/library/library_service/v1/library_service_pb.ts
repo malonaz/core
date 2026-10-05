@@ -379,7 +379,7 @@ export const LibraryService: GenService<{
     output: typeof OperationSchema;
   },
   /**
-   * Exports books to one of the request's destinations. A long-running
+   * Exports books to a CSV document. A long-running
    * operation (AIP-151) run by the scheduler: its metadata tallies progress and
    * partial failures.
    *

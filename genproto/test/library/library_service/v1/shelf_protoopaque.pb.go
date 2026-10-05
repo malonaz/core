@@ -957,12 +957,11 @@ func (b0 BatchGetShelvesResponse_builder) Build() *BatchGetShelvesResponse {
 
 // Request message for LibraryService.ExportShelves.
 type ExportShelvesRequest struct {
-	state                  protoimpl.MessageState             `protogen:"opaque.v1"`
-	xxx_hidden_Parent      string                             `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_Filter      string                             `protobuf:"bytes,2,opt,name=filter,proto3"`
-	xxx_hidden_ShowDeleted bool                               `protobuf:"varint,3,opt,name=show_deleted,json=showDeleted,proto3"`
-	xxx_hidden_Destination isExportShelvesRequest_Destination `protobuf_oneof:"destination"`
-	xxx_hidden_RequestId   string                             `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3"`
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent      string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Filter      string                 `protobuf:"bytes,2,opt,name=filter,proto3"`
+	xxx_hidden_ShowDeleted bool                   `protobuf:"varint,3,opt,name=show_deleted,json=showDeleted,proto3"`
+	xxx_hidden_RequestId   string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1013,15 +1012,6 @@ func (x *ExportShelvesRequest) GetShowDeleted() bool {
 	return false
 }
 
-func (x *ExportShelvesRequest) GetCsvDestination() *ExportShelvesRequest_CsvDestination {
-	if x != nil {
-		if x, ok := x.xxx_hidden_Destination.(*exportShelvesRequest_CsvDestination_); ok {
-			return x.CsvDestination
-		}
-	}
-	return nil
-}
-
 func (x *ExportShelvesRequest) GetRequestId() string {
 	if x != nil {
 		return x.xxx_hidden_RequestId
@@ -1041,56 +1031,8 @@ func (x *ExportShelvesRequest) SetShowDeleted(v bool) {
 	x.xxx_hidden_ShowDeleted = v
 }
 
-func (x *ExportShelvesRequest) SetCsvDestination(v *ExportShelvesRequest_CsvDestination) {
-	if v == nil {
-		x.xxx_hidden_Destination = nil
-		return
-	}
-	x.xxx_hidden_Destination = &exportShelvesRequest_CsvDestination_{v}
-}
-
 func (x *ExportShelvesRequest) SetRequestId(v string) {
 	x.xxx_hidden_RequestId = v
-}
-
-func (x *ExportShelvesRequest) HasDestination() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Destination != nil
-}
-
-func (x *ExportShelvesRequest) HasCsvDestination() bool {
-	if x == nil {
-		return false
-	}
-	_, ok := x.xxx_hidden_Destination.(*exportShelvesRequest_CsvDestination_)
-	return ok
-}
-
-func (x *ExportShelvesRequest) ClearDestination() {
-	x.xxx_hidden_Destination = nil
-}
-
-func (x *ExportShelvesRequest) ClearCsvDestination() {
-	if _, ok := x.xxx_hidden_Destination.(*exportShelvesRequest_CsvDestination_); ok {
-		x.xxx_hidden_Destination = nil
-	}
-}
-
-const ExportShelvesRequest_Destination_not_set_case case_ExportShelvesRequest_Destination = 0
-const ExportShelvesRequest_CsvDestination_case case_ExportShelvesRequest_Destination = 4
-
-func (x *ExportShelvesRequest) WhichDestination() case_ExportShelvesRequest_Destination {
-	if x == nil {
-		return ExportShelvesRequest_Destination_not_set_case
-	}
-	switch x.xxx_hidden_Destination.(type) {
-	case *exportShelvesRequest_CsvDestination_:
-		return ExportShelvesRequest_CsvDestination_case
-	default:
-		return ExportShelvesRequest_Destination_not_set_case
-	}
 }
 
 type ExportShelvesRequest_builder struct {
@@ -1103,12 +1045,6 @@ type ExportShelvesRequest_builder struct {
 	Filter string
 	// If set to true, soft deleted shelves are exported too.
 	ShowDeleted bool
-	// Where the shelves go.
-
-	// Fields of oneof xxx_hidden_Destination:
-	// A CSV document in the operation's response.
-	CsvDestination *ExportShelvesRequest_CsvDestination
-	// -- end of xxx_hidden_Destination
 	// A unique identifier for this request. Must be a UUID.
 	RequestId string
 }
@@ -1120,33 +1056,9 @@ func (b0 ExportShelvesRequest_builder) Build() *ExportShelvesRequest {
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Filter = b.Filter
 	x.xxx_hidden_ShowDeleted = b.ShowDeleted
-	if b.CsvDestination != nil {
-		x.xxx_hidden_Destination = &exportShelvesRequest_CsvDestination_{b.CsvDestination}
-	}
 	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
-
-type case_ExportShelvesRequest_Destination protoreflect.FieldNumber
-
-func (x case_ExportShelvesRequest_Destination) String() string {
-	md := file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[11].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isExportShelvesRequest_Destination interface {
-	isExportShelvesRequest_Destination()
-}
-
-type exportShelvesRequest_CsvDestination_ struct {
-	// A CSV document in the operation's response.
-	CsvDestination *ExportShelvesRequest_CsvDestination `protobuf:"bytes,4,opt,name=csv_destination,json=csvDestination,proto3,oneof"`
-}
-
-func (*exportShelvesRequest_CsvDestination_) isExportShelvesRequest_Destination() {}
 
 // Response message for LibraryService.ExportShelves, the operation's response.
 type ExportShelvesResponse struct {
@@ -1195,7 +1107,7 @@ func (x *ExportShelvesResponse) SetCsv(v string) {
 type ExportShelvesResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The CSV document. Set by the CSV destination.
+	// The CSV document: one `name,display_name` row per shelf.
 	Csv string
 }
 
@@ -1204,50 +1116,6 @@ func (b0 ExportShelvesResponse_builder) Build() *ExportShelvesResponse {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Csv = b.Csv
-	return m0
-}
-
-// CsvDestination renders one `name,display_name` row per shelf.
-type ExportShelvesRequest_CsvDestination struct {
-	state         protoimpl.MessageState `protogen:"opaque.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ExportShelvesRequest_CsvDestination) Reset() {
-	*x = ExportShelvesRequest_CsvDestination{}
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ExportShelvesRequest_CsvDestination) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ExportShelvesRequest_CsvDestination) ProtoMessage() {}
-
-func (x *ExportShelvesRequest_CsvDestination) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-type ExportShelvesRequest_CsvDestination_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-}
-
-func (b0 ExportShelvesRequest_CsvDestination_builder) Build() *ExportShelvesRequest_CsvDestination {
-	m0 := &ExportShelvesRequest_CsvDestination{}
-	b, x := &b0, m0
-	_, _ = b, x
 	return m0
 }
 
@@ -1318,53 +1186,48 @@ const file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB6\xfaA \n" +
 	"\x1elibrary.test.malonaz.com/Shelf\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"S\n" +
 	"\x17BatchGetShelvesResponse\x128\n" +
-	"\ashelves\x18\x01 \x03(\v2\x1e.malonaz.test.library.v1.ShelfR\ashelves\"\xed\x02\n" +
+	"\ashelves\x18\x01 \x03(\v2\x1e.malonaz.test.library.v1.ShelfR\ashelves\"\xcc\x01\n" +
 	"\x14ExportShelvesRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \x12\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12!\n" +
-	"\fshow_deleted\x18\x03 \x01(\bR\vshowDeleted\x12w\n" +
-	"\x0fcsv_destination\x18\x04 \x01(\v2L.malonaz.test.library.library_service.v1.ExportShelvesRequest.CsvDestinationH\x00R\x0ecsvDestination\x12*\n" +
+	"\fshow_deleted\x18\x03 \x01(\bR\vshowDeleted\x12*\n" +
 	"\n" +
-	"request_id\x18\x05 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId\x1a\x10\n" +
-	"\x0eCsvDestination:\a\x92\xf3-\x03\n" +
-	"\x01*B\x14\n" +
-	"\vdestination\x12\x05\xbaH\x02\b\x01\")\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId:\a\x92\xf3-\x03\n" +
+	"\x01*\")\n" +
 	"\x15ExportShelvesResponse\x12\x10\n" +
 	"\x03csv\x18\x01 \x01(\tR\x03csvBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_malonaz_test_library_library_service_v1_shelf_proto_goTypes = []any{
-	(*CreateShelfRequest)(nil),                  // 0: malonaz.test.library.library_service.v1.CreateShelfRequest
-	(*GetShelfRequest)(nil),                     // 1: malonaz.test.library.library_service.v1.GetShelfRequest
-	(*UpdateShelfRequest)(nil),                  // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest
-	(*DeleteShelfRequest)(nil),                  // 3: malonaz.test.library.library_service.v1.DeleteShelfRequest
-	(*UndeleteShelfRequest)(nil),                // 4: malonaz.test.library.library_service.v1.UndeleteShelfRequest
-	(*ListShelvesRequest)(nil),                  // 5: malonaz.test.library.library_service.v1.ListShelvesRequest
-	(*ListShelvesResponse)(nil),                 // 6: malonaz.test.library.library_service.v1.ListShelvesResponse
-	(*BatchCreateShelvesRequest)(nil),           // 7: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest
-	(*BatchCreateShelvesResponse)(nil),          // 8: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse
-	(*BatchGetShelvesRequest)(nil),              // 9: malonaz.test.library.library_service.v1.BatchGetShelvesRequest
-	(*BatchGetShelvesResponse)(nil),             // 10: malonaz.test.library.library_service.v1.BatchGetShelvesResponse
-	(*ExportShelvesRequest)(nil),                // 11: malonaz.test.library.library_service.v1.ExportShelvesRequest
-	(*ExportShelvesResponse)(nil),               // 12: malonaz.test.library.library_service.v1.ExportShelvesResponse
-	(*ExportShelvesRequest_CsvDestination)(nil), // 13: malonaz.test.library.library_service.v1.ExportShelvesRequest.CsvDestination
-	(*v1.Shelf)(nil),                            // 14: malonaz.test.library.v1.Shelf
-	(*fieldmaskpb.FieldMask)(nil),               // 15: google.protobuf.FieldMask
+	(*CreateShelfRequest)(nil),         // 0: malonaz.test.library.library_service.v1.CreateShelfRequest
+	(*GetShelfRequest)(nil),            // 1: malonaz.test.library.library_service.v1.GetShelfRequest
+	(*UpdateShelfRequest)(nil),         // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest
+	(*DeleteShelfRequest)(nil),         // 3: malonaz.test.library.library_service.v1.DeleteShelfRequest
+	(*UndeleteShelfRequest)(nil),       // 4: malonaz.test.library.library_service.v1.UndeleteShelfRequest
+	(*ListShelvesRequest)(nil),         // 5: malonaz.test.library.library_service.v1.ListShelvesRequest
+	(*ListShelvesResponse)(nil),        // 6: malonaz.test.library.library_service.v1.ListShelvesResponse
+	(*BatchCreateShelvesRequest)(nil),  // 7: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest
+	(*BatchCreateShelvesResponse)(nil), // 8: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse
+	(*BatchGetShelvesRequest)(nil),     // 9: malonaz.test.library.library_service.v1.BatchGetShelvesRequest
+	(*BatchGetShelvesResponse)(nil),    // 10: malonaz.test.library.library_service.v1.BatchGetShelvesResponse
+	(*ExportShelvesRequest)(nil),       // 11: malonaz.test.library.library_service.v1.ExportShelvesRequest
+	(*ExportShelvesResponse)(nil),      // 12: malonaz.test.library.library_service.v1.ExportShelvesResponse
+	(*v1.Shelf)(nil),                   // 13: malonaz.test.library.v1.Shelf
+	(*fieldmaskpb.FieldMask)(nil),      // 14: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_shelf_proto_depIdxs = []int32{
-	14, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	14, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	15, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
-	14, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	13, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	13, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	14, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
+	13, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
 	0,  // 4: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateShelfRequest
-	14, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
-	14, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
-	13, // 7: malonaz.test.library.library_service.v1.ExportShelvesRequest.csv_destination:type_name -> malonaz.test.library.library_service.v1.ExportShelvesRequest.CsvDestination
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	13, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	13, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_shelf_proto_init() }
@@ -1372,16 +1235,13 @@ func file_malonaz_test_library_library_service_v1_shelf_proto_init() {
 	if File_malonaz_test_library_library_service_v1_shelf_proto != nil {
 		return
 	}
-	file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[11].OneofWrappers = []any{
-		(*exportShelvesRequest_CsvDestination_)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

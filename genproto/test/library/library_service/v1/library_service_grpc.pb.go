@@ -160,7 +160,7 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
-	// Exports books to one of the request's destinations. A long-running
+	// Exports books to a CSV document. A long-running
 	// operation (AIP-151) run by the scheduler: its metadata tallies progress and
 	// partial failures.
 	//
@@ -729,7 +729,7 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error)
-	// Exports books to one of the request's destinations. A long-running
+	// Exports books to a CSV document. A long-running
 	// operation (AIP-151) run by the scheduler: its metadata tallies progress and
 	// partial failures.
 	//
