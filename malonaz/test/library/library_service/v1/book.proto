@@ -315,3 +315,42 @@ message ImportBooksResponse {
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}
   repeated string names = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Book"];
 }
+
+// Request message for LibraryService.ExportBooks.
+message ExportBooksRequest {
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: [
+      "title",
+      "author"
+    ]
+  };
+
+  // The shelf to export the books of; `organizations/{organization}/shelves/-`
+  // exports every shelf of the organization.
+  // Format: organizations/{organization}/shelves/{shelf}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Book"
+  ];
+
+  // Restricts the export to the books matching this filter (AIP-160).
+  string filter = 2;
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the operation it started instead of starting another.
+  string request_id = 3 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // Test hook: books with this title are recorded as partial failures instead
+  // of rows. Empty disables it.
+  string reject_title = 4;
+}
+
+// Response message for LibraryService.ExportBooks, the operation's response.
+message ExportBooksResponse {
+  // The CSV document: one `name,title` row per book.
+  string csv = 1;
+}

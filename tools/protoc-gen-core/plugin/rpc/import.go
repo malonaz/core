@@ -57,34 +57,74 @@ func (imp *importMethod) sinkGoName() string { return imp.lro.method.GoName + "S
 
 // parseImportMethod validates the AIP-153 shape of an Import{Plural} method.
 func parseImportMethod(lro *longrunningMethod, mi *methodInfo) (*importMethod, error) {
-	method := lro.method
-	if !mi.rpc.Import {
-		return nil, fmt.Errorf("%s: only Import{Plural} may be both a standard method and long-running", method.GoName)
+	if err := checkAIP153Method(lro, mi, "import", importMetadataType); err != nil {
+		return nil, err
 	}
-	if mi.natsEventOpts != nil && mi.rpc.StandardMethod.GetEmitEvent() {
-		return nil, fmt.Errorf("%s: an import never emits events; drop standard_method.emit_event", method.GoName)
-	}
-	httpRule, err := pbutil.GetExtension[*annotations.HttpRule](method.Desc.Options(), annotations.E_Http)
-	if err != nil {
-		return nil, fmt.Errorf("%s: getting google.api.http: %w", method.GoName, err)
-	}
-	if !strings.HasSuffix(httpRule.GetPost(), ":import") || httpRule.GetBody() != "*" {
-		return nil, fmt.Errorf("%s: google.api.http must be `post: \"/v1/{parent=...}/%s:import\"` with `body: \"*\"` (AIP-153)",
-			method.GoName, xstrings.ToSnakeCase(mi.rpc.ParsedResource.Desc.Plural))
-	}
-	if lro.responseType != method.Desc.ParentFile().Package().Append(protoreflect.Name(method.GoName+"Response")) {
-		return nil, fmt.Errorf("%s: operation_info.response_type must be %sResponse", method.GoName, method.GoName)
-	}
-	metadataType := protoreflect.FullName(strings.TrimPrefix(lro.operationInfo.GetMetadataType(), "."))
-	if metadataType != importMetadataType {
-		return nil, fmt.Errorf("%s: operation_info.metadata_type must be %s", method.GoName, importMetadataType)
-	}
-
 	imp := &importMethod{lro: lro, mi: mi}
 	if err := imp.parseRequest(); err != nil {
 		return nil, err
 	}
 	return imp, nil
+}
+
+// checkAIP153Method validates what Import{Plural} and Export{Plural} share
+// (AIP-153): no events, `post: ".../{plural}:{verb}"` with `body: "*"`, a
+// {Method}Response and the shared metadata.
+func checkAIP153Method(lro *longrunningMethod, mi *methodInfo, verb string, metadataType protoreflect.FullName) error {
+	method := lro.method
+	if mi.natsEventOpts != nil && mi.rpc.StandardMethod.GetEmitEvent() {
+		return fmt.Errorf("%s: an %s never emits events; drop standard_method.emit_event", method.GoName, verb)
+	}
+	httpRule, err := pbutil.GetExtension[*annotations.HttpRule](method.Desc.Options(), annotations.E_Http)
+	if err != nil {
+		return fmt.Errorf("%s: getting google.api.http: %w", method.GoName, err)
+	}
+	if !strings.Contains(httpRule.GetPost(), "{parent") || !strings.HasSuffix(httpRule.GetPost(), ":"+verb) || httpRule.GetBody() != "*" {
+		return fmt.Errorf("%s: google.api.http must be `post: \"/v1/{parent=...}/%s:%s\"` with `body: \"*\"` (AIP-153)",
+			method.GoName, xstrings.ToSnakeCase(mi.rpc.ParsedResource.Desc.Plural), verb)
+	}
+	if lro.responseType != method.Desc.ParentFile().Package().Append(protoreflect.Name(method.GoName+"Response")) {
+		return fmt.Errorf("%s: operation_info.response_type must be %sResponse", method.GoName, method.GoName)
+	}
+	if protoreflect.FullName(strings.TrimPrefix(lro.operationInfo.GetMetadataType(), ".")) != metadataType {
+		return fmt.Errorf("%s: operation_info.metadata_type must be %s", method.GoName, metadataType)
+	}
+	request := method.Input
+	if lro.resourceField.Desc.Name() != "parent" {
+		return fmt.Errorf("%s must declare a `parent` field: an %s acts on a collection (AIP-153)", request.GoIdent.GoName, verb)
+	}
+	if lro.requestIDField == nil {
+		return fmt.Errorf("%s must declare a `request_id` field", request.GoIdent.GoName)
+	}
+	requestIDRules, err := pbutil.GetExtension[*validate.FieldRules](lro.requestIDField.Desc.Options(), validate.E_Field)
+	if err != nil || !requestIDRules.GetRequired() || !requestIDRules.GetString().GetUuid() {
+		return fmt.Errorf("%s.request_id must be `(buf.validate.field).required = true` and `.string.uuid = true`", request.GoIdent.GoName)
+	}
+	return nil
+}
+
+// requiredOneof returns the request's oneof of that name, which must be
+// `(buf.validate.oneof).required` and hold *{suffix} messages only.
+func requiredOneof(request *protogen.Message, name, suffix string) (*protogen.Oneof, error) {
+	var found *protogen.Oneof
+	for _, oneof := range request.Oneofs {
+		if string(oneof.Desc.Name()) == name {
+			found = oneof
+		}
+	}
+	if found == nil {
+		return nil, fmt.Errorf("%s must declare `oneof %s` (AIP-153)", request.GoIdent.GoName, name)
+	}
+	oneofRules, err := pbutil.GetExtension[*validate.OneofRules](found.Desc.Options(), validate.E_Oneof)
+	if err != nil || !oneofRules.GetRequired() {
+		return nil, fmt.Errorf("%s.%s must be `(buf.validate.oneof).required = true`", request.GoIdent.GoName, name)
+	}
+	for _, field := range found.Fields {
+		if field.Message == nil || !strings.HasSuffix(field.Message.GoIdent.GoName, suffix) {
+			return nil, fmt.Errorf("%s.%s must be a message named *%s (AIP-153)", request.GoIdent.GoName, field.Desc.Name(), suffix)
+		}
+	}
+	return found, nil
 }
 
 func (imp *importMethod) parseRequest() error {
@@ -93,34 +133,11 @@ func (imp *importMethod) parseRequest() error {
 	resource := imp.mi.rpc.Message
 	pluralSnake := xstrings.ToSnakeCase(imp.mi.rpc.ParsedResource.Desc.Plural)
 
-	if imp.lro.resourceField.Desc.Name() != "parent" {
-		return fmt.Errorf("%s must declare a `parent` field: an import lands under a collection (AIP-153)", request.GoIdent.GoName)
-	}
-	if imp.lro.requestIDField == nil {
-		return fmt.Errorf("%s must declare a `request_id` field", request.GoIdent.GoName)
-	}
-	requestIDRules, err := pbutil.GetExtension[*validate.FieldRules](imp.lro.requestIDField.Desc.Options(), validate.E_Field)
-	if err != nil || !requestIDRules.GetRequired() || !requestIDRules.GetString().GetUuid() {
-		return fmt.Errorf("%s.request_id must be `(buf.validate.field).required = true` and `.string.uuid = true`", request.GoIdent.GoName)
-	}
-
-	var source *protogen.Oneof
-	for _, oneof := range request.Oneofs {
-		if oneof.Desc.Name() == "source" {
-			source = oneof
-		}
-	}
-	if source == nil {
-		return fmt.Errorf("%s must declare `oneof source` (AIP-153)", request.GoIdent.GoName)
-	}
-	oneofRules, err := pbutil.GetExtension[*validate.OneofRules](source.Desc.Options(), validate.E_Oneof)
-	if err != nil || !oneofRules.GetRequired() {
-		return fmt.Errorf("%s.source must be `(buf.validate.oneof).required = true`", request.GoIdent.GoName)
+	source, err := requiredOneof(request, "source", "Source")
+	if err != nil {
+		return err
 	}
 	for _, field := range source.Fields {
-		if field.Message == nil || !strings.HasSuffix(field.Message.GoIdent.GoName, "Source") {
-			return fmt.Errorf("%s.%s must be a message named *Source (AIP-153)", request.GoIdent.GoName, field.Desc.Name())
-		}
 		if field.Message.Desc.Name() != inlineSourceName {
 			imp.sources = append(imp.sources, field)
 			continue

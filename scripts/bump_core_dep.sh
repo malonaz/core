@@ -2,10 +2,16 @@
 
 set -euo pipefail
 
-# Get the latest commit hash from the ~/core repo
-CORE_DIR="$HOME/core"
-if [[ ! -d "$CORE_DIR" ]]; then
-    echo "Error: Core repository not found at $CORE_DIR"
+# Get the latest commit hash from the first core repo found
+CORE_DIR=""
+for dir in "$HOME/core" "$HOME/development/core"; do
+    if [[ -d "$dir" ]]; then
+        CORE_DIR="$dir"
+        break
+    fi
+done
+if [[ -z "$CORE_DIR" ]]; then
+    echo "Error: Core repository not found at ~/core or ~/development/core"
     exit 1
 fi
 

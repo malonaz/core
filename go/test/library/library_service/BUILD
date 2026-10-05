@@ -16,6 +16,7 @@ onyx_service_src(
 go_library(
     name = "library_service",
     srcs = [
+        "export.go",
         "import_books.go",
         "runtime.go",
         ":service.tmpl.go",

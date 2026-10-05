@@ -220,6 +220,33 @@ service LibraryService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
   }
 
+  // Exports the shelves of an organization to a CSV document, as a
+  // long-running operation (AIP-151) run by the scheduler: its metadata tallies
+  // progress, its response holds the document.
+  //
+  // See: https://google.aip.dev/153 (Import and export).
+  rpc ExportShelves(ExportShelvesRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/shelves:export"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent";
+    option (google.longrunning.operation_info) = {
+      response_type: "ExportShelvesResponse"
+      metadata_type: "malonaz.aip.v1.ExportMetadata"
+    };
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Shelf";
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 30}
+      max_attempts: 3
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+    };
+  }
+
   // Creates multiple shelves in a single atomic request.
   //
   // See: https://google.aip.dev/233 (Batch methods: Create).
@@ -318,6 +345,33 @@ service LibraryService {
     option (google.longrunning.operation_info) = {
       response_type: "ImportBooksResponse"
       metadata_type: "malonaz.aip.v1.ImportMetadata"
+    };
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 30}
+      max_attempts: 3
+      retry_backoff: {
+        initial: {nanos: 200000000}
+        max: {seconds: 1}
+        multiplier: 1
+      }
+    };
+  }
+
+  // Exports books to a CSV document. A long-running
+  // operation (AIP-151) run by the scheduler: its metadata tallies progress and
+  // partial failures.
+  //
+  // See: https://google.aip.dev/153 (Import and export).
+  rpc ExportBooks(ExportBooksRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/shelves/*}/books:export"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent";
+    option (google.longrunning.operation_info) = {
+      response_type: "ExportBooksResponse"
+      metadata_type: "malonaz.aip.v1.ExportMetadata"
     };
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
     option (malonaz.codegen.scheduler.v1.method).policy = {

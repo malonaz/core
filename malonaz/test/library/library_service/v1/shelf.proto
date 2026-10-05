@@ -214,3 +214,36 @@ message BatchGetShelvesResponse {
   // Shelves requested.
   repeated malonaz.test.library.v1.Shelf shelves = 1;
 }
+
+// Request message for LibraryService.ExportShelves.
+message ExportShelvesRequest {
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The organization to export the shelves of.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Shelf"
+  ];
+
+  // Restricts the export to the shelves matching this filter (AIP-160).
+  string filter = 2;
+
+  // If set to true, soft deleted shelves are exported too.
+  bool show_deleted = 3;
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Response message for LibraryService.ExportShelves, the operation's response.
+message ExportShelvesResponse {
+  // The CSV document: one `name,display_name` row per shelf.
+  string csv = 1;
+}

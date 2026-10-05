@@ -25,6 +25,7 @@ go_library(
         "//go/grpc/status",
         "//go/nats",
         "//go/pbutil",
+        "//go/postgres",
         "//go/scheduler/longrunning",
         "//go/test/library/model",
         "//go/uuid",

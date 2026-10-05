@@ -36,6 +36,9 @@ updated whenever a lore is added, renamed, or removed.
   response, shared ImportMetadata, the generated sink (stamping,
   import-source/import-time labels, per-row fallback, progress), one runner
   method per custom source, no events ever.
+- `lores/aip/codegen/export` — AIP-153 `Export{Plural}`: the enforced request
+  shape (optional filter/show_deleted), shared ExportMetadata, the
+  keyset-paged reader of the resource, the runner's Run{Export} writing it out.
 - `lores/onyx/overview` — onyx: ServiceManifest/MainManifest (malonaz/onyx/v1),
   dependency and server kinds, build rules, generated flag namespaces,
   add-a-service / add-a-binary checklists, YAML traps.

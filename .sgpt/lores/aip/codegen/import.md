@@ -15,9 +15,7 @@ implementation: library `ImportBooks` (`malonaz/test/library/library_service/v1/
 `go/test/library/library_service/import_books.go`, sats in
 `sat/longrunning_test.go`) — copy it.
 
-Export is not generated yet; when it is, the same shapes apply with
-`oneof destination`, `ExportMetadata` and a response echoing the resolved
-destination (server-created `File` when the destination is a platform File).
+Export is the mirror image: `lores/aip/codegen/export`.
 
 ## The contract (codegen refuses anything else)
 
