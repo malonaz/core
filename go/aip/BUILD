@@ -16,6 +16,7 @@ go_library(
         "rn.go",
         "search_query.go",
         "search_request_parser.go",
+        "standard_method.go",
         "update_request_parser.go",
         "uuid_namespace.go",
     ],
@@ -37,6 +38,7 @@ go_library(
         "//third_party/go:go.einride.tech__aip__pagination",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__protobuf__internal__strs",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
@@ -60,6 +62,7 @@ go_test(
         "rn_test.go",
         "search_query_test.go",
         "search_request_parser_test.go",
+        "standard_method_test.go",
         "update_request_parser_test.go",
     ],
     deps = [

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/huandu/xstrings"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1"
@@ -26,25 +25,27 @@ import (
 )
 
 type CommentStyle int
-type StandardMethodType string
+
+// StandardMethodType aliases aip.StandardMethodType, the single source of standard method types.
+type StandardMethodType = aip.StandardMethodType
 
 const (
 	CommentStyleFirstLine CommentStyle = iota
 	CommentStyleMultiline
 	CommentStyleSingleLine
 
-	StandardMethodTypeUnspecified StandardMethodType = ""
-	StandardMethodTypeCreate      StandardMethodType = "Create"
-	StandardMethodTypeBatchCreate StandardMethodType = "BatchCreate"
-	StandardMethodTypeGet         StandardMethodType = "Get"
-	StandardMethodTypeBatchGet    StandardMethodType = "BatchGet"
-	StandardMethodTypeUpdate      StandardMethodType = "Update"
-	StandardMethodTypeDelete      StandardMethodType = "Delete"
-	StandardMethodTypeUndelete    StandardMethodType = "Undelete"
-	StandardMethodTypeList        StandardMethodType = "List"
-	StandardMethodTypeSearch      StandardMethodType = "Search"
-	StandardMethodTypeImport      StandardMethodType = "Import"
-	StandardMethodTypeExport      StandardMethodType = "Export"
+	StandardMethodTypeUnspecified = aip.StandardMethodTypeUnspecified
+	StandardMethodTypeCreate      = aip.StandardMethodTypeCreate
+	StandardMethodTypeBatchCreate = aip.StandardMethodTypeBatchCreate
+	StandardMethodTypeGet         = aip.StandardMethodTypeGet
+	StandardMethodTypeBatchGet    = aip.StandardMethodTypeBatchGet
+	StandardMethodTypeUpdate      = aip.StandardMethodTypeUpdate
+	StandardMethodTypeDelete      = aip.StandardMethodTypeDelete
+	StandardMethodTypeUndelete    = aip.StandardMethodTypeUndelete
+	StandardMethodTypeList        = aip.StandardMethodTypeList
+	StandardMethodTypeSearch      = aip.StandardMethodTypeSearch
+	StandardMethodTypeImport      = aip.StandardMethodTypeImport
+	StandardMethodTypeExport      = aip.StandardMethodTypeExport
 )
 
 var (
@@ -480,34 +481,8 @@ func (s *Schema) buildStandardMethodTypes() error {
 				}
 				s.methodFullNameToResourceMessageDescriptor[method.FullName()] = resource
 
-				methodName := string(method.Name())
-				singular := xstrings.ToPascalCase(resourceDescriptor.GetSingular())
-				plural := xstrings.ToPascalCase(resourceDescriptor.GetPlural())
-				var methodType StandardMethodType
-				switch methodName {
-				case string(StandardMethodTypeCreate) + singular:
-					methodType = StandardMethodTypeCreate
-				case string(StandardMethodTypeBatchCreate) + plural:
-					methodType = StandardMethodTypeBatchCreate
-				case string(StandardMethodTypeGet) + singular:
-					methodType = StandardMethodTypeGet
-				case string(StandardMethodTypeBatchGet) + plural:
-					methodType = StandardMethodTypeBatchGet
-				case string(StandardMethodTypeUpdate) + singular:
-					methodType = StandardMethodTypeUpdate
-				case string(StandardMethodTypeDelete) + singular:
-					methodType = StandardMethodTypeDelete
-				case string(StandardMethodTypeUndelete) + singular:
-					methodType = StandardMethodTypeUndelete
-				case string(StandardMethodTypeList) + plural:
-					methodType = StandardMethodTypeList
-				case string(StandardMethodTypeSearch) + plural:
-					methodType = StandardMethodTypeSearch
-				case string(StandardMethodTypeImport) + plural:
-					methodType = StandardMethodTypeImport
-				case string(StandardMethodTypeExport) + plural:
-					methodType = StandardMethodTypeExport
-				default:
+				methodType := aip.ParseStandardMethodType(string(method.Name()), resourceDescriptor.GetSingular(), resourceDescriptor.GetPlural())
+				if methodType == StandardMethodTypeUnspecified {
 					errRangeFiles = fmt.Errorf("method %s has standard annotation but does not match any of the standard method types", method.FullName())
 					return false
 				}

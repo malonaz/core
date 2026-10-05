@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
+	"github.com/malonaz/core/go/aip"
 )
 
 // RPC represents a parsed standard AIP method bound to its target resource.
@@ -49,20 +50,8 @@ func ParseRPC(method *protogen.Method) (*RPC, error) {
 		return nil, fmt.Errorf("parsing resource %s: %w", resourceType, err)
 	}
 
-	resourceNameSingular := parsedResource.SingularGoName()
-	resourceNamePlural := parsedResource.PluralGoName()
-	create := method.GoName == "Create"+resourceNameSingular
-	batchCreate := method.GoName == "BatchCreate"+resourceNamePlural
-	get := method.GoName == "Get"+resourceNameSingular
-	batchGet := method.GoName == "BatchGet"+resourceNamePlural
-	update := method.GoName == "Update"+resourceNameSingular
-	delete := method.GoName == "Delete"+resourceNameSingular
-	undelete := method.GoName == "Undelete"+resourceNameSingular
-	list := method.GoName == "List"+resourceNamePlural
-	search := method.GoName == "Search"+resourceNamePlural
-	importMethod := method.GoName == "Import"+resourceNamePlural
-	exportMethod := method.GoName == "Export"+resourceNamePlural
-	if !(create || batchCreate || get || update || delete || undelete || batchGet || list || search || importMethod || exportMethod) {
+	methodType := aip.ParseStandardMethodType(string(method.Desc.Name()), parsedResource.Desc.Singular, parsedResource.Desc.Plural)
+	if methodType == aip.StandardMethodTypeUnspecified {
 		return nil, fmt.Errorf("method %s does not match any standard CRUD pattern for resource %s", method.GoName, resourceType)
 	}
 
@@ -70,16 +59,16 @@ func ParseRPC(method *protogen.Method) (*RPC, error) {
 		StandardMethod: standardMethod,
 		Message:        message,
 		ParsedResource: parsedResource,
-		Create:         create,
-		BatchCreate:    batchCreate,
-		Get:            get,
-		BatchGet:       batchGet,
-		Update:         update,
-		Delete:         delete,
-		Undelete:       undelete,
-		List:           list,
-		Search:         search,
-		Import:         importMethod,
-		Export:         exportMethod,
+		Create:         methodType == aip.StandardMethodTypeCreate,
+		BatchCreate:    methodType == aip.StandardMethodTypeBatchCreate,
+		Get:            methodType == aip.StandardMethodTypeGet,
+		BatchGet:       methodType == aip.StandardMethodTypeBatchGet,
+		Update:         methodType == aip.StandardMethodTypeUpdate,
+		Delete:         methodType == aip.StandardMethodTypeDelete,
+		Undelete:       methodType == aip.StandardMethodTypeUndelete,
+		List:           methodType == aip.StandardMethodTypeList,
+		Search:         methodType == aip.StandardMethodTypeSearch,
+		Import:         methodType == aip.StandardMethodTypeImport,
+		Export:         methodType == aip.StandardMethodTypeExport,
 	}, nil
 }
