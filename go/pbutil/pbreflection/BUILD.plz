@@ -27,3 +27,16 @@ go_library(
         "//third_party/proto:google__api__annotations",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = ["schema_test.go"],
+    deps = [
+        ":pbreflection",
+        "//malonaz/test/library/library_service/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+    ],
+)

@@ -43,6 +43,8 @@ const (
 	StandardMethodTypeUndelete    StandardMethodType = "Undelete"
 	StandardMethodTypeList        StandardMethodType = "List"
 	StandardMethodTypeSearch      StandardMethodType = "Search"
+	StandardMethodTypeImport      StandardMethodType = "Import"
+	StandardMethodTypeExport      StandardMethodType = "Export"
 )
 
 var (
@@ -501,6 +503,10 @@ func (s *Schema) buildStandardMethodTypes() error {
 					methodType = StandardMethodTypeList
 				case string(StandardMethodTypeSearch) + plural:
 					methodType = StandardMethodTypeSearch
+				case string(StandardMethodTypeImport) + plural:
+					methodType = StandardMethodTypeImport
+				case string(StandardMethodTypeExport) + plural:
+					methodType = StandardMethodTypeExport
 				default:
 					errRangeFiles = fmt.Errorf("method %s has standard annotation but does not match any of the standard method types", method.FullName())
 					return false
