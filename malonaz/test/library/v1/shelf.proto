@@ -9,6 +9,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "google/type/date.proto";
 import "google/type/decimal.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/codegen/nats/v1/nats.proto";
 
@@ -319,7 +320,7 @@ message ShelfMetadata {
   int32 capacity = 1;
 
   // Maximum capacity of books on this shelf.
-  string dummy = 2;
+  string dummy = 2 [(malonaz.codegen.aip.v1.export).exclude = true];
 
   // Notes about this shelf.
   repeated ShelfNote notes = 3;

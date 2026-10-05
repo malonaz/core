@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "github.com/malonaz/core/genproto/codegen/nats/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -1051,7 +1052,7 @@ var File_malonaz_test_library_v1_shelf_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x19google/type/decimal.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x94\x18\n" +
+	"#malonaz/test/library/v1/shelf.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x19google/type/decimal.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\"\x94\x18\n" +
 	"\x05Shelf\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1125,10 +1126,10 @@ const file_malonaz_test_library_v1_shelf_proto_rawDesc = "" +
 	"\aupdated\x12\x10correlation_id_2\x1a\x10shelf.genre != 1\":\n" +
 	"\fgenre_change\x12\x05genre\x1a#shelf.genre != previous_shelf.genre*\"\n" +
 	"\adeleted\x12\x05genre\x12\x10correlation_id_22\x12\n" +
-	"\tundeleted\x12\x05genre\"\xd3\x03\n" +
+	"\tundeleted\x12\x05genre\"\xdb\x03\n" +
 	"\rShelfMetadata\x12\x1a\n" +
-	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x14\n" +
-	"\x05dummy\x18\x02 \x01(\tR\x05dummy\x128\n" +
+	"\bcapacity\x18\x01 \x01(\x05R\bcapacity\x12\x1c\n" +
+	"\x05dummy\x18\x02 \x01(\tB\x06±.\x02\b\x01R\x05dummy\x128\n" +
 	"\x05notes\x18\x03 \x03(\v2\".malonaz.test.library.v1.ShelfNoteR\x05notes\x12^\n" +
 	"\x0eauthor_to_note\x18\x04 \x03(\v28.malonaz.test.library.v1.ShelfMetadata.AuthorToNoteEntryR\fauthorToNote\x12\x12\n" +
 	"\x04open\x18\x05 \x01(\bR\x04open\x129\n" +

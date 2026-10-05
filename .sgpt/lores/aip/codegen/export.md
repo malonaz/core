@@ -52,7 +52,8 @@ message ExportBooksResponse {
 - The runner's `Run{Export}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
   (`RunExportBooks`), handed the reader by the generated handler: it writes
   the resources out and returns the response, echoing what it wrote (e.g. the
-  File it created).
+  File it created). For CSV, `go/pbutil/pbcsv` derives the header and rows from
+  the resource's descriptor: no hand-written columns.
 - `{Export}Reader`, the only way resources leave the store:
   - `Next(ctx) ([]*{Resource}, error)` — the next page (500 rows); nil once
     exhausted. Resources are counted as successes when returned. The error

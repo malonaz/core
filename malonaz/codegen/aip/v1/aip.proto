@@ -31,6 +31,18 @@ extend google.protobuf.MessageOptions {
   SearchOptions search = 94003;
 }
 
+// Extensions for field options.
+extend google.protobuf.FieldOptions {
+  // Option for exporting a resource's field.
+  ExportFieldOptions export = 95000;
+}
+
+// Options for exporting a resource's field.
+message ExportFieldOptions {
+  // Leave this field, and every field nested in it, out of exports.
+  bool exclude = 1;
+}
+
 // Options for filtering.
 message FilteringOptions {
   // List of fields that can be used in the filter expression.
