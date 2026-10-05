@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strings"
 	"time"
@@ -103,14 +104,25 @@ func NewJwtAuthenticationInterceptor(
 }
 
 func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (context.Context, error) {
-	rawToken, err := i.extractRawToken(ctx)
+	rawToken, fromCookie, err := i.extractRawToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if rawToken == "" {
 		return ctx, nil
 	}
+	authenticatedCtx, err := i.verifyJwt(ctx, rawToken)
+	// An invalid cookie is no credential: page scripts cannot clear an HttpOnly
+	// cookie, so rejecting it would lock the browser out of public methods too.
+	if err != nil && fromCookie && status.HasCode(err, codes.Unauthenticated) {
+		slog.DebugContext(ctx, "ignoring invalid JWT cookie", "error", err)
+		return ctx, nil
+	}
+	return authenticatedCtx, err
+}
 
+// verifyJwt verifies a raw JWT and injects the session it carries.
+func (i *JwtAuthenticationInterceptor) verifyJwt(ctx context.Context, rawToken string) (context.Context, error) {
 	unverifiedToken, err := jwt.Parse([]byte(rawToken), jwt.WithVerify(false))
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "parsing JWT: %v", err).Err()
@@ -200,35 +212,36 @@ func (i *JwtAuthenticationInterceptor) authenticateJwt(ctx context.Context) (con
 }
 
 // extractRawToken returns the JWT from the bearer header, falling back to cookies
-// (both grpc-gateway binary cookies and grpc-web raw cookie headers).
-func (i *JwtAuthenticationInterceptor) extractRawToken(ctx context.Context) (string, error) {
+// (both grpc-gateway binary cookies and grpc-web raw cookie headers), and
+// whether it came from a cookie.
+func (i *JwtAuthenticationInterceptor) extractRawToken(ctx context.Context) (string, bool, error) {
 	rawToken, err := grpc_auth.AuthFromMD(ctx, "bearer")
 	if err != nil && !status.HasCode(err, codes.Unauthenticated) {
-		return "", err
+		return "", false, err
 	}
 	if rawToken != "" {
-		return rawToken, nil
+		return rawToken, false, nil
 	}
 	if i.opts.CookieName == "" {
-		return "", nil
+		return "", false, nil
 	}
 
 	// grpc-gateway forwards cookies as binary HttpCookie protos.
 	gatewayCookie := &coregrpc.GatewayCookie{}
 	httpCookie, err := gatewayCookie.GetHTTPCookie(ctx, i.opts.CookieName)
 	if err != nil {
-		return "", status.Errorf(codes.Unauthenticated, "reading gateway cookie: %v", err).Err()
+		return "", false, status.Errorf(codes.Unauthenticated, "reading gateway cookie: %v", err).Err()
 	}
 	if httpCookie != nil {
-		return httpCookie.Value, nil
+		return httpCookie.Value, true, nil
 	}
 
 	// grpc-web clients send the raw Cookie header.
 	webCookie := coregrpc.WebCookie{}
 	if httpCookie := webCookie.GetHTTPCookie(ctx, i.opts.CookieName); httpCookie != nil {
-		return httpCookie.Value, nil
+		return httpCookie.Value, true, nil
 	}
-	return "", nil
+	return "", false, nil
 }
 
 func resolveJsonPath(claimsMap map[string]any, path string) (string, bool) {
