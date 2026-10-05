@@ -28,6 +28,7 @@ message HttpCookie {
 
   // expires is the Unix timestamp (in microseconds) indicating when the cookie
   // will expire. After this time, the browser will automatically delete the cookie.
+  // Zero means no 'Expires' attribute is specified.
   uint64 expires = 5;
 
   // max_age specifies the cookie's lifetime in seconds, providing an alternative
@@ -46,4 +47,23 @@ message HttpCookie {
   // transmitted over secure HTTPS connections. This protects the cookie's
   // data from being intercepted during transmission over unencrypted connections.
   bool secure = 8;
+
+  // same_site controls whether the browser sends the cookie on cross-site
+  // requests, the defense against cross-site request forgery.
+  SameSite same_site = 9;
+}
+
+// SameSite is the SameSite attribute of an HTTP cookie.
+enum SameSite {
+  // Used to detect an unset field. No SameSite attribute is sent.
+  SAME_SITE_UNSPECIFIED = 0;
+
+  // Sent on same-site requests and on top-level navigations to the site.
+  SAME_SITE_LAX = 1;
+
+  // Sent on same-site requests only.
+  SAME_SITE_STRICT = 2;
+
+  // Sent on every request, cross-site included. Requires secure.
+  SAME_SITE_NONE = 3;
 }

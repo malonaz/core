@@ -22,6 +22,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// SameSite is the SameSite attribute of an HTTP cookie.
+type SameSite int32
+
+const (
+	// Used to detect an unset field. No SameSite attribute is sent.
+	SameSite_SAME_SITE_UNSPECIFIED SameSite = 0
+	// Sent on same-site requests and on top-level navigations to the site.
+	SameSite_SAME_SITE_LAX SameSite = 1
+	// Sent on same-site requests only.
+	SameSite_SAME_SITE_STRICT SameSite = 2
+	// Sent on every request, cross-site included. Requires secure.
+	SameSite_SAME_SITE_NONE SameSite = 3
+)
+
+// Enum value maps for SameSite.
+var (
+	SameSite_name = map[int32]string{
+		0: "SAME_SITE_UNSPECIFIED",
+		1: "SAME_SITE_LAX",
+		2: "SAME_SITE_STRICT",
+		3: "SAME_SITE_NONE",
+	}
+	SameSite_value = map[string]int32{
+		"SAME_SITE_UNSPECIFIED": 0,
+		"SAME_SITE_LAX":         1,
+		"SAME_SITE_STRICT":      2,
+		"SAME_SITE_NONE":        3,
+	}
+)
+
+func (x SameSite) Enum() *SameSite {
+	p := new(SameSite)
+	*p = x
+	return p
+}
+
+func (x SameSite) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SameSite) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_grpc_v1_http_cookie_proto_enumTypes[0].Descriptor()
+}
+
+func (SameSite) Type() protoreflect.EnumType {
+	return &file_malonaz_grpc_v1_http_cookie_proto_enumTypes[0]
+}
+
+func (x SameSite) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // HttpCookie represents an HTTP cookie with all standard cookie attributes.
 // This message is used to serialize/deserialize cookies when passing them
 // through gRPC metadata between clients, servers, and gateways.
@@ -43,6 +95,7 @@ type HttpCookie struct {
 	Domain string `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"`
 	// expires is the Unix timestamp (in microseconds) indicating when the cookie
 	// will expire. After this time, the browser will automatically delete the cookie.
+	// Zero means no 'Expires' attribute is specified.
 	Expires uint64 `protobuf:"varint,5,opt,name=expires,proto3" json:"expires,omitempty"`
 	// max_age specifies the cookie's lifetime in seconds, providing an alternative
 	// to the expires attribute with the following semantics:
@@ -57,7 +110,10 @@ type HttpCookie struct {
 	// secure is a security flag that, when true, ensures the cookie is only
 	// transmitted over secure HTTPS connections. This protects the cookie's
 	// data from being intercepted during transmission over unencrypted connections.
-	Secure        bool `protobuf:"varint,8,opt,name=secure,proto3" json:"secure,omitempty"`
+	Secure bool `protobuf:"varint,8,opt,name=secure,proto3" json:"secure,omitempty"`
+	// same_site controls whether the browser sends the cookie on cross-site
+	// requests, the defense against cross-site request forgery.
+	SameSite      SameSite `protobuf:"varint,9,opt,name=same_site,json=sameSite,proto3,enum=malonaz.grpc.v1.SameSite" json:"same_site,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -143,6 +199,13 @@ func (x *HttpCookie) GetSecure() bool {
 	return false
 }
 
+func (x *HttpCookie) GetSameSite() SameSite {
+	if x != nil {
+		return x.SameSite
+	}
+	return SameSite_SAME_SITE_UNSPECIFIED
+}
+
 func (x *HttpCookie) SetName(v string) {
 	x.Name = v
 }
@@ -175,6 +238,10 @@ func (x *HttpCookie) SetSecure(v bool) {
 	x.Secure = v
 }
 
+func (x *HttpCookie) SetSameSite(v SameSite) {
+	x.SameSite = v
+}
+
 type HttpCookie_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -194,6 +261,7 @@ type HttpCookie_builder struct {
 	Domain string
 	// expires is the Unix timestamp (in microseconds) indicating when the cookie
 	// will expire. After this time, the browser will automatically delete the cookie.
+	// Zero means no 'Expires' attribute is specified.
 	Expires uint64
 	// max_age specifies the cookie's lifetime in seconds, providing an alternative
 	// to the expires attribute with the following semantics:
@@ -209,6 +277,9 @@ type HttpCookie_builder struct {
 	// transmitted over secure HTTPS connections. This protects the cookie's
 	// data from being intercepted during transmission over unencrypted connections.
 	Secure bool
+	// same_site controls whether the browser sends the cookie on cross-site
+	// requests, the defense against cross-site request forgery.
+	SameSite SameSite
 }
 
 func (b0 HttpCookie_builder) Build() *HttpCookie {
@@ -223,6 +294,7 @@ func (b0 HttpCookie_builder) Build() *HttpCookie {
 	x.MaxAge = b.MaxAge
 	x.HttpOnly = b.HttpOnly
 	x.Secure = b.Secure
+	x.SameSite = b.SameSite
 	return m0
 }
 
@@ -230,7 +302,7 @@ var File_malonaz_grpc_v1_http_cookie_proto protoreflect.FileDescriptor
 
 const file_malonaz_grpc_v1_http_cookie_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/grpc/v1/http_cookie.proto\x12\x0fmalonaz.grpc.v1\"\xca\x01\n" +
+	"!malonaz/grpc/v1/http_cookie.proto\x12\x0fmalonaz.grpc.v1\"\x82\x02\n" +
 	"\n" +
 	"HttpCookie\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
@@ -240,18 +312,27 @@ const file_malonaz_grpc_v1_http_cookie_proto_rawDesc = "" +
 	"\aexpires\x18\x05 \x01(\x04R\aexpires\x12\x17\n" +
 	"\amax_age\x18\x06 \x01(\x03R\x06maxAge\x12\x1b\n" +
 	"\thttp_only\x18\a \x01(\bR\bhttpOnly\x12\x16\n" +
-	"\x06secure\x18\b \x01(\bR\x06secureB*Z(github.com/malonaz/core/genproto/grpc/v1b\x06proto3"
+	"\x06secure\x18\b \x01(\bR\x06secure\x126\n" +
+	"\tsame_site\x18\t \x01(\x0e2\x19.malonaz.grpc.v1.SameSiteR\bsameSite*b\n" +
+	"\bSameSite\x12\x19\n" +
+	"\x15SAME_SITE_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rSAME_SITE_LAX\x10\x01\x12\x14\n" +
+	"\x10SAME_SITE_STRICT\x10\x02\x12\x12\n" +
+	"\x0eSAME_SITE_NONE\x10\x03B*Z(github.com/malonaz/core/genproto/grpc/v1b\x06proto3"
 
+var file_malonaz_grpc_v1_http_cookie_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_grpc_v1_http_cookie_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_grpc_v1_http_cookie_proto_goTypes = []any{
-	(*HttpCookie)(nil), // 0: malonaz.grpc.v1.HttpCookie
+	(SameSite)(0),      // 0: malonaz.grpc.v1.SameSite
+	(*HttpCookie)(nil), // 1: malonaz.grpc.v1.HttpCookie
 }
 var file_malonaz_grpc_v1_http_cookie_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: malonaz.grpc.v1.HttpCookie.same_site:type_name -> malonaz.grpc.v1.SameSite
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_grpc_v1_http_cookie_proto_init() }
@@ -264,13 +345,14 @@ func file_malonaz_grpc_v1_http_cookie_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_grpc_v1_http_cookie_proto_rawDesc), len(file_malonaz_grpc_v1_http_cookie_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_grpc_v1_http_cookie_proto_goTypes,
 		DependencyIndexes: file_malonaz_grpc_v1_http_cookie_proto_depIdxs,
+		EnumInfos:         file_malonaz_grpc_v1_http_cookie_proto_enumTypes,
 		MessageInfos:      file_malonaz_grpc_v1_http_cookie_proto_msgTypes,
 	}.Build()
 	File_malonaz_grpc_v1_http_cookie_proto = out.File
