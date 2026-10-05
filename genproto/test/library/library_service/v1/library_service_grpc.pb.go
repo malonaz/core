@@ -121,9 +121,9 @@ type LibraryServiceClient interface {
 	UndeleteShelf(ctx context.Context, in *UndeleteShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(ctx context.Context, in *ListShelvesRequest, opts ...grpc.CallOption) (*ListShelvesResponse, error)
-	// Exports the shelves of an organization, each with its books, as a
+	// Exports the shelves of an organization to a CSV document, as a
 	// long-running operation (AIP-151) run by the scheduler: its metadata tallies
-	// progress, its response holds the shelves.
+	// progress, its response holds the document.
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ExportShelves(ctx context.Context, in *ExportShelvesRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
@@ -160,8 +160,7 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(ctx context.Context, in *ImportBooksRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
-	// Exports books to one of the request's destinations: the operation's
-	// response or a CSV document. A long-running
+	// Exports books to one of the request's destinations. A long-running
 	// operation (AIP-151) run by the scheduler: its metadata tallies progress and
 	// partial failures.
 	//
@@ -691,9 +690,9 @@ type LibraryServiceServer interface {
 	UndeleteShelf(context.Context, *UndeleteShelfRequest) (*v1.Shelf, error)
 	// Lists shelves.
 	ListShelves(context.Context, *ListShelvesRequest) (*ListShelvesResponse, error)
-	// Exports the shelves of an organization, each with its books, as a
+	// Exports the shelves of an organization to a CSV document, as a
 	// long-running operation (AIP-151) run by the scheduler: its metadata tallies
-	// progress, its response holds the shelves.
+	// progress, its response holds the document.
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ExportShelves(context.Context, *ExportShelvesRequest) (*longrunningpb.Operation, error)
@@ -730,8 +729,7 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ImportBooks(context.Context, *ImportBooksRequest) (*longrunningpb.Operation, error)
-	// Exports books to one of the request's destinations: the operation's
-	// response or a CSV document. A long-running
+	// Exports books to one of the request's destinations. A long-running
 	// operation (AIP-151) run by the scheduler: its metadata tallies progress and
 	// partial failures.
 	//

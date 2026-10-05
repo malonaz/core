@@ -88,7 +88,7 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 // scheduler calls each Run method back with the request the operation was started
 // with; the result is recorded as the operation's response or error.
 type LibraryServiceRunner interface {
-	AggregateExportShelves(ctx context.Context, request *v12.ExportShelvesRequest, shelves []*v14.Shelf) ([]*v12.ExportedShelf, error)
+	ExportShelvesToCsv(ctx context.Context, request *v12.ExportShelvesRequest, reader *ExportShelvesReader) (*v12.ExportShelvesResponse, error)
 	ImportBooksFromTitles(ctx context.Context, request *v12.ImportBooksRequest, sink *ImportBooksSink) error
 	ExportBooksToCsv(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
 }
@@ -2723,12 +2723,11 @@ func (s *LibraryServiceServer) ExportShelves(ctx context.Context, request *v12.E
 
 var exportShelvesRequestFilteringParser = aip.MustNewFilteringRequestParser[*v12.ExportShelvesRequest, *v14.Shelf](aip.WithFQN())
 
-// ExportShelvesReader reads the items of ExportShelves out of the store (AIP-153): the shelves under
+// ExportShelvesReader reads the shelves of ExportShelves out of the store (AIP-153): those under
 // the request's parent matching its filter, a page at a time in primary key order, each
 // counted as exported in the operation's metadata.
 type ExportShelvesReader struct {
 	server         *libraryService_ShelfServer
-	runner         LibraryServiceRunner
 	request        *v12.ExportShelvesRequest
 	organizationId string
 	whereClause    string
@@ -2755,7 +2754,6 @@ func (s *LibraryServiceServer) newExportShelvesReader(request *v12.ExportShelves
 	whereClause, whereParams = filteringRequest.GetSQLWhereClause()
 	return &ExportShelvesReader{
 		server:         s.libraryService_ShelfServer,
-		runner:         s.runner,
 		request:        request,
 		organizationId: organizationId,
 		whereClause:    whereClause,
@@ -2764,73 +2762,51 @@ func (s *LibraryServiceServer) newExportShelvesReader(request *v12.ExportShelves
 	}, nil
 }
 
-// Next returns the next items, nil once the export is exhausted. They are counted
+// Next returns the next shelves, nil once the export is exhausted. They are counted
 // as exported; the error returned means the operation was cancelled or the read
 // failed: stop exporting.
-func (r *ExportShelvesReader) Next(ctx context.Context) ([]*v12.ExportedShelf, error) {
-	for !r.done {
-		whereClause, whereParams := r.whereClause, slices.Clone(r.whereParams)
-		if r.after != nil {
-			whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(shelf.organization_id, shelf.shelf_id) > ($%d, $%d)", len(whereParams)+1, len(whereParams)+2))
-			whereParams = append(whereParams, r.after...)
-		}
-		dbShelves, err := r.server.store.ListShelves(ctx, r.organizationId, r.request.GetShowDeleted(), whereClause, "ORDER BY shelf.organization_id, shelf.shelf_id", "LIMIT 500", nil, whereParams...)
-		if err != nil {
-			return nil, status.FromError(err, "listing shelves").Err()
-		}
-		r.done = len(dbShelves) < 500
-		if len(dbShelves) == 0 {
-			return nil, nil
-		}
-		last := dbShelves[len(dbShelves)-1]
-		r.after = []any{last.OrganizationID, last.ShelfID}
-		shelves := make([]*v14.Shelf, 0, len(dbShelves))
-		for _, dbShelfModel := range dbShelves {
-			shelf, err := dbShelfModel.ToPb()
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
-			}
-			shelves = append(shelves, shelf)
-		}
-		items, err := r.runner.AggregateExportShelves(ctx, r.request, shelves)
-		if err != nil {
-			return nil, err
-		}
-		if len(items) == 0 {
-			continue
-		}
-		if err := r.progress.Succeeded(ctx, int32(len(items))); err != nil {
-			return nil, err
-		}
-		return items, nil
+func (r *ExportShelvesReader) Next(ctx context.Context) ([]*v14.Shelf, error) {
+	if r.done {
+		return nil, nil
 	}
-	return nil, nil
+	whereClause, whereParams := r.whereClause, slices.Clone(r.whereParams)
+	if r.after != nil {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(shelf.organization_id, shelf.shelf_id) > ($%d, $%d)", len(whereParams)+1, len(whereParams)+2))
+		whereParams = append(whereParams, r.after...)
+	}
+	dbShelves, err := r.server.store.ListShelves(ctx, r.organizationId, r.request.GetShowDeleted(), whereClause, "ORDER BY shelf.organization_id, shelf.shelf_id", "LIMIT 500", nil, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing shelves").Err()
+	}
+	r.done = len(dbShelves) < 500
+	if len(dbShelves) == 0 {
+		return nil, nil
+	}
+	last := dbShelves[len(dbShelves)-1]
+	r.after = []any{last.OrganizationID, last.ShelfID}
+	shelves := make([]*v14.Shelf, 0, len(dbShelves))
+	for _, dbShelfModel := range dbShelves {
+		shelf, err := dbShelfModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		shelves = append(shelves, shelf)
+	}
+	if err := r.progress.Succeeded(ctx, int32(len(shelves))); err != nil {
+		return nil, err
+	}
+	return shelves, nil
 }
 
-// SetTotal records how many items the export holds, when the destination knows.
+// SetTotal records how many shelves the export holds, when the destination knows.
 func (r *ExportShelvesReader) SetTotal(ctx context.Context, total int32) error {
 	return r.progress.SetTotal(ctx, total)
 }
 
-// Fail records an item Next returned that the destination could not write (AIP-193).
+// Fail records a shelf Next returned that the destination could not write (AIP-193).
 // The error returned means the operation was cancelled: stop exporting.
 func (r *ExportShelvesReader) Fail(ctx context.Context, err error) error {
 	return r.progress.Failed(ctx, err)
-}
-
-// exportInline answers with every item.
-func (r *ExportShelvesReader) exportInline(ctx context.Context) (*v12.ExportShelvesResponse, error) {
-	var items []*v12.ExportedShelf
-	for {
-		page, err := r.Next(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if len(page) == 0 {
-			return &v12.ExportShelvesResponse{Shelves: items}, nil
-		}
-		items = append(items, page...)
-	}
 }
 
 // RunExportShelves exports shelves to the request's destination (AIP-153).
@@ -2840,8 +2816,8 @@ func (s *LibraryServiceServer) RunExportShelves(ctx context.Context, request *v1
 		return nil, err
 	}
 	switch request.GetDestination().(type) {
-	case *v12.ExportShelvesRequest_InlineDestination_:
-		return reader.exportInline(ctx)
+	case *v12.ExportShelvesRequest_CsvDestination_:
+		return s.runner.ExportShelvesToCsv(ctx, request, reader)
 	}
 	return nil, status.Errorf(codes.InvalidArgument, "destination is required").Err()
 }
@@ -3064,7 +3040,7 @@ func (s *LibraryServiceServer) ExportBooks(ctx context.Context, request *v12.Exp
 
 var exportBooksRequestFilteringParser = aip.MustNewFilteringRequestParser[*v12.ExportBooksRequest, *v14.Book](aip.WithFQN())
 
-// ExportBooksReader reads the items of ExportBooks out of the store (AIP-153): the books under
+// ExportBooksReader reads the books of ExportBooks out of the store (AIP-153): those under
 // the request's parent matching its filter, a page at a time in primary key order, each
 // counted as exported in the operation's metadata.
 type ExportBooksReader struct {
@@ -3104,70 +3080,51 @@ func (s *LibraryServiceServer) newExportBooksReader(request *v12.ExportBooksRequ
 	}, nil
 }
 
-// Next returns the next items, nil once the export is exhausted. They are counted
+// Next returns the next books, nil once the export is exhausted. They are counted
 // as exported; the error returned means the operation was cancelled or the read
 // failed: stop exporting.
 func (r *ExportBooksReader) Next(ctx context.Context) ([]*v14.Book, error) {
-	for !r.done {
-		whereClause, whereParams := r.whereClause, slices.Clone(r.whereParams)
-		if r.after != nil {
-			whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(book.organization_id, book.shelf_id, book.book_id) > ($%d, $%d, $%d)", len(whereParams)+1, len(whereParams)+2, len(whereParams)+3))
-			whereParams = append(whereParams, r.after...)
-		}
-		dbBooks, err := r.server.store.ListBooks(ctx, r.organizationId, r.shelfId, whereClause, "ORDER BY book.organization_id, book.shelf_id, book.book_id", "LIMIT 500", nil, whereParams...)
-		if err != nil {
-			return nil, status.FromError(err, "listing books").Err()
-		}
-		r.done = len(dbBooks) < 500
-		if len(dbBooks) == 0 {
-			return nil, nil
-		}
-		last := dbBooks[len(dbBooks)-1]
-		r.after = []any{last.OrganizationID, last.ShelfID, last.BookID}
-		books := make([]*v14.Book, 0, len(dbBooks))
-		for _, dbBookModel := range dbBooks {
-			book, err := dbBookModel.ToPb()
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting book from model to pb: %v", err).Err()
-			}
-			books = append(books, book)
-		}
-		items := books
-		if len(items) == 0 {
-			continue
-		}
-		if err := r.progress.Succeeded(ctx, int32(len(items))); err != nil {
-			return nil, err
-		}
-		return items, nil
+	if r.done {
+		return nil, nil
 	}
-	return nil, nil
+	whereClause, whereParams := r.whereClause, slices.Clone(r.whereParams)
+	if r.after != nil {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(book.organization_id, book.shelf_id, book.book_id) > ($%d, $%d, $%d)", len(whereParams)+1, len(whereParams)+2, len(whereParams)+3))
+		whereParams = append(whereParams, r.after...)
+	}
+	dbBooks, err := r.server.store.ListBooks(ctx, r.organizationId, r.shelfId, whereClause, "ORDER BY book.organization_id, book.shelf_id, book.book_id", "LIMIT 500", nil, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing books").Err()
+	}
+	r.done = len(dbBooks) < 500
+	if len(dbBooks) == 0 {
+		return nil, nil
+	}
+	last := dbBooks[len(dbBooks)-1]
+	r.after = []any{last.OrganizationID, last.ShelfID, last.BookID}
+	books := make([]*v14.Book, 0, len(dbBooks))
+	for _, dbBookModel := range dbBooks {
+		book, err := dbBookModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting book from model to pb: %v", err).Err()
+		}
+		books = append(books, book)
+	}
+	if err := r.progress.Succeeded(ctx, int32(len(books))); err != nil {
+		return nil, err
+	}
+	return books, nil
 }
 
-// SetTotal records how many items the export holds, when the destination knows.
+// SetTotal records how many books the export holds, when the destination knows.
 func (r *ExportBooksReader) SetTotal(ctx context.Context, total int32) error {
 	return r.progress.SetTotal(ctx, total)
 }
 
-// Fail records an item Next returned that the destination could not write (AIP-193).
+// Fail records a book Next returned that the destination could not write (AIP-193).
 // The error returned means the operation was cancelled: stop exporting.
 func (r *ExportBooksReader) Fail(ctx context.Context, err error) error {
 	return r.progress.Failed(ctx, err)
-}
-
-// exportInline answers with every item.
-func (r *ExportBooksReader) exportInline(ctx context.Context) (*v12.ExportBooksResponse, error) {
-	var items []*v14.Book
-	for {
-		page, err := r.Next(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if len(page) == 0 {
-			return &v12.ExportBooksResponse{Books: items}, nil
-		}
-		items = append(items, page...)
-	}
 }
 
 // RunExportBooks exports books to the request's destination (AIP-153).
@@ -3177,8 +3134,6 @@ func (s *LibraryServiceServer) RunExportBooks(ctx context.Context, request *v12.
 		return nil, err
 	}
 	switch request.GetDestination().(type) {
-	case *v12.ExportBooksRequest_InlineDestination_:
-		return reader.exportInline(ctx)
 	case *v12.ExportBooksRequest_CsvDestination:
 		return s.runner.ExportBooksToCsv(ctx, request, reader)
 	}
