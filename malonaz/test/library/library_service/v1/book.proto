@@ -337,31 +337,20 @@ message ExportBooksRequest {
   // Restricts the export to the books matching this filter (AIP-160).
   string filter = 2;
 
-  // Where the books go.
-  oneof destination {
-    option (buf.validate.oneof).required = true;
-
-    // A CSV document in the operation's response.
-    CsvDestination csv_destination = 3;
-  }
-
   // A unique identifier for this request. Must be a UUID. Repeating a request
   // with the same ID returns the operation it started instead of starting another.
-  string request_id = 4 [
+  string request_id = 3 [
     (buf.validate.field).required = true,
     (buf.validate.field).string.uuid = true
   ];
-}
 
-// CsvDestination renders one `name,title` row per book.
-message CsvDestination {
   // Test hook: books with this title are recorded as partial failures instead
   // of rows. Empty disables it.
-  string reject_title = 1;
+  string reject_title = 4;
 }
 
 // Response message for LibraryService.ExportBooks, the operation's response.
 message ExportBooksResponse {
-  // The CSV document. Set by the CSV destination.
+  // The CSV document: one `name,title` row per book.
   string csv = 1;
 }

@@ -113,8 +113,8 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 			continue
 		}
 		if lro.exp != nil {
-			// The export itself is generated; the runner supplies its destinations.
-			gen.generateExportRunnerMethods(lro.exp)
+			// The export's read is generated; the runner writes it out.
+			gen.generateExportRunnerMethod(lro.exp)
 			continue
 		}
 		responseType, err := gen.responseTypeIdent(lro)
@@ -169,11 +169,14 @@ func (gen *generator) generateLongrunning(si *serviceInfo, lro *longrunningMetho
 	g.P("    }")
 	g.P(fmt.Sprintf("    return %s(ctx, s.schedulerServiceClient, startRequest)", gen.ident(longrunningPkg, "Start")))
 	g.P("  }")
-	runner := "s.runner."
-	if lro.imp != nil || lro.exp != nil {
-		runner = "s."
+	run := "s.runner.Run"
+	switch {
+	case lro.imp != nil:
+		run = "s.Run"
+	case lro.exp != nil:
+		run = "s.run"
 	}
-	g.P(fmt.Sprintf("  response, err := %sRun%s(ctx, request)", runner, method.GoName))
+	g.P(fmt.Sprintf("  response, err := %s%s(ctx, request)", run, method.GoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return %s(ctx, err)", gen.ident(longrunningPkg, "Failed")))
 	g.P("  }")

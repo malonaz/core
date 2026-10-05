@@ -12,9 +12,8 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// ExportBooksToCsv is ExportBooks' CSV destination: one `name,title` row per book.
-func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
-	destination := request.GetCsvDestination()
+// RunExportBooks writes ExportBooks' CSV: one `name,title` row per book.
+func (s *Service) RunExportBooks(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
 	var builder strings.Builder
 	writer := csv.NewWriter(&builder)
 	if err := writer.Write([]string{"name", "title"}); err != nil {
@@ -29,7 +28,7 @@ func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicep
 			break
 		}
 		for _, book := range books {
-			if destination.GetRejectTitle() != "" && book.GetTitle() == destination.GetRejectTitle() {
+			if request.GetRejectTitle() != "" && book.GetTitle() == request.GetRejectTitle() {
 				if err := reader.Fail(ctx, status.Errorf(codes.InvalidArgument, "book %q is rejected", book.GetName()).Err()); err != nil {
 					return nil, err
 				}
@@ -47,8 +46,8 @@ func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicep
 	return &libraryservicepb.ExportBooksResponse{Csv: builder.String()}, nil
 }
 
-// ExportShelvesToCsv is ExportShelves' CSV destination: one `name,display_name` row per shelf.
-func (s *Service) ExportShelvesToCsv(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.ExportShelvesResponse, error) {
+// RunExportShelves writes ExportShelves' CSV: one `name,display_name` row per shelf.
+func (s *Service) RunExportShelves(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.ExportShelvesResponse, error) {
 	var builder strings.Builder
 	writer := csv.NewWriter(&builder)
 	if err := writer.Write([]string{"name", "display_name"}); err != nil {

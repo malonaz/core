@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Export
-description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, optional filter/show_deleted, oneof destination, required request_id), the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and one runner method per destination.
+description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, optional filter/show_deleted, required request_id), the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and the runner's Run{Export} that writes it out.
 labels:
     lang: go, protobuf
     repo: core
@@ -32,15 +32,12 @@ message ExportBooksRequest {
   option (malonaz.codegen.aip.v1.filtering) = {paths: [...]};  // MUST when `filter` exists
   string parent = 1 [required, (google.api.resource_reference).child_type = "…/Book"];
   string filter = 2;                               // optional, AIP-160, same SQL as List
-  bool show_deleted = 5;                           // optional, soft-deletable resources only
-  oneof destination {                              // MUST, even with one variant
-    option (buf.validate.oneof).required = true;
-    CsvDestination csv_destination = 3;            // any number of *Destination messages, free-form
-  }
-  string request_id = 4 [required, uuid];          // MUST be required
+  bool show_deleted = 4;                           // optional, soft-deletable resources only
+  string request_id = 3 [required, uuid];          // MUST be required
+  // anything else is free-form, for the runner to read
 }
 message ExportBooksResponse {
-  string csv = 1;            // free-form: whatever the destinations echo
+  string csv = 1;            // free-form: whatever the runner echoes (e.g. the File it wrote)
 }
 ```
 
@@ -52,11 +49,10 @@ message ExportBooksResponse {
 
 ## What is generated
 
-- `Run{Export}` on the service server: builds the reader, dispatches on the
-  destination to the runner's
-  `{Export}To{Variant}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
-  (`csv_destination` → `ExportBooksToCsv`), which writes the resources and
-  returns the response, echoing what it wrote (e.g. the File it created).
+- The runner's `Run{Export}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
+  (`RunExportBooks`), handed the reader by the generated handler: it writes
+  the resources out and returns the response, echoing what it wrote (e.g. the
+  File it created).
 - `{Export}Reader`, the only way resources leave the store:
   - `Next(ctx) ([]*{Resource}, error)` — the next page (500 rows); nil once
     exhausted. Resources are counted as successes when returned. The error
@@ -74,5 +70,5 @@ never shift a page. The keyset is AND-ed onto the parent and filter, which
 the store already scopes. Nullable identifiers of multi-pattern resources are
 compared as `COALESCE(col, '')`.
 
-A retried attempt starts over from the first page: destinations must
+A retried attempt starts over from the first page: the runner must
 tolerate a rewrite (overwrite the File, keyed on `request_id`).

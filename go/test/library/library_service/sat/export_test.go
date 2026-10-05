@@ -25,7 +25,7 @@ func exportBooks(t *testing.T, parent, filter, rejectTitle string) *longrunningp
 		Parent:      parent,
 		Filter:      filter,
 		RequestId:   uuid.MustNewV7().String(),
-		Destination: &libraryservicepb.ExportBooksRequest_CsvDestination{CsvDestination: &libraryservicepb.CsvDestination{RejectTitle: rejectTitle}},
+		RejectTitle: rejectTitle,
 	}
 	operation, err := libraryServiceClient.ExportBooks(ctx, request)
 	require.NoError(t, err)
@@ -170,7 +170,6 @@ func TestExportShelves(t *testing.T) {
 			Parent:      fixture.organization,
 			ShowDeleted: showDeleted,
 			RequestId:   uuid.MustNewV7().String(),
-			Destination: &libraryservicepb.ExportShelvesRequest_CsvDestination_{CsvDestination: &libraryservicepb.ExportShelvesRequest_CsvDestination{}},
 		}
 		operation, err := libraryServiceClient.ExportShelves(ctx, exportShelvesRequest)
 		require.NoError(t, err)
