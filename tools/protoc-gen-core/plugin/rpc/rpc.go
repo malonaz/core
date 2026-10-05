@@ -622,6 +622,8 @@ func (gen *generator) generateMethod(si *serviceInfo, mi *methodInfo) error {
 		return mc.generateSearch()
 	case mi.rpc.Import, mi.rpc.Export:
 		// Generated with the long-running handlers.
+	default:
+		return fmt.Errorf("no generator for standard method %s", mi.method.GoName)
 	}
 	return nil
 }

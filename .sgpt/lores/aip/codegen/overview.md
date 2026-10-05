@@ -20,8 +20,9 @@ here — this documents what our implementation decides on top of them.
 | `rpc` | `gengo/.../{service}/rpc`: `{Service}Server` embedding one `{service}_{Resource}Server` per resource, each over a `{service}_{Resource}Store` interface | `malonaz.codegen.aip.v1.standard_method` on each RPC, `pagination`/`ordering`/`filtering`/`update` on requests, `malonaz.codegen.nats.v1.event` on resources |
 
 A method is generated iff it carries `standard_method.resource` **and** is
-named `{Create,Get,Update,Delete,Undelete}{Singular}` / `{BatchCreate,List,BatchGet,Search}{Plural}`;
-anything else is a codegen error. Wiring (`manifest.yaml` → `service.tmpl.go`)
+named `{Create,Get,Update,Delete,Undelete}{Singular}` / `{BatchCreate,List,BatchGet,Search,Import,Export}{Plural}`;
+anything else is a codegen error. The matching lives in `aip.ParseStandardMethodType`
+(`go/aip/standard_method.go`), shared with `pbreflection` at runtime. Wiring (`manifest.yaml` → `service.tmpl.go`)
 is onyx (`malonaz/onyx/v1` manifests, `tools/onyx`, `build_defs/codegen/onyx`); the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
 

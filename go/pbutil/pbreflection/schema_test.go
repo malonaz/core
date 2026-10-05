@@ -1,13 +1,16 @@
 package pbreflection
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 
+	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 )
 
@@ -40,19 +43,19 @@ func TestNewSchema_StandardMethodTypes(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	for methodName, expected := range map[protoreflect.Name]StandardMethodType{
-		"CreateShelf":   StandardMethodTypeCreate,
-		"GetShelf":      StandardMethodTypeGet,
-		"ListShelves":   StandardMethodTypeList,
-		"SearchAuthors": StandardMethodTypeSearch,
-		"ImportBooks":   StandardMethodTypeImport,
-		"ExportShelves": StandardMethodTypeExport,
-		"ExportBooks":   StandardMethodTypeExport,
-	} {
-		t.Run(string(methodName), func(t *testing.T) {
-			methodType, err := schema.GetStandardMethodType(service.FullName().Append(methodName))
-			require.NoError(t, err)
-			require.Equal(t, expected, methodType)
-		})
+	// Annotated methods must resolve to a type their name starts with, e.g. ExportBooks is Export.
+	mismatches := map[protoreflect.Name]StandardMethodType{}
+	methods := service.Methods()
+	for i := 0; i < methods.Len(); i++ {
+		method := methods.Get(i)
+		if !proto.HasExtension(method.Options(), aippb.E_StandardMethod) {
+			continue
+		}
+		methodType, err := schema.GetStandardMethodType(method.FullName())
+		require.NoError(t, err)
+		if methodType == StandardMethodTypeUnspecified || !strings.HasPrefix(string(method.Name()), string(methodType)) {
+			mismatches[method.Name()] = methodType
+		}
 	}
+	require.Empty(t, mismatches)
 }
