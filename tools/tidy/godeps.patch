@@ -1,5 +1,5 @@
 diff --git a/cmd/godeps/generate_builtin.go b/cmd/godeps/generate_builtin.go
-index 6216332..5132e11 100644
+index 6216332..f8a51af 100644
 --- a/cmd/godeps/generate_builtin.go
 +++ b/cmd/godeps/generate_builtin.go
 @@ -11,10 +11,11 @@ import (
@@ -110,6 +110,15 @@ index 6216332..5132e11 100644
  }
  
  func sanitizeName(name string) string {
+@@ -397,6 +426,8 @@ func uniqueStrings(s []string) []string {
+ 	for k := range tmp {
+ 		ns = append(ns, k)
+ 	}
++	// Map order is random: sort so regenerated BUILD files are stable.
++	sort.Strings(ns)
+ 
+ 	return ns
+ }
 diff --git a/cmd/godeps/main.go b/cmd/godeps/main.go
 index 415d199..80f50bd 100644
 --- a/cmd/godeps/main.go
