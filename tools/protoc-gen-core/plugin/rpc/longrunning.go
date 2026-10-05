@@ -113,7 +113,7 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 			continue
 		}
 		if lro.exp != nil {
-			// The export itself is generated; the runner supplies its aggregate and custom destinations.
+			// The export itself is generated; the runner supplies its destinations.
 			gen.generateExportRunnerMethods(lro.exp)
 			continue
 		}

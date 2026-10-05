@@ -337,23 +337,17 @@ message ExportBooksRequest {
   // Restricts the export to the books matching this filter (AIP-160).
   string filter = 2;
 
-  // InlineDestination answers with the exported books in the operation's response.
-  message InlineDestination {}
-
   // Where the books go.
   oneof destination {
     option (buf.validate.oneof).required = true;
 
-    // The operation's response.
-    InlineDestination inline_destination = 3;
-
     // A CSV document in the operation's response.
-    CsvDestination csv_destination = 4;
+    CsvDestination csv_destination = 3;
   }
 
   // A unique identifier for this request. Must be a UUID. Repeating a request
   // with the same ID returns the operation it started instead of starting another.
-  string request_id = 5 [
+  string request_id = 4 [
     (buf.validate.field).required = true,
     (buf.validate.field).string.uuid = true
   ];
@@ -368,10 +362,6 @@ message CsvDestination {
 
 // Response message for LibraryService.ExportBooks, the operation's response.
 message ExportBooksResponse {
-  // The books exported, in ImportBooks' inline format (AIP-153). Set by the
-  // inline destination.
-  repeated malonaz.test.library.v1.Book books = 1;
-
   // The CSV document. Set by the CSV destination.
-  string csv = 2;
+  string csv = 1;
 }

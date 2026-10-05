@@ -1,6 +1,7 @@
 package sat
 
 import (
+	"encoding/csv"
 	"fmt"
 	"slices"
 	"strings"
@@ -17,10 +18,15 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-// exportBooks runs an export of the books under parent to completion.
-func exportBooks(t *testing.T, request *libraryservicepb.ExportBooksRequest) *longrunningpb.Operation {
+// exportBooks runs a CSV export of the books under parent to completion.
+func exportBooks(t *testing.T, parent, filter, rejectTitle string) *longrunningpb.Operation {
 	t.Helper()
-	request.RequestId = uuid.MustNewV7().String()
+	request := &libraryservicepb.ExportBooksRequest{
+		Parent:      parent,
+		Filter:      filter,
+		RequestId:   uuid.MustNewV7().String(),
+		Destination: &libraryservicepb.ExportBooksRequest_CsvDestination{CsvDestination: &libraryservicepb.CsvDestination{RejectTitle: rejectTitle}},
+	}
 	operation, err := libraryServiceClient.ExportBooks(ctx, request)
 	require.NoError(t, err)
 	done := waitOperation(t, operation.GetName(), operationWaitTimeout)
@@ -29,89 +35,70 @@ func exportBooks(t *testing.T, request *libraryservicepb.ExportBooksRequest) *lo
 	return done
 }
 
-func inlineExportBooksRequest(parent, filter string) *libraryservicepb.ExportBooksRequest {
-	return &libraryservicepb.ExportBooksRequest{
-		Parent:      parent,
-		Filter:      filter,
-		Destination: &libraryservicepb.ExportBooksRequest_InlineDestination_{InlineDestination: &libraryservicepb.ExportBooksRequest_InlineDestination{}},
-	}
-}
-
 func exportMetadata(t *testing.T, operation *longrunningpb.Operation) *aippb.ExportMetadata {
 	t.Helper()
 	require.NotNil(t, operation.GetMetadata(), "operation %s has no metadata", operation.GetName())
 	return unpackAny[*aippb.ExportMetadata](t, operation.GetMetadata())
 }
 
-// exportedBooks returns the response of a finished inline export, its books by
-// name: the export pages in primary key order, which the database collation decides.
-func exportedBooks(t *testing.T, done *longrunningpb.Operation) *libraryservicepb.ExportBooksResponse {
+// csvRows parses a CSV export, its rows sorted by name: the export pages in
+// primary key order, which the database collation decides.
+func csvRows(t *testing.T, document string) [][]string {
 	t.Helper()
-	response := unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse())
-	slices.SortFunc(response.Books, func(a, b *librarypb.Book) int { return strings.Compare(a.GetName(), b.GetName()) })
-	return response
+	rows, err := csv.NewReader(strings.NewReader(document)).ReadAll()
+	require.NoError(t, err)
+	require.NotEmpty(t, rows)
+	body := rows[1:]
+	slices.SortFunc(body, func(a, b []string) int { return strings.Compare(a[0], b[0]) })
+	return append(rows[:1], body...)
 }
 
-// listedBooks returns the books under parent as ListBooks has them, by name.
-func listedBooks(t *testing.T, parent string) []*librarypb.Book {
+// exportedBooks returns the rows of a finished books export.
+func exportedBooks(t *testing.T, done *longrunningpb.Operation) [][]string {
+	t.Helper()
+	return csvRows(t, unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse()).GetCsv())
+}
+
+// listedBooks returns the rows the books under parent export to, as ListBooks has them.
+func listedBooks(t *testing.T, parent string) [][]string {
 	t.Helper()
 	listBooksRequest := &libraryservicepb.ListBooksRequest{Parent: parent, PageSize: 1000}
 	listBooksResponse, err := libraryServiceClient.ListBooks(ctx, listBooksRequest)
 	require.NoError(t, err)
-	books := listBooksResponse.GetBooks()
-	slices.SortFunc(books, func(a, b *librarypb.Book) int { return strings.Compare(a.GetName(), b.GetName()) })
-	return books
+	rows := [][]string{{"name", "title"}}
+	for _, book := range listBooksResponse.GetBooks() {
+		rows = append(rows, []string{book.GetName(), book.GetTitle()})
+	}
+	slices.SortFunc(rows[1:], func(a, b []string) int { return strings.Compare(a[0], b[0]) })
+	return rows
 }
 
-func TestExportBooks_Inline(t *testing.T) {
+func TestExportBooks(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
 	for _, title := range titles(3) {
 		createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title)
 	}
 
-	done := exportBooks(t, inlineExportBooksRequest(fixture.shelf.GetName(), ""))
+	done := exportBooks(t, fixture.shelf.GetName(), "", "")
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 3}, exportMetadata(t, done))
-	expected := &libraryservicepb.ExportBooksResponse{Books: listedBooks(t, fixture.shelf.GetName())}
-	require.Len(t, expected.GetBooks(), 3)
-	grpcrequire.Equal(t, expected, exportedBooks(t, done))
-}
-
-// What an inline export returns, an inline import takes back (AIP-153).
-func TestExportBooks_RoundTrip(t *testing.T) {
-	t.Parallel()
-	fixture := newImportFixture(t)
-	for _, title := range titles(2) {
-		createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title)
-	}
-	exported := exportedBooks(t, exportBooks(t, inlineExportBooksRequest(fixture.shelf.GetName(), ""))).GetBooks()
-
-	target := newImportFixture(t)
-	shelf, err := librarypb.ParseShelfRn(target.shelf.GetName())
-	require.NoError(t, err)
-	for _, book := range exported {
-		bookRn, err := librarypb.ParseBookRn(book.GetName())
-		require.NoError(t, err)
-		book.Name = shelf.BookRn(bookRn.Book).String()
-	}
-	imported := waitOperation(t, target.importBooks(t, target.inlineRequest(exported...)).GetName(), operationWaitTimeout)
-	require.Nil(t, imported.GetError())
-	grpcrequire.Equal(t, &aippb.ImportMetadata{SuccessCount: 2, TotalCount: 2}, importMetadata(t, imported))
+	expected := listedBooks(t, fixture.shelf.GetName())
+	require.Len(t, expected, 4)
+	require.Equal(t, expected, exportedBooks(t, done))
 }
 
 func TestExportBooks_Filter(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
 	titles := titles(3)
+	var books []*librarypb.Book
 	for _, title := range titles {
-		createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title)
+		books = append(books, createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title))
 	}
 
-	done := exportBooks(t, inlineExportBooksRequest(fixture.shelf.GetName(), fmt.Sprintf("title = %q", titles[1])))
+	done := exportBooks(t, fixture.shelf.GetName(), fmt.Sprintf("title = %q", titles[1]), "")
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 1}, exportMetadata(t, done))
-	books := exportedBooks(t, done).GetBooks()
-	require.Len(t, books, 1)
-	require.Equal(t, titles[1], books[0].GetTitle())
+	require.Equal(t, [][]string{{"name", "title"}, {books[1].GetName(), titles[1]}}, exportedBooks(t, done))
 }
 
 func TestExportBooks_WildcardParent(t *testing.T) {
@@ -122,11 +109,11 @@ func TestExportBooks_WildcardParent(t *testing.T) {
 	createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), titles[0])
 	createTestBook(t, otherShelf.GetName(), fixture.author.GetName(), titles[1])
 
-	done := exportBooks(t, inlineExportBooksRequest(fixture.organization+"/shelves/-", ""))
+	done := exportBooks(t, fixture.organization+"/shelves/-", "", "")
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 2}, exportMetadata(t, done))
-	expected := &libraryservicepb.ExportBooksResponse{Books: listedBooks(t, fixture.organization+"/shelves/-")}
-	require.Len(t, expected.GetBooks(), 2)
-	grpcrequire.Equal(t, expected, exportedBooks(t, done))
+	expected := listedBooks(t, fixture.organization+"/shelves/-")
+	require.Len(t, expected, 3)
+	require.Equal(t, expected, exportedBooks(t, done))
 }
 
 // More books than a page: the keyset carries the export over the page boundary
@@ -142,90 +129,77 @@ func TestExportBooks_Paging(t *testing.T) {
 	imported := waitOperation(t, fixture.importBooks(t, fixture.inlineRequest(books...)).GetName(), operationWaitTimeout)
 	require.Nil(t, imported.GetError())
 
-	done := exportBooks(t, inlineExportBooksRequest(fixture.shelf.GetName(), ""))
+	done := exportBooks(t, fixture.shelf.GetName(), "", "")
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: int32(len(titles))}, exportMetadata(t, done))
-	exported := exportedBooks(t, done).GetBooks()
-	exportedTitles := make([]string, len(exported))
-	for i, book := range exported {
-		exportedTitles[i] = book.GetTitle()
+	rows := exportedBooks(t, done)[1:]
+	exportedTitles := make([]string, len(rows))
+	for i, row := range rows {
+		exportedTitles[i] = row[1]
 	}
 	require.ElementsMatch(t, titles, exportedTitles)
 }
 
-func TestExportBooks_Csv(t *testing.T) {
+func TestExportBooks_Reject(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
 	titles := titles(2)
 	kept := createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), titles[0])
 	rejected := createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), titles[1])
 
-	done := exportBooks(t, &libraryservicepb.ExportBooksRequest{
-		Parent:      fixture.shelf.GetName(),
-		Destination: &libraryservicepb.ExportBooksRequest_CsvDestination{CsvDestination: &libraryservicepb.CsvDestination{RejectTitle: titles[1]}},
-	})
+	done := exportBooks(t, fixture.shelf.GetName(), "", titles[1])
 	metadata := exportMetadata(t, done)
 	require.Len(t, metadata.GetErrors(), 1)
 	require.Equal(t, int32(codes.InvalidArgument), metadata.GetErrors()[0].GetCode())
 	require.Equal(t, fmt.Sprintf("book %q is rejected", rejected.GetName()), metadata.GetErrors()[0].GetMessage())
 	metadata.Errors = nil
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 1, FailureCount: 1}, metadata)
-	expected := &libraryservicepb.ExportBooksResponse{Csv: fmt.Sprintf("name,title\n%s,%s\n", kept.GetName(), titles[0])}
-	grpcrequire.Equal(t, expected, unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse()))
+	require.Equal(t, [][]string{{"name", "title"}, {kept.GetName(), titles[0]}}, exportedBooks(t, done))
 }
 
 func TestExportShelves(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
-	for _, title := range titles(2) {
-		createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title)
-	}
 	deleted := createTestShelf(t, fixture.organization, "Deleted Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 	deleteShelfRequest := &libraryservicepb.DeleteShelfRequest{Name: deleted.GetName()}
 	_, err := libraryServiceClient.DeleteShelf(ctx, deleteShelfRequest)
 	require.NoError(t, err)
 
-	exportShelves := func(showDeleted bool) *libraryservicepb.ExportShelvesResponse {
+	exportShelves := func(showDeleted bool) [][]string {
 		t.Helper()
 		exportShelvesRequest := &libraryservicepb.ExportShelvesRequest{
 			Parent:      fixture.organization,
 			ShowDeleted: showDeleted,
 			RequestId:   uuid.MustNewV7().String(),
-			Destination: &libraryservicepb.ExportShelvesRequest_InlineDestination_{InlineDestination: &libraryservicepb.ExportShelvesRequest_InlineDestination{}},
+			Destination: &libraryservicepb.ExportShelvesRequest_CsvDestination_{CsvDestination: &libraryservicepb.ExportShelvesRequest_CsvDestination{}},
 		}
 		operation, err := libraryServiceClient.ExportShelves(ctx, exportShelvesRequest)
 		require.NoError(t, err)
 		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
 		require.Nil(t, done.GetError())
-		response := unpackAny[*libraryservicepb.ExportShelvesResponse](t, done.GetResponse())
-		grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: int32(len(response.GetShelves()))}, exportMetadata(t, done))
-		slices.SortFunc(response.Shelves, func(a, b *libraryservicepb.ExportedShelf) int {
-			return strings.Compare(a.GetShelf().GetName(), b.GetShelf().GetName())
-		})
-		return response
+		rows := csvRows(t, unpackAny[*libraryservicepb.ExportShelvesResponse](t, done.GetResponse()).GetCsv())
+		grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: int32(len(rows) - 1)}, exportMetadata(t, done))
+		return rows
 	}
 
-	// expected is the export of the organization's shelves as ListShelves has them, each with its books.
-	expected := func(showDeleted bool) *libraryservicepb.ExportShelvesResponse {
+	// expected is the export of the organization's shelves as ListShelves has them.
+	expected := func(showDeleted bool) [][]string {
 		t.Helper()
 		listShelvesRequest := &libraryservicepb.ListShelvesRequest{Parent: fixture.organization, ShowDeleted: showDeleted, PageSize: 1000}
 		listShelvesResponse, err := libraryServiceClient.ListShelves(ctx, listShelvesRequest)
 		require.NoError(t, err)
-		response := &libraryservicepb.ExportShelvesResponse{}
+		rows := [][]string{{"name", "display_name"}}
 		for _, shelf := range listShelvesResponse.GetShelves() {
-			response.Shelves = append(response.Shelves, &libraryservicepb.ExportedShelf{Shelf: shelf, Books: listedBooks(t, shelf.GetName())})
+			rows = append(rows, []string{shelf.GetName(), shelf.GetDisplayName()})
 		}
-		slices.SortFunc(response.Shelves, func(a, b *libraryservicepb.ExportedShelf) int {
-			return strings.Compare(a.GetShelf().GetName(), b.GetShelf().GetName())
-		})
-		return response
+		slices.SortFunc(rows[1:], func(a, b []string) int { return strings.Compare(a[0], b[0]) })
+		return rows
 	}
 
 	live := expected(false)
-	require.Len(t, live.GetShelves(), 1)
-	require.Len(t, live.GetShelves()[0].GetBooks(), 2)
-	grpcrequire.Equal(t, live, exportShelves(false))
+	require.Len(t, live, 2)
+	require.Equal(t, live, exportShelves(false))
 
 	all := expected(true)
-	require.Len(t, all.GetShelves(), 2)
-	grpcrequire.Equal(t, all, exportShelves(true))
+	require.Len(t, all, 3)
+	require.Equal(t, all, exportShelves(true))
 }

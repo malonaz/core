@@ -7,7 +7,6 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
-import "malonaz/test/library/v1/book.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
@@ -236,15 +235,15 @@ message ExportShelvesRequest {
   // If set to true, soft deleted shelves are exported too.
   bool show_deleted = 3;
 
-  // InlineDestination answers with the exported shelves in the operation's response.
-  message InlineDestination {}
+  // CsvDestination renders one `name,display_name` row per shelf.
+  message CsvDestination {}
 
   // Where the shelves go.
   oneof destination {
     option (buf.validate.oneof).required = true;
 
-    // The operation's response.
-    InlineDestination inline_destination = 4;
+    // A CSV document in the operation's response.
+    CsvDestination csv_destination = 4;
   }
 
   // A unique identifier for this request. Must be a UUID.
@@ -254,17 +253,8 @@ message ExportShelvesRequest {
   ];
 }
 
-// ExportedShelf is a shelf as exported: the shelf and its books.
-message ExportedShelf {
-  // The shelf.
-  malonaz.test.library.v1.Shelf shelf = 1;
-
-  // The shelf's books.
-  repeated malonaz.test.library.v1.Book books = 2;
-}
-
 // Response message for LibraryService.ExportShelves, the operation's response.
 message ExportShelvesResponse {
-  // The shelves exported.
-  repeated ExportedShelf shelves = 1;
+  // The CSV document. Set by the CSV destination.
+  string csv = 1;
 }

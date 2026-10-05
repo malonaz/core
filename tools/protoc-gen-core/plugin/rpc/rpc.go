@@ -141,9 +141,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if err := requireUndelete(si); err != nil {
 			return err
 		}
-		if err := checkInlineFormats(si); err != nil {
-			return err
-		}
 		if len(si.resources) > 0 || si.longrunning() {
 			services = append(services, si)
 		}
