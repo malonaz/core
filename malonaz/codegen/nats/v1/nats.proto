@@ -18,7 +18,7 @@ extend google.protobuf.ServiceOptions {
 
 // Extension to annotate a protobuf resource message with NATS event generation options.
 // When set, the code generator emits typed NATS JetStream event messages
-// for the specified standard AIP methods (create, update, delete).
+// for the specified standard AIP methods (create, update, delete, undelete, import).
 extend google.protobuf.MessageOptions {
   // Event generation options for this resource.
   EventOptions event = 74001;
@@ -26,7 +26,7 @@ extend google.protobuf.MessageOptions {
 
 // Extension to annotate a protobuf resource message with NATS event generation options.
 // When set, the code generator emits typed NATS JetStream event messages
-// for the specified standard AIP methods (create, update, delete).
+// for the specified standard AIP methods (create, update, delete, undelete, import).
 message EventOptions {
   // The stream on which events will be published.
   string stream = 1 [(buf.validate.field).required = true];
@@ -53,6 +53,10 @@ message EventOptions {
   // Options for undeleted events, published when a soft-deleted resource is restored via its Undelete method.
   // If unset, no undeleted event is generated.
   repeated EventMethodOptions undeleted = 6;
+
+  // Options for imported events, published for every resource stored by its Import method.
+  // If unset, no imported event is generated.
+  repeated EventMethodOptions imported = 7;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.
@@ -74,7 +78,7 @@ message EventMethodOptions {
   // Optional CEL expression evaluated before publishing.
   // If present, the event is only published when the expression evaluates to true.
   // Available variables:
-  //   - `<resource>` (e.g., `shelf`) on created, updated, deleted & undeleted events.
+  //   - `<resource>` (e.g., `shelf`) on created, updated, deleted, undeleted & imported events.
   //   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
   //   - `update_mask` on updated events.
   string cel = 3;

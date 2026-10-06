@@ -2999,13 +2999,11 @@ func (s *ImportBooksSink) Import(ctx context.Context, books []*v14.Book) ([]*v14
 		imported = append(imported, book)
 		s.names = append(s.names, book.GetName())
 	}
-	if s.request.GetEmitEvents() {
-		for _, book := range imported {
-			{
-				subject := v14.GetBookStream().GetCreatedSubject()
-				if err := subject.Publish(ctx, s.server.natsClient, book); err != nil {
-					return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
-				}
+	for _, book := range imported {
+		{
+			subject := v14.GetBookStream().GetImportedSubject()
+			if err := subject.Publish(ctx, s.server.natsClient, book); err != nil {
+				return nil, status.Errorf(codes.Internal, "publishing imported event: %v", err).Err()
 			}
 		}
 	}

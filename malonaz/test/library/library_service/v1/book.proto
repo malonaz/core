@@ -280,9 +280,6 @@ message ImportBooksRequest {
     (buf.validate.field).required = true,
     (buf.validate.field).string.uuid = true
   ];
-
-  // If set to true, a created event is published for every imported book.
-  bool emit_events = 5;
 }
 
 // TitlesSource makes one book per title, by one author.

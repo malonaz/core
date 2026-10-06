@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Import
-description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory nested InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, opt-in created events (emit_events), what an import never does (updates), and why the x-migration-request header is on its way out.
+description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory nested InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, imported events, what an import never does (updates), and why the x-migration-request header is on its way out.
 labels:
     lang: go, protobuf
     repo: core
@@ -52,12 +52,13 @@ message ImportBooksResponse {
   wrapper is therefore `Import{Plural}Request_InlineSource_` (trailing
   underscore: protogen dodges the nested type) and the message
   `Import{Plural}Request_InlineSource`.
-- Events are opt-in: by default **an import emits none** (a backfill must
-  not fan out). `standard_method.emit_event = true` plus a `bool emit_events`
-  on the request lets a run publish a created event per stored resource,
-  after each batch; the resource needs created events. Reference:
-  library `ImportBooks`. A replayed row is published again on retry, so
-  consumers must be idempotent.
+- Events: an import never publishes created events (a backfill must not
+  fan out to created consumers). It publishes an `imported` event per stored
+  resource, after each batch, when the resource declares
+  `imported` subjects in `malonaz.codegen.nats.v1.event`
+  (`RESOURCE_EVENT_TYPE_IMPORTED`). `standard_method.emit_event` is
+  rejected. Reference: library `ImportBooks`. A replayed row is published
+  again on retry, so consumers must be idempotent.
 - The resource needs a `Create`/`BatchCreate` in the same service: the import
   reuses `prepareCreate{Resource}` (`lores/aip/codegen/create`).
 - Singletons cannot be imported; singleton children are created alongside,

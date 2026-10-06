@@ -45,7 +45,7 @@ labels:
 
 ### Codegen Options (resource messages)
 - **`malonaz.codegen.aip.v1.uuid_namespace`**: A fixed UUID per resource message — deterministic resource IDs.
-- **`malonaz.codegen.nats.v1.event`**: Declares the NATS event stream: `stream`, `resource_segments`, and `created`/`updated`/`deleted`/`undeleted` subjects (optionally with `subject_fields` like `["state"]`).
+- **`malonaz.codegen.nats.v1.event`**: Declares the NATS event stream: `stream`, `resource_segments`, and `created`/`updated`/`deleted`/`undeleted`/`imported` subjects (optionally with `subject_fields` like `["state"]`).
 - Option order after the message declaration: `google.api.resource`, then nats event, then model opts, then uuid namespace.
 
 ### Field Behaviors

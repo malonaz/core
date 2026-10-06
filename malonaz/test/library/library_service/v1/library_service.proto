@@ -346,10 +346,7 @@ service LibraryService {
       response_type: "ImportBooksResponse"
       metadata_type: "malonaz.aip.v1.ImportMetadata"
     };
-    option (malonaz.codegen.aip.v1.standard_method) = {
-      resource: "library.test.malonaz.com/Book"
-      emit_event: true
-    };
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
     option (malonaz.codegen.scheduler.v1.method).policy = {
       attempt_timeout: {seconds: 30}
       max_attempts: 3

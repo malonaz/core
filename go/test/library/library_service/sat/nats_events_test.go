@@ -1137,53 +1137,36 @@ func TestImportBooks_Events(t *testing.T) {
 	require.NoError(t, err)
 
 	var mu sync.Mutex
-	bookNameToCreatedEvents := map[string]int{}
-	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{librarypb.GetBookStream().GetCreatedSubject().MustGet()},
-		ConsumerName: "test-import-books-created-" + uuid.MustNewV7().String(),
+	bookNameToImportedEvents := map[string]int{}
+	importedProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{librarypb.GetBookStream().GetImportedSubject().MustGet()},
+		ConsumerName: "test-import-books-imported-" + uuid.MustNewV7().String(),
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
+		if message.Payload.GetType() != aippb.ResourceEventType_RESOURCE_EVENT_TYPE_IMPORTED {
+			panic("unexpected event type " + message.Payload.GetType().String())
+		}
 		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
 		if err != nil {
 			panic(err)
 		}
-		bookNameToCreatedEvents[book.Name]++
+		bookNameToImportedEvents[book.Name]++
 		return nil
 	})
-	require.NoError(t, createdProcessor.Start(ctx))
+	require.NoError(t, importedProcessor.Start(ctx))
 
-	// importBooks imports two books inline and returns their names.
-	importBooks := func(t *testing.T, emitEvents bool) []string {
-		t.Helper()
-		titles := titles(2)
-		request := fixture.inlineRequest(inlineBook(fixture.author.GetName(), titles[0]), inlineBook(fixture.author.GetName(), titles[1]))
-		request.EmitEvents = emitEvents
-		done := waitOperation(t, fixture.importBooks(t, request).GetName(), operationWaitTimeout)
-		require.True(t, done.GetDone())
-		require.Nil(t, done.GetError())
-		names := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames()
-		require.Len(t, names, len(titles))
-		return names
-	}
+	titles := titles(2)
+	request := fixture.inlineRequest(inlineBook(fixture.author.GetName(), titles[0]), inlineBook(fixture.author.GetName(), titles[1]))
+	done := waitOperation(t, fixture.importBooks(t, request).GetName(), operationWaitTimeout)
+	require.True(t, done.GetDone())
+	require.Nil(t, done.GetError())
+	names := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames()
+	require.Len(t, names, len(titles))
 
-	t.Run("EmitEvents", func(t *testing.T) {
-		t.Parallel()
-		names := importBooks(t, true)
-		require.Eventually(t, func() bool {
-			mu.Lock()
-			defer mu.Unlock()
-			return bookNameToCreatedEvents[names[0]] == 1 && bookNameToCreatedEvents[names[1]] == 1
-		}, natsEventCheckTimeout, natsEventCheckInterval)
-	})
-
-	t.Run("NoEvents", func(t *testing.T) {
-		t.Parallel()
-		names := importBooks(t, false)
-		require.Never(t, func() bool {
-			mu.Lock()
-			defer mu.Unlock()
-			return bookNameToCreatedEvents[names[0]] > 0 || bookNameToCreatedEvents[names[1]] > 0
-		}, natsEventCheckTimeout, natsEventCheckInterval)
-	})
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return bookNameToImportedEvents[names[0]] == 1 && bookNameToImportedEvents[names[1]] == 1
+	}, natsEventCheckTimeout, natsEventCheckInterval)
 }

@@ -21,6 +21,8 @@ enum ResourceEventType {
   RESOURCE_EVENT_TYPE_DELETED = 3;
   // A soft-deleted resource was restored.
   RESOURCE_EVENT_TYPE_UNDELETED = 4;
+  // A resource was imported.
+  RESOURCE_EVENT_TYPE_IMPORTED = 5;
 }
 
 // A resource lifecycle event.

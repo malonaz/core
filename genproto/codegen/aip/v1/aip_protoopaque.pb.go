@@ -575,8 +575,7 @@ type StandardMethod_builder struct {
 	// Used to determine request/response message types and validate method naming.
 	Resource string
 	// Emit an event for this action, using github.com/malonaz/pgq.
-	// Only supported on CREATE, UPDATE & DELETE methods, and on IMPORT, where the
-	// request must declare `bool emit_events` to opt each run in to created events.
+	// Only supported on CREATE, UPDATE & DELETE methods.
 	EmitEvent bool
 }
 
