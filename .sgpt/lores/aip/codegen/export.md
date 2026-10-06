@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Export
-description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, optional filter/show_deleted, required request_id), the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and the runner's Run{Export} that writes it out.
+description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, required oneof destination, optional filter/show_deleted, required request_id), the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and one runner method per destination that writes it out.
 labels:
     lang: go, protobuf
     repo: core
@@ -34,12 +34,22 @@ message ExportBooksRequest {
   string filter = 2;                               // optional, AIP-160, same SQL as List
   bool show_deleted = 4;                           // optional, soft-deletable resources only
   string request_id = 3 [required, uuid];          // MUST be required
+  oneof destination {                              // MUST, (buf.validate.oneof).required = true
+    CsvDestination csv_destination = 5;            // every variant a *Destination message
+    TitlesDestination titles_destination = 6;
+  }
   // anything else is free-form, for the runner to read
 }
 message ExportBooksResponse {
-  string csv = 1;            // free-form: whatever the runner echoes (e.g. the File it wrote)
+  string csv = 1;              // free-form: where the output landed, per destination
+  repeated string titles = 2;  // (e.g. the File a file_destination wrote)
 }
 ```
+
+- Destination messages may live anywhere: share one across methods and
+  services (a platform-wide `FileDestination`), as Google shares `GcsDestination`.
+- No destination is generated (unlike import's `InlineSource`): resources
+  returned inline are unbounded, which is what List pages.
 
 - The export reads the resource itself; anything related is the destination's
   business.
@@ -49,10 +59,11 @@ message ExportBooksResponse {
 
 ## What is generated
 
-- The runner's `Run{Export}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
-  (`RunExportBooks`), handed the reader by the generated handler: it writes
-  the resources out and returns the response, echoing what it wrote (e.g. the
-  File it created). For CSV, `go/pbutil/pbcsv` derives the header and rows from
+- One runner method per destination,
+  `{Export}To{X}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
+  (`csv_destination` → `ExportBooksToCsv`), dispatched on the request's
+  destination by the generated handler: it writes the resources out and
+  returns the response, naming where they landed (e.g. the File it created). For CSV, `go/pbutil/pbcsv` derives the header and rows from
   the resource's descriptor: no hand-written columns.
 - `{Export}Reader`, the only way resources leave the store:
   - `Next(ctx) ([]*{Resource}, error)` — the next page (500 rows); nil once
