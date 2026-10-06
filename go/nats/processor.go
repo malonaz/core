@@ -13,6 +13,7 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/routine"
 )
@@ -233,15 +234,22 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 			go func(group []*Message[T]) {
 				defer wg.Done()
 				for i, message := range group {
+					// Per message: the tag is appended to, so it cannot be shared across goroutines.
+					messageCtx := logging.WithLogFieldsTag(ctxWithTimeout)
+					logging.InjectLogFields(messageCtx, "routine", routineName)
+					logging.InjectAIPLogFields(messageCtx, "nats.message.", message.Payload)
+
 					// A panic becomes an error, so one message cannot crash the process.
+					var panicked bool
 					err := func() (err error) {
 						defer func() {
 							if v := recover(); v != nil {
-								p.log.ErrorContext(ctx, "panic", "routine", routineName, "panic", v, "stack", string(debug.Stack()))
+								panicked = true
+								p.log.ErrorContext(messageCtx, "panic", "panic", v, "stack", string(debug.Stack()))
 								err = fmt.Errorf("panic: %v", v)
 							}
 						}()
-						return p.processorFunc(ctxWithTimeout, message)
+						return p.processorFunc(messageCtx, message)
 					}()
 					if err != nil {
 						var processingError *ProcessingError
@@ -249,18 +257,21 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 							switch processingError.action {
 							case ActionTerm:
 								if termErr := message.natsMsg.Term(); termErr != nil {
-									p.log.Error("terming message", "error", termErr, "cause", processingError.err)
+									p.log.ErrorContext(messageCtx, "terming message", "error", termErr, "cause", processingError.err)
 								}
 							case ActionNakWithDelay:
 								if nakErr := message.natsMsg.NakWithDelay(processingError.delay); nakErr != nil {
-									p.log.Error("naking message with delay", "error", nakErr, "cause", processingError.err)
+									p.log.ErrorContext(messageCtx, "naking message with delay", "error", nakErr, "cause", processingError.err)
 								}
 							default:
 								if nakErr := message.nak(); nakErr != nil {
-									p.log.Error("naking message", "error", nakErr, "cause", processingError.err)
+									p.log.ErrorContext(messageCtx, "naking message", "error", nakErr, "cause", processingError.err)
 								}
 							}
 							continue
+						}
+						if !panicked {
+							p.log.ErrorContext(messageCtx, "processing message", "error", err)
 						}
 						mu.Lock()
 						errs = append(errs, err)
@@ -268,13 +279,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 						// Nak remaining messages in the group to preserve ordering guarantees.
 						for _, remaining := range group[i:] {
 							if nakErr := remaining.nak(); nakErr != nil {
-								p.log.Error("naking message", "error", nakErr)
+								p.log.ErrorContext(messageCtx, "naking message", "error", nakErr)
 							}
 						}
 						return
 					}
 					if ackErr := message.ack(); ackErr != nil {
-						p.log.Error("acking message", "error", ackErr)
+						p.log.ErrorContext(messageCtx, "acking message", "error", ackErr)
 					}
 				}
 			}(group)

@@ -16,6 +16,7 @@ import (
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/grpc/middleware"
+	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/pbutil"
 )
 
@@ -274,7 +275,7 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 
 	// Single call to inject all fields
 	if len(fields) > 0 {
-		middleware.InjectLogFields(ctx, fields...)
+		logging.InjectLogFields(ctx, fields...)
 	}
 
 	return nil
