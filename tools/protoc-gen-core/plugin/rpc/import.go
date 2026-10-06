@@ -40,6 +40,8 @@ type importMethod struct {
 	// The operation's response and its `names` field.
 	response *protogen.Message
 	names    *protogen.Field
+	// The request's `emit_events` field, under standard_method.emit_event.
+	emitEvents *protogen.Field
 }
 
 // sourceLabel is the value of the import-source label for a source variant:
@@ -64,17 +66,40 @@ func parseImportMethod(lro *longrunningMethod, mi *methodInfo) (*importMethod, e
 	if err := imp.parseRequest(); err != nil {
 		return nil, err
 	}
+	if err := imp.parseEmitEvents(); err != nil {
+		return nil, err
+	}
 	return imp, nil
 }
 
+// parseEmitEvents resolves the opt-in to created events: standard_method.emit_event
+// on the method, and a `bool emit_events` on the request so each run chooses.
+func (imp *importMethod) parseEmitEvents() error {
+	method := imp.lro.method
+	request := method.Input
+	if !imp.mi.rpc.StandardMethod.GetEmitEvent() {
+		if request.Desc.Fields().ByName("emit_events") != nil {
+			return fmt.Errorf("%s.emit_events requires `standard_method.emit_event = true` on %s", request.GoIdent.GoName, method.GoName)
+		}
+		return nil
+	}
+	if imp.mi.natsEventOpts == nil || len(imp.mi.natsEventOpts.GetCreated()) == 0 {
+		return fmt.Errorf("%s: standard_method.emit_event requires created events on %s", method.GoName, imp.mi.rpc.ParsedResource.Desc.Type)
+	}
+	for _, field := range request.Fields {
+		if field.Desc.Name() == "emit_events" && field.Desc.Kind() == protoreflect.BoolKind && field.Desc.Cardinality() != protoreflect.Repeated {
+			imp.emitEvents = field
+			return nil
+		}
+	}
+	return fmt.Errorf("%s must declare `bool emit_events` under standard_method.emit_event", request.GoIdent.GoName)
+}
+
 // checkAIP153Method validates what Import{Plural} and Export{Plural} share
-// (AIP-153): no events, `post: ".../{plural}:{verb}"` with `body: "*"`, a
-// {Method}Response and the shared metadata.
+// (AIP-153): `post: ".../{plural}:{verb}"` with `body: "*"`, a {Method}Response
+// and the shared metadata.
 func checkAIP153Method(lro *longrunningMethod, mi *methodInfo, verb string, metadataType protoreflect.FullName) error {
 	method := lro.method
-	if mi.natsEventOpts != nil && mi.rpc.StandardMethod.GetEmitEvent() {
-		return fmt.Errorf("%s: an %s never emits events; drop standard_method.emit_event", method.GoName, verb)
-	}
 	httpRule, err := pbutil.GetExtension[*annotations.HttpRule](method.Desc.Options(), annotations.E_Http)
 	if err != nil {
 		return fmt.Errorf("%s: getting google.api.http: %w", method.GoName, err)
@@ -411,6 +436,13 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 	g.P(fmt.Sprintf("    imported = append(imported, %s)", resourceVar))
 	g.P(fmt.Sprintf("    s.names = append(s.names, %s.GetName())", resourceVar))
 	g.P("  }")
+	if imp.emitEvents != nil {
+		g.P(fmt.Sprintf("  if s.request.Get%s() {", imp.emitEvents.GoName))
+		g.P(fmt.Sprintf("    for _, %s := range imported {", resourceVar))
+		mc.publishCreatedEvents(resourceVar, "s.server.natsClient")
+		g.P("    }")
+		g.P("  }")
+	}
 	g.P("  if err := s.progress.Succeeded(ctx, int32(len(imported))); err != nil {")
 	g.P("    return nil, err")
 	g.P("  }")

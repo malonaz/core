@@ -2,6 +2,7 @@ package sat
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -1124,5 +1125,77 @@ func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
 		t.Parallel()
 		_, err := shelfStream.GetCreatedSubject().WithOrganization("").Get()
 		require.Error(t, err)
+	})
+}
+
+func TestImportShelves_Events(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	natsClient, err := satEnvironment.GetNatsClient(ctx)
+	require.NoError(t, err)
+
+	var mu sync.Mutex
+	shelfNameToCreatedEvents := map[string]int{}
+	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
+		Subjects:     []*nats.Subject{librarypb.GetShelfStream().GetCreatedSubject().MustGet()},
+		ConsumerName: "test-import-shelves-created-" + uuid.MustNewV7().String(),
+	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
+		mu.Lock()
+		defer mu.Unlock()
+		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		if err != nil {
+			panic(err)
+		}
+		shelfNameToCreatedEvents[shelf.Name]++
+		return nil
+	})
+	require.NoError(t, createdProcessor.Start(ctx))
+
+	// importShelves imports two shelves and returns their names.
+	importShelves := func(t *testing.T, emitEvents bool) []string {
+		t.Helper()
+		shelves := make([]*librarypb.Shelf, 2)
+		for i := range shelves {
+			shelves[i] = &librarypb.Shelf{
+				DisplayName:     fmt.Sprintf("Imported Shelf %d", i),
+				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+				Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
+				CorrelationId_2: "hello",
+			}
+		}
+		importShelvesRequest := &libraryservicepb.ImportShelvesRequest{
+			Parent:     organizationParent,
+			RequestId:  uuid.MustNewV7().String(),
+			Source:     &libraryservicepb.ImportShelvesRequest_InlineSource_{InlineSource: &libraryservicepb.ImportShelvesRequest_InlineSource{Shelves: shelves}},
+			EmitEvents: emitEvents,
+		}
+		operation, err := libraryServiceClient.ImportShelves(ctx, importShelvesRequest)
+		require.NoError(t, err)
+		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
+		require.True(t, done.GetDone())
+		require.Nil(t, done.GetError())
+		names := unpackAny[*libraryservicepb.ImportShelvesResponse](t, done.GetResponse()).GetNames()
+		require.Len(t, names, len(shelves))
+		return names
+	}
+
+	t.Run("EmitEvents", func(t *testing.T) {
+		t.Parallel()
+		names := importShelves(t, true)
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return shelfNameToCreatedEvents[names[0]] == 1 && shelfNameToCreatedEvents[names[1]] == 1
+		}, natsEventCheckTimeout, natsEventCheckInterval)
+	})
+
+	t.Run("NoEvents", func(t *testing.T) {
+		t.Parallel()
+		names := importShelves(t, false)
+		require.Never(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return shelfNameToCreatedEvents[names[0]] > 0 || shelfNameToCreatedEvents[names[1]] > 0
+		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 }

@@ -29,4 +29,3 @@ type Rn interface {
 	// Parent is the parent resource name; "" at the root.
 	Parent() string
 }
-

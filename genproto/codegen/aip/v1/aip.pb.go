@@ -528,7 +528,8 @@ type StandardMethod struct {
 	// Used to determine request/response message types and validate method naming.
 	Resource string `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 	// Emit an event for this action, using github.com/malonaz/pgq.
-	// Only supported on CREATE, UPDATE & DELETE methods.
+	// Only supported on CREATE, UPDATE & DELETE methods, and on IMPORT, where the
+	// request must declare `bool emit_events` to opt each run in to created events.
 	EmitEvent     bool `protobuf:"varint,2,opt,name=emit_event,json=emitEvent,proto3" json:"emit_event,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -589,7 +590,8 @@ type StandardMethod_builder struct {
 	// Used to determine request/response message types and validate method naming.
 	Resource string
 	// Emit an event for this action, using github.com/malonaz/pgq.
-	// Only supported on CREATE, UPDATE & DELETE methods.
+	// Only supported on CREATE, UPDATE & DELETE methods, and on IMPORT, where the
+	// request must declare `bool emit_events` to opt each run in to created events.
 	EmitEvent bool
 }
 

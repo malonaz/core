@@ -115,6 +115,10 @@ class LibraryServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def ImportShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.ImportShelvesRequest, google.longrunning.operations_pb2.Operation]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def BatchCreateShelves(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesRequest, malonaz.test.library.library_service.v1.shelf_pb2.BatchCreateShelvesResponse]') -> None:
         pass
 
@@ -326,6 +330,12 @@ class LibraryServiceBase(abc.ABC):
                 self.ExportShelves,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.shelf_pb2.ExportShelvesRequest,
+                google.longrunning.operations_pb2.Operation,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportShelves': grpclib.const.Handler(
+                self.ImportShelves,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.shelf_pb2.ImportShelvesRequest,
                 google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves': grpclib.const.Handler(
@@ -590,6 +600,12 @@ class LibraryServiceStub:
             channel,
             '/malonaz.test.library.library_service.v1.LibraryService/ExportShelves',
             malonaz.test.library.library_service.v1.shelf_pb2.ExportShelvesRequest,
+            google.longrunning.operations_pb2.Operation,
+        )
+        self.ImportShelves = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ImportShelves',
+            malonaz.test.library.library_service.v1.shelf_pb2.ImportShelvesRequest,
             google.longrunning.operations_pb2.Operation,
         )
         self.BatchCreateShelves = grpclib.client.UnaryUnaryMethod(

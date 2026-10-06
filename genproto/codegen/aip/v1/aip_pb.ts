@@ -379,7 +379,8 @@ export type StandardMethod = Message<"malonaz.codegen.aip.v1.StandardMethod"> & 
 
   /**
    * Emit an event for this action, using github.com/malonaz/pgq.
-   * Only supported on CREATE, UPDATE & DELETE methods.
+   * Only supported on CREATE, UPDATE & DELETE methods, and on IMPORT, where the
+   * request must declare `bool emit_events` to opt each run in to created events.
    *
    * @generated from field: bool emit_event = 2;
    */
@@ -404,7 +405,8 @@ export type StandardMethodValid = Message<"malonaz.codegen.aip.v1.StandardMethod
 
   /**
    * Emit an event for this action, using github.com/malonaz/pgq.
-   * Only supported on CREATE, UPDATE & DELETE methods.
+   * Only supported on CREATE, UPDATE & DELETE methods, and on IMPORT, where the
+   * request must declare `bool emit_events` to opt each run in to created events.
    *
    * @generated from field: bool emit_event = 2;
    */

@@ -2828,6 +2828,221 @@ func (s *LibraryServiceServer) runExportShelves(ctx context.Context, request *v1
 	}
 }
 
+// ImportShelves starts the operation, or runs it when called by the scheduler (AIP-151).
+func (s *LibraryServiceServer) ImportShelves(ctx context.Context, request *v12.ImportShelvesRequest) (*longrunningpb.Operation, error) {
+	if !longrunning.IsRun(ctx) {
+		startRequest := &longrunning.StartRequest{
+			Resource:  request.GetParent(),
+			Request:   request,
+			RequestID: request.GetRequestId(),
+		}
+		return longrunning.Start(ctx, s.schedulerServiceClient, startRequest)
+	}
+	response, err := s.RunImportShelves(ctx, request)
+	if err != nil {
+		return longrunning.Failed(ctx, err)
+	}
+	return longrunning.Done(ctx, response)
+}
+
+// ImportShelvesSink takes the shelves of ImportShelves's sources into the store (AIP-153): each is
+// stamped, inserted under the request's parent and counted in the operation's metadata.
+type ImportShelvesSink struct {
+	server    *libraryService_ShelfServer
+	request   *v12.ImportShelvesRequest
+	requestID uuid.UUID
+	// The import-source and import-time label values of this run.
+	source, date string
+	progress     *longrunning.ImportProgress
+	// The names imported so far, in order.
+	names []string
+	// Items taken so far, which keys the request id of an unnamed item.
+	taken int
+}
+
+func (s *LibraryServiceServer) newImportShelvesSink(request *v12.ImportShelvesRequest, source string) (*ImportShelvesSink, error) {
+	requestID, err := uuid.Parse(request.GetRequestId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request_id: %v", err).Err()
+	}
+	return &ImportShelvesSink{
+		server:    s.libraryService_ShelfServer,
+		request:   request,
+		requestID: requestID,
+		source:    source,
+		date:      time.Now().UTC().Format(aip.LabelDateFormat),
+		progress:  longrunning.NewImportProgress(s.schedulerServiceClient),
+	}, nil
+}
+
+// SetTotal records how many items the source holds, when known ahead of time.
+func (s *ImportShelvesSink) SetTotal(ctx context.Context, total int32) error {
+	return s.progress.SetTotal(ctx, total)
+}
+
+// Fail records an item the source could not turn into a shelf (AIP-193). The error
+// returned means the operation was cancelled: stop importing.
+func (s *ImportShelvesSink) Fail(ctx context.Context, err error) error {
+	return s.progress.Failed(ctx, err)
+}
+
+// prepare stamps one shelf and resolves it to its database models: a name it carries
+// must be under the request's parent; timestamps and the import labels are kept when set.
+// Under a wildcard parent, the name is required and its own parent is used.
+func (s *ImportShelvesSink) prepare(ctx context.Context, shelf *v14.Shelf) (string, *model.Shelf, error) {
+	name := shelf.GetName()
+	requestIDKey := name
+	if requestIDKey == "" {
+		requestIDKey = strconv.Itoa(s.taken)
+	}
+	s.taken++
+	parent := s.request.GetParent()
+	if resourcename.ContainsWildcard(parent) {
+		if name == "" {
+			return "", nil, status.Errorf(codes.InvalidArgument, "shelf name is required under wildcard parent %q", parent).Err()
+		}
+		if !resourcename.HasParent(name, parent) {
+			return "", nil, status.Errorf(codes.InvalidArgument, "shelf %q is not under parent %q", name, parent).Err()
+		}
+		rn, err := v14.ParseShelfRn(name)
+		if err != nil {
+			return "", nil, status.Errorf(codes.InvalidArgument, "invalid shelf name: %v", err).Err()
+		}
+		parent = rn.Parent()
+	}
+	createRequest := &v12.CreateShelfRequest{
+		RequestId: uuid.NewV5(s.requestID, requestIDKey).String(),
+		Parent:    parent,
+		Shelf:     shelf,
+	}
+	if name != "" {
+		createRequest.ShelfId = name[strings.LastIndex(name, "/")+1:]
+	}
+	if !aip.HasLabel(shelf, aip.LabelKeyImportSource) {
+		aip.SetLabel(shelf, aip.LabelKeyImportSource, s.source)
+	}
+	if !aip.HasLabel(shelf, aip.LabelKeyImportTime) {
+		aip.SetLabel(shelf, aip.LabelKeyImportTime, s.date)
+	}
+	shelfModel, err := s.server.prepareCreateShelf(ctx, createRequest, true)
+	if err != nil {
+		return "", nil, err
+	}
+	if name != "" && shelf.GetName() != name {
+		return "", nil, status.Errorf(codes.InvalidArgument, "shelf %q is not under parent %q", name, s.request.GetParent()).Err()
+	}
+	return createRequest.RequestId, shelfModel, nil
+}
+
+// insert inserts the batch atomically or, when that fails, one row at a time so that
+// only the rows at fault are recorded as failures.
+func (s *ImportShelvesSink) insert(ctx context.Context, requestIDs []string, shelfModels []*model.Shelf) ([]*model.Shelf, error) {
+	if dbShelves, err := s.server.store.BatchInsertShelves(ctx, requestIDs, shelfModels); err == nil {
+		return dbShelves, nil
+	}
+	dbShelves := make([]*model.Shelf, 0, len(requestIDs))
+	for i := range requestIDs {
+		inserted, err := s.server.store.BatchInsertShelves(ctx, requestIDs[i:i+1], shelfModels[i:i+1])
+		if err != nil {
+			if errors.Is(err, model.ErrShelfAlreadyExists) {
+				err = status.Errorf(codes.AlreadyExists, "shelf already exists").Err()
+			}
+			if err := s.Fail(ctx, err); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		dbShelves = append(dbShelves, inserted...)
+	}
+	return dbShelves, nil
+}
+
+// Import imports a batch of shelves and returns them as stored, in order. One that cannot
+// be imported is recorded as a partial failure and left out; the error returned means
+// the operation was cancelled: stop importing.
+func (s *ImportShelvesSink) Import(ctx context.Context, shelves []*v14.Shelf) ([]*v14.Shelf, error) {
+	requestIDs := make([]string, 0, len(shelves))
+	shelfModels := make([]*model.Shelf, 0, len(shelves))
+	for _, shelf := range shelves {
+		requestID, shelfModel, err := s.prepare(ctx, shelf)
+		if err != nil {
+			if err := s.Fail(ctx, err); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		requestIDs = append(requestIDs, requestID)
+		shelfModels = append(shelfModels, shelfModel)
+	}
+	if len(requestIDs) == 0 {
+		return nil, nil
+	}
+	dbShelves, err := s.insert(ctx, requestIDs, shelfModels)
+	if err != nil {
+		return nil, err
+	}
+	imported := make([]*v14.Shelf, 0, len(dbShelves))
+	for _, dbShelfModel := range dbShelves {
+		shelf, err := dbShelfModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		imported = append(imported, shelf)
+		s.names = append(s.names, shelf.GetName())
+	}
+	if s.request.GetEmitEvents() {
+		for _, shelf := range imported {
+			{
+				subject := v14.GetShelfStream().GetCreatedSubject()
+				if err := subject.Publish(ctx, s.server.natsClient, shelf); err != nil {
+					return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
+				}
+			}
+		}
+	}
+	if err := s.progress.Succeeded(ctx, int32(len(imported))); err != nil {
+		return nil, err
+	}
+	return imported, nil
+}
+
+// RunImportShelves imports shelves from the request's source (AIP-153).
+func (s *LibraryServiceServer) RunImportShelves(ctx context.Context, request *v12.ImportShelvesRequest) (*v12.ImportShelvesResponse, error) {
+	var sourceLabel string
+	switch request.GetSource().(type) {
+	case *v12.ImportShelvesRequest_InlineSource_:
+		sourceLabel = "inline"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "source is required").Err()
+	}
+	sink, err := s.newImportShelvesSink(request, sourceLabel)
+	if err != nil {
+		return nil, err
+	}
+	switch source := request.GetSource().(type) {
+	case *v12.ImportShelvesRequest_InlineSource_:
+		err = sink.importInline(ctx, source.InlineSource.GetShelves())
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &v12.ImportShelvesResponse{Names: sink.names}, nil
+}
+
+// importInline imports the shelves the request carries, 500 at a time.
+func (s *ImportShelvesSink) importInline(ctx context.Context, shelves []*v14.Shelf) error {
+	if err := s.SetTotal(ctx, int32(len(shelves))); err != nil {
+		return err
+	}
+	for start := 0; start < len(shelves); start += 500 {
+		end := min(start+500, len(shelves))
+		if _, err := s.Import(ctx, shelves[start:end]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ImportBooks starts the operation, or runs it when called by the scheduler (AIP-151).
 func (s *LibraryServiceServer) ImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*longrunningpb.Operation, error) {
 	if !longrunning.IsRun(ctx) {
@@ -2904,7 +3119,11 @@ func (s *ImportBooksSink) prepare(ctx context.Context, book *v14.Book) (string, 
 		if !resourcename.HasParent(name, parent) {
 			return "", nil, nil, status.Errorf(codes.InvalidArgument, "book %q is not under parent %q", name, parent).Err()
 		}
-		parent = aip.ParentName(name)
+		rn, err := v14.ParseBookRn(name)
+		if err != nil {
+			return "", nil, nil, status.Errorf(codes.InvalidArgument, "invalid book name: %v", err).Err()
+		}
+		parent = rn.Parent()
 	}
 	createRequest := &v12.CreateBookRequest{
 		RequestId: uuid.NewV5(s.requestID, requestIDKey).String(),

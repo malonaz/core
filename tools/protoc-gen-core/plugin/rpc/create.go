@@ -310,13 +310,18 @@ func (mc *methodCtx) generateCreatedEvents(resourceVar string) {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")
+	mc.publishCreatedEvents(resourceVar, "s.natsClient")
+}
+
+// publishCreatedEvents publishes resourceVar on every created subject, through natsClient.
+func (mc *methodCtx) publishCreatedEvents(resourceVar, natsClient string) {
 	for _, eventOpt := range mc.mi.natsEventOpts.GetCreated() {
 		subject := eventOpt.GetSubject()
 		mc.g.P("  {")
 		mc.g.P(fmt.Sprintf("    subject := %s().Get%sSubject()",
 			mc.gen.resourcePkgIdent(mc.mi.rpc.Message, "Get"+mc.natsStreamGoName),
 			xstrings.ToPascalCase(subject)))
-		mc.g.P(fmt.Sprintf("    if err := subject.Publish(ctx, s.natsClient, %s); err != nil {", resourceVar))
+		mc.g.P(fmt.Sprintf("    if err := subject.Publish(ctx, %s, %s); err != nil {", natsClient, resourceVar))
 		mc.g.P(fmt.Sprintf("      return nil, %s(%s, \"publishing %s event: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("Internal"), subject))
 		mc.g.P("    }")

@@ -1280,6 +1280,243 @@ type exportShelvesResponse_CsvResult struct {
 
 func (*exportShelvesResponse_CsvResult) isExportShelvesResponse_Result() {}
 
+// Request message for LibraryService.ImportShelves.
+type ImportShelvesRequest struct {
+	state                 protoimpl.MessageState        `protogen:"opaque.v1"`
+	xxx_hidden_Parent     string                        `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Source     isImportShelvesRequest_Source `protobuf_oneof:"source"`
+	xxx_hidden_RequestId  string                        `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3"`
+	xxx_hidden_EmitEvents bool                          `protobuf:"varint,4,opt,name=emit_events,json=emitEvents,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ImportShelvesRequest) Reset() {
+	*x = ImportShelvesRequest{}
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportShelvesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportShelvesRequest) ProtoMessage() {}
+
+func (x *ImportShelvesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportShelvesRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *ImportShelvesRequest) GetInlineSource() *ImportShelvesRequest_InlineSource {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*importShelvesRequest_InlineSource_); ok {
+			return x.InlineSource
+		}
+	}
+	return nil
+}
+
+func (x *ImportShelvesRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
+func (x *ImportShelvesRequest) GetEmitEvents() bool {
+	if x != nil {
+		return x.xxx_hidden_EmitEvents
+	}
+	return false
+}
+
+func (x *ImportShelvesRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *ImportShelvesRequest) SetInlineSource(v *ImportShelvesRequest_InlineSource) {
+	if v == nil {
+		x.xxx_hidden_Source = nil
+		return
+	}
+	x.xxx_hidden_Source = &importShelvesRequest_InlineSource_{v}
+}
+
+func (x *ImportShelvesRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
+}
+
+func (x *ImportShelvesRequest) SetEmitEvents(v bool) {
+	x.xxx_hidden_EmitEvents = v
+}
+
+func (x *ImportShelvesRequest) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Source != nil
+}
+
+func (x *ImportShelvesRequest) HasInlineSource() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*importShelvesRequest_InlineSource_)
+	return ok
+}
+
+func (x *ImportShelvesRequest) ClearSource() {
+	x.xxx_hidden_Source = nil
+}
+
+func (x *ImportShelvesRequest) ClearInlineSource() {
+	if _, ok := x.xxx_hidden_Source.(*importShelvesRequest_InlineSource_); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+const ImportShelvesRequest_Source_not_set_case case_ImportShelvesRequest_Source = 0
+const ImportShelvesRequest_InlineSource_case case_ImportShelvesRequest_Source = 2
+
+func (x *ImportShelvesRequest) WhichSource() case_ImportShelvesRequest_Source {
+	if x == nil {
+		return ImportShelvesRequest_Source_not_set_case
+	}
+	switch x.xxx_hidden_Source.(type) {
+	case *importShelvesRequest_InlineSource_:
+		return ImportShelvesRequest_InlineSource_case
+	default:
+		return ImportShelvesRequest_Source_not_set_case
+	}
+}
+
+type ImportShelvesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The organization to import the shelves into; the operation hangs off it.
+	// Format: organizations/{organization}
+	Parent string
+	// Where the shelves come from.
+
+	// Fields of oneof xxx_hidden_Source:
+	// The shelves themselves.
+	InlineSource *ImportShelvesRequest_InlineSource
+	// -- end of xxx_hidden_Source
+	// A unique identifier for this request. Must be a UUID.
+	RequestId string
+	// If set to true, a created event is published for every imported shelf.
+	EmitEvents bool
+}
+
+func (b0 ImportShelvesRequest_builder) Build() *ImportShelvesRequest {
+	m0 := &ImportShelvesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	if b.InlineSource != nil {
+		x.xxx_hidden_Source = &importShelvesRequest_InlineSource_{b.InlineSource}
+	}
+	x.xxx_hidden_RequestId = b.RequestId
+	x.xxx_hidden_EmitEvents = b.EmitEvents
+	return m0
+}
+
+type case_ImportShelvesRequest_Source protoreflect.FieldNumber
+
+func (x case_ImportShelvesRequest_Source) String() string {
+	md := file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isImportShelvesRequest_Source interface {
+	isImportShelvesRequest_Source()
+}
+
+type importShelvesRequest_InlineSource_ struct {
+	// The shelves themselves.
+	InlineSource *ImportShelvesRequest_InlineSource `protobuf:"bytes,2,opt,name=inline_source,json=inlineSource,proto3,oneof"`
+}
+
+func (*importShelvesRequest_InlineSource_) isImportShelvesRequest_Source() {}
+
+// Response message for LibraryService.ImportShelves, the operation's response.
+type ImportShelvesResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Names []string               `protobuf:"bytes,1,rep,name=names,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ImportShelvesResponse) Reset() {
+	*x = ImportShelvesResponse{}
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportShelvesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportShelvesResponse) ProtoMessage() {}
+
+func (x *ImportShelvesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportShelvesResponse) GetNames() []string {
+	if x != nil {
+		return x.xxx_hidden_Names
+	}
+	return nil
+}
+
+func (x *ImportShelvesResponse) SetNames(v []string) {
+	x.xxx_hidden_Names = v
+}
+
+type ImportShelvesResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The shelves imported, in order.
+	Names []string
+}
+
+func (b0 ImportShelvesResponse_builder) Build() *ImportShelvesResponse {
+	m0 := &ImportShelvesResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Names = b.Names
+	return m0
+}
+
 // CsvDestination writes an export as a CSV document into the operation's response. Shared by
 // every export of the service, as a platform-wide destination would be.
 type CsvDestination struct {
@@ -1290,7 +1527,7 @@ type CsvDestination struct {
 
 func (x *CsvDestination) Reset() {
 	*x = CsvDestination{}
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1302,7 +1539,7 @@ func (x *CsvDestination) String() string {
 func (*CsvDestination) ProtoMessage() {}
 
 func (x *CsvDestination) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13]
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1335,7 +1572,7 @@ type CsvResult struct {
 
 func (x *CsvResult) Reset() {
 	*x = CsvResult{}
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1347,7 +1584,7 @@ func (x *CsvResult) String() string {
 func (*CsvResult) ProtoMessage() {}
 
 func (x *CsvResult) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1381,6 +1618,67 @@ func (b0 CsvResult_builder) Build() *CsvResult {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Csv = b.Csv
+	return m0
+}
+
+// InlineSource carries the shelves to import in the request.
+type ImportShelvesRequest_InlineSource struct {
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Shelves *[]*v1.Shelf           `protobuf:"bytes,1,rep,name=shelves,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ImportShelvesRequest_InlineSource) Reset() {
+	*x = ImportShelvesRequest_InlineSource{}
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportShelvesRequest_InlineSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportShelvesRequest_InlineSource) ProtoMessage() {}
+
+func (x *ImportShelvesRequest_InlineSource) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ImportShelvesRequest_InlineSource) GetShelves() []*v1.Shelf {
+	if x != nil {
+		if x.xxx_hidden_Shelves != nil {
+			return *x.xxx_hidden_Shelves
+		}
+	}
+	return nil
+}
+
+func (x *ImportShelvesRequest_InlineSource) SetShelves(v []*v1.Shelf) {
+	x.xxx_hidden_Shelves = &v
+}
+
+type ImportShelvesRequest_InlineSource_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The shelves to import. A name, timestamps and labels are kept when set.
+	Shelves []*v1.Shelf
+}
+
+func (b0 ImportShelvesRequest_InlineSource_builder) Build() *ImportShelvesRequest_InlineSource {
+	m0 := &ImportShelvesRequest_InlineSource{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Shelves = &b.Shelves
 	return m0
 }
 
@@ -1464,46 +1762,64 @@ const file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\x15ExportShelvesResponse\x12S\n" +
 	"\n" +
 	"csv_result\x18\x01 \x01(\v22.malonaz.test.library.library_service.v1.CsvResultH\x00R\tcsvResultB\b\n" +
-	"\x06result\"\x10\n" +
+	"\x06result\"\xf7\x02\n" +
+	"\x14ImportShelvesRequest\x12D\n" +
+	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA \x12\x1elibrary.test.malonaz.com/Shelf\xbaH\x03\xc8\x01\x01R\x06parent\x12q\n" +
+	"\rinline_source\x18\x02 \x01(\v2J.malonaz.test.library.library_service.v1.ImportShelvesRequest.InlineSourceH\x00R\finlineSource\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12\x1f\n" +
+	"\vemit_events\x18\x04 \x01(\bR\n" +
+	"emitEvents\x1aH\n" +
+	"\fInlineSource\x128\n" +
+	"\ashelves\x18\x01 \x03(\v2\x1e.malonaz.test.library.v1.ShelfR\ashelvesB\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01\"R\n" +
+	"\x15ImportShelvesResponse\x129\n" +
+	"\x05names\x18\x01 \x03(\tB#\xfaA \n" +
+	"\x1elibrary.test.malonaz.com/ShelfR\x05names\"\x10\n" +
 	"\x0eCsvDestination\"\x1d\n" +
 	"\tCsvResult\x12\x10\n" +
 	"\x03csv\x18\x01 \x01(\tR\x03csvBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_malonaz_test_library_library_service_v1_shelf_proto_goTypes = []any{
-	(*CreateShelfRequest)(nil),         // 0: malonaz.test.library.library_service.v1.CreateShelfRequest
-	(*GetShelfRequest)(nil),            // 1: malonaz.test.library.library_service.v1.GetShelfRequest
-	(*UpdateShelfRequest)(nil),         // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest
-	(*DeleteShelfRequest)(nil),         // 3: malonaz.test.library.library_service.v1.DeleteShelfRequest
-	(*UndeleteShelfRequest)(nil),       // 4: malonaz.test.library.library_service.v1.UndeleteShelfRequest
-	(*ListShelvesRequest)(nil),         // 5: malonaz.test.library.library_service.v1.ListShelvesRequest
-	(*ListShelvesResponse)(nil),        // 6: malonaz.test.library.library_service.v1.ListShelvesResponse
-	(*BatchCreateShelvesRequest)(nil),  // 7: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest
-	(*BatchCreateShelvesResponse)(nil), // 8: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse
-	(*BatchGetShelvesRequest)(nil),     // 9: malonaz.test.library.library_service.v1.BatchGetShelvesRequest
-	(*BatchGetShelvesResponse)(nil),    // 10: malonaz.test.library.library_service.v1.BatchGetShelvesResponse
-	(*ExportShelvesRequest)(nil),       // 11: malonaz.test.library.library_service.v1.ExportShelvesRequest
-	(*ExportShelvesResponse)(nil),      // 12: malonaz.test.library.library_service.v1.ExportShelvesResponse
-	(*CsvDestination)(nil),             // 13: malonaz.test.library.library_service.v1.CsvDestination
-	(*CsvResult)(nil),                  // 14: malonaz.test.library.library_service.v1.CsvResult
-	(*v1.Shelf)(nil),                   // 15: malonaz.test.library.v1.Shelf
-	(*fieldmaskpb.FieldMask)(nil),      // 16: google.protobuf.FieldMask
+	(*CreateShelfRequest)(nil),                // 0: malonaz.test.library.library_service.v1.CreateShelfRequest
+	(*GetShelfRequest)(nil),                   // 1: malonaz.test.library.library_service.v1.GetShelfRequest
+	(*UpdateShelfRequest)(nil),                // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest
+	(*DeleteShelfRequest)(nil),                // 3: malonaz.test.library.library_service.v1.DeleteShelfRequest
+	(*UndeleteShelfRequest)(nil),              // 4: malonaz.test.library.library_service.v1.UndeleteShelfRequest
+	(*ListShelvesRequest)(nil),                // 5: malonaz.test.library.library_service.v1.ListShelvesRequest
+	(*ListShelvesResponse)(nil),               // 6: malonaz.test.library.library_service.v1.ListShelvesResponse
+	(*BatchCreateShelvesRequest)(nil),         // 7: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest
+	(*BatchCreateShelvesResponse)(nil),        // 8: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse
+	(*BatchGetShelvesRequest)(nil),            // 9: malonaz.test.library.library_service.v1.BatchGetShelvesRequest
+	(*BatchGetShelvesResponse)(nil),           // 10: malonaz.test.library.library_service.v1.BatchGetShelvesResponse
+	(*ExportShelvesRequest)(nil),              // 11: malonaz.test.library.library_service.v1.ExportShelvesRequest
+	(*ExportShelvesResponse)(nil),             // 12: malonaz.test.library.library_service.v1.ExportShelvesResponse
+	(*ImportShelvesRequest)(nil),              // 13: malonaz.test.library.library_service.v1.ImportShelvesRequest
+	(*ImportShelvesResponse)(nil),             // 14: malonaz.test.library.library_service.v1.ImportShelvesResponse
+	(*CsvDestination)(nil),                    // 15: malonaz.test.library.library_service.v1.CsvDestination
+	(*CsvResult)(nil),                         // 16: malonaz.test.library.library_service.v1.CsvResult
+	(*ImportShelvesRequest_InlineSource)(nil), // 17: malonaz.test.library.library_service.v1.ImportShelvesRequest.InlineSource
+	(*v1.Shelf)(nil),                          // 18: malonaz.test.library.v1.Shelf
+	(*fieldmaskpb.FieldMask)(nil),             // 19: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_shelf_proto_depIdxs = []int32{
-	15, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	15, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	16, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
-	15, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	18, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	18, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	19, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
+	18, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
 	0,  // 4: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateShelfRequest
-	15, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
-	15, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
-	13, // 7: malonaz.test.library.library_service.v1.ExportShelvesRequest.csv_destination:type_name -> malonaz.test.library.library_service.v1.CsvDestination
-	14, // 8: malonaz.test.library.library_service.v1.ExportShelvesResponse.csv_result:type_name -> malonaz.test.library.library_service.v1.CsvResult
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	18, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	18, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	15, // 7: malonaz.test.library.library_service.v1.ExportShelvesRequest.csv_destination:type_name -> malonaz.test.library.library_service.v1.CsvDestination
+	16, // 8: malonaz.test.library.library_service.v1.ExportShelvesResponse.csv_result:type_name -> malonaz.test.library.library_service.v1.CsvResult
+	17, // 9: malonaz.test.library.library_service.v1.ImportShelvesRequest.inline_source:type_name -> malonaz.test.library.library_service.v1.ImportShelvesRequest.InlineSource
+	18, // 10: malonaz.test.library.library_service.v1.ImportShelvesRequest.InlineSource.shelves:type_name -> malonaz.test.library.v1.Shelf
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_shelf_proto_init() }
@@ -1517,13 +1833,16 @@ func file_malonaz_test_library_library_service_v1_shelf_proto_init() {
 	file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[12].OneofWrappers = []any{
 		(*exportShelvesResponse_CsvResult)(nil),
 	}
+	file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[13].OneofWrappers = []any{
+		(*importShelvesRequest_InlineSource_)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

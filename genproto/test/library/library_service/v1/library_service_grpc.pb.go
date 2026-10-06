@@ -42,6 +42,7 @@ const (
 	LibraryService_UndeleteShelf_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/UndeleteShelf"
 	LibraryService_ListShelves_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/ListShelves"
 	LibraryService_ExportShelves_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/ExportShelves"
+	LibraryService_ImportShelves_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/ImportShelves"
 	LibraryService_BatchCreateShelves_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateShelves"
 	LibraryService_BatchGetShelves_FullMethodName        = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetShelves"
 	LibraryService_CreateBook_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/CreateBook"
@@ -127,6 +128,12 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ExportShelves(ctx context.Context, in *ExportShelvesRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// Imports shelves into an organization from the request, as a long-running
+	// operation (AIP-151) run by the scheduler. Publishes a created event per
+	// shelf when the request asks for them.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportShelves(ctx context.Context, in *ImportShelvesRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Creates multiple shelves in a single atomic request.
 	//
 	// See: https://google.aip.dev/233 (Batch methods: Create).
@@ -400,6 +407,16 @@ func (c *libraryServiceClient) ExportShelves(ctx context.Context, in *ExportShel
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, LibraryService_ExportShelves_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) ImportShelves(ctx context.Context, in *ImportShelvesRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, LibraryService_ImportShelves_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -696,6 +713,12 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/153 (Import and export).
 	ExportShelves(context.Context, *ExportShelvesRequest) (*longrunningpb.Operation, error)
+	// Imports shelves into an organization from the request, as a long-running
+	// operation (AIP-151) run by the scheduler. Publishes a created event per
+	// shelf when the request asks for them.
+	//
+	// See: https://google.aip.dev/153 (Import and export).
+	ImportShelves(context.Context, *ImportShelvesRequest) (*longrunningpb.Operation, error)
 	// Creates multiple shelves in a single atomic request.
 	//
 	// See: https://google.aip.dev/233 (Batch methods: Create).
@@ -833,6 +856,9 @@ func (UnimplementedLibraryServiceServer) ListShelves(context.Context, *ListShelv
 }
 func (UnimplementedLibraryServiceServer) ExportShelves(context.Context, *ExportShelvesRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportShelves not implemented")
+}
+func (UnimplementedLibraryServiceServer) ImportShelves(context.Context, *ImportShelvesRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportShelves not implemented")
 }
 func (UnimplementedLibraryServiceServer) BatchCreateShelves(context.Context, *BatchCreateShelvesRequest) (*BatchCreateShelvesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCreateShelves not implemented")
@@ -1279,6 +1305,24 @@ func _LibraryService_ExportShelves_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).ExportShelves(ctx, req.(*ExportShelvesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_ImportShelves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportShelvesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ImportShelves(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_ImportShelves_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ImportShelves(ctx, req.(*ImportShelvesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1783,6 +1827,10 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportShelves",
 			Handler:    _LibraryService_ExportShelves_Handler,
+		},
+		{
+			MethodName: "ImportShelves",
+			Handler:    _LibraryService_ImportShelves_Handler,
 		},
 		{
 			MethodName: "BatchCreateShelves",
