@@ -247,36 +247,6 @@ service LibraryService {
     };
   }
 
-  // Imports shelves into an organization from the request, as a long-running
-  // operation (AIP-151) run by the scheduler. Publishes a created event per
-  // shelf when the request asks for them.
-  //
-  // See: https://google.aip.dev/153 (Import and export).
-  rpc ImportShelves(ImportShelvesRequest) returns (google.longrunning.Operation) {
-    option (google.api.http) = {
-      post: "/v1/{parent=organizations/*}/shelves:import"
-      body: "*"
-    };
-    option (google.api.method_signature) = "parent";
-    option (google.longrunning.operation_info) = {
-      response_type: "ImportShelvesResponse"
-      metadata_type: "malonaz.aip.v1.ImportMetadata"
-    };
-    option (malonaz.codegen.aip.v1.standard_method) = {
-      resource: "library.test.malonaz.com/Shelf"
-      emit_event: true
-    };
-    option (malonaz.codegen.scheduler.v1.method).policy = {
-      attempt_timeout: {seconds: 30}
-      max_attempts: 3
-      retry_backoff: {
-        initial: {nanos: 200000000}
-        max: {seconds: 1}
-        multiplier: 1
-      }
-    };
-  }
-
   // Creates multiple shelves in a single atomic request.
   //
   // See: https://google.aip.dev/233 (Batch methods: Create).
@@ -376,7 +346,10 @@ service LibraryService {
       response_type: "ImportBooksResponse"
       metadata_type: "malonaz.aip.v1.ImportMetadata"
     };
-    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Book";
+    option (malonaz.codegen.aip.v1.standard_method) = {
+      resource: "library.test.malonaz.com/Book"
+      emit_event: true
+    };
     option (malonaz.codegen.scheduler.v1.method).policy = {
       attempt_timeout: {seconds: 30}
       max_attempts: 3

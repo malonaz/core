@@ -2,7 +2,6 @@ package sat
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -644,7 +643,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.Get().Subject("created.>")},
+		Subjects:     []*nats.Subject{bookStream.GetCreatedSubject().MustGet()},
 		ConsumerName: "test-book-created-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -703,15 +702,18 @@ func TestNatsEvents_Book(t *testing.T) {
 	author := createTestAuthor(t, organizationParent, "Nats Book Author")
 	shelf := createTestShelf(t, organizationParent, "Nats Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
-	t.Run("CreatedEvent_NotEmitted", func(t *testing.T) {
+	t.Run("CreatedEvent", func(t *testing.T) {
 		t.Parallel()
-		book := createTestBook(t, shelf.Name, author.Name, "Nats NoCreated Book")
+		book := createTestBook(t, shelf.Name, author.Name, "Nats Created Book")
 
-		require.Never(t, func() bool {
+		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			return len(bookNameToCreatedEvents[book.Name]) > 0
+			return len(bookNameToCreatedEvents[book.Name]) == 1
 		}, natsEventCheckTimeout, natsEventCheckInterval)
+		mu.Lock()
+		defer mu.Unlock()
+		grpcrequire.Equal(t, book, bookNameToCreatedEvents[book.Name][0].Book)
 	})
 
 	t.Run("UpdatedEvent", func(t *testing.T) {
@@ -1128,74 +1130,60 @@ func TestNatsEvents_ShelfFilteredByOrganization(t *testing.T) {
 	})
 }
 
-func TestImportShelves_Events(t *testing.T) {
+func TestImportBooks_Events(t *testing.T) {
 	t.Parallel()
-	organizationParent := getOrganizationParent()
+	fixture := newImportFixture(t)
 	natsClient, err := satEnvironment.GetNatsClient(ctx)
 	require.NoError(t, err)
 
 	var mu sync.Mutex
-	shelfNameToCreatedEvents := map[string]int{}
+	bookNameToCreatedEvents := map[string]int{}
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{librarypb.GetShelfStream().GetCreatedSubject().MustGet()},
-		ConsumerName: "test-import-shelves-created-" + uuid.MustNewV7().String(),
+		Subjects:     []*nats.Subject{librarypb.GetBookStream().GetCreatedSubject().MustGet()},
+		ConsumerName: "test-import-books-created-" + uuid.MustNewV7().String(),
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
 		defer mu.Unlock()
-		shelf, err := aip.ParseEventResource[*librarypb.Shelf](message.Payload)
+		book, err := aip.ParseEventResource[*librarypb.Book](message.Payload)
 		if err != nil {
 			panic(err)
 		}
-		shelfNameToCreatedEvents[shelf.Name]++
+		bookNameToCreatedEvents[book.Name]++
 		return nil
 	})
 	require.NoError(t, createdProcessor.Start(ctx))
 
-	// importShelves imports two shelves and returns their names.
-	importShelves := func(t *testing.T, emitEvents bool) []string {
+	// importBooks imports two books inline and returns their names.
+	importBooks := func(t *testing.T, emitEvents bool) []string {
 		t.Helper()
-		shelves := make([]*librarypb.Shelf, 2)
-		for i := range shelves {
-			shelves[i] = &librarypb.Shelf{
-				DisplayName:     fmt.Sprintf("Imported Shelf %d", i),
-				Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
-				Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
-				CorrelationId_2: "hello",
-			}
-		}
-		importShelvesRequest := &libraryservicepb.ImportShelvesRequest{
-			Parent:     organizationParent,
-			RequestId:  uuid.MustNewV7().String(),
-			Source:     &libraryservicepb.ImportShelvesRequest_InlineSource_{InlineSource: &libraryservicepb.ImportShelvesRequest_InlineSource{Shelves: shelves}},
-			EmitEvents: emitEvents,
-		}
-		operation, err := libraryServiceClient.ImportShelves(ctx, importShelvesRequest)
-		require.NoError(t, err)
-		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
+		titles := titles(2)
+		request := fixture.inlineRequest(inlineBook(fixture.author.GetName(), titles[0]), inlineBook(fixture.author.GetName(), titles[1]))
+		request.EmitEvents = emitEvents
+		done := waitOperation(t, fixture.importBooks(t, request).GetName(), operationWaitTimeout)
 		require.True(t, done.GetDone())
 		require.Nil(t, done.GetError())
-		names := unpackAny[*libraryservicepb.ImportShelvesResponse](t, done.GetResponse()).GetNames()
-		require.Len(t, names, len(shelves))
+		names := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames()
+		require.Len(t, names, len(titles))
 		return names
 	}
 
 	t.Run("EmitEvents", func(t *testing.T) {
 		t.Parallel()
-		names := importShelves(t, true)
+		names := importBooks(t, true)
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			return shelfNameToCreatedEvents[names[0]] == 1 && shelfNameToCreatedEvents[names[1]] == 1
+			return bookNameToCreatedEvents[names[0]] == 1 && bookNameToCreatedEvents[names[1]] == 1
 		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 
 	t.Run("NoEvents", func(t *testing.T) {
 		t.Parallel()
-		names := importShelves(t, false)
+		names := importBooks(t, false)
 		require.Never(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			return shelfNameToCreatedEvents[names[0]] > 0 || shelfNameToCreatedEvents[names[1]] > 0
+			return bookNameToCreatedEvents[names[0]] > 0 || bookNameToCreatedEvents[names[1]] > 0
 		}, natsEventCheckTimeout, natsEventCheckInterval)
 	})
 }

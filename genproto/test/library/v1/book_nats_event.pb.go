@@ -37,6 +37,59 @@ func (s *BookStream) Get() *nats.Stream {
 	return s.stream
 }
 
+type BookCreatedSubject struct {
+	stream *BookStream
+}
+
+func (s *BookCreatedSubject) evaluate(resource *Book) (bool, error) {
+	return true, nil
+}
+
+func (s *BookCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Book) error {
+	ok, err := s.evaluate(resource)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	if err := s.set(resource); err != nil {
+		return err
+	}
+	subject, err := s.Get()
+	if err != nil {
+		return fmt.Errorf("getting subject: %w", err)
+	}
+	event, err := aip.NewResourceCreatedEvent(resource)
+	if err != nil {
+		return fmt.Errorf("constructing resource event: %w", err)
+	}
+	return natsClient.Publish(ctx, subject, event)
+}
+
+func (s *BookCreatedSubject) set(resource *Book) error {
+	return nil
+}
+
+func (s *BookCreatedSubject) Get() (*nats.Subject, error) {
+	tokens := []string{
+		"created",
+	}
+	return s.stream.stream.Subject(strings.Join(tokens, ".")), nil
+}
+
+func (s *BookCreatedSubject) MustGet() *nats.Subject {
+	subject, err := s.Get()
+	if err != nil {
+		panic(err)
+	}
+	return subject
+}
+
+func (s *BookStream) GetCreatedSubject() *BookCreatedSubject {
+	return &BookCreatedSubject{stream: s}
+}
+
 type BookUpdatedSubject struct {
 	stream *BookStream
 }

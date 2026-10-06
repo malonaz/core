@@ -259,46 +259,6 @@ message ExportShelvesResponse {
   }
 }
 
-// Request message for LibraryService.ImportShelves.
-message ImportShelvesRequest {
-  // The organization to import the shelves into; the operation hangs off it.
-  // Format: organizations/{organization}
-  string parent = 1 [
-    (buf.validate.field).required = true,
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).child_type = "library.test.malonaz.com/Shelf"
-  ];
-
-  // InlineSource carries the shelves to import in the request.
-  message InlineSource {
-    // The shelves to import. A name, timestamps and labels are kept when set.
-    repeated malonaz.test.library.v1.Shelf shelves = 1;
-  }
-
-  // Where the shelves come from.
-  oneof source {
-    option (buf.validate.oneof).required = true;
-
-    // The shelves themselves.
-    InlineSource inline_source = 2;
-  }
-
-  // A unique identifier for this request. Must be a UUID.
-  string request_id = 3 [
-    (buf.validate.field).required = true,
-    (buf.validate.field).string.uuid = true
-  ];
-
-  // If set to true, a created event is published for every imported shelf.
-  bool emit_events = 4;
-}
-
-// Response message for LibraryService.ImportShelves, the operation's response.
-message ImportShelvesResponse {
-  // The shelves imported, in order.
-  repeated string names = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Shelf"];
-}
-
 // CsvDestination writes an export as a CSV document into the operation's response. Shared by
 // every export of the service, as a platform-wide destination would be.
 message CsvDestination {}

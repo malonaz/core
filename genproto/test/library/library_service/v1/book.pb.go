@@ -1052,7 +1052,9 @@ type ImportBooksRequest struct {
 	// A unique identifier for this request. Must be a UUID. Repeating a request
 	// with the same ID returns the operation it started instead of starting
 	// another, and a retried attempt finds the books an earlier one imported.
-	RequestId     string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	RequestId string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// If set to true, a created event is published for every imported book.
+	EmitEvents    bool `protobuf:"varint,5,opt,name=emit_events,json=emitEvents,proto3" json:"emit_events,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1121,6 +1123,13 @@ func (x *ImportBooksRequest) GetRequestId() string {
 	return ""
 }
 
+func (x *ImportBooksRequest) GetEmitEvents() bool {
+	if x != nil {
+		return x.EmitEvents
+	}
+	return false
+}
+
 func (x *ImportBooksRequest) SetParent(v string) {
 	x.Parent = v
 }
@@ -1143,6 +1152,10 @@ func (x *ImportBooksRequest) SetTitlesSource(v *TitlesSource) {
 
 func (x *ImportBooksRequest) SetRequestId(v string) {
 	x.RequestId = v
+}
+
+func (x *ImportBooksRequest) SetEmitEvents(v bool) {
+	x.EmitEvents = v
 }
 
 func (x *ImportBooksRequest) HasSource() bool {
@@ -1220,6 +1233,8 @@ type ImportBooksRequest_builder struct {
 	// with the same ID returns the operation it started instead of starting
 	// another, and a retried attempt finds the books an earlier one imported.
 	RequestId string
+	// If set to true, a created event is published for every imported book.
+	EmitEvents bool
 }
 
 func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
@@ -1234,6 +1249,7 @@ func (b0 ImportBooksRequest_builder) Build() *ImportBooksRequest {
 		x.Source = &ImportBooksRequest_TitlesSource{b.TitlesSource}
 	}
 	x.RequestId = b.RequestId
+	x.EmitEvents = b.EmitEvents
 	return m0
 }
 
@@ -2156,13 +2172,15 @@ const file_malonaz_test_library_library_service_v1_book_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB5\xfaA\x1f\n" +
 	"\x1dlibrary.test.malonaz.com/Book\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"L\n" +
 	"\x15BatchGetBooksResponse\x123\n" +
-	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xaa\x03\n" +
+	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05books\"\xcb\x03\n" +
 	"\x12ImportBooksRequest\x12C\n" +
 	"\x06parent\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\x12\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01R\x06parent\x12o\n" +
 	"\rinline_source\x18\x02 \x01(\v2H.malonaz.test.library.library_service.v1.ImportBooksRequest.InlineSourceH\x00R\finlineSource\x12\\\n" +
 	"\rtitles_source\x18\x03 \x01(\v25.malonaz.test.library.library_service.v1.TitlesSourceH\x00R\ftitlesSource\x12*\n" +
 	"\n" +
-	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId\x1aC\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId\x12\x1f\n" +
+	"\vemit_events\x18\x05 \x01(\bR\n" +
+	"emitEvents\x1aC\n" +
 	"\fInlineSource\x123\n" +
 	"\x05books\x18\x01 \x03(\v2\x1d.malonaz.test.library.v1.BookR\x05booksB\x0f\n" +
 	"\x06source\x12\x05\xbaH\x02\b\x01\"\xdd\x01\n" +

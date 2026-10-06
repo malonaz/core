@@ -56,7 +56,7 @@ message ImportBooksResponse {
   not fan out). `standard_method.emit_event = true` plus a `bool emit_events`
   on the request lets a run publish a created event per stored resource,
   after each batch; the resource needs created events. Reference:
-  library `ImportShelves`. A replayed row is published again on retry, so
+  library `ImportBooks`. A replayed row is published again on retry, so
   consumers must be idempotent.
 - The resource needs a `Create`/`BatchCreate` in the same service: the import
   reuses `prepareCreate{Resource}` (`lores/aip/codegen/create`).

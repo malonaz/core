@@ -1007,7 +1007,7 @@ var File_malonaz_test_library_v1_book_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xd9\x0f\n" +
+	"\"malonaz/test/library/v1/book.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/type/decimal.proto\x1a\x17google/type/money.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\"malonaz/codegen/nats/v1/nats.proto\x1a&malonaz/test/library/v1/bookmark.proto\x1a#malonaz/test/library/v1/shelf.proto\"\xe4\x0f\n" +
 	"\x04Book\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1045,10 +1045,11 @@ const file_malonaz_test_library_v1_book_proto_rawDesc = "" +
 	"\x05price\x18\x13 \x01(\v2\x14.google.type.DecimalB\x06\xba\xea\x0f\x02 \x01R\x05price\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x9a\x02\xeaAg\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa5\x02\xeaAg\n" +
 	"\x1dlibrary.test.malonaz.com/Book\x129organizations/{organization}/shelves/{shelf}/books/{book}*\x05books2\x04bookҦ\x04\t\n" +
-	"\alibrary\x8a\x91$R\n" +
-	"\x1cmalonaz.test.library.v1.book\"'\n" +
+	"\alibrary\x8a\x91$]\n" +
+	"\x1cmalonaz.test.library.v1.book\x1a\t\n" +
+	"\acreated\"'\n" +
 	"\aupdated\x1a\x1cbook.publication_year > 2007*\t\n" +
 	"\adeleted\x82\xf6,$a1b2c3d4-e5f6-7890-abcd-ef1234567890\x9a\xf3-!\n" +
 	"\t\n" +
