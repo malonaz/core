@@ -1,0 +1,8 @@
+name: test
+resources:
+  requests:
+    memory: 512MB
+servers:
+  - name: d-processor
+    processor:
+      manifest: //d/d_processor:manifest

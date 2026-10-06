@@ -15,9 +15,9 @@ wiring. Two manifests, both YAML typed as `malonaz/onyx/v1` protos:
 | Manifest | Describes | Generates |
 |---|---|---|
 | `ServiceManifest` | one Go service: its package, generated servers, constructor arguments | `service.tmpl.go` — the `Service` struct, `New(opts, deps...)`, `Start` |
-| `MainManifest` | one binary: the servers it runs and the services on them | `main.go` — flags, connections, services, servers, health, shutdown |
+| `MainManifest` | one binary: the servers it runs and the services on them | `main.go` — flags, connections, services, servers, health, shutdown; and its Kubernetes base (`--mode k8s`) |
 
-`tools/onyx` is the generator (`--mode service|main`), `malonaz/onyx/v1`
+`tools/onyx` is the generator (`--mode service|main|k8s`), `malonaz/onyx/v1`
 the schema, `build_defs/codegen/onyx` the rules. The reference binary is
 `cmd/library-service` over `go/test/library/library_service`; what the
 generated main does at runtime is `lores/onyx/binary`.
@@ -92,6 +92,40 @@ Server kinds: `grpc`, `http`, `grpc_web_proxy`, `processor` (a service with
 no listener — started and health-checked). Interceptors are the
 `Interceptor` enum, outermost first. **Order servers however you like: the
 generator starts them in dependency order** (`lores/onyx/binary`).
+
+Listener fields, read only by `--mode k8s`:
+
+| Field | Meaning |
+|---|---|
+| `port` | TCP port; defaults to grpc 9090, http 8080, grpc_web_proxy 8443 |
+| `grpc.gateway_port` | the gateway's port; defaults to 8080 |
+| `internal` | reached only within the pod: a grpc server binds `/tmp/{name}.socket` with TLS off; nothing is exposed |
+| `public` | each of its listeners gets an Ingress |
+
+A processor takes none of them, and `internal` excludes `public`.
+
+## Kubernetes
+
+`onyx_k8s(name, manifest, image?)` writes the binary's base next to its
+manifest: `serviceaccount.yaml`, `deployment.yaml`, `service.yaml`,
+`ingress.yaml` (only with a public server) and the `kustomization.yaml`
+listing them. Nothing in it is environment specific:
+
+- The Deployment sets `{namespace}_PORT` (or `_SOCKET_PATH`) for every
+  listener, so the flags match the container ports. Probes hit the health
+  server (`:4040/liveness`, `/readiness`); Prometheus (`:13434`) is announced
+  by `prometheus.io/*` annotations and a `metrics` Service port.
+- The Service has a port per non-internal listener, named by its flag
+  namespace (`{server}-grpc`, `{server}-grpc-gateway`, ...).
+- Each public listener gets an Ingress of that name with no host.
+- `resources` on the MainManifest (`requests`/`limits` of `cpu` and
+  `memory`, Kubernetes quantities) become the container's resources.
+- `image` is a `docker_image` rule whose fqn is templated in; without it the
+  image is the binary's name.
+
+An environment's kustomize overlay adds the rest: image tag, replicas, env, the IRSA annotation on the ServiceAccount, Ingress hosts and
+controller annotations, namespace. Two listeners on one port (e.g. a gateway
+and an http server both defaulting to 8080) fail generation.
 
 ## Build rules
 

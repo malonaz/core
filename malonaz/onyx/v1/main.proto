@@ -16,10 +16,53 @@ message MainManifest {
 
   // Started in dependency order: a server after every server it dials in-process.
   repeated Server servers = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // Compute of the binary's container, mirroring Kubernetes' requests and limits.
+  Resources resources = 4;
+}
+
+// Compute requests and limits, as Kubernetes quantities.
+message Resources {
+  // What the scheduler reserves.
+  Quantities requests = 1;
+
+  // What the container may not exceed.
+  Quantities limits = 2;
+
+  // A cpu and memory amount.
+  message Quantities {
+    // Cores, or millicores: `500m`, `2`.
+    string cpu = 1 [
+      (buf.validate.field).string.pattern = "^([0-9]+m|[0-9]+(\\.[0-9]+)?)$",
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
+
+    // Bytes, with an optional suffix: `512Mi`, `2Gi`.
+    string memory = 2 [
+      (buf.validate.field).string.pattern = "^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$",
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
+  }
 }
 
 // A server of the binary.
 message Server {
+  option (buf.validate.message).cel = {
+    id: "server.processor_listener"
+    message: "a processor has no listener: port, internal and public do not apply"
+    expression: "!has(this.processor) || (this.port == 0 && !this.internal && !this.public)"
+  };
+  option (buf.validate.message).cel = {
+    id: "server.internal_public"
+    message: "a server cannot be both internal and public"
+    expression: "!(this.internal && this.public)"
+  };
+  option (buf.validate.message).cel = {
+    id: "server.internal_grpc_port"
+    message: "an internal grpc server binds a socket, not a port"
+    expression: "!(has(this.grpc) && this.internal && this.port != 0)"
+  };
+
   // Kebab-case. The flag namespace (`{name}-grpc`, `{name}-http`, ...) and health entry of the server.
   // A gRPC server named after the one service it serves shares that service's flags.
   string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
@@ -40,6 +83,21 @@ message Server {
     // A service with no listener.
     Processor processor = 5;
   }
+
+  // TCP port. Defaults to the kind's: grpc 9090, http 8080, grpc_web_proxy 8443.
+  int32 port = 6 [
+    (buf.validate.field).int32 = {
+      gte: 1
+      lte: 65535
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // Only reached from within the pod: a grpc server binds `/tmp/{name}.socket`, and nothing is exposed.
+  bool internal = 7;
+
+  // Reached from outside the cluster: each of its listeners gets an Ingress.
+  bool public = 8;
 
   // A gRPC server.
   message Grpc {
@@ -69,6 +127,15 @@ message Server {
       // Also serve it over HTTP through grpc-gateway.
       bool gateway = 4;
     }
+
+    // TCP port of the grpc-gateway, when a service sets gateway. Defaults to 8080.
+    int32 gateway_port = 4 [
+      (buf.validate.field).int32 = {
+        gte: 1
+        lte: 65535
+      },
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
   }
 
   // An HTTP server.

@@ -1,0 +1,9 @@
+name: test
+servers:
+  - name: a-service
+    grpc:
+      gateway_port: 8081
+      services:
+        - service: a-service
+          proto: //a/v1
+          manifest: //a/a_service:manifest
