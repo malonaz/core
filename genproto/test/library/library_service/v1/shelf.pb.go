@@ -1199,8 +1199,12 @@ func (*ExportShelvesRequest_CsvDestination) isExportShelvesRequest_Destination()
 // Response message for LibraryService.ExportShelves, the operation's response.
 type ExportShelvesResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The CSV document: one `name,display_name` row per shelf.
-	Csv           string `protobuf:"bytes,1,opt,name=csv,proto3" json:"csv,omitempty"`
+	// Where the shelves landed, per the request's destination.
+	//
+	// Types that are valid to be assigned to Result:
+	//
+	//	*ExportShelvesResponse_CsvResult
+	Result        isExportShelvesResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1230,31 +1234,111 @@ func (x *ExportShelvesResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ExportShelvesResponse) GetCsv() string {
+func (x *ExportShelvesResponse) GetResult() isExportShelvesResponse_Result {
 	if x != nil {
-		return x.Csv
+		return x.Result
 	}
-	return ""
+	return nil
 }
 
-func (x *ExportShelvesResponse) SetCsv(v string) {
-	x.Csv = v
+func (x *ExportShelvesResponse) GetCsvResult() *CsvResult {
+	if x != nil {
+		if x, ok := x.Result.(*ExportShelvesResponse_CsvResult); ok {
+			return x.CsvResult
+		}
+	}
+	return nil
+}
+
+func (x *ExportShelvesResponse) SetCsvResult(v *CsvResult) {
+	if v == nil {
+		x.Result = nil
+		return
+	}
+	x.Result = &ExportShelvesResponse_CsvResult{v}
+}
+
+func (x *ExportShelvesResponse) HasResult() bool {
+	if x == nil {
+		return false
+	}
+	return x.Result != nil
+}
+
+func (x *ExportShelvesResponse) HasCsvResult() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Result.(*ExportShelvesResponse_CsvResult)
+	return ok
+}
+
+func (x *ExportShelvesResponse) ClearResult() {
+	x.Result = nil
+}
+
+func (x *ExportShelvesResponse) ClearCsvResult() {
+	if _, ok := x.Result.(*ExportShelvesResponse_CsvResult); ok {
+		x.Result = nil
+	}
+}
+
+const ExportShelvesResponse_Result_not_set_case case_ExportShelvesResponse_Result = 0
+const ExportShelvesResponse_CsvResult_case case_ExportShelvesResponse_Result = 1
+
+func (x *ExportShelvesResponse) WhichResult() case_ExportShelvesResponse_Result {
+	if x == nil {
+		return ExportShelvesResponse_Result_not_set_case
+	}
+	switch x.Result.(type) {
+	case *ExportShelvesResponse_CsvResult:
+		return ExportShelvesResponse_CsvResult_case
+	default:
+		return ExportShelvesResponse_Result_not_set_case
+	}
 }
 
 type ExportShelvesResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The CSV document: one `name,display_name` row per shelf.
-	Csv string
+	// Where the shelves landed, per the request's destination.
+
+	// Fields of oneof Result:
+	// For a `csv_destination`: one `name,display_name` row per shelf.
+	CsvResult *CsvResult
+	// -- end of Result
 }
 
 func (b0 ExportShelvesResponse_builder) Build() *ExportShelvesResponse {
 	m0 := &ExportShelvesResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Csv = b.Csv
+	if b.CsvResult != nil {
+		x.Result = &ExportShelvesResponse_CsvResult{b.CsvResult}
+	}
 	return m0
 }
+
+type case_ExportShelvesResponse_Result protoreflect.FieldNumber
+
+func (x case_ExportShelvesResponse_Result) String() string {
+	md := file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[12].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isExportShelvesResponse_Result interface {
+	isExportShelvesResponse_Result()
+}
+
+type ExportShelvesResponse_CsvResult struct {
+	// For a `csv_destination`: one `name,display_name` row per shelf.
+	CsvResult *CsvResult `protobuf:"bytes,1,opt,name=csv_result,json=csvResult,proto3,oneof"`
+}
+
+func (*ExportShelvesResponse_CsvResult) isExportShelvesResponse_Result() {}
 
 // CsvDestination writes an export as a CSV document into the operation's response. Shared by
 // every export of the service, as a platform-wide destination would be.
@@ -1298,6 +1382,66 @@ func (b0 CsvDestination_builder) Build() *CsvDestination {
 	m0 := &CsvDestination{}
 	b, x := &b0, m0
 	_, _ = b, x
+	return m0
+}
+
+// CsvResult is what a CsvDestination wrote.
+type CsvResult struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The CSV document: a header, then a row per resource.
+	Csv           string `protobuf:"bytes,1,opt,name=csv,proto3" json:"csv,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CsvResult) Reset() {
+	*x = CsvResult{}
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CsvResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CsvResult) ProtoMessage() {}
+
+func (x *CsvResult) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CsvResult) GetCsv() string {
+	if x != nil {
+		return x.Csv
+	}
+	return ""
+}
+
+func (x *CsvResult) SetCsv(v string) {
+	x.Csv = v
+}
+
+type CsvResult_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The CSV document: a header, then a row per resource.
+	Csv string
+}
+
+func (b0 CsvResult_builder) Build() *CsvResult {
+	m0 := &CsvResult{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Csv = b.Csv
 	return m0
 }
 
@@ -1377,12 +1521,16 @@ const file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\xb0\x01\x01R\trequestId:\a\x92\xf3-\x03\n" +
 	"\x01*B\x14\n" +
-	"\vdestination\x12\x05\xbaH\x02\b\x01\")\n" +
-	"\x15ExportShelvesResponse\x12\x10\n" +
-	"\x03csv\x18\x01 \x01(\tR\x03csv\"\x10\n" +
-	"\x0eCsvDestinationBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
+	"\vdestination\x12\x05\xbaH\x02\b\x01\"v\n" +
+	"\x15ExportShelvesResponse\x12S\n" +
+	"\n" +
+	"csv_result\x18\x01 \x01(\v22.malonaz.test.library.library_service.v1.CsvResultH\x00R\tcsvResultB\b\n" +
+	"\x06result\"\x10\n" +
+	"\x0eCsvDestination\"\x1d\n" +
+	"\tCsvResult\x12\x10\n" +
+	"\x03csv\x18\x01 \x01(\tR\x03csvBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3"
 
-var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_malonaz_test_library_library_service_v1_shelf_proto_goTypes = []any{
 	(*CreateShelfRequest)(nil),         // 0: malonaz.test.library.library_service.v1.CreateShelfRequest
 	(*GetShelfRequest)(nil),            // 1: malonaz.test.library.library_service.v1.GetShelfRequest
@@ -1398,23 +1546,25 @@ var file_malonaz_test_library_library_service_v1_shelf_proto_goTypes = []any{
 	(*ExportShelvesRequest)(nil),       // 11: malonaz.test.library.library_service.v1.ExportShelvesRequest
 	(*ExportShelvesResponse)(nil),      // 12: malonaz.test.library.library_service.v1.ExportShelvesResponse
 	(*CsvDestination)(nil),             // 13: malonaz.test.library.library_service.v1.CsvDestination
-	(*v1.Shelf)(nil),                   // 14: malonaz.test.library.v1.Shelf
-	(*fieldmaskpb.FieldMask)(nil),      // 15: google.protobuf.FieldMask
+	(*CsvResult)(nil),                  // 14: malonaz.test.library.library_service.v1.CsvResult
+	(*v1.Shelf)(nil),                   // 15: malonaz.test.library.v1.Shelf
+	(*fieldmaskpb.FieldMask)(nil),      // 16: google.protobuf.FieldMask
 }
 var file_malonaz_test_library_library_service_v1_shelf_proto_depIdxs = []int32{
-	14, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	14, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
-	15, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
-	14, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	15, // 0: malonaz.test.library.library_service.v1.CreateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	15, // 1: malonaz.test.library.library_service.v1.UpdateShelfRequest.shelf:type_name -> malonaz.test.library.v1.Shelf
+	16, // 2: malonaz.test.library.library_service.v1.UpdateShelfRequest.update_mask:type_name -> google.protobuf.FieldMask
+	15, // 3: malonaz.test.library.library_service.v1.ListShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
 	0,  // 4: malonaz.test.library.library_service.v1.BatchCreateShelvesRequest.requests:type_name -> malonaz.test.library.library_service.v1.CreateShelfRequest
-	14, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
-	14, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	15, // 5: malonaz.test.library.library_service.v1.BatchCreateShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
+	15, // 6: malonaz.test.library.library_service.v1.BatchGetShelvesResponse.shelves:type_name -> malonaz.test.library.v1.Shelf
 	13, // 7: malonaz.test.library.library_service.v1.ExportShelvesRequest.csv_destination:type_name -> malonaz.test.library.library_service.v1.CsvDestination
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	14, // 8: malonaz.test.library.library_service.v1.ExportShelvesResponse.csv_result:type_name -> malonaz.test.library.library_service.v1.CsvResult
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_test_library_library_service_v1_shelf_proto_init() }
@@ -1425,13 +1575,16 @@ func file_malonaz_test_library_library_service_v1_shelf_proto_init() {
 	file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[11].OneofWrappers = []any{
 		(*ExportShelvesRequest_CsvDestination)(nil),
 	}
+	file_malonaz_test_library_library_service_v1_shelf_proto_msgTypes[12].OneofWrappers = []any{
+		(*ExportShelvesResponse_CsvResult)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc), len(file_malonaz_test_library_library_service_v1_shelf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

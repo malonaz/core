@@ -252,10 +252,19 @@ message ExportShelvesRequest {
 
 // Response message for LibraryService.ExportShelves, the operation's response.
 message ExportShelvesResponse {
-  // The CSV document: one `name,display_name` row per shelf.
-  string csv = 1;
+  // Where the shelves landed, per the request's destination.
+  oneof result {
+    // For a `csv_destination`: one `name,display_name` row per shelf.
+    CsvResult csv_result = 1;
+  }
 }
 
 // CsvDestination writes an export as a CSV document into the operation's response. Shared by
 // every export of the service, as a platform-wide destination would be.
 message CsvDestination {}
+
+// CsvResult is what a CsvDestination wrote.
+message CsvResult {
+  // The CSV document: a header, then a row per resource.
+  string csv = 1;
+}

@@ -14,7 +14,7 @@ import (
 )
 
 // ExportBooksToCsv writes ExportBooks' CSV: one `name,title` row per book.
-func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
+func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.CsvResult, error) {
 	row := func(ctx context.Context, book *librarypb.Book) ([]string, error) {
 		if request.GetRejectTitle() != "" && book.GetTitle() == request.GetRejectTitle() {
 			return nil, reader.Fail(ctx, status.Errorf(codes.InvalidArgument, "book %q is rejected", book.GetName()).Err())
@@ -25,11 +25,11 @@ func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicep
 	if err != nil {
 		return nil, err
 	}
-	return &libraryservicepb.ExportBooksResponse{Csv: document}, nil
+	return &libraryservicepb.CsvResult{Csv: document}, nil
 }
 
 // ExportBooksToTitles writes ExportBooks' titles: one per book.
-func (s *Service) ExportBooksToTitles(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
+func (s *Service) ExportBooksToTitles(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.TitlesResult, error) {
 	var titles []string
 	for {
 		books, err := reader.Next(ctx)
@@ -37,7 +37,7 @@ func (s *Service) ExportBooksToTitles(ctx context.Context, request *libraryservi
 			return nil, err
 		}
 		if len(books) == 0 {
-			return &libraryservicepb.ExportBooksResponse{Titles: titles}, nil
+			return &libraryservicepb.TitlesResult{Titles: titles}, nil
 		}
 		for _, book := range books {
 			titles = append(titles, book.GetTitle())
@@ -46,7 +46,7 @@ func (s *Service) ExportBooksToTitles(ctx context.Context, request *libraryservi
 }
 
 // ExportShelvesToCsv writes ExportShelves' CSV: one `name,display_name` row per shelf.
-func (s *Service) ExportShelvesToCsv(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.ExportShelvesResponse, error) {
+func (s *Service) ExportShelvesToCsv(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.CsvResult, error) {
 	row := func(_ context.Context, shelf *librarypb.Shelf) ([]string, error) {
 		return []string{shelf.GetName(), shelf.GetDisplayName()}, nil
 	}
@@ -54,7 +54,7 @@ func (s *Service) ExportShelvesToCsv(ctx context.Context, request *libraryservic
 	if err != nil {
 		return nil, err
 	}
-	return &libraryservicepb.ExportShelvesResponse{Csv: document}, nil
+	return &libraryservicepb.CsvResult{Csv: document}, nil
 }
 
 // writeCsv drains next into a CSV document: the header, then a row per resource. A resource
