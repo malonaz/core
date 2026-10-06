@@ -113,8 +113,8 @@ func (gen *generator) generateLongrunningServiceLevel(si *serviceInfo) error {
 			continue
 		}
 		if lro.exp != nil {
-			// The export's read is generated; the runner writes it out.
-			gen.generateExportRunnerMethod(lro.exp)
+			// The export's read is generated; the runner writes it to each destination.
+			gen.generateExportRunnerMethods(lro.exp)
 			continue
 		}
 		responseType, err := gen.responseTypeIdent(lro)

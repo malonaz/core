@@ -12,6 +12,8 @@ import { file_google_protobuf_duration, file_google_protobuf_field_mask } from "
 import type { SearchSnippet, SearchSnippetValid } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_aip_v1_aip } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
+import type { CsvDestination, CsvDestinationValid } from "./shelf_pb";
+import { file_malonaz_test_library_library_service_v1_shelf } from "./shelf_pb";
 import type { Book, BookValid } from "../../v1/book_pb";
 import { file_malonaz_test_library_v1_book } from "../../v1/book_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -20,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/book.proto.
  */
 export const file_malonaz_test_library_library_service_v1_book: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhIoIBChFEZWxldGVCb29rUmVxdWVzdBI5CgRuYW1lGAEgASgJQivgQQL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCRINCgVmb3JjZRgEIAEoCCLaAQoSU2VhcmNoQm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESGgoFcXVlcnkYAiABKAlCC7pICHIDGIACyAEBEg4KBmZpbHRlchgDIAEoCRIdCglwYWdlX3NpemUYBCABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgFIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAYgASgIOg2C8y0CCGSS8y0DCgEqIo0BChNTZWFyY2hCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2si9AIKEkltcG9ydEJvb2tzUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESYQoNaW5saW5lX3NvdXJjZRgCIAEoCzJILm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5JbXBvcnRCb29rc1JlcXVlc3QuSW5saW5lU291cmNlSAASTgoNdGl0bGVzX3NvdXJjZRgDIAEoCzI1Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5UaXRsZXNTb3VyY2VIABIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAcgBARo8CgxJbmxpbmVTb3VyY2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQg8KBnNvdXJjZRIFukgCCAEiuwEKDFRpdGxlc1NvdXJjZRI6CgZhdXRob3IYASABKAlCKvpBIQofbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0F1dGhvcrpIA8gBARIeCgZ0aXRsZXMYAiADKAlCDrpIC5IBCAgBIgRyAhABEhsKCmZhaWxfYWZ0ZXIYAyABKAVCB7pIBBoCKAASMgoFZGVsYXkYBCABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CCLpIBaoBAjIAIkgKE0ltcG9ydEJvb2tzUmVzcG9uc2USMQoFbmFtZXMYASADKAlCIvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2sirQEKEkV4cG9ydEJvb2tzUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESDgoGZmlsdGVyGAIgASgJEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEByAEBEhQKDHJlamVjdF90aXRsZRgEIAEoCToTkvMtDwoFdGl0bGUKBmF1dGhvciIiChNFeHBvcnRCb29rc1Jlc3BvbnNlEgsKA2NzdhgBIAEoCUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_book]);
+  fileDesc("CjJtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9vay5wcm90bxInbWFsb25hei50ZXN0LmxpYnJhcnkubGlicmFyeV9zZXJ2aWNlLnYxIvYBChFDcmVhdGVCb29rUmVxdWVzdBI8CgZwYXJlbnQYASABKAlCLOBBAvpBIAoebGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL1NoZWxmukgDyAEBEjYKB2Jvb2tfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESMwoEYm9vaxgDIAEoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2tCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIksKDkdldEJvb2tSZXF1ZXN0EjkKBG5hbWUYASABKAlCK+BBAvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQEioQIKEVVwZGF0ZUJvb2tSZXF1ZXN0EjMKBGJvb2sYASABKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQESFAoMcHJlY29uZGl0aW9uGAMgASgJOocBukhCGkAKEmJvb2submFtZV9yZXF1aXJlZBIVYm9vay5uYW1lIG11c3QgYmUgc2V0GhNoYXModGhpcy5ib29rLm5hbWUp6pzBAz0KBXRpdGxlCgZhdXRob3IKBGlzYm4KEHB1YmxpY2F0aW9uX3llYXIKCnBhZ2VfY291bnQKCG1ldGFkYXRhIoIBChFEZWxldGVCb29rUmVxdWVzdBI5CgRuYW1lGAEgASgJQivgQQL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCRINCgVmb3JjZRgEIAEoCCLaAQoSU2VhcmNoQm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESGgoFcXVlcnkYAiABKAlCC7pICHIDGIACyAEBEg4KBmZpbHRlchgDIAEoCRIdCglwYWdlX3NpemUYBCABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgFIAEoCRIYChBpbmNsdWRlX3NuaXBwZXRzGAYgASgIOg2C8y0CCGSS8y0DCgEqIo0BChNTZWFyY2hCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIvECChBMaXN0Qm9va3NSZXF1ZXN0EjwKBnBhcmVudBgBIAEoCUIs4EEC+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGa6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJOskBgvMtAghkivMtWAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lCgV0aXRsZQoQcHVibGljYXRpb25feWVhcgoRc2hlbGZfZXh0ZXJuYWxfaWQSEGNyZWF0ZV90aW1lIGRlc2OS8y1jCgV0aXRsZQoGYXV0aG9yCgRpc2JuChBwdWJsaWNhdGlvbl95ZWFyCghtZXRhZGF0YQoIZHVyYXRpb24KBmxhYmVscwoLc2hlbGZfZ2VucmUKEXNoZWxmX2V4dGVybmFsX2lkIloKEUxpc3RCb29rc1Jlc3BvbnNlEiwKBWJvb2tzGAEgAygLMh0ubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9vaxIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkikQEKFEJhdGNoR2V0Qm9va3NSZXF1ZXN0EjMKBnBhcmVudBgBIAEoCUIj+kEgCh5saWJyYXJ5LnRlc3QubWFsb25hei5jb20vU2hlbGYSRAoFbmFtZXMYAiADKAlCNfpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SBCSAQ0IARDoBxgBIgRyAhABIkUKFUJhdGNoR2V0Qm9va3NSZXNwb25zZRIsCgVib29rcxgBIAMoCzIdLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2si9AIKEkltcG9ydEJvb2tzUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESYQoNaW5saW5lX3NvdXJjZRgCIAEoCzJILm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5JbXBvcnRCb29rc1JlcXVlc3QuSW5saW5lU291cmNlSAASTgoNdGl0bGVzX3NvdXJjZRgDIAEoCzI1Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5UaXRsZXNTb3VyY2VIABIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAcgBARo8CgxJbmxpbmVTb3VyY2USLAoFYm9va3MYASADKAsyHS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rQg8KBnNvdXJjZRIFukgCCAEiuwEKDFRpdGxlc1NvdXJjZRI6CgZhdXRob3IYASABKAlCKvpBIQofbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0F1dGhvcrpIA8gBARIeCgZ0aXRsZXMYAiADKAlCDrpIC5IBCAgBIgRyAhABEhsKCmZhaWxfYWZ0ZXIYAyABKAVCB7pIBBoCKAASMgoFZGVsYXkYBCABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CCLpIBaoBAjIAIkgKE0ltcG9ydEJvb2tzUmVzcG9uc2USMQoFbmFtZXMYASADKAlCIvpBHwodbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2si8QIKEkV4cG9ydEJvb2tzUmVxdWVzdBI7CgZwYXJlbnQYASABKAlCK+BBAvpBHxIdbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2u6SAPIAQESDgoGZmlsdGVyGAIgASgJElIKD2Nzdl9kZXN0aW5hdGlvbhgFIAEoCzI3Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5Dc3ZEZXN0aW5hdGlvbkgAElgKEnRpdGxlc19kZXN0aW5hdGlvbhgGIAEoCzI6Lm1hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MS5UaXRsZXNEZXN0aW5hdGlvbkgAEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEByAEBEhQKDHJlamVjdF90aXRsZRgEIAEoCToTkvMtDwoFdGl0bGUKBmF1dGhvckIUCgtkZXN0aW5hdGlvbhIFukgCCAEiMgoTRXhwb3J0Qm9va3NSZXNwb25zZRILCgNjc3YYASABKAkSDgoGdGl0bGVzGAIgAygJIhMKEVRpdGxlc0Rlc3RpbmF0aW9uQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_library_service_v1_shelf, file_malonaz_test_library_v1_book]);
 
 /**
  * Request message for LibraryService.CreateBook.
@@ -950,6 +952,29 @@ export type ExportBooksRequest = Message<"malonaz.test.library.library_service.v
   filter: string;
 
   /**
+   * Where the books go.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ExportBooksRequest.destination
+   */
+  destination: {
+    /**
+     * A CSV document of the books.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.CsvDestination csv_destination = 5;
+     */
+    value: CsvDestination;
+    case: "csvDestination";
+  } | {
+    /**
+     * The titles of the books.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.TitlesDestination titles_destination = 6;
+     */
+    value: TitlesDestination;
+    case: "titlesDestination";
+  } | { case: undefined; value?: undefined };
+
+  /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
    * with the same ID returns the operation it started instead of starting another.
    *
@@ -989,6 +1014,29 @@ export type ExportBooksRequestValid = Message<"malonaz.test.library.library_serv
   filter: string;
 
   /**
+   * Where the books go.
+   *
+   * @generated from oneof malonaz.test.library.library_service.v1.ExportBooksRequest.destination
+   */
+  destination: {
+    /**
+     * A CSV document of the books.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.CsvDestination csv_destination = 5;
+     */
+    value: CsvDestinationValid;
+    case: "csvDestination";
+  } | {
+    /**
+     * The titles of the books.
+     *
+     * @generated from field: malonaz.test.library.library_service.v1.TitlesDestination titles_destination = 6;
+     */
+    value: TitlesDestinationValid;
+    case: "titlesDestination";
+  } | { case: undefined; value?: undefined };
+
+  /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
    * with the same ID returns the operation it started instead of starting another.
    *
@@ -1019,11 +1067,18 @@ export const ExportBooksRequestSchema: GenMessage<ExportBooksRequest, {validType
  */
 export type ExportBooksResponse = Message<"malonaz.test.library.library_service.v1.ExportBooksResponse"> & {
   /**
-   * The CSV document: one `name,title` row per book.
+   * For a `csv_destination`, the CSV document: one `name,title` row per book.
    *
    * @generated from field: string csv = 1;
    */
   csv: string;
+
+  /**
+   * For a `titles_destination`, the title of every book, in export order.
+   *
+   * @generated from field: repeated string titles = 2;
+   */
+  titles: string[];
 };
 
 export type ExportBooksResponseValid = ExportBooksResponse;
@@ -1034,4 +1089,21 @@ export type ExportBooksResponseValid = ExportBooksResponse;
  */
 export const ExportBooksResponseSchema: GenMessage<ExportBooksResponse, {validType: ExportBooksResponseValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_test_library_library_service_v1_book, 14);
+
+/**
+ * TitlesDestination writes the title of every book into the operation's response.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.TitlesDestination
+ */
+export type TitlesDestination = Message<"malonaz.test.library.library_service.v1.TitlesDestination"> & {
+};
+
+export type TitlesDestinationValid = TitlesDestination;
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.TitlesDestination.
+ * Use `create(TitlesDestinationSchema)` to create a new message.
+ */
+export const TitlesDestinationSchema: GenMessage<TitlesDestination, {validType: TitlesDestinationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_book, 15);
 

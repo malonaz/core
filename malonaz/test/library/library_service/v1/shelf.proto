@@ -235,6 +235,14 @@ message ExportShelvesRequest {
   // If set to true, soft deleted shelves are exported too.
   bool show_deleted = 3;
 
+  // Where the shelves go.
+  oneof destination {
+    option (buf.validate.oneof).required = true;
+
+    // A CSV document of the shelves.
+    CsvDestination csv_destination = 5;
+  }
+
   // A unique identifier for this request. Must be a UUID.
   string request_id = 4 [
     (buf.validate.field).required = true,
@@ -247,3 +255,7 @@ message ExportShelvesResponse {
   // The CSV document: one `name,display_name` row per shelf.
   string csv = 1;
 }
+
+// CsvDestination writes an export as a CSV document into the operation's response. Shared by
+// every export of the service, as a platform-wide destination would be.
+message CsvDestination {}

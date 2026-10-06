@@ -9,67 +9,88 @@ import (
 
 	"github.com/malonaz/core/gengo/test/library/library_service/rpc"
 	libraryservicepb "github.com/malonaz/core/genproto/test/library/library_service/v1"
+	librarypb "github.com/malonaz/core/genproto/test/library/v1"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// RunExportBooks writes ExportBooks' CSV: one `name,title` row per book.
-func (s *Service) RunExportBooks(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
-	var builder strings.Builder
-	writer := csv.NewWriter(&builder)
-	if err := writer.Write([]string{"name", "title"}); err != nil {
-		return nil, status.Errorf(codes.Internal, "writing csv header: %v", err).Err()
+// ExportBooksToCsv writes ExportBooks' CSV: one `name,title` row per book.
+func (s *Service) ExportBooksToCsv(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
+	row := func(ctx context.Context, book *librarypb.Book) ([]string, error) {
+		if request.GetRejectTitle() != "" && book.GetTitle() == request.GetRejectTitle() {
+			return nil, reader.Fail(ctx, status.Errorf(codes.InvalidArgument, "book %q is rejected", book.GetName()).Err())
+		}
+		return []string{book.GetName(), book.GetTitle()}, nil
 	}
+	document, err := writeCsv(ctx, []string{"name", "title"}, reader.Next, row)
+	if err != nil {
+		return nil, err
+	}
+	return &libraryservicepb.ExportBooksResponse{Csv: document}, nil
+}
+
+// ExportBooksToTitles writes ExportBooks' titles: one per book.
+func (s *Service) ExportBooksToTitles(ctx context.Context, request *libraryservicepb.ExportBooksRequest, reader *rpc.ExportBooksReader) (*libraryservicepb.ExportBooksResponse, error) {
+	var titles []string
 	for {
 		books, err := reader.Next(ctx)
 		if err != nil {
 			return nil, err
 		}
 		if len(books) == 0 {
-			break
+			return &libraryservicepb.ExportBooksResponse{Titles: titles}, nil
 		}
 		for _, book := range books {
-			if request.GetRejectTitle() != "" && book.GetTitle() == request.GetRejectTitle() {
-				if err := reader.Fail(ctx, status.Errorf(codes.InvalidArgument, "book %q is rejected", book.GetName()).Err()); err != nil {
-					return nil, err
-				}
-				continue
-			}
-			if err := writer.Write([]string{book.GetName(), book.GetTitle()}); err != nil {
-				return nil, status.Errorf(codes.Internal, "writing csv row: %v", err).Err()
-			}
+			titles = append(titles, book.GetTitle())
 		}
 	}
-	writer.Flush()
-	if err := writer.Error(); err != nil {
-		return nil, status.Errorf(codes.Internal, "flushing csv: %v", err).Err()
-	}
-	return &libraryservicepb.ExportBooksResponse{Csv: builder.String()}, nil
 }
 
-// RunExportShelves writes ExportShelves' CSV: one `name,display_name` row per shelf.
-func (s *Service) RunExportShelves(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.ExportShelvesResponse, error) {
+// ExportShelvesToCsv writes ExportShelves' CSV: one `name,display_name` row per shelf.
+func (s *Service) ExportShelvesToCsv(ctx context.Context, request *libraryservicepb.ExportShelvesRequest, reader *rpc.ExportShelvesReader) (*libraryservicepb.ExportShelvesResponse, error) {
+	row := func(_ context.Context, shelf *librarypb.Shelf) ([]string, error) {
+		return []string{shelf.GetName(), shelf.GetDisplayName()}, nil
+	}
+	document, err := writeCsv(ctx, []string{"name", "display_name"}, reader.Next, row)
+	if err != nil {
+		return nil, err
+	}
+	return &libraryservicepb.ExportShelvesResponse{Csv: document}, nil
+}
+
+// writeCsv drains next into a CSV document: the header, then a row per resource. A resource
+// row returns no record for is left out.
+func writeCsv[T any](
+	ctx context.Context, header []string, next func(context.Context) ([]T, error), row func(context.Context, T) ([]string, error),
+) (string, error) {
 	var builder strings.Builder
 	writer := csv.NewWriter(&builder)
-	if err := writer.Write([]string{"name", "display_name"}); err != nil {
-		return nil, status.Errorf(codes.Internal, "writing csv header: %v", err).Err()
+	if err := writer.Write(header); err != nil {
+		return "", status.Errorf(codes.Internal, "writing csv header: %v", err).Err()
 	}
 	for {
-		shelves, err := reader.Next(ctx)
+		resources, err := next(ctx)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-		if len(shelves) == 0 {
+		if len(resources) == 0 {
 			break
 		}
-		for _, shelf := range shelves {
-			if err := writer.Write([]string{shelf.GetName(), shelf.GetDisplayName()}); err != nil {
-				return nil, status.Errorf(codes.Internal, "writing csv row: %v", err).Err()
+		for _, resource := range resources {
+			record, err := row(ctx, resource)
+			if err != nil {
+				return "", err
+			}
+			if record == nil {
+				continue
+			}
+			if err := writer.Write(record); err != nil {
+				return "", status.Errorf(codes.Internal, "writing csv row: %v", err).Err()
 			}
 		}
 	}
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		return nil, status.Errorf(codes.Internal, "flushing csv: %v", err).Err()
+		return "", status.Errorf(codes.Internal, "flushing csv: %v", err).Err()
 	}
-	return &libraryservicepb.ExportShelvesResponse{Csv: builder.String()}, nil
+	return builder.String(), nil
 }

@@ -88,9 +88,10 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 // scheduler calls each Run method back with the request the operation was started
 // with; the result is recorded as the operation's response or error.
 type LibraryServiceRunner interface {
-	RunExportShelves(ctx context.Context, request *v12.ExportShelvesRequest, reader *ExportShelvesReader) (*v12.ExportShelvesResponse, error)
+	ExportShelvesToCsv(ctx context.Context, request *v12.ExportShelvesRequest, reader *ExportShelvesReader) (*v12.ExportShelvesResponse, error)
 	ImportBooksFromTitles(ctx context.Context, request *v12.ImportBooksRequest, sink *ImportBooksSink) error
-	RunExportBooks(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
+	ExportBooksToCsv(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
+	ExportBooksToTitles(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
 }
 
 type libraryService_AuthorStore interface {
@@ -2809,13 +2810,18 @@ func (r *ExportShelvesReader) Fail(ctx context.Context, err error) error {
 	return r.progress.Failed(ctx, err)
 }
 
-// runExportShelves exports shelves through the runner (AIP-153).
+// runExportShelves exports shelves to the request's destination (AIP-153).
 func (s *LibraryServiceServer) runExportShelves(ctx context.Context, request *v12.ExportShelvesRequest) (*v12.ExportShelvesResponse, error) {
 	reader, err := s.newExportShelvesReader(request)
 	if err != nil {
 		return nil, err
 	}
-	return s.runner.RunExportShelves(ctx, request, reader)
+	switch request.GetDestination().(type) {
+	case *v12.ExportShelvesRequest_CsvDestination:
+		return s.runner.ExportShelvesToCsv(ctx, request, reader)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "destination is required").Err()
+	}
 }
 
 // ImportBooks starts the operation, or runs it when called by the scheduler (AIP-151).
@@ -3123,11 +3129,18 @@ func (r *ExportBooksReader) Fail(ctx context.Context, err error) error {
 	return r.progress.Failed(ctx, err)
 }
 
-// runExportBooks exports books through the runner (AIP-153).
+// runExportBooks exports books to the request's destination (AIP-153).
 func (s *LibraryServiceServer) runExportBooks(ctx context.Context, request *v12.ExportBooksRequest) (*v12.ExportBooksResponse, error) {
 	reader, err := s.newExportBooksReader(request)
 	if err != nil {
 		return nil, err
 	}
-	return s.runner.RunExportBooks(ctx, request, reader)
+	switch request.GetDestination().(type) {
+	case *v12.ExportBooksRequest_CsvDestination:
+		return s.runner.ExportBooksToCsv(ctx, request, reader)
+	case *v12.ExportBooksRequest_TitlesDestination:
+		return s.runner.ExportBooksToTitles(ctx, request, reader)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "destination is required").Err()
+	}
 }
