@@ -65,7 +65,7 @@ message ImportBooksResponse {
 
 ## What is generated
 
-- `Run{Import}` on the service server: rejects a wildcard parent, dispatches
+- `Run{Import}` on the service server: dispatches
   on the source — `InlineSource` is imported by generated code in batches of
   500; every other variant calls the runner's
   `Import{Plural}From{Variant}(ctx, request, sink *Import{Plural}Sink) error`
@@ -100,6 +100,15 @@ message ImportBooksResponse {
   retried attempt finds what an earlier one inserted (BatchInsert replay) —
   sources must therefore be **deterministic in order** or name their items.
 - Everything else (etag, identifiers, singleton children) is `prepareCreate`.
+
+## Wildcard parent
+
+A wildcard parent (`organizations/x/shelves/-`, as Export and List take)
+imports a whole collection, e.g. an Export's output fed back in. Each item
+must carry its `name`, which must be under the wildcard parent; it lands
+under its own parent (`aip.ParentName(name)`). Unnamed or out-of-scope items
+are partial failures. Only when the Create request has both `parent` and
+`{resource}_id`; otherwise a wildcard parent is rejected upfront.
 
 ## Insert and partial failures
 

@@ -2888,6 +2888,7 @@ func (s *ImportBooksSink) Fail(ctx context.Context, err error) error {
 
 // prepare stamps one book and resolves it to its database models: a name it carries
 // must be under the request's parent; timestamps and the import labels are kept when set.
+// Under a wildcard parent, the name is required and its own parent is used.
 func (s *ImportBooksSink) prepare(ctx context.Context, book *v14.Book) (string, *model.Book, *model.BookReview, error) {
 	name := book.GetName()
 	requestIDKey := name
@@ -2895,9 +2896,19 @@ func (s *ImportBooksSink) prepare(ctx context.Context, book *v14.Book) (string, 
 		requestIDKey = strconv.Itoa(s.taken)
 	}
 	s.taken++
+	parent := s.request.GetParent()
+	if resourcename.ContainsWildcard(parent) {
+		if name == "" {
+			return "", nil, nil, status.Errorf(codes.InvalidArgument, "book name is required under wildcard parent %q", parent).Err()
+		}
+		if !resourcename.HasParent(name, parent) {
+			return "", nil, nil, status.Errorf(codes.InvalidArgument, "book %q is not under parent %q", name, parent).Err()
+		}
+		parent = aip.ParentName(name)
+	}
 	createRequest := &v12.CreateBookRequest{
 		RequestId: uuid.NewV5(s.requestID, requestIDKey).String(),
-		Parent:    s.request.GetParent(),
+		Parent:    parent,
 		Book:      book,
 	}
 	if name != "" {
@@ -2985,9 +2996,6 @@ func (s *ImportBooksSink) Import(ctx context.Context, books []*v14.Book) ([]*v14
 
 // RunImportBooks imports books from the request's source (AIP-153).
 func (s *LibraryServiceServer) RunImportBooks(ctx context.Context, request *v12.ImportBooksRequest) (*v12.ImportBooksResponse, error) {
-	if resourcename.ContainsWildcard(request.GetParent()) {
-		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
-	}
 	var sourceLabel string
 	switch request.GetSource().(type) {
 	case *v12.ImportBooksRequest_InlineSource_:

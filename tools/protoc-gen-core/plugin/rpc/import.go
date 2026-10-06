@@ -196,12 +196,16 @@ func (mc *methodCtx) generateImport(imp *importMethod) error {
 		return fmt.Errorf("%s: importing %s requires a Create%s or BatchCreate%s to prepare resources with",
 			imp.lro.method.GoName, mc.pr.Desc.Type, mc.resourceGoName, mc.pr.PluralGoName())
 	}
-	mc.generateImportSink(imp, createRequest)
-	mc.generateRunImport(imp)
+	// A wildcard parent imports a whole collection: each item names itself, so
+	// the Create request must take a parent and an id.
+	wildcard := createRequest.Desc.Fields().ByName("parent") != nil &&
+		createRequest.Desc.Fields().ByName(protoreflect.Name(xstrings.ToSnakeCase(mc.resourceGoName)+"_id")) != nil
+	mc.generateImportSink(imp, createRequest, wildcard)
+	mc.generateRunImport(imp, wildcard)
 	return nil
 }
 
-func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protogen.Message) {
+func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protogen.Message, wildcard bool) {
 	g := mc.g
 	pr := mc.pr
 	sink := imp.sinkGoName()
@@ -270,6 +274,9 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 	}
 	g.P(fmt.Sprintf("// prepare stamps one %s and resolves it to its database models: a name it carries", pr.Desc.Singular))
 	g.P("// must be under the request's parent; timestamps and the import labels are kept when set.")
+	if wildcard {
+		g.P("// Under a wildcard parent, the name is required and its own parent is used.")
+	}
 	g.P(fmt.Sprintf("func (s *%s) prepare(ctx %s, %s *%s) (string, %s, error) {", sink, mc.gen.ident(contextPkg, "Context"), resourceVar, protoType, strings.Join(returns, ", ")))
 	errReturn := "return \"\", " + strings.Repeat("nil, ", len(modelTypes))
 	g.P(fmt.Sprintf("  name := %s.GetName()", resourceVar))
@@ -278,10 +285,24 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 	g.P(fmt.Sprintf("    requestIDKey = %s(s.taken)", mc.gen.ident(strconvPkg, "Itoa")))
 	g.P("  }")
 	g.P("  s.taken++")
+	if createHasParent {
+		g.P("  parent := s.request.GetParent()")
+	}
+	if wildcard {
+		g.P(fmt.Sprintf("  if %s(parent) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+		g.P("    if name == \"\" {")
+		g.P(fmt.Sprintf("      %s%s(%s, \"%s name is required under wildcard parent %%q\", parent).Err()", errReturn, mc.statusErrorf(), mc.codes("InvalidArgument"), pr.Desc.Singular))
+		g.P("    }")
+		g.P(fmt.Sprintf("    if !%s(name, parent) {", mc.gen.ident(resourcenamePkg, "HasParent")))
+		g.P(fmt.Sprintf("      %s%s(%s, \"%s %%q is not under parent %%q\", name, parent).Err()", errReturn, mc.statusErrorf(), mc.codes("InvalidArgument"), pr.Desc.Singular))
+		g.P("    }")
+		g.P(fmt.Sprintf("    parent = %s(name)", mc.gen.ident(aipPkg, "ParentName")))
+		g.P("  }")
+	}
 	g.P(fmt.Sprintf("  createRequest := &%s{", mc.gen.qgi(createRequest.GoIdent)))
 	g.P(fmt.Sprintf("    RequestId: %s(s.requestID, requestIDKey).String(),", mc.gen.ident(uuidPkg, "NewV5")))
 	if createHasParent {
-		g.P("    Parent: s.request.GetParent(),")
+		g.P("    Parent: parent,")
 	}
 	g.P(fmt.Sprintf("    %s: %s,", mc.resourceGoName, resourceVar))
 	g.P("  }")
@@ -396,7 +417,7 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 
 // generateRunImport emits Run{Import}: it dispatches the request's source to the
 // generated inline import or to the runner, and answers with the names imported.
-func (mc *methodCtx) generateRunImport(imp *importMethod) {
+func (mc *methodCtx) generateRunImport(imp *importMethod, wildcard bool) {
 	g := mc.g
 	method := imp.lro.method
 	serviceServer := mc.si.service.GoName + "Server"
@@ -404,9 +425,11 @@ func (mc *methodCtx) generateRunImport(imp *importMethod) {
 	g.P(fmt.Sprintf("// Run%s imports %s from the request's source (AIP-153).", method.GoName, mc.pr.Desc.Plural))
 	g.P(fmt.Sprintf("func (s *%s) Run%s(ctx %s, request *%s) (*%s, error) {",
 		serviceServer, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.gen.qgi(imp.response.GoIdent)))
-	g.P(fmt.Sprintf("  if %s(request.GetParent()) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
-	g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()", mc.statusErrorf(), mc.codes("InvalidArgument")))
-	g.P("  }")
+	if !wildcard {
+		g.P(fmt.Sprintf("  if %s(request.GetParent()) {", mc.gen.ident(resourcenamePkg, "ContainsWildcard")))
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"parent cannot contain wildcard\").Err()", mc.statusErrorf(), mc.codes("InvalidArgument")))
+		g.P("  }")
+	}
 	g.P("  var sourceLabel string")
 	g.P("  switch request.GetSource().(type) {")
 	for _, field := range append([]*protogen.Field{imp.inline}, imp.sources...) {

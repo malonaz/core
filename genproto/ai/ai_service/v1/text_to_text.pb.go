@@ -264,7 +264,7 @@ type ImageGenerationConfig struct {
 	// Aspect ratio of generated images.
 	// Defaults to matching input image size, or "1:1" if no input image.
 	AspectRatio string `protobuf:"bytes,1,opt,name=aspect_ratio,json=aspectRatio,proto3" json:"aspect_ratio,omitempty"`
-	// Resolution of generated images. Only supported by Gemini 3 Pro Image.
+	// Resolution of generated images; support varies by model ("512" is Gemini 3.1 Flash Image only).
 	// Defaults to "1K".
 	ImageSize     string `protobuf:"bytes,2,opt,name=image_size,json=imageSize,proto3" json:"image_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -324,7 +324,7 @@ type ImageGenerationConfig_builder struct {
 	// Aspect ratio of generated images.
 	// Defaults to matching input image size, or "1:1" if no input image.
 	AspectRatio string
-	// Resolution of generated images. Only supported by Gemini 3 Pro Image.
+	// Resolution of generated images; support varies by model ("512" is Gemini 3.1 Flash Image only).
 	// Defaults to "1K".
 	ImageSize string
 }
@@ -1115,11 +1115,11 @@ const file_malonaz_ai_ai_service_v1_text_to_text_proto_rawDesc = "" +
 	"toolChoice\x12I\n" +
 	"\x10reasoning_effort\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x129\n" +
 	"\x19stream_partial_tool_calls\x18\x05 \x01(\bR\x16streamPartialToolCalls\x12R\n" +
-	"\fimage_config\x18\x06 \x01(\v2/.malonaz.ai.ai_service.v1.ImageGenerationConfigR\vimageConfig\"\xac\x01\n" +
-	"\x15ImageGenerationConfig\x12_\n" +
-	"\faspect_ratio\x18\x01 \x01(\tB<\xbaH9r7R\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\vaspectRatio\x122\n" +
+	"\fimage_config\x18\x06 \x01(\v2/.malonaz.ai.ai_service.v1.ImageGenerationConfigR\vimageConfig\"\xc5\x01\n" +
+	"\x15ImageGenerationConfig\x12s\n" +
+	"\faspect_ratio\x18\x01 \x01(\tBP\xbaHMrKR\x00R\x031:1R\x032:3R\x033:2R\x033:4R\x034:3R\x034:5R\x035:4R\x049:16R\x0416:9R\x0421:9R\x031:4R\x034:1R\x031:8R\x038:1R\vaspectRatio\x127\n" +
 	"\n" +
-	"image_size\x18\x02 \x01(\tB\x13\xbaH\x10r\x0eR\x00R\x021KR\x022KR\x024KR\timageSize\"\x8e\x05\n" +
+	"image_size\x18\x02 \x01(\tB\x18\xbaH\x15r\x13R\x00R\x03512R\x021KR\x022KR\x024KR\timageSize\"\x8e\x05\n" +
 	"\x11TextToTextRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\n" +
 	"\x13ai.malonaz.com/ChatR\x06parent\x125\n" +
