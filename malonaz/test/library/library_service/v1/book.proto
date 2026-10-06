@@ -363,12 +363,21 @@ message ExportBooksRequest {
 
 // Response message for LibraryService.ExportBooks, the operation's response.
 message ExportBooksResponse {
-  // For a `csv_destination`, the CSV document: one `name,title` row per book.
-  string csv = 1;
+  // Where the books landed, per the request's destination.
+  oneof result {
+    // For a `csv_destination`: one `name,title` row per book.
+    CsvResult csv_result = 1;
 
-  // For a `titles_destination`, the title of every book, in export order.
-  repeated string titles = 2;
+    // For a `titles_destination`.
+    TitlesResult titles_result = 2;
+  }
 }
 
 // TitlesDestination writes the title of every book into the operation's response.
 message TitlesDestination {}
+
+// TitlesResult is what a TitlesDestination wrote.
+message TitlesResult {
+  // The title of every book, in export order.
+  repeated string titles = 1;
+}

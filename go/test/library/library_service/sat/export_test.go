@@ -64,7 +64,7 @@ func csvRows(t *testing.T, document string) [][]string {
 // exportedBooks returns the rows of a finished books export.
 func exportedBooks(t *testing.T, done *longrunningpb.Operation) [][]string {
 	t.Helper()
-	return csvRows(t, unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse()).GetCsv())
+	return csvRows(t, unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse()).GetCsvResult().GetCsv())
 }
 
 // listedBooks returns the rows the books under parent export to, as ListBooks has them.
@@ -180,8 +180,8 @@ func TestExportBooks_TitlesDestination(t *testing.T) {
 	})
 	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 2}, exportMetadata(t, done))
 	response := unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse())
-	require.Empty(t, response.GetCsv())
-	require.ElementsMatch(t, titles, response.GetTitles())
+	require.Nil(t, response.GetCsvResult())
+	require.ElementsMatch(t, titles, response.GetTitlesResult().GetTitles())
 }
 
 func TestExportBooks_MissingDestination(t *testing.T) {
@@ -212,7 +212,7 @@ func TestExportShelves(t *testing.T) {
 		require.NoError(t, err)
 		done := waitOperation(t, operation.GetName(), operationWaitTimeout)
 		require.Nil(t, done.GetError())
-		rows := csvRows(t, unpackAny[*libraryservicepb.ExportShelvesResponse](t, done.GetResponse()).GetCsv())
+		rows := csvRows(t, unpackAny[*libraryservicepb.ExportShelvesResponse](t, done.GetResponse()).GetCsvResult().GetCsv())
 		grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: int32(len(rows) - 1)}, exportMetadata(t, done))
 		return rows
 	}

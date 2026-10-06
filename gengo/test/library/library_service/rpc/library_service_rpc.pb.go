@@ -88,10 +88,10 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 // scheduler calls each Run method back with the request the operation was started
 // with; the result is recorded as the operation's response or error.
 type LibraryServiceRunner interface {
-	ExportShelvesToCsv(ctx context.Context, request *v12.ExportShelvesRequest, reader *ExportShelvesReader) (*v12.ExportShelvesResponse, error)
+	ExportShelvesToCsv(ctx context.Context, request *v12.ExportShelvesRequest, reader *ExportShelvesReader) (*v12.CsvResult, error)
 	ImportBooksFromTitles(ctx context.Context, request *v12.ImportBooksRequest, sink *ImportBooksSink) error
-	ExportBooksToCsv(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
-	ExportBooksToTitles(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.ExportBooksResponse, error)
+	ExportBooksToCsv(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.CsvResult, error)
+	ExportBooksToTitles(ctx context.Context, request *v12.ExportBooksRequest, reader *ExportBooksReader) (*v12.TitlesResult, error)
 }
 
 type libraryService_AuthorStore interface {
@@ -2818,7 +2818,11 @@ func (s *LibraryServiceServer) runExportShelves(ctx context.Context, request *v1
 	}
 	switch request.GetDestination().(type) {
 	case *v12.ExportShelvesRequest_CsvDestination:
-		return s.runner.ExportShelvesToCsv(ctx, request, reader)
+		result, err := s.runner.ExportShelvesToCsv(ctx, request, reader)
+		if err != nil {
+			return nil, err
+		}
+		return &v12.ExportShelvesResponse{Result: &v12.ExportShelvesResponse_CsvResult{CsvResult: result}}, nil
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "destination is required").Err()
 	}
@@ -3137,9 +3141,17 @@ func (s *LibraryServiceServer) runExportBooks(ctx context.Context, request *v12.
 	}
 	switch request.GetDestination().(type) {
 	case *v12.ExportBooksRequest_CsvDestination:
-		return s.runner.ExportBooksToCsv(ctx, request, reader)
+		result, err := s.runner.ExportBooksToCsv(ctx, request, reader)
+		if err != nil {
+			return nil, err
+		}
+		return &v12.ExportBooksResponse{Result: &v12.ExportBooksResponse_CsvResult{CsvResult: result}}, nil
 	case *v12.ExportBooksRequest_TitlesDestination:
-		return s.runner.ExportBooksToTitles(ctx, request, reader)
+		result, err := s.runner.ExportBooksToTitles(ctx, request, reader)
+		if err != nil {
+			return nil, err
+		}
+		return &v12.ExportBooksResponse{Result: &v12.ExportBooksResponse_TitlesResult{TitlesResult: result}}, nil
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "destination is required").Err()
 	}

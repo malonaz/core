@@ -27,26 +27,35 @@ var (
 )
 
 // exportMethod is Export{Plural} (AIP-153) on a resource the service owns: a
-// long-running standard method whose request names its destination in a oneof.
+// long-running standard method whose request names its destination in a oneof,
+// and whose response names where the resources landed in a mirroring oneof.
 // Generated code reads the resources out of the store; a method of the runner
 // per destination writes them out.
 type exportMethod struct {
 	lro *longrunningMethod
 	mi  *methodInfo
 	// The `destination` variants, in declaration order.
-	destinations []*protogen.Field
+	destinations []*exportDestination
 	// The request's optional `filter` and `show_deleted` fields.
 	filter      *protogen.Field
 	showDeleted *protogen.Field
-	// The operation's response.
+	// The operation's response and its `result` oneof.
 	response *protogen.Message
+	result   *protogen.Oneof
+}
+
+// exportDestination pairs a request's `{x}_destination` with the response's `{x}_result`,
+// as Cloud Asset's OutputConfig.destination pairs with its OutputResult.result.
+type exportDestination struct {
+	destination *protogen.Field
+	result      *protogen.Field
 }
 
 func (exp *exportMethod) readerGoName() string { return exp.lro.method.GoName + "Reader" }
 
 // runnerMethodGoName is the runner method exporting to a destination, e.g. ExportBooksToCsv.
-func (exp *exportMethod) runnerMethodGoName(destination *protogen.Field) string {
-	return exp.lro.method.GoName + "To" + strings.TrimSuffix(destination.GoName, "Destination")
+func (exp *exportMethod) runnerMethodGoName(destination *exportDestination) string {
+	return exp.lro.method.GoName + "To" + strings.TrimSuffix(destination.destination.GoName, "Destination")
 }
 
 // parseExportMethod validates the AIP-153 shape of an Export{Plural} method.
@@ -62,7 +71,9 @@ func parseExportMethod(gen *generator, lro *longrunningMethod, mi *methodInfo) (
 	if err != nil {
 		return nil, err
 	}
-	exp.response = response
+	if err := exp.parseResponse(response); err != nil {
+		return nil, err
+	}
 	return exp, nil
 }
 
@@ -74,7 +85,12 @@ func (exp *exportMethod) parseRequest() error {
 	if err != nil {
 		return err
 	}
-	exp.destinations = destination.Fields
+	for _, field := range destination.Fields {
+		if !strings.HasSuffix(string(field.Desc.Name()), "_destination") {
+			return fmt.Errorf("%s.%s must be named `{x}_destination` (AIP-153)", request.GoIdent.GoName, field.Desc.Name())
+		}
+		exp.destinations = append(exp.destinations, &exportDestination{destination: field})
+	}
 	for _, field := range request.Fields {
 		switch field.Desc.Name() {
 		case "filter":
@@ -98,12 +114,52 @@ func (exp *exportMethod) parseRequest() error {
 	return nil
 }
 
+// resultName is the response variant of the destination: `csv_destination` → `csv_result`.
+func (d *exportDestination) resultName() protoreflect.Name {
+	return protoreflect.Name(strings.TrimSuffix(string(d.destination.Desc.Name()), "_destination") + "_result")
+}
+
+// parseResponse pairs every `{x}_destination` with the response's `{x}_result`. The response
+// holds nothing else: it says where the resources landed, the ExportMetadata how the run went.
+func (exp *exportMethod) parseResponse(response *protogen.Message) error {
+	exp.response = response
+	name := response.GoIdent.GoName
+	for _, oneof := range response.Oneofs {
+		if oneof.Desc.Name() == "result" {
+			exp.result = oneof
+		}
+	}
+	if exp.result == nil || len(response.Fields) != len(exp.result.Fields) {
+		return fmt.Errorf("%s must hold nothing but a `oneof result`, one `{x}_result` per `{x}_destination` (AIP-153)", name)
+	}
+	byResultName := make(map[protoreflect.Name]*exportDestination, len(exp.destinations))
+	for _, destination := range exp.destinations {
+		byResultName[destination.resultName()] = destination
+	}
+	for _, field := range exp.result.Fields {
+		if field.Message == nil || !strings.HasSuffix(field.Message.GoIdent.GoName, "Result") {
+			return fmt.Errorf("%s.%s must be a message named *Result (AIP-153)", name, field.Desc.Name())
+		}
+		destination, ok := byResultName[field.Desc.Name()]
+		if !ok {
+			return fmt.Errorf("%s.%s has no matching `{x}_destination` in %s", name, field.Desc.Name(), exp.lro.method.Input.GoIdent.GoName)
+		}
+		destination.result = field
+	}
+	for _, destination := range exp.destinations {
+		if destination.result == nil {
+			return fmt.Errorf("%s.result must declare `%s` for %s", name, destination.resultName(), destination.destination.Desc.Name())
+		}
+	}
+	return nil
+}
+
 // generateExportRunnerMethods emits the export's methods of the runner interface,
-// one per destination, which write out what the reader reads.
+// one per destination, which write out what the reader reads and return its result.
 func (gen *generator) generateExportRunnerMethods(exp *exportMethod) {
 	for _, destination := range exp.destinations {
 		gen.g.P(fmt.Sprintf("  %s(ctx %s, request *%s, reader *%s) (*%s, error)", exp.runnerMethodGoName(destination), gen.ident(contextPkg, "Context"),
-			gen.qgi(exp.lro.method.Input.GoIdent), exp.readerGoName(), gen.qgi(exp.response.GoIdent)))
+			gen.qgi(exp.lro.method.Input.GoIdent), exp.readerGoName(), gen.qgi(destination.result.Message.GoIdent)))
 	}
 }
 
@@ -282,7 +338,7 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 }
 
 // generateRunExport emits run{Export}: it hands the reader to the runner method
-// of the request's destination.
+// of the request's destination, and sets the matching result on the response.
 func (mc *methodCtx) generateRunExport(exp *exportMethod) {
 	g := mc.g
 	method := exp.lro.method
@@ -297,8 +353,13 @@ func (mc *methodCtx) generateRunExport(exp *exportMethod) {
 	g.P("  }")
 	g.P("  switch request.GetDestination().(type) {")
 	for _, destination := range exp.destinations {
-		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(destination.GoIdent)))
-		g.P(fmt.Sprintf("    return s.runner.%s(ctx, request, reader)", exp.runnerMethodGoName(destination)))
+		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(destination.destination.GoIdent)))
+		g.P(fmt.Sprintf("    result, err := s.runner.%s(ctx, request, reader)", exp.runnerMethodGoName(destination)))
+		g.P("    if err != nil {")
+		g.P("      return nil, err")
+		g.P("    }")
+		g.P(fmt.Sprintf("    return &%s{%s: &%s{%s: result}}, nil", mc.gen.qgi(exp.response.GoIdent), exp.result.GoName,
+			mc.gen.qgi(destination.result.GoIdent), destination.result.GoName))
 	}
 	g.P("  default:")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"destination is required\").Err()", mc.statusErrorf(), mc.codes("InvalidArgument")))
