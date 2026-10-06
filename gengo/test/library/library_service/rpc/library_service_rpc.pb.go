@@ -1537,13 +1537,6 @@ func (s *libraryService_BookServer) CreateBook(ctx context.Context, request *v12
 		return nil, status.Errorf(codes.Internal, "converting book from model to pb: %v", err).Err()
 	}
 
-	// STEP 5: Publish events.
-	{
-		subject := v14.GetBookStream().GetCreatedSubject()
-		if err := subject.Publish(ctx, s.natsClient, book); err != nil {
-			return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
-		}
-	}
 	return book, nil
 }
 
