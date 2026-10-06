@@ -28,7 +28,6 @@ message Book {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.v1.book"
-    created: {subject: "created"}
     updated: {
       subject: "updated"
       cel: "book.publication_year > 2007"

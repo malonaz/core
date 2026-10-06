@@ -643,7 +643,7 @@ func TestNatsEvents_Book(t *testing.T) {
 	require.NoError(t, err)
 
 	createdProcessor := nats.NewProcessor(natsClient, &nats.ProcessorConfig{
-		Subjects:     []*nats.Subject{bookStream.GetCreatedSubject().MustGet()},
+		Subjects:     []*nats.Subject{bookStream.Get().Subject("created.>")},
 		ConsumerName: "test-book-created-" + consumerSuffix,
 	}, func(_ context.Context, message *nats.Message[*aippb.ResourceEvent]) error {
 		mu.Lock()
@@ -702,18 +702,15 @@ func TestNatsEvents_Book(t *testing.T) {
 	author := createTestAuthor(t, organizationParent, "Nats Book Author")
 	shelf := createTestShelf(t, organizationParent, "Nats Book Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
 
-	t.Run("CreatedEvent", func(t *testing.T) {
+	t.Run("CreatedEvent_NotEmitted", func(t *testing.T) {
 		t.Parallel()
-		book := createTestBook(t, shelf.Name, author.Name, "Nats Created Book")
+		book := createTestBook(t, shelf.Name, author.Name, "Nats NoCreated Book")
 
-		require.Eventually(t, func() bool {
+		require.Never(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			return len(bookNameToCreatedEvents[book.Name]) == 1
+			return len(bookNameToCreatedEvents[book.Name]) > 0
 		}, natsEventCheckTimeout, natsEventCheckInterval)
-		mu.Lock()
-		defer mu.Unlock()
-		grpcrequire.Equal(t, book, bookNameToCreatedEvents[book.Name][0].Book)
 	})
 
 	t.Run("UpdatedEvent", func(t *testing.T) {
