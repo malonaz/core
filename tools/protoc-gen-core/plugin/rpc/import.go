@@ -296,7 +296,11 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 		g.P(fmt.Sprintf("    if !%s(name, parent) {", mc.gen.ident(resourcenamePkg, "HasParent")))
 		g.P(fmt.Sprintf("      %s%s(%s, \"%s %%q is not under parent %%q\", name, parent).Err()", errReturn, mc.statusErrorf(), mc.codes("InvalidArgument"), pr.Desc.Singular))
 		g.P("    }")
-		g.P(fmt.Sprintf("    parent = %s(name)", mc.gen.ident(aipPkg, "ParentName")))
+		g.P(fmt.Sprintf("    rn, err := %s(name)", mc.gen.ident(mc.mi.rpc.Message.GoIdent.GoImportPath, "Parse"+pr.Type+"Rn")))
+		g.P("    if err != nil {")
+		g.P(fmt.Sprintf("      %s%s(%s, \"invalid %s name: %%v\", err).Err()", errReturn, mc.statusErrorf(), mc.codes("InvalidArgument"), pr.Desc.Singular))
+		g.P("    }")
+		g.P("    parent = rn.Parent()")
 		g.P("  }")
 	}
 	g.P(fmt.Sprintf("  createRequest := &%s{", mc.gen.qgi(createRequest.GoIdent)))

@@ -63,14 +63,3 @@ func TestRn_MultiPattern(t *testing.T) {
 	require.Equal(t, "organizations/o1/authors/a1/notes/n1", author.AuthorNoteRn("n1").String())
 	require.Equal(t, author, author.AuthorNoteRn("n1").AuthorRn())
 }
-
-func TestParentName(t *testing.T) {
-	for name, want := range map[string]string{
-		"organizations/o1/shelves/s1/books/b1": "organizations/o1/shelves/s1",
-		"organizations/o1":                     "",
-		"organizations":                        "",
-		"":                                     "",
-	} {
-		require.Equal(t, want, ParentName(name), name)
-	}
-}

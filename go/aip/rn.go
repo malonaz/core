@@ -3,7 +3,6 @@ package aip
 import (
 	"encoding"
 	"fmt"
-	"strings"
 
 	"go.einride.tech/aip/resourcename"
 )
@@ -31,16 +30,3 @@ type Rn interface {
 	Parent() string
 }
 
-// ParentName is the parent of a resource name: the name minus its trailing
-// collection and ID segments; "" at the root.
-func ParentName(name string) string {
-	index := strings.LastIndex(name, "/")
-	if index < 0 {
-		return ""
-	}
-	index = strings.LastIndex(name[:index], "/")
-	if index < 0 {
-		return ""
-	}
-	return name[:index]
-}

@@ -106,7 +106,8 @@ message ImportBooksResponse {
 A wildcard parent (`organizations/x/shelves/-`, as Export and List take)
 imports a whole collection, e.g. an Export's output fed back in. Each item
 must carry its `name`, which must be under the wildcard parent; it lands
-under its own parent (`aip.ParentName(name)`). Unnamed or out-of-scope items
+under its own parent (`Parse{Type}Rn(name).Parent()`, so the resource's
+package needs `GENERATE_GO_AIP`). Unnamed or out-of-scope items
 are partial failures. Only when the Create request has both `parent` and
 `{resource}_id`; otherwise a wildcard parent is rejected upfront.
 
