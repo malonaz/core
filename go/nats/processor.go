@@ -185,10 +185,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 				return ctx.Err()
 			}
 			// Fetch timeout with no messages is normal (idle consumer).
-			if len(messages) == 0 {
-				return nil
+			if len(messages) > 0 {
+				// The fetch deadline can beat the server's timeout reply on a partial batch, which still ends it normally.
+				if !errors.Is(err, context.DeadlineExceeded) {
+					return fmt.Errorf("consuming message batch: %w", err)
+				}
+				p.log.WarnContext(ctx, "fetch deadline beat the server timeout on a partial batch", "routine", routineName, "messages", len(messages))
 			}
-			return fmt.Errorf("consuming message batch: %w", err)
 		}
 
 		if len(messages) == 0 {
