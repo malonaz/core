@@ -223,15 +223,15 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 							switch processingError.action {
 							case ActionTerm:
 								if termErr := message.natsMsg.Term(); termErr != nil {
-									p.log.Error("terming message", "error", termErr, "cause", processingError.err)
+									p.log.ErrorContext(ctxWithTimeout, "terming message", "error", termErr, "cause", processingError.err)
 								}
 							case ActionNakWithDelay:
 								if nakErr := message.natsMsg.NakWithDelay(processingError.delay); nakErr != nil {
-									p.log.Error("naking message with delay", "error", nakErr, "cause", processingError.err)
+									p.log.ErrorContext(ctxWithTimeout, "naking message with delay", "error", nakErr, "cause", processingError.err)
 								}
 							default:
 								if nakErr := message.nak(); nakErr != nil {
-									p.log.Error("naking message", "error", nakErr, "cause", processingError.err)
+									p.log.ErrorContext(ctxWithTimeout, "naking message", "error", nakErr, "cause", processingError.err)
 								}
 							}
 							continue
@@ -242,13 +242,13 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 						// Nak remaining messages in the group to preserve ordering guarantees.
 						for _, remaining := range group[i:] {
 							if nakErr := remaining.nak(); nakErr != nil {
-								p.log.Error("naking message", "error", nakErr)
+								p.log.ErrorContext(ctxWithTimeout, "naking message", "error", nakErr)
 							}
 						}
 						return
 					}
 					if ackErr := message.ack(); ackErr != nil {
-						p.log.Error("acking message", "error", ackErr)
+						p.log.ErrorContext(ctxWithTimeout, "acking message", "error", ackErr)
 					}
 				}
 			}(group)
