@@ -63,6 +63,9 @@ func parseExportMethod(gen *generator, lro *longrunningMethod, mi *methodInfo) (
 	if err := checkAIP153Method(lro, mi, "export", exportMetadataType); err != nil {
 		return nil, err
 	}
+	if mi.rpc.StandardMethod.GetEmitEvent() {
+		return nil, fmt.Errorf("%s: an export never emits events; drop standard_method.emit_event", lro.method.GoName)
+	}
 	exp := &exportMethod{lro: lro, mi: mi}
 	if err := exp.parseRequest(); err != nil {
 		return nil, err

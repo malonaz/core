@@ -40,6 +40,8 @@ const (
 	ResourceEventType_RESOURCE_EVENT_TYPE_DELETED ResourceEventType = 3
 	// A soft-deleted resource was restored.
 	ResourceEventType_RESOURCE_EVENT_TYPE_UNDELETED ResourceEventType = 4
+	// A resource was imported.
+	ResourceEventType_RESOURCE_EVENT_TYPE_IMPORTED ResourceEventType = 5
 )
 
 // Enum value maps for ResourceEventType.
@@ -50,6 +52,7 @@ var (
 		2: "RESOURCE_EVENT_TYPE_UPDATED",
 		3: "RESOURCE_EVENT_TYPE_DELETED",
 		4: "RESOURCE_EVENT_TYPE_UNDELETED",
+		5: "RESOURCE_EVENT_TYPE_IMPORTED",
 	}
 	ResourceEventType_value = map[string]int32{
 		"RESOURCE_EVENT_TYPE_UNSPECIFIED": 0,
@@ -57,6 +60,7 @@ var (
 		"RESOURCE_EVENT_TYPE_UPDATED":     2,
 		"RESOURCE_EVENT_TYPE_DELETED":     3,
 		"RESOURCE_EVENT_TYPE_UNDELETED":   4,
+		"RESOURCE_EVENT_TYPE_IMPORTED":    5,
 	}
 )
 
@@ -397,13 +401,14 @@ const file_malonaz_aip_v1_aip_proto_rawDesc = "" +
 	"\amatches\x18\x01 \x03(\v2\".malonaz.aip.v1.SearchSnippetMatchR\amatches\">\n" +
 	"\x12SearchSnippetMatch\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x14\n" +
-	"\x05match\x18\x02 \x01(\tR\x05match*\xbe\x01\n" +
+	"\x05match\x18\x02 \x01(\tR\x05match*\xe0\x01\n" +
 	"\x11ResourceEventType\x12#\n" +
 	"\x1fRESOURCE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bRESOURCE_EVENT_TYPE_CREATED\x10\x01\x12\x1f\n" +
 	"\x1bRESOURCE_EVENT_TYPE_UPDATED\x10\x02\x12\x1f\n" +
 	"\x1bRESOURCE_EVENT_TYPE_DELETED\x10\x03\x12!\n" +
-	"\x1dRESOURCE_EVENT_TYPE_UNDELETED\x10\x04B)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
+	"\x1dRESOURCE_EVENT_TYPE_UNDELETED\x10\x04\x12 \n" +
+	"\x1cRESOURCE_EVENT_TYPE_IMPORTED\x10\x05B)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
 
 var file_malonaz_aip_v1_aip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_aip_v1_aip_proto_msgTypes = make([]protoimpl.MessageInfo, 3)

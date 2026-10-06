@@ -472,3 +472,39 @@ func TestImportBooks_InlinePartialFailure(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, existing.GetTitle(), kept.GetTitle(), "an import never overwrites")
 }
+
+func TestImportBooks_InlineWildcardParent(t *testing.T) {
+	t.Parallel()
+	fixture := newImportFixture(t)
+	otherShelf := createTestShelf(t, fixture.organization, "Other Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	shelf, err := librarypb.ParseShelfRn(fixture.shelf.GetName())
+	require.NoError(t, err)
+	other, err := librarypb.ParseShelfRn(otherShelf.GetName())
+	require.NoError(t, err)
+	foreignShelf := &librarypb.ShelfRn{Organization: "foreign", Shelf: other.Shelf}
+	titles := titles(4)
+
+	// Named books on two shelves land on their own; an unnamed one and one outside the parent fail.
+	onShelf := inlineBook(fixture.author.GetName(), titles[0])
+	onShelf.Name = shelf.BookRn("on-shelf").String()
+	onOther := inlineBook(fixture.author.GetName(), titles[1])
+	onOther.Name = other.BookRn("on-other").String()
+	anonymous := inlineBook(fixture.author.GetName(), titles[2])
+	foreign := inlineBook(fixture.author.GetName(), titles[3])
+	foreign.Name = foreignShelf.BookRn("foreign").String()
+
+	request := fixture.inlineRequest(onShelf, onOther, anonymous, foreign)
+	request.Parent = fixture.organization + "/shelves/-"
+	done := waitOperation(t, fixture.importBooks(t, request).GetName(), operationWaitTimeout)
+	require.True(t, done.GetDone())
+	require.Nil(t, done.GetError())
+	metadata := importMetadata(t, done)
+	require.Equal(t, int32(2), metadata.GetSuccessCount())
+	require.Equal(t, int32(2), metadata.GetFailureCount())
+	require.Len(t, metadata.GetErrors(), 2)
+	require.Contains(t, metadata.GetErrors()[0].GetMessage(), "name is required under wildcard parent")
+	require.Contains(t, metadata.GetErrors()[1].GetMessage(), "is not under parent")
+
+	names := unpackAny[*libraryservicepb.ImportBooksResponse](t, done.GetResponse()).GetNames()
+	require.Equal(t, []string{onShelf.GetName(), onOther.GetName()}, names)
+}

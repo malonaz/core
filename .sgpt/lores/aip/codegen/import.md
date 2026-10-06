@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Import
-description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory nested InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, what an import never does (events, updates), and why the x-migration-request header is on its way out.
+description: The AIP-153 Import{Plural} contract protoc-gen-core enforces and generates — request shape (parent, oneof source with a mandatory nested InlineSource, required request_id), names response, the shared malonaz.aip.v1.ImportMetadata, the generated sink (stamping, import-source/import-time labels, batch insert with per-row fallback, progress), one runner method per custom source, imported events, what an import never does (updates), and why the x-migration-request header is on its way out.
 labels:
     lang: go, protobuf
     repo: core
@@ -52,8 +52,13 @@ message ImportBooksResponse {
   wrapper is therefore `Import{Plural}Request_InlineSource_` (trailing
   underscore: protogen dodges the nested type) and the message
   `Import{Plural}Request_InlineSource`.
-- `standard_method.emit_event` is rejected: **an import never emits events**
-  (a backfill must not fan out).
+- Events: an import never publishes created events (a backfill must not
+  fan out to created consumers). It publishes an `imported` event per stored
+  resource, after each batch, when the resource declares
+  `imported` subjects in `malonaz.codegen.nats.v1.event`
+  (`RESOURCE_EVENT_TYPE_IMPORTED`). `standard_method.emit_event` is
+  rejected. Reference: library `ImportBooks`. A replayed row is published
+  again on retry, so consumers must be idempotent.
 - The resource needs a `Create`/`BatchCreate` in the same service: the import
   reuses `prepareCreate{Resource}` (`lores/aip/codegen/create`).
 - Singletons cannot be imported; singleton children are created alongside,
@@ -65,7 +70,7 @@ message ImportBooksResponse {
 
 ## What is generated
 
-- `Run{Import}` on the service server: rejects a wildcard parent, dispatches
+- `Run{Import}` on the service server: dispatches
   on the source — `InlineSource` is imported by generated code in batches of
   500; every other variant calls the runner's
   `Import{Plural}From{Variant}(ctx, request, sink *Import{Plural}Sink) error`
@@ -100,6 +105,16 @@ message ImportBooksResponse {
   retried attempt finds what an earlier one inserted (BatchInsert replay) —
   sources must therefore be **deterministic in order** or name their items.
 - Everything else (etag, identifiers, singleton children) is `prepareCreate`.
+
+## Wildcard parent
+
+A wildcard parent (`organizations/x/shelves/-`, as Export and List take)
+imports a whole collection, e.g. an Export's output fed back in. Each item
+must carry its `name`, which must be under the wildcard parent; it lands
+under its own parent (`Parse{Type}Rn(name).Parent()`, so the resource's
+package needs `GENERATE_GO_AIP`). Unnamed or out-of-scope items
+are partial failures. Only when the Create request has both `parent` and
+`{resource}_id`; otherwise a wildcard parent is rejected upfront.
 
 ## Insert and partial failures
 

@@ -15,12 +15,12 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/nats/v1/nats.proto.
  */
 export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSK7AgoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEj4KCXVuZGVsZXRlZBgGIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucyJSChJFdmVudE1ldGhvZE9wdGlvbnMSFwoHc3ViamVjdBgBIAEoCUIGukgDyAEBEhYKDnN1YmplY3RfZmllbGRzGAIgAygJEgsKA2NlbBgDIAEoCTpZCgZzdHJlYW0SHy5nb29nbGUucHJvdG9idWYuU2VydmljZU9wdGlvbnMYkMIEIAMoCzIeLm1hbG9uYXoubmF0cy52MS5TdHJlYW1PcHRpb25zUgZzdHJlYW06XgoFZXZlbnQSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYkcIEIAEoCzIlLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50T3B0aW9uc1IFZXZlbnRCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9uYXRzL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSL6AgoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEj4KCXVuZGVsZXRlZBgGIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI9CghpbXBvcnRlZBgHIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucyJSChJFdmVudE1ldGhvZE9wdGlvbnMSFwoHc3ViamVjdBgBIAEoCUIGukgDyAEBEhYKDnN1YmplY3RfZmllbGRzGAIgAygJEgsKA2NlbBgDIAEoCTpZCgZzdHJlYW0SHy5nb29nbGUucHJvdG9idWYuU2VydmljZU9wdGlvbnMYkMIEIAMoCzIeLm1hbG9uYXoubmF0cy52MS5TdHJlYW1PcHRpb25zUgZzdHJlYW06XgoFZXZlbnQSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYkcIEIAEoCzIlLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50T3B0aW9uc1IFZXZlbnRCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9uYXRzL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
 
 /**
  * Extension to annotate a protobuf resource message with NATS event generation options.
  * When set, the code generator emits typed NATS JetStream event messages
- * for the specified standard AIP methods (create, update, delete).
+ * for the specified standard AIP methods (create, update, delete, undelete, import).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
@@ -74,12 +74,20 @@ export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions undeleted = 6;
    */
   undeleted: EventMethodOptions[];
+
+  /**
+   * Options for imported events, published for every resource stored by its Import method.
+   * If unset, no imported event is generated.
+   *
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 7;
+   */
+  imported: EventMethodOptions[];
 };
 
 /**
  * Extension to annotate a protobuf resource message with NATS event generation options.
  * When set, the code generator emits typed NATS JetStream event messages
- * for the specified standard AIP methods (create, update, delete).
+ * for the specified standard AIP methods (create, update, delete, undelete, import).
  *
  * @generated from message malonaz.codegen.nats.v1.EventOptions
  */
@@ -133,6 +141,14 @@ export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> 
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions undeleted = 6;
    */
   undeleted: EventMethodOptionsValid[];
+
+  /**
+   * Options for imported events, published for every resource stored by its Import method.
+   * If unset, no imported event is generated.
+   *
+   * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 7;
+   */
+  imported: EventMethodOptionsValid[];
 };
 
 /**
@@ -174,7 +190,7 @@ export type EventMethodOptions = Message<"malonaz.codegen.nats.v1.EventMethodOpt
    * Optional CEL expression evaluated before publishing.
    * If present, the event is only published when the expression evaluates to true.
    * Available variables:
-   *   - `<resource>` (e.g., `shelf`) on created, updated, deleted & undeleted events.
+   *   - `<resource>` (e.g., `shelf`) on created, updated, deleted, undeleted & imported events.
    *   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
    *   - `update_mask` on updated events.
    *
@@ -215,7 +231,7 @@ export type EventMethodOptionsValid = Message<"malonaz.codegen.nats.v1.EventMeth
    * Optional CEL expression evaluated before publishing.
    * If present, the event is only published when the expression evaluates to true.
    * Available variables:
-   *   - `<resource>` (e.g., `shelf`) on created, updated, deleted & undeleted events.
+   *   - `<resource>` (e.g., `shelf`) on created, updated, deleted, undeleted & imported events.
    *   - `previous_<resource>` (e.g., `previous_shelf`) on updated events.
    *   - `update_mask` on updated events.
    *
