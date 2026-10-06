@@ -27,11 +27,14 @@ var (
 )
 
 // exportMethod is Export{Plural} (AIP-153) on a resource the service owns: a
-// long-running standard method. Generated code reads the resources out of the
-// store; the runner writes them out.
+// long-running standard method whose request names its destination in a oneof.
+// Generated code reads the resources out of the store; a method of the runner
+// per destination writes them out.
 type exportMethod struct {
 	lro *longrunningMethod
 	mi  *methodInfo
+	// The `destination` variants, in declaration order.
+	destinations []*protogen.Field
 	// The request's optional `filter` and `show_deleted` fields.
 	filter      *protogen.Field
 	showDeleted *protogen.Field
@@ -40,6 +43,11 @@ type exportMethod struct {
 }
 
 func (exp *exportMethod) readerGoName() string { return exp.lro.method.GoName + "Reader" }
+
+// runnerMethodGoName is the runner method exporting to a destination, e.g. ExportBooksToCsv.
+func (exp *exportMethod) runnerMethodGoName(destination *protogen.Field) string {
+	return exp.lro.method.GoName + "To" + strings.TrimSuffix(destination.GoName, "Destination")
+}
 
 // parseExportMethod validates the AIP-153 shape of an Export{Plural} method.
 func parseExportMethod(gen *generator, lro *longrunningMethod, mi *methodInfo) (*exportMethod, error) {
@@ -60,6 +68,13 @@ func parseExportMethod(gen *generator, lro *longrunningMethod, mi *methodInfo) (
 
 func (exp *exportMethod) parseRequest() error {
 	request := exp.lro.method.Input
+	// Unlike an import's InlineSource, no destination is generated: resources returned
+	// inline are unbounded, which is what List{Plural} pages.
+	destination, err := requiredOneof(request, "destination", "Destination")
+	if err != nil {
+		return err
+	}
+	exp.destinations = destination.Fields
 	for _, field := range request.Fields {
 		switch field.Desc.Name() {
 		case "filter":
@@ -83,11 +98,13 @@ func (exp *exportMethod) parseRequest() error {
 	return nil
 }
 
-// generateExportRunnerMethod emits the export's method of the runner interface,
-// which writes out what the reader reads.
-func (gen *generator) generateExportRunnerMethod(exp *exportMethod) {
-	gen.g.P(fmt.Sprintf("  Run%s(ctx %s, request *%s, reader *%s) (*%s, error)", exp.lro.method.GoName, gen.ident(contextPkg, "Context"),
-		gen.qgi(exp.lro.method.Input.GoIdent), exp.readerGoName(), gen.qgi(exp.response.GoIdent)))
+// generateExportRunnerMethods emits the export's methods of the runner interface,
+// one per destination, which write out what the reader reads.
+func (gen *generator) generateExportRunnerMethods(exp *exportMethod) {
+	for _, destination := range exp.destinations {
+		gen.g.P(fmt.Sprintf("  %s(ctx %s, request *%s, reader *%s) (*%s, error)", exp.runnerMethodGoName(destination), gen.ident(contextPkg, "Context"),
+			gen.qgi(exp.lro.method.Input.GoIdent), exp.readerGoName(), gen.qgi(exp.response.GoIdent)))
+	}
 }
 
 // generateExport emits the reader and Run{Export} of an export method.
@@ -264,20 +281,28 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 	g.P()
 }
 
-// generateRunExport emits run{Export}: it hands the reader to the runner.
+// generateRunExport emits run{Export}: it hands the reader to the runner method
+// of the request's destination.
 func (mc *methodCtx) generateRunExport(exp *exportMethod) {
 	g := mc.g
 	method := exp.lro.method
 	serviceServer := mc.si.service.GoName + "Server"
 
-	g.P(fmt.Sprintf("// run%s exports %s through the runner (AIP-153).", method.GoName, mc.pr.Desc.Plural))
+	g.P(fmt.Sprintf("// run%s exports %s to the request's destination (AIP-153).", method.GoName, mc.pr.Desc.Plural))
 	g.P(fmt.Sprintf("func (s *%s) run%s(ctx %s, request *%s) (*%s, error) {",
 		serviceServer, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.gen.qgi(exp.response.GoIdent)))
 	g.P(fmt.Sprintf("  reader, err := s.new%s(request)", exp.readerGoName()))
 	g.P("  if err != nil {")
 	g.P("    return nil, err")
 	g.P("  }")
-	g.P(fmt.Sprintf("  return s.runner.Run%s(ctx, request, reader)", method.GoName))
+	g.P("  switch request.GetDestination().(type) {")
+	for _, destination := range exp.destinations {
+		g.P(fmt.Sprintf("  case *%s:", mc.gen.qgi(destination.GoIdent)))
+		g.P(fmt.Sprintf("    return s.runner.%s(ctx, request, reader)", exp.runnerMethodGoName(destination)))
+	}
+	g.P("  default:")
+	g.P(fmt.Sprintf("    return nil, %s(%s, \"destination is required\").Err()", mc.statusErrorf(), mc.codes("InvalidArgument")))
+	g.P("  }")
 	g.P("}")
 	g.P()
 }

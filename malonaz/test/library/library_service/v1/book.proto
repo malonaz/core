@@ -9,6 +9,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/book.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
@@ -337,6 +338,17 @@ message ExportBooksRequest {
   // Restricts the export to the books matching this filter (AIP-160).
   string filter = 2;
 
+  // Where the books go.
+  oneof destination {
+    option (buf.validate.oneof).required = true;
+
+    // A CSV document of the books.
+    CsvDestination csv_destination = 5;
+
+    // The titles of the books.
+    TitlesDestination titles_destination = 6;
+  }
+
   // A unique identifier for this request. Must be a UUID. Repeating a request
   // with the same ID returns the operation it started instead of starting another.
   string request_id = 3 [
@@ -351,6 +363,12 @@ message ExportBooksRequest {
 
 // Response message for LibraryService.ExportBooks, the operation's response.
 message ExportBooksResponse {
-  // The CSV document: one `name,title` row per book.
+  // For a `csv_destination`, the CSV document: one `name,title` row per book.
   string csv = 1;
+
+  // For a `titles_destination`, the title of every book, in export order.
+  repeated string titles = 2;
 }
+
+// TitlesDestination writes the title of every book into the operation's response.
+message TitlesDestination {}

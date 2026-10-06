@@ -18,15 +18,23 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
+var csvDestination = &libraryservicepb.ExportBooksRequest_CsvDestination{CsvDestination: &libraryservicepb.CsvDestination{}}
+
 // exportBooks runs a CSV export of the books under parent to completion.
 func exportBooks(t *testing.T, parent, filter, rejectTitle string) *longrunningpb.Operation {
 	t.Helper()
-	request := &libraryservicepb.ExportBooksRequest{
+	return runExportBooks(t, &libraryservicepb.ExportBooksRequest{
 		Parent:      parent,
 		Filter:      filter,
+		Destination: csvDestination,
 		RequestId:   uuid.MustNewV7().String(),
 		RejectTitle: rejectTitle,
-	}
+	})
+}
+
+// runExportBooks runs an export of books to completion.
+func runExportBooks(t *testing.T, request *libraryservicepb.ExportBooksRequest) *longrunningpb.Operation {
+	t.Helper()
 	operation, err := libraryServiceClient.ExportBooks(ctx, request)
 	require.NoError(t, err)
 	done := waitOperation(t, operation.GetName(), operationWaitTimeout)
@@ -156,6 +164,34 @@ func TestExportBooks_Reject(t *testing.T) {
 	require.Equal(t, [][]string{{"name", "title"}, {kept.GetName(), titles[0]}}, exportedBooks(t, done))
 }
 
+// The destination selects the runner method: titles land in the response, not a CSV.
+func TestExportBooks_TitlesDestination(t *testing.T) {
+	t.Parallel()
+	fixture := newImportFixture(t)
+	titles := titles(2)
+	for _, title := range titles {
+		createTestBook(t, fixture.shelf.GetName(), fixture.author.GetName(), title)
+	}
+
+	done := runExportBooks(t, &libraryservicepb.ExportBooksRequest{
+		Parent:      fixture.shelf.GetName(),
+		Destination: &libraryservicepb.ExportBooksRequest_TitlesDestination{TitlesDestination: &libraryservicepb.TitlesDestination{}},
+		RequestId:   uuid.MustNewV7().String(),
+	})
+	grpcrequire.Equal(t, &aippb.ExportMetadata{SuccessCount: 2}, exportMetadata(t, done))
+	response := unpackAny[*libraryservicepb.ExportBooksResponse](t, done.GetResponse())
+	require.Empty(t, response.GetCsv())
+	require.ElementsMatch(t, titles, response.GetTitles())
+}
+
+func TestExportBooks_MissingDestination(t *testing.T) {
+	t.Parallel()
+	fixture := newImportFixture(t)
+	request := &libraryservicepb.ExportBooksRequest{Parent: fixture.shelf.GetName(), RequestId: uuid.MustNewV7().String()}
+	_, err := libraryServiceClient.ExportBooks(ctx, request)
+	grpcrequire.Error(t, codes.InvalidArgument, err)
+}
+
 func TestExportShelves(t *testing.T) {
 	t.Parallel()
 	fixture := newImportFixture(t)
@@ -169,6 +205,7 @@ func TestExportShelves(t *testing.T) {
 		exportShelvesRequest := &libraryservicepb.ExportShelvesRequest{
 			Parent:      fixture.organization,
 			ShowDeleted: showDeleted,
+			Destination: &libraryservicepb.ExportShelvesRequest_CsvDestination{CsvDestination: &libraryservicepb.CsvDestination{}},
 			RequestId:   uuid.MustNewV7().String(),
 		}
 		operation, err := libraryServiceClient.ExportShelves(ctx, exportShelvesRequest)
