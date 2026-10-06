@@ -1,6 +1,6 @@
 ---
 title: AIP codegen — Export
-description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, required oneof destination, optional filter/show_deleted, required request_id), the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and one runner method per destination that writes it out.
+description: The AIP-153 Export{Plural} contract protoc-gen-core enforces and generates — request shape (parent, required oneof destination of {x}_destination variants, optional filter/show_deleted, required request_id), the response's mirroring oneof result of {x}_result variants, the shared malonaz.aip.v1.ExportMetadata, the generated keyset-paged reader of the resource, and one runner method per destination that writes it out and returns its result.
 labels:
     lang: go, protobuf
     repo: core
@@ -35,16 +35,25 @@ message ExportBooksRequest {
   bool show_deleted = 4;                           // optional, soft-deletable resources only
   string request_id = 3 [required, uuid];          // MUST be required
   oneof destination {                              // MUST, (buf.validate.oneof).required = true
-    CsvDestination csv_destination = 5;            // every variant a *Destination message
+    CsvDestination csv_destination = 5;            // every variant `{x}_destination`, a *Destination message
     TitlesDestination titles_destination = 6;
   }
   // anything else is free-form, for the runner to read
 }
-message ExportBooksResponse {
-  string csv = 1;              // free-form: where the output landed, per destination
-  repeated string titles = 2;  // (e.g. the File a file_destination wrote)
+message ExportBooksResponse {                      // nothing but the oneof
+  oneof result {                                   // MUST, mirrors `destination`
+    CsvResult csv_result = 1;                      // exactly one `{x}_result` per `{x}_destination`,
+    TitlesResult titles_result = 2;                // a *Result message: where the resources landed
+  }
 }
 ```
+
+- The pairing is Cloud Asset's: `OutputConfig.destination { gcs_destination }` ↔
+  `OutputResult.result { gcs_result }`. Per-run stats (counts, failures) belong
+  to `ExportMetadata`, so the response holds nothing outside `result`.
+- A result is a message, never a bare scalar, so it can grow (a row count, a
+  second File) without a breaking change; share it as you share the
+  destination (`platform.v1.FileDestination` ↔ `platform.v1.FileResult`).
 
 - Destination messages may live anywhere: share one across methods and
   services (a platform-wide `FileDestination`), as Google shares `GcsDestination`.
@@ -60,10 +69,12 @@ message ExportBooksResponse {
 ## What is generated
 
 - One runner method per destination,
-  `{Export}To{X}(ctx, request, reader *{Export}Reader) (*{Export}Response, error)`
-  (`csv_destination` → `ExportBooksToCsv`), dispatched on the request's
-  destination by the generated handler: it writes the resources out and
-  returns the response, naming where they landed (e.g. the File it created). For CSV, `go/pbutil/pbcsv` derives the header and rows from
+  `{Export}To{X}(ctx, request, reader *{Export}Reader) (*{X}Result, error)`
+  (`csv_destination` → `ExportBooksToCsv` returning `*CsvResult`), dispatched
+  on the request's destination by the generated handler: it writes the
+  resources out and returns where they landed (e.g. the File it created); the
+  handler sets it as the matching `result` variant, so a runner cannot answer
+  with another destination's result. For CSV, `go/pbutil/pbcsv` derives the header and rows from
   the resource's descriptor: no hand-written columns.
 - `{Export}Reader`, the only way resources leave the store:
   - `Next(ctx) ([]*{Resource}, error)` — the next page (500 rows); nil once
