@@ -513,11 +513,10 @@ func (b0 UpdateOptions_builder) Build() *UpdateOptions {
 // Marks a method as a standard AIP method (Create, Get, Update, Delete, or List).
 // The protoc-gen-api plugin uses this to generate appropriate server and client code.
 type StandardMethod struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Resource  string                 `protobuf:"bytes,1,opt,name=resource,proto3"`
-	xxx_hidden_EmitEvent bool                   `protobuf:"varint,2,opt,name=emit_event,json=emitEvent,proto3"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Resource string                 `protobuf:"bytes,1,opt,name=resource,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *StandardMethod) Reset() {
@@ -552,19 +551,8 @@ func (x *StandardMethod) GetResource() string {
 	return ""
 }
 
-func (x *StandardMethod) GetEmitEvent() bool {
-	if x != nil {
-		return x.xxx_hidden_EmitEvent
-	}
-	return false
-}
-
 func (x *StandardMethod) SetResource(v string) {
 	x.xxx_hidden_Resource = v
-}
-
-func (x *StandardMethod) SetEmitEvent(v bool) {
-	x.xxx_hidden_EmitEvent = v
 }
 
 type StandardMethod_builder struct {
@@ -574,9 +562,6 @@ type StandardMethod_builder struct {
 	// Must match a resource type defined in google.api.resource annotations.
 	// Used to determine request/response message types and validate method naming.
 	Resource string
-	// Emit an event for this action, using github.com/malonaz/pgq.
-	// Only supported on CREATE, UPDATE & DELETE methods.
-	EmitEvent bool
 }
 
 func (b0 StandardMethod_builder) Build() *StandardMethod {
@@ -584,7 +569,6 @@ func (b0 StandardMethod_builder) Build() *StandardMethod {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Resource = b.Resource
-	x.xxx_hidden_EmitEvent = b.EmitEvent
 	return m0
 }
 
@@ -824,11 +808,10 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x05paths\x18\x01 \x03(\tB\x06\xbaH\x03\xc8\x01\x01R\x05paths\x12 \n" +
 	"\adefault\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\adefault\"%\n" +
 	"\rUpdateOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x7f\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"r\n" +
 	"\x0eStandardMethod\x12N\n" +
-	"\bresource\x18\x01 \x01(\tB2\xbaH/\xc8\x01\x01r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$R\bresource\x12\x1d\n" +
-	"\n" +
-	"emit_event\x18\x02 \x01(\bR\temitEvent:q\n" +
+	"\bresource\x18\x01 \x01(\tB2\xbaH/\xc8\x01\x01r*2(^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$R\bresourceJ\x04\b\x02\x10\x03R\n" +
+	"emit_event:q\n" +
 	"\x0fstandard_method\x12\x1e.google.protobuf.MethodOptions\x18\xc8\xd6\x05 \x01(\v2&.malonaz.codegen.aip.v1.StandardMethodR\x0estandardMethod:H\n" +
 	"\x0euuid_namespace\x12\x1f.google.protobuf.MessageOptions\x18\xe0\xce\x05 \x01(\tR\ruuidNamespace:`\n" +
 	"\x06update\x12\x1f.google.protobuf.MessageOptions\x18͓8 \x01(\v2%.malonaz.codegen.aip.v1.UpdateOptionsR\x06update:l\n" +
