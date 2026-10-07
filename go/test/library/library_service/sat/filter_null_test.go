@@ -349,6 +349,9 @@ func TestFilterNull_Map(t *testing.T) {
 	runNullCases(t, shelfNames(parent, false), []nullCase{
 		{"KeyEquals", `labels.k = "a"`, []string{"a"}},
 		{"KeyNotEquals", `labels.k != "a"`, []string{"b", "nolabels", "other"}},
+		{"NotKeyEquals", `NOT labels.k = "a"`, []string{"b", "nolabels", "other"}},
+		{"KeyHasValue", `labels.k:"a"`, []string{"a"}},
+		{"NotKeyHasValue", `NOT labels.k:"a"`, []string{"b", "nolabels", "other"}},
 		{"KeyEqualsEmpty", `labels.k = ""`, []string{"nolabels", "other"}},
 		{"KeyPresence", `labels.k:*`, []string{"a", "b"}},
 		{"NotKeyPresence", `NOT labels.k:*`, []string{"nolabels", "other"}},

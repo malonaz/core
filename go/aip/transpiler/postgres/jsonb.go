@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"encoding/json"
 	"strings"
 
 	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
@@ -30,6 +31,41 @@ func buildJSONBObjectPath(root string, path []string) string {
 		sb.WriteString("'")
 	}
 	return sb.String()
+}
+
+// jsonbContains renders `column @> document`, which a GIN index serves. The
+// document is a bound constant: built in SQL, it would be rebuilt per row.
+type jsonbContains struct {
+	column   sqlExpr
+	document sqlExpr
+}
+
+func (c jsonbContains) SQL() string { return c.column.SQL() + " @> " + c.document.SQL() + "::jsonb" }
+func (c jsonbContains) isBoolExpr() {}
+
+// mapEntryContainment rewrites `map.key = "value"` as containment for
+// non-empty string values: `= ""` also matches a missing key (see null.go).
+func (t *Transpiler) mapEntryContainment(lhs, rhs *expr.Expr) (boolExpr, bool) {
+	selectExpr := lhs.GetSelectExpr()
+	if selectExpr == nil {
+		return nil, false
+	}
+	operandType := t.filter.CheckedExpr.GetTypeMap()[selectExpr.GetOperand().GetId()]
+	if operandType.GetMapType().GetValueType().GetPrimitive() != expr.Type_STRING {
+		return nil, false
+	}
+	value, ok := getStringConstValue(rhs)
+	if !ok || value == "" {
+		return nil, false
+	}
+	path, root := t.extractSelectPath(lhs)
+	var document any = value
+	for i := len(path) - 1; i >= 0; i-- {
+		document = map[string]any{path[i]: document}
+	}
+	// Marshalling string-keyed maps of strings cannot fail.
+	bytes, _ := json.Marshal(document)
+	return jsonbContains{column: ident(root), document: t.addParam(string(bytes))}, true
 }
 
 func buildJSONBTypedExpr(root string, path []string, exprType *expr.Type) rawSQL {
