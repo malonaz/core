@@ -137,9 +137,9 @@ func (g *generator) generate() {
 		g.P()
 	}
 	g.P("errChan := make(chan error, 1)")
-	g.P("// Every server is also stopped on return, so one bound before a later step fails does not outlive")
-	g.P("// run; Stop is a no-op after handleSignals.")
 	if g.listens() {
+		g.P("// Every server is also stopped on return, so one bound before a later step fails does not outlive")
+		g.P("// run; Stop is a no-op after handleSignals.")
 		g.P("runServer := func(ctx ", ctx, ".Context, name string, serve func(", ctx, ".Context) error) {")
 		g.P("go func() {")
 		g.P("if err := serve(ctx); err != nil {")
