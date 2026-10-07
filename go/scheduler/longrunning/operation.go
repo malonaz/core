@@ -25,14 +25,15 @@ const operationsCollection = "operations"
 // which is where its operation lives: the user when the resource is a user's
 // (`organizations/{o}/users/{u}/...`), else the organization when the resource
 // is an organization's, else the root. Only a `users` collection directly under
-// the organization makes a user parent. Only Start derives a parent — a
-// producer building a job by hand names the parent it knows.
+// the organization makes a user parent. A wildcard ancestor is skipped, so a
+// cross-organization resource (`organizations/-/...`) runs at the root. Only
+// Start derives a parent — a producer building a job by hand names the parent
+// it knows.
 func jobParentOf(resource string) string {
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.UserRnPattern); ok {
-		return parent
-	}
-	if parent, ok := resourcename.Ancestor(resource, schedulerpb.OrganizationRnPattern); ok {
-		return parent
+	for _, pattern := range []string{schedulerpb.UserRnPattern, schedulerpb.OrganizationRnPattern} {
+		if parent, ok := resourcename.Ancestor(resource, pattern); ok && !resourcename.ContainsWildcard(parent) {
+			return parent
+		}
 	}
 	return ""
 }
