@@ -23,3 +23,12 @@ go_library(
         "//third_party/proto:google__longrunning__operations",
     ],
 )
+
+go_test(
+    name = "longrunning_test",
+    srcs = ["operation_test.go"],
+    deps = [
+        ":longrunning",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)
