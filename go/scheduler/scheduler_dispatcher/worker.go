@@ -281,7 +281,18 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 		log.ErrorContext(ctx, "recording job outcome", "error", err)
 		return
 	}
-	log.InfoContext(ctx, "job attempt completed", "state", schedulerpb.JobState(job.State).String(), "error", err)
+	// Every attempt is in the metrics; log only at a level matching its outcome.
+	state := schedulerpb.JobState(job.State)
+	switch {
+	case state == schedulerpb.JobState_JOB_STATE_SUCCEEDED:
+		log.DebugContext(ctx, "job attempt succeeded")
+	case ctx.Err() != nil:
+		log.DebugContext(ctx, "job released on shutdown")
+	case state == schedulerpb.JobState_JOB_STATE_FAILED:
+		log.ErrorContext(ctx, "job failed", "error", err)
+	default:
+		log.WarnContext(ctx, "job attempt failed", "state", state.String(), "error", err)
+	}
 }
 
 // retryDelayOf returns the wait a handler requested through a RetryInfo error
