@@ -54,6 +54,16 @@ func (g *generator) sessionManager() bool {
 	return len(g.b.Interceptors) > 0
 }
 
+// listens reports whether any server binds a listener: processors alone never call runServer.
+func (g *generator) listens() bool {
+	for _, s := range g.b.Servers {
+		if s.GetProcessor() == nil {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *generator) internalServiceAuthentication() bool {
 	for _, i := range g.b.Interceptors {
 		if i == onyxpb.Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION {
@@ -129,13 +139,15 @@ func (g *generator) generate() {
 	g.P("errChan := make(chan error, 1)")
 	g.P("// Every server is also stopped on return, so one bound before a later step fails does not outlive")
 	g.P("// run; Stop is a no-op after handleSignals.")
-	g.P("runServer := func(ctx ", ctx, ".Context, name string, serve func(", ctx, ".Context) error) {")
-	g.P("go func() {")
-	g.P("if err := serve(ctx); err != nil {")
-	g.P("errChan <- ", fmt_, `.Errorf("serving %s: %w", name, err)`)
-	g.P("}")
-	g.P("}()")
-	g.P("}")
+	if g.listens() {
+		g.P("runServer := func(ctx ", ctx, ".Context, name string, serve func(", ctx, ".Context) error) {")
+		g.P("go func() {")
+		g.P("if err := serve(ctx); err != nil {")
+		g.P("errChan <- ", fmt_, `.Errorf("serving %s: %w", name, err)`)
+		g.P("}")
+		g.P("}()")
+		g.P("}")
+	}
 
 	g.grpcClients()
 	g.postgres()

@@ -1,0 +1,5 @@
+name: test
+servers:
+  - name: d-processor
+    processor:
+      manifest: //d/d_processor:manifest(tools/onyx/binary/testdata/d_processor.yaml)
