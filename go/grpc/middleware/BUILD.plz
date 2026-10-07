@@ -17,6 +17,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/logging",
         "//go/pbutil",
         "//go/pbutil/pbcanonicalize",
         "//go/pbutil/pbfieldmask",

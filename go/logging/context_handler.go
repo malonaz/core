@@ -31,6 +31,8 @@ func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 	if h.extract != nil {
 		kvPairs := h.extract(ctx)
 		if len(kvPairs) > 0 {
+			// Copies of a Record share attr storage; another handler may hold one.
+			r = r.Clone()
 			// Convert key-value pairs to attributes
 			for i := 0; i < len(kvPairs)-1; i += 2 {
 				key, ok := kvPairs[i].(string)
