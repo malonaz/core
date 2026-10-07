@@ -116,6 +116,9 @@ func (t *Transpiler) transpileHasOnMap(lhsExpr, rhsExpr *expr.Expr) (boolExpr, e
 // transpileHasOnSelect renders `path:value` on a singular JSONB field, which
 // is equality with the same NULL semantics as `=`.
 func (t *Transpiler) transpileHasOnSelect(lhsExpr, rhsExpr *expr.Expr) (boolExpr, error) {
+	if containment, ok := t.mapEntryContainment(lhsExpr, rhsExpr); ok {
+		return containment, nil
+	}
 	lhs, err := t.transpileExpr(lhsExpr)
 	if err != nil {
 		return nil, err

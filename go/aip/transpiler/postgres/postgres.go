@@ -286,6 +286,11 @@ func (t *Transpiler) transpileComparisonCallExpr(e *expr.Expr, op string) (boolE
 	if err != nil {
 		return nil, err
 	}
+	if lhsIsColumn && op == opEq {
+		if containment, ok := t.mapEntryContainment(lhs, rhs); ok {
+			return containment, nil
+		}
+	}
 	var l literal
 	rhsIsLiteral := false
 	if lhsIsColumn {

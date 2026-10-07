@@ -500,14 +500,14 @@ func TestFilteringRequestParser_HasOperator(t *testing.T) {
 			{
 				name:           "map key has specific value",
 				filter:         `labels.environment:"production"`,
-				expectedClause: "WHERE (author.labels->>'environment' = $1)",
-				expectedParams: []any{"production"},
+				expectedClause: "WHERE (author.labels @> $1::jsonb)",
+				expectedParams: []any{`{"environment":"production"}`},
 			},
 			{
 				name:           "map key equals specific value",
 				filter:         `labels.environment = "staging"`,
-				expectedClause: "WHERE (author.labels->>'environment' = $1)",
-				expectedParams: []any{"staging"},
+				expectedClause: "WHERE (author.labels @> $1::jsonb)",
+				expectedParams: []any{`{"environment":"staging"}`},
 			},
 			{
 				name:           "has combined with AND",
@@ -1113,8 +1113,8 @@ func TestFilteringRequestParser_ComplexFilters(t *testing.T) {
 			{
 				name:           "map key value and nested combined",
 				filter:         `labels.env = "prod" AND metadata.country = "USA"`,
-				expectedClause: "WHERE ((author.labels->>'env' = $1) AND (author.metadata->>'country' = $2))",
-				expectedParams: []any{"prod", "USA"},
+				expectedClause: "WHERE ((author.labels @> $1::jsonb) AND (author.metadata->>'country' = $2))",
+				expectedParams: []any{`{"env":"prod"}`, "USA"},
 			},
 			{
 				name:           "multiple OR groups",
@@ -2045,8 +2045,34 @@ func TestFilteringRequestParser_NullSemantics(t *testing.T) {
 			{
 				name:           "map value equals excludes missing key",
 				filter:         `labels.env = "prod"`,
-				expectedClause: "WHERE (book.labels->>'env' = $1)",
-				expectedParams: []any{"prod"},
+				expectedClause: "WHERE (book.labels @> $1::jsonb)",
+				expectedParams: []any{`{"env":"prod"}`},
+			},
+			// Containment is NULL on an unset map: NOT must still admit it.
+			{
+				name:           "NOT map value equals admits missing key and unset map",
+				filter:         `NOT labels.env = "prod"`,
+				expectedClause: "WHERE (NOT COALESCE(book.labels @> $1::jsonb, FALSE))",
+				expectedParams: []any{`{"env":"prod"}`},
+			},
+			// The empty value also matches a missing key, which containment cannot express.
+			{
+				name:           "map value equals empty admits missing key",
+				filter:         `labels.env = ""`,
+				expectedClause: "WHERE (book.labels->>'env' IS NULL OR book.labels->>'env' = $1)",
+				expectedParams: []any{""},
+			},
+			{
+				name:           "map value has is containment",
+				filter:         `labels.env:"prod"`,
+				expectedClause: "WHERE (book.labels @> $1::jsonb)",
+				expectedParams: []any{`{"env":"prod"}`},
+			},
+			{
+				name:           "map key is bound, not inlined",
+				filter:         `labels."it's" = "prod"`,
+				expectedClause: "WHERE (book.labels @> $1::jsonb)",
+				expectedParams: []any{`{"it's":"prod"}`},
 			},
 			// NOT over a compound operand.
 			{
