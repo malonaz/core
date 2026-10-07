@@ -60,9 +60,6 @@ func parseImportMethod(lro *longrunningMethod, mi *methodInfo) (*importMethod, e
 	if err := checkAIP153Method(lro, mi, "import", importMetadataType); err != nil {
 		return nil, err
 	}
-	if mi.rpc.StandardMethod.GetEmitEvent() {
-		return nil, fmt.Errorf("%s: an import publishes the resource's imported events; drop standard_method.emit_event", lro.method.GoName)
-	}
 	imp := &importMethod{lro: lro, mi: mi}
 	if err := imp.parseRequest(); err != nil {
 		return nil, err
