@@ -139,7 +139,7 @@ message StandardMethod {
     (buf.validate.field).required = true,
     (buf.validate.field).string.pattern = "^[a-z0-9]+(\\.[a-z0-9]+)+/[A-Z][a-zA-Z]*$"
   ];
-  // Emit an event for this action, using github.com/malonaz/pgq.
-  // Only supported on CREATE, UPDATE & DELETE methods.
-  bool emit_event = 2;
+  // Formerly `bool emit_event`: no generator ever read it.
+  reserved 2;
+  reserved "emit_event";
 }

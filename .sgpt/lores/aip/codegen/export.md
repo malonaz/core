@@ -63,7 +63,6 @@ message ExportBooksResponse {                      // nothing but the oneof
 - The export reads the resource itself; anything related is the destination's
   business.
 - Wildcard parents are allowed (`organizations/x/shelves/-`), as in List.
-- `standard_method.emit_event` is rejected: an export never emits events.
 - The resource needs `model_opts`: the reader reads its table directly.
 
 ## What is generated
