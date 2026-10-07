@@ -61,6 +61,16 @@ func TestLoad(t *testing.T) {
 	require.Equal(t, string(expected), string(source))
 }
 
+func TestGenerateProcessorOnly(t *testing.T) {
+	// Nothing listens, so runServer would be declared and not used.
+	b, err := load(t, "processor_only.yaml")
+	require.NoError(t, err)
+	source, err := Generate(b)
+	require.NoError(t, err)
+	require.NotContains(t, string(source), "runServer")
+	require.Contains(t, string(source), "dProcessorCleanup, err := dProcessor.Start(ctx, nil)")
+}
+
 func TestLoadRejectsServiceCycle(t *testing.T) {
 	_, err := load(t, "cyclic.yaml")
 	require.ErrorContains(t, err, "services depend on each other: a-service -> b-service -> a-service")
