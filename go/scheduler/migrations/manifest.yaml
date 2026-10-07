@@ -13,3 +13,5 @@ migrations:
     hash: aa348c26cc18ff53b50eee4f6f723571
   - path: job/004_queue_state_failed.sql
     hash: d9a7544c5f6ba779549475c7da2e478a
+  - path: job/005_due_index.sql
+    hash: 8017db521f5c7b4803a08ab154228818

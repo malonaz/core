@@ -56,8 +56,7 @@ message ImportBooksResponse {
   fan out to created consumers). It publishes an `imported` event per stored
   resource, after each batch, when the resource declares
   `imported` subjects in `malonaz.codegen.nats.v1.event`
-  (`RESOURCE_EVENT_TYPE_IMPORTED`). `standard_method.emit_event` is
-  rejected. Reference: library `ImportBooks`. A replayed row is published
+  (`RESOURCE_EVENT_TYPE_IMPORTED`). Reference: library `ImportBooks`. A replayed row is published
   again on retry, so consumers must be idempotent.
 - The resource needs a `Create`/`BatchCreate` in the same service: the import
   reuses `prepareCreate{Resource}` (`lores/aip/codegen/create`).

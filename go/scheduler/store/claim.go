@@ -46,7 +46,7 @@ WITH running AS (
     LEFT JOIN scheduler.queue ON 'queues/' || queue.queue_id = job.queue
     LEFT JOIN running ON running.queue = job.queue
     WHERE job.state = $1
-        AND (job.schedule_time IS NULL OR job.schedule_time <= $3)
+        AND COALESCE(job.schedule_time, job.create_time) <= $3
         AND (job.expire_time IS NULL OR job.expire_time > $3)
         AND (queue.queue_id IS NULL OR queue.state = $4)
         AND NOT EXISTS (
