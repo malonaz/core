@@ -73,11 +73,28 @@ the same binary cannot deadlock at `NOT_SERVING`.
 
 ## Shutdown
 
-Stops run in **reverse start order**: gRPC servers, gateways, http servers,
-proxies, then the health server; `defer`s then close services, NATS,
-postgres and gRPC connections. First signal → `GracefulStop` chain
-(bounded by each server's `graceful-stop-timeout`); a second signal, or a
-server's `Serve` returning an error, → `Stop` chain.
+The first signal, or a server's `Serve` failing, runs the graceful chain:
+
+1. the health server shuts down;
+2. **processors stop, all together** (`lifecycle.CloseAll`), ahead of every
+   server whatever their declaration order: a server's graceful stop can wait
+   on long-lived streams, and a processor's handlers still need the servers.
+   A processor's stop is its own drain (the scheduler dispatcher stops
+   claiming, gives in-flight jobs `drain-timeout`, releases the rest);
+3. servers in **reverse start order**: gRPC servers, gateways, http servers,
+   proxies, each bounded by its `graceful-stop-timeout`.
+
+`defer`s then close the other services, NATS, postgres and gRPC connections.
+A second signal forces the `Stop` chain.
+
+The whole chain must fit the orchestrator's stop timeout (ECS `stopTimeout`),
+so closes that each wait on a drain must not run one by one: a service closing
+many NATS processors (each waits out its fetch, ~1s) uses `lifecycle.CloseAll`
+too.
+
+Binaries list their deps by hand: when the generated main starts importing a
+new core package, every binary whose main uses it needs the dep, or it fails
+to compile.
 
 ## Reading the output
 
