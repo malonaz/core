@@ -1,6 +1,6 @@
-// Package lifecycle sequences a server's Listen, Stop and GracefulStop across goroutines. The raw
-// servers refuse to serve once stopped, so what is left to sequence is ours: a listener bound before
-// Serve adopted it, and stops that repeat.
+// Package lifecycle sequences starts and stops across goroutines: a server's Listen, Stop and
+// GracefulStop, and closing many things at once. The raw servers refuse to serve once stopped, so
+// what is left to sequence is ours: a listener bound before Serve adopted it, and stops that repeat.
 package lifecycle
 
 import (
