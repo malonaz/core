@@ -442,7 +442,8 @@ type KeyValueListItem_builder struct {
 
 	// The label naming the fact, e.g. "Budget".
 	Label string
-	// The human-readable value of the fact, e.g. "$10-15k".
+	// The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+	// phrase; prose belongs in the message text, not a fact.
 	Value string
 	// Optional resource name; the client links the value when set.
 	ResourceName string

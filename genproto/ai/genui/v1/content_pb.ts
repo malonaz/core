@@ -83,7 +83,8 @@ export type KeyValueListItem = Message<"malonaz.ai.genui.v1.KeyValueListItem"> &
   label: string;
 
   /**
-   * The human-readable value of the fact, e.g. "$10-15k".
+   * The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+   * phrase; prose belongs in the message text, not a fact.
    *
    * @generated from field: string value = 2;
    */
@@ -119,7 +120,8 @@ export type KeyValueListItemValid = Message<"malonaz.ai.genui.v1.KeyValueListIte
   label: string;
 
   /**
-   * The human-readable value of the fact, e.g. "$10-15k".
+   * The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+   * phrase; prose belongs in the message text, not a fact.
    *
    * @generated from field: string value = 2;
    */

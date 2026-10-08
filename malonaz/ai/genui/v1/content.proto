@@ -24,7 +24,8 @@ message KeyValueListItem {
   // The label naming the fact, e.g. "Budget".
   string label = 1 [(buf.validate.field).required = true];
 
-  // The human-readable value of the fact, e.g. "$10-15k".
+  // The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+  // phrase; prose belongs in the message text, not a fact.
   string value = 2;
 
   // Optional resource name; the client links the value when set.

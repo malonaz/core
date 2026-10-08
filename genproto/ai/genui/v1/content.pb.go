@@ -364,7 +364,8 @@ type KeyValueListItem struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The label naming the fact, e.g. "Budget".
 	Label string `protobuf:"bytes,1,opt,name=label,proto3" json:"label,omitempty"`
-	// The human-readable value of the fact, e.g. "$10-15k".
+	// The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+	// phrase; prose belongs in the message text, not a fact.
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	// Optional resource name; the client links the value when set.
 	ResourceName string `protobuf:"bytes,3,opt,name=resource_name,json=resourceName,proto3" json:"resource_name,omitempty"`
@@ -449,7 +450,8 @@ type KeyValueListItem_builder struct {
 
 	// The label naming the fact, e.g. "Budget".
 	Label string
-	// The human-readable value of the fact, e.g. "$10-15k".
+	// The human-readable value of the fact, e.g. "$10-15k". Keep it to a short
+	// phrase; prose belongs in the message text, not a fact.
 	Value string
 	// Optional resource name; the client links the value when set.
 	ResourceName string
