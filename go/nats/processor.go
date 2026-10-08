@@ -150,49 +150,23 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 
 	routineName := fmt.Sprintf("nats-processor-%s", p.config.ConsumerName)
 	processFn := func(ctx context.Context) error {
-		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout)
-		defer fetchCancel()
-		messageBatch, err := p.consumer.Fetch(batchSize, jetstream.FetchContext(fetchCtx))
+		// Let the server's timeout reply end the batch; a FetchContext deadline races it and drops messages.
+		messageBatch, err := p.consumer.Fetch(batchSize, jetstream.FetchMaxWait(fetchTimeout))
 		if err != nil {
 			return fmt.Errorf("fetching messages: %w", err)
 		}
-
-		var messages []*Message[T]
-		for natsMessage := range messageBatch.Messages() {
-			payload := p.newPayload()
-			if err := pbutil.Unmarshal(natsMessage.Data(), payload); err != nil {
-				if nakErr := natsMessage.Nak(); nakErr != nil {
-					p.log.Error("naking message after unmarshal failure", "error", nakErr)
+		messages, receiveErr := p.receive(messageBatch)
+		if ctx.Err() != nil {
+			// The batch has ended, so naked messages go to another consumer rather than back into it.
+			for _, message := range messages {
+				if nakErr := message.nak(); nakErr != nil {
+					p.log.Error("naking message on cancellation", "error", nakErr)
 				}
-				return fmt.Errorf("unmarshaling payload: %w", err)
 			}
-
-			metadata, err := natsMessage.Metadata()
-			if err != nil {
-				return fmt.Errorf("getting message metadata: %w", err)
-			}
-
-			messages = append(messages, &Message[T]{
-				Timestamp: metadata.Timestamp,
-				Headers:   natsMessage.Headers(),
-				Payload:   payload,
-				natsMsg:   natsMessage,
-			})
+			return ctx.Err()
 		}
-
-		if err := messageBatch.Error(); err != nil {
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			// Fetch timeout with no messages is normal (idle consumer).
-			if len(messages) == 0 {
-				return nil
-			}
-			return fmt.Errorf("consuming message batch: %w", err)
-		}
-
 		if len(messages) == 0 {
-			return nil
+			return receiveErr
 		}
 
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, ackWait)
@@ -282,9 +256,9 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		wg.Wait()
 
 		if len(errs) > 0 {
-			return fmt.Errorf("processing messages: %w", errors.Join(errs...))
+			return errors.Join(receiveErr, fmt.Errorf("processing messages: %w", errors.Join(errs...)))
 		}
-		return nil
+		return receiveErr
 	}
 
 	backoffSeconds := p.config.BackoffSeconds
@@ -307,6 +281,34 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 	}
 	p.routine = r.Start(ctx)
 	return nil
+}
+
+// receive collects a fetched batch; a pull can't be withdrawn, so it runs until the server ends it.
+func (p *Processor[T]) receive(batch jetstream.MessageBatch) ([]*Message[T], error) {
+	var messages []*Message[T]
+	for natsMessage := range batch.Messages() {
+		payload := p.newPayload()
+		if err := pbutil.Unmarshal(natsMessage.Data(), payload); err != nil {
+			if nakErr := natsMessage.Nak(); nakErr != nil {
+				p.log.Error("naking message after unmarshal failure", "error", nakErr)
+			}
+			return messages, fmt.Errorf("unmarshaling payload: %w", err)
+		}
+		metadata, err := natsMessage.Metadata()
+		if err != nil {
+			return messages, fmt.Errorf("getting message metadata: %w", err)
+		}
+		messages = append(messages, &Message[T]{
+			Timestamp: metadata.Timestamp,
+			Headers:   natsMessage.Headers(),
+			Payload:   payload,
+			natsMsg:   natsMessage,
+		})
+	}
+	if err := batch.Error(); err != nil {
+		return messages, fmt.Errorf("consuming message batch: %w", err)
+	}
+	return messages, nil
 }
 
 func (p *Processor[T]) newPayload() T {
