@@ -248,10 +248,6 @@ func run(ctx context.Context) error {
 	}
 	dProcessorStop := sync.OnceFunc(dProcessorCleanup)
 	defer dProcessorStop()
-	gracefulStopFns = append(gracefulStopFns, func() error {
-		dProcessorStop()
-		return nil
-	})
 	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
 	// d-http
@@ -290,6 +286,10 @@ func run(ctx context.Context) error {
 
 	go healthServer.Serve(ctx)
 	defer healthServer.Shutdown()
+	gracefulStopFns = append(gracefulStopFns, func() error {
+		dProcessorStop()
+		return nil
+	})
 	gracefulStopFns = append(gracefulStopFns, func() error {
 		healthServer.Shutdown()
 		return nil
