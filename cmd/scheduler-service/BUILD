@@ -26,6 +26,7 @@ go_binary(
         "//go/flags",
         "//go/grpc",
         "//go/health",
+        "//go/lifecycle",
         "//go/logging",
         "//go/postgres",
         "//go/prometheus",

@@ -191,9 +191,14 @@ func (g *generator) generate() {
 	g.P("defer healthServer.Shutdown()")
 	// Processors pull work, so they stop ahead of every server, whatever their declaration order:
 	// a server's graceful stop can wait on long-lived streams while a processor keeps pulling.
-	for _, s := range processors {
+	// Together, as each stop waits on its own drain.
+	if len(processors) > 0 {
+		stops := make([]string, len(processors))
+		for i, s := range processors {
+			stops[i] = serviceVar(s) + "Stop"
+		}
 		g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
-		g.P(serviceVar(s), "Stop()")
+		g.P(g.Qual(core+"/lifecycle", "CloseAll"), "(", strings.Join(stops, ", "), ")")
 		g.P("return nil")
 		g.P("})")
 	}
