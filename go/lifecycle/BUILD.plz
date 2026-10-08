@@ -1,5 +1,9 @@
 go_library(
     name = "lifecycle",
-    srcs = ["lifecycle.go"],
+    srcs = [
+        "close.go",
+        "lifecycle.go",
+    ],
     visibility = ["//..."],
+    deps = ["//third_party/go:golang.org__x__sync__errgroup"],
 )

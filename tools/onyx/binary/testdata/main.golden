@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	aservice "example.com/repo/a/a_service"
@@ -24,6 +25,7 @@ import (
 	"github.com/malonaz/core/go/grpc/grpcwebproxy"
 	"github.com/malonaz/core/go/health"
 	"github.com/malonaz/core/go/http"
+	"github.com/malonaz/core/go/lifecycle"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/prometheus"
@@ -245,7 +247,8 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("starting d-processor: %w", err)
 	}
-	defer dProcessorCleanup()
+	dProcessorStop := sync.OnceFunc(dProcessorCleanup)
+	defer dProcessorStop()
 	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
 	// d-http
@@ -284,6 +287,10 @@ func run(ctx context.Context) error {
 
 	go healthServer.Serve(ctx)
 	defer healthServer.Shutdown()
+	gracefulStopFns = append(gracefulStopFns, func() error {
+		lifecycle.CloseAll(dProcessorStop)
+		return nil
+	})
 	gracefulStopFns = append(gracefulStopFns, func() error {
 		healthServer.Shutdown()
 		return nil

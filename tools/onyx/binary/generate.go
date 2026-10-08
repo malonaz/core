@@ -161,6 +161,7 @@ func (g *generator) generate() {
 	g.P("var stopFns []func() error")
 
 	started := map[*Service]bool{}
+	var processors []*Service
 	for _, server := range g.b.Servers {
 		g.P()
 		g.P("// ", server.GetName())
@@ -168,6 +169,9 @@ func (g *generator) generate() {
 			if !started[service] {
 				started[service] = true
 				g.service(service)
+				if service.IsProcessor() {
+					processors = append(processors, service)
+				}
 			}
 		}
 		switch server.GetKind().(type) {
@@ -185,6 +189,19 @@ func (g *generator) generate() {
 	g.P()
 	g.P("go healthServer.Serve(ctx)")
 	g.P("defer healthServer.Shutdown()")
+	// Processors pull work, so they stop ahead of every server, whatever their declaration order:
+	// a server's graceful stop can wait on long-lived streams while a processor keeps pulling.
+	// Together, as each stop waits on its own drain.
+	if len(processors) > 0 {
+		stops := make([]string, len(processors))
+		for i, s := range processors {
+			stops[i] = serviceVar(s) + "Stop"
+		}
+		g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
+		g.P(g.Qual(core+"/lifecycle", "CloseAll"), "(", strings.Join(stops, ", "), ")")
+		g.P("return nil")
+		g.P("})")
+	}
 	g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
 	g.P("healthServer.Shutdown()")
 	g.P("return nil")
@@ -459,7 +476,13 @@ func (g *generator) service(s *Service) {
 	g.P("if err != nil {")
 	g.P("return ", fmt_, `.Errorf("starting `, s.GetName(), `: %w", err)`)
 	g.P("}")
-	g.P("defer ", v, "Cleanup()")
+	if !s.IsProcessor() {
+		g.P("defer ", v, "Cleanup()")
+		return
+	}
+	// Stopped in the graceful chain, ahead of the servers; the deferred stop covers a failed start.
+	g.P(v, "Stop := ", g.Qual("sync", "OnceFunc"), "(", v, "Cleanup)")
+	g.P("defer ", v, "Stop()")
 }
 
 // healthChecks are what a service's health on a server depends on: its databases and the gRPC
