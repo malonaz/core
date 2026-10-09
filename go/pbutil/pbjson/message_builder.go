@@ -59,7 +59,7 @@ func (b *SchemaBuilder) findMessageDescriptor(messageFullName protoreflect.FullN
 // NormalizeArguments returns a copy of args keyed by proto field names, as BuildMessage reads them.
 // protojson accepts a field's JSON name too (coverMessage for cover_message) and models emit either,
 // so JSON-name keys are renamed, recursively through nested messages; when both spellings are
-// present the proto name wins. Messages and lists a model emitted as JSON-encoded strings are
+// present the proto name wins. Messages, lists and maps a model emitted as JSON-encoded strings are
 // decoded first, so their contents are normalized too. Keys naming no field are kept as is, and
 // free-form values (Struct, Value, ListValue, map keys) are never touched.
 func NormalizeArguments(desc protoreflect.MessageDescriptor, args map[string]any) map[string]any {
@@ -86,9 +86,12 @@ func NormalizeArguments(desc protoreflect.MessageDescriptor, args map[string]any
 func normalizeFieldValue(field protoreflect.FieldDescriptor, value any) any {
 	switch {
 	case field.IsMap():
-		entries, ok := value.(map[string]any)
-		if !ok || field.MapValue().Kind() != protoreflect.MessageKind {
+		entries, ok := asJSONValue[map[string]any](value)
+		if !ok {
 			return value
+		}
+		if field.MapValue().Kind() != protoreflect.MessageKind {
+			return entries
 		}
 		normalized := make(map[string]any, len(entries))
 		for key, entry := range entries {
