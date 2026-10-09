@@ -403,21 +403,23 @@ func TestNormalizeArguments(t *testing.T) {
 		}, NormalizeArguments(shelfMetadataDescriptor, args))
 	})
 
-	t.Run("decodes messages and lists emitted as JSON-encoded strings", func(t *testing.T) {
-		// Regression: models sometimes stringify a nested message or list, which hid its
-		// JSON-name keys from normalization.
+	t.Run("decodes messages, lists and maps emitted as JSON-encoded strings", func(t *testing.T) {
+		// Regression: models sometimes stringify a nested message, list or map, which hid its
+		// JSON-name keys from normalization and failed the build of a map.
 		args := map[string]any{
 			"metadata": `{"phoneNumber": "+15551234567"}`,
 			"tags":     `["roofing", "estimate"]`,
+			"labels":   `{"plumbing": "true"}`,
 		}
 		require.Equal(t, map[string]any{
 			"metadata": map[string]any{"phone_number": "+15551234567"},
 			"tags":     []any{"roofing", "estimate"},
+			"labels":   map[string]any{"plumbing": "true"},
 		}, NormalizeArguments(dummyDescriptor, args))
 	})
 
-	t.Run("keeps non-JSON strings in message and list fields", func(t *testing.T) {
-		args := map[string]any{"metadata": "not json", "tags": "{not json"}
+	t.Run("keeps non-JSON strings in message, list and map fields", func(t *testing.T) {
+		args := map[string]any{"metadata": "not json", "tags": "{not json", "labels": "{not json"}
 		require.Equal(t, args, NormalizeArguments(dummyDescriptor, args))
 	})
 
