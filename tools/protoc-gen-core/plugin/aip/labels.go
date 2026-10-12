@@ -111,12 +111,7 @@ func generateLabelValue(g *protogen.GeneratedFile, info *labelInfo) {
 
 	g.P("GetKey: func(", funcParams(info.vars), ") string {")
 	if info.isDynamic {
-		expr := info.key
-		for _, v := range info.vars {
-			replacement := fmt.Sprintf(`" + _%s + "`, varParamName(v))
-			expr = strings.Replace(expr, v, replacement, 1)
-		}
-		g.P(fmt.Sprintf(`return "%s"`, expr))
+		g.P("return ", dynamicKeyExpr(info.key, info.vars))
 	} else {
 		g.P(fmt.Sprintf(`return "%s"`, info.key))
 	}
@@ -126,6 +121,15 @@ func generateLabelValue(g *protogen.GeneratedFile, info *labelInfo) {
 		g.P(fmt.Sprintf(`%s: "%s",`, valueName(value), value))
 	}
 	g.P("},")
+}
+
+// dynamicKeyExpr is the Go string expression resolving a dynamic key from its parameters.
+func dynamicKeyExpr(dynamicKey string, vars []string) string {
+	expr := dynamicKey
+	for _, v := range vars {
+		expr = strings.Replace(expr, v, fmt.Sprintf(`" + _%s + "`, varParamName(v)), 1)
+	}
+	return `"` + expr + `"`
 }
 
 func funcParams(vars []string) string {

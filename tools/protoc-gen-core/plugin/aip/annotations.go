@@ -35,12 +35,25 @@ func generateAnnotations(file *protogen.File, g *protogen.GeneratedFile, opts *p
 		}
 		types[i] = typ
 		g.P("// ", annotation.GetDescription())
+		if dynamicKey := annotation.GetDynamicKey(); dynamicKey != "" {
+			vars := varPattern.FindAllString(dynamicKey, -1)
+			g.P(annotationGoName(dynamicKey), " func(", funcParams(vars), ") ", typ)
+			continue
+		}
 		g.P(annotationGoName(annotation.GetKey()), " ", typ)
 	}
 	g.P("}")
 	g.P()
 	g.P("var Annotations = AnnotationSet{")
 	for i, annotation := range annotations {
+		if dynamicKey := annotation.GetDynamicKey(); dynamicKey != "" {
+			// A dynamic annotation resolves its key per call, like a dynamic label.
+			vars := varPattern.FindAllString(dynamicKey, -1)
+			g.P(annotationGoName(dynamicKey), ": func(", funcParams(vars), ") ", types[i], " {")
+			g.P("return ", types[i], "{Key: ", dynamicKeyExpr(dynamicKey, vars), "}")
+			g.P("},")
+			continue
+		}
 		g.P(annotationGoName(annotation.GetKey()), ": ", types[i], "{Key: ", fmt.Sprintf("%q", annotation.GetKey()), "},")
 	}
 	g.P("}")
@@ -48,12 +61,19 @@ func generateAnnotations(file *protogen.File, g *protogen.GeneratedFile, opts *p
 }
 
 func annotationGoType(g *protogen.GeneratedFile, file *protogen.File, opts *plugin.Opts, annotation *aippb.Annotation) (string, error) {
+	key := annotation.GetKey() + annotation.GetDynamicKey()
+	if key == "" || (annotation.GetKey() != "" && annotation.GetDynamicKey() != "") {
+		return "", fmt.Errorf("annotation: exactly one of key or dynamic_key must be set, got key=%q dynamic_key=%q", annotation.GetKey(), annotation.GetDynamicKey())
+	}
+	if dynamicKey := annotation.GetDynamicKey(); dynamicKey != "" && !varPattern.MatchString(dynamicKey) {
+		return "", fmt.Errorf("annotation %q: dynamic_key must contain at least one {variable} placeholder", dynamicKey)
+	}
 	if annotation.GetValueType() == "" {
 		return g.QualifiedGoIdent(aipPkg.Ident("StringAnnotation")), nil
 	}
 	fullName := protoreflect.FullName(annotation.GetValueType())
 	if !fullName.IsValid() {
-		return "", fmt.Errorf("annotation %q: invalid value_type %q", annotation.GetKey(), annotation.GetValueType())
+		return "", fmt.Errorf("annotation %q: invalid value_type %q", key, annotation.GetValueType())
 	}
 	// AIP-151 style: a bare name is relative to the declaring package.
 	if fullName.Parent() == "" {
@@ -66,12 +86,13 @@ func annotationGoType(g *protogen.GeneratedFile, file *protogen.File, opts *plug
 			}
 		}
 	}
-	return "", fmt.Errorf("annotation %q: value_type %s is not a top-level message of the compilation unit; import its proto", annotation.GetKey(), fullName)
+	return "", fmt.Errorf("annotation %q: value_type %s is not a top-level message of the compilation unit; import its proto", key, fullName)
 }
 
+// annotationGoName names an annotation after its key's last segment, placeholders unwrapped.
 func annotationGoName(key string) string {
 	if idx := strings.LastIndex(key, "/"); idx >= 0 {
 		key = key[idx+1:]
 	}
-	return xstrings.ToPascalCase(strings.NewReplacer("-", "_", ".", "_").Replace(key))
+	return xstrings.ToPascalCase(strings.NewReplacer("{", "", "}", "", "-", "_", ".", "_").Replace(key))
 }

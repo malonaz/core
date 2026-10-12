@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/aip/v1/annotation.proto.
  */
 export const file_malonaz_aip_v1_annotation: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpcC92MS9hbm5vdGF0aW9uLnByb3RvEg5tYWxvbmF6LmFpcC52MSK1AQoKQW5ub3RhdGlvbhJ2CgNrZXkYASABKAlCabpIZnJkEAEyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JBIbCgtkZXNjcmlwdGlvbhgCIAEoCUIGukgDyAEBEhIKCnZhbHVlX3R5cGUYAyABKAlCKVonZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate]);
+  fileDesc("Ch9tYWxvbmF6L2FpcC92MS9hbm5vdGF0aW9uLnByb3RvEg5tYWxvbmF6LmFpcC52MSLCAwoKQW5ub3RhdGlvbhJ5CgNrZXkYASABKAlCbLpIaXJkEAEyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JNgBARKDAQoLZHluYW1pY19rZXkYBCABKAlCbrpIa3JmEAEyYl5bYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKFthLXpBLVowLTlfLi1dKlx7W2EtekEtWjAtOV9dK1x9KStbYS16QS1aMC05Xy4tXSok2AEBEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESEgoKdmFsdWVfdHlwZRgDIAEoCTqBAbpIfhp8Ch1hbm5vdGF0aW9uLmtleV9vcl9keW5hbWljX2tleRItZXhhY3RseSBvbmUgb2Yga2V5IG9yIGR5bmFtaWNfa2V5IG11c3QgYmUgc2V0GiwodGhpcy5rZXkgIT0gJycpICE9ICh0aGlzLmR5bmFtaWNfa2V5ICE9ICcnKUIpWidnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haXAvdjFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * An annotation definition declared by a service. Annotations are bookkeeping
@@ -27,6 +27,14 @@ export type Annotation = Message<"malonaz.aip.v1.Annotation"> & {
    * @generated from field: string key = 1;
    */
   key: string;
+
+  /**
+   * Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders,
+   * e.g. "eval.malonaz.com/{eval}". Variables are resolved in declaration order.
+   *
+   * @generated from field: string dynamic_key = 4;
+   */
+  dynamicKey: string;
 
   /**
    * Human-readable description of the annotation's purpose.
@@ -59,6 +67,14 @@ export type AnnotationValid = Message<"malonaz.aip.v1.Annotation"> & {
    * @generated from field: string key = 1;
    */
   key: string;
+
+  /**
+   * Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders,
+   * e.g. "eval.malonaz.com/{eval}". Variables are resolved in declaration order.
+   *
+   * @generated from field: string dynamic_key = 4;
+   */
+  dynamicKey: string;
 
   /**
    * Human-readable description of the annotation's purpose.
