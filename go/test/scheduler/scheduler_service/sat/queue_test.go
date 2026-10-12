@@ -28,6 +28,14 @@ func newPolicy() *policypb.QueuePolicy {
 	return &policypb.QueuePolicy{AttemptTimeout: durationpb.New(5 * time.Second), MaxAttempts: 1}
 }
 
+// requireDefaultBackoff checks a policy holds the sat's default retry backoff.
+func requireDefaultBackoff(t *testing.T, policy *policypb.QueuePolicy) {
+	t.Helper()
+	require.Equal(t, defaultBackoffInitial, policy.GetRetryBackoff().GetInitial().AsDuration())
+	require.Equal(t, defaultBackoffMax, policy.GetRetryBackoff().GetMax().AsDuration())
+	require.Equal(t, defaultBackoffMultiplier, policy.GetRetryBackoff().GetMultiplier())
+}
+
 func TestQueue_Discovered(t *testing.T) {
 	t.Parallel()
 	// The dispatcher declared one queue per annotated processor method, with
@@ -41,6 +49,8 @@ func TestQueue_Discovered(t *testing.T) {
 	require.Equal(t, schedulerpb.QueueState_QUEUE_STATE_RUNNING, queue.GetState())
 	require.Equal(t, 5*time.Second, queue.GetPolicy().GetAttemptTimeout().AsDuration())
 	require.Equal(t, int32(1), queue.GetPolicy().GetMaxAttempts())
+	// Echo declares no backoff: the dispatcher's default.
+	requireDefaultBackoff(t, queue.GetPolicy())
 
 	flaky := getQueue(t, flakyQueue)
 	require.Equal(t, flakyBackoffInitial, flaky.GetPolicy().GetRetryBackoff().GetInitial().AsDuration())
@@ -65,9 +75,7 @@ func TestQueue_CRUD(t *testing.T) {
 	policy := created.GetPolicy()
 	require.Equal(t, 5*time.Second, policy.GetAttemptTimeout().AsDuration())
 	require.Equal(t, int32(1), policy.GetMaxAttempts())
-	require.Equal(t, 10*time.Second, policy.GetRetryBackoff().GetInitial().AsDuration())
-	require.Equal(t, 10*time.Minute, policy.GetRetryBackoff().GetMax().AsDuration())
-	require.Equal(t, float64(2), policy.GetRetryBackoff().GetMultiplier())
+	requireDefaultBackoff(t, policy)
 	require.ElementsMatch(t, []codepb.Code{
 		codepb.Code_UNAVAILABLE, codepb.Code_INTERNAL, codepb.Code_UNKNOWN,
 		codepb.Code_DEADLINE_EXCEEDED, codepb.Code_RESOURCE_EXHAUSTED, codepb.Code_ABORTED,

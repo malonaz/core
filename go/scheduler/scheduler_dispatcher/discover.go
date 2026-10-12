@@ -59,7 +59,7 @@ func (s *Service) convergeQueue(ctx context.Context, url string, method *endpoin
 		Endpoint:     url,
 		RequestType:  method.RequestType,
 		ResponseType: method.ResponseType,
-		Policy:       scheduler.NormalizePolicy(method.Policy),
+		Policy:       scheduler.NormalizePolicy(method.Policy, s.defaultRetryBackoff),
 	}
 	for range convergeAttempts {
 		createQueueRequest := &pb.CreateQueueRequest{

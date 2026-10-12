@@ -227,11 +227,6 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 	return job, nil
 }
 
-// waitJobPollInterval is how often WaitJob re-reads the job. Terminal
-// transitions are written by workers on any instance, so the row is the only
-// place to observe them from.
-const waitJobPollInterval = 250 * time.Millisecond
-
 // WaitJob polls the job until it is terminal or the timeout elapses and
 // returns it either way: timing out is the caller's to detect from `state`.
 // The timeout is silently capped so a client cannot pin a server goroutine.
@@ -254,7 +249,7 @@ func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*sch
 		select {
 		case <-ctx.Done():
 			return nil, status.FromError(ctx.Err(), "waiting for job").Err()
-		case <-time.After(min(waitJobPollInterval, remaining)):
+		case <-time.After(min(s.opts.WaitJobPollInterval, remaining)):
 		}
 	}
 }

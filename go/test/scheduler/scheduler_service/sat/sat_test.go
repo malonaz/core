@@ -73,7 +73,12 @@ const (
 	limitedConcurrency  = 2
 	operateMaxAttempts  = 3
 	// Short enough for a sat to observe the cap on an absurd WaitJob timeout.
-	waitJobMaxTimeout = 2 * time.Second
+	waitJobMaxTimeout   = 2 * time.Second
+	waitJobPollInterval = 20 * time.Millisecond
+	// Not the built-in default, so a queue declaring no backoff shows the flags took.
+	defaultBackoffInitial    = 3 * time.Second
+	defaultBackoffMax        = 3 * time.Minute
+	defaultBackoffMultiplier = 1.5
 
 	// Generous ceiling for polling assertions.
 	waitTimeout = 30 * time.Second
@@ -129,9 +134,16 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--scheduler-service.sweep-interval", "500ms",
 			"--scheduler-service.tick-interval", tickInterval.String(),
 			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
+			"--scheduler-service.wait-job-poll-interval", waitJobPollInterval.String(),
+			"--scheduler-service.default-retry-backoff.initial", defaultBackoffInitial.String(),
+			"--scheduler-service.default-retry-backoff.max", defaultBackoffMax.String(),
+			"--scheduler-service.default-retry-backoff.multiplier", strconv.FormatFloat(defaultBackoffMultiplier, 'f', -1, 64),
 			"--scheduler-dispatcher.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
 			"--scheduler-dispatcher.poll-interval", pollInterval.String(),
 			"--scheduler-dispatcher.lease-duration", leaseDuration.String(),
+			"--scheduler-dispatcher.default-retry-backoff.initial", defaultBackoffInitial.String(),
+			"--scheduler-dispatcher.default-retry-backoff.max", defaultBackoffMax.String(),
+			"--scheduler-dispatcher.default-retry-backoff.multiplier", strconv.FormatFloat(defaultBackoffMultiplier, 'f', -1, 64),
 			"--scheduler-dispatcher.worker-id", name,
 		),
 	}
