@@ -10,11 +10,30 @@ option go_package = "github.com/malonaz/core/genproto/aip/v1";
 // written by tooling, never by users; unlike labels they are not filterable and
 // their values are free-form.
 message Annotation {
+  option (buf.validate.message).cel = {
+    id: "annotation.key_or_dynamic_key"
+    expression: "(this.key != '') != (this.dynamic_key != '')"
+    message: "exactly one of key or dynamic_key must be set"
+  };
+
   // The annotation key, e.g. "google.calendar.onikisu.com/updated".
-  string key = 1 [(buf.validate.field).string = {
-    min_len: 1
-    pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
-  }];
+  string key = 1 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"
+    }
+  ];
+
+  // Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders,
+  // e.g. "eval.malonaz.com/{eval}". Variables are resolved in declaration order.
+  string dynamic_key = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/([a-zA-Z0-9_.-]*\\{[a-zA-Z0-9_]+\\})+[a-zA-Z0-9_.-]*$"
+    }
+  ];
 
   // Human-readable description of the annotation's purpose.
   string description = 2 [(buf.validate.field).required = true];

@@ -30,6 +30,9 @@ type Annotation struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The annotation key, e.g. "google.calendar.onikisu.com/updated".
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders,
+	// e.g. "eval.malonaz.com/{eval}". Variables are resolved in declaration order.
+	DynamicKey string `protobuf:"bytes,4,opt,name=dynamic_key,json=dynamicKey,proto3" json:"dynamic_key,omitempty"`
 	// Human-readable description of the annotation's purpose.
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// Fully-qualified name of the message the value is: proto-encoded and base64 in the
@@ -72,6 +75,13 @@ func (x *Annotation) GetKey() string {
 	return ""
 }
 
+func (x *Annotation) GetDynamicKey() string {
+	if x != nil {
+		return x.DynamicKey
+	}
+	return ""
+}
+
 func (x *Annotation) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -90,6 +100,10 @@ func (x *Annotation) SetKey(v string) {
 	x.Key = v
 }
 
+func (x *Annotation) SetDynamicKey(v string) {
+	x.DynamicKey = v
+}
+
 func (x *Annotation) SetDescription(v string) {
 	x.Description = v
 }
@@ -103,6 +117,9 @@ type Annotation_builder struct {
 
 	// The annotation key, e.g. "google.calendar.onikisu.com/updated".
 	Key string
+	// Dynamic keys use "dns.prefix/" followed by any mix of literals and {variable} placeholders,
+	// e.g. "eval.malonaz.com/{eval}". Variables are resolved in declaration order.
+	DynamicKey string
 	// Human-readable description of the annotation's purpose.
 	Description string
 	// Fully-qualified name of the message the value is: proto-encoded and base64 in the
@@ -116,6 +133,7 @@ func (b0 Annotation_builder) Build() *Annotation {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Key = b.Key
+	x.DynamicKey = b.DynamicKey
 	x.Description = b.Description
 	x.ValueType = b.ValueType
 	return m0
@@ -125,13 +143,16 @@ var File_malonaz_aip_v1_annotation_proto protoreflect.FileDescriptor
 
 const file_malonaz_aip_v1_annotation_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/aip/v1/annotation.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\xd2\x01\n" +
+	"\x1fmalonaz/aip/v1/annotation.proto\x12\x0emalonaz.aip.v1\x1a\x1bbuf/validate/validate.proto\"\xeb\x03\n" +
 	"\n" +
-	"Annotation\x12{\n" +
-	"\x03key\x18\x01 \x01(\tBi\xbaHfrd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12(\n" +
+	"Annotation\x12~\n" +
+	"\x03key\x18\x01 \x01(\tBl\xbaHi\xd8\x01\x01rd\x10\x012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$R\x03key\x12\x8f\x01\n" +
+	"\vdynamic_key\x18\x04 \x01(\tBn\xbaHk\xd8\x01\x01rf\x10\x012b^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/([a-zA-Z0-9_.-]*\\{[a-zA-Z0-9_]+\\})+[a-zA-Z0-9_.-]*$R\n" +
+	"dynamicKey\x12(\n" +
 	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x12\x1d\n" +
 	"\n" +
-	"value_type\x18\x03 \x01(\tR\tvalueTypeB)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
+	"value_type\x18\x03 \x01(\tR\tvalueType:\x81\x01\xbaH~\x1a|\n" +
+	"\x1dannotation.key_or_dynamic_key\x12-exactly one of key or dynamic_key must be set\x1a,(this.key != '') != (this.dynamic_key != '')B)Z'github.com/malonaz/core/genproto/aip/v1b\x06proto3"
 
 var file_malonaz_aip_v1_annotation_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_malonaz_aip_v1_annotation_proto_goTypes = []any{
