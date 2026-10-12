@@ -296,6 +296,16 @@ func (c *Client) ComputeStats(
 	return c.server.ComputeStats(ctx, request)
 }
 
+// GetDecision provides a client-facing interface for the stateless
+// decision API.
+func (c *Client) GetDecision(
+	ctx context.Context,
+	request *aiservicepb.GetDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.GetDecisionResponse, error) {
+	return c.server.GetDecision(ctx, request)
+}
+
 // TextToText provides a client-facing interface for the legacy stateless
 // text generation API.
 //

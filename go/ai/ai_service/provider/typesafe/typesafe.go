@@ -1,0 +1,41 @@
+// Package typesafe implements a DecisionClient against TypeSafe's Jev
+// model: https://docs.typesafe.ai.
+package typesafe
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/malonaz/core/go/ai/ai_service/provider"
+)
+
+const baseURL = "https://api.typesafe.ai/v1/systemone"
+
+// Client implements provider.DecisionClient against the TypeSafe API.
+type Client struct {
+	apiKey       string
+	httpClient   *http.Client
+	modelService *provider.ModelService
+}
+
+// NewClient creates a new Jev client.
+func NewClient(apiKey string, modelService *provider.ModelService) *Client {
+	return &Client{
+		apiKey:       apiKey,
+		httpClient:   &http.Client{Timeout: 60 * time.Second},
+		modelService: modelService,
+	}
+}
+
+// ProviderId implements the provider.Provider interface.
+func (c *Client) ProviderId() string { return provider.TypeSafe }
+
+// Start implements the provider.Provider interface.
+func (c *Client) Start(context.Context) error { return nil }
+
+// Stop implements the provider.Provider interface.
+func (c *Client) Stop() {}
+
+// Verify interface compliance at compile time.
+var _ provider.DecisionClient = (*Client)(nil)
