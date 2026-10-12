@@ -1,0 +1,8 @@
+name: agent-service
+servers:
+  - type: grpc
+    name: agent-service-external
+    services:
+      - service: agent-service
+        proto: //malonaz/agent/agent_service/v1
+        manifest: //go/agent/agent_service:manifest

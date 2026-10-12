@@ -1,0 +1,32 @@
+go_test(
+    name = "sat",
+    srcs = [
+        "agent_test.go",
+        "sat_test.go",
+    ],
+    data = [
+        "//cmd/agent-service",
+        "//cmd/ai-service",
+        "//cmd/postgres-migrator",
+        "//go/agent/migrations",
+        "//go/ai/migrations",
+    ],
+    test_outputs = ["sat.log"],
+    deps = [
+        "//go/ai/ai_service/provider/mock",
+        "//go/binary",
+        "//go/grpc",
+        "//go/grpc/require",
+        "//go/prometheus",
+        "//go/sat",
+        "//go/uuid",
+        "//malonaz/agent/agent_service/v1",
+        "//malonaz/agent/v1",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)
