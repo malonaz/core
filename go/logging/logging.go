@@ -47,7 +47,7 @@ func NewLogger(opts *Opts) (*slog.Logger, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger := slog.New(handler)
+	logger := slog.New(NewContextHandler(handler, extractLogFields))
 	for _, field := range opts.Fields {
 		split := strings.Split(field, ":")
 		if len(split) != 2 {

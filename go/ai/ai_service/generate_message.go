@@ -405,7 +405,7 @@ func (s *Service) markGenerationFailure(
 			UpdateMask: pbfieldmask.FromPaths("status").Proto(),
 		}
 		if _, err := s.UpdateMessage(ctx, updateMessageRequest); err != nil {
-			s.log.Error("marking input message as failed", "message", inputMessage.GetName(), "error", err)
+			s.log.ErrorContext(ctx, "marking input message as failed", "message", inputMessage.GetName(), "error", err)
 		}
 	}
 
@@ -423,7 +423,7 @@ func (s *Service) markGenerationFailure(
 		Message: partialMessage,
 	}
 	if _, err := s.CreateMessage(ctx, createMessageRequest); err != nil {
-		s.log.Error("persisting partial assistant message", "chat", chatRn.String(), "error", err)
+		s.log.ErrorContext(ctx, "persisting partial assistant message", "chat", chatRn.String(), "error", err)
 	}
 }
 
