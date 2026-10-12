@@ -1,0 +1,46 @@
+go_library(
+    name = "eval",
+    srcs = [
+        "eval.go",
+        "judge.go",
+        "record.go",
+        "transcript.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai",
+        "//go/aip",
+        "//go/grpc/status",
+        "//go/pbutil",
+        "//go/pbutil/pbfieldmask",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/eval/v1",
+        "//malonaz/ai/v1",
+        "//malonaz/json/v1",
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["eval_test.go"],
+    deps = [
+        ":eval",
+        "//go/ai",
+        "//go/grpc/require",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/eval/v1",
+        "//malonaz/ai/v1",
+        "//malonaz/test/eval/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+    ],
+)
