@@ -12,6 +12,7 @@ import (
 	codegenaippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
@@ -188,10 +189,10 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 	reader := exp.readerGoName()
 	serviceServer := mc.si.service.GoName + "Server"
 	parentIDNames := mc.parentIDNames()
-	resourceVar := xstrings.ToCamelCase(mc.resourceGoName)
-	pluralVar := xstrings.ToCamelCase(pr.PluralGoName())
+	resourceVar := goident.Var(mc.resourceGoName)
+	pluralVar := goident.Var(pr.PluralGoName())
 	dbPlural := "db" + pr.PluralGoName()
-	parserVar := xstrings.ToCamelCase(method.Input.GoIdent.GoName) + "FilteringParser"
+	parserVar := goident.Var(method.Input.GoIdent.GoName) + "FilteringParser"
 
 	if exp.filter != nil {
 		g.P(fmt.Sprintf("var %s = %s[*%s, *%s](%s())", parserVar,
@@ -300,7 +301,7 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 			continue
 		}
 		// NULL never compares: key the row on the COALESCE the keyset compares.
-		keyVar := xstrings.ToCamelCase(binding.Variable) + "Key"
+		keyVar := goident.Var(binding.Variable) + "Key"
 		g.P(fmt.Sprintf("  %s := \"\"", keyVar))
 		g.P(fmt.Sprintf("  if last.%s != nil {", binding.GoFieldName()))
 		g.P(fmt.Sprintf("    %s = *last.%s", keyVar, binding.GoFieldName()))

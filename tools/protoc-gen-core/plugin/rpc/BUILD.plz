@@ -30,6 +30,7 @@ go_library(
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__longrunning__operations",
         "//third_party/proto:validate",
+        "//tools/protoc-gen-core/goident",
         "//tools/protoc-gen-core/plugin",
         "//tools/protoc-gen-core/plugin/nats",
         "//tools/protoc-gen-core/resource",

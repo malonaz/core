@@ -11,6 +11,7 @@ import (
 	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
@@ -256,7 +257,7 @@ func (gen *generator) resourcePkgIdent(msg *protogen.Message, name string) strin
 func (gen *generator) generateServiceLevel(si *serviceInfo) {
 	g := gen.g
 	svcName := si.service.GoName
-	svcNameUntitled := xstrings.ToCamelCase(svcName)
+	svcNameUntitled := goident.Var(svcName)
 
 	// Combined store interface.
 	g.P(fmt.Sprintf("type %sStore interface {", svcNameUntitled))
@@ -345,7 +346,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	g := gen.g
 	pr := mc.pr
 	svcName := xstrings.ToPascalCase(si.service.GoName)
-	svcNameUntitled := xstrings.ToCamelCase(si.service.GoName)
+	svcNameUntitled := goident.Var(si.service.GoName)
 	resourceGoName := pr.SingularGoName()
 	storeIface := fmt.Sprintf("%s_%sStore", svcNameUntitled, resourceGoName)
 	serverNameUntitled := fmt.Sprintf("%s_%sServer", svcNameUntitled, resourceGoName)
@@ -364,9 +365,9 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	// its parent's BatchInsert and has no insert of its own.
 	if !mc.singleton {
 		insertSig := fmt.Sprintf("  BatchInsert%s(ctx %s, requestIDs []string, %s []*%s",
-			pr.PluralGoName(), gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(pr.PluralGoName()), goTypeQgi)
+			pr.PluralGoName(), gen.ident(contextPkg, "Context"), goident.Var(pr.PluralGoName()), goTypeQgi)
 		for _, child := range mc.singletonChildren {
-			insertSig += fmt.Sprintf(", %s []*%s", xstrings.ToCamelCase(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
+			insertSig += fmt.Sprintf(", %s []*%s", goident.Var(child.Resource.PluralGoName()), gen.modelIdent(child.Message.GoIdent.GoName))
 		}
 		insertSig += fmt.Sprintf(") ([]*%s, error)", goTypeQgi)
 		g.P(insertSig)
@@ -374,7 +375,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// Update
 	updateSig := fmt.Sprintf("  Update%s(ctx %s, %s *%s, updateClause string, columns []string",
-		resourceGoName, gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(resourceGoName), goTypeQgi)
+		resourceGoName, gen.ident(contextPkg, "Context"), goident.Var(resourceGoName), goTypeQgi)
 	if mc.hasEtag {
 		updateSig += ", etag string"
 	}
@@ -670,7 +671,7 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	pr := mi.rpc.ParsedResource
 	resourceGoName := pr.SingularGoName()
 	goType := mi.rpc.Message.GoIdent.GoName
-	svcNameUntitled := xstrings.ToCamelCase(si.service.GoName)
+	svcNameUntitled := goident.Var(si.service.GoName)
 
 	multiPattern := len(pr.Patterns) > 1
 	var pattern *resource.ParsedPattern
@@ -763,7 +764,7 @@ func (mc *methodCtx) forceParam() string {
 func (mc *methodCtx) varNames() []string {
 	names := make([]string, len(mc.unionVars))
 	for i, unionVariable := range mc.unionVars {
-		names[i] = xstrings.ToCamelCase(unionVariable.Name)
+		names[i] = goident.Var(unionVariable.Name)
 	}
 	return names
 }
@@ -810,7 +811,7 @@ func (mc *methodCtx) sharedVariableSet() map[string]bool {
 func (mc *methodCtx) patternIDArgs(pattern *resource.ParsedPattern) string {
 	names := make([]string, len(pattern.Variables))
 	for i, variable := range pattern.Variables {
-		names[i] = xstrings.ToCamelCase(variable) + "Id"
+		names[i] = goident.Var(variable) + "Id"
 	}
 	return strings.Join(names, ", ")
 }

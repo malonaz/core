@@ -12,6 +12,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 const (
@@ -502,4 +504,4 @@ func addrList(variables []string) string {
 }
 
 func fieldName(variable string) string { return xstrings.ToPascalCase(variable) }
-func paramName(variable string) string { return xstrings.ToCamelCase(variable) }
+func paramName(variable string) string { return goident.Var(variable) }

@@ -7,6 +7,8 @@ import (
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 var (
@@ -27,7 +29,7 @@ func StreamGoName(streamFQN string) string {
 
 // GenerateStreamSingleton emits a lazily-initialized singleton accessor wrapping a NATS stream.
 func GenerateStreamSingleton(g *protogen.GeneratedFile, streamFQN, streamGoName string) {
-	varName := xstrings.ToCamelCase(streamGoName)
+	varName := goident.Var(streamGoName)
 	ident := func(path protogen.GoImportPath, name string) string {
 		return g.QualifiedGoIdent(protogen.GoIdent{GoName: name, GoImportPath: path})
 	}

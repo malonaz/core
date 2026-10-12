@@ -7,6 +7,7 @@ import (
 	"github.com/huandu/xstrings"
 
 	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 // prepareGoName returns the name of the per-resource helper that resolves a
@@ -18,9 +19,9 @@ func (mc *methodCtx) prepareGoName() string {
 // createModelVars returns the Go variables holding a prepared resource's
 // models: the resource's, then one per singleton child.
 func (mc *methodCtx) createModelVars() []string {
-	models := []string{xstrings.ToCamelCase(mc.modelGoName)}
+	models := []string{goident.Var(mc.modelGoName)}
 	for _, child := range mc.singletonChildren {
-		models = append(models, xstrings.ToCamelCase(child.Resource.SingularGoName())+"Model")
+		models = append(models, goident.Var(child.Resource.SingularGoName())+"Model")
 	}
 	return models
 }
@@ -136,7 +137,7 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 	// STEP 3: Convert to model.
 	g.P("  // STEP 3: Convert the resource to the database representation.")
 	g.P(fmt.Sprintf("  %s, err := %s(request.%s)",
-		xstrings.ToCamelCase(mc.modelGoName), mc.parseFromPb, resourceGoName))
+		goident.Var(mc.modelGoName), mc.parseFromPb, resourceGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    %s%s(%s, \"converting %s from pb to model: %%v\", err).Err()",
 		errReturn, mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
@@ -145,7 +146,7 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 
 	// Singleton children are created alongside their parent.
 	for _, child := range mc.singletonChildren {
-		childVar := xstrings.ToCamelCase(child.Resource.SingularGoName())
+		childVar := goident.Var(child.Resource.SingularGoName())
 
 		g.P(fmt.Sprintf("  %s := &%s{", childVar, mc.gen.qgi(child.Message.GoIdent)))
 		g.P(fmt.Sprintf("    Name: %s(\"%s\", %s),",
@@ -207,7 +208,7 @@ func (mc *methodCtx) generateCreate() error {
 	method := mc.mi.method
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	resourceVar := xstrings.ToCamelCase(resourceGoName)
+	resourceVar := goident.Var(resourceGoName)
 
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))

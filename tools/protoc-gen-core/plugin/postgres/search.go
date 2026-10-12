@@ -6,6 +6,7 @@ import (
 
 	"github.com/huandu/xstrings"
 
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
@@ -55,7 +56,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	if len(mc.parentBindings) > 0 {
 		names := make([]string, len(mc.parentBindings))
 		for i, binding := range mc.parentBindings {
-			names[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Id"
+			names[i] = untitle(goident.Var(binding.Variable)) + "Id"
 		}
 		parentParam = strings.Join(names, ", ") + " string, "
 	}
@@ -82,7 +83,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 
 	if len(mc.parentBindings) > 0 {
 		for _, binding := range mc.parentBindings {
-			paramName := untitle(xstrings.ToCamelCase(binding.Variable))
+			paramName := untitle(goident.Var(binding.Variable))
 			if binding.Shared {
 				g.P(fmt.Sprintf("  if %sId != \"-\" && %sId != \"\" {", paramName, paramName))
 				g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s = $%%d\", len(params) + 1))",

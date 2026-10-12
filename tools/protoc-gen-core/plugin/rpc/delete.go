@@ -5,6 +5,8 @@ import (
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 func (mc *methodCtx) generateDelete() error {
@@ -104,16 +106,16 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g.P(fmt.Sprintf("        get%sRequest := &%s{ Name: request.Name }",
 		resourceGoName, mc.gen.fileIdent("Get"+resourceGoName+"Request")))
 	g.P(fmt.Sprintf("        %s, err := s.Get%s(ctx, get%sRequest)",
-		xstrings.ToCamelCase(resourceGoName), resourceGoName, resourceGoName))
+		goident.Var(resourceGoName), resourceGoName, resourceGoName))
 	g.P("        if err != nil {")
 	g.P("          return nil, err")
 	g.P("        }")
 	if hasDeletedEvents {
-		g.P(fmt.Sprintf("        if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
+		g.P(fmt.Sprintf("        if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", goident.Var(resourceGoName)))
 		g.P("          return nil, err")
 		g.P("        }")
 	}
-	g.P(fmt.Sprintf("        return %s, nil", xstrings.ToCamelCase(resourceGoName)))
+	g.P(fmt.Sprintf("        return %s, nil", goident.Var(resourceGoName)))
 	g.P("      }")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s already deleted\").Err()",
 		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
@@ -125,7 +127,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 
 	// STEP 3: Convert to protobuf.
 	g.P("  // STEP 3: Convert to protobuf and return.")
-	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", xstrings.ToCamelCase(resourceGoName), mc.modelGoName))
+	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
@@ -134,13 +136,13 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 
 	if hasDeletedEvents {
 		g.P("  // STEP 4: Publish event.")
-		g.P(fmt.Sprintf("  if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
+		g.P(fmt.Sprintf("  if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", goident.Var(resourceGoName)))
 		g.P("    return nil, err")
 		g.P("  }")
 		g.P()
 	}
 
-	g.P(fmt.Sprintf("  return %s, nil", xstrings.ToCamelCase(resourceGoName)))
+	g.P(fmt.Sprintf("  return %s, nil", goident.Var(resourceGoName)))
 }
 
 func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
@@ -187,12 +189,12 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 
 	if hasDeletedEvents {
 		g.P("  // STEP 5: Publish event.")
-		g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", xstrings.ToCamelCase(resourceGoName), mc.modelGoName))
+		g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 		g.P("  if err != nil {")
 		g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 		g.P("  }")
-		g.P(fmt.Sprintf("  if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
+		g.P(fmt.Sprintf("  if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", goident.Var(resourceGoName)))
 		g.P("    return nil, err")
 		g.P("  }")
 		g.P()
@@ -225,14 +227,14 @@ func (mc *methodCtx) generateDeletedEventPublisher() {
 	resourceGoName := mc.resourceGoName
 
 	g.P(fmt.Sprintf("func (s *%s) publishResourceDeletedEvent(ctx %s, %s *%s) error {",
-		mc.serverGoName, mc.gen.ident(contextPkg, "Context"), xstrings.ToCamelCase(resourceGoName), mc.protoType()))
+		mc.serverGoName, mc.gen.ident(contextPkg, "Context"), goident.Var(resourceGoName), mc.protoType()))
 	for _, eventOpt := range mc.mi.natsEventOpts.GetDeleted() {
 		subject := eventOpt.GetSubject()
 		g.P("  {")
 		g.P(fmt.Sprintf("    subject := %s().Get%sSubject()",
 			mc.gen.resourcePkgIdent(mc.mi.rpc.Message, "Get"+mc.natsStreamGoName),
 			xstrings.ToPascalCase(subject)))
-		g.P(fmt.Sprintf("    if err := subject.Publish(ctx, s.natsClient, %s); err != nil {", xstrings.ToCamelCase(resourceGoName)))
+		g.P(fmt.Sprintf("    if err := subject.Publish(ctx, s.natsClient, %s); err != nil {", goident.Var(resourceGoName)))
 		g.P(fmt.Sprintf("      return %s(%s, \"publishing %s event: %%v\", err).Err()",
 			mc.statusErrorf(), mc.codes("Internal"), subject))
 		g.P("    }")
