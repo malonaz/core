@@ -33,6 +33,29 @@ if err != nil {
   that cannot be packed (invalid UTF-8 in a string field) fails the call with
   `INVALID_ARGUMENT` — the same error, not a second one to handle.
 
+## Retries
+
+A failed attempt is retried when its code is in the policy's `retryable_codes`
+(default: UNAVAILABLE, INTERNAL, UNKNOWN, DEADLINE_EXCEEDED,
+RESOURCE_EXHAUSTED, ABORTED — so an etag conflict retries) and attempts remain
+under `max_attempts`, after `initial × multiplier^(failed attempts − 1)` capped
+at `max`. The backoff, in precedence order:
+
+1. A `google.rpc.RetryInfo` on the error: that attempt's delay only.
+2. The method policy's `retry_backoff`: replaces the default whole (`initial`
+   and `max` are required).
+3. The default, for a policy declaring none:
+   `--scheduler-{dispatcher,service}.default-retry-backoff.{initial,max,multiplier}`
+   (10s / 10m / 2). The dispatcher's fills the queues it converges, the
+   service's a policy created or patched through the API; they must match, like
+   `lease-duration`.
+
+The default is written into the stored queue (`NormalizePolicy`), not read at
+retry time: a flag change lands when a dispatcher next converges the queues.
+A sat whose concurrent writes race on etags shortens it (onikisu's Stripe sat:
+1s); not below what the race needs within `max_attempts`, or the third abort
+fails the job.
+
 ## Options
 
 | Option | Field | Semantics |

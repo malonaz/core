@@ -111,6 +111,14 @@ connection, i.e. the Operations of the server serving that service — and calls
 `WaitOperation` (capped by `--scheduler-service.wait-job-max-timeout`, 5m) or
 polls `GetOperation`. The response is an `Any` of the method's `response_type`.
 
+An operation's latency floor is two polls, not the work: the dispatcher claims
+the job on its next scan (`--scheduler-dispatcher.poll-interval`, 1s) and
+`WaitJob` sees it terminal on its next re-read of the row
+(`--scheduler-service.wait-job-poll-interval`, 250ms) — terminal transitions
+are written by workers on any instance, so there is nothing to subscribe to.
+A sat that waits on operations one at a time shortens both: onikisu's Stripe
+sat runs 50ms / 20ms, which took a serial step from ~1s to ~50ms.
+
 ## Traps
 
 - A binary reads all its operations through one scheduler client: hosting two
