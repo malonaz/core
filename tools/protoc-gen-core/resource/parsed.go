@@ -10,8 +10,6 @@ import (
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/internal/strs"
-
-	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 // ParsedPattern is one resource name pattern of a resource, with its variables
@@ -52,7 +50,7 @@ func (p *ParsedPattern) VariableIDs(goStyle bool) string {
 	for _, v := range p.Variables {
 		val := v + "_id"
 		if goStyle {
-			val = goident.Var(val)
+			val = xstrings.ToCamelCase(val)
 		}
 		vals = append(vals, val)
 	}
@@ -63,7 +61,7 @@ func (p *ParsedPattern) VariableIDs(goStyle bool) string {
 func (p *ParsedPattern) VariableIDPtrs() string {
 	vals := make([]string, 0, len(p.Variables))
 	for _, v := range p.Variables {
-		vals = append(vals, "&"+goident.Var(v+"_id"))
+		vals = append(vals, "&"+xstrings.ToCamelCase(v+"_id"))
 	}
 	return strings.Join(vals, ", ")
 }

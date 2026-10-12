@@ -12,7 +12,6 @@ import (
 
 	natspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
-	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
@@ -159,7 +158,7 @@ func collectEventTypes(eventOpts *natspb.EventOptions) []eventTypeEntry {
 func generateSubjectStruct(gen *generator, message *protogen.Message, patterns []*resource.ParsedPattern, eventOpts *natspb.EventOptions, streamGoName, eventType string, methodOpt *natspb.EventMethodOptions) error {
 	g := gen.g
 	structName := message.GoIdent.GoName + xstrings.ToPascalCase(methodOpt.GetSubject()) + "Subject"
-	celProgramVar := goident.Var(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
+	celProgramVar := xstrings.ToCamelCase(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
 	resourceSegments := eventOpts.GetResourceSegments()
 	subjectFields := methodOpt.GetSubjectFields()
 	protoType := gen.g.QualifiedGoIdent(message.GoIdent)
@@ -174,14 +173,14 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	g.P("type ", structName, " struct {")
 	g.P("  stream *", streamGoName)
 	for _, seg := range resourceSegments {
-		g.P("  _", goident.Var(seg), " *string")
+		g.P("  _", xstrings.ToCamelCase(seg), " *string")
 	}
 	for _, sf := range subjectFields {
 		field := fieldByTextName(message, sf)
 		if field.Enum != nil {
-			g.P("  _", goident.Var(field.GoName), " *", gen.g.QualifiedGoIdent(field.Enum.GoIdent))
+			g.P("  _", xstrings.ToCamelCase(field.GoName), " *", gen.g.QualifiedGoIdent(field.Enum.GoIdent))
 		} else {
-			g.P("  _", goident.Var(field.GoName), " *string")
+			g.P("  _", xstrings.ToCamelCase(field.GoName), " *string")
 		}
 	}
 	g.P("}")
@@ -189,7 +188,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 
 	// With* methods for resource segments.
 	for _, seg := range resourceSegments {
-		goField := goident.Var(seg)
+		goField := xstrings.ToCamelCase(seg)
 		g.P("func (s *", structName, ") With", xstrings.ToPascalCase(seg), "(v string) *", structName, " {")
 		g.P("  s._", goField, " = &v")
 		g.P("  return s")
@@ -203,12 +202,12 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 		if field.Enum != nil {
 			enumType := gen.g.QualifiedGoIdent(field.Enum.GoIdent)
 			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v ", enumType, ") *", structName, " {")
-			g.P("  s._", goident.Var(field.GoName), " = &v")
+			g.P("  s._", xstrings.ToCamelCase(field.GoName), " = &v")
 			g.P("  return s")
 			g.P("}")
 		} else {
 			g.P("func (s *", structName, ") With", xstrings.ToPascalCase(sf), "(v string) *", structName, " {")
-			g.P("  s._", goident.Var(field.GoName), " = &v")
+			g.P("  s._", xstrings.ToCamelCase(field.GoName), " = &v")
 			g.P("  return s")
 			g.P("}")
 		}
@@ -288,7 +287,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 		pattern := patterns[0]
 		varDecls := make([]string, 0, len(pattern.Variables))
 		for _, pv := range pattern.Variables {
-			varDecls = append(varDecls, goident.Var(pv)+"ID")
+			varDecls = append(varDecls, xstrings.ToCamelCase(pv)+"ID")
 		}
 		g.P("  var ", strings.Join(varDecls, ", "), " string")
 		addrArgs := ""
@@ -299,7 +298,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 		g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"parsing resource name: %v\", err)")
 		g.P("  }")
 		for _, seg := range resourceSegments {
-			g.P("  s.With", xstrings.ToPascalCase(seg), "(", goident.Var(seg), "ID)")
+			g.P("  s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID)")
 		}
 	} else if len(resourceSegments) > 0 {
 		// Try each pattern in turn: resource_segments are shared variables, so
@@ -308,7 +307,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 		for i, pattern := range patterns {
 			varDecls := make([]string, 0, len(pattern.Variables))
 			for _, pv := range pattern.Variables {
-				varDecls = append(varDecls, goident.Var(pv)+"ID"+strconv.Itoa(i))
+				varDecls = append(varDecls, xstrings.ToCamelCase(pv)+"ID"+strconv.Itoa(i))
 			}
 			g.P("  {")
 			g.P("    var ", strings.Join(varDecls, ", "), " string")
@@ -319,7 +318,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 			g.P("    if !matched {")
 			g.P("      if err := ", gen.ident(resnPkg, "Sscan"), "(resource.GetName(), \"", pattern.Value, "\"", addrArgs, "); err == nil {")
 			for _, seg := range resourceSegments {
-				g.P("        s.With", xstrings.ToPascalCase(seg), "(", goident.Var(seg), "ID", strconv.Itoa(i), ")")
+				g.P("        s.With", xstrings.ToPascalCase(seg), "(", xstrings.ToCamelCase(seg), "ID", strconv.Itoa(i), ")")
 			}
 			g.P("        matched = true")
 			g.P("      }")
@@ -341,7 +340,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	// Get method — validates set fields are non-empty, uses "*" for unset fields.
 	g.P("func (s *", structName, ") Get() (*", gen.ident(natsCPkg, "Subject"), ", error) {")
 	for _, seg := range resourceSegments {
-		goField := goident.Var(seg)
+		goField := xstrings.ToCamelCase(seg)
 		g.P("  if s._", goField, " != nil && *s._", goField, " == \"\" {")
 		g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", seg, " must not be empty\")")
 		g.P("  }")
@@ -349,7 +348,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 
 	for _, sf := range subjectFields {
 		field := fieldByTextName(message, sf)
-		goField := goident.Var(field.GoName)
+		goField := xstrings.ToCamelCase(field.GoName)
 		if field.Enum != nil {
 			g.P("  if s._", goField, " != nil && *s._", goField, " == 0 {")
 			g.P("    return nil, ", gen.ident(fmtPkg, "Errorf"), "(\"", sf, " must not be unspecified\")")
@@ -362,7 +361,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	}
 	g.P("  tokens := []string{")
 	for _, seg := range resourceSegments {
-		goField := goident.Var(seg)
+		goField := xstrings.ToCamelCase(seg)
 		g.P("    func() string {")
 		g.P("      if s._", goField, " != nil {")
 		g.P("        return *s._", goField)
@@ -373,7 +372,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	g.P("    \"", strings.ToLower(methodOpt.GetSubject()), "\",")
 	for _, sf := range subjectFields {
 		field := fieldByTextName(message, sf)
-		goField := goident.Var(field.GoName)
+		goField := xstrings.ToCamelCase(field.GoName)
 		g.P("    func() string {")
 		g.P("      if s._", goField, " != nil {")
 		if field.Enum != nil {
@@ -412,7 +411,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 
 func generateCELProgram(gen *generator, message *protogen.Message, eventType string, methodOpt *natspb.EventMethodOptions) {
 	g := gen.g
-	varName := goident.Var(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
+	varName := xstrings.ToCamelCase(message.GoIdent.GoName+xstrings.ToPascalCase(methodOpt.GetSubject())) + "CELProgram"
 	protoType := gen.g.QualifiedGoIdent(message.GoIdent)
 
 	g.P("var (")

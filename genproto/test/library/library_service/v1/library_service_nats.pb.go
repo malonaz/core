@@ -51,3 +51,25 @@ func GetLibraryServiceShelfStream() *LibraryServiceShelfStream {
 func (s *LibraryServiceShelfStream) Get() *nats.Stream {
 	return s.stream
 }
+
+var (
+	libraryServiceCaseStreamOnce sync.Once
+	libraryServiceCaseStreamVal  *LibraryServiceCaseStream
+)
+
+type LibraryServiceCaseStream struct {
+	stream *nats.Stream
+}
+
+func GetLibraryServiceCaseStream() *LibraryServiceCaseStream {
+	libraryServiceCaseStreamOnce.Do(func() {
+		libraryServiceCaseStreamVal = &LibraryServiceCaseStream{
+			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.case"}),
+		}
+	})
+	return libraryServiceCaseStreamVal
+}
+
+func (s *LibraryServiceCaseStream) Get() *nats.Stream {
+	return s.stream
+}

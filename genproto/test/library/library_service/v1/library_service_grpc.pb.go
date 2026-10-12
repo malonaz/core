@@ -65,6 +65,14 @@ const (
 	LibraryService_ListNotes_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListNotes"
 	LibraryService_BatchCreateNotes_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateNotes"
 	LibraryService_BatchGetNotes_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes"
+	LibraryService_CreateCase_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/CreateCase"
+	LibraryService_GetCase_FullMethodName                = "/malonaz.test.library.library_service.v1.LibraryService/GetCase"
+	LibraryService_UpdateCase_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/UpdateCase"
+	LibraryService_DeleteCase_FullMethodName             = "/malonaz.test.library.library_service.v1.LibraryService/DeleteCase"
+	LibraryService_UndeleteCase_FullMethodName           = "/malonaz.test.library.library_service.v1.LibraryService/UndeleteCase"
+	LibraryService_ListCases_FullMethodName              = "/malonaz.test.library.library_service.v1.LibraryService/ListCases"
+	LibraryService_BatchCreateCases_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/BatchCreateCases"
+	LibraryService_BatchGetCases_FullMethodName          = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetCases"
 )
 
 // LibraryServiceClient is the client API for LibraryService service.
@@ -196,6 +204,28 @@ type LibraryServiceClient interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(ctx context.Context, in *BatchGetNotesRequest, opts ...grpc.CallOption) (*BatchGetNotesResponse, error)
+	// Creates a case.
+	CreateCase(ctx context.Context, in *CreateCaseRequest, opts ...grpc.CallOption) (*v1.Case, error)
+	// Gets a case.
+	GetCase(ctx context.Context, in *GetCaseRequest, opts ...grpc.CallOption) (*v1.Case, error)
+	// Updates a case.
+	UpdateCase(ctx context.Context, in *UpdateCaseRequest, opts ...grpc.CallOption) (*v1.Case, error)
+	// Deletes a case.
+	DeleteCase(ctx context.Context, in *DeleteCaseRequest, opts ...grpc.CallOption) (*v1.Case, error)
+	// Undeletes a case.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteCase(ctx context.Context, in *UndeleteCaseRequest, opts ...grpc.CallOption) (*v1.Case, error)
+	// Lists cases.
+	ListCases(ctx context.Context, in *ListCasesRequest, opts ...grpc.CallOption) (*ListCasesResponse, error)
+	// Creates multiple cases in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateCases(ctx context.Context, in *BatchCreateCasesRequest, opts ...grpc.CallOption) (*BatchCreateCasesResponse, error)
+	// Gets multiple cases in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetCases(ctx context.Context, in *BatchGetCasesRequest, opts ...grpc.CallOption) (*BatchGetCasesResponse, error)
 }
 
 type libraryServiceClient struct {
@@ -636,6 +666,86 @@ func (c *libraryServiceClient) BatchGetNotes(ctx context.Context, in *BatchGetNo
 	return out, nil
 }
 
+func (c *libraryServiceClient) CreateCase(ctx context.Context, in *CreateCaseRequest, opts ...grpc.CallOption) (*v1.Case, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Case)
+	err := c.cc.Invoke(ctx, LibraryService_CreateCase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) GetCase(ctx context.Context, in *GetCaseRequest, opts ...grpc.CallOption) (*v1.Case, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Case)
+	err := c.cc.Invoke(ctx, LibraryService_GetCase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UpdateCase(ctx context.Context, in *UpdateCaseRequest, opts ...grpc.CallOption) (*v1.Case, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Case)
+	err := c.cc.Invoke(ctx, LibraryService_UpdateCase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) DeleteCase(ctx context.Context, in *DeleteCaseRequest, opts ...grpc.CallOption) (*v1.Case, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Case)
+	err := c.cc.Invoke(ctx, LibraryService_DeleteCase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UndeleteCase(ctx context.Context, in *UndeleteCaseRequest, opts ...grpc.CallOption) (*v1.Case, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Case)
+	err := c.cc.Invoke(ctx, LibraryService_UndeleteCase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) ListCases(ctx context.Context, in *ListCasesRequest, opts ...grpc.CallOption) (*ListCasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCasesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_ListCases_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchCreateCases(ctx context.Context, in *BatchCreateCasesRequest, opts ...grpc.CallOption) (*BatchCreateCasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCreateCasesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchCreateCases_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetCases(ctx context.Context, in *BatchGetCasesRequest, opts ...grpc.CallOption) (*BatchGetCasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetCasesResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchGetCases_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LibraryServiceServer is the server API for LibraryService service.
 // All implementations should embed UnimplementedLibraryServiceServer
 // for forward compatibility.
@@ -765,6 +875,28 @@ type LibraryServiceServer interface {
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
 	BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error)
+	// Creates a case.
+	CreateCase(context.Context, *CreateCaseRequest) (*v1.Case, error)
+	// Gets a case.
+	GetCase(context.Context, *GetCaseRequest) (*v1.Case, error)
+	// Updates a case.
+	UpdateCase(context.Context, *UpdateCaseRequest) (*v1.Case, error)
+	// Deletes a case.
+	DeleteCase(context.Context, *DeleteCaseRequest) (*v1.Case, error)
+	// Undeletes a case.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteCase(context.Context, *UndeleteCaseRequest) (*v1.Case, error)
+	// Lists cases.
+	ListCases(context.Context, *ListCasesRequest) (*ListCasesResponse, error)
+	// Creates multiple cases in a single atomic request.
+	//
+	// See: https://google.aip.dev/233 (Batch methods: Create).
+	BatchCreateCases(context.Context, *BatchCreateCasesRequest) (*BatchCreateCasesResponse, error)
+	// Gets multiple cases in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetCases(context.Context, *BatchGetCasesRequest) (*BatchGetCasesResponse, error)
 }
 
 // UnimplementedLibraryServiceServer should be embedded to have
@@ -902,6 +1034,30 @@ func (UnimplementedLibraryServiceServer) BatchCreateNotes(context.Context, *Batc
 }
 func (UnimplementedLibraryServiceServer) BatchGetNotes(context.Context, *BatchGetNotesRequest) (*BatchGetNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetNotes not implemented")
+}
+func (UnimplementedLibraryServiceServer) CreateCase(context.Context, *CreateCaseRequest) (*v1.Case, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCase not implemented")
+}
+func (UnimplementedLibraryServiceServer) GetCase(context.Context, *GetCaseRequest) (*v1.Case, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCase not implemented")
+}
+func (UnimplementedLibraryServiceServer) UpdateCase(context.Context, *UpdateCaseRequest) (*v1.Case, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCase not implemented")
+}
+func (UnimplementedLibraryServiceServer) DeleteCase(context.Context, *DeleteCaseRequest) (*v1.Case, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteCase not implemented")
+}
+func (UnimplementedLibraryServiceServer) UndeleteCase(context.Context, *UndeleteCaseRequest) (*v1.Case, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteCase not implemented")
+}
+func (UnimplementedLibraryServiceServer) ListCases(context.Context, *ListCasesRequest) (*ListCasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCases not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchCreateCases(context.Context, *BatchCreateCasesRequest) (*BatchCreateCasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCreateCases not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetCases(context.Context, *BatchGetCasesRequest) (*BatchGetCasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetCases not implemented")
 }
 func (UnimplementedLibraryServiceServer) testEmbeddedByValue() {}
 
@@ -1697,6 +1853,150 @@ func _LibraryService_BatchGetNotes_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibraryService_CreateCase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).CreateCase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_CreateCase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).CreateCase(ctx, req.(*CreateCaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_GetCase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).GetCase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_GetCase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).GetCase(ctx, req.(*GetCaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UpdateCase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UpdateCase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UpdateCase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UpdateCase(ctx, req.(*UpdateCaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_DeleteCase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).DeleteCase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_DeleteCase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).DeleteCase(ctx, req.(*DeleteCaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UndeleteCase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteCaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UndeleteCase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UndeleteCase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UndeleteCase(ctx, req.(*UndeleteCaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_ListCases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).ListCases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_ListCases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).ListCases(ctx, req.(*ListCasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchCreateCases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateCasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchCreateCases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchCreateCases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchCreateCases(ctx, req.(*BatchCreateCasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetCases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetCasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetCases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchGetCases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetCases(ctx, req.(*BatchGetCasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibraryService_ServiceDesc is the grpc.ServiceDesc for LibraryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1875,6 +2175,38 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetNotes",
 			Handler:    _LibraryService_BatchGetNotes_Handler,
+		},
+		{
+			MethodName: "CreateCase",
+			Handler:    _LibraryService_CreateCase_Handler,
+		},
+		{
+			MethodName: "GetCase",
+			Handler:    _LibraryService_GetCase_Handler,
+		},
+		{
+			MethodName: "UpdateCase",
+			Handler:    _LibraryService_UpdateCase_Handler,
+		},
+		{
+			MethodName: "DeleteCase",
+			Handler:    _LibraryService_DeleteCase_Handler,
+		},
+		{
+			MethodName: "UndeleteCase",
+			Handler:    _LibraryService_UndeleteCase_Handler,
+		},
+		{
+			MethodName: "ListCases",
+			Handler:    _LibraryService_ListCases_Handler,
+		},
+		{
+			MethodName: "BatchCreateCases",
+			Handler:    _LibraryService_BatchCreateCases_Handler,
+		},
+		{
+			MethodName: "BatchGetCases",
+			Handler:    _LibraryService_BatchGetCases_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

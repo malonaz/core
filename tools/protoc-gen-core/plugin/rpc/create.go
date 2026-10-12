@@ -21,7 +21,7 @@ func (mc *methodCtx) prepareGoName() string {
 func (mc *methodCtx) createModelVars() []string {
 	models := []string{goident.Var(mc.modelGoName)}
 	for _, child := range mc.singletonChildren {
-		models = append(models, goident.Var(child.Resource.SingularGoName())+"Model")
+		models = append(models, xstrings.ToCamelCase(child.Resource.SingularGoName())+"Model")
 	}
 	return models
 }

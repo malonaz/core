@@ -43,6 +43,7 @@ type libraryServiceStore interface {
 	libraryService_BookStore
 	libraryService_BookReviewStore
 	libraryService_NoteStore
+	libraryService_CaseStore
 }
 
 type LibraryServiceServer struct {
@@ -55,6 +56,7 @@ type LibraryServiceServer struct {
 	*libraryService_BookServer
 	*libraryService_BookReviewServer
 	*libraryService_NoteServer
+	*libraryService_CaseServer
 }
 
 func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner) *LibraryServiceServer {
@@ -68,6 +70,7 @@ func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client,
 		libraryService_BookServer:          newLibraryService_BookServer(store, natsClient),
 		libraryService_BookReviewServer:    newLibraryService_BookReviewServer(store),
 		libraryService_NoteServer:          newLibraryService_NoteServer(store),
+		libraryService_CaseServer:          newLibraryService_CaseServer(store, natsClient),
 	}
 }
 
@@ -2702,6 +2705,556 @@ func (s *libraryService_NoteServer) BatchGetNotes(ctx context.Context, request *
 
 	return &v12.BatchGetNotesResponse{
 		Notes: notes,
+	}, nil
+}
+
+type libraryService_CaseStore interface {
+	BatchInsertCases(ctx context.Context, requestIDs []string, cases []*model.Case) ([]*model.Case, error)
+	UpdateCase(ctx context.Context, case_ *model.Case, updateClause string, columns []string, etag string) (*model.Case, error)
+	SoftDeleteCase(ctx context.Context, organizationId, caseId string, etag, newEtag string, deleteTime time.Time) (*model.Case, error)
+	UndeleteCase(ctx context.Context, organizationId, caseId string, etag, newEtag string) (*model.Case, error)
+	GetCase(ctx context.Context, organizationId, caseId string) (*model.Case, error)
+	BatchGetCases(ctx context.Context, organizationIds []string, caseIds []string) ([]*model.Case, error)
+	ListCases(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Case, error)
+}
+
+type libraryService_CaseServer struct {
+	store      libraryService_CaseStore
+	natsClient *nats.Client
+}
+
+func newLibraryService_CaseServer(store libraryService_CaseStore, natsClient *nats.Client) *libraryService_CaseServer {
+	return &libraryService_CaseServer{
+		store:      store,
+		natsClient: natsClient,
+	}
+}
+
+func (s *libraryService_CaseServer) prepareCreateCase(ctx context.Context, request *v12.CreateCaseRequest, importing bool) (*model.Case, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	caseId := request.CaseId
+	if caseId == "" {
+		caseId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	request.Case.Name = resourcename.Sprint("organizations/{organization}/cases/{case}", organizationId, caseId)
+
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
+		if request.Case.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else if !importing || request.Case.CreateTime == nil {
+		request.Case.CreateTime = timestamppb.Now()
+	}
+	if !importing || request.Case.UpdateTime == nil {
+		request.Case.UpdateTime = request.Case.CreateTime
+	}
+
+	{ // Capture the Etag.
+		var err error
+		request.Case.Etag, err = aip.ComputeETag(request.Case)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	caseModel, err := model.CaseFromPb(request.Case)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from pb to model: %v", err).Err()
+	}
+
+	return caseModel, nil
+}
+
+func (s *libraryService_CaseServer) CreateCase(ctx context.Context, request *v12.CreateCaseRequest) (*v14.Case, error) {
+	caseModel, err := s.prepareCreateCase(ctx, request, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.ValidateOnly {
+		return request.Case, nil
+	}
+
+	// STEP 4: Insert the resource.
+	dbCases, err := s.store.BatchInsertCases(ctx, []string{request.RequestId}, []*model.Case{caseModel})
+	if err != nil {
+		if errors.Is(err, model.ErrCaseAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "case already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting cases").Err()
+	}
+	if len(dbCases) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted case, got %d", len(dbCases)).Err()
+	}
+
+	case_, err := dbCases[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+	}
+
+	// STEP 5: Publish events.
+	{
+		subject := v14.GetCaseStream().GetCreatedSubject()
+		if err := subject.Publish(ctx, s.natsClient, case_); err != nil {
+			return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
+		}
+	}
+	return case_, nil
+}
+
+func (s *libraryService_CaseServer) GetCase(ctx context.Context, request *v12.GetCaseRequest) (*v14.Case, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, caseId, err := model.ParseCaseName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbCaseModel, err := s.store.GetCase(ctx, organizationId, caseId)
+	if err != nil {
+		if errors.Is(err, model.ErrCaseNotExist) {
+			return nil, status.Errorf(codes.NotFound, "case does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting case").Err()
+	}
+
+	case_, err := dbCaseModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+	}
+	return case_, nil
+}
+
+var updateCaseRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateCaseRequest, *v14.Case]()
+
+func (s *libraryService_CaseServer) UpdateCase(ctx context.Context, request *v12.UpdateCaseRequest) (*v14.Case, error) {
+	for {
+		response, err := s.updateCase(ctx, request)
+		if err != nil {
+			if request.GetCase().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *libraryService_CaseServer) updateCase(ctx context.Context, request *v12.UpdateCaseRequest) (*v14.Case, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Case.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateCaseRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getCaseRequest := &v12.GetCaseRequest{Name: request.Case.Name}
+	existingCase, err := s.GetCase(ctx, getCaseRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Verify that the resource is not soft deleted
+	if existingCase.DeleteTime != nil {
+		return nil, status.Errorf(codes.NotFound, "case does not exist").Err()
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetCase().GetEtag()
+	if etag == "" {
+		etag = existingCase.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedCase := proto.CloneOf(existingCase)
+	parsedRequest.ApplyFieldMask(patchedCase, request.Case)
+	if err := protovalidate.Validate(patchedCase); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedCase.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedCase.Etag, err = aip.ComputeETag(patchedCase)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	caseModel, err := model.CaseFromPb(patchedCase)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from pb to model: %v", err).Err()
+	}
+	dbCaseModel, err := s.store.UpdateCase(ctx, caseModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrCaseNotExist) {
+			return nil, status.Errorf(codes.NotFound, "case does not exist").Err()
+		}
+		if errors.Is(err, model.ErrCaseETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating case").Err()
+	}
+
+	case_, err := dbCaseModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+	}
+
+	// STEP 5: Publish events.
+	{
+		subject := v14.GetCaseStream().GetUpdatedSubject()
+		if err := subject.Publish(ctx, s.natsClient, case_, existingCase, request.GetUpdateMask()); err != nil {
+			return nil, status.Errorf(codes.Internal, "publishing updated event: %v", err).Err()
+		}
+	}
+	return case_, nil
+}
+
+func (s *libraryService_CaseServer) publishResourceDeletedEvent(ctx context.Context, case_ *v14.Case) error {
+	{
+		subject := v14.GetCaseStream().GetDeletedSubject()
+		if err := subject.Publish(ctx, s.natsClient, case_); err != nil {
+			return status.Errorf(codes.Internal, "publishing deleted event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+func (s *libraryService_CaseServer) DeleteCase(ctx context.Context, request *v12.DeleteCaseRequest) (*v14.Case, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, caseId, err := model.ParseCaseName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	deleteTime := time.Now().UTC()
+	// Compute the new Etag.
+	getCaseRequest := &v12.GetCaseRequest{Name: request.Name}
+	existingCase, err := s.GetCase(ctx, getCaseRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingCase.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingCase)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Soft delete the resource.
+	dbCaseModel, err := s.store.SoftDeleteCase(ctx, organizationId, caseId, request.GetEtag(), newEtag, deleteTime)
+	if err != nil {
+		if errors.Is(err, model.ErrCaseNotExist) {
+			return nil, status.Errorf(codes.NotFound, "case does not exist").Err()
+		}
+		if errors.Is(err, model.ErrCaseETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		if errors.Is(err, model.ErrCaseAlreadyDeleted) {
+			if request.AllowMissing {
+				getCaseRequest := &v12.GetCaseRequest{Name: request.Name}
+				case_, err := s.GetCase(ctx, getCaseRequest)
+				if err != nil {
+					return nil, err
+				}
+				if err := s.publishResourceDeletedEvent(ctx, case_); err != nil {
+					return nil, err
+				}
+				return case_, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "case already deleted").Err()
+		}
+		return nil, status.FromError(err, "soft deleting case").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	case_, err := dbCaseModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+	}
+
+	// STEP 4: Publish event.
+	if err := s.publishResourceDeletedEvent(ctx, case_); err != nil {
+		return nil, err
+	}
+
+	return case_, nil
+}
+
+func (s *libraryService_CaseServer) publishResourceUndeletedEvent(ctx context.Context, case_ *v14.Case) error {
+	{
+		subject := v14.GetCaseStream().GetUndeletedSubject()
+		if err := subject.Publish(ctx, s.natsClient, case_); err != nil {
+			return status.Errorf(codes.Internal, "publishing undeleted event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+func (s *libraryService_CaseServer) UndeleteCase(ctx context.Context, request *v12.UndeleteCaseRequest) (*v14.Case, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, caseId, err := model.ParseCaseName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getCaseRequest := &v12.GetCaseRequest{Name: request.Name}
+	existingCase, err := s.GetCase(ctx, getCaseRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingCase.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingCase)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbCaseModel, err := s.store.UndeleteCase(ctx, organizationId, caseId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrCaseNotExist) {
+			return nil, status.Errorf(codes.NotFound, "case does not exist").Err()
+		}
+		if errors.Is(err, model.ErrCaseNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "case is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrCaseETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting case").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	case_, err := dbCaseModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+	}
+
+	// STEP 4: Publish event.
+	if err := s.publishResourceUndeletedEvent(ctx, case_); err != nil {
+		return nil, err
+	}
+
+	return case_, nil
+}
+
+var listCasesRequestParser = aip.MustNewListRequestParser[*v12.ListCasesRequest, *v14.Case](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *libraryService_CaseServer) ListCases(ctx context.Context, request *v12.ListCasesRequest) (*v12.ListCasesResponse, error) {
+	// Parse parent names
+	var organizationId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listCasesRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbCases, err := s.store.ListCases(ctx, organizationId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing cases").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbCases))
+	if nextPageToken != "" {
+		dbCases = dbCases[:len(dbCases)-1]
+	}
+
+	// Convert back to proto.
+	cases := make([]*v14.Case, 0, len(dbCases))
+	for _, dbCase := range dbCases {
+		case_, err := dbCase.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Case to Case: %v", err).Err()
+		}
+		cases = append(cases, case_)
+	}
+
+	// Create and return response.
+	return &v12.ListCasesResponse{
+		Cases:         cases,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *libraryService_CaseServer) BatchCreateCases(ctx context.Context, request *v12.BatchCreateCasesRequest) (*v12.BatchCreateCasesResponse, error) {
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	n := len(request.Requests)
+	requestIDs := make([]string, 0, n)
+	requestIDSet := make(map[string]struct{}, n)
+	caseModels := make([]*model.Case, 0, n)
+	names := make(map[string]struct{}, n)
+	for i, createRequest := range request.Requests {
+		// A sub-request inherits the batch parent; an explicit one must agree.
+		if request.Parent != "" {
+			if createRequest.Parent == "" {
+				createRequest.Parent = request.Parent
+			} else if createRequest.Parent != request.Parent {
+				return nil, status.Errorf(codes.InvalidArgument, "requests[%d].parent %q does not match parent %q", i, createRequest.Parent, request.Parent).Err()
+			}
+		}
+		if createRequest.ValidateOnly {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d].validate_only is not supported", i).Err()
+		}
+		caseModel, err := s.prepareCreateCase(ctx, createRequest, false)
+		if err != nil {
+			return nil, status.FromError(err, "requests[%d]", i).Err()
+		}
+		if _, ok := names[createRequest.Case.Name]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate case name %q", i, createRequest.Case.Name).Err()
+		}
+		names[createRequest.Case.Name] = struct{}{}
+		if _, ok := requestIDSet[createRequest.RequestId]; ok {
+			return nil, status.Errorf(codes.InvalidArgument, "requests[%d]: duplicate request_id %q", i, createRequest.RequestId).Err()
+		}
+		requestIDSet[createRequest.RequestId] = struct{}{}
+		requestIDs = append(requestIDs, createRequest.RequestId)
+		caseModels = append(caseModels, caseModel)
+	}
+
+	// Insert the whole batch atomically.
+	dbCases, err := s.store.BatchInsertCases(ctx, requestIDs, caseModels)
+	if err != nil {
+		if errors.Is(err, model.ErrCaseAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "case already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting cases").Err()
+	}
+	if len(dbCases) != n {
+		return nil, status.Errorf(codes.Internal, "expected %d inserted cases, got %d", n, len(dbCases)).Err()
+	}
+
+	cases := make([]*v14.Case, n)
+	for i, dbCaseModel := range dbCases {
+		case_, err := dbCaseModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+		}
+		cases[i] = case_
+	}
+
+	for _, case_ := range cases {
+		// STEP 5: Publish events.
+		{
+			subject := v14.GetCaseStream().GetCreatedSubject()
+			if err := subject.Publish(ctx, s.natsClient, case_); err != nil {
+				return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
+			}
+		}
+	}
+
+	return &v12.BatchCreateCasesResponse{Cases: cases}, nil
+}
+
+func (s *libraryService_CaseServer) BatchGetCases(ctx context.Context, request *v12.BatchGetCasesRequest) (*v12.BatchGetCasesResponse, error) {
+	var organizationId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	caseIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, caseId, err := model.ParseCaseName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		caseIds[i] = caseId
+	}
+
+	dbCases, err := s.store.BatchGetCases(ctx, organizationIds, caseIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting case").Err()
+	}
+	if len(dbCases) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d cases, found %d", len(request.Names), len(dbCases)).Err()
+	}
+
+	caseNameToCase := make(map[string]*v14.Case, len(request.Names))
+	for _, dbCaseModel := range dbCases {
+		case_, err := dbCaseModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting case from model to pb: %v", err).Err()
+		}
+		caseNameToCase[case_.Name] = case_
+	}
+
+	cases := make([]*v14.Case, 0, len(dbCases))
+	for _, name := range request.Names {
+		case_, ok := caseNameToCase[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		cases = append(cases, case_)
+	}
+
+	return &v12.BatchGetCasesResponse{
+		Cases: cases,
 	}, nil
 }
 

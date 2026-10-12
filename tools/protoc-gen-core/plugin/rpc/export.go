@@ -192,7 +192,7 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 	resourceVar := goident.Var(mc.resourceGoName)
 	pluralVar := goident.Var(pr.PluralGoName())
 	dbPlural := "db" + pr.PluralGoName()
-	parserVar := goident.Var(method.Input.GoIdent.GoName) + "FilteringParser"
+	parserVar := xstrings.ToCamelCase(method.Input.GoIdent.GoName) + "FilteringParser"
 
 	if exp.filter != nil {
 		g.P(fmt.Sprintf("var %s = %s[*%s, *%s](%s())", parserVar,
@@ -301,7 +301,7 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 			continue
 		}
 		// NULL never compares: key the row on the COALESCE the keyset compares.
-		keyVar := goident.Var(binding.Variable) + "Key"
+		keyVar := xstrings.ToCamelCase(binding.Variable) + "Key"
 		g.P(fmt.Sprintf("  %s := \"\"", keyVar))
 		g.P(fmt.Sprintf("  if last.%s != nil {", binding.GoFieldName()))
 		g.P(fmt.Sprintf("    %s = *last.%s", keyVar, binding.GoFieldName()))

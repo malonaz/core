@@ -19,3 +19,5 @@ migrations:
     hash: ef82cb98a51a082cd1847bcb72553530
   - path: library/009_shelf_inventory.sql
     hash: 6fdfcadf2ea51b705703bfb8f98d8913
+  - path: library/010_case.sql
+    hash: 5fe7d400804887bd44f29cb640b1a1e2

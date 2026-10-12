@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/malonaz/core/tools/protoc-gen-core/goident"
+	"github.com/huandu/xstrings"
+
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
@@ -19,16 +20,16 @@ func (mc *msgCtx) generateBatchGet() {
 
 	params := make([]string, len(bindings))
 	for i, binding := range bindings {
-		params[i] = untitle(goident.Var(binding.Variable)) + "Ids []string"
+		params[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids []string"
 	}
 
 	g.P(fmt.Sprintf("func (s *Store) BatchGet%s(ctx context.Context, %s) ([]*%s, error) {",
 		mc.pr.PluralGoName(), strings.Join(params, ", "), mc.goTypeFqi))
 
-	firstName := untitle(goident.Var(bindings[0].Variable)) + "Ids"
+	firstName := untitle(xstrings.ToCamelCase(bindings[0].Variable)) + "Ids"
 	g.P(fmt.Sprintf("  n := len(%s)", firstName))
 	for _, binding := range bindings[1:] {
-		name := untitle(goident.Var(binding.Variable)) + "Ids"
+		name := untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids"
 		g.P(fmt.Sprintf("  if len(%s) != n {", name))
 		g.P(fmt.Sprintf("    return nil, %s(\"mismatched slice lengths\")", mc.fmtI("Errorf")))
 		g.P("  }")
@@ -51,7 +52,7 @@ func (mc *msgCtx) generateBatchGet() {
 	}
 
 	for _, binding := range bindings {
-		paramName := untitle(goident.Var(binding.Variable)) + "Ids"
+		paramName := untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids"
 		g.P(fmt.Sprintf("    params = append(params, %s[i])", paramName))
 	}
 
@@ -80,16 +81,16 @@ func (mc *msgCtx) generateMultiPatternBatchGet() {
 
 	params := make([]string, len(bindings))
 	for i, binding := range bindings {
-		params[i] = untitle(goident.Var(binding.Variable)) + "Ids []string"
+		params[i] = untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids []string"
 	}
 
 	g.P(fmt.Sprintf("func (s *Store) BatchGet%s(ctx context.Context, %s) ([]*%s, error) {",
 		mc.pr.PluralGoName(), strings.Join(params, ", "), mc.goTypeFqi))
 
-	firstName := untitle(goident.Var(bindings[0].Variable)) + "Ids"
+	firstName := untitle(xstrings.ToCamelCase(bindings[0].Variable)) + "Ids"
 	g.P(fmt.Sprintf("  n := len(%s)", firstName))
 	for _, binding := range bindings[1:] {
-		name := untitle(goident.Var(binding.Variable)) + "Ids"
+		name := untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids"
 		g.P(fmt.Sprintf("  if len(%s) != n {", name))
 		g.P(fmt.Sprintf("    return nil, %s(\"mismatched slice lengths\")", mc.fmtI("Errorf")))
 		g.P("  }")
@@ -105,7 +106,7 @@ func (mc *msgCtx) generateMultiPatternBatchGet() {
 	g.P("  for i := 0; i < n; i++ {")
 	g.P(fmt.Sprintf("    conditions := make([]string, 0, %d)", len(bindings)))
 	mc.emitIDConditionAppends("    ", func(binding schema.ColumnBinding) string {
-		return untitle(goident.Var(binding.Variable)) + "Ids[i]"
+		return untitle(xstrings.ToCamelCase(binding.Variable)) + "Ids[i]"
 	})
 	g.P(fmt.Sprintf("    orClauses[i] = \"(\" + %s(conditions, \" AND \") + \")\"", mc.stringsI("Join")))
 	g.P("  }")

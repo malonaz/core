@@ -109,7 +109,7 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P()
 
 	g.P(fmt.Sprintf("  %sNameTo%s := make(map[string]*%s, len(request.Names))",
-		goident.Var(resourceGoName), resourceGoName, mc.protoType()))
+		xstrings.ToCamelCase(resourceGoName), resourceGoName, mc.protoType()))
 	g.P(fmt.Sprintf("  for _, db%s := range db%s {", mc.modelGoName, pr.PluralGoName()))
 	g.P(fmt.Sprintf("    %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 	g.P("    if err != nil {")
@@ -117,7 +117,7 @@ func (mc *methodCtx) generateBatchGet() error {
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("    }")
 	g.P(fmt.Sprintf("    %sNameTo%s[%s.Name] = %s",
-		goident.Var(resourceGoName), resourceGoName, goident.Var(resourceGoName), goident.Var(resourceGoName)))
+		xstrings.ToCamelCase(resourceGoName), resourceGoName, goident.Var(resourceGoName), goident.Var(resourceGoName)))
 	g.P("  }")
 	g.P()
 
@@ -125,7 +125,7 @@ func (mc *methodCtx) generateBatchGet() error {
 		goident.Var(pr.PluralGoName()), mc.protoType(), pr.PluralGoName()))
 	g.P("  for _, name := range request.Names {")
 	g.P(fmt.Sprintf("    %s, ok := %sNameTo%s[name]",
-		goident.Var(resourceGoName), goident.Var(resourceGoName), resourceGoName))
+		goident.Var(resourceGoName), xstrings.ToCamelCase(resourceGoName), resourceGoName))
 	g.P("    if !ok {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"could not find %%q\", name).Err()",
 		mc.statusErrorf(), mc.codes("NotFound")))

@@ -764,7 +764,7 @@ func (mc *methodCtx) forceParam() string {
 func (mc *methodCtx) varNames() []string {
 	names := make([]string, len(mc.unionVars))
 	for i, unionVariable := range mc.unionVars {
-		names[i] = goident.Var(unionVariable.Name)
+		names[i] = xstrings.ToCamelCase(unionVariable.Name)
 	}
 	return names
 }
@@ -811,7 +811,7 @@ func (mc *methodCtx) sharedVariableSet() map[string]bool {
 func (mc *methodCtx) patternIDArgs(pattern *resource.ParsedPattern) string {
 	names := make([]string, len(pattern.Variables))
 	for i, variable := range pattern.Variables {
-		names[i] = goident.Var(variable) + "Id"
+		names[i] = xstrings.ToCamelCase(variable) + "Id"
 	}
 	return strings.Join(names, ", ")
 }

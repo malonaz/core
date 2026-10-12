@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/pbutil"
-	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
@@ -168,7 +168,7 @@ func (gen *generator) newChildCtx(child schema.SingletonChild) (*childCtx, error
 	return &childCtx{
 		SingletonChild:  child,
 		goType:          child.Message.GoIdent.GoName,
-		paramName:       untitle(goident.Var(child.Resource.Desc.Singular)),
+		paramName:       untitle(xstrings.ToCamelCase(child.Resource.Desc.Singular)),
 		writeColumnsVar: writeColumnsVar,
 	}, nil
 }
@@ -548,7 +548,7 @@ func (mc *msgCtx) stringsI(name string) string { return mc.gen.ident(stringsPkg,
 
 // idParamName returns the Go parameter name of an identifier, e.g. "shelfId".
 func idParamName(binding schema.ColumnBinding) string {
-	return untitle(goident.Var(binding.Variable)) + "Id"
+	return untitle(xstrings.ToCamelCase(binding.Variable)) + "Id"
 }
 
 func (mc *msgCtx) patternVarIDsGoTrue() string {

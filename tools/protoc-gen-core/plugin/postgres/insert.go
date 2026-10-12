@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 
-	"github.com/malonaz/core/tools/protoc-gen-core/goident"
+	"github.com/huandu/xstrings"
 )
 
 // generateInsertVars emits the insert queries. A singleton has no Create of
@@ -52,12 +52,12 @@ func (mc *msgCtx) withRequestIDWriteColumns() string {
 
 // pluralParam returns the Go parameter name of a slice of the resource, e.g. "authors".
 func (mc *msgCtx) pluralParam() string {
-	return untitle(goident.Var(mc.pr.PluralGoName()))
+	return untitle(xstrings.ToCamelCase(mc.pr.PluralGoName()))
 }
 
 // pluralParam returns the Go parameter name of a slice of the child, e.g. "authorProfiles".
 func (cc *childCtx) pluralParam() string {
-	return untitle(goident.Var(cc.Resource.PluralGoName()))
+	return untitle(xstrings.ToCamelCase(cc.Resource.PluralGoName()))
 }
 
 // generateBatchInsert emits BatchInsert{Plural}: one multi-row INSERT, with
