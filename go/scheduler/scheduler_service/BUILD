@@ -36,6 +36,7 @@ go_library(
         "//go/scheduler/store",
         "//go/scheduler/transition",
         "//go/uuid",
+        "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:buf.build__go__protovalidate",

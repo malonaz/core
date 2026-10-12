@@ -34,7 +34,7 @@ func (s *Service) CreateQueue(ctx context.Context, request *pb.CreateQueueReques
 		Endpoint:     declared.GetEndpoint(),
 		RequestType:  declared.GetRequestType(),
 		ResponseType: declared.GetResponseType(),
-		Policy:       scheduler.NormalizePolicy(declared.GetPolicy()),
+		Policy:       scheduler.NormalizePolicy(declared.GetPolicy(), s.defaultRetryBackoff),
 	}
 	queue, err := s.SchedulerServiceServer.CreateQueue(ctx, request)
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *Service) UpdateQueue(ctx context.Context, request *pb.UpdateQueueReques
 		rootPathSet[root] = struct{}{}
 	}
 	if _, ok := rootPathSet["policy"]; ok {
-		patched.Policy = scheduler.NormalizePolicy(patched.GetPolicy())
+		patched.Policy = scheduler.NormalizePolicy(patched.GetPolicy(), s.defaultRetryBackoff)
 	}
 	etag := request.GetQueue().GetEtag()
 	if etag == "" {
