@@ -129,6 +129,11 @@ func (c *Client) StreamGenerateMessage(
 			sentTtfb = true
 		}
 
+		// A blocked prompt comes back with no candidates, only the reason in the prompt feedback.
+		if resp.PromptFeedback != nil && resp.PromptFeedback.BlockReason != "" && resp.PromptFeedback.BlockReason != genai.BlockedReasonUnspecified {
+			stopReason = aiservicepb.StopReason_STOP_REASON_REFUSAL
+		}
+
 		for _, candidate := range resp.Candidates {
 			if candidate.FinishReason != genai.FinishReasonUnspecified {
 				var ok bool
