@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package malonaz.test.library.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/codegen/nats/v1/nats.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/v1";
+
+// Case represents a glass display case holding an organization's rarest books. Its name is a Go
+// keyword on purpose: it guards the identifiers codegen derives from resource names.
+message Case {
+  option (google.api.resource) = {
+    type: "library.test.malonaz.com/Case"
+    pattern: "organizations/{organization}/cases/{case}"
+    singular: "case"
+    plural: "cases"
+  };
+  option (malonaz.codegen.nats.v1.event) = {
+    stream: "malonaz.test.library.v1.case"
+    resource_segments: ["organization"]
+    created: {subject: "created"}
+    updated: {subject: "updated"}
+    deleted: {subject: "deleted"}
+    undeleted: {subject: "undeleted"}
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {
+    schema_name: "library"
+    table_name: "case_"
+  };
+
+  // The resource name of the case.
+  // Format: organizations/{organization}/cases/{case}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The deletion timestamp.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The display name of the case.
+  string display_name = 5 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 256
+  }];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 6;
+}

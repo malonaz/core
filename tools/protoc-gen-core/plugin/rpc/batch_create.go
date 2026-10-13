@@ -7,6 +7,8 @@ import (
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 // batchCreateRequestsField validates and returns the `requests` field of a
@@ -57,9 +59,9 @@ func (mc *methodCtx) generateBatchCreate(createRequest *protogen.Message) error 
 	method := mc.mi.method
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	resourceVar := xstrings.ToCamelCase(resourceGoName)
+	resourceVar := goident.Var(resourceGoName)
 	pluralGoName := pr.PluralGoName()
-	pluralVar := xstrings.ToCamelCase(pluralGoName)
+	pluralVar := goident.Var(pluralGoName)
 
 	requestsField, err := mc.batchCreateRequestsField(createRequest)
 	if err != nil {

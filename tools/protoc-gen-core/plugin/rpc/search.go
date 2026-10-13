@@ -7,6 +7,7 @@ import (
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
@@ -37,7 +38,7 @@ func (mc *methodCtx) generateSearch() error {
 	// Mirror the List parser: qualify column references with join aliases so
 	// joined fields sharing a source column name don't collide.
 	g.P(fmt.Sprintf("var %sParser = %s[*%s, *%s](%s())",
-		xstrings.ToCamelCase(method.Input.GoIdent.GoName),
+		goident.Var(method.Input.GoIdent.GoName),
 		mc.gen.ident(aipPkg, "MustNewSearchRequestParser"), mc.inputType(), mc.protoType(),
 		mc.gen.ident(aipPkg, "WithFQN"),
 	))
@@ -83,7 +84,7 @@ func (mc *methodCtx) generateSearch() error {
 
 	g.P("  // Parse request")
 	g.P(fmt.Sprintf("  parsedRequest, err := %sParser.Parse(request)",
-		xstrings.ToCamelCase(method.Input.GoIdent.GoName)))
+		goident.Var(method.Input.GoIdent.GoName)))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, err.Error()).Err()",
 		mc.statusErrorf(), mc.codes("InvalidArgument")))
@@ -147,22 +148,22 @@ func (mc *methodCtx) generateSearch() error {
 	// Convert back to proto.
 	g.P("  // Convert back to proto.")
 	g.P(fmt.Sprintf("  %s := make([]*%s, 0, len(%ss))",
-		xstrings.ToCamelCase(pr.PluralGoName()), mc.protoType(), dbName))
+		goident.Var(pr.PluralGoName()), mc.protoType(), dbName))
 	g.P(fmt.Sprintf("  for _, %s := range %ss {", dbName, dbName))
-	g.P(fmt.Sprintf("    %s, err := %s.ToPb()", xstrings.ToCamelCase(resourceGoName), dbName))
+	g.P(fmt.Sprintf("    %s, err := %s.ToPb()", goident.Var(resourceGoName), dbName))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"converting model.%s to %s: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), resourceGoName, resourceGoName))
 	g.P("    }")
 	g.P(fmt.Sprintf("    %s = append(%s, %s)",
-		xstrings.ToCamelCase(pr.PluralGoName()), xstrings.ToCamelCase(pr.PluralGoName()), xstrings.ToCamelCase(resourceGoName)))
+		goident.Var(pr.PluralGoName()), goident.Var(pr.PluralGoName()), goident.Var(resourceGoName)))
 	g.P("  }")
 	g.P()
 
 	// Return response.
 	g.P("  // Create and return response.")
 	g.P(fmt.Sprintf("  return &%s{", mc.gen.qgi(method.Output.GoIdent)))
-	g.P(fmt.Sprintf("    %s: %s,", pr.PluralGoName(), xstrings.ToCamelCase(pr.PluralGoName())))
+	g.P(fmt.Sprintf("    %s: %s,", pr.PluralGoName(), goident.Var(pr.PluralGoName())))
 	g.P("    Snippets: snippets,")
 	g.P("    NextPageToken: nextPageToken,")
 	g.P("  }, nil")

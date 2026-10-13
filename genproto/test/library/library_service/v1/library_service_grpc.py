@@ -21,12 +21,14 @@ import malonaz.test.library.library_service.v1.author_pb2
 import malonaz.test.library.library_service.v1.author_profile_pb2
 import malonaz.test.library.library_service.v1.book_pb2
 import malonaz.test.library.library_service.v1.book_review_pb2
+import malonaz.test.library.library_service.v1.case_pb2
 import malonaz.test.library.library_service.v1.note_pb2
 import malonaz.test.library.library_service.v1.shelf_pb2
 import malonaz.test.library.v1.author_pb2
 import malonaz.test.library.v1.author_profile_pb2
 import malonaz.test.library.v1.book_pb2
 import malonaz.test.library.v1.book_review_pb2
+import malonaz.test.library.v1.case_pb2
 import malonaz.test.library.v1.note_pb2
 import malonaz.test.library.v1.shelf_pb2
 import malonaz.test.library.library_service.v1.library_service_pb2
@@ -204,6 +206,38 @@ class LibraryServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetNotes(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest, malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateCase(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.CreateCaseRequest, malonaz.test.library.v1.case_pb2.Case]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetCase(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.GetCaseRequest, malonaz.test.library.v1.case_pb2.Case]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateCase(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.UpdateCaseRequest, malonaz.test.library.v1.case_pb2.Case]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteCase(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.DeleteCaseRequest, malonaz.test.library.v1.case_pb2.Case]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UndeleteCase(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.UndeleteCaseRequest, malonaz.test.library.v1.case_pb2.Case]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListCases(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.ListCasesRequest, malonaz.test.library.library_service.v1.case_pb2.ListCasesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchCreateCases(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesRequest, malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetCases(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesRequest, malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -465,6 +499,54 @@ class LibraryServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
                 malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/CreateCase': grpclib.const.Handler(
+                self.CreateCase,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.CreateCaseRequest,
+                malonaz.test.library.v1.case_pb2.Case,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/GetCase': grpclib.const.Handler(
+                self.GetCase,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.GetCaseRequest,
+                malonaz.test.library.v1.case_pb2.Case,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateCase': grpclib.const.Handler(
+                self.UpdateCase,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.UpdateCaseRequest,
+                malonaz.test.library.v1.case_pb2.Case,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/DeleteCase': grpclib.const.Handler(
+                self.DeleteCase,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.DeleteCaseRequest,
+                malonaz.test.library.v1.case_pb2.Case,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteCase': grpclib.const.Handler(
+                self.UndeleteCase,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.UndeleteCaseRequest,
+                malonaz.test.library.v1.case_pb2.Case,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/ListCases': grpclib.const.Handler(
+                self.ListCases,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.ListCasesRequest,
+                malonaz.test.library.library_service.v1.case_pb2.ListCasesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateCases': grpclib.const.Handler(
+                self.BatchCreateCases,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesRequest,
+                malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetCases': grpclib.const.Handler(
+                self.BatchGetCases,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesRequest,
+                malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesResponse,
             ),
         }
 
@@ -729,4 +811,52 @@ class LibraryServiceStub:
             '/malonaz.test.library.library_service.v1.LibraryService/BatchGetNotes',
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesRequest,
             malonaz.test.library.library_service.v1.note_pb2.BatchGetNotesResponse,
+        )
+        self.CreateCase = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/CreateCase',
+            malonaz.test.library.library_service.v1.case_pb2.CreateCaseRequest,
+            malonaz.test.library.v1.case_pb2.Case,
+        )
+        self.GetCase = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/GetCase',
+            malonaz.test.library.library_service.v1.case_pb2.GetCaseRequest,
+            malonaz.test.library.v1.case_pb2.Case,
+        )
+        self.UpdateCase = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UpdateCase',
+            malonaz.test.library.library_service.v1.case_pb2.UpdateCaseRequest,
+            malonaz.test.library.v1.case_pb2.Case,
+        )
+        self.DeleteCase = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/DeleteCase',
+            malonaz.test.library.library_service.v1.case_pb2.DeleteCaseRequest,
+            malonaz.test.library.v1.case_pb2.Case,
+        )
+        self.UndeleteCase = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/UndeleteCase',
+            malonaz.test.library.library_service.v1.case_pb2.UndeleteCaseRequest,
+            malonaz.test.library.v1.case_pb2.Case,
+        )
+        self.ListCases = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/ListCases',
+            malonaz.test.library.library_service.v1.case_pb2.ListCasesRequest,
+            malonaz.test.library.library_service.v1.case_pb2.ListCasesResponse,
+        )
+        self.BatchCreateCases = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchCreateCases',
+            malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesRequest,
+            malonaz.test.library.library_service.v1.case_pb2.BatchCreateCasesResponse,
+        )
+        self.BatchGetCases = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.LibraryService/BatchGetCases',
+            malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesRequest,
+            malonaz.test.library.library_service.v1.case_pb2.BatchGetCasesResponse,
         )

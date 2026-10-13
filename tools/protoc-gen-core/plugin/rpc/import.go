@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 const (
@@ -206,8 +207,8 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 	g := mc.g
 	pr := mc.pr
 	sink := imp.sinkGoName()
-	resourceVar := xstrings.ToCamelCase(mc.resourceGoName)
-	pluralVar := xstrings.ToCamelCase(pr.PluralGoName())
+	resourceVar := goident.Var(mc.resourceGoName)
+	pluralVar := goident.Var(pr.PluralGoName())
 	protoType := mc.protoType()
 	serviceServer := mc.si.service.GoName + "Server"
 	models := mc.createModelVars()
@@ -464,7 +465,7 @@ func (mc *methodCtx) generateRunImport(imp *importMethod, wildcard bool) {
 	g.P("}")
 	g.P()
 
-	pluralVar := xstrings.ToCamelCase(mc.pr.PluralGoName())
+	pluralVar := goident.Var(mc.pr.PluralGoName())
 	g.P(fmt.Sprintf("// importInline imports the %s the request carries, %d at a time.", mc.pr.Desc.Plural, importBatchSize))
 	g.P(fmt.Sprintf("func (s *%s) importInline(ctx %s, %s []*%s) error {", imp.sinkGoName(), mc.gen.ident(contextPkg, "Context"), pluralVar, mc.protoType()))
 	g.P(fmt.Sprintf("  if err := s.SetTotal(ctx, int32(len(%s))); err != nil {", pluralVar))

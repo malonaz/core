@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 func (mc *methodCtx) generateUpdate() error {
@@ -49,7 +51,7 @@ func (mc *methodCtx) generateUpdate() error {
 	// Main update implementation.
 	funcName := method.GoName
 	if mc.hasEtag {
-		funcName = xstrings.ToCamelCase(method.GoName)
+		funcName = goident.Var(method.GoName)
 	}
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, funcName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
@@ -142,13 +144,13 @@ func (mc *methodCtx) generateUpdate() error {
 	// STEP 4: Persist.
 	g.P("  // STEP 4: Insert patched resource.")
 	g.P(fmt.Sprintf("  %s, err := %s(patched%s)",
-		xstrings.ToCamelCase(mc.modelGoName), mc.parseFromPb, resourceGoName))
+		goident.Var(mc.modelGoName), mc.parseFromPb, resourceGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from pb to model: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("  }")
 
-	updateArgs := fmt.Sprintf("ctx, %s, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns()", xstrings.ToCamelCase(mc.modelGoName))
+	updateArgs := fmt.Sprintf("ctx, %s, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns()", goident.Var(mc.modelGoName))
 	if mc.hasEtag {
 		updateArgs += ", etag"
 	}
@@ -169,7 +171,7 @@ func (mc *methodCtx) generateUpdate() error {
 	g.P("  }")
 	g.P()
 
-	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", xstrings.ToCamelCase(resourceGoName), mc.modelGoName))
+	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
@@ -177,9 +179,9 @@ func (mc *methodCtx) generateUpdate() error {
 	g.P()
 
 	// STEP 5: Publish events.
-	mc.generateUpdatedEvents(xstrings.ToCamelCase(resourceGoName), "existing"+resourceGoName)
+	mc.generateUpdatedEvents(goident.Var(resourceGoName), "existing"+resourceGoName)
 
-	g.P(fmt.Sprintf("  return %s, nil", xstrings.ToCamelCase(resourceGoName)))
+	g.P(fmt.Sprintf("  return %s, nil", goident.Var(resourceGoName)))
 	g.P("}")
 	g.P()
 	return nil
@@ -193,7 +195,7 @@ func (mc *methodCtx) generateUpdateRetryWrapper() {
 	g.P(fmt.Sprintf("func (s *%s) %s(ctx %s, request *%s) (*%s, error) {",
 		mc.serverGoName, method.GoName, mc.gen.ident(contextPkg, "Context"), mc.inputType(), mc.outputType()))
 	g.P("  for {")
-	g.P(fmt.Sprintf("    response, err := s.%s(ctx, request)", xstrings.ToCamelCase(method.GoName)))
+	g.P(fmt.Sprintf("    response, err := s.%s(ctx, request)", goident.Var(method.GoName)))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      if request.Get%s().GetEtag() == \"\" && %s(err, %s) {",
 		resourceGoName, mc.statusHasCode(), mc.codes("Aborted")))

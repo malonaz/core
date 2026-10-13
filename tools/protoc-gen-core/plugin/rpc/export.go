@@ -12,6 +12,7 @@ import (
 	codegenaippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
@@ -188,8 +189,8 @@ func (mc *methodCtx) generateExportReader(exp *exportMethod, table string, bindi
 	reader := exp.readerGoName()
 	serviceServer := mc.si.service.GoName + "Server"
 	parentIDNames := mc.parentIDNames()
-	resourceVar := xstrings.ToCamelCase(mc.resourceGoName)
-	pluralVar := xstrings.ToCamelCase(pr.PluralGoName())
+	resourceVar := goident.Var(mc.resourceGoName)
+	pluralVar := goident.Var(pr.PluralGoName())
 	dbPlural := "db" + pr.PluralGoName()
 	parserVar := xstrings.ToCamelCase(method.Input.GoIdent.GoName) + "FilteringParser"
 

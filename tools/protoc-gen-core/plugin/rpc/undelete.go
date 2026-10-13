@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 // generateUndelete emits Undelete{R} (AIP-164): clears the tombstone and
@@ -13,7 +15,7 @@ func (mc *methodCtx) generateUndelete() error {
 	method := mc.mi.method
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	resourceVar := xstrings.ToCamelCase(resourceGoName)
+	resourceVar := goident.Var(resourceGoName)
 
 	if method.Input.Desc.Fields().ByName("name") == nil {
 		return fmt.Errorf("%s must declare `string name` (AIP-164)", method.Input.Desc.FullName())
@@ -111,7 +113,7 @@ func (mc *methodCtx) generateUndelete() error {
 
 func (mc *methodCtx) generateUndeletedEventPublisher() {
 	g := mc.g
-	resourceVar := xstrings.ToCamelCase(mc.resourceGoName)
+	resourceVar := goident.Var(mc.resourceGoName)
 
 	g.P(fmt.Sprintf("func (s *%s) publishResourceUndeletedEvent(ctx %s, %s *%s) error {",
 		mc.serverGoName, mc.gen.ident(contextPkg, "Context"), resourceVar, mc.protoType()))

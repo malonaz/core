@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/huandu/xstrings"
+
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 func (mc *methodCtx) generateBatchGet() error {
@@ -109,32 +111,32 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("  %sNameTo%s := make(map[string]*%s, len(request.Names))",
 		xstrings.ToCamelCase(resourceGoName), resourceGoName, mc.protoType()))
 	g.P(fmt.Sprintf("  for _, db%s := range db%s {", mc.modelGoName, pr.PluralGoName()))
-	g.P(fmt.Sprintf("    %s, err := db%s.ToPb()", xstrings.ToCamelCase(resourceGoName), mc.modelGoName))
+	g.P(fmt.Sprintf("    %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 	g.P("    if err != nil {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("    }")
 	g.P(fmt.Sprintf("    %sNameTo%s[%s.Name] = %s",
-		xstrings.ToCamelCase(resourceGoName), resourceGoName, xstrings.ToCamelCase(resourceGoName), xstrings.ToCamelCase(resourceGoName)))
+		xstrings.ToCamelCase(resourceGoName), resourceGoName, goident.Var(resourceGoName), goident.Var(resourceGoName)))
 	g.P("  }")
 	g.P()
 
 	g.P(fmt.Sprintf("  %s := make([]*%s, 0, len(db%s))",
-		xstrings.ToCamelCase(pr.PluralGoName()), mc.protoType(), pr.PluralGoName()))
+		goident.Var(pr.PluralGoName()), mc.protoType(), pr.PluralGoName()))
 	g.P("  for _, name := range request.Names {")
 	g.P(fmt.Sprintf("    %s, ok := %sNameTo%s[name]",
-		xstrings.ToCamelCase(resourceGoName), xstrings.ToCamelCase(resourceGoName), resourceGoName))
+		goident.Var(resourceGoName), xstrings.ToCamelCase(resourceGoName), resourceGoName))
 	g.P("    if !ok {")
 	g.P(fmt.Sprintf("      return nil, %s(%s, \"could not find %%q\", name).Err()",
 		mc.statusErrorf(), mc.codes("NotFound")))
 	g.P("    }")
 	g.P(fmt.Sprintf("    %s = append(%s, %s)",
-		xstrings.ToCamelCase(pr.PluralGoName()), xstrings.ToCamelCase(pr.PluralGoName()), xstrings.ToCamelCase(resourceGoName)))
+		goident.Var(pr.PluralGoName()), goident.Var(pr.PluralGoName()), goident.Var(resourceGoName)))
 	g.P("  }")
 	g.P()
 
 	g.P(fmt.Sprintf("  return &%s{", mc.gen.qgi(method.Output.GoIdent)))
-	g.P(fmt.Sprintf("    %s: %s,", pr.PluralGoName(), xstrings.ToCamelCase(pr.PluralGoName())))
+	g.P(fmt.Sprintf("    %s: %s,", pr.PluralGoName(), goident.Var(pr.PluralGoName())))
 	g.P("  }, nil")
 	g.P("}")
 	g.P()

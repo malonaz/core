@@ -1,0 +1,15 @@
+go_library(
+    name = "goident",
+    srcs = ["goident.go"],
+    visibility = ["//tools/protoc-gen-core/..."],
+    deps = ["//third_party/go:github.com__huandu__xstrings"],
+)
+
+go_test(
+    name = "test",
+    srcs = ["goident_test.go"],
+    deps = [
+        ":goident",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

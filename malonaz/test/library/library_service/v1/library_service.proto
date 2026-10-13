@@ -14,12 +14,14 @@ import "malonaz/test/library/library_service/v1/author.proto";
 import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
 import "malonaz/test/library/library_service/v1/book_review.proto";
+import "malonaz/test/library/library_service/v1/case.proto";
 import "malonaz/test/library/library_service/v1/note.proto";
 import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/author.proto";
 import "malonaz/test/library/v1/author_profile.proto";
 import "malonaz/test/library/v1/book.proto";
 import "malonaz/test/library/v1/book_review.proto";
+import "malonaz/test/library/v1/case.proto";
 import "malonaz/test/library/v1/note.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
@@ -36,6 +38,12 @@ service LibraryService {
   };
   option (malonaz.codegen.nats.v1.stream) = {
     name: "malonaz.test.library.v1.shelf"
+    max_age: {seconds: 2592000}
+    retention: RETENTION_POLICY_LIMITS
+    storage: STORAGE_TYPE_FILE
+  };
+  option (malonaz.codegen.nats.v1.stream) = {
+    name: "malonaz.test.library.v1.case"
     max_age: {seconds: 2592000}
     retention: RETENTION_POLICY_LIMITS
     storage: STORAGE_TYPE_FILE
@@ -540,5 +548,81 @@ service LibraryService {
     };
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Note";
+  }
+
+  // ===================== Case (named after a Go keyword) =====================
+
+  // Creates a case.
+  rpc CreateCase(CreateCaseRequest) returns (malonaz.test.library.v1.Case) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/cases"
+      body: "case"
+    };
+    option (google.api.method_signature) = "parent,case";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Gets a case.
+  rpc GetCase(GetCaseRequest) returns (malonaz.test.library.v1.Case) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/cases/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Updates a case.
+  rpc UpdateCase(UpdateCaseRequest) returns (malonaz.test.library.v1.Case) {
+    option (google.api.http) = {
+      patch: "/v1/{case.name=organizations/*/cases/*}"
+      body: "case"
+    };
+    option (google.api.method_signature) = "case,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Deletes a case.
+  rpc DeleteCase(DeleteCaseRequest) returns (malonaz.test.library.v1.Case) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/cases/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Undeletes a case.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteCase(UndeleteCaseRequest) returns (malonaz.test.library.v1.Case) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/cases/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Lists cases.
+  rpc ListCases(ListCasesRequest) returns (ListCasesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/cases"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Creates multiple cases in a single atomic request.
+  //
+  // See: https://google.aip.dev/233 (Batch methods: Create).
+  rpc BatchCreateCases(BatchCreateCasesRequest) returns (BatchCreateCasesResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/cases:batchCreate"
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,requests";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
+  }
+
+  // Gets multiple cases in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetCases(BatchGetCasesRequest) returns (BatchGetCasesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/cases:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Case";
   }
 }

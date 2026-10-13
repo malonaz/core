@@ -1,0 +1,203 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/v1/case.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// Request message for LibraryService.CreateCase.
+message CreateCaseRequest {
+  // The parent organization.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Case"
+  ];
+
+  // The ID to use for the resource.
+  string case_id = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    }
+  ];
+
+  // The case to create.
+  malonaz.test.library.v1.Case case = 3 [(buf.validate.field).required = true];
+
+  // A unique identifier for this request.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for LibraryService.GetCase.
+message GetCaseRequest {
+  // The resource name of the case to retrieve.
+  // Format: organizations/{organization}/cases/{case}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Case"
+  ];
+}
+
+// Request message for LibraryService.UpdateCase.
+message UpdateCaseRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: ["display_name"]
+  };
+  option (buf.validate.message).cel = {
+    id: "case.name_required"
+    message: "case.name must be set"
+    expression: "has(this.case.name)"
+  };
+
+  // The case to update.
+  malonaz.test.library.v1.Case case = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for LibraryService.DeleteCase.
+message DeleteCaseRequest {
+  // The resource name of the case to delete.
+  // Format: organizations/{organization}/cases/{case}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Case"
+  ];
+
+  // If true, and the case is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for LibraryService.UndeleteCase.
+message UndeleteCaseRequest {
+  // The resource name of the deleted case to restore.
+  // Format: organizations/{organization}/cases/{case}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/Case"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for LibraryService.ListCases.
+message ListCasesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "display_name"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent organization.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "library.test.malonaz.com/Case"
+  ];
+
+  // @autogen
+  string filter = 2;
+
+  // If set to true, soft deleted resources will be shown.
+  bool show_deleted = 3;
+
+  // @autogen.
+  string order_by = 4;
+
+  // Requested page size.
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListCases` call.
+  string page_token = 6;
+}
+
+// Response message for LibraryService.ListCases.
+message ListCasesResponse {
+  // The list of cases.
+  repeated malonaz.test.library.v1.Case cases = 1;
+
+  // A token to retrieve the next page.
+  string next_page_token = 2;
+}
+
+// Request message for LibraryService.BatchCreateCases.
+message BatchCreateCasesRequest {
+  // The parent organization. When set, each request's parent must either be omitted or match it.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).child_type = "library.test.malonaz.com/Case"];
+
+  // The requests specifying the cases to create.
+  // A maximum of 1000 cases can be created in a batch.
+  repeated CreateCaseRequest requests = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    }
+  ];
+}
+
+// Response message for LibraryService.BatchCreateCases.
+message BatchCreateCasesResponse {
+  // Cases created, in request order.
+  repeated malonaz.test.library.v1.Case cases = 1;
+}
+
+// Request message for LibraryService.BatchGetCases.
+message BatchGetCasesRequest {
+  // The parent organization.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).child_type = "library.test.malonaz.com/Case"];
+
+  // The resource names of the cases to retrieve.
+  // A maximum of 1000 cases can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+    },
+    (google.api.resource_reference).type = "library.test.malonaz.com/Case"
+  ];
+}
+
+// Response message for LibraryService.BatchGetCases.
+message BatchGetCasesResponse {
+  // Cases requested, in request order.
+  repeated malonaz.test.library.v1.Case cases = 1;
+}

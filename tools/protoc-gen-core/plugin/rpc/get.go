@@ -3,7 +3,7 @@ package rpc
 import (
 	"fmt"
 
-	"github.com/huandu/xstrings"
+	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 )
 
 func (mc *methodCtx) generateGet() {
@@ -41,12 +41,12 @@ func (mc *methodCtx) generateGet() {
 	g.P("  }")
 	g.P()
 
-	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", xstrings.ToCamelCase(resourceGoName), mc.modelGoName))
+	g.P(fmt.Sprintf("  %s, err := db%s.ToPb()", goident.Var(resourceGoName), mc.modelGoName))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"converting %s from model to pb: %%v\", err).Err()",
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("  }")
-	g.P(fmt.Sprintf("  return %s, nil", xstrings.ToCamelCase(resourceGoName)))
+	g.P(fmt.Sprintf("  return %s, nil", goident.Var(resourceGoName)))
 	g.P("}")
 	g.P()
 }
