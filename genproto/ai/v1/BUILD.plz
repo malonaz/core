@@ -5,7 +5,6 @@ go_library(
         "annotations_aip.pb.go",
         "chat.pb.go",
         "chat_aip.pb.go",
-        "errors.pb.go",
         "labels.pb.go",
         "labels_aip.pb.go",
         "message.pb.go",
