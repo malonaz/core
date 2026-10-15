@@ -1,0 +1,13 @@
+name: test
+servers:
+  - name: a-service
+    grpc:
+      services:
+        - service: a-service
+          proto: //a/v1
+          manifest: //a/a_service:manifest
+          gateway: true
+  - name: d-http
+    http:
+      services:
+        - manifest: //h/h_service:manifest
