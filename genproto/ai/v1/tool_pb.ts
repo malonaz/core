@@ -149,7 +149,8 @@ export type ToolCall = Message<"malonaz.ai.v1.ToolCall"> & {
   partial: boolean;
 
   /**
-   * A server-generated ToolCallResult. Currently only used by tool call discovery.
+   * A server-generated result: a discovery call's, or the error answering a
+   * call to an unknown tool. Clients feed it back instead of executing the call.
    *
    * @generated from field: malonaz.ai.v1.ToolResult result = 7;
    */
@@ -205,7 +206,8 @@ export type ToolCallValid = Message<"malonaz.ai.v1.ToolCall"> & {
   partial: boolean;
 
   /**
-   * A server-generated ToolCallResult. Currently only used by tool call discovery.
+   * A server-generated result: a discovery call's, or the error answering a
+   * call to an unknown tool. Clients feed it back instead of executing the call.
    *
    * @generated from field: malonaz.ai.v1.ToolResult result = 7;
    */

@@ -154,18 +154,27 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 		require.Equal(t, "true", sentToolCall.GetAnnotations()[aipb.Annotations.DiscoverableTool.Key])
 	})
 
-	t.Run("unknown tool returns a recoverable error", func(t *testing.T) {
+	t.Run("unknown tool is answered in-stream with an error result", func(t *testing.T) {
+		stream := &fakeStream{}
 		wrapper := &generateMessageWrapper{
-			AiService_StreamGenerateMessageServer: &fakeStream{},
+			AiService_StreamGenerateMessageServer: stream,
 			messageAccumulator:                    ai.NewMessageAccumulator(),
 			toolNameToTool:                        map[string]*aipb.Tool{},
 			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
 		}
+		partialToolCall := &aipb.ToolCall{Id: "call-1", Name: "Nope", Partial: true}
+		require.NoError(t, wrapper.Send(&pb.StreamGenerateMessageResponse{
+			Content: &pb.StreamGenerateMessageResponse_Block{Block: &aipb.Block{Content: &aipb.Block_PartialToolCall{PartialToolCall: partialToolCall}}},
+		}))
 		toolCall := &aipb.ToolCall{Id: "call-1", Name: "Nope"}
-		response := &pb.StreamGenerateMessageResponse{
+		require.NoError(t, wrapper.Send(&pb.StreamGenerateMessageResponse{
 			Content: &pb.StreamGenerateMessageResponse_Block{Block: ai.NewToolCallBlock(toolCall)},
-		}
-		require.Error(t, wrapper.Send(response))
+		}))
+		require.Len(t, stream.responses, 2)
+		require.Nil(t, stream.responses[0].GetBlock().GetPartialToolCall().GetResult())
+		result := stream.responses[1].GetBlock().GetToolCall().GetResult()
+		require.Equal(t, "call-1", result.GetToolCallId())
+		require.Contains(t, result.GetError().GetMessage(), `unknown tool "Nope"`)
 	})
 }
 

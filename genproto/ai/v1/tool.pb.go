@@ -217,7 +217,8 @@ type ToolCall struct {
 	Annotations map[string]string `protobuf:"bytes,5,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// If true, this is a partial tool call.
 	Partial bool `protobuf:"varint,6,opt,name=partial,proto3" json:"partial,omitempty"`
-	// A server-generated ToolCallResult. Currently only used by tool call discovery.
+	// A server-generated result: a discovery call's, or the error answering a
+	// call to an unknown tool. Clients feed it back instead of executing the call.
 	Result        *ToolResult `protobuf:"bytes,7,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -373,7 +374,8 @@ type ToolCall_builder struct {
 	Annotations map[string]string
 	// If true, this is a partial tool call.
 	Partial bool
-	// A server-generated ToolCallResult. Currently only used by tool call discovery.
+	// A server-generated result: a discovery call's, or the error answering a
+	// call to an unknown tool. Clients feed it back instead of executing the call.
 	Result *ToolResult
 }
 

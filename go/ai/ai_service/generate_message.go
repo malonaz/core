@@ -456,20 +456,16 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 			if toolCall.Annotations == nil {
 				toolCall.Annotations = map[string]string{}
 			}
-			tool, ok := w.toolNameToTool[toolCall.Name]
-			if !ok {
-				return status.Errorf(codes.Internal, "tool call targets unknown tool %q", toolCall.Name).
-					WithDetails(&aipb.ToolCallRecoverableError{
-						ToolCallBlock:   c.Block,
-						ToolResultBlock: ai.NewToolResultBlock(ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool"))),
-					}).Err()
-			}
-
+			tool, known := w.toolNameToTool[toolCall.Name]
 			maps.Copy(toolCall.Annotations, tool.GetAnnotations())
 
 			if !toolCall.GetPartial() {
-				switch toolType, _ := aipb.Annotations.ToolType.Get(toolCall); toolType {
-				case aitool.ToolTypeDiscovery:
+				switch toolType, _ := aipb.Annotations.ToolType.Get(toolCall); {
+				case !known:
+					// The model's own mistake, answered in-stream like a bad discovery
+					// call: the turn completes and the model corrects itself next turn.
+					toolCall.Result = ai.NewErrorToolResult(toolCall.Name, toolCall.Id, fmt.Errorf("unknown tool %q: call only the tools you were given or discovered", toolCall.Name))
+				case toolType == aitool.ToolTypeDiscovery:
 					toolCall.Result = processDiscoveryToolCall(toolCall, w.toolSetNameToToolNameToTool, w.toolNameToTool)
 				}
 			}

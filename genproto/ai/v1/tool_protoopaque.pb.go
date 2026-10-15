@@ -360,7 +360,8 @@ type ToolCall_builder struct {
 	Annotations map[string]string
 	// If true, this is a partial tool call.
 	Partial bool
-	// A server-generated ToolCallResult. Currently only used by tool call discovery.
+	// A server-generated result: a discovery call's, or the error answering a
+	// call to an unknown tool. Clients feed it back instead of executing the call.
 	Result *ToolResult
 }
 
