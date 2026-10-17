@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/aip/v1/annotation.proto\x12\x0emalonaz.aip.v1\x1a\x1b\x62uf/validate/validate.proto\"\xb5\x01\n\nAnnotation\x12v\n\x03key\x18\x01 \x01(\tBi\xbaHfrd\x10\x01\x32`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$\x12\x1b\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\nvalue_type\x18\x03 \x01(\tB)Z\'github.com/malonaz/core/genproto/aip/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/aip/v1/annotation.proto\x12\x0emalonaz.aip.v1\x1a\x1b\x62uf/validate/validate.proto\"\xc2\x03\n\nAnnotation\x12y\n\x03key\x18\x01 \x01(\tBl\xbaHird\x10\x01\x32`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$\xd8\x01\x01\x12\x83\x01\n\x0b\x64ynamic_key\x18\x04 \x01(\tBn\xbaHkrf\x10\x01\x32\x62^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/([a-zA-Z0-9_.-]*\\{[a-zA-Z0-9_]+\\})+[a-zA-Z0-9_.-]*$\xd8\x01\x01\x12\x1b\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\nvalue_type\x18\x03 \x01(\t:\x81\x01\xbaH~\x1a|\n\x1d\x61nnotation.key_or_dynamic_key\x12-exactly one of key or dynamic_key must be set\x1a,(this.key != \'\') != (this.dynamic_key != \'\')B)Z\'github.com/malonaz/core/genproto/aip/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,9 +34,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z\'github.com/malonaz/core/genproto/aip/v1'
   _globals['_ANNOTATION'].fields_by_name['key']._loaded_options = None
-  _globals['_ANNOTATION'].fields_by_name['key']._serialized_options = b'\272Hfrd\020\0012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$'
+  _globals['_ANNOTATION'].fields_by_name['key']._serialized_options = b'\272Hird\020\0012`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$\330\001\001'
+  _globals['_ANNOTATION'].fields_by_name['dynamic_key']._loaded_options = None
+  _globals['_ANNOTATION'].fields_by_name['dynamic_key']._serialized_options = b'\272Hkrf\020\0012b^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/([a-zA-Z0-9_.-]*\\{[a-zA-Z0-9_]+\\})+[a-zA-Z0-9_.-]*$\330\001\001'
   _globals['_ANNOTATION'].fields_by_name['description']._loaded_options = None
   _globals['_ANNOTATION'].fields_by_name['description']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_ANNOTATION']._loaded_options = None
+  _globals['_ANNOTATION']._serialized_options = b'\272H~\032|\n\035annotation.key_or_dynamic_key\022-exactly one of key or dynamic_key must be set\032,(this.key != \'\') != (this.dynamic_key != \'\')'
   _globals['_ANNOTATION']._serialized_start=81
-  _globals['_ANNOTATION']._serialized_end=262
+  _globals['_ANNOTATION']._serialized_end=531
 # @@protoc_insertion_point(module_scope)

@@ -33,6 +33,11 @@ option (malonaz.codegen.aip.v1.annotation) = {
   key: "library.com/external-id"
   description: "An opaque string annotation."
 };
+option (malonaz.codegen.aip.v1.annotation) = {
+  dynamic_key: "library.com/{source}-synced"
+  description: "When the author was last synced from a source, as a Timestamp."
+  value_type: "google.protobuf.Timestamp"
+};
 option (malonaz.codegen.aip.v1.label) = {
   key: "library.com/my-status"
   values: [

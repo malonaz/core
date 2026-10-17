@@ -63,6 +63,9 @@ updated whenever a lore is added, renamed, or removed.
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI
   tools, streamed as tool calls, rendered by client surfaces.
+- `lores/domain/eval` — evals: declared as proto file options, judged by the
+  `go/ai/eval` Judge in one forced tool call, recorded on the resource as a
+  verdict label + evaluation annotation under `eval.malonaz.com/{eval}`.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 

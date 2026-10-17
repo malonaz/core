@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package malonaz.ai.eval.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/eval/v1";
+
+// Evals are declared as file options, by any package that owns them:
+//
+//   option (malonaz.ai.eval.v1.eval) = {
+//     id: "premature-hang-up"
+//     criterion: "The assistant never ends the call while the caller still has something to say."
+//   };
+extend google.protobuf.FileOptions {
+  // An eval this file declares.
+  repeated Eval eval = 96000;
+}
+
+// An Eval is a canonical yes-or-no question a judge model answers about a conversation.
+// Its id names the label and annotation an evaluation is recorded under, so it is
+// never reused for a different question.
+message Eval {
+  // The eval id, e.g. "premature-hang-up".
+  string id = 1 [(buf.validate.field).string = {
+    max_len: 63
+    pattern: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+  }];
+
+  // What a passing conversation does, written for the judge.
+  string criterion = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 4096
+  }];
+}
