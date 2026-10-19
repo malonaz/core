@@ -64,7 +64,10 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["generate_message_test.go"],
+    srcs = [
+        "decision_test.go",
+        "generate_message_test.go",
+    ],
     deps = [
         ":ai_service",
         "//go/ai",
@@ -73,6 +76,8 @@ go_test(
         "//malonaz/ai/v1",
         "//third_party/go:github.com__google__go-cmp__cmp",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__testing__protocmp",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
