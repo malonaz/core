@@ -277,7 +277,7 @@ func (s *ModelService) GetGenerateDecisionProvider(ctx context.Context, modelNam
 		if !ok {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", registeredProvider.ProviderId()).Err()
 		}
-		return newTTDAdapter(generateMessageClient, model), model, nil
+		return newMessageDecisionClient(generateMessageClient, model), model, nil
 
 	default:
 		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s does not support decisions", modelName).Err()

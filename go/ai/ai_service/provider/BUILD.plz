@@ -2,10 +2,10 @@ go_library(
     name = "provider",
     srcs = [
         "async_message_content_sender.go",
+        "generate_decision.go",
         "model_service.go",
         "provider.go",
         "tool_accumulator.go",
-        "ttd_adapter.go",
         "utils.go",
         "voice_service.go",
     ],
