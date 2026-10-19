@@ -163,12 +163,13 @@ func (c *Connection) Connect(ctx context.Context) error {
 	// The channel stays idle until the first call: dialing eagerly, a server bound later (an
 	// in-process dependency) is first refused, and calls fail fast through the reconnect backoff.
 	endpoint := c.opts.Endpoint()
-	target := endpoint
+	target, options := endpoint, c.options
 	if !c.opts.useSocket() {
-		// Dial's default: the address goes to the dialer as is, no resolver.
+		// Dial's defaults: the address goes to the dialer as is, resolved locally even behind a proxy.
 		target = "passthrough:///" + endpoint
+		options = append([]grpc.DialOption{grpc.WithLocalDNSResolution()}, options...)
 	}
-	connection, err := grpc.NewClient(target, c.options...)
+	connection, err := grpc.NewClient(target, options...)
 	if err != nil {
 		return fmt.Errorf("dialing grpc [%s]: %v", endpoint, err)
 	}
