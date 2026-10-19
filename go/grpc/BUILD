@@ -56,12 +56,19 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["cookie_test.go"],
+    srcs = [
+        "client_test.go",
+        "cookie_test.go",
+    ],
     deps = [
         ":grpc",
+        "//go/prometheus",
         "//malonaz/grpc/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__connectivity",
+        "//third_party/go:google.golang.org__grpc__health",
+        "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",
     ],
