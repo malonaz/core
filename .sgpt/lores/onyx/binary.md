@@ -45,6 +45,13 @@ dependency: the dependency's server is already bound (connections queue in
 the backlog until `Serve` accepts), not merely scheduled. Before onyx this
 was a race that showed up as "connection refused" at startup.
 
+It holds because `grpc.Connection.Connect` dials lazily (`grpc.NewClient`):
+every connection is made at the top of main, before any server is bound, and
+stays idle until its first call. An eager dial (`grpc.DialContext`) is refused
+there and enters gRPC's reconnect backoff, which outgrows the client retry
+(~3s) on a slow start: a `Start()` call then fails `Unavailable` (`dial unix
+…: no such file`) even though the server is bound.
+
 Two things are rejected at generation time because no order satisfies them:
 
 - **Service cycle** — `a-service -> b-service -> a-service` via in-process
