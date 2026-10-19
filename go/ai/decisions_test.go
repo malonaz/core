@@ -11,16 +11,11 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 )
 
-type choiceOption struct {
-	What     string   `json:"what"`
-	Examples []string `json:"examples"`
-}
-
 func TestNewChoiceQuestion(t *testing.T) {
 	question, err := NewChoiceQuestion(
 		map[string]any{"question": "Which topic?", "focus": "Ignore greetings."},
 		map[string]any{
-			"refund": choiceOption{What: "Money back", Examples: []string{"where is my refund?"}},
+			"refund": map[string]any{"what": "Money back", "examples": []any{"where is my refund?"}},
 			"tone":   nil,
 		},
 	)
