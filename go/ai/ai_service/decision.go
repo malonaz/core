@@ -10,10 +10,10 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-// GetDecision answers typed questions about a state using a decision
+// GenerateDecision answers typed questions about a state using a decision
 // model. Unlike GenerateMessage, this is stateless: no chat is involved.
-func (s *Service) GetDecision(ctx context.Context, request *pb.GetDecisionRequest) (*pb.GetDecisionResponse, error) {
-	providerClient, model, err := s.GetDecisionProvider(ctx, request.GetModel())
+func (s *Service) GenerateDecision(ctx context.Context, request *pb.GenerateDecisionRequest) (*pb.GenerateDecisionResponse, error) {
+	providerClient, model, err := s.GetGenerateDecisionProvider(ctx, request.GetModel())
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func (s *Service) GetDecision(ctx context.Context, request *pb.GetDecisionReques
 		return nil, status.Errorf(codes.FailedPrecondition, "%s", err.Error()).Err()
 	}
 
-	response, err := providerClient.GetDecision(ctx, request)
+	response, err := providerClient.GenerateDecision(ctx, request)
 	if err != nil {
 		return nil, err
 	}

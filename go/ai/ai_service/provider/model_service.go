@@ -238,11 +238,11 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 	return generateMessageClient, model, nil
 }
 
-// GetDecisionProvider resolves the DecisionClient for a model. A model
+// GetGenerateDecisionProvider resolves the GenerateDecisionClient for a model. A model
 // decides either natively (model.Ttd set, provider implements
-// DecisionClient directly) or via a generic adapter that forces a
+// GenerateDecisionClient directly) or via a generic adapter that forces a
 // structured tool call on any tool-call-capable TTT model.
-func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string) (DecisionClient, *aipb.Model, error) {
+func (s *ModelService) GetGenerateDecisionProvider(ctx context.Context, modelName string) (GenerateDecisionClient, *aipb.Model, error) {
 	// Get the model.
 	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
 	model, err := s.GetModel(ctx, getModelRequest)
@@ -265,7 +265,7 @@ func (s *ModelService) GetDecisionProvider(ctx context.Context, modelName string
 	switch {
 	case model.Ttd != nil:
 		// Native decision model (e.g. TypeSafe).
-		decisionClient, ok := registeredProvider.(DecisionClient)
+		decisionClient, ok := registeredProvider.(GenerateDecisionClient)
 		if !ok {
 			return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support decisions", registeredProvider.ProviderId()).Err()
 		}

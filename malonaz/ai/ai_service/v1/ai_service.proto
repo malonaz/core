@@ -363,10 +363,10 @@ service AiService {
   // Stateless: unlike GenerateMessage, no chat is involved.
   //
   // See: https://google.aip.dev/136 (Custom methods).
-  rpc GetDecision(GetDecisionRequest) returns (GetDecisionResponse) {
+  rpc GenerateDecision(GenerateDecisionRequest) returns (GenerateDecisionResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {
-      post: "/v1/{model=providers/*/models/*}:getDecision"
+      post: "/v1/{model=providers/*/models/*}:generateDecision"
       body: "*"
     };
   }

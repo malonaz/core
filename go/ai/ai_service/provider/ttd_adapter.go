@@ -29,14 +29,14 @@ import (
 // ttdAnswerToolName is the name of the single tool forced on the wrapped model.
 const ttdAnswerToolName = "answer_questions"
 
-// ttdAdapter wraps a GenerateMessageClient so it satisfies DecisionClient.
+// ttdAdapter wraps a GenerateMessageClient so it satisfies GenerateDecisionClient.
 type ttdAdapter struct {
 	client GenerateMessageClient
 	model  *aipb.Model
 }
 
 // newTTDAdapter wraps client, whose model must have ttt.tool_call set.
-func newTTDAdapter(client GenerateMessageClient, model *aipb.Model) DecisionClient {
+func newTTDAdapter(client GenerateMessageClient, model *aipb.Model) GenerateDecisionClient {
 	return &ttdAdapter{client: client, model: model}
 }
 
@@ -49,9 +49,9 @@ func (a *ttdAdapter) Start(ctx context.Context) error { return a.client.Start(ct
 // Stop implements the Provider interface.
 func (a *ttdAdapter) Stop() { a.client.Stop() }
 
-// GetDecision implements DecisionClient by forcing the wrapped model to
+// GenerateDecision implements GenerateDecisionClient by forcing the wrapped model to
 // call a single tool shaped by the request's questions.
-func (a *ttdAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
+func (a *ttdAdapter) GenerateDecision(ctx context.Context, request *aiservicepb.GenerateDecisionRequest) (*aiservicepb.GenerateDecisionResponse, error) {
 	tool, err := ttdBuildTool(request.GetQuestions())
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (a *ttdAdapter) GetDecision(ctx context.Context, request *aiservicepb.GetDe
 	if err != nil {
 		return nil, err
 	}
-	return &aiservicepb.GetDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
+	return &aiservicepb.GenerateDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
 }
 
 // ttdCollectorStream is a minimal MessageStream that records every response

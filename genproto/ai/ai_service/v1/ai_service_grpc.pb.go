@@ -47,7 +47,7 @@ const (
 	AiService_BatchGetMessages_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/BatchGetMessages"
 	AiService_GenerateMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/GenerateMessage"
 	AiService_StreamGenerateMessage_FullMethodName = "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage"
-	AiService_GetDecision_FullMethodName           = "/malonaz.ai.ai_service.v1.AiService/GetDecision"
+	AiService_GenerateDecision_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/GenerateDecision"
 	AiService_ComputeStats_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ComputeStats"
 	AiService_TextToText_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/TextToText"
 	AiService_TextToTextStream_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/TextToTextStream"
@@ -227,7 +227,7 @@ type AiServiceClient interface {
 	// Stateless: unlike GenerateMessage, no chat is involved.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	GetDecision(ctx context.Context, in *GetDecisionRequest, opts ...grpc.CallOption) (*GetDecisionResponse, error)
+	GenerateDecision(ctx context.Context, in *GenerateDecisionRequest, opts ...grpc.CallOption) (*GenerateDecisionResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -548,10 +548,10 @@ func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *Generat
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageClient = grpc.ServerStreamingClient[StreamGenerateMessageResponse]
 
-func (c *aiServiceClient) GetDecision(ctx context.Context, in *GetDecisionRequest, opts ...grpc.CallOption) (*GetDecisionResponse, error) {
+func (c *aiServiceClient) GenerateDecision(ctx context.Context, in *GenerateDecisionRequest, opts ...grpc.CallOption) (*GenerateDecisionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetDecisionResponse)
-	err := c.cc.Invoke(ctx, AiService_GetDecision_FullMethodName, in, out, cOpts...)
+	out := new(GenerateDecisionResponse)
+	err := c.cc.Invoke(ctx, AiService_GenerateDecision_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -773,7 +773,7 @@ type AiServiceServer interface {
 	// Stateless: unlike GenerateMessage, no chat is involved.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	GetDecision(context.Context, *GetDecisionRequest) (*GetDecisionResponse, error)
+	GenerateDecision(context.Context, *GenerateDecisionRequest) (*GenerateDecisionResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -880,8 +880,8 @@ func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMe
 func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamGenerateMessage not implemented")
 }
-func (UnimplementedAiServiceServer) GetDecision(context.Context, *GetDecisionRequest) (*GetDecisionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDecision not implemented")
+func (UnimplementedAiServiceServer) GenerateDecision(context.Context, *GenerateDecisionRequest) (*GenerateDecisionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GenerateDecision not implemented")
 }
 func (UnimplementedAiServiceServer) ComputeStats(context.Context, *ComputeStatsRequest) (*ComputeStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ComputeStats not implemented")
@@ -1362,20 +1362,20 @@ func _AiService_StreamGenerateMessage_Handler(srv interface{}, stream grpc.Serve
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageServer = grpc.ServerStreamingServer[StreamGenerateMessageResponse]
 
-func _AiService_GetDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDecisionRequest)
+func _AiService_GenerateDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateDecisionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AiServiceServer).GetDecision(ctx, in)
+		return srv.(AiServiceServer).GenerateDecision(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AiService_GetDecision_FullMethodName,
+		FullMethod: AiService_GenerateDecision_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServiceServer).GetDecision(ctx, req.(*GetDecisionRequest))
+		return srv.(AiServiceServer).GenerateDecision(ctx, req.(*GenerateDecisionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1527,8 +1527,8 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_GenerateMessage_Handler,
 		},
 		{
-			MethodName: "GetDecision",
-			Handler:    _AiService_GetDecision_Handler,
+			MethodName: "GenerateDecision",
+			Handler:    _AiService_GenerateDecision_Handler,
 		},
 		{
 			MethodName: "ComputeStats",

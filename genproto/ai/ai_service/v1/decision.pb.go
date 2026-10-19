@@ -1094,8 +1094,8 @@ func (b0 NoulAnswer_builder) Build() *NoulAnswer {
 	return m0
 }
 
-// Request message for AiService.GetDecision.
-type GetDecisionRequest struct {
+// Request message for AiService.GenerateDecision.
+type GenerateDecisionRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
@@ -1110,20 +1110,20 @@ type GetDecisionRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetDecisionRequest) Reset() {
-	*x = GetDecisionRequest{}
+func (x *GenerateDecisionRequest) Reset() {
+	*x = GenerateDecisionRequest{}
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetDecisionRequest) String() string {
+func (x *GenerateDecisionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetDecisionRequest) ProtoMessage() {}
+func (*GenerateDecisionRequest) ProtoMessage() {}
 
-func (x *GetDecisionRequest) ProtoReflect() protoreflect.Message {
+func (x *GenerateDecisionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1135,62 +1135,62 @@ func (x *GetDecisionRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *GetDecisionRequest) GetModel() string {
+func (x *GenerateDecisionRequest) GetModel() string {
 	if x != nil {
 		return x.Model
 	}
 	return ""
 }
 
-func (x *GetDecisionRequest) GetState() *structpb.Value {
+func (x *GenerateDecisionRequest) GetState() *structpb.Value {
 	if x != nil {
 		return x.State
 	}
 	return nil
 }
 
-func (x *GetDecisionRequest) GetQuestions() map[string]*Question {
+func (x *GenerateDecisionRequest) GetQuestions() map[string]*Question {
 	if x != nil {
 		return x.Questions
 	}
 	return nil
 }
 
-func (x *GetDecisionRequest) GetLabels() map[string]string {
+func (x *GenerateDecisionRequest) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
 	}
 	return nil
 }
 
-func (x *GetDecisionRequest) SetModel(v string) {
+func (x *GenerateDecisionRequest) SetModel(v string) {
 	x.Model = v
 }
 
-func (x *GetDecisionRequest) SetState(v *structpb.Value) {
+func (x *GenerateDecisionRequest) SetState(v *structpb.Value) {
 	x.State = v
 }
 
-func (x *GetDecisionRequest) SetQuestions(v map[string]*Question) {
+func (x *GenerateDecisionRequest) SetQuestions(v map[string]*Question) {
 	x.Questions = v
 }
 
-func (x *GetDecisionRequest) SetLabels(v map[string]string) {
+func (x *GenerateDecisionRequest) SetLabels(v map[string]string) {
 	x.Labels = v
 }
 
-func (x *GetDecisionRequest) HasState() bool {
+func (x *GenerateDecisionRequest) HasState() bool {
 	if x == nil {
 		return false
 	}
 	return x.State != nil
 }
 
-func (x *GetDecisionRequest) ClearState() {
+func (x *GenerateDecisionRequest) ClearState() {
 	x.State = nil
 }
 
-type GetDecisionRequest_builder struct {
+type GenerateDecisionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The resource name of the model used.
@@ -1204,8 +1204,8 @@ type GetDecisionRequest_builder struct {
 	Labels map[string]string
 }
 
-func (b0 GetDecisionRequest_builder) Build() *GetDecisionRequest {
-	m0 := &GetDecisionRequest{}
+func (b0 GenerateDecisionRequest_builder) Build() *GenerateDecisionRequest {
+	m0 := &GenerateDecisionRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Model = b.Model
@@ -1215,8 +1215,8 @@ func (b0 GetDecisionRequest_builder) Build() *GetDecisionRequest {
 	return m0
 }
 
-// Response message for AiService.GetDecision.
-type GetDecisionResponse struct {
+// Response message for AiService.GenerateDecision.
+type GenerateDecisionResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The answers, keyed by the same ids as the request's questions.
 	Answers map[string]*Answer `protobuf:"bytes,1,rep,name=answers,proto3" json:"answers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -1226,20 +1226,20 @@ type GetDecisionResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetDecisionResponse) Reset() {
-	*x = GetDecisionResponse{}
+func (x *GenerateDecisionResponse) Reset() {
+	*x = GenerateDecisionResponse{}
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetDecisionResponse) String() string {
+func (x *GenerateDecisionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetDecisionResponse) ProtoMessage() {}
+func (*GenerateDecisionResponse) ProtoMessage() {}
 
-func (x *GetDecisionResponse) ProtoReflect() protoreflect.Message {
+func (x *GenerateDecisionResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1251,40 +1251,40 @@ func (x *GetDecisionResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *GetDecisionResponse) GetAnswers() map[string]*Answer {
+func (x *GenerateDecisionResponse) GetAnswers() map[string]*Answer {
 	if x != nil {
 		return x.Answers
 	}
 	return nil
 }
 
-func (x *GetDecisionResponse) GetModelUsage() *v1.ModelUsage {
+func (x *GenerateDecisionResponse) GetModelUsage() *v1.ModelUsage {
 	if x != nil {
 		return x.ModelUsage
 	}
 	return nil
 }
 
-func (x *GetDecisionResponse) SetAnswers(v map[string]*Answer) {
+func (x *GenerateDecisionResponse) SetAnswers(v map[string]*Answer) {
 	x.Answers = v
 }
 
-func (x *GetDecisionResponse) SetModelUsage(v *v1.ModelUsage) {
+func (x *GenerateDecisionResponse) SetModelUsage(v *v1.ModelUsage) {
 	x.ModelUsage = v
 }
 
-func (x *GetDecisionResponse) HasModelUsage() bool {
+func (x *GenerateDecisionResponse) HasModelUsage() bool {
 	if x == nil {
 		return false
 	}
 	return x.ModelUsage != nil
 }
 
-func (x *GetDecisionResponse) ClearModelUsage() {
+func (x *GenerateDecisionResponse) ClearModelUsage() {
 	x.ModelUsage = nil
 }
 
-type GetDecisionResponse_builder struct {
+type GenerateDecisionResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The answers, keyed by the same ids as the request's questions.
@@ -1293,8 +1293,8 @@ type GetDecisionResponse_builder struct {
 	ModelUsage *v1.ModelUsage
 }
 
-func (b0 GetDecisionResponse_builder) Build() *GetDecisionResponse {
-	m0 := &GetDecisionResponse{}
+func (b0 GenerateDecisionResponse_builder) Build() *GenerateDecisionResponse {
+	m0 := &GenerateDecisionResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Answers = b.Answers
@@ -1358,21 +1358,21 @@ const file_malonaz_ai_ai_service_v1_decision_proto_rawDesc = "" +
 	"\v_confidence\"9\n" +
 	"\n" +
 	"NoulAnswer\x12+\n" +
-	"\x04noul\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x04noul\"\xd5\x03\n" +
-	"\x12GetDecisionRequest\x125\n" +
+	"\x04noul\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x04noul\"\xe4\x03\n" +
+	"\x17GenerateDecisionRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x124\n" +
-	"\x05state\x18\x02 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\x05state\x12c\n" +
-	"\tquestions\x18\x03 \x03(\v2;.malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12P\n" +
-	"\x06labels\x18\x04 \x03(\v28.malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntryR\x06labels\x1a`\n" +
+	"\x05state\x18\x02 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\x05state\x12h\n" +
+	"\tquestions\x18\x03 \x03(\v2@.malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12U\n" +
+	"\x06labels\x18\x04 \x03(\v2=.malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntryR\x06labels\x1a`\n" +
 	"\x0eQuestionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x128\n" +
 	"\x05value\x18\x02 \x01(\v2\".malonaz.ai.ai_service.v1.QuestionR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x85\x02\n" +
-	"\x13GetDecisionResponse\x12T\n" +
-	"\aanswers\x18\x01 \x03(\v2:.malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntryR\aanswers\x12:\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x8f\x02\n" +
+	"\x18GenerateDecisionResponse\x12Y\n" +
+	"\aanswers\x18\x01 \x03(\v2?.malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntryR\aanswers\x12:\n" +
 	"\vmodel_usage\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x1a\\\n" +
 	"\fAnswersEntry\x12\x10\n" +
@@ -1381,25 +1381,25 @@ const file_malonaz_ai_ai_service_v1_decision_proto_rawDesc = "" +
 
 var file_malonaz_ai_ai_service_v1_decision_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_malonaz_ai_ai_service_v1_decision_proto_goTypes = []any{
-	(*Question)(nil),            // 0: malonaz.ai.ai_service.v1.Question
-	(*ChoiceQuestion)(nil),      // 1: malonaz.ai.ai_service.v1.ChoiceQuestion
-	(*ScoreQuestion)(nil),       // 2: malonaz.ai.ai_service.v1.ScoreQuestion
-	(*NoulQuestion)(nil),        // 3: malonaz.ai.ai_service.v1.NoulQuestion
-	(*Answer)(nil),              // 4: malonaz.ai.ai_service.v1.Answer
-	(*ChoiceAnswer)(nil),        // 5: malonaz.ai.ai_service.v1.ChoiceAnswer
-	(*ScoreAnswer)(nil),         // 6: malonaz.ai.ai_service.v1.ScoreAnswer
-	(*NoulAnswer)(nil),          // 7: malonaz.ai.ai_service.v1.NoulAnswer
-	(*GetDecisionRequest)(nil),  // 8: malonaz.ai.ai_service.v1.GetDecisionRequest
-	(*GetDecisionResponse)(nil), // 9: malonaz.ai.ai_service.v1.GetDecisionResponse
-	nil,                         // 10: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
-	nil,                         // 11: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
-	nil,                         // 12: malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
-	nil,                         // 13: malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	nil,                         // 14: malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry
-	nil,                         // 15: malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntry
-	nil,                         // 16: malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry
-	(*structpb.Value)(nil),      // 17: google.protobuf.Value
-	(*v1.ModelUsage)(nil),       // 18: malonaz.ai.v1.ModelUsage
+	(*Question)(nil),                 // 0: malonaz.ai.ai_service.v1.Question
+	(*ChoiceQuestion)(nil),           // 1: malonaz.ai.ai_service.v1.ChoiceQuestion
+	(*ScoreQuestion)(nil),            // 2: malonaz.ai.ai_service.v1.ScoreQuestion
+	(*NoulQuestion)(nil),             // 3: malonaz.ai.ai_service.v1.NoulQuestion
+	(*Answer)(nil),                   // 4: malonaz.ai.ai_service.v1.Answer
+	(*ChoiceAnswer)(nil),             // 5: malonaz.ai.ai_service.v1.ChoiceAnswer
+	(*ScoreAnswer)(nil),              // 6: malonaz.ai.ai_service.v1.ScoreAnswer
+	(*NoulAnswer)(nil),               // 7: malonaz.ai.ai_service.v1.NoulAnswer
+	(*GenerateDecisionRequest)(nil),  // 8: malonaz.ai.ai_service.v1.GenerateDecisionRequest
+	(*GenerateDecisionResponse)(nil), // 9: malonaz.ai.ai_service.v1.GenerateDecisionResponse
+	nil,                              // 10: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
+	nil,                              // 11: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
+	nil,                              // 12: malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
+	nil,                              // 13: malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
+	nil,                              // 14: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
+	nil,                              // 15: malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
+	nil,                              // 16: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
+	(*structpb.Value)(nil),           // 17: google.protobuf.Value
+	(*v1.ModelUsage)(nil),            // 18: malonaz.ai.v1.ModelUsage
 }
 var file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = []int32{
 	1,  // 0: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
@@ -1418,14 +1418,14 @@ var file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = []int32{
 	11, // 13: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
 	12, // 14: malonaz.ai.ai_service.v1.ScoreAnswer.legend:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
 	13, // 15: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	17, // 16: malonaz.ai.ai_service.v1.GetDecisionRequest.state:type_name -> google.protobuf.Value
-	14, // 17: malonaz.ai.ai_service.v1.GetDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry
-	15, // 18: malonaz.ai.ai_service.v1.GetDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GetDecisionRequest.LabelsEntry
-	16, // 19: malonaz.ai.ai_service.v1.GetDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry
-	18, // 20: malonaz.ai.ai_service.v1.GetDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	17, // 16: malonaz.ai.ai_service.v1.GenerateDecisionRequest.state:type_name -> google.protobuf.Value
+	14, // 17: malonaz.ai.ai_service.v1.GenerateDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
+	15, // 18: malonaz.ai.ai_service.v1.GenerateDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
+	16, // 19: malonaz.ai.ai_service.v1.GenerateDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
+	18, // 20: malonaz.ai.ai_service.v1.GenerateDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
 	17, // 21: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry.value:type_name -> google.protobuf.Value
-	0,  // 22: malonaz.ai.ai_service.v1.GetDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
-	4,  // 23: malonaz.ai.ai_service.v1.GetDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
+	0,  // 22: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
+	4,  // 23: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
 	24, // [24:24] is the sub-list for method output_type
 	24, // [24:24] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name

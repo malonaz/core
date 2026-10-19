@@ -50,8 +50,8 @@ type answerDTO struct {
 	Confidence    *float64           `json:"confidence,omitempty"`
 }
 
-// GetDecision implements provider.DecisionClient.
-func (c *Client) GetDecision(ctx context.Context, request *aiservicepb.GetDecisionRequest) (*aiservicepb.GetDecisionResponse, error) {
+// GenerateDecision implements provider.GenerateDecisionClient.
+func (c *Client) GenerateDecision(ctx context.Context, request *aiservicepb.GenerateDecisionRequest) (*aiservicepb.GenerateDecisionResponse, error) {
 	getModelRequest := &aiservicepb.GetModelRequest{Name: request.GetModel()}
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
@@ -89,7 +89,7 @@ func (c *Client) GetDecision(ctx context.Context, request *aiservicepb.GetDecisi
 		modelUsage.OutputToken = &aipb.ResourceConsumption{Quantity: response.Usage.OutputTokens}
 	}
 
-	return &aiservicepb.GetDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
+	return &aiservicepb.GenerateDecisionResponse{Answers: answers, ModelUsage: modelUsage}, nil
 }
 
 // post sends the request, retrying on 429/529 with exponential backoff.
