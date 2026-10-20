@@ -46,42 +46,35 @@ func setTtdModelUsagePrice(usage *aipb.ModelUsage, pricing *aipb.TtdModelPricing
 	usage.InputToken.Price = (float64(usage.InputToken.Quantity) * pricing.GetInputTokenPricePerMillion()) / 1_000_000
 }
 
-// validateGenerateDecisionRequest checks every json field is a string, object or array. Criteria may also be null.
+// validateGenerateDecisionRequest checks every question json field is a string, object or array. Criteria may also be null.
 func validateGenerateDecisionRequest(request *pb.GenerateDecisionRequest) error {
-	if err := checkDecisionValue("state", request.GetState(), false); err != nil {
-		return err
-	}
 	for id, question := range request.GetQuestions() {
-		switch questionType := question.GetType().(type) {
-		case *pb.Question_Choice:
-			if err := checkDecisionValue(fmt.Sprintf("questions[%s].choice.instructions", id), questionType.Choice.GetInstructions(), false); err != nil {
+		if instructions := question.GetInstructions(); instructions != nil {
+			if err := checkDecisionValue(fmt.Sprintf("questions[%s].instructions", id), instructions, false); err != nil {
 				return err
 			}
-			for name, criterion := range questionType.Choice.GetCriteria() {
-				if err := checkDecisionValue(fmt.Sprintf("questions[%s].choice.criteria[%s]", id, name), criterion, true); err != nil {
+		}
+		switch questionType := question.GetType().(type) {
+		case *pb.Question_Choice:
+			for key, criterion := range questionType.Choice.GetCriteria() {
+				if err := checkDecisionValue(fmt.Sprintf("questions[%s].choice.criteria[%s]", id, key), criterion, true); err != nil {
 					return err
 				}
 			}
 		case *pb.Question_Score:
-			if err := checkDecisionValue(fmt.Sprintf("questions[%s].score.instructions", id), questionType.Score.GetInstructions(), false); err != nil {
-				return err
-			}
 			for i, level := range questionType.Score.GetCriteria() {
 				if err := checkDecisionValue(fmt.Sprintf("questions[%s].score.criteria[%d]", id, i), level, false); err != nil {
 					return err
 				}
 			}
-		case *pb.Question_Noul:
-			if err := checkDecisionValue(fmt.Sprintf("questions[%s].noul.instructions", id), questionType.Noul.GetInstructions(), false); err != nil {
-				return err
-			}
-			if criteria := questionType.Noul.GetCriteriaTrue(); criteria != nil {
-				if err := checkDecisionValue(fmt.Sprintf("questions[%s].noul.criteria_true", id), criteria, true); err != nil {
+		case *pb.Question_Boolean:
+			if criteria := questionType.Boolean.GetCriteriaTrue(); criteria != nil {
+				if err := checkDecisionValue(fmt.Sprintf("questions[%s].boolean.criteria_true", id), criteria, true); err != nil {
 					return err
 				}
 			}
-			if criteria := questionType.Noul.GetCriteriaFalse(); criteria != nil {
-				if err := checkDecisionValue(fmt.Sprintf("questions[%s].noul.criteria_false", id), criteria, true); err != nil {
+			if criteria := questionType.Boolean.GetCriteriaFalse(); criteria != nil {
+				if err := checkDecisionValue(fmt.Sprintf("questions[%s].boolean.criteria_false", id), criteria, true); err != nil {
 					return err
 				}
 			}

@@ -21,19 +21,19 @@ func TestNewChoiceQuestion(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	expected := &aiservicepb.Question{Type: &aiservicepb.Question_Choice{Choice: &aiservicepb.ChoiceQuestion{
+	expected := &aiservicepb.Question{
 		Instructions: structpb.NewStructValue(&structpb.Struct{Fields: map[string]*structpb.Value{
 			"question": structpb.NewStringValue("Which topic?"),
 			"focus":    structpb.NewStringValue("Ignore greetings."),
 		}}),
-		Criteria: map[string]*structpb.Value{
+		Type: &aiservicepb.Question_Choice{Choice: &aiservicepb.ChoiceQuestion{Criteria: map[string]*structpb.Value{
 			"refund": structpb.NewStructValue(&structpb.Struct{Fields: map[string]*structpb.Value{
 				"what":     structpb.NewStringValue("Money back"),
 				"examples": structpb.NewListValue(&structpb.ListValue{Values: []*structpb.Value{structpb.NewStringValue("where is my refund?")}}),
 			}}),
 			"tone": structpb.NewNullValue(),
-		},
-	}}}
+		}}},
+	}
 	require.Empty(t, cmp.Diff(expected, question, protocmp.Transform()))
 }
 
@@ -41,19 +41,20 @@ func TestNewScoreQuestion(t *testing.T) {
 	question, err := NewScoreQuestion("How urgent?", "not urgent", "today")
 	require.NoError(t, err)
 
-	expected := &aiservicepb.Question{Type: &aiservicepb.Question_Score{Score: &aiservicepb.ScoreQuestion{
+	expected := &aiservicepb.Question{
 		Instructions: structpb.NewStringValue("How urgent?"),
-		Criteria:     []*structpb.Value{structpb.NewStringValue("not urgent"), structpb.NewStringValue("today")},
-	}}}
+		Type: &aiservicepb.Question_Score{Score: &aiservicepb.ScoreQuestion{
+			Criteria: []*structpb.Value{structpb.NewStringValue("not urgent"), structpb.NewStringValue("today")},
+		}},
+	}
 	require.Empty(t, cmp.Diff(expected, question, protocmp.Transform()))
 }
 
-func TestNewNoulQuestion(t *testing.T) {
-	question, err := NewNoulQuestion("Is this spam?", "Unsolicited promotion", nil)
+func TestNewBooleanQuestion(t *testing.T) {
+	question, err := NewBooleanQuestion(nil, "Unsolicited promotion", nil)
 	require.NoError(t, err)
 
-	expected := &aiservicepb.Question{Type: &aiservicepb.Question_Noul{Noul: &aiservicepb.NoulQuestion{
-		Instructions: structpb.NewStringValue("Is this spam?"),
+	expected := &aiservicepb.Question{Type: &aiservicepb.Question_Boolean{Boolean: &aiservicepb.BooleanQuestion{
 		CriteriaTrue: structpb.NewStringValue("Unsolicited promotion"),
 	}}}
 	require.Empty(t, cmp.Diff(expected, question, protocmp.Transform()))

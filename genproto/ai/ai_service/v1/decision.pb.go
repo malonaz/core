@@ -29,13 +29,15 @@ const (
 // A typed question asked of a decision model about a state.
 type Question struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// What is being asked. String, object, or array. Optional.
+	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
 	// The question's type.
 	//
 	// Types that are valid to be assigned to Type:
 	//
 	//	*Question_Choice
 	//	*Question_Score
-	//	*Question_Noul
+	//	*Question_Boolean
 	Type          isQuestion_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -66,6 +68,13 @@ func (x *Question) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *Question) GetInstructions() *structpb.Value {
+	if x != nil {
+		return x.Instructions
+	}
+	return nil
+}
+
 func (x *Question) GetType() isQuestion_Type {
 	if x != nil {
 		return x.Type
@@ -91,13 +100,17 @@ func (x *Question) GetScore() *ScoreQuestion {
 	return nil
 }
 
-func (x *Question) GetNoul() *NoulQuestion {
+func (x *Question) GetBoolean() *BooleanQuestion {
 	if x != nil {
-		if x, ok := x.Type.(*Question_Noul); ok {
-			return x.Noul
+		if x, ok := x.Type.(*Question_Boolean); ok {
+			return x.Boolean
 		}
 	}
 	return nil
+}
+
+func (x *Question) SetInstructions(v *structpb.Value) {
+	x.Instructions = v
 }
 
 func (x *Question) SetChoice(v *ChoiceQuestion) {
@@ -116,12 +129,19 @@ func (x *Question) SetScore(v *ScoreQuestion) {
 	x.Type = &Question_Score{v}
 }
 
-func (x *Question) SetNoul(v *NoulQuestion) {
+func (x *Question) SetBoolean(v *BooleanQuestion) {
 	if v == nil {
 		x.Type = nil
 		return
 	}
-	x.Type = &Question_Noul{v}
+	x.Type = &Question_Boolean{v}
+}
+
+func (x *Question) HasInstructions() bool {
+	if x == nil {
+		return false
+	}
+	return x.Instructions != nil
 }
 
 func (x *Question) HasType() bool {
@@ -147,12 +167,16 @@ func (x *Question) HasScore() bool {
 	return ok
 }
 
-func (x *Question) HasNoul() bool {
+func (x *Question) HasBoolean() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Type.(*Question_Noul)
+	_, ok := x.Type.(*Question_Boolean)
 	return ok
+}
+
+func (x *Question) ClearInstructions() {
+	x.Instructions = nil
 }
 
 func (x *Question) ClearType() {
@@ -171,16 +195,16 @@ func (x *Question) ClearScore() {
 	}
 }
 
-func (x *Question) ClearNoul() {
-	if _, ok := x.Type.(*Question_Noul); ok {
+func (x *Question) ClearBoolean() {
+	if _, ok := x.Type.(*Question_Boolean); ok {
 		x.Type = nil
 	}
 }
 
 const Question_Type_not_set_case case_Question_Type = 0
-const Question_Choice_case case_Question_Type = 1
-const Question_Score_case case_Question_Type = 2
-const Question_Noul_case case_Question_Type = 3
+const Question_Choice_case case_Question_Type = 2
+const Question_Score_case case_Question_Type = 3
+const Question_Boolean_case case_Question_Type = 4
 
 func (x *Question) WhichType() case_Question_Type {
 	if x == nil {
@@ -191,8 +215,8 @@ func (x *Question) WhichType() case_Question_Type {
 		return Question_Choice_case
 	case *Question_Score:
 		return Question_Score_case
-	case *Question_Noul:
-		return Question_Noul_case
+	case *Question_Boolean:
+		return Question_Boolean_case
 	default:
 		return Question_Type_not_set_case
 	}
@@ -201,15 +225,17 @@ func (x *Question) WhichType() case_Question_Type {
 type Question_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// What is being asked. String, object, or array. Optional.
+	Instructions *structpb.Value
 	// The question's type.
 
 	// Fields of oneof Type:
 	// Selects one option from a fixed set.
 	Choice *ChoiceQuestion
-	// Places the state on a fixed rubric.
+	// Places the state on an ordered rubric.
 	Score *ScoreQuestion
-	// Evaluates a yes/no question.
-	Noul *NoulQuestion
+	// Estimates the probability that a condition is true.
+	Boolean *BooleanQuestion
 	// -- end of Type
 }
 
@@ -217,14 +243,15 @@ func (b0 Question_builder) Build() *Question {
 	m0 := &Question{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Instructions = b.Instructions
 	if b.Choice != nil {
 		x.Type = &Question_Choice{b.Choice}
 	}
 	if b.Score != nil {
 		x.Type = &Question_Score{b.Score}
 	}
-	if b.Noul != nil {
-		x.Type = &Question_Noul{b.Noul}
+	if b.Boolean != nil {
+		x.Type = &Question_Boolean{b.Boolean}
 	}
 	return m0
 }
@@ -245,32 +272,30 @@ type isQuestion_Type interface {
 
 type Question_Choice struct {
 	// Selects one option from a fixed set.
-	Choice *ChoiceQuestion `protobuf:"bytes,1,opt,name=choice,proto3,oneof"`
+	Choice *ChoiceQuestion `protobuf:"bytes,2,opt,name=choice,proto3,oneof"`
 }
 
 type Question_Score struct {
-	// Places the state on a fixed rubric.
-	Score *ScoreQuestion `protobuf:"bytes,2,opt,name=score,proto3,oneof"`
+	// Places the state on an ordered rubric.
+	Score *ScoreQuestion `protobuf:"bytes,3,opt,name=score,proto3,oneof"`
 }
 
-type Question_Noul struct {
-	// Evaluates a yes/no question.
-	Noul *NoulQuestion `protobuf:"bytes,3,opt,name=noul,proto3,oneof"`
+type Question_Boolean struct {
+	// Estimates the probability that a condition is true.
+	Boolean *BooleanQuestion `protobuf:"bytes,4,opt,name=boolean,proto3,oneof"`
 }
 
 func (*Question_Choice) isQuestion_Type() {}
 
 func (*Question_Score) isQuestion_Type() {}
 
-func (*Question_Noul) isQuestion_Type() {}
+func (*Question_Boolean) isQuestion_Type() {}
 
 // Asks the model to select one option from a fixed set.
 type ChoiceQuestion struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
-	// Maps an option name to a description of when it applies.
-	Criteria      map[string]*structpb.Value `protobuf:"bytes,2,rep,name=criteria,proto3" json:"criteria,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Maps an option key to a description of when it applies.
+	Criteria      map[string]*structpb.Value `protobuf:"bytes,1,rep,name=criteria,proto3" json:"criteria,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -300,13 +325,6 @@ func (x *ChoiceQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ChoiceQuestion) GetInstructions() *structpb.Value {
-	if x != nil {
-		return x.Instructions
-	}
-	return nil
-}
-
 func (x *ChoiceQuestion) GetCriteria() map[string]*structpb.Value {
 	if x != nil {
 		return x.Criteria
@@ -314,31 +332,14 @@ func (x *ChoiceQuestion) GetCriteria() map[string]*structpb.Value {
 	return nil
 }
 
-func (x *ChoiceQuestion) SetInstructions(v *structpb.Value) {
-	x.Instructions = v
-}
-
 func (x *ChoiceQuestion) SetCriteria(v map[string]*structpb.Value) {
 	x.Criteria = v
-}
-
-func (x *ChoiceQuestion) HasInstructions() bool {
-	if x == nil {
-		return false
-	}
-	return x.Instructions != nil
-}
-
-func (x *ChoiceQuestion) ClearInstructions() {
-	x.Instructions = nil
 }
 
 type ChoiceQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value
-	// Maps an option name to a description of when it applies.
+	// Maps an option key to a description of when it applies.
 	Criteria map[string]*structpb.Value
 }
 
@@ -346,18 +347,15 @@ func (b0 ChoiceQuestion_builder) Build() *ChoiceQuestion {
 	m0 := &ChoiceQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Instructions = b.Instructions
 	x.Criteria = b.Criteria
 	return m0
 }
 
-// Asks the model to place the state on a fixed rubric.
+// Asks the model to place the state on an ordered rubric.
 type ScoreQuestion struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
-	// Ordered rubric levels, from lowest to highest.
-	Criteria      []*structpb.Value `protobuf:"bytes,2,rep,name=criteria,proto3" json:"criteria,omitempty"`
+	// Rubric level descriptions, from lowest to highest.
+	Criteria      []*structpb.Value `protobuf:"bytes,1,rep,name=criteria,proto3" json:"criteria,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -387,13 +385,6 @@ func (x *ScoreQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ScoreQuestion) GetInstructions() *structpb.Value {
-	if x != nil {
-		return x.Instructions
-	}
-	return nil
-}
-
 func (x *ScoreQuestion) GetCriteria() []*structpb.Value {
 	if x != nil {
 		return x.Criteria
@@ -401,31 +392,14 @@ func (x *ScoreQuestion) GetCriteria() []*structpb.Value {
 	return nil
 }
 
-func (x *ScoreQuestion) SetInstructions(v *structpb.Value) {
-	x.Instructions = v
-}
-
 func (x *ScoreQuestion) SetCriteria(v []*structpb.Value) {
 	x.Criteria = v
-}
-
-func (x *ScoreQuestion) HasInstructions() bool {
-	if x == nil {
-		return false
-	}
-	return x.Instructions != nil
-}
-
-func (x *ScoreQuestion) ClearInstructions() {
-	x.Instructions = nil
 }
 
 type ScoreQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value
-	// Ordered rubric levels, from lowest to highest.
+	// Rubric level descriptions, from lowest to highest.
 	Criteria []*structpb.Value
 }
 
@@ -433,39 +407,35 @@ func (b0 ScoreQuestion_builder) Build() *ScoreQuestion {
 	m0 := &ScoreQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Instructions = b.Instructions
 	x.Criteria = b.Criteria
 	return m0
 }
 
-// Asks the model to evaluate a yes/no question and return the probability
-// that the answer is yes.
-type NoulQuestion struct {
+// Asks the model for the probability that a condition is true.
+type BooleanQuestion struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
-	// Describes what a "yes" answer looks like. Optional.
-	CriteriaTrue *structpb.Value `protobuf:"bytes,2,opt,name=criteria_true,json=criteriaTrue,proto3" json:"criteria_true,omitempty"`
-	// Describes what a "no" answer looks like. Optional.
-	CriteriaFalse *structpb.Value `protobuf:"bytes,3,opt,name=criteria_false,json=criteriaFalse,proto3" json:"criteria_false,omitempty"`
+	// Describes the true case. Optional.
+	CriteriaTrue *structpb.Value `protobuf:"bytes,1,opt,name=criteria_true,json=criteriaTrue,proto3" json:"criteria_true,omitempty"`
+	// Describes the false case. Optional.
+	CriteriaFalse *structpb.Value `protobuf:"bytes,2,opt,name=criteria_false,json=criteriaFalse,proto3" json:"criteria_false,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NoulQuestion) Reset() {
-	*x = NoulQuestion{}
+func (x *BooleanQuestion) Reset() {
+	*x = BooleanQuestion{}
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NoulQuestion) String() string {
+func (x *BooleanQuestion) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NoulQuestion) ProtoMessage() {}
+func (*BooleanQuestion) ProtoMessage() {}
 
-func (x *NoulQuestion) ProtoReflect() protoreflect.Message {
+func (x *BooleanQuestion) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -477,88 +447,63 @@ func (x *NoulQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *NoulQuestion) GetInstructions() *structpb.Value {
-	if x != nil {
-		return x.Instructions
-	}
-	return nil
-}
-
-func (x *NoulQuestion) GetCriteriaTrue() *structpb.Value {
+func (x *BooleanQuestion) GetCriteriaTrue() *structpb.Value {
 	if x != nil {
 		return x.CriteriaTrue
 	}
 	return nil
 }
 
-func (x *NoulQuestion) GetCriteriaFalse() *structpb.Value {
+func (x *BooleanQuestion) GetCriteriaFalse() *structpb.Value {
 	if x != nil {
 		return x.CriteriaFalse
 	}
 	return nil
 }
 
-func (x *NoulQuestion) SetInstructions(v *structpb.Value) {
-	x.Instructions = v
-}
-
-func (x *NoulQuestion) SetCriteriaTrue(v *structpb.Value) {
+func (x *BooleanQuestion) SetCriteriaTrue(v *structpb.Value) {
 	x.CriteriaTrue = v
 }
 
-func (x *NoulQuestion) SetCriteriaFalse(v *structpb.Value) {
+func (x *BooleanQuestion) SetCriteriaFalse(v *structpb.Value) {
 	x.CriteriaFalse = v
 }
 
-func (x *NoulQuestion) HasInstructions() bool {
-	if x == nil {
-		return false
-	}
-	return x.Instructions != nil
-}
-
-func (x *NoulQuestion) HasCriteriaTrue() bool {
+func (x *BooleanQuestion) HasCriteriaTrue() bool {
 	if x == nil {
 		return false
 	}
 	return x.CriteriaTrue != nil
 }
 
-func (x *NoulQuestion) HasCriteriaFalse() bool {
+func (x *BooleanQuestion) HasCriteriaFalse() bool {
 	if x == nil {
 		return false
 	}
 	return x.CriteriaFalse != nil
 }
 
-func (x *NoulQuestion) ClearInstructions() {
-	x.Instructions = nil
-}
-
-func (x *NoulQuestion) ClearCriteriaTrue() {
+func (x *BooleanQuestion) ClearCriteriaTrue() {
 	x.CriteriaTrue = nil
 }
 
-func (x *NoulQuestion) ClearCriteriaFalse() {
+func (x *BooleanQuestion) ClearCriteriaFalse() {
 	x.CriteriaFalse = nil
 }
 
-type NoulQuestion_builder struct {
+type BooleanQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// What is being asked. String, object, or array.
-	Instructions *structpb.Value
-	// Describes what a "yes" answer looks like. Optional.
+	// Describes the true case. Optional.
 	CriteriaTrue *structpb.Value
-	// Describes what a "no" answer looks like. Optional.
+	// Describes the false case. Optional.
 	CriteriaFalse *structpb.Value
 }
 
-func (b0 NoulQuestion_builder) Build() *NoulQuestion {
-	m0 := &NoulQuestion{}
+func (b0 BooleanQuestion_builder) Build() *BooleanQuestion {
+	m0 := &BooleanQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Instructions = b.Instructions
 	x.CriteriaTrue = b.CriteriaTrue
 	x.CriteriaFalse = b.CriteriaFalse
 	return m0
@@ -573,8 +518,11 @@ type Answer struct {
 	//
 	//	*Answer_Choice
 	//	*Answer_Score
-	//	*Answer_Noul
-	Type          isAnswer_Type `protobuf_oneof:"type"`
+	//	*Answer_Boolean
+	//	*Answer_Refusal
+	Type isAnswer_Type `protobuf_oneof:"type"`
+	// Provider specific extra fields, e.g. {"confidence": 0.93}.
+	ExtraFields   *structpb.Struct `protobuf:"bytes,5,opt,name=extra_fields,json=extraFields,proto3" json:"extra_fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -629,11 +577,27 @@ func (x *Answer) GetScore() *ScoreAnswer {
 	return nil
 }
 
-func (x *Answer) GetNoul() *NoulAnswer {
+func (x *Answer) GetBoolean() *BooleanAnswer {
 	if x != nil {
-		if x, ok := x.Type.(*Answer_Noul); ok {
-			return x.Noul
+		if x, ok := x.Type.(*Answer_Boolean); ok {
+			return x.Boolean
 		}
+	}
+	return nil
+}
+
+func (x *Answer) GetRefusal() *Refusal {
+	if x != nil {
+		if x, ok := x.Type.(*Answer_Refusal); ok {
+			return x.Refusal
+		}
+	}
+	return nil
+}
+
+func (x *Answer) GetExtraFields() *structpb.Struct {
+	if x != nil {
+		return x.ExtraFields
 	}
 	return nil
 }
@@ -654,12 +618,24 @@ func (x *Answer) SetScore(v *ScoreAnswer) {
 	x.Type = &Answer_Score{v}
 }
 
-func (x *Answer) SetNoul(v *NoulAnswer) {
+func (x *Answer) SetBoolean(v *BooleanAnswer) {
 	if v == nil {
 		x.Type = nil
 		return
 	}
-	x.Type = &Answer_Noul{v}
+	x.Type = &Answer_Boolean{v}
+}
+
+func (x *Answer) SetRefusal(v *Refusal) {
+	if v == nil {
+		x.Type = nil
+		return
+	}
+	x.Type = &Answer_Refusal{v}
+}
+
+func (x *Answer) SetExtraFields(v *structpb.Struct) {
+	x.ExtraFields = v
 }
 
 func (x *Answer) HasType() bool {
@@ -685,12 +661,27 @@ func (x *Answer) HasScore() bool {
 	return ok
 }
 
-func (x *Answer) HasNoul() bool {
+func (x *Answer) HasBoolean() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.Type.(*Answer_Noul)
+	_, ok := x.Type.(*Answer_Boolean)
 	return ok
+}
+
+func (x *Answer) HasRefusal() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Type.(*Answer_Refusal)
+	return ok
+}
+
+func (x *Answer) HasExtraFields() bool {
+	if x == nil {
+		return false
+	}
+	return x.ExtraFields != nil
 }
 
 func (x *Answer) ClearType() {
@@ -709,16 +700,27 @@ func (x *Answer) ClearScore() {
 	}
 }
 
-func (x *Answer) ClearNoul() {
-	if _, ok := x.Type.(*Answer_Noul); ok {
+func (x *Answer) ClearBoolean() {
+	if _, ok := x.Type.(*Answer_Boolean); ok {
 		x.Type = nil
 	}
+}
+
+func (x *Answer) ClearRefusal() {
+	if _, ok := x.Type.(*Answer_Refusal); ok {
+		x.Type = nil
+	}
+}
+
+func (x *Answer) ClearExtraFields() {
+	x.ExtraFields = nil
 }
 
 const Answer_Type_not_set_case case_Answer_Type = 0
 const Answer_Choice_case case_Answer_Type = 1
 const Answer_Score_case case_Answer_Type = 2
-const Answer_Noul_case case_Answer_Type = 3
+const Answer_Boolean_case case_Answer_Type = 3
+const Answer_Refusal_case case_Answer_Type = 4
 
 func (x *Answer) WhichType() case_Answer_Type {
 	if x == nil {
@@ -729,8 +731,10 @@ func (x *Answer) WhichType() case_Answer_Type {
 		return Answer_Choice_case
 	case *Answer_Score:
 		return Answer_Score_case
-	case *Answer_Noul:
-		return Answer_Noul_case
+	case *Answer_Boolean:
+		return Answer_Boolean_case
+	case *Answer_Refusal:
+		return Answer_Refusal_case
 	default:
 		return Answer_Type_not_set_case
 	}
@@ -746,9 +750,13 @@ type Answer_builder struct {
 	Choice *ChoiceAnswer
 	// Answer to a ScoreQuestion.
 	Score *ScoreAnswer
-	// Answer to a NoulQuestion.
-	Noul *NoulAnswer
+	// Answer to a BooleanQuestion.
+	Boolean *BooleanAnswer
+	// The model declined to answer.
+	Refusal *Refusal
 	// -- end of Type
+	// Provider specific extra fields, e.g. {"confidence": 0.93}.
+	ExtraFields *structpb.Struct
 }
 
 func (b0 Answer_builder) Build() *Answer {
@@ -761,9 +769,13 @@ func (b0 Answer_builder) Build() *Answer {
 	if b.Score != nil {
 		x.Type = &Answer_Score{b.Score}
 	}
-	if b.Noul != nil {
-		x.Type = &Answer_Noul{b.Noul}
+	if b.Boolean != nil {
+		x.Type = &Answer_Boolean{b.Boolean}
 	}
+	if b.Refusal != nil {
+		x.Type = &Answer_Refusal{b.Refusal}
+	}
+	x.ExtraFields = b.ExtraFields
 	return m0
 }
 
@@ -791,28 +803,31 @@ type Answer_Score struct {
 	Score *ScoreAnswer `protobuf:"bytes,2,opt,name=score,proto3,oneof"`
 }
 
-type Answer_Noul struct {
-	// Answer to a NoulQuestion.
-	Noul *NoulAnswer `protobuf:"bytes,3,opt,name=noul,proto3,oneof"`
+type Answer_Boolean struct {
+	// Answer to a BooleanQuestion.
+	Boolean *BooleanAnswer `protobuf:"bytes,3,opt,name=boolean,proto3,oneof"`
+}
+
+type Answer_Refusal struct {
+	// The model declined to answer.
+	Refusal *Refusal `protobuf:"bytes,4,opt,name=refusal,proto3,oneof"`
 }
 
 func (*Answer_Choice) isAnswer_Type() {}
 
 func (*Answer_Score) isAnswer_Type() {}
 
-func (*Answer_Noul) isAnswer_Type() {}
+func (*Answer_Boolean) isAnswer_Type() {}
+
+func (*Answer_Refusal) isAnswer_Type() {}
 
 // Answer to a ChoiceQuestion.
 type ChoiceAnswer struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The selected option name.
+	// The selected option key.
 	Choice string `protobuf:"bytes,1,opt,name=choice,proto3" json:"choice,omitempty"`
-	// Probability mass per option. Empty when the decision model cannot report
-	// calibrated probabilities (e.g. a TTT model used as a decision model).
+	// Probability per option key. Empty when the model reports no distribution.
 	Probabilities map[string]float64 `protobuf:"bytes,2,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	// Confidence in the selected choice, in [0, 1]. Unset when the decision model
-	// cannot report a calibrated confidence.
-	Confidence    *float64 `protobuf:"fixed64,3,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -856,13 +871,6 @@ func (x *ChoiceAnswer) GetProbabilities() map[string]float64 {
 	return nil
 }
 
-func (x *ChoiceAnswer) GetConfidence() float64 {
-	if x != nil && x.Confidence != nil {
-		return *x.Confidence
-	}
-	return 0
-}
-
 func (x *ChoiceAnswer) SetChoice(v string) {
 	x.Choice = v
 }
@@ -871,32 +879,13 @@ func (x *ChoiceAnswer) SetProbabilities(v map[string]float64) {
 	x.Probabilities = v
 }
 
-func (x *ChoiceAnswer) SetConfidence(v float64) {
-	x.Confidence = &v
-}
-
-func (x *ChoiceAnswer) HasConfidence() bool {
-	if x == nil {
-		return false
-	}
-	return x.Confidence != nil
-}
-
-func (x *ChoiceAnswer) ClearConfidence() {
-	x.Confidence = nil
-}
-
 type ChoiceAnswer_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The selected option name.
+	// The selected option key.
 	Choice string
-	// Probability mass per option. Empty when the decision model cannot report
-	// calibrated probabilities (e.g. a TTT model used as a decision model).
+	// Probability per option key. Empty when the model reports no distribution.
 	Probabilities map[string]float64
-	// Confidence in the selected choice, in [0, 1]. Unset when the decision model
-	// cannot report a calibrated confidence.
-	Confidence *float64
 }
 
 func (b0 ChoiceAnswer_builder) Build() *ChoiceAnswer {
@@ -905,23 +894,16 @@ func (b0 ChoiceAnswer_builder) Build() *ChoiceAnswer {
 	_, _ = b, x
 	x.Choice = b.Choice
 	x.Probabilities = b.Probabilities
-	x.Confidence = b.Confidence
 	return m0
 }
 
 // Answer to a ScoreQuestion.
 type ScoreAnswer struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The score, as an index into the rubric levels (may be fractional).
+	// Zero-based rubric level. The probability-weighted mean when probabilities are set.
 	Score float64 `protobuf:"fixed64,1,opt,name=score,proto3" json:"score,omitempty"`
-	// Maps a rubric level index (as a string) to its description.
-	Legend map[string]string `protobuf:"bytes,2,rep,name=legend,proto3" json:"legend,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Probability mass per rubric level index (as a string). Empty when the
-	// decision model cannot report calibrated probabilities.
-	Probabilities map[string]float64 `protobuf:"bytes,3,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
-	// Confidence in the score, in [0, 1]. Unset when the decision model cannot
-	// report a calibrated confidence.
-	Confidence    *float64 `protobuf:"fixed64,4,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
+	// Probability per zero-based level index, as a string. Empty when the model reports no distribution.
+	Probabilities map[string]float64 `protobuf:"bytes,2,rep,name=probabilities,proto3" json:"probabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -958,13 +940,6 @@ func (x *ScoreAnswer) GetScore() float64 {
 	return 0
 }
 
-func (x *ScoreAnswer) GetLegend() map[string]string {
-	if x != nil {
-		return x.Legend
-	}
-	return nil
-}
-
 func (x *ScoreAnswer) GetProbabilities() map[string]float64 {
 	if x != nil {
 		return x.Probabilities
@@ -972,53 +947,21 @@ func (x *ScoreAnswer) GetProbabilities() map[string]float64 {
 	return nil
 }
 
-func (x *ScoreAnswer) GetConfidence() float64 {
-	if x != nil && x.Confidence != nil {
-		return *x.Confidence
-	}
-	return 0
-}
-
 func (x *ScoreAnswer) SetScore(v float64) {
 	x.Score = v
-}
-
-func (x *ScoreAnswer) SetLegend(v map[string]string) {
-	x.Legend = v
 }
 
 func (x *ScoreAnswer) SetProbabilities(v map[string]float64) {
 	x.Probabilities = v
 }
 
-func (x *ScoreAnswer) SetConfidence(v float64) {
-	x.Confidence = &v
-}
-
-func (x *ScoreAnswer) HasConfidence() bool {
-	if x == nil {
-		return false
-	}
-	return x.Confidence != nil
-}
-
-func (x *ScoreAnswer) ClearConfidence() {
-	x.Confidence = nil
-}
-
 type ScoreAnswer_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The score, as an index into the rubric levels (may be fractional).
+	// Zero-based rubric level. The probability-weighted mean when probabilities are set.
 	Score float64
-	// Maps a rubric level index (as a string) to its description.
-	Legend map[string]string
-	// Probability mass per rubric level index (as a string). Empty when the
-	// decision model cannot report calibrated probabilities.
+	// Probability per zero-based level index, as a string. Empty when the model reports no distribution.
 	Probabilities map[string]float64
-	// Confidence in the score, in [0, 1]. Unset when the decision model cannot
-	// report a calibrated confidence.
-	Confidence *float64
 }
 
 func (b0 ScoreAnswer_builder) Build() *ScoreAnswer {
@@ -1026,36 +969,33 @@ func (b0 ScoreAnswer_builder) Build() *ScoreAnswer {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Score = b.Score
-	x.Legend = b.Legend
 	x.Probabilities = b.Probabilities
-	x.Confidence = b.Confidence
 	return m0
 }
 
-// Answer to a NoulQuestion.
-type NoulAnswer struct {
+// Answer to a BooleanQuestion.
+type BooleanAnswer struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Probability that the answer is yes, in [0, 1]. A two-outcome
-	// distribution carries no separate confidence value.
-	Noul          float64 `protobuf:"fixed64,1,opt,name=noul,proto3" json:"noul,omitempty"`
+	// Probability that the condition is true.
+	Probability   float64 `protobuf:"fixed64,1,opt,name=probability,proto3" json:"probability,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NoulAnswer) Reset() {
-	*x = NoulAnswer{}
+func (x *BooleanAnswer) Reset() {
+	*x = BooleanAnswer{}
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NoulAnswer) String() string {
+func (x *BooleanAnswer) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NoulAnswer) ProtoMessage() {}
+func (*BooleanAnswer) ProtoMessage() {}
 
-func (x *NoulAnswer) ProtoReflect() protoreflect.Message {
+func (x *BooleanAnswer) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1067,30 +1007,89 @@ func (x *NoulAnswer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *NoulAnswer) GetNoul() float64 {
+func (x *BooleanAnswer) GetProbability() float64 {
 	if x != nil {
-		return x.Noul
+		return x.Probability
 	}
 	return 0
 }
 
-func (x *NoulAnswer) SetNoul(v float64) {
-	x.Noul = v
+func (x *BooleanAnswer) SetProbability(v float64) {
+	x.Probability = v
 }
 
-type NoulAnswer_builder struct {
+type BooleanAnswer_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Probability that the answer is yes, in [0, 1]. A two-outcome
-	// distribution carries no separate confidence value.
-	Noul float64
+	// Probability that the condition is true.
+	Probability float64
 }
 
-func (b0 NoulAnswer_builder) Build() *NoulAnswer {
-	m0 := &NoulAnswer{}
+func (b0 BooleanAnswer_builder) Build() *BooleanAnswer {
+	m0 := &BooleanAnswer{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Noul = b.Noul
+	x.Probability = b.Probability
+	return m0
+}
+
+// A refusal to answer a question.
+type Refusal struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Why the model refused, when given.
+	Reason        string `protobuf:"bytes,1,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Refusal) Reset() {
+	*x = Refusal{}
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Refusal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Refusal) ProtoMessage() {}
+
+func (x *Refusal) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Refusal) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *Refusal) SetReason(v string) {
+	x.Reason = v
+}
+
+type Refusal_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Why the model refused, when given.
+	Reason string
+}
+
+func (b0 Refusal_builder) Build() *Refusal {
+	m0 := &Refusal{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Reason = b.Reason
 	return m0
 }
 
@@ -1100,8 +1099,10 @@ type GenerateDecisionRequest struct {
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
 	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// The state to evaluate. String, object, or array.
-	State *structpb.Value `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// The state to evaluate, shared by every question. Only text, image and
+	// document blocks are allowed; provider support varies (e.g. Jev is text only).
+	// Structured (JSON) state is not supported yet: send it as JSON text.
+	State []*v1.Block `protobuf:"bytes,2,rep,name=state,proto3" json:"state,omitempty"`
 	// The questions to answer about the state, keyed by caller-defined id.
 	Questions map[string]*Question `protobuf:"bytes,3,rep,name=questions,proto3" json:"questions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Labels for this call.
@@ -1112,7 +1113,7 @@ type GenerateDecisionRequest struct {
 
 func (x *GenerateDecisionRequest) Reset() {
 	*x = GenerateDecisionRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1124,7 +1125,7 @@ func (x *GenerateDecisionRequest) String() string {
 func (*GenerateDecisionRequest) ProtoMessage() {}
 
 func (x *GenerateDecisionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[8]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1142,7 +1143,7 @@ func (x *GenerateDecisionRequest) GetModel() string {
 	return ""
 }
 
-func (x *GenerateDecisionRequest) GetState() *structpb.Value {
+func (x *GenerateDecisionRequest) GetState() []*v1.Block {
 	if x != nil {
 		return x.State
 	}
@@ -1167,7 +1168,7 @@ func (x *GenerateDecisionRequest) SetModel(v string) {
 	x.Model = v
 }
 
-func (x *GenerateDecisionRequest) SetState(v *structpb.Value) {
+func (x *GenerateDecisionRequest) SetState(v []*v1.Block) {
 	x.State = v
 }
 
@@ -1179,25 +1180,16 @@ func (x *GenerateDecisionRequest) SetLabels(v map[string]string) {
 	x.Labels = v
 }
 
-func (x *GenerateDecisionRequest) HasState() bool {
-	if x == nil {
-		return false
-	}
-	return x.State != nil
-}
-
-func (x *GenerateDecisionRequest) ClearState() {
-	x.State = nil
-}
-
 type GenerateDecisionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The resource name of the model used.
 	// Format: providers/{provider}/models/{model}
 	Model string
-	// The state to evaluate. String, object, or array.
-	State *structpb.Value
+	// The state to evaluate, shared by every question. Only text, image and
+	// document blocks are allowed; provider support varies (e.g. Jev is text only).
+	// Structured (JSON) state is not supported yet: send it as JSON text.
+	State []*v1.Block
 	// The questions to answer about the state, keyed by caller-defined id.
 	Questions map[string]*Question
 	// Labels for this call.
@@ -1228,7 +1220,7 @@ type GenerateDecisionResponse struct {
 
 func (x *GenerateDecisionResponse) Reset() {
 	*x = GenerateDecisionResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1240,7 +1232,7 @@ func (x *GenerateDecisionResponse) String() string {
 func (*GenerateDecisionResponse) ProtoMessage() {}
 
 func (x *GenerateDecisionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[9]
+	mi := &file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1306,65 +1298,56 @@ var File_malonaz_ai_ai_service_v1_decision_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_decision_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xdc\x01\n" +
-	"\bQuestion\x12B\n" +
-	"\x06choice\x18\x01 \x01(\v2(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00R\x06choice\x12?\n" +
-	"\x05score\x18\x02 \x01(\v2'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00R\x05score\x12<\n" +
-	"\x04noul\x18\x03 \x01(\v2&.malonaz.ai.ai_service.v1.NoulQuestionH\x00R\x04noulB\r\n" +
-	"\x04type\x12\x05\xbaH\x02\b\x01\"\x8a\x02\n" +
-	"\x0eChoiceQuestion\x12B\n" +
-	"\finstructions\x18\x01 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\finstructions\x12_\n" +
-	"\bcriteria\x18\x02 \x03(\v26.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\v\xbaH\b\x9a\x01\x05\b\x01\x10\xff\x01R\bcriteria\x1aS\n" +
+	"'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xa6\x04\n" +
+	"\bQuestion\x12:\n" +
+	"\finstructions\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\finstructions\x12B\n" +
+	"\x06choice\x18\x02 \x01(\v2(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00R\x06choice\x12?\n" +
+	"\x05score\x18\x03 \x01(\v2'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00R\x05score\x12E\n" +
+	"\aboolean\x18\x04 \x01(\v2).malonaz.ai.ai_service.v1.BooleanQuestionH\x00R\aboolean:\x82\x02\xbaH\xfe\x01\x1a\xfb\x01\n" +
+	"2question_boolean_requires_instructions_or_criteria\x12Pa boolean question without instructions must set criteria_true or criteria_false\x1as!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)B\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"\xc6\x01\n" +
+	"\x0eChoiceQuestion\x12_\n" +
+	"\bcriteria\x18\x01 \x03(\v26.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\v\xbaH\b\x9a\x01\x05\b\x01\x10\xff\x01R\bcriteria\x1aS\n" +
 	"\rCriteriaEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
-	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01\"\x93\x01\n" +
-	"\rScoreQuestion\x12B\n" +
-	"\finstructions\x18\x01 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\finstructions\x12>\n" +
-	"\bcriteria\x18\x02 \x03(\v2\x16.google.protobuf.ValueB\n" +
+	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01\"O\n" +
+	"\rScoreQuestion\x12>\n" +
+	"\bcriteria\x18\x01 \x03(\v2\x16.google.protobuf.ValueB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x10\n" +
-	"R\bcriteria\"\xce\x01\n" +
-	"\fNoulQuestion\x12B\n" +
-	"\finstructions\x18\x01 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\finstructions\x12;\n" +
-	"\rcriteria_true\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\fcriteriaTrue\x12=\n" +
-	"\x0ecriteria_false\x18\x03 \x01(\v2\x16.google.protobuf.ValueR\rcriteriaFalse\"\xcd\x01\n" +
+	"R\bcriteria\"\x8d\x01\n" +
+	"\x0fBooleanQuestion\x12;\n" +
+	"\rcriteria_true\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\fcriteriaTrue\x12=\n" +
+	"\x0ecriteria_false\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\rcriteriaFalse\"\xd1\x02\n" +
 	"\x06Answer\x12@\n" +
 	"\x06choice\x18\x01 \x01(\v2&.malonaz.ai.ai_service.v1.ChoiceAnswerH\x00R\x06choice\x12=\n" +
-	"\x05score\x18\x02 \x01(\v2%.malonaz.ai.ai_service.v1.ScoreAnswerH\x00R\x05score\x12:\n" +
-	"\x04noul\x18\x03 \x01(\v2$.malonaz.ai.ai_service.v1.NoulAnswerH\x00R\x04noulB\x06\n" +
-	"\x04type\"\x96\x02\n" +
+	"\x05score\x18\x02 \x01(\v2%.malonaz.ai.ai_service.v1.ScoreAnswerH\x00R\x05score\x12C\n" +
+	"\aboolean\x18\x03 \x01(\v2'.malonaz.ai.ai_service.v1.BooleanAnswerH\x00R\aboolean\x12=\n" +
+	"\arefusal\x18\x04 \x01(\v2!.malonaz.ai.ai_service.v1.RefusalH\x00R\arefusal\x12:\n" +
+	"\fextra_fields\x18\x05 \x01(\v2\x17.google.protobuf.StructR\vextraFieldsB\x06\n" +
+	"\x04type\"\xc9\x01\n" +
 	"\fChoiceAnswer\x12\x16\n" +
 	"\x06choice\x18\x01 \x01(\tR\x06choice\x12_\n" +
-	"\rprobabilities\x18\x02 \x03(\v29.malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntryR\rprobabilities\x12<\n" +
-	"\n" +
-	"confidence\x18\x03 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00H\x00R\n" +
-	"confidence\x88\x01\x01\x1a@\n" +
+	"\rprobabilities\x18\x02 \x03(\v29.malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntryR\rprobabilities\x1a@\n" +
 	"\x12ProbabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01B\r\n" +
-	"\v_confidence\"\x98\x03\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\xc5\x01\n" +
 	"\vScoreAnswer\x12\x14\n" +
-	"\x05score\x18\x01 \x01(\x01R\x05score\x12I\n" +
-	"\x06legend\x18\x02 \x03(\v21.malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntryR\x06legend\x12^\n" +
-	"\rprobabilities\x18\x03 \x03(\v28.malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntryR\rprobabilities\x12<\n" +
-	"\n" +
-	"confidence\x18\x04 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00H\x00R\n" +
-	"confidence\x88\x01\x01\x1a9\n" +
-	"\vLegendEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a@\n" +
+	"\x05score\x18\x01 \x01(\x01R\x05score\x12^\n" +
+	"\rprobabilities\x18\x02 \x03(\v28.malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntryR\rprobabilities\x1a@\n" +
 	"\x12ProbabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01B\r\n" +
-	"\v_confidence\"9\n" +
-	"\n" +
-	"NoulAnswer\x12+\n" +
-	"\x04noul\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\x04noul\"\xe4\x03\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"J\n" +
+	"\rBooleanAnswer\x129\n" +
+	"\vprobability\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00R\vprobability\"!\n" +
+	"\aRefusal\x12\x16\n" +
+	"\x06reason\x18\x01 \x01(\tR\x06reason\"\xf8\x05\n" +
 	"\x17GenerateDecisionRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
-	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x124\n" +
-	"\x05state\x18\x02 \x01(\v2\x16.google.protobuf.ValueB\x06\xbaH\x03\xc8\x01\x01R\x05state\x12h\n" +
-	"\tquestions\x18\x03 \x03(\v2@.malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12U\n" +
-	"\x06labels\x18\x04 \x03(\v2=.malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntryR\x06labels\x1a`\n" +
+	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12\xb8\x01\n" +
+	"\x05state\x18\x02 \x03(\v2\x14.malonaz.ai.v1.BlockB\x8b\x01\xbaH\x87\x01\x92\x01\x83\x01\b\x01\"\x7f\xba\x01|\n" +
+	"\x13state_block_content\x12,state blocks must be text, image or document\x1a7has(this.text) || has(this.image) || has(this.document)R\x05state\x12h\n" +
+	"\tquestions\x18\x03 \x03(\v2@.malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntryB\b\xbaH\x05\x9a\x01\x02\b\x01R\tquestions\x12\xe3\x01\n" +
+	"\x06labels\x18\x04 \x03(\v2=.malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x1a`\n" +
 	"\x0eQuestionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x128\n" +
 	"\x05value\x18\x02 \x01(\v2\".malonaz.ai.ai_service.v1.QuestionR\x05value:\x028\x01\x1a9\n" +
@@ -1384,53 +1367,54 @@ var file_malonaz_ai_ai_service_v1_decision_proto_goTypes = []any{
 	(*Question)(nil),                 // 0: malonaz.ai.ai_service.v1.Question
 	(*ChoiceQuestion)(nil),           // 1: malonaz.ai.ai_service.v1.ChoiceQuestion
 	(*ScoreQuestion)(nil),            // 2: malonaz.ai.ai_service.v1.ScoreQuestion
-	(*NoulQuestion)(nil),             // 3: malonaz.ai.ai_service.v1.NoulQuestion
+	(*BooleanQuestion)(nil),          // 3: malonaz.ai.ai_service.v1.BooleanQuestion
 	(*Answer)(nil),                   // 4: malonaz.ai.ai_service.v1.Answer
 	(*ChoiceAnswer)(nil),             // 5: malonaz.ai.ai_service.v1.ChoiceAnswer
 	(*ScoreAnswer)(nil),              // 6: malonaz.ai.ai_service.v1.ScoreAnswer
-	(*NoulAnswer)(nil),               // 7: malonaz.ai.ai_service.v1.NoulAnswer
-	(*GenerateDecisionRequest)(nil),  // 8: malonaz.ai.ai_service.v1.GenerateDecisionRequest
-	(*GenerateDecisionResponse)(nil), // 9: malonaz.ai.ai_service.v1.GenerateDecisionResponse
-	nil,                              // 10: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
-	nil,                              // 11: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
-	nil,                              // 12: malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
+	(*BooleanAnswer)(nil),            // 7: malonaz.ai.ai_service.v1.BooleanAnswer
+	(*Refusal)(nil),                  // 8: malonaz.ai.ai_service.v1.Refusal
+	(*GenerateDecisionRequest)(nil),  // 9: malonaz.ai.ai_service.v1.GenerateDecisionRequest
+	(*GenerateDecisionResponse)(nil), // 10: malonaz.ai.ai_service.v1.GenerateDecisionResponse
+	nil,                              // 11: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
+	nil,                              // 12: malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
 	nil,                              // 13: malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
 	nil,                              // 14: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
 	nil,                              // 15: malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
 	nil,                              // 16: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
 	(*structpb.Value)(nil),           // 17: google.protobuf.Value
-	(*v1.ModelUsage)(nil),            // 18: malonaz.ai.v1.ModelUsage
+	(*structpb.Struct)(nil),          // 18: google.protobuf.Struct
+	(*v1.Block)(nil),                 // 19: malonaz.ai.v1.Block
+	(*v1.ModelUsage)(nil),            // 20: malonaz.ai.v1.ModelUsage
 }
 var file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = []int32{
-	1,  // 0: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
-	2,  // 1: malonaz.ai.ai_service.v1.Question.score:type_name -> malonaz.ai.ai_service.v1.ScoreQuestion
-	3,  // 2: malonaz.ai.ai_service.v1.Question.noul:type_name -> malonaz.ai.ai_service.v1.NoulQuestion
-	17, // 3: malonaz.ai.ai_service.v1.ChoiceQuestion.instructions:type_name -> google.protobuf.Value
-	10, // 4: malonaz.ai.ai_service.v1.ChoiceQuestion.criteria:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
-	17, // 5: malonaz.ai.ai_service.v1.ScoreQuestion.instructions:type_name -> google.protobuf.Value
-	17, // 6: malonaz.ai.ai_service.v1.ScoreQuestion.criteria:type_name -> google.protobuf.Value
-	17, // 7: malonaz.ai.ai_service.v1.NoulQuestion.instructions:type_name -> google.protobuf.Value
-	17, // 8: malonaz.ai.ai_service.v1.NoulQuestion.criteria_true:type_name -> google.protobuf.Value
-	17, // 9: malonaz.ai.ai_service.v1.NoulQuestion.criteria_false:type_name -> google.protobuf.Value
-	5,  // 10: malonaz.ai.ai_service.v1.Answer.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer
-	6,  // 11: malonaz.ai.ai_service.v1.Answer.score:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer
-	7,  // 12: malonaz.ai.ai_service.v1.Answer.noul:type_name -> malonaz.ai.ai_service.v1.NoulAnswer
-	11, // 13: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
-	12, // 14: malonaz.ai.ai_service.v1.ScoreAnswer.legend:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.LegendEntry
-	13, // 15: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	17, // 16: malonaz.ai.ai_service.v1.GenerateDecisionRequest.state:type_name -> google.protobuf.Value
-	14, // 17: malonaz.ai.ai_service.v1.GenerateDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
-	15, // 18: malonaz.ai.ai_service.v1.GenerateDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
-	16, // 19: malonaz.ai.ai_service.v1.GenerateDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
-	18, // 20: malonaz.ai.ai_service.v1.GenerateDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	17, // 21: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry.value:type_name -> google.protobuf.Value
-	0,  // 22: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
-	4,  // 23: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	17, // 0: malonaz.ai.ai_service.v1.Question.instructions:type_name -> google.protobuf.Value
+	1,  // 1: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
+	2,  // 2: malonaz.ai.ai_service.v1.Question.score:type_name -> malonaz.ai.ai_service.v1.ScoreQuestion
+	3,  // 3: malonaz.ai.ai_service.v1.Question.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanQuestion
+	11, // 4: malonaz.ai.ai_service.v1.ChoiceQuestion.criteria:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
+	17, // 5: malonaz.ai.ai_service.v1.ScoreQuestion.criteria:type_name -> google.protobuf.Value
+	17, // 6: malonaz.ai.ai_service.v1.BooleanQuestion.criteria_true:type_name -> google.protobuf.Value
+	17, // 7: malonaz.ai.ai_service.v1.BooleanQuestion.criteria_false:type_name -> google.protobuf.Value
+	5,  // 8: malonaz.ai.ai_service.v1.Answer.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer
+	6,  // 9: malonaz.ai.ai_service.v1.Answer.score:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer
+	7,  // 10: malonaz.ai.ai_service.v1.Answer.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanAnswer
+	8,  // 11: malonaz.ai.ai_service.v1.Answer.refusal:type_name -> malonaz.ai.ai_service.v1.Refusal
+	18, // 12: malonaz.ai.ai_service.v1.Answer.extra_fields:type_name -> google.protobuf.Struct
+	12, // 13: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
+	13, // 14: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
+	19, // 15: malonaz.ai.ai_service.v1.GenerateDecisionRequest.state:type_name -> malonaz.ai.v1.Block
+	14, // 16: malonaz.ai.ai_service.v1.GenerateDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
+	15, // 17: malonaz.ai.ai_service.v1.GenerateDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
+	16, // 18: malonaz.ai.ai_service.v1.GenerateDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
+	20, // 19: malonaz.ai.ai_service.v1.GenerateDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	17, // 20: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry.value:type_name -> google.protobuf.Value
+	0,  // 21: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
+	4,  // 22: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_decision_proto_init() }
@@ -1441,15 +1425,14 @@ func file_malonaz_ai_ai_service_v1_decision_proto_init() {
 	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[0].OneofWrappers = []any{
 		(*Question_Choice)(nil),
 		(*Question_Score)(nil),
-		(*Question_Noul)(nil),
+		(*Question_Boolean)(nil),
 	}
 	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[4].OneofWrappers = []any{
 		(*Answer_Choice)(nil),
 		(*Answer_Score)(nil),
-		(*Answer_Noul)(nil),
+		(*Answer_Boolean)(nil),
+		(*Answer_Refusal)(nil),
 	}
-	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[5].OneofWrappers = []any{}
-	file_malonaz_ai_ai_service_v1_decision_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -766,7 +766,7 @@ func (b0 TttModelPricing_builder) Build() *TttModelPricing {
 }
 
 // Configuration for a decision model. A decision model answers
-// typed questions (choice/score/noul) about a state, returning structured
+// typed questions (choice/score/boolean) about a state, returning structured
 // answers rather than generated text.
 type TtdModelConfig struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`

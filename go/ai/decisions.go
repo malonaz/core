@@ -6,58 +6,66 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 )
 
-// NewChoiceQuestion builds a choice question. criteria maps option name to description.
+// NewChoiceQuestion builds a choice question. criteria maps option key to description. Nil instructions are left unset.
 func NewChoiceQuestion(instructions any, criteria map[string]any) (*aiservicepb.Question, error) {
-	instructionsValue, err := structpb.NewValue(instructions)
+	question, err := newQuestion(instructions)
 	if err != nil {
 		return nil, err
 	}
-	criteriaValues := make(map[string]*structpb.Value, len(criteria))
-	for name, description := range criteria {
-		if criteriaValues[name], err = structpb.NewValue(description); err != nil {
+	choice := &aiservicepb.ChoiceQuestion{Criteria: make(map[string]*structpb.Value, len(criteria))}
+	for key, description := range criteria {
+		if choice.Criteria[key], err = structpb.NewValue(description); err != nil {
 			return nil, err
 		}
 	}
-	return &aiservicepb.Question{Type: &aiservicepb.Question_Choice{Choice: &aiservicepb.ChoiceQuestion{
-		Instructions: instructionsValue,
-		Criteria:     criteriaValues,
-	}}}, nil
+	question.Type = &aiservicepb.Question_Choice{Choice: choice}
+	return question, nil
 }
 
-// NewScoreQuestion builds a score question. levels are ordered lowest to highest.
+// NewScoreQuestion builds a score question. levels are ordered lowest to highest. Nil instructions are left unset.
 func NewScoreQuestion(instructions any, levels ...any) (*aiservicepb.Question, error) {
-	instructionsValue, err := structpb.NewValue(instructions)
+	question, err := newQuestion(instructions)
 	if err != nil {
 		return nil, err
 	}
-	criteria := make([]*structpb.Value, len(levels))
+	score := &aiservicepb.ScoreQuestion{Criteria: make([]*structpb.Value, len(levels))}
 	for i, level := range levels {
-		if criteria[i], err = structpb.NewValue(level); err != nil {
+		if score.Criteria[i], err = structpb.NewValue(level); err != nil {
 			return nil, err
 		}
 	}
-	return &aiservicepb.Question{Type: &aiservicepb.Question_Score{Score: &aiservicepb.ScoreQuestion{
-		Instructions: instructionsValue,
-		Criteria:     criteria,
-	}}}, nil
+	question.Type = &aiservicepb.Question_Score{Score: score}
+	return question, nil
 }
 
-// NewNoulQuestion builds a yes/no question. Nil criteria are left unset.
-func NewNoulQuestion(instructions, criteriaTrue, criteriaFalse any) (*aiservicepb.Question, error) {
-	instructionsValue, err := structpb.NewValue(instructions)
+// NewBooleanQuestion builds a boolean question. Nil arguments are left unset.
+func NewBooleanQuestion(instructions, criteriaTrue, criteriaFalse any) (*aiservicepb.Question, error) {
+	question, err := newQuestion(instructions)
 	if err != nil {
 		return nil, err
 	}
-	noul := &aiservicepb.NoulQuestion{Instructions: instructionsValue}
+	boolean := &aiservicepb.BooleanQuestion{}
 	if criteriaTrue != nil {
-		if noul.CriteriaTrue, err = structpb.NewValue(criteriaTrue); err != nil {
+		if boolean.CriteriaTrue, err = structpb.NewValue(criteriaTrue); err != nil {
 			return nil, err
 		}
 	}
 	if criteriaFalse != nil {
-		if noul.CriteriaFalse, err = structpb.NewValue(criteriaFalse); err != nil {
+		if boolean.CriteriaFalse, err = structpb.NewValue(criteriaFalse); err != nil {
 			return nil, err
 		}
 	}
-	return &aiservicepb.Question{Type: &aiservicepb.Question_Noul{Noul: noul}}, nil
+	question.Type = &aiservicepb.Question_Boolean{Boolean: boolean}
+	return question, nil
+}
+
+func newQuestion(instructions any) (*aiservicepb.Question, error) {
+	if instructions == nil {
+		return &aiservicepb.Question{}, nil
+	}
+	value, err := structpb.NewValue(instructions)
+	if err != nil {
+		return nil, err
+	}
+	return &aiservicepb.Question{Instructions: value}, nil
 }

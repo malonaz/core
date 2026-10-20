@@ -392,7 +392,7 @@ export const TttModelPricingSchema: GenMessage<TttModelPricing, {validType: TttM
 
 /**
  * Configuration for a decision model. A decision model answers
- * typed questions (choice/score/noul) about a state, returning structured
+ * typed questions (choice/score/boolean) about a state, returning structured
  * answers rather than generated text.
  *
  * @generated from message malonaz.ai.v1.TtdModelConfig

@@ -116,7 +116,7 @@ message TttModelPricing {
 }
 
 // Configuration for a decision model. A decision model answers
-// typed questions (choice/score/noul) about a state, returning structured
+// typed questions (choice/score/boolean) about a state, returning structured
 // answers rather than generated text.
 message TtdModelConfig {
   // The maximum number of tokens in the model's context window.

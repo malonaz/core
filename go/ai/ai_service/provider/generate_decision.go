@@ -5,8 +5,7 @@ package provider
 // result back into typed answers.
 //
 // Unlike a native decision model (e.g. TypeSafe), a TTT model cannot report calibrated
-// probabilities or confidence, so those fields are always left unset on the
-// returned answers. Kept in this package (rather than a separate one) to
+// probabilities, so those fields are always left unset on the returned answers. Kept in this package (rather than a separate one) to
 // avoid an import cycle: it needs GenerateMessageClient and
 // AsyncMessageContentSender, both defined here.
 
@@ -15,9 +14,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
+	"strings"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -67,7 +67,7 @@ func (a *messageDecisionClient) GenerateDecision(ctx context.Context, request *a
 			},
 		},
 	}
-	messages := []*aipb.Message{ai.NewUserMessage(ai.NewTextBlock(valueToText(request.GetState())))}
+	messages := []*aipb.Message{ai.NewUserMessage(request.GetState()...)}
 
 	stream := &messageCollectorStream{ctx: ctx}
 	sender := NewAsyncMessageContentSender(stream, 16)
@@ -151,6 +151,7 @@ func buildDecisionTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, 
 }
 
 func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
+	description := valueToText(question.GetInstructions())
 	switch questionType := question.GetType().(type) {
 	case *aiservicepb.Question_Choice:
 		choice := questionType.Choice
@@ -159,16 +160,14 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 			names = append(names, name)
 		}
 		sort.Strings(names)
-		description := valueToText(choice.GetInstructions())
 		for _, name := range names {
 			description += fmt.Sprintf("\n- %s: %s", name, valueToText(choice.GetCriteria()[name]))
 		}
-		return &jsonpb.Schema{Type: "string", Description: description, Enum: names}, nil
+		return &jsonpb.Schema{Type: "string", Description: strings.TrimSpace(description), Enum: names}, nil
 
 	case *aiservicepb.Question_Score:
 		score := questionType.Score
 		levels := score.GetCriteria()
-		description := valueToText(score.GetInstructions())
 		for i, level := range levels {
 			description += fmt.Sprintf("\n- %d: %s", i, valueToText(level))
 		}
@@ -176,18 +175,20 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 		// call can only pick one discrete rubric level.
 		return &jsonpb.Schema{
 			Type:        "integer",
-			Description: description,
+			Description: strings.TrimSpace(description),
 			Minimum:     0,
 			Maximum:     float64(max(len(levels)-1, 0)),
 		}, nil
 
-	case *aiservicepb.Question_Noul:
-		noul := questionType.Noul
-		description := valueToText(noul.GetInstructions())
-		if noul.GetCriteriaTrue() != nil || noul.GetCriteriaFalse() != nil {
-			description += fmt.Sprintf("\ntrue: %s\nfalse: %s", valueToText(noul.GetCriteriaTrue()), valueToText(noul.GetCriteriaFalse()))
+	case *aiservicepb.Question_Boolean:
+		boolean := questionType.Boolean
+		if boolean.GetCriteriaTrue() != nil {
+			description += "\ntrue: " + valueToText(boolean.GetCriteriaTrue())
 		}
-		return &jsonpb.Schema{Type: "boolean", Description: description}, nil
+		if boolean.GetCriteriaFalse() != nil {
+			description += "\nfalse: " + valueToText(boolean.GetCriteriaFalse())
+		}
+		return &jsonpb.Schema{Type: "boolean", Description: strings.TrimSpace(description)}, nil
 
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "unknown question type %T", questionType).Err()
@@ -195,7 +196,7 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 }
 
 // buildAnswers converts the forced tool call's parsed arguments into typed
-// Answers. probabilities/confidence are always left unset: a TTT model
+// Answers. probabilities are always left unset: a TTT model
 // cannot report a calibrated distribution.
 func buildAnswers(questions map[string]*aiservicepb.Question, arguments map[string]any) (map[string]*aiservicepb.Answer, error) {
 	answers := make(map[string]*aiservicepb.Answer, len(questions))
@@ -204,7 +205,7 @@ func buildAnswers(questions map[string]*aiservicepb.Question, arguments map[stri
 		if !ok {
 			return nil, status.Errorf(codes.Internal, "tool call did not answer question %q", id).Err()
 		}
-		switch questionType := question.GetType().(type) {
+		switch question.GetType().(type) {
 		case *aiservicepb.Question_Choice:
 			choice, ok := value.(string)
 			if !ok {
@@ -213,27 +214,22 @@ func buildAnswers(questions map[string]*aiservicepb.Question, arguments map[stri
 			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Choice{Choice: &aiservicepb.ChoiceAnswer{Choice: choice}}}
 
 		case *aiservicepb.Question_Score:
-			levels := questionType.Score.GetCriteria()
 			index, ok := numberToInt(value)
 			if !ok {
 				return nil, status.Errorf(codes.Internal, "question %q: expected number, got %T", id, value).Err()
 			}
-			legend := make(map[string]string, len(levels))
-			for i, level := range levels {
-				legend[strconv.Itoa(i)] = valueToText(level)
-			}
-			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Score{Score: &aiservicepb.ScoreAnswer{Score: float64(index), Legend: legend}}}
+			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Score{Score: &aiservicepb.ScoreAnswer{Score: float64(index)}}}
 
-		case *aiservicepb.Question_Noul:
+		case *aiservicepb.Question_Boolean:
 			yes, ok := value.(bool)
 			if !ok {
 				return nil, status.Errorf(codes.Internal, "question %q: expected bool, got %T", id, value).Err()
 			}
-			noul := 0.0
+			probability := 0.0
 			if yes {
-				noul = 1.0
+				probability = 1.0
 			}
-			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Noul{Noul: &aiservicepb.NoulAnswer{Noul: noul}}}
+			answers[id] = &aiservicepb.Answer{Type: &aiservicepb.Answer_Boolean{Boolean: &aiservicepb.BooleanAnswer{Probability: probability}}}
 		}
 	}
 	return answers, nil
@@ -249,7 +245,7 @@ func numberToInt(value any) (int, bool) {
 
 // valueToText renders a google.protobuf.Value the way it would appear in
 // a prompt: a plain string as itself, anything else as JSON.
-func valueToText(value interface{ AsInterface() any }) string {
+func valueToText(value *structpb.Value) string {
 	if value == nil {
 		return ""
 	}

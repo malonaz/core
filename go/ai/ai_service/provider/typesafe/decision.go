@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -27,7 +28,7 @@ type requestBody struct {
 
 type questionDTO struct {
 	Type         string `json:"type"`
-	Instructions any    `json:"instructions"`
+	Instructions any    `json:"instructions,omitempty"`
 	Criteria     any    `json:"criteria,omitempty"`
 }
 
@@ -44,7 +45,6 @@ type answerDTO struct {
 	Type          string             `json:"type"`
 	Choice        string             `json:"choice,omitempty"`
 	Score         float64            `json:"score,omitempty"`
-	Legend        map[string]string  `json:"legend,omitempty"`
 	Noul          float64            `json:"noul,omitempty"`
 	Probabilities map[string]float64 `json:"probabilities,omitempty"`
 	Confidence    *float64           `json:"confidence,omitempty"`
@@ -58,8 +58,12 @@ func (c *Client) GenerateDecision(ctx context.Context, request *aiservicepb.Gene
 		return nil, err
 	}
 
+	state, err := stateToDTO(request.GetState())
+	if err != nil {
+		return nil, err
+	}
 	body := &requestBody{
-		State:     request.GetState().AsInterface(),
+		State:     state,
 		Model:     model.ProviderModelId,
 		Questions: make(map[string]questionDTO, len(request.GetQuestions())),
 	}
@@ -78,7 +82,9 @@ func (c *Client) GenerateDecision(ctx context.Context, request *aiservicepb.Gene
 
 	answers := make(map[string]*aiservicepb.Answer, len(response.Answers))
 	for id, dto := range response.Answers {
-		answers[id] = dto.toAnswer()
+		if answers[id], err = dto.toAnswer(); err != nil {
+			return nil, err
+		}
 	}
 
 	modelUsage := &aipb.ModelUsage{
@@ -146,18 +152,35 @@ func (c *Client) post(ctx context.Context, body *requestBody) (*responseBody, er
 	return nil, lastErr
 }
 
+// stateToDTO sends a single text block as is and several as an array. Jev only accepts text.
+func stateToDTO(blocks []*aipb.Block) (any, error) {
+	texts := make([]any, 0, len(blocks))
+	for _, block := range blocks {
+		text, ok := block.GetContent().(*aipb.Block_Text)
+		if !ok {
+			return nil, status.Errorf(codes.InvalidArgument, "jev does not support %T state blocks", block.GetContent()).Err()
+		}
+		texts = append(texts, text.Text)
+	}
+	if len(texts) == 1 {
+		return texts[0], nil
+	}
+	return texts, nil
+}
+
 func questionToDTO(question *aiservicepb.Question) (questionDTO, error) {
+	var instructions any
+	if question.GetInstructions() != nil {
+		instructions = question.GetInstructions().AsInterface()
+	}
+
 	switch questionType := question.GetType().(type) {
 	case *aiservicepb.Question_Choice:
 		criteria := make(map[string]any, len(questionType.Choice.GetCriteria()))
 		for name, value := range questionType.Choice.GetCriteria() {
 			criteria[name] = value.AsInterface()
 		}
-		return questionDTO{
-			Type:         "choice",
-			Instructions: questionType.Choice.GetInstructions().AsInterface(),
-			Criteria:     criteria,
-		}, nil
+		return questionDTO{Type: "choice", Instructions: instructions, Criteria: criteria}, nil
 
 	case *aiservicepb.Question_Score:
 		levels := questionType.Score.GetCriteria()
@@ -165,46 +188,41 @@ func questionToDTO(question *aiservicepb.Question) (questionDTO, error) {
 		for _, level := range levels {
 			criteria = append(criteria, level.AsInterface())
 		}
-		return questionDTO{
-			Type:         "score",
-			Instructions: questionType.Score.GetInstructions().AsInterface(),
-			Criteria:     criteria,
-		}, nil
+		return questionDTO{Type: "score", Instructions: instructions, Criteria: criteria}, nil
 
-	case *aiservicepb.Question_Noul:
-		criteria := map[string]any{
-			"true":  questionType.Noul.GetCriteriaTrue().AsInterface(),
-			"false": questionType.Noul.GetCriteriaFalse().AsInterface(),
+	case *aiservicepb.Question_Boolean:
+		criteria := map[string]any{}
+		if criteriaTrue := questionType.Boolean.GetCriteriaTrue(); criteriaTrue != nil {
+			criteria["true"] = criteriaTrue.AsInterface()
 		}
-		return questionDTO{
-			Type:         "noul",
-			Instructions: questionType.Noul.GetInstructions().AsInterface(),
-			Criteria:     criteria,
-		}, nil
+		if criteriaFalse := questionType.Boolean.GetCriteriaFalse(); criteriaFalse != nil {
+			criteria["false"] = criteriaFalse.AsInterface()
+		}
+		dto := questionDTO{Type: "noul", Instructions: instructions}
+		if len(criteria) > 0 {
+			dto.Criteria = criteria
+		}
+		return dto, nil
 
 	default:
-		return questionDTO{}, status.Errorf(codes.InvalidArgument, "unknown question type %T", questionType).Err()
+		return questionDTO{}, status.Errorf(codes.InvalidArgument, "jev does not support %T questions", questionType).Err()
 	}
 }
 
-func (dto answerDTO) toAnswer() *aiservicepb.Answer {
+func (dto answerDTO) toAnswer() (*aiservicepb.Answer, error) {
+	answer := &aiservicepb.Answer{}
 	switch dto.Type {
 	case "choice":
-		return &aiservicepb.Answer{Type: &aiservicepb.Answer_Choice{Choice: &aiservicepb.ChoiceAnswer{
-			Choice:        dto.Choice,
-			Probabilities: dto.Probabilities,
-			Confidence:    dto.Confidence,
-		}}}
+		answer.Type = &aiservicepb.Answer_Choice{Choice: &aiservicepb.ChoiceAnswer{Choice: dto.Choice, Probabilities: dto.Probabilities}}
 	case "score":
-		return &aiservicepb.Answer{Type: &aiservicepb.Answer_Score{Score: &aiservicepb.ScoreAnswer{
-			Score:         dto.Score,
-			Legend:        dto.Legend,
-			Probabilities: dto.Probabilities,
-			Confidence:    dto.Confidence,
-		}}}
+		answer.Type = &aiservicepb.Answer_Score{Score: &aiservicepb.ScoreAnswer{Score: dto.Score, Probabilities: dto.Probabilities}}
 	case "noul":
-		return &aiservicepb.Answer{Type: &aiservicepb.Answer_Noul{Noul: &aiservicepb.NoulAnswer{Noul: dto.Noul}}}
+		answer.Type = &aiservicepb.Answer_Boolean{Boolean: &aiservicepb.BooleanAnswer{Probability: dto.Noul}}
 	default:
-		return nil
+		return nil, status.Errorf(codes.Internal, "unknown jev answer type %q", dto.Type).Err()
 	}
+	if dto.Confidence != nil {
+		answer.ExtraFields = &structpb.Struct{Fields: map[string]*structpb.Value{"confidence": structpb.NewNumberValue(*dto.Confidence)}}
+	}
+	return answer, nil
 }

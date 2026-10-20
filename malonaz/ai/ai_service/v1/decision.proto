@@ -5,56 +5,59 @@ package malonaz.ai.ai_service.v1;
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
 import "google/protobuf/struct.proto";
+import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/metrics.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
 // A typed question asked of a decision model about a state.
 message Question {
+  option (buf.validate.message).cel = {
+    id: "question_boolean_requires_instructions_or_criteria"
+    message: "a boolean question without instructions must set criteria_true or criteria_false"
+    expression: "!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)"
+  };
+
+  // What is being asked. String, object, or array. Optional.
+  google.protobuf.Value instructions = 1;
+
   // The question's type.
   oneof type {
     option (buf.validate.oneof).required = true;
 
     // Selects one option from a fixed set.
-    ChoiceQuestion choice = 1;
-    // Places the state on a fixed rubric.
-    ScoreQuestion score = 2;
-    // Evaluates a yes/no question.
-    NoulQuestion noul = 3;
+    ChoiceQuestion choice = 2;
+    // Places the state on an ordered rubric.
+    ScoreQuestion score = 3;
+    // Estimates the probability that a condition is true.
+    BooleanQuestion boolean = 4;
   }
 }
 
 // Asks the model to select one option from a fixed set.
 message ChoiceQuestion {
-  // What is being asked. String, object, or array.
-  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
-  // Maps an option name to a description of when it applies.
-  map<string, google.protobuf.Value> criteria = 2 [(buf.validate.field).map = {
+  // Maps an option key to a description of when it applies.
+  map<string, google.protobuf.Value> criteria = 1 [(buf.validate.field).map = {
     min_pairs: 1
     max_pairs: 255
   }];
 }
 
-// Asks the model to place the state on a fixed rubric.
+// Asks the model to place the state on an ordered rubric.
 message ScoreQuestion {
-  // What is being asked. String, object, or array.
-  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
-  // Ordered rubric levels, from lowest to highest.
-  repeated google.protobuf.Value criteria = 2 [(buf.validate.field).repeated = {
+  // Rubric level descriptions, from lowest to highest.
+  repeated google.protobuf.Value criteria = 1 [(buf.validate.field).repeated = {
     min_items: 1
     max_items: 10
   }];
 }
 
-// Asks the model to evaluate a yes/no question and return the probability
-// that the answer is yes.
-message NoulQuestion {
-  // What is being asked. String, object, or array.
-  google.protobuf.Value instructions = 1 [(buf.validate.field).required = true];
-  // Describes what a "yes" answer looks like. Optional.
-  google.protobuf.Value criteria_true = 2;
-  // Describes what a "no" answer looks like. Optional.
-  google.protobuf.Value criteria_false = 3;
+// Asks the model for the probability that a condition is true.
+message BooleanQuestion {
+  // Describes the true case. Optional.
+  google.protobuf.Value criteria_true = 1;
+  // Describes the false case. Optional.
+  google.protobuf.Value criteria_false = 2;
 }
 
 // The typed answer to a Question.
@@ -65,51 +68,44 @@ message Answer {
     ChoiceAnswer choice = 1;
     // Answer to a ScoreQuestion.
     ScoreAnswer score = 2;
-    // Answer to a NoulQuestion.
-    NoulAnswer noul = 3;
+    // Answer to a BooleanQuestion.
+    BooleanAnswer boolean = 3;
+    // The model declined to answer.
+    Refusal refusal = 4;
   }
+  // Provider specific extra fields, e.g. {"confidence": 0.93}.
+  google.protobuf.Struct extra_fields = 5;
 }
 
 // Answer to a ChoiceQuestion.
 message ChoiceAnswer {
-  // The selected option name.
+  // The selected option key.
   string choice = 1;
-  // Probability mass per option. Empty when the decision model cannot report
-  // calibrated probabilities (e.g. a TTT model used as a decision model).
+  // Probability per option key. Empty when the model reports no distribution.
   map<string, double> probabilities = 2;
-  // Confidence in the selected choice, in [0, 1]. Unset when the decision model
-  // cannot report a calibrated confidence.
-  optional double confidence = 3 [(buf.validate.field).double = {
-    gte: 0.0
-    lte: 1.0
-  }];
 }
 
 // Answer to a ScoreQuestion.
 message ScoreAnswer {
-  // The score, as an index into the rubric levels (may be fractional).
+  // Zero-based rubric level. The probability-weighted mean when probabilities are set.
   double score = 1;
-  // Maps a rubric level index (as a string) to its description.
-  map<string, string> legend = 2;
-  // Probability mass per rubric level index (as a string). Empty when the
-  // decision model cannot report calibrated probabilities.
-  map<string, double> probabilities = 3;
-  // Confidence in the score, in [0, 1]. Unset when the decision model cannot
-  // report a calibrated confidence.
-  optional double confidence = 4 [(buf.validate.field).double = {
+  // Probability per zero-based level index, as a string. Empty when the model reports no distribution.
+  map<string, double> probabilities = 2;
+}
+
+// Answer to a BooleanQuestion.
+message BooleanAnswer {
+  // Probability that the condition is true.
+  double probability = 1 [(buf.validate.field).double = {
     gte: 0.0
     lte: 1.0
   }];
 }
 
-// Answer to a NoulQuestion.
-message NoulAnswer {
-  // Probability that the answer is yes, in [0, 1]. A two-outcome
-  // distribution carries no separate confidence value.
-  double noul = 1 [(buf.validate.field).double = {
-    gte: 0.0
-    lte: 1.0
-  }];
+// A refusal to answer a question.
+message Refusal {
+  // Why the model refused, when given.
+  string reason = 1;
 }
 
 // Request message for AiService.GenerateDecision.
@@ -120,12 +116,34 @@ message GenerateDecisionRequest {
     (google.api.resource_reference).type = "ai.malonaz.com/Model",
     (buf.validate.field).required = true
   ];
-  // The state to evaluate. String, object, or array.
-  google.protobuf.Value state = 2 [(buf.validate.field).required = true];
+  // The state to evaluate, shared by every question. Only text, image and
+  // document blocks are allowed; provider support varies (e.g. Jev is text only).
+  // Structured (JSON) state is not supported yet: send it as JSON text.
+  repeated .malonaz.ai.v1.Block state = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      cel: {
+        id: "state_block_content"
+        message: "state blocks must be text, image or document"
+        expression: "has(this.text) || has(this.image) || has(this.document)"
+      }
+    }
+  }];
   // The questions to answer about the state, keyed by caller-defined id.
   map<string, Question> questions = 3 [(buf.validate.field).map.min_pairs = 1];
   // Labels for this call.
-  map<string, string> labels = 4;
+  map<string, string> labels = 4 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
 }
 
 // Response message for AiService.GenerateDecision.

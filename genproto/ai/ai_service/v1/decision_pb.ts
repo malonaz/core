@@ -8,15 +8,17 @@ import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Value } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Block, BlockValid } from "../../v1/message_pb";
+import { file_malonaz_ai_v1_message } from "../../v1/message_pb";
 import type { ModelUsage } from "../../v1/metrics_pb";
 import { file_malonaz_ai_v1_metrics } from "../../v1/metrics_pb";
-import type { Message } from "@bufbuild/protobuf";
+import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/ai_service/v1/decision.proto.
  */
 export const file_malonaz_ai_ai_service_v1_decision: GenFile = /*@__PURE__*/
-  fileDesc("CidtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvZGVjaXNpb24ucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSLHAQoIUXVlc3Rpb24SOgoGY2hvaWNlGAEgASgLMigubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNob2ljZVF1ZXN0aW9uSAASOAoFc2NvcmUYAiABKAsyJy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU2NvcmVRdWVzdGlvbkgAEjYKBG5vdWwYAyABKAsyJi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuTm91bFF1ZXN0aW9uSABCDQoEdHlwZRIFukgCCAEi5gEKDkNob2ljZVF1ZXN0aW9uEjQKDGluc3RydWN0aW9ucxgBIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZUIGukgDyAEBElUKCGNyaXRlcmlhGAIgAygLMjYubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNob2ljZVF1ZXN0aW9uLkNyaXRlcmlhRW50cnlCC7pICJoBBQgBEP8BGkcKDUNyaXRlcmlhRW50cnkSCwoDa2V5GAEgASgJEiUKBXZhbHVlGAIgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlOgI4ASJ7Cg1TY29yZVF1ZXN0aW9uEjQKDGluc3RydWN0aW9ucxgBIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZUIGukgDyAEBEjQKCGNyaXRlcmlhGAIgAygLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlQgq6SAeSAQQIARAKIqMBCgxOb3VsUXVlc3Rpb24SNAoMaW5zdHJ1Y3Rpb25zGAEgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlQga6SAPIAQESLQoNY3JpdGVyaWFfdHJ1ZRgCIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZRIuCg5jcml0ZXJpYV9mYWxzZRgDIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZSK4AQoGQW5zd2VyEjgKBmNob2ljZRgBIAEoCzImLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VBbnN3ZXJIABI2CgVzY29yZRgCIAEoCzIlLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TY29yZUFuc3dlckgAEjQKBG5vdWwYAyABKAsyJC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuTm91bEFuc3dlckgAQgYKBHR5cGUi5wEKDENob2ljZUFuc3dlchIOCgZjaG9pY2UYASABKAkSUAoNcHJvYmFiaWxpdGllcxgCIAMoCzI5Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VBbnN3ZXIuUHJvYmFiaWxpdGllc0VudHJ5EjAKCmNvbmZpZGVuY2UYAyABKAFCF7pIFBISGQAAAAAAAPA/KQAAAAAAAAAASACIAQEaNAoSUHJvYmFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAFCDQoLX2NvbmZpZGVuY2Ui1gIKC1Njb3JlQW5zd2VyEg0KBXNjb3JlGAEgASgBEkEKBmxlZ2VuZBgCIAMoCzIxLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TY29yZUFuc3dlci5MZWdlbmRFbnRyeRJPCg1wcm9iYWJpbGl0aWVzGAMgAygLMjgubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNjb3JlQW5zd2VyLlByb2JhYmlsaXRpZXNFbnRyeRIwCgpjb25maWRlbmNlGAQgASgBQhe6SBQSEhkAAAAAAADwPykAAAAAAAAAAEgAiAEBGi0KC0xlZ2VuZEVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaNAoSUHJvYmFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAFCDQoLX2NvbmZpZGVuY2UiMwoKTm91bEFuc3dlchIlCgRub3VsGAEgASgBQhe6SBQSEhkAAAAAAADwPykAAAAAAAAAACKrAwoXR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QSLgoFbW9kZWwYASABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESLQoFc3RhdGUYAiABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVCBrpIA8gBARJdCglxdWVzdGlvbnMYAyADKAsyQC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuUXVlc3Rpb25zRW50cnlCCLpIBZoBAggBEk0KBmxhYmVscxgEIAMoCzI9Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5HZW5lcmF0ZURlY2lzaW9uUmVxdWVzdC5MYWJlbHNFbnRyeRpUCg5RdWVzdGlvbnNFbnRyeRILCgNrZXkYASABKAkSMQoFdmFsdWUYAiABKAsyIi5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuUXVlc3Rpb246AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEi7gEKGEdlbmVyYXRlRGVjaXNpb25SZXNwb25zZRJQCgdhbnN3ZXJzGAEgAygLMj8ubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkdlbmVyYXRlRGVjaXNpb25SZXNwb25zZS5BbnN3ZXJzRW50cnkSLgoLbW9kZWxfdXNhZ2UYAiABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2UaUAoMQW5zd2Vyc0VudHJ5EgsKA2tleRgBIAEoCRIvCgV2YWx1ZRgCIAEoCzIgLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5BbnN3ZXI6AjgBQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FpX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_metrics]);
+  fileDesc("CidtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvZGVjaXNpb24ucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKABAoIUXVlc3Rpb24SLAoMaW5zdHJ1Y3Rpb25zGAEgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlEjoKBmNob2ljZRgCIAEoCzIoLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbkgAEjgKBXNjb3JlGAMgASgLMicubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNjb3JlUXVlc3Rpb25IABI8Cgdib29sZWFuGAQgASgLMikubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkJvb2xlYW5RdWVzdGlvbkgAOoICukj+ARr7AQoycXVlc3Rpb25fYm9vbGVhbl9yZXF1aXJlc19pbnN0cnVjdGlvbnNfb3JfY3JpdGVyaWESUGEgYm9vbGVhbiBxdWVzdGlvbiB3aXRob3V0IGluc3RydWN0aW9ucyBtdXN0IHNldCBjcml0ZXJpYV90cnVlIG9yIGNyaXRlcmlhX2ZhbHNlGnMhaGFzKHRoaXMuYm9vbGVhbikgfHwgaGFzKHRoaXMuaW5zdHJ1Y3Rpb25zKSB8fCBoYXModGhpcy5ib29sZWFuLmNyaXRlcmlhX3RydWUpIHx8IGhhcyh0aGlzLmJvb2xlYW4uY3JpdGVyaWFfZmFsc2UpQg0KBHR5cGUSBbpIAggBIrABCg5DaG9pY2VRdWVzdGlvbhJVCghjcml0ZXJpYRgBIAMoCzI2Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbi5Dcml0ZXJpYUVudHJ5Qgu6SAiaAQUIARD/ARpHCg1Dcml0ZXJpYUVudHJ5EgsKA2tleRgBIAEoCRIlCgV2YWx1ZRgCIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZToCOAEiRQoNU2NvcmVRdWVzdGlvbhI0Cghjcml0ZXJpYRgBIAMoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZUIKukgHkgEECAEQCiJwCg9Cb29sZWFuUXVlc3Rpb24SLQoNY3JpdGVyaWFfdHJ1ZRgBIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZRIuCg5jcml0ZXJpYV9mYWxzZRgCIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZSKjAgoGQW5zd2VyEjgKBmNob2ljZRgBIAEoCzImLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VBbnN3ZXJIABI2CgVzY29yZRgCIAEoCzIlLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TY29yZUFuc3dlckgAEjoKB2Jvb2xlYW4YAyABKAsyJy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQm9vbGVhbkFuc3dlckgAEjQKB3JlZnVzYWwYBCABKAsyIS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuUmVmdXNhbEgAEi0KDGV4dHJhX2ZpZWxkcxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCBgoEdHlwZSKmAQoMQ2hvaWNlQW5zd2VyEg4KBmNob2ljZRgBIAEoCRJQCg1wcm9iYWJpbGl0aWVzGAIgAygLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNob2ljZUFuc3dlci5Qcm9iYWJpbGl0aWVzRW50cnkaNAoSUHJvYmFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiowEKC1Njb3JlQW5zd2VyEg0KBXNjb3JlGAEgASgBEk8KDXByb2JhYmlsaXRpZXMYAiADKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU2NvcmVBbnN3ZXIuUHJvYmFiaWxpdGllc0VudHJ5GjQKElByb2JhYmlsaXRpZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIj0KDUJvb2xlYW5BbnN3ZXISLAoLcHJvYmFiaWxpdHkYASABKAFCF7pIFBISGQAAAAAAAPA/KQAAAAAAAAAAIhkKB1JlZnVzYWwSDgoGcmVhc29uGAEgASgJIr8FChdHZW5lcmF0ZURlY2lzaW9uUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARKxAQoFc3RhdGUYAiADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrQosBukiHAZIBgwEIASJ/ugF8ChNzdGF0ZV9ibG9ja19jb250ZW50EixzdGF0ZSBibG9ja3MgbXVzdCBiZSB0ZXh0LCBpbWFnZSBvciBkb2N1bWVudBo3aGFzKHRoaXMudGV4dCkgfHwgaGFzKHRoaXMuaW1hZ2UpIHx8IGhhcyh0aGlzLmRvY3VtZW50KRJdCglxdWVzdGlvbnMYAyADKAsyQC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuUXVlc3Rpb25zRW50cnlCCLpIBZoBAggBEtsBCgZsYWJlbHMYBCADKAsyPS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGlQKDlF1ZXN0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRIxCgV2YWx1ZRgCIAEoCzIiLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5RdWVzdGlvbjoCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLuAQoYR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlElAKB2Fuc3dlcnMYASADKAsyPy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlLkFuc3dlcnNFbnRyeRIuCgttb2RlbF91c2FnZRgCIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZRpQCgxBbnN3ZXJzRW50cnkSCwoDa2V5GAEgASgJEi8KBXZhbHVlGAIgASgLMiAubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkFuc3dlcjoCOAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics]);
 
 /**
  * A typed question asked of a decision model about a state.
@@ -25,43 +27,12 @@ export const file_malonaz_ai_ai_service_v1_decision: GenFile = /*@__PURE__*/
  */
 export type Question = Message<"malonaz.ai.ai_service.v1.Question"> & {
   /**
-   * The question's type.
+   * What is being asked. String, object, or array. Optional.
    *
-   * @generated from oneof malonaz.ai.ai_service.v1.Question.type
+   * @generated from field: google.protobuf.Value instructions = 1;
    */
-  type: {
-    /**
-     * Selects one option from a fixed set.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.ChoiceQuestion choice = 1;
-     */
-    value: ChoiceQuestion;
-    case: "choice";
-  } | {
-    /**
-     * Places the state on a fixed rubric.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.ScoreQuestion score = 2;
-     */
-    value: ScoreQuestion;
-    case: "score";
-  } | {
-    /**
-     * Evaluates a yes/no question.
-     *
-     * @generated from field: malonaz.ai.ai_service.v1.NoulQuestion noul = 3;
-     */
-    value: NoulQuestion;
-    case: "noul";
-  } | { case: undefined; value?: undefined };
-};
+  instructions?: Value;
 
-/**
- * A typed question asked of a decision model about a state.
- *
- * @generated from message malonaz.ai.ai_service.v1.Question
- */
-export type QuestionValid = Message<"malonaz.ai.ai_service.v1.Question"> & {
   /**
    * The question's type.
    *
@@ -71,28 +42,30 @@ export type QuestionValid = Message<"malonaz.ai.ai_service.v1.Question"> & {
     /**
      * Selects one option from a fixed set.
      *
-     * @generated from field: malonaz.ai.ai_service.v1.ChoiceQuestion choice = 1;
+     * @generated from field: malonaz.ai.ai_service.v1.ChoiceQuestion choice = 2;
      */
-    value: ChoiceQuestionValid;
+    value: ChoiceQuestion;
     case: "choice";
   } | {
     /**
-     * Places the state on a fixed rubric.
+     * Places the state on an ordered rubric.
      *
-     * @generated from field: malonaz.ai.ai_service.v1.ScoreQuestion score = 2;
+     * @generated from field: malonaz.ai.ai_service.v1.ScoreQuestion score = 3;
      */
-    value: ScoreQuestionValid;
+    value: ScoreQuestion;
     case: "score";
   } | {
     /**
-     * Evaluates a yes/no question.
+     * Estimates the probability that a condition is true.
      *
-     * @generated from field: malonaz.ai.ai_service.v1.NoulQuestion noul = 3;
+     * @generated from field: malonaz.ai.ai_service.v1.BooleanQuestion boolean = 4;
      */
-    value: NoulQuestionValid;
-    case: "noul";
+    value: BooleanQuestion;
+    case: "boolean";
   } | { case: undefined; value?: undefined };
 };
+
+export type QuestionValid = Question;
 
 /**
  * Describes the message malonaz.ai.ai_service.v1.Question.
@@ -108,40 +81,14 @@ export const QuestionSchema: GenMessage<Question, {validType: QuestionValid}> = 
  */
 export type ChoiceQuestion = Message<"malonaz.ai.ai_service.v1.ChoiceQuestion"> & {
   /**
-   * What is being asked. String, object, or array.
+   * Maps an option key to a description of when it applies.
    *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions?: Value;
-
-  /**
-   * Maps an option name to a description of when it applies.
-   *
-   * @generated from field: map<string, google.protobuf.Value> criteria = 2;
+   * @generated from field: map<string, google.protobuf.Value> criteria = 1;
    */
   criteria: { [key: string]: Value };
 };
 
-/**
- * Asks the model to select one option from a fixed set.
- *
- * @generated from message malonaz.ai.ai_service.v1.ChoiceQuestion
- */
-export type ChoiceQuestionValid = Message<"malonaz.ai.ai_service.v1.ChoiceQuestion"> & {
-  /**
-   * What is being asked. String, object, or array.
-   *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions: Value;
-
-  /**
-   * Maps an option name to a description of when it applies.
-   *
-   * @generated from field: map<string, google.protobuf.Value> criteria = 2;
-   */
-  criteria: { [key: string]: Value };
-};
+export type ChoiceQuestionValid = ChoiceQuestion;
 
 /**
  * Describes the message malonaz.ai.ai_service.v1.ChoiceQuestion.
@@ -151,46 +98,20 @@ export const ChoiceQuestionSchema: GenMessage<ChoiceQuestion, {validType: Choice
   messageDesc(file_malonaz_ai_ai_service_v1_decision, 1);
 
 /**
- * Asks the model to place the state on a fixed rubric.
+ * Asks the model to place the state on an ordered rubric.
  *
  * @generated from message malonaz.ai.ai_service.v1.ScoreQuestion
  */
 export type ScoreQuestion = Message<"malonaz.ai.ai_service.v1.ScoreQuestion"> & {
   /**
-   * What is being asked. String, object, or array.
+   * Rubric level descriptions, from lowest to highest.
    *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions?: Value;
-
-  /**
-   * Ordered rubric levels, from lowest to highest.
-   *
-   * @generated from field: repeated google.protobuf.Value criteria = 2;
+   * @generated from field: repeated google.protobuf.Value criteria = 1;
    */
   criteria: Value[];
 };
 
-/**
- * Asks the model to place the state on a fixed rubric.
- *
- * @generated from message malonaz.ai.ai_service.v1.ScoreQuestion
- */
-export type ScoreQuestionValid = Message<"malonaz.ai.ai_service.v1.ScoreQuestion"> & {
-  /**
-   * What is being asked. String, object, or array.
-   *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions: Value;
-
-  /**
-   * Ordered rubric levels, from lowest to highest.
-   *
-   * @generated from field: repeated google.protobuf.Value criteria = 2;
-   */
-  criteria: Value[];
-};
+export type ScoreQuestionValid = ScoreQuestion;
 
 /**
  * Describes the message malonaz.ai.ai_service.v1.ScoreQuestion.
@@ -200,68 +121,33 @@ export const ScoreQuestionSchema: GenMessage<ScoreQuestion, {validType: ScoreQue
   messageDesc(file_malonaz_ai_ai_service_v1_decision, 2);
 
 /**
- * Asks the model to evaluate a yes/no question and return the probability
- * that the answer is yes.
+ * Asks the model for the probability that a condition is true.
  *
- * @generated from message malonaz.ai.ai_service.v1.NoulQuestion
+ * @generated from message malonaz.ai.ai_service.v1.BooleanQuestion
  */
-export type NoulQuestion = Message<"malonaz.ai.ai_service.v1.NoulQuestion"> & {
+export type BooleanQuestion = Message<"malonaz.ai.ai_service.v1.BooleanQuestion"> & {
   /**
-   * What is being asked. String, object, or array.
+   * Describes the true case. Optional.
    *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions?: Value;
-
-  /**
-   * Describes what a "yes" answer looks like. Optional.
-   *
-   * @generated from field: google.protobuf.Value criteria_true = 2;
+   * @generated from field: google.protobuf.Value criteria_true = 1;
    */
   criteriaTrue?: Value;
 
   /**
-   * Describes what a "no" answer looks like. Optional.
+   * Describes the false case. Optional.
    *
-   * @generated from field: google.protobuf.Value criteria_false = 3;
+   * @generated from field: google.protobuf.Value criteria_false = 2;
    */
   criteriaFalse?: Value;
 };
 
-/**
- * Asks the model to evaluate a yes/no question and return the probability
- * that the answer is yes.
- *
- * @generated from message malonaz.ai.ai_service.v1.NoulQuestion
- */
-export type NoulQuestionValid = Message<"malonaz.ai.ai_service.v1.NoulQuestion"> & {
-  /**
-   * What is being asked. String, object, or array.
-   *
-   * @generated from field: google.protobuf.Value instructions = 1;
-   */
-  instructions: Value;
-
-  /**
-   * Describes what a "yes" answer looks like. Optional.
-   *
-   * @generated from field: google.protobuf.Value criteria_true = 2;
-   */
-  criteriaTrue?: Value;
-
-  /**
-   * Describes what a "no" answer looks like. Optional.
-   *
-   * @generated from field: google.protobuf.Value criteria_false = 3;
-   */
-  criteriaFalse?: Value;
-};
+export type BooleanQuestionValid = BooleanQuestion;
 
 /**
- * Describes the message malonaz.ai.ai_service.v1.NoulQuestion.
- * Use `create(NoulQuestionSchema)` to create a new message.
+ * Describes the message malonaz.ai.ai_service.v1.BooleanQuestion.
+ * Use `create(BooleanQuestionSchema)` to create a new message.
  */
-export const NoulQuestionSchema: GenMessage<NoulQuestion, {validType: NoulQuestionValid}> = /*@__PURE__*/
+export const BooleanQuestionSchema: GenMessage<BooleanQuestion, {validType: BooleanQuestionValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_decision, 3);
 
 /**
@@ -293,13 +179,28 @@ export type Answer = Message<"malonaz.ai.ai_service.v1.Answer"> & {
     case: "score";
   } | {
     /**
-     * Answer to a NoulQuestion.
+     * Answer to a BooleanQuestion.
      *
-     * @generated from field: malonaz.ai.ai_service.v1.NoulAnswer noul = 3;
+     * @generated from field: malonaz.ai.ai_service.v1.BooleanAnswer boolean = 3;
      */
-    value: NoulAnswer;
-    case: "noul";
+    value: BooleanAnswer;
+    case: "boolean";
+  } | {
+    /**
+     * The model declined to answer.
+     *
+     * @generated from field: malonaz.ai.ai_service.v1.Refusal refusal = 4;
+     */
+    value: Refusal;
+    case: "refusal";
   } | { case: undefined; value?: undefined };
+
+  /**
+   * Provider specific extra fields, e.g. {"confidence": 0.93}.
+   *
+   * @generated from field: google.protobuf.Struct extra_fields = 5;
+   */
+  extraFields?: JsonObject;
 };
 
 export type AnswerValid = Answer;
@@ -318,27 +219,18 @@ export const AnswerSchema: GenMessage<Answer, {validType: AnswerValid}> = /*@__P
  */
 export type ChoiceAnswer = Message<"malonaz.ai.ai_service.v1.ChoiceAnswer"> & {
   /**
-   * The selected option name.
+   * The selected option key.
    *
    * @generated from field: string choice = 1;
    */
   choice: string;
 
   /**
-   * Probability mass per option. Empty when the decision model cannot report
-   * calibrated probabilities (e.g. a TTT model used as a decision model).
+   * Probability per option key. Empty when the model reports no distribution.
    *
    * @generated from field: map<string, double> probabilities = 2;
    */
   probabilities: { [key: string]: number };
-
-  /**
-   * Confidence in the selected choice, in [0, 1]. Unset when the decision model
-   * cannot report a calibrated confidence.
-   *
-   * @generated from field: optional double confidence = 3;
-   */
-  confidence?: number;
 };
 
 export type ChoiceAnswerValid = ChoiceAnswer;
@@ -357,34 +249,18 @@ export const ChoiceAnswerSchema: GenMessage<ChoiceAnswer, {validType: ChoiceAnsw
  */
 export type ScoreAnswer = Message<"malonaz.ai.ai_service.v1.ScoreAnswer"> & {
   /**
-   * The score, as an index into the rubric levels (may be fractional).
+   * Zero-based rubric level. The probability-weighted mean when probabilities are set.
    *
    * @generated from field: double score = 1;
    */
   score: number;
 
   /**
-   * Maps a rubric level index (as a string) to its description.
+   * Probability per zero-based level index, as a string. Empty when the model reports no distribution.
    *
-   * @generated from field: map<string, string> legend = 2;
-   */
-  legend: { [key: string]: string };
-
-  /**
-   * Probability mass per rubric level index (as a string). Empty when the
-   * decision model cannot report calibrated probabilities.
-   *
-   * @generated from field: map<string, double> probabilities = 3;
+   * @generated from field: map<string, double> probabilities = 2;
    */
   probabilities: { [key: string]: number };
-
-  /**
-   * Confidence in the score, in [0, 1]. Unset when the decision model cannot
-   * report a calibrated confidence.
-   *
-   * @generated from field: optional double confidence = 4;
-   */
-  confidence?: number;
 };
 
 export type ScoreAnswerValid = ScoreAnswer;
@@ -397,28 +273,50 @@ export const ScoreAnswerSchema: GenMessage<ScoreAnswer, {validType: ScoreAnswerV
   messageDesc(file_malonaz_ai_ai_service_v1_decision, 6);
 
 /**
- * Answer to a NoulQuestion.
+ * Answer to a BooleanQuestion.
  *
- * @generated from message malonaz.ai.ai_service.v1.NoulAnswer
+ * @generated from message malonaz.ai.ai_service.v1.BooleanAnswer
  */
-export type NoulAnswer = Message<"malonaz.ai.ai_service.v1.NoulAnswer"> & {
+export type BooleanAnswer = Message<"malonaz.ai.ai_service.v1.BooleanAnswer"> & {
   /**
-   * Probability that the answer is yes, in [0, 1]. A two-outcome
-   * distribution carries no separate confidence value.
+   * Probability that the condition is true.
    *
-   * @generated from field: double noul = 1;
+   * @generated from field: double probability = 1;
    */
-  noul: number;
+  probability: number;
 };
 
-export type NoulAnswerValid = NoulAnswer;
+export type BooleanAnswerValid = BooleanAnswer;
 
 /**
- * Describes the message malonaz.ai.ai_service.v1.NoulAnswer.
- * Use `create(NoulAnswerSchema)` to create a new message.
+ * Describes the message malonaz.ai.ai_service.v1.BooleanAnswer.
+ * Use `create(BooleanAnswerSchema)` to create a new message.
  */
-export const NoulAnswerSchema: GenMessage<NoulAnswer, {validType: NoulAnswerValid}> = /*@__PURE__*/
+export const BooleanAnswerSchema: GenMessage<BooleanAnswer, {validType: BooleanAnswerValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_decision, 7);
+
+/**
+ * A refusal to answer a question.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.Refusal
+ */
+export type Refusal = Message<"malonaz.ai.ai_service.v1.Refusal"> & {
+  /**
+   * Why the model refused, when given.
+   *
+   * @generated from field: string reason = 1;
+   */
+  reason: string;
+};
+
+export type RefusalValid = Refusal;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.Refusal.
+ * Use `create(RefusalSchema)` to create a new message.
+ */
+export const RefusalSchema: GenMessage<Refusal, {validType: RefusalValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_decision, 8);
 
 /**
  * Request message for AiService.GenerateDecision.
@@ -435,11 +333,13 @@ export type GenerateDecisionRequest = Message<"malonaz.ai.ai_service.v1.Generate
   model: string;
 
   /**
-   * The state to evaluate. String, object, or array.
+   * The state to evaluate, shared by every question. Only text, image and
+   * document blocks are allowed; provider support varies (e.g. Jev is text only).
+   * Structured (JSON) state is not supported yet: send it as JSON text.
    *
-   * @generated from field: google.protobuf.Value state = 2;
+   * @generated from field: repeated malonaz.ai.v1.Block state = 2;
    */
-  state?: Value;
+  state: Block[];
 
   /**
    * The questions to answer about the state, keyed by caller-defined id.
@@ -471,11 +371,13 @@ export type GenerateDecisionRequestValid = Message<"malonaz.ai.ai_service.v1.Gen
   model: string;
 
   /**
-   * The state to evaluate. String, object, or array.
+   * The state to evaluate, shared by every question. Only text, image and
+   * document blocks are allowed; provider support varies (e.g. Jev is text only).
+   * Structured (JSON) state is not supported yet: send it as JSON text.
    *
-   * @generated from field: google.protobuf.Value state = 2;
+   * @generated from field: repeated malonaz.ai.v1.Block state = 2;
    */
-  state: Value;
+  state: BlockValid[];
 
   /**
    * The questions to answer about the state, keyed by caller-defined id.
@@ -497,7 +399,7 @@ export type GenerateDecisionRequestValid = Message<"malonaz.ai.ai_service.v1.Gen
  * Use `create(GenerateDecisionRequestSchema)` to create a new message.
  */
 export const GenerateDecisionRequestSchema: GenMessage<GenerateDecisionRequest, {validType: GenerateDecisionRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_decision, 8);
+  messageDesc(file_malonaz_ai_ai_service_v1_decision, 9);
 
 /**
  * Response message for AiService.GenerateDecision.
@@ -527,5 +429,5 @@ export type GenerateDecisionResponseValid = GenerateDecisionResponse;
  * Use `create(GenerateDecisionResponseSchema)` to create a new message.
  */
 export const GenerateDecisionResponseSchema: GenMessage<GenerateDecisionResponse, {validType: GenerateDecisionResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_decision, 9);
+  messageDesc(file_malonaz_ai_ai_service_v1_decision, 10);
 
