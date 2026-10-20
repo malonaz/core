@@ -32,6 +32,14 @@ type GenerateMessageClient interface {
 	StreamGenerateMessage(ctx context.Context, request *aiservicepb.GenerateMessageRequest, messages []*aipb.Message, sender *AsyncMessageContentSender) error
 }
 
+// GenerateDecisionClient answers a batch of typed questions about a state.
+// Unlike GenerateMessageClient, this is a plain stateless call: no chat, no
+// sender lifecycle.
+type GenerateDecisionClient interface {
+	Provider
+	GenerateDecision(ctx context.Context, request *aiservicepb.GenerateDecisionRequest) (*aiservicepb.GenerateDecisionResponse, error)
+}
+
 // StreamTextToSpeechClient synthesizes speech from incrementally streamed
 // text over a bidirectional stream. The configuration (with the voice already
 // resolved to a provider voice id) is passed alongside the stream: the
