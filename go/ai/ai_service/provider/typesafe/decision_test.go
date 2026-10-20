@@ -26,14 +26,34 @@ func TestStateToDTO(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestQuestionToDTOBoolean(t *testing.T) {
-	question := &aiservicepb.Question{Type: &aiservicepb.Question_Boolean{Boolean: &aiservicepb.BooleanQuestion{
-		CriteriaTrue: structpb.NewStringValue("spam"),
-	}}}
-
-	dto, err := questionToDTO(question)
-	require.NoError(t, err)
-	require.Equal(t, questionDTO{Type: "noul", Criteria: map[string]any{"true": "spam"}}, dto)
+func TestQuestionToDTO(t *testing.T) {
+	tests := []struct {
+		name     string
+		question *aiservicepb.Question
+		expected questionDTO
+	}{
+		{
+			name: "choice with an empty description",
+			question: &aiservicepb.Question{Instructions: "Which topic?", Type: &aiservicepb.Question_Choice{Choice: &aiservicepb.ChoiceQuestion{
+				Criteria: map[string]string{"refund": "Money back", "other": ""},
+			}}},
+			expected: questionDTO{Type: "choice", Instructions: "Which topic?", Criteria: map[string]any{"refund": "Money back", "other": nil}},
+		},
+		{
+			name: "boolean without instructions",
+			question: &aiservicepb.Question{Type: &aiservicepb.Question_Boolean{Boolean: &aiservicepb.BooleanQuestion{
+				CriteriaTrue: "spam",
+			}}},
+			expected: questionDTO{Type: "noul", Criteria: map[string]string{"true": "spam"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dto, err := questionToDTO(tt.question)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, dto)
+		})
+	}
 }
 
 func TestAnswerDTOToAnswer(t *testing.T) {

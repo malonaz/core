@@ -29,7 +29,7 @@ from malonaz.ai.v1 import message_pb2 as malonaz_dot_ai_dot_v1_dot_message__pb2
 from malonaz.ai.v1 import metrics_pb2 as malonaz_dot_ai_dot_v1_dot_metrics__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\x80\x04\n\x08Question\x12,\n\x0cinstructions\x18\x01 \x01(\x0b\x32\x16.google.protobuf.Value\x12:\n\x06\x63hoice\x18\x02 \x01(\x0b\x32(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00\x12\x38\n\x05score\x18\x03 \x01(\x0b\x32\'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00\x12<\n\x07\x62oolean\x18\x04 \x01(\x0b\x32).malonaz.ai.ai_service.v1.BooleanQuestionH\x00:\x82\x02\xbaH\xfe\x01\x1a\xfb\x01\n2question_boolean_requires_instructions_or_criteria\x12Pa boolean question without instructions must set criteria_true or criteria_false\x1as!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)B\r\n\x04type\x12\x05\xbaH\x02\x08\x01\"\xb0\x01\n\x0e\x43hoiceQuestion\x12U\n\x08\x63riteria\x18\x01 \x03(\x0b\x32\x36.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\x0b\xbaH\x08\x9a\x01\x05\x08\x01\x10\xff\x01\x1aG\n\rCriteriaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12%\n\x05value\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value:\x02\x38\x01\"E\n\rScoreQuestion\x12\x34\n\x08\x63riteria\x18\x01 \x03(\x0b\x32\x16.google.protobuf.ValueB\n\xbaH\x07\x92\x01\x04\x08\x01\x10\n\"p\n\x0f\x42ooleanQuestion\x12-\n\rcriteria_true\x18\x01 \x01(\x0b\x32\x16.google.protobuf.Value\x12.\n\x0e\x63riteria_false\x18\x02 \x01(\x0b\x32\x16.google.protobuf.Value\"\xa3\x02\n\x06\x41nswer\x12\x38\n\x06\x63hoice\x18\x01 \x01(\x0b\x32&.malonaz.ai.ai_service.v1.ChoiceAnswerH\x00\x12\x36\n\x05score\x18\x02 \x01(\x0b\x32%.malonaz.ai.ai_service.v1.ScoreAnswerH\x00\x12:\n\x07\x62oolean\x18\x03 \x01(\x0b\x32\'.malonaz.ai.ai_service.v1.BooleanAnswerH\x00\x12\x34\n\x07refusal\x18\x04 \x01(\x0b\x32!.malonaz.ai.ai_service.v1.RefusalH\x00\x12-\n\x0c\x65xtra_fields\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructB\x06\n\x04type\"\xa6\x01\n\x0c\x43hoiceAnswer\x12\x0e\n\x06\x63hoice\x18\x01 \x01(\t\x12P\n\rprobabilities\x18\x02 \x03(\x0b\x32\x39.malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry\x1a\x34\n\x12ProbabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"\xa3\x01\n\x0bScoreAnswer\x12\r\n\x05score\x18\x01 \x01(\x01\x12O\n\rprobabilities\x18\x02 \x03(\x0b\x32\x38.malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry\x1a\x34\n\x12ProbabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"=\n\rBooleanAnswer\x12,\n\x0bprobability\x18\x01 \x01(\x01\x42\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00\"\x19\n\x07Refusal\x12\x0e\n\x06reason\x18\x01 \x01(\t\"\xbf\x05\n\x17GenerateDecisionRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\xb1\x01\n\x05state\x18\x02 \x03(\x0b\x32\x14.malonaz.ai.v1.BlockB\x8b\x01\xbaH\x87\x01\x92\x01\x83\x01\x08\x01\"\x7f\xba\x01|\n\x13state_block_content\x12,state blocks must be text, image or document\x1a\x37has(this.text) || has(this.image) || has(this.document)\x12]\n\tquestions\x18\x03 \x03(\x0b\x32@.malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntryB\x08\xbaH\x05\x9a\x01\x02\x08\x01\x12\xdb\x01\n\x06labels\x18\x04 \x03(\x0b\x32=.malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x1aT\n\x0eQuestionsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".malonaz.ai.ai_service.v1.Question:\x02\x38\x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xee\x01\n\x18GenerateDecisionResponse\x12P\n\x07\x61nswers\x18\x01 \x03(\x0b\x32?.malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry\x12.\n\x0bmodel_usage\x18\x02 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsage\x1aP\n\x0c\x41nswersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .malonaz.ai.ai_service.v1.Answer:\x02\x38\x01\x42\x33Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xeb\x03\n\x08Question\x12\x14\n\x0cinstructions\x18\x01 \x01(\t\x12:\n\x06\x63hoice\x18\x02 \x01(\x0b\x32(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00\x12\x38\n\x05score\x18\x03 \x01(\x0b\x32\'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00\x12<\n\x07\x62oolean\x18\x04 \x01(\x0b\x32).malonaz.ai.ai_service.v1.BooleanQuestionH\x00:\x85\x02\xbaH\x81\x02\x1a\xfe\x01\n2question_boolean_requires_instructions_or_criteria\x12Pa boolean question without instructions must set criteria_true or criteria_false\x1av!has(this.boolean) || this.instructions != \'\' || this.boolean.criteria_true != \'\' || this.boolean.criteria_false != \'\'B\r\n\x04type\x12\x05\xbaH\x02\x08\x01\"\x98\x01\n\x0e\x43hoiceQuestion\x12U\n\x08\x63riteria\x18\x01 \x03(\x0b\x32\x36.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\x0b\xbaH\x08\x9a\x01\x05\x08\x01\x10\xff\x01\x1a/\n\rCriteriaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"-\n\rScoreQuestion\x12\x1c\n\x08\x63riteria\x18\x01 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x01\x10\n\"@\n\x0f\x42ooleanQuestion\x12\x15\n\rcriteria_true\x18\x01 \x01(\t\x12\x16\n\x0e\x63riteria_false\x18\x02 \x01(\t\"\xa3\x02\n\x06\x41nswer\x12\x38\n\x06\x63hoice\x18\x01 \x01(\x0b\x32&.malonaz.ai.ai_service.v1.ChoiceAnswerH\x00\x12\x36\n\x05score\x18\x02 \x01(\x0b\x32%.malonaz.ai.ai_service.v1.ScoreAnswerH\x00\x12:\n\x07\x62oolean\x18\x03 \x01(\x0b\x32\'.malonaz.ai.ai_service.v1.BooleanAnswerH\x00\x12\x34\n\x07refusal\x18\x04 \x01(\x0b\x32!.malonaz.ai.ai_service.v1.RefusalH\x00\x12-\n\x0c\x65xtra_fields\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructB\x06\n\x04type\"\xa6\x01\n\x0c\x43hoiceAnswer\x12\x0e\n\x06\x63hoice\x18\x01 \x01(\t\x12P\n\rprobabilities\x18\x02 \x03(\x0b\x32\x39.malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry\x1a\x34\n\x12ProbabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"\xa3\x01\n\x0bScoreAnswer\x12\r\n\x05score\x18\x01 \x01(\x01\x12O\n\rprobabilities\x18\x02 \x03(\x0b\x32\x38.malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry\x1a\x34\n\x12ProbabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"=\n\rBooleanAnswer\x12,\n\x0bprobability\x18\x01 \x01(\x01\x42\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00\xf0?)\x00\x00\x00\x00\x00\x00\x00\x00\"\x19\n\x07Refusal\x12\x0e\n\x06reason\x18\x01 \x01(\t\"\xbf\x05\n\x17GenerateDecisionRequest\x12.\n\x05model\x18\x01 \x01(\tB\x1f\xfa\x41\x16\n\x14\x61i.malonaz.com/Model\xbaH\x03\xc8\x01\x01\x12\xb1\x01\n\x05state\x18\x02 \x03(\x0b\x32\x14.malonaz.ai.v1.BlockB\x8b\x01\xbaH\x87\x01\x92\x01\x83\x01\x08\x01\"\x7f\xba\x01|\n\x13state_block_content\x12,state blocks must be text, image or document\x1a\x37has(this.text) || has(this.image) || has(this.document)\x12]\n\tquestions\x18\x03 \x03(\x0b\x32@.malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntryB\x08\xbaH\x05\x9a\x01\x02\x08\x01\x12\xdb\x01\n\x06labels\x18\x04 \x03(\x0b\x32=.malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x1aT\n\x0eQuestionsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".malonaz.ai.ai_service.v1.Question:\x02\x38\x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xee\x01\n\x18GenerateDecisionResponse\x12P\n\x07\x61nswers\x18\x01 \x03(\x0b\x32?.malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry\x12.\n\x0bmodel_usage\x18\x02 \x01(\x0b\x32\x19.malonaz.ai.v1.ModelUsage\x1aP\n\x0c\x41nswersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .malonaz.ai.ai_service.v1.Answer:\x02\x38\x01\x42\x33Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,7 +40,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_QUESTION'].oneofs_by_name['type']._loaded_options = None
   _globals['_QUESTION'].oneofs_by_name['type']._serialized_options = b'\272H\002\010\001'
   _globals['_QUESTION']._loaded_options = None
-  _globals['_QUESTION']._serialized_options = b'\272H\376\001\032\373\001\n2question_boolean_requires_instructions_or_criteria\022Pa boolean question without instructions must set criteria_true or criteria_false\032s!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)'
+  _globals['_QUESTION']._serialized_options = b'\272H\201\002\032\376\001\n2question_boolean_requires_instructions_or_criteria\022Pa boolean question without instructions must set criteria_true or criteria_false\032v!has(this.boolean) || this.instructions != \'\' || this.boolean.criteria_true != \'\' || this.boolean.criteria_false != \'\''
   _globals['_CHOICEQUESTION_CRITERIAENTRY']._loaded_options = None
   _globals['_CHOICEQUESTION_CRITERIAENTRY']._serialized_options = b'8\001'
   _globals['_CHOICEQUESTION'].fields_by_name['criteria']._loaded_options = None
@@ -68,37 +68,37 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._loaded_options = None
   _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._serialized_options = b'8\001'
   _globals['_QUESTION']._serialized_start=214
-  _globals['_QUESTION']._serialized_end=726
-  _globals['_CHOICEQUESTION']._serialized_start=729
-  _globals['_CHOICEQUESTION']._serialized_end=905
-  _globals['_CHOICEQUESTION_CRITERIAENTRY']._serialized_start=834
-  _globals['_CHOICEQUESTION_CRITERIAENTRY']._serialized_end=905
-  _globals['_SCOREQUESTION']._serialized_start=907
-  _globals['_SCOREQUESTION']._serialized_end=976
-  _globals['_BOOLEANQUESTION']._serialized_start=978
-  _globals['_BOOLEANQUESTION']._serialized_end=1090
-  _globals['_ANSWER']._serialized_start=1093
-  _globals['_ANSWER']._serialized_end=1384
-  _globals['_CHOICEANSWER']._serialized_start=1387
-  _globals['_CHOICEANSWER']._serialized_end=1553
-  _globals['_CHOICEANSWER_PROBABILITIESENTRY']._serialized_start=1501
-  _globals['_CHOICEANSWER_PROBABILITIESENTRY']._serialized_end=1553
-  _globals['_SCOREANSWER']._serialized_start=1556
-  _globals['_SCOREANSWER']._serialized_end=1719
-  _globals['_SCOREANSWER_PROBABILITIESENTRY']._serialized_start=1501
-  _globals['_SCOREANSWER_PROBABILITIESENTRY']._serialized_end=1553
-  _globals['_BOOLEANANSWER']._serialized_start=1721
-  _globals['_BOOLEANANSWER']._serialized_end=1782
-  _globals['_REFUSAL']._serialized_start=1784
-  _globals['_REFUSAL']._serialized_end=1809
-  _globals['_GENERATEDECISIONREQUEST']._serialized_start=1812
-  _globals['_GENERATEDECISIONREQUEST']._serialized_end=2515
-  _globals['_GENERATEDECISIONREQUEST_QUESTIONSENTRY']._serialized_start=2384
-  _globals['_GENERATEDECISIONREQUEST_QUESTIONSENTRY']._serialized_end=2468
-  _globals['_GENERATEDECISIONREQUEST_LABELSENTRY']._serialized_start=2470
-  _globals['_GENERATEDECISIONREQUEST_LABELSENTRY']._serialized_end=2515
-  _globals['_GENERATEDECISIONRESPONSE']._serialized_start=2518
-  _globals['_GENERATEDECISIONRESPONSE']._serialized_end=2756
-  _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._serialized_start=2676
-  _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._serialized_end=2756
+  _globals['_QUESTION']._serialized_end=705
+  _globals['_CHOICEQUESTION']._serialized_start=708
+  _globals['_CHOICEQUESTION']._serialized_end=860
+  _globals['_CHOICEQUESTION_CRITERIAENTRY']._serialized_start=813
+  _globals['_CHOICEQUESTION_CRITERIAENTRY']._serialized_end=860
+  _globals['_SCOREQUESTION']._serialized_start=862
+  _globals['_SCOREQUESTION']._serialized_end=907
+  _globals['_BOOLEANQUESTION']._serialized_start=909
+  _globals['_BOOLEANQUESTION']._serialized_end=973
+  _globals['_ANSWER']._serialized_start=976
+  _globals['_ANSWER']._serialized_end=1267
+  _globals['_CHOICEANSWER']._serialized_start=1270
+  _globals['_CHOICEANSWER']._serialized_end=1436
+  _globals['_CHOICEANSWER_PROBABILITIESENTRY']._serialized_start=1384
+  _globals['_CHOICEANSWER_PROBABILITIESENTRY']._serialized_end=1436
+  _globals['_SCOREANSWER']._serialized_start=1439
+  _globals['_SCOREANSWER']._serialized_end=1602
+  _globals['_SCOREANSWER_PROBABILITIESENTRY']._serialized_start=1384
+  _globals['_SCOREANSWER_PROBABILITIESENTRY']._serialized_end=1436
+  _globals['_BOOLEANANSWER']._serialized_start=1604
+  _globals['_BOOLEANANSWER']._serialized_end=1665
+  _globals['_REFUSAL']._serialized_start=1667
+  _globals['_REFUSAL']._serialized_end=1692
+  _globals['_GENERATEDECISIONREQUEST']._serialized_start=1695
+  _globals['_GENERATEDECISIONREQUEST']._serialized_end=2398
+  _globals['_GENERATEDECISIONREQUEST_QUESTIONSENTRY']._serialized_start=2267
+  _globals['_GENERATEDECISIONREQUEST_QUESTIONSENTRY']._serialized_end=2351
+  _globals['_GENERATEDECISIONREQUEST_LABELSENTRY']._serialized_start=2353
+  _globals['_GENERATEDECISIONREQUEST_LABELSENTRY']._serialized_end=2398
+  _globals['_GENERATEDECISIONRESPONSE']._serialized_start=2401
+  _globals['_GENERATEDECISIONRESPONSE']._serialized_end=2639
+  _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._serialized_start=2559
+  _globals['_GENERATEDECISIONRESPONSE_ANSWERSENTRY']._serialized_end=2639
 # @@protoc_insertion_point(module_scope)

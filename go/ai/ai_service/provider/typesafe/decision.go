@@ -28,7 +28,7 @@ type requestBody struct {
 
 type questionDTO struct {
 	Type         string `json:"type"`
-	Instructions any    `json:"instructions,omitempty"`
+	Instructions string `json:"instructions,omitempty"`
 	Criteria     any    `json:"criteria,omitempty"`
 }
 
@@ -169,44 +169,39 @@ func stateToDTO(blocks []*aipb.Block) (any, error) {
 }
 
 func questionToDTO(question *aiservicepb.Question) (questionDTO, error) {
-	var instructions any
-	if question.GetInstructions() != nil {
-		instructions = question.GetInstructions().AsInterface()
-	}
-
+	dto := questionDTO{Instructions: question.GetInstructions()}
 	switch questionType := question.GetType().(type) {
 	case *aiservicepb.Question_Choice:
 		criteria := make(map[string]any, len(questionType.Choice.GetCriteria()))
-		for name, value := range questionType.Choice.GetCriteria() {
-			criteria[name] = value.AsInterface()
+		for key, description := range questionType.Choice.GetCriteria() {
+			// Jev takes null for an option without a description.
+			criteria[key] = nil
+			if description != "" {
+				criteria[key] = description
+			}
 		}
-		return questionDTO{Type: "choice", Instructions: instructions, Criteria: criteria}, nil
+		dto.Type, dto.Criteria = "choice", criteria
 
 	case *aiservicepb.Question_Score:
-		levels := questionType.Score.GetCriteria()
-		criteria := make([]any, 0, len(levels))
-		for _, level := range levels {
-			criteria = append(criteria, level.AsInterface())
-		}
-		return questionDTO{Type: "score", Instructions: instructions, Criteria: criteria}, nil
+		dto.Type, dto.Criteria = "score", questionType.Score.GetCriteria()
 
 	case *aiservicepb.Question_Boolean:
-		criteria := map[string]any{}
-		if criteriaTrue := questionType.Boolean.GetCriteriaTrue(); criteriaTrue != nil {
-			criteria["true"] = criteriaTrue.AsInterface()
+		criteria := map[string]string{}
+		if criteriaTrue := questionType.Boolean.GetCriteriaTrue(); criteriaTrue != "" {
+			criteria["true"] = criteriaTrue
 		}
-		if criteriaFalse := questionType.Boolean.GetCriteriaFalse(); criteriaFalse != nil {
-			criteria["false"] = criteriaFalse.AsInterface()
+		if criteriaFalse := questionType.Boolean.GetCriteriaFalse(); criteriaFalse != "" {
+			criteria["false"] = criteriaFalse
 		}
-		dto := questionDTO{Type: "noul", Instructions: instructions}
+		dto.Type = "noul"
 		if len(criteria) > 0 {
 			dto.Criteria = criteria
 		}
-		return dto, nil
 
 	default:
 		return questionDTO{}, status.Errorf(codes.InvalidArgument, "jev does not support %T questions", questionType).Err()
 	}
+	return dto, nil
 }
 
 func (dto answerDTO) toAnswer() (*aiservicepb.Answer, error) {

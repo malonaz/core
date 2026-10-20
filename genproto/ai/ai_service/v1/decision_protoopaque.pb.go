@@ -29,7 +29,7 @@ const (
 // A typed question asked of a decision model about a state.
 type Question struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Instructions *structpb.Value        `protobuf:"bytes,1,opt,name=instructions,proto3"`
+	xxx_hidden_Instructions string                 `protobuf:"bytes,1,opt,name=instructions,proto3"`
 	xxx_hidden_Type         isQuestion_Type        `protobuf_oneof:"type"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
@@ -60,11 +60,11 @@ func (x *Question) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Question) GetInstructions() *structpb.Value {
+func (x *Question) GetInstructions() string {
 	if x != nil {
 		return x.xxx_hidden_Instructions
 	}
-	return nil
+	return ""
 }
 
 func (x *Question) GetChoice() *ChoiceQuestion {
@@ -94,7 +94,7 @@ func (x *Question) GetBoolean() *BooleanQuestion {
 	return nil
 }
 
-func (x *Question) SetInstructions(v *structpb.Value) {
+func (x *Question) SetInstructions(v string) {
 	x.xxx_hidden_Instructions = v
 }
 
@@ -120,13 +120,6 @@ func (x *Question) SetBoolean(v *BooleanQuestion) {
 		return
 	}
 	x.xxx_hidden_Type = &question_Boolean{v}
-}
-
-func (x *Question) HasInstructions() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Instructions != nil
 }
 
 func (x *Question) HasType() bool {
@@ -158,10 +151,6 @@ func (x *Question) HasBoolean() bool {
 	}
 	_, ok := x.xxx_hidden_Type.(*question_Boolean)
 	return ok
-}
-
-func (x *Question) ClearInstructions() {
-	x.xxx_hidden_Instructions = nil
 }
 
 func (x *Question) ClearType() {
@@ -210,8 +199,8 @@ func (x *Question) WhichType() case_Question_Type {
 type Question_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// What is being asked. String, object, or array. Optional.
-	Instructions *structpb.Value
+	// What is being asked. Plain text or JSON text. Optional.
+	Instructions string
 	// The question's type.
 
 	// Fields of oneof xxx_hidden_Type:
@@ -278,8 +267,8 @@ func (*question_Boolean) isQuestion_Type() {}
 
 // Asks the model to select one option from a fixed set.
 type ChoiceQuestion struct {
-	state               protoimpl.MessageState     `protogen:"opaque.v1"`
-	xxx_hidden_Criteria map[string]*structpb.Value `protobuf:"bytes,1,rep,name=criteria,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Criteria map[string]string      `protobuf:"bytes,1,rep,name=criteria,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -309,22 +298,23 @@ func (x *ChoiceQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ChoiceQuestion) GetCriteria() map[string]*structpb.Value {
+func (x *ChoiceQuestion) GetCriteria() map[string]string {
 	if x != nil {
 		return x.xxx_hidden_Criteria
 	}
 	return nil
 }
 
-func (x *ChoiceQuestion) SetCriteria(v map[string]*structpb.Value) {
+func (x *ChoiceQuestion) SetCriteria(v map[string]string) {
 	x.xxx_hidden_Criteria = v
 }
 
 type ChoiceQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Maps an option key to a description of when it applies.
-	Criteria map[string]*structpb.Value
+	// Maps an option key to a description of when it applies. Plain text or
+	// JSON text; may be empty.
+	Criteria map[string]string
 }
 
 func (b0 ChoiceQuestion_builder) Build() *ChoiceQuestion {
@@ -338,7 +328,7 @@ func (b0 ChoiceQuestion_builder) Build() *ChoiceQuestion {
 // Asks the model to place the state on an ordered rubric.
 type ScoreQuestion struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Criteria *[]*structpb.Value     `protobuf:"bytes,1,rep,name=criteria,proto3"`
+	xxx_hidden_Criteria []string               `protobuf:"bytes,1,rep,name=criteria,proto3"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -368,39 +358,37 @@ func (x *ScoreQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ScoreQuestion) GetCriteria() []*structpb.Value {
+func (x *ScoreQuestion) GetCriteria() []string {
 	if x != nil {
-		if x.xxx_hidden_Criteria != nil {
-			return *x.xxx_hidden_Criteria
-		}
+		return x.xxx_hidden_Criteria
 	}
 	return nil
 }
 
-func (x *ScoreQuestion) SetCriteria(v []*structpb.Value) {
-	x.xxx_hidden_Criteria = &v
+func (x *ScoreQuestion) SetCriteria(v []string) {
+	x.xxx_hidden_Criteria = v
 }
 
 type ScoreQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Rubric level descriptions, from lowest to highest.
-	Criteria []*structpb.Value
+	// Rubric level descriptions, from lowest to highest. Plain text or JSON text.
+	Criteria []string
 }
 
 func (b0 ScoreQuestion_builder) Build() *ScoreQuestion {
 	m0 := &ScoreQuestion{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Criteria = &b.Criteria
+	x.xxx_hidden_Criteria = b.Criteria
 	return m0
 }
 
 // Asks the model for the probability that a condition is true.
 type BooleanQuestion struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CriteriaTrue  *structpb.Value        `protobuf:"bytes,1,opt,name=criteria_true,json=criteriaTrue,proto3"`
-	xxx_hidden_CriteriaFalse *structpb.Value        `protobuf:"bytes,2,opt,name=criteria_false,json=criteriaFalse,proto3"`
+	xxx_hidden_CriteriaTrue  string                 `protobuf:"bytes,1,opt,name=criteria_true,json=criteriaTrue,proto3"`
+	xxx_hidden_CriteriaFalse string                 `protobuf:"bytes,2,opt,name=criteria_false,json=criteriaFalse,proto3"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -430,57 +418,35 @@ func (x *BooleanQuestion) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *BooleanQuestion) GetCriteriaTrue() *structpb.Value {
+func (x *BooleanQuestion) GetCriteriaTrue() string {
 	if x != nil {
 		return x.xxx_hidden_CriteriaTrue
 	}
-	return nil
+	return ""
 }
 
-func (x *BooleanQuestion) GetCriteriaFalse() *structpb.Value {
+func (x *BooleanQuestion) GetCriteriaFalse() string {
 	if x != nil {
 		return x.xxx_hidden_CriteriaFalse
 	}
-	return nil
+	return ""
 }
 
-func (x *BooleanQuestion) SetCriteriaTrue(v *structpb.Value) {
+func (x *BooleanQuestion) SetCriteriaTrue(v string) {
 	x.xxx_hidden_CriteriaTrue = v
 }
 
-func (x *BooleanQuestion) SetCriteriaFalse(v *structpb.Value) {
+func (x *BooleanQuestion) SetCriteriaFalse(v string) {
 	x.xxx_hidden_CriteriaFalse = v
-}
-
-func (x *BooleanQuestion) HasCriteriaTrue() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_CriteriaTrue != nil
-}
-
-func (x *BooleanQuestion) HasCriteriaFalse() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_CriteriaFalse != nil
-}
-
-func (x *BooleanQuestion) ClearCriteriaTrue() {
-	x.xxx_hidden_CriteriaTrue = nil
-}
-
-func (x *BooleanQuestion) ClearCriteriaFalse() {
-	x.xxx_hidden_CriteriaFalse = nil
 }
 
 type BooleanQuestion_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Describes the true case. Optional.
-	CriteriaTrue *structpb.Value
-	// Describes the false case. Optional.
-	CriteriaFalse *structpb.Value
+	// Describes the true case. Plain text or JSON text. Optional.
+	CriteriaTrue string
+	// Describes the false case. Plain text or JSON text. Optional.
+	CriteriaFalse string
 }
 
 func (b0 BooleanQuestion_builder) Build() *BooleanQuestion {
@@ -1252,26 +1218,26 @@ var File_malonaz_ai_ai_service_v1_decision_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_decision_proto_rawDesc = "" +
 	"\n" +
-	"'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\xa6\x04\n" +
-	"\bQuestion\x12:\n" +
-	"\finstructions\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\finstructions\x12B\n" +
+	"'malonaz/ai/ai_service/v1/decision.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\"\x91\x04\n" +
+	"\bQuestion\x12\"\n" +
+	"\finstructions\x18\x01 \x01(\tR\finstructions\x12B\n" +
 	"\x06choice\x18\x02 \x01(\v2(.malonaz.ai.ai_service.v1.ChoiceQuestionH\x00R\x06choice\x12?\n" +
 	"\x05score\x18\x03 \x01(\v2'.malonaz.ai.ai_service.v1.ScoreQuestionH\x00R\x05score\x12E\n" +
-	"\aboolean\x18\x04 \x01(\v2).malonaz.ai.ai_service.v1.BooleanQuestionH\x00R\aboolean:\x82\x02\xbaH\xfe\x01\x1a\xfb\x01\n" +
-	"2question_boolean_requires_instructions_or_criteria\x12Pa boolean question without instructions must set criteria_true or criteria_false\x1as!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)B\r\n" +
-	"\x04type\x12\x05\xbaH\x02\b\x01\"\xc6\x01\n" +
+	"\aboolean\x18\x04 \x01(\v2).malonaz.ai.ai_service.v1.BooleanQuestionH\x00R\aboolean:\x85\x02\xbaH\x81\x02\x1a\xfe\x01\n" +
+	"2question_boolean_requires_instructions_or_criteria\x12Pa boolean question without instructions must set criteria_true or criteria_false\x1av!has(this.boolean) || this.instructions != '' || this.boolean.criteria_true != '' || this.boolean.criteria_false != ''B\r\n" +
+	"\x04type\x12\x05\xbaH\x02\b\x01\"\xae\x01\n" +
 	"\x0eChoiceQuestion\x12_\n" +
-	"\bcriteria\x18\x01 \x03(\v26.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\v\xbaH\b\x9a\x01\x05\b\x01\x10\xff\x01R\bcriteria\x1aS\n" +
+	"\bcriteria\x18\x01 \x03(\v26.malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntryB\v\xbaH\b\x9a\x01\x05\b\x01\x10\xff\x01R\bcriteria\x1a;\n" +
 	"\rCriteriaEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
-	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01\"O\n" +
-	"\rScoreQuestion\x12>\n" +
-	"\bcriteria\x18\x01 \x03(\v2\x16.google.protobuf.ValueB\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"7\n" +
+	"\rScoreQuestion\x12&\n" +
+	"\bcriteria\x18\x01 \x03(\tB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x10\n" +
-	"R\bcriteria\"\x8d\x01\n" +
-	"\x0fBooleanQuestion\x12;\n" +
-	"\rcriteria_true\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\fcriteriaTrue\x12=\n" +
-	"\x0ecriteria_false\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\rcriteriaFalse\"\xd1\x02\n" +
+	"R\bcriteria\"]\n" +
+	"\x0fBooleanQuestion\x12#\n" +
+	"\rcriteria_true\x18\x01 \x01(\tR\fcriteriaTrue\x12%\n" +
+	"\x0ecriteria_false\x18\x02 \x01(\tR\rcriteriaFalse\"\xd1\x02\n" +
 	"\x06Answer\x12@\n" +
 	"\x06choice\x18\x01 \x01(\v2&.malonaz.ai.ai_service.v1.ChoiceAnswerH\x00R\x06choice\x12=\n" +
 	"\x05score\x18\x02 \x01(\v2%.malonaz.ai.ai_service.v1.ScoreAnswerH\x00R\x05score\x12C\n" +
@@ -1335,40 +1301,34 @@ var file_malonaz_ai_ai_service_v1_decision_proto_goTypes = []any{
 	nil,                              // 14: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
 	nil,                              // 15: malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
 	nil,                              // 16: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
-	(*structpb.Value)(nil),           // 17: google.protobuf.Value
-	(*structpb.Struct)(nil),          // 18: google.protobuf.Struct
-	(*v1.Block)(nil),                 // 19: malonaz.ai.v1.Block
-	(*v1.ModelUsage)(nil),            // 20: malonaz.ai.v1.ModelUsage
+	(*structpb.Struct)(nil),          // 17: google.protobuf.Struct
+	(*v1.Block)(nil),                 // 18: malonaz.ai.v1.Block
+	(*v1.ModelUsage)(nil),            // 19: malonaz.ai.v1.ModelUsage
 }
 var file_malonaz_ai_ai_service_v1_decision_proto_depIdxs = []int32{
-	17, // 0: malonaz.ai.ai_service.v1.Question.instructions:type_name -> google.protobuf.Value
-	1,  // 1: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
-	2,  // 2: malonaz.ai.ai_service.v1.Question.score:type_name -> malonaz.ai.ai_service.v1.ScoreQuestion
-	3,  // 3: malonaz.ai.ai_service.v1.Question.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanQuestion
-	11, // 4: malonaz.ai.ai_service.v1.ChoiceQuestion.criteria:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
-	17, // 5: malonaz.ai.ai_service.v1.ScoreQuestion.criteria:type_name -> google.protobuf.Value
-	17, // 6: malonaz.ai.ai_service.v1.BooleanQuestion.criteria_true:type_name -> google.protobuf.Value
-	17, // 7: malonaz.ai.ai_service.v1.BooleanQuestion.criteria_false:type_name -> google.protobuf.Value
-	5,  // 8: malonaz.ai.ai_service.v1.Answer.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer
-	6,  // 9: malonaz.ai.ai_service.v1.Answer.score:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer
-	7,  // 10: malonaz.ai.ai_service.v1.Answer.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanAnswer
-	8,  // 11: malonaz.ai.ai_service.v1.Answer.refusal:type_name -> malonaz.ai.ai_service.v1.Refusal
-	18, // 12: malonaz.ai.ai_service.v1.Answer.extra_fields:type_name -> google.protobuf.Struct
-	12, // 13: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
-	13, // 14: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
-	19, // 15: malonaz.ai.ai_service.v1.GenerateDecisionRequest.state:type_name -> malonaz.ai.v1.Block
-	14, // 16: malonaz.ai.ai_service.v1.GenerateDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
-	15, // 17: malonaz.ai.ai_service.v1.GenerateDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
-	16, // 18: malonaz.ai.ai_service.v1.GenerateDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
-	20, // 19: malonaz.ai.ai_service.v1.GenerateDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	17, // 20: malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry.value:type_name -> google.protobuf.Value
-	0,  // 21: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
-	4,  // 22: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	1,  // 0: malonaz.ai.ai_service.v1.Question.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion
+	2,  // 1: malonaz.ai.ai_service.v1.Question.score:type_name -> malonaz.ai.ai_service.v1.ScoreQuestion
+	3,  // 2: malonaz.ai.ai_service.v1.Question.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanQuestion
+	11, // 3: malonaz.ai.ai_service.v1.ChoiceQuestion.criteria:type_name -> malonaz.ai.ai_service.v1.ChoiceQuestion.CriteriaEntry
+	5,  // 4: malonaz.ai.ai_service.v1.Answer.choice:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer
+	6,  // 5: malonaz.ai.ai_service.v1.Answer.score:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer
+	7,  // 6: malonaz.ai.ai_service.v1.Answer.boolean:type_name -> malonaz.ai.ai_service.v1.BooleanAnswer
+	8,  // 7: malonaz.ai.ai_service.v1.Answer.refusal:type_name -> malonaz.ai.ai_service.v1.Refusal
+	17, // 8: malonaz.ai.ai_service.v1.Answer.extra_fields:type_name -> google.protobuf.Struct
+	12, // 9: malonaz.ai.ai_service.v1.ChoiceAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ChoiceAnswer.ProbabilitiesEntry
+	13, // 10: malonaz.ai.ai_service.v1.ScoreAnswer.probabilities:type_name -> malonaz.ai.ai_service.v1.ScoreAnswer.ProbabilitiesEntry
+	18, // 11: malonaz.ai.ai_service.v1.GenerateDecisionRequest.state:type_name -> malonaz.ai.v1.Block
+	14, // 12: malonaz.ai.ai_service.v1.GenerateDecisionRequest.questions:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry
+	15, // 13: malonaz.ai.ai_service.v1.GenerateDecisionRequest.labels:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionRequest.LabelsEntry
+	16, // 14: malonaz.ai.ai_service.v1.GenerateDecisionResponse.answers:type_name -> malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry
+	19, // 15: malonaz.ai.ai_service.v1.GenerateDecisionResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	0,  // 16: malonaz.ai.ai_service.v1.GenerateDecisionRequest.QuestionsEntry.value:type_name -> malonaz.ai.ai_service.v1.Question
+	4,  // 17: malonaz.ai.ai_service.v1.GenerateDecisionResponse.AnswersEntry.value:type_name -> malonaz.ai.ai_service.v1.Answer
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_decision_proto_init() }

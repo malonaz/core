@@ -6,7 +6,6 @@ import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { Value } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
 import type { Block, BlockValid } from "../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../v1/message_pb";
@@ -18,7 +17,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/decision.proto.
  */
 export const file_malonaz_ai_ai_service_v1_decision: GenFile = /*@__PURE__*/
-  fileDesc("CidtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvZGVjaXNpb24ucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKABAoIUXVlc3Rpb24SLAoMaW5zdHJ1Y3Rpb25zGAEgASgLMhYuZ29vZ2xlLnByb3RvYnVmLlZhbHVlEjoKBmNob2ljZRgCIAEoCzIoLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbkgAEjgKBXNjb3JlGAMgASgLMicubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNjb3JlUXVlc3Rpb25IABI8Cgdib29sZWFuGAQgASgLMikubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkJvb2xlYW5RdWVzdGlvbkgAOoICukj+ARr7AQoycXVlc3Rpb25fYm9vbGVhbl9yZXF1aXJlc19pbnN0cnVjdGlvbnNfb3JfY3JpdGVyaWESUGEgYm9vbGVhbiBxdWVzdGlvbiB3aXRob3V0IGluc3RydWN0aW9ucyBtdXN0IHNldCBjcml0ZXJpYV90cnVlIG9yIGNyaXRlcmlhX2ZhbHNlGnMhaGFzKHRoaXMuYm9vbGVhbikgfHwgaGFzKHRoaXMuaW5zdHJ1Y3Rpb25zKSB8fCBoYXModGhpcy5ib29sZWFuLmNyaXRlcmlhX3RydWUpIHx8IGhhcyh0aGlzLmJvb2xlYW4uY3JpdGVyaWFfZmFsc2UpQg0KBHR5cGUSBbpIAggBIrABCg5DaG9pY2VRdWVzdGlvbhJVCghjcml0ZXJpYRgBIAMoCzI2Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbi5Dcml0ZXJpYUVudHJ5Qgu6SAiaAQUIARD/ARpHCg1Dcml0ZXJpYUVudHJ5EgsKA2tleRgBIAEoCRIlCgV2YWx1ZRgCIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZToCOAEiRQoNU2NvcmVRdWVzdGlvbhI0Cghjcml0ZXJpYRgBIAMoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZUIKukgHkgEECAEQCiJwCg9Cb29sZWFuUXVlc3Rpb24SLQoNY3JpdGVyaWFfdHJ1ZRgBIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZRIuCg5jcml0ZXJpYV9mYWxzZRgCIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZSKjAgoGQW5zd2VyEjgKBmNob2ljZRgBIAEoCzImLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VBbnN3ZXJIABI2CgVzY29yZRgCIAEoCzIlLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TY29yZUFuc3dlckgAEjoKB2Jvb2xlYW4YAyABKAsyJy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQm9vbGVhbkFuc3dlckgAEjQKB3JlZnVzYWwYBCABKAsyIS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuUmVmdXNhbEgAEi0KDGV4dHJhX2ZpZWxkcxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCBgoEdHlwZSKmAQoMQ2hvaWNlQW5zd2VyEg4KBmNob2ljZRgBIAEoCRJQCg1wcm9iYWJpbGl0aWVzGAIgAygLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNob2ljZUFuc3dlci5Qcm9iYWJpbGl0aWVzRW50cnkaNAoSUHJvYmFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiowEKC1Njb3JlQW5zd2VyEg0KBXNjb3JlGAEgASgBEk8KDXByb2JhYmlsaXRpZXMYAiADKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU2NvcmVBbnN3ZXIuUHJvYmFiaWxpdGllc0VudHJ5GjQKElByb2JhYmlsaXRpZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIj0KDUJvb2xlYW5BbnN3ZXISLAoLcHJvYmFiaWxpdHkYASABKAFCF7pIFBISGQAAAAAAAPA/KQAAAAAAAAAAIhkKB1JlZnVzYWwSDgoGcmVhc29uGAEgASgJIr8FChdHZW5lcmF0ZURlY2lzaW9uUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARKxAQoFc3RhdGUYAiADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrQosBukiHAZIBgwEIASJ/ugF8ChNzdGF0ZV9ibG9ja19jb250ZW50EixzdGF0ZSBibG9ja3MgbXVzdCBiZSB0ZXh0LCBpbWFnZSBvciBkb2N1bWVudBo3aGFzKHRoaXMudGV4dCkgfHwgaGFzKHRoaXMuaW1hZ2UpIHx8IGhhcyh0aGlzLmRvY3VtZW50KRJdCglxdWVzdGlvbnMYAyADKAsyQC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuUXVlc3Rpb25zRW50cnlCCLpIBZoBAggBEtsBCgZsYWJlbHMYBCADKAsyPS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGlQKDlF1ZXN0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRIxCgV2YWx1ZRgCIAEoCzIiLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5RdWVzdGlvbjoCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLuAQoYR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlElAKB2Fuc3dlcnMYASADKAsyPy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlLkFuc3dlcnNFbnRyeRIuCgttb2RlbF91c2FnZRgCIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZRpQCgxBbnN3ZXJzRW50cnkSCwoDa2V5GAEgASgJEi8KBXZhbHVlGAIgASgLMiAubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkFuc3dlcjoCOAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics]);
+  fileDesc("CidtYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvZGVjaXNpb24ucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSLrAwoIUXVlc3Rpb24SFAoMaW5zdHJ1Y3Rpb25zGAEgASgJEjoKBmNob2ljZRgCIAEoCzIoLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbkgAEjgKBXNjb3JlGAMgASgLMicubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNjb3JlUXVlc3Rpb25IABI8Cgdib29sZWFuGAQgASgLMikubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkJvb2xlYW5RdWVzdGlvbkgAOoUCukiBAhr+AQoycXVlc3Rpb25fYm9vbGVhbl9yZXF1aXJlc19pbnN0cnVjdGlvbnNfb3JfY3JpdGVyaWESUGEgYm9vbGVhbiBxdWVzdGlvbiB3aXRob3V0IGluc3RydWN0aW9ucyBtdXN0IHNldCBjcml0ZXJpYV90cnVlIG9yIGNyaXRlcmlhX2ZhbHNlGnYhaGFzKHRoaXMuYm9vbGVhbikgfHwgdGhpcy5pbnN0cnVjdGlvbnMgIT0gJycgfHwgdGhpcy5ib29sZWFuLmNyaXRlcmlhX3RydWUgIT0gJycgfHwgdGhpcy5ib29sZWFuLmNyaXRlcmlhX2ZhbHNlICE9ICcnQg0KBHR5cGUSBbpIAggBIpgBCg5DaG9pY2VRdWVzdGlvbhJVCghjcml0ZXJpYRgBIAMoCzI2Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VRdWVzdGlvbi5Dcml0ZXJpYUVudHJ5Qgu6SAiaAQUIARD/ARovCg1Dcml0ZXJpYUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiLQoNU2NvcmVRdWVzdGlvbhIcCghjcml0ZXJpYRgBIAMoCUIKukgHkgEECAEQCiJACg9Cb29sZWFuUXVlc3Rpb24SFQoNY3JpdGVyaWFfdHJ1ZRgBIAEoCRIWCg5jcml0ZXJpYV9mYWxzZRgCIAEoCSKjAgoGQW5zd2VyEjgKBmNob2ljZRgBIAEoCzImLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5DaG9pY2VBbnN3ZXJIABI2CgVzY29yZRgCIAEoCzIlLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TY29yZUFuc3dlckgAEjoKB2Jvb2xlYW4YAyABKAsyJy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuQm9vbGVhbkFuc3dlckgAEjQKB3JlZnVzYWwYBCABKAsyIS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuUmVmdXNhbEgAEi0KDGV4dHJhX2ZpZWxkcxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCBgoEdHlwZSKmAQoMQ2hvaWNlQW5zd2VyEg4KBmNob2ljZRgBIAEoCRJQCg1wcm9iYWJpbGl0aWVzGAIgAygLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkNob2ljZUFuc3dlci5Qcm9iYWJpbGl0aWVzRW50cnkaNAoSUHJvYmFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAToCOAEiowEKC1Njb3JlQW5zd2VyEg0KBXNjb3JlGAEgASgBEk8KDXByb2JhYmlsaXRpZXMYAiADKAsyOC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU2NvcmVBbnN3ZXIuUHJvYmFiaWxpdGllc0VudHJ5GjQKElByb2JhYmlsaXRpZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAE6AjgBIj0KDUJvb2xlYW5BbnN3ZXISLAoLcHJvYmFiaWxpdHkYASABKAFCF7pIFBISGQAAAAAAAPA/KQAAAAAAAAAAIhkKB1JlZnVzYWwSDgoGcmVhc29uGAEgASgJIr8FChdHZW5lcmF0ZURlY2lzaW9uUmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARKxAQoFc3RhdGUYAiADKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrQosBukiHAZIBgwEIASJ/ugF8ChNzdGF0ZV9ibG9ja19jb250ZW50EixzdGF0ZSBibG9ja3MgbXVzdCBiZSB0ZXh0LCBpbWFnZSBvciBkb2N1bWVudBo3aGFzKHRoaXMudGV4dCkgfHwgaGFzKHRoaXMuaW1hZ2UpIHx8IGhhcyh0aGlzLmRvY3VtZW50KRJdCglxdWVzdGlvbnMYAyADKAsyQC5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuUXVlc3Rpb25zRW50cnlCCLpIBZoBAggBEtsBCgZsYWJlbHMYBCADKAsyPS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlcXVlc3QuTGFiZWxzRW50cnlCiwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokGlQKDlF1ZXN0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRIxCgV2YWx1ZRgCIAEoCzIiLm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5RdWVzdGlvbjoCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLuAQoYR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlElAKB2Fuc3dlcnMYASADKAsyPy5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuR2VuZXJhdGVEZWNpc2lvblJlc3BvbnNlLkFuc3dlcnNFbnRyeRIuCgttb2RlbF91c2FnZRgCIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZRpQCgxBbnN3ZXJzRW50cnkSCwoDa2V5GAEgASgJEi8KBXZhbHVlGAIgASgLMiAubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLkFuc3dlcjoCOAFCM1oxZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWlfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_struct, file_malonaz_ai_v1_message, file_malonaz_ai_v1_metrics]);
 
 /**
  * A typed question asked of a decision model about a state.
@@ -27,11 +26,11 @@ export const file_malonaz_ai_ai_service_v1_decision: GenFile = /*@__PURE__*/
  */
 export type Question = Message<"malonaz.ai.ai_service.v1.Question"> & {
   /**
-   * What is being asked. String, object, or array. Optional.
+   * What is being asked. Plain text or JSON text. Optional.
    *
-   * @generated from field: google.protobuf.Value instructions = 1;
+   * @generated from field: string instructions = 1;
    */
-  instructions?: Value;
+  instructions: string;
 
   /**
    * The question's type.
@@ -81,11 +80,12 @@ export const QuestionSchema: GenMessage<Question, {validType: QuestionValid}> = 
  */
 export type ChoiceQuestion = Message<"malonaz.ai.ai_service.v1.ChoiceQuestion"> & {
   /**
-   * Maps an option key to a description of when it applies.
+   * Maps an option key to a description of when it applies. Plain text or
+   * JSON text; may be empty.
    *
-   * @generated from field: map<string, google.protobuf.Value> criteria = 1;
+   * @generated from field: map<string, string> criteria = 1;
    */
-  criteria: { [key: string]: Value };
+  criteria: { [key: string]: string };
 };
 
 export type ChoiceQuestionValid = ChoiceQuestion;
@@ -104,11 +104,11 @@ export const ChoiceQuestionSchema: GenMessage<ChoiceQuestion, {validType: Choice
  */
 export type ScoreQuestion = Message<"malonaz.ai.ai_service.v1.ScoreQuestion"> & {
   /**
-   * Rubric level descriptions, from lowest to highest.
+   * Rubric level descriptions, from lowest to highest. Plain text or JSON text.
    *
-   * @generated from field: repeated google.protobuf.Value criteria = 1;
+   * @generated from field: repeated string criteria = 1;
    */
-  criteria: Value[];
+  criteria: string[];
 };
 
 export type ScoreQuestionValid = ScoreQuestion;
@@ -127,18 +127,18 @@ export const ScoreQuestionSchema: GenMessage<ScoreQuestion, {validType: ScoreQue
  */
 export type BooleanQuestion = Message<"malonaz.ai.ai_service.v1.BooleanQuestion"> & {
   /**
-   * Describes the true case. Optional.
+   * Describes the true case. Plain text or JSON text. Optional.
    *
-   * @generated from field: google.protobuf.Value criteria_true = 1;
+   * @generated from field: string criteria_true = 1;
    */
-  criteriaTrue?: Value;
+  criteriaTrue: string;
 
   /**
-   * Describes the false case. Optional.
+   * Describes the false case. Plain text or JSON text. Optional.
    *
-   * @generated from field: google.protobuf.Value criteria_false = 2;
+   * @generated from field: string criteria_false = 2;
    */
-  criteriaFalse?: Value;
+  criteriaFalse: string;
 };
 
 export type BooleanQuestionValid = BooleanQuestion;

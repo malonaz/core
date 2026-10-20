@@ -11,13 +11,11 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -151,7 +149,7 @@ func buildDecisionTool(questions map[string]*aiservicepb.Question) (*aipb.Tool, 
 }
 
 func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
-	description := valueToText(question.GetInstructions())
+	description := question.GetInstructions()
 	switch questionType := question.GetType().(type) {
 	case *aiservicepb.Question_Choice:
 		choice := questionType.Choice
@@ -161,7 +159,7 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 		}
 		sort.Strings(names)
 		for _, name := range names {
-			description += fmt.Sprintf("\n- %s: %s", name, valueToText(choice.GetCriteria()[name]))
+			description += fmt.Sprintf("\n- %s: %s", name, choice.GetCriteria()[name])
 		}
 		return &jsonpb.Schema{Type: "string", Description: strings.TrimSpace(description), Enum: names}, nil
 
@@ -169,7 +167,7 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 		score := questionType.Score
 		levels := score.GetCriteria()
 		for i, level := range levels {
-			description += fmt.Sprintf("\n- %d: %s", i, valueToText(level))
+			description += fmt.Sprintf("\n- %d: %s", i, level)
 		}
 		// Integer, not number: unlike Jev's calibrated fractional score, a tool
 		// call can only pick one discrete rubric level.
@@ -182,11 +180,11 @@ func questionSchema(question *aiservicepb.Question) (*jsonpb.Schema, error) {
 
 	case *aiservicepb.Question_Boolean:
 		boolean := questionType.Boolean
-		if boolean.GetCriteriaTrue() != nil {
-			description += "\ntrue: " + valueToText(boolean.GetCriteriaTrue())
+		if boolean.GetCriteriaTrue() != "" {
+			description += "\ntrue: " + boolean.GetCriteriaTrue()
 		}
-		if boolean.GetCriteriaFalse() != nil {
-			description += "\nfalse: " + valueToText(boolean.GetCriteriaFalse())
+		if boolean.GetCriteriaFalse() != "" {
+			description += "\nfalse: " + boolean.GetCriteriaFalse()
 		}
 		return &jsonpb.Schema{Type: "boolean", Description: strings.TrimSpace(description)}, nil
 
@@ -241,20 +239,4 @@ func numberToInt(value any) (int, bool) {
 		return 0, false
 	}
 	return int(f), true
-}
-
-// valueToText renders a google.protobuf.Value the way it would appear in
-// a prompt: a plain string as itself, anything else as JSON.
-func valueToText(value *structpb.Value) string {
-	if value == nil {
-		return ""
-	}
-	if s, ok := value.AsInterface().(string); ok {
-		return s
-	}
-	bytes, err := json.Marshal(value.AsInterface())
-	if err != nil {
-		return ""
-	}
-	return string(bytes)
 }

@@ -15,11 +15,11 @@ message Question {
   option (buf.validate.message).cel = {
     id: "question_boolean_requires_instructions_or_criteria"
     message: "a boolean question without instructions must set criteria_true or criteria_false"
-    expression: "!has(this.boolean) || has(this.instructions) || has(this.boolean.criteria_true) || has(this.boolean.criteria_false)"
+    expression: "!has(this.boolean) || this.instructions != '' || this.boolean.criteria_true != '' || this.boolean.criteria_false != ''"
   };
 
-  // What is being asked. String, object, or array. Optional.
-  google.protobuf.Value instructions = 1;
+  // What is being asked. Plain text or JSON text. Optional.
+  string instructions = 1;
 
   // The question's type.
   oneof type {
@@ -36,8 +36,9 @@ message Question {
 
 // Asks the model to select one option from a fixed set.
 message ChoiceQuestion {
-  // Maps an option key to a description of when it applies.
-  map<string, google.protobuf.Value> criteria = 1 [(buf.validate.field).map = {
+  // Maps an option key to a description of when it applies. Plain text or
+  // JSON text; may be empty.
+  map<string, string> criteria = 1 [(buf.validate.field).map = {
     min_pairs: 1
     max_pairs: 255
   }];
@@ -45,8 +46,8 @@ message ChoiceQuestion {
 
 // Asks the model to place the state on an ordered rubric.
 message ScoreQuestion {
-  // Rubric level descriptions, from lowest to highest.
-  repeated google.protobuf.Value criteria = 1 [(buf.validate.field).repeated = {
+  // Rubric level descriptions, from lowest to highest. Plain text or JSON text.
+  repeated string criteria = 1 [(buf.validate.field).repeated = {
     min_items: 1
     max_items: 10
   }];
@@ -54,10 +55,10 @@ message ScoreQuestion {
 
 // Asks the model for the probability that a condition is true.
 message BooleanQuestion {
-  // Describes the true case. Optional.
-  google.protobuf.Value criteria_true = 1;
-  // Describes the false case. Optional.
-  google.protobuf.Value criteria_false = 2;
+  // Describes the true case. Plain text or JSON text. Optional.
+  string criteria_true = 1;
+  // Describes the false case. Plain text or JSON text. Optional.
+  string criteria_false = 2;
 }
 
 // The typed answer to a Question.
