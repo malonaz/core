@@ -12,7 +12,6 @@ if typing.TYPE_CHECKING:
 import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.ai.ai_service.v1.chat_pb2
-import malonaz.ai.ai_service.v1.decision_pb2
 import malonaz.ai.ai_service.v1.message_pb2
 import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
@@ -136,10 +135,6 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def StreamGenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def GenerateDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionRequest, malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -317,12 +312,6 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_STREAM,
                 malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
                 malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
-            ),
-            '/malonaz.ai.ai_service.v1.AiService/GenerateDecision': grpclib.const.Handler(
-                self.GenerateDecision,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionRequest,
-                malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionResponse,
             ),
             '/malonaz.ai.ai_service.v1.AiService/ComputeStats': grpclib.const.Handler(
                 self.ComputeStats,
@@ -509,12 +498,6 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage',
             malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
             malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
-        )
-        self.GenerateDecision = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.ai_service.v1.AiService/GenerateDecision',
-            malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionRequest,
-            malonaz.ai.ai_service.v1.decision_pb2.GenerateDecisionResponse,
         )
         self.ComputeStats = grpclib.client.UnaryUnaryMethod(
             channel,
