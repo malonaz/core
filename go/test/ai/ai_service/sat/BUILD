@@ -2,6 +2,7 @@ go_test(
     name = "sat",
     srcs = [
         "chat_test.go",
+        "eval_test.go",
         "generate_message_test.go",
         "sat_test.go",
         "stats_test.go",
@@ -15,6 +16,7 @@ go_test(
     deps = [
         "//go/ai",
         "//go/ai/ai_service/provider/mock",
+        "//go/ai/eval",
         "//go/ai/tool",
         "//go/aip",
         "//go/grpc",
@@ -24,6 +26,7 @@ go_test(
         "//go/sat",
         "//go/uuid",
         "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/eval/v1",
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
         "//third_party/go:github.com__stretchr__testify__require",

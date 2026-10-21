@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package malonaz.ai.eval.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/aip/v1/extensions.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/eval/v1";
+
+// An Evaluation is a judge's verdict on one [Eval][malonaz.ai.eval.v1.Eval] of a conversation.
+message Evaluation {
+  // The id of the eval judged.
+  string eval = 1 [(buf.validate.field).string.min_len = 1];
+
+  // The judge's verdict.
+  Verdict verdict = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+
+  // Why the judge reached its verdict, citing the conversation.
+  string rationale = 3;
+
+  // The judge model.
+  // Format: providers/{provider}/models/{model}
+  string model = 4;
+
+  // When the judge reached its verdict.
+  google.protobuf.Timestamp evaluate_time = 5;
+}
+
+// The verdict of an evaluation. The external value is its label value.
+enum Verdict {
+  // Used to detect an unset field.
+  VERDICT_UNSPECIFIED = 0;
+
+  // The conversation meets the criterion.
+  VERDICT_PASS = 1 [(malonaz.aip.v1.external) = "pass"];
+
+  // The conversation fails the criterion.
+  VERDICT_FAIL = 2 [(malonaz.aip.v1.external) = "fail"];
+
+  // The criterion does not apply to the conversation.
+  VERDICT_NOT_APPLICABLE = 3 [(malonaz.aip.v1.external) = "not-applicable"];
+}

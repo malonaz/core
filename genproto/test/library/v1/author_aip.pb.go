@@ -261,10 +261,15 @@ type AnnotationSet struct {
 	ProfileSnapshot aip.TypedAnnotation[*AuthorProfile]
 	// An opaque string annotation.
 	ExternalId aip.StringAnnotation
+	// When the author was last synced from a source, as a Timestamp.
+	SourceSynced func(_source string) aip.TypedAnnotation[*timestamppb.Timestamp]
 }
 
 var Annotations = AnnotationSet{
 	Synced:          aip.TypedAnnotation[*timestamppb.Timestamp]{Key: "library.com/synced"},
 	ProfileSnapshot: aip.TypedAnnotation[*AuthorProfile]{Key: "library.com/profile-snapshot"},
 	ExternalId:      aip.StringAnnotation{Key: "library.com/external-id"},
+	SourceSynced: func(_source string) aip.TypedAnnotation[*timestamppb.Timestamp] {
+		return aip.TypedAnnotation[*timestamppb.Timestamp]{Key: "library.com/" + _source + "-synced"}
+	},
 }

@@ -57,6 +57,21 @@ func TestTypedAnnotation(t *testing.T) {
 	})
 }
 
+func TestDynamicTypedAnnotation(t *testing.T) {
+	goodreads := librarypb.Annotations.SourceSynced("goodreads")
+	require.Equal(t, "library.com/goodreads-synced", goodreads.Key)
+
+	author := &librarypb.Author{}
+	at := timestamppb.New(time.Date(2026, 9, 14, 8, 0, 0, 0, time.UTC))
+	require.NoError(t, goodreads.Set(author, at))
+	got, ok, err := goodreads.Get(author)
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.True(t, at.AsTime().Equal(got.AsTime()))
+	// Each resolved key is its own annotation.
+	require.False(t, librarypb.Annotations.SourceSynced("openlibrary").Has(author))
+}
+
 func TestStringAnnotation(t *testing.T) {
 	externalID := librarypb.Annotations.ExternalId
 	author := &librarypb.Author{}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package malonaz.test.eval.v1;
+
+import "malonaz/ai/eval/v1/eval.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/eval/v1";
+option (malonaz.ai.eval.v1.eval) = {
+  id: "polite"
+  criterion: "The assistant stays polite throughout."
+};
+option (malonaz.ai.eval.v1.eval) = {
+  id: "on-topic"
+  criterion: "The assistant only discusses the user's request."
+};

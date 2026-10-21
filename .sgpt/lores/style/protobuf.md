@@ -89,6 +89,9 @@ labels:
 ### Labels
 - Each domain declares its well-known label keys in a `{domain}/v1/labels.proto` via file-level `(malonaz.codegen.aip.v1.label)` options: `key` (namespaced, e.g. `user.onikisu.com/creator-id`) + a thorough `description` documenting semantics, value format and how it relates to neighboring labels.
 
+### Annotations
+- Declared like labels, in a `{domain}/v1/annotations.proto` via file-level `(malonaz.codegen.aip.v1.annotation)`: `key` (or `dynamic_key` with `{variable}` placeholders) + `description`, and `value_type` for a proto-typed value. Codegen emits `Annotations.{Name}`: an `aip.TypedAnnotation[T]` (or `aip.StringAnnotation`), or for a dynamic key a func of its variables returning one, e.g. `evalpb.Annotations.Eval(id)`.
+
 ### Gateway Protos
 - External exposure lives in a separate gateway package (`gateway.<domain>.v1`, service `<Domain>Gateway`): RPCs reuse the internal service's request messages and proxy to it via `(malonaz.codegen.gateway.v1.opts).proxy = "<internal service>.<Method>"`.
 - Each RPC declares its `google.api.http` binding; read-only RPCs add `option idempotency_level = NO_SIDE_EFFECTS;`.
