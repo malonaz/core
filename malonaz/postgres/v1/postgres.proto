@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package malonaz.postgres.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/postgres/v1";
+
+extend google.protobuf.MethodOptions {
+  // When set to true, reads outside a transaction are served from the read replica, if one is
+  // configured. Only for pure reads that tolerate replication lag: writes and transactions
+  // always go to the primary.
+  bool read_replica = 50002;
+}

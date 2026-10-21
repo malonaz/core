@@ -4,6 +4,7 @@ go_library(
         "client.go",
         "date.go",
         "insert.go",
+        "replica.go",
         "select.go",
         "types.go",
         "utils.go",
