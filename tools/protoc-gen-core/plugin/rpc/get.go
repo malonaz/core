@@ -33,8 +33,12 @@ func (mc *methodCtx) generateGet() {
 		mc.modelGoName, method.GoName, mc.idParams()))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
-	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
-		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
+	if mc.lazy {
+		g.P(fmt.Sprintf("      return s.default%s(request.Name)", resourceGoName))
+	} else {
+		g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
+			mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
+	}
 	g.P("    }")
 	g.P(fmt.Sprintf("    return nil, %s(err, \"getting %s\").Err()",
 		mc.statusFromError(), pr.Desc.Singular))
@@ -47,6 +51,26 @@ func (mc *methodCtx) generateGet() {
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("  }")
 	g.P(fmt.Sprintf("  return %s, nil", goident.Var(resourceGoName)))
+	g.P("}")
+	g.P()
+}
+
+// generateDefault emits default{R}: a lazy singleton as it reads until its
+// first update, with the etag that update must match.
+func (mc *methodCtx) generateDefault() {
+	g := mc.g
+	resourceVar := goident.Var(mc.resourceGoName)
+
+	g.P(fmt.Sprintf("func (s *%s) default%s(name string) (*%s, error) {", mc.serverGoName, mc.resourceGoName, mc.protoType()))
+	g.P(fmt.Sprintf("  %s := &%s{Name: name}", resourceVar, mc.protoType()))
+	if mc.hasEtag {
+		g.P("  var err error")
+		g.P(fmt.Sprintf("  if %s.Etag, err = %s(%s); err != nil {", resourceVar, mc.gen.ident(aipPkg, "ComputeETag"), resourceVar))
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"computing default %s etag: %%v\", err).Err()",
+			mc.statusErrorf(), mc.codes("Internal"), mc.pr.Desc.Singular))
+		g.P("  }")
+	}
+	g.P(fmt.Sprintf("  return %s, nil", resourceVar))
 	g.P("}")
 	g.P()
 }

@@ -974,3 +974,72 @@ func singletonPatternUnder(child, parent *resource.ParsedResource) *resource.Par
 	}
 	return nil
 }
+
+// LazySingleton reports whether a resource is a singleton whose parent has no
+// table in its package (a resource_definition, or a message without model
+// options), so no parent insert ever creates its row. It reads as its default
+// until its first update upserts it. A default never comes from the database,
+// hence no tombstone, no soft-deletable ancestor and only reference joins.
+func LazySingleton(message *protogen.Message, parsedResource *resource.ParsedResource) (bool, error) {
+	if len(parsedResource.Patterns) != 1 {
+		return false, nil
+	}
+	pattern := parsedResource.Patterns[0]
+	if !pattern.Singleton || pattern.Parent == nil {
+		return false, nil
+	}
+	registry := resource.GetOrCreateRegistry(message.Desc.ParentFile().Package())
+	if _, ok, err := persistedMessage(registry, pattern.Parent.Resource); err != nil || ok {
+		return false, err
+	}
+
+	resourceType := parsedResource.Desc.GetType()
+	if hasDeleteTime(message) {
+		return false, fmt.Errorf("lazy singleton %s cannot have a delete_time field: its parent %s has no table", resourceType, pattern.Parent.Resource.Desc.GetType())
+	}
+	for ancestor := pattern.Parent.Parent; ancestor != nil; ancestor = ancestor.Parent {
+		ancestorMessage, ok, err := persistedMessage(registry, ancestor.Resource)
+		if err != nil {
+			return false, err
+		}
+		if ok && hasDeleteTime(ancestorMessage) {
+			return false, fmt.Errorf("lazy singleton %s cannot sit under soft-deletable resource %s", resourceType, ancestor.Resource.Desc.GetType())
+		}
+	}
+	for _, field := range message.Fields {
+		fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](field.Desc.Options(), modelpb.E_FieldOpts)
+		if err != nil {
+			if errors.Is(err, pbutil.ErrExtensionNotFound) {
+				continue
+			}
+			return false, fmt.Errorf("getting field_opts for %s: %w", field.Desc.Name(), err)
+		}
+		if fieldOpts.GetJoin() == nil {
+			continue
+		}
+		kind, err := joinKindOf(fieldOpts.GetJoin())
+		if err != nil {
+			return false, err
+		}
+		if kind != referenceJoin {
+			return false, fmt.Errorf("lazy singleton %s cannot declare join field %s: only reference joins resolve on its default", resourceType, field.Desc.Name())
+		}
+	}
+	return true, nil
+}
+
+// persistedMessage returns the message backing a resource with a table in the
+// registry's package; ok is false for silent resources.
+func persistedMessage(registry *resource.Registry, parsedResource *resource.ParsedResource) (*protogen.Message, bool, error) {
+	message, ok := registry.ResourceTypeToMessage[parsedResource.Desc.GetType()]
+	if !ok {
+		return nil, false, nil
+	}
+	if _, err := pbutil.GetExtension[*modelpb.ModelOpts](message.Desc.Options(), modelpb.E_ModelOpts); err != nil {
+		if errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("getting model_opts for %s: %w", parsedResource.Desc.GetType(), err)
+	}
+	return message, true, nil
+}

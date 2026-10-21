@@ -208,6 +208,7 @@ type msgCtx struct {
 
 	multiPattern bool
 	singleton    bool
+	lazy         bool // see schema.LazySingleton
 
 	goType  string
 	goName  string
@@ -255,6 +256,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	singleton := false
 	if !multiPattern {
 		singleton = pr.Patterns[0].Singleton
+	}
+
+	lazy, err := schema.LazySingleton(message, pr)
+	if err != nil {
+		return nil, err
 	}
 
 	table := schema.TableOf(pr, modelOpts)
@@ -338,6 +344,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 
 		multiPattern: multiPattern,
 		singleton:    singleton,
+		lazy:         lazy,
 
 		goType:  goType,
 		goName:  goName,
@@ -602,7 +609,8 @@ func (mc *msgCtx) emitIDConditionAppends(indent string, exprFor func(schema.Colu
 // the row never existed (Err{R}NotExist), or it reports the row's liveness and
 // current etag for the caller to compare against what the write required.
 func (mc *msgCtx) generateProbe() {
-	if !mc.hasEtag && !mc.hasDeleteTime {
+	// A lazy singleton's only write is an upsert, which never misses its row.
+	if mc.lazy || (!mc.hasEtag && !mc.hasDeleteTime) {
 		return
 	}
 	g := mc.g

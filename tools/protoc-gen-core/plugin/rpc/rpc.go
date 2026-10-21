@@ -373,9 +373,13 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 		g.P(insertSig)
 	}
 
-	// Update
+	// Update: a lazy singleton has no row until its first update upserts it.
 	updateSig := fmt.Sprintf("  Update%s(ctx %s, %s *%s, updateClause string, columns []string",
 		resourceGoName, gen.ident(contextPkg, "Context"), goident.Var(resourceGoName), goTypeQgi)
+	if mc.lazy {
+		updateSig = fmt.Sprintf("  Upsert%s(ctx %s, %s *%s, columns []string",
+			resourceGoName, gen.ident(contextPkg, "Context"), goident.Var(resourceGoName), goTypeQgi)
+	}
 	if mc.hasEtag {
 		updateSig += ", etag string"
 	}
@@ -503,6 +507,9 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 	g.P("}")
 	g.P()
 
+	if mc.lazy {
+		mc.generateDefault()
+	}
 	if createRequest != nil {
 		return mc.generatePrepareCreate(gen.qgi(createRequest.GoIdent))
 	}
@@ -644,6 +651,7 @@ type methodCtx struct {
 	unionVars      []resource.UnionVariable
 	multiPattern   bool
 	singleton      bool
+	lazy           bool // see schema.LazySingleton
 	resourceGoName string
 	serverGoName   string
 	modelGoName    string
@@ -693,6 +701,10 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	if err != nil {
 		return nil, err
 	}
+	lazy, err := schema.LazySingleton(mi.rpc.Message, pr)
+	if err != nil {
+		return nil, err
+	}
 	descendants, err := schema.Descendants(mi.rpc.Message, pr)
 	if err != nil {
 		return nil, err
@@ -726,6 +738,7 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 		unionVars:      unionVars,
 		multiPattern:   multiPattern,
 		singleton:      pattern != nil && pattern.Singleton,
+		lazy:           lazy,
 		resourceGoName: resourceGoName,
 		serverGoName:   fmt.Sprintf("%s_%sServer", svcNameUntitled, resourceGoName),
 		modelGoName:    resourceGoName + "Model",

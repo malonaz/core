@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package malonaz.test.library.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/v1";
+
+// LibraryConfig is a lazy singleton: its parent Organization has no table, so it
+// reads as its default until its first update creates it.
+message LibraryConfig {
+  option (google.api.resource) = {
+    type: "library.test.malonaz.com/LibraryConfig"
+    pattern: "organizations/{organization}/libraryConfig"
+    singular: "libraryConfig"
+    plural: "libraryConfigs"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
+
+  // The resource name of the library config.
+  // Format: organizations/{organization}/libraryConfig
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp: the time of the first update.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The last update timestamp.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 4;
+
+  // The library's display name.
+  string display_name = 5 [(buf.validate.field).string.max_len = 256];
+
+  // The default loan period, in days.
+  int32 loan_period_days = 6 [(buf.validate.field).int32.gte = 0];
+
+  // The labels on this library config.
+  map<string, string> labels = 7 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+}

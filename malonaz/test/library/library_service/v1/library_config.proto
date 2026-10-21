@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package malonaz.test.library.library_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/test/library/v1/library_config.proto";
+
+option go_package = "github.com/malonaz/core/genproto/test/library/library_service/v1";
+
+// Request message for LibraryService.GetLibraryConfig.
+message GetLibraryConfigRequest {
+  // The resource name of the library config to retrieve.
+  // Format: organizations/{organization}/libraryConfig
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "library.test.malonaz.com/LibraryConfig"
+  ];
+}
+
+// Request message for LibraryService.UpdateLibraryConfig.
+message UpdateLibraryConfigRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "display_name",
+      "loan_period_days",
+      "labels"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "library_config.name_required"
+    message: "library_config.name must be set"
+    expression: "has(this.library_config.name)"
+  };
+
+  // The library config to update.
+  malonaz.test.library.v1.LibraryConfig library_config = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for LibraryService.BatchGetLibraryConfigs.
+message BatchGetLibraryConfigsRequest {
+  // The parent organization that owns the library configs.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).type = "library.test.malonaz.com/Organization"];
+
+  // The resource names of the library configs to retrieve.
+  // Format: organizations/{organization}/libraryConfig
+  // A maximum of 1000 library configs can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "library.test.malonaz.com/LibraryConfig"
+  ];
+}
+
+// Response message for LibraryService.BatchGetLibraryConfigs.
+message BatchGetLibraryConfigsResponse {
+  // Library configs requested.
+  repeated malonaz.test.library.v1.LibraryConfig library_configs = 1;
+}

@@ -52,6 +52,13 @@ func parseJoins(t *testing.T, messageName protoreflect.FullName, fields ...field
 // resolveJoins is parseJoins, returning the resolved joins.
 func resolveJoins(t *testing.T, messageName protoreflect.FullName, fields ...field) ([]schema.Join, error) {
 	t.Helper()
+	return schema.ParseJoins(compileMessage(t, messageName, fields...))
+}
+
+// compileMessage compiles the library protos with the given fields appended to
+// the named message, as generation would, and returns that message.
+func compileMessage(t *testing.T, messageName protoreflect.FullName, fields ...field) *protogen.Message {
+	t.Helper()
 	files := map[string]*descriptorpb.FileDescriptorProto{}
 	var order []string
 	var collect func(fd protoreflect.FileDescriptor)
@@ -135,12 +142,12 @@ func resolveJoins(t *testing.T, messageName protoreflect.FullName, fields ...fie
 	for _, f := range plugin.Files {
 		for _, m := range f.Messages {
 			if m.Desc.FullName() == messageName {
-				return schema.ParseJoins(m)
+				return m
 			}
 		}
 	}
 	t.Fatalf("message %s not found", messageName)
-	return nil, nil
+	return nil
 }
 
 func TestAggregateJoin_Generation(t *testing.T) {
