@@ -21,8 +21,8 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/aip/search` — adding an AIP-136 Search{Plural} RPC: search codegen
   option, tsvector migration contract, query semantics.
 - `lores/aip/codegen/overview` — protoc-gen-core: the three plugins and their
-  annotations, resource-tree semantics (singletons, multi-pattern, silent
-  resources), contracts shared by every generated RPC (concatenated SQL, the
+  annotations, resource-tree semantics (singletons, lazy singletons under
+  silent parents, multi-pattern, silent resources), contracts shared by every generated RPC (concatenated SQL, the
   no-rows probe, non-nullable = required for message fields, join kinds and
   `this.` correlated join filters), customizing.
 - `lores/aip/codegen/{create,batch-create,get,batch-get,list,update,delete,undelete}`

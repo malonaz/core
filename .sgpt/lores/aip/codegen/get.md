@@ -22,5 +22,8 @@ Generated for `Get{Singular}` (`rpc/get.go`, `postgres/get.go`).
 - Multi-pattern resources match unset pattern identifiers against `IS NULL`,
   so `organizations/o/notes/n` and `organizations/o/authors/a/notes/n` are
   distinct rows even with the same `note_id`.
+- A **lazy singleton** (see overview) is never `NotFound`: an unwritten one
+  reads as its default — `name`, and the etag of that default, which a first
+  `Update` must match.
 - `Update` and soft `Delete` call `Get` internally to compute the new etag;
   a hand-written override of `Get` therefore affects both.
