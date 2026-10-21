@@ -4,17 +4,17 @@ import (
 	"context"
 )
 
-type readReplicaKeyType string
+type eventualConsistencyKeyType string
 
-const readReplicaKey = readReplicaKeyType("read-replica")
+const eventualConsistencyKey = eventualConsistencyKeyType("eventual-consistency")
 
-// WithReadReplica marks the context so reads outside a transaction are served from the read replica.
-func WithReadReplica(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readReplicaKey, true)
+// WithEventualConsistency marks the context so reads outside a transaction are served from the read replica.
+func WithEventualConsistency(ctx context.Context) context.Context {
+	return context.WithValue(ctx, eventualConsistencyKey, true)
 }
 
-// ReadReplicaFromContext returns true if the context was marked with WithReadReplica.
-func ReadReplicaFromContext(ctx context.Context) bool {
-	readReplica, _ := ctx.Value(readReplicaKey).(bool)
-	return readReplica
+// EventualConsistencyFromContext returns true if the context was marked with WithEventualConsistency.
+func EventualConsistencyFromContext(ctx context.Context) bool {
+	eventualConsistency, _ := ctx.Value(eventualConsistencyKey).(bool)
+	return eventualConsistency
 }

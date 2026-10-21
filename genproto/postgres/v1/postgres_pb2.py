@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import descriptor_pb2 as google_dot_protobuf_dot_descriptor__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"malonaz/postgres/v1/postgres.proto\x12\x13malonaz.postgres.v1\x1a google/protobuf/descriptor.proto:6\n\x0cread_replica\x12\x1e.google.protobuf.MethodOptions\x18\xd2\x86\x03 \x01(\x08\x42.Z,github.com/malonaz/core/genproto/postgres/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\"malonaz/postgres/v1/postgres.proto\x12\x13malonaz.postgres.v1\x1a google/protobuf/descriptor.proto*o\n\x0fReadConsistency\x12 \n\x1cREAD_CONSISTENCY_UNSPECIFIED\x10\x00\x12\x1b\n\x17READ_CONSISTENCY_STRONG\x10\x01\x12\x1d\n\x19READ_CONSISTENCY_EVENTUAL\x10\x02:`\n\x10read_consistency\x12\x1e.google.protobuf.MethodOptions\x18\xd2\x86\x03 \x01(\x0e\x32$.malonaz.postgres.v1.ReadConsistencyB.Z,github.com/malonaz/core/genproto/postgres/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,4 +33,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.postgres.v1.postgre
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z,github.com/malonaz/core/genproto/postgres/v1'
+  _globals['_READCONSISTENCY']._serialized_start=93
+  _globals['_READCONSISTENCY']._serialized_end=204
 # @@protoc_insertion_point(module_scope)

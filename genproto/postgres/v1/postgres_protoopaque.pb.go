@@ -23,42 +23,96 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ReadConsistency is the staleness an RPC's reads tolerate.
+type ReadConsistency int32
+
+const (
+	// Used to detect an unset field. Treated as READ_CONSISTENCY_STRONG.
+	ReadConsistency_READ_CONSISTENCY_UNSPECIFIED ReadConsistency = 0
+	// Reads see every committed write: served from the primary.
+	ReadConsistency_READ_CONSISTENCY_STRONG ReadConsistency = 1
+	// Reads may lag behind committed writes: served from the read replica, if one is configured.
+	ReadConsistency_READ_CONSISTENCY_EVENTUAL ReadConsistency = 2
+)
+
+// Enum value maps for ReadConsistency.
+var (
+	ReadConsistency_name = map[int32]string{
+		0: "READ_CONSISTENCY_UNSPECIFIED",
+		1: "READ_CONSISTENCY_STRONG",
+		2: "READ_CONSISTENCY_EVENTUAL",
+	}
+	ReadConsistency_value = map[string]int32{
+		"READ_CONSISTENCY_UNSPECIFIED": 0,
+		"READ_CONSISTENCY_STRONG":      1,
+		"READ_CONSISTENCY_EVENTUAL":    2,
+	}
+)
+
+func (x ReadConsistency) Enum() *ReadConsistency {
+	p := new(ReadConsistency)
+	*p = x
+	return p
+}
+
+func (x ReadConsistency) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReadConsistency) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_postgres_v1_postgres_proto_enumTypes[0].Descriptor()
+}
+
+func (ReadConsistency) Type() protoreflect.EnumType {
+	return &file_malonaz_postgres_v1_postgres_proto_enumTypes[0]
+}
+
+func (x ReadConsistency) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 var file_malonaz_postgres_v1_postgres_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
-		ExtensionType: (*bool)(nil),
+		ExtensionType: (*ReadConsistency)(nil),
 		Field:         50002,
-		Name:          "malonaz.postgres.v1.read_replica",
-		Tag:           "varint,50002,opt,name=read_replica",
+		Name:          "malonaz.postgres.v1.read_consistency",
+		Tag:           "varint,50002,opt,name=read_consistency,enum=malonaz.postgres.v1.ReadConsistency",
 		Filename:      "malonaz/postgres/v1/postgres.proto",
 	},
 }
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// When set to true, reads outside a transaction are served from the read replica, if one is
-	// configured. Only for pure reads that tolerate replication lag: writes and transactions
+	// The consistency of reads outside a transaction. Only for pure reads: writes and transactions
 	// always go to the primary.
 	//
-	// optional bool read_replica = 50002;
-	E_ReadReplica = &file_malonaz_postgres_v1_postgres_proto_extTypes[0]
+	// optional malonaz.postgres.v1.ReadConsistency read_consistency = 50002;
+	E_ReadConsistency = &file_malonaz_postgres_v1_postgres_proto_extTypes[0]
 )
 
 var File_malonaz_postgres_v1_postgres_proto protoreflect.FileDescriptor
 
 const file_malonaz_postgres_v1_postgres_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/postgres/v1/postgres.proto\x12\x13malonaz.postgres.v1\x1a google/protobuf/descriptor.proto:C\n" +
-	"\fread_replica\x12\x1e.google.protobuf.MethodOptions\x18҆\x03 \x01(\bR\vreadReplicaB.Z,github.com/malonaz/core/genproto/postgres/v1b\x06proto3"
+	"\"malonaz/postgres/v1/postgres.proto\x12\x13malonaz.postgres.v1\x1a google/protobuf/descriptor.proto*o\n" +
+	"\x0fReadConsistency\x12 \n" +
+	"\x1cREAD_CONSISTENCY_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17READ_CONSISTENCY_STRONG\x10\x01\x12\x1d\n" +
+	"\x19READ_CONSISTENCY_EVENTUAL\x10\x02:q\n" +
+	"\x10read_consistency\x12\x1e.google.protobuf.MethodOptions\x18҆\x03 \x01(\x0e2$.malonaz.postgres.v1.ReadConsistencyR\x0freadConsistencyB.Z,github.com/malonaz/core/genproto/postgres/v1b\x06proto3"
 
+var file_malonaz_postgres_v1_postgres_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_postgres_v1_postgres_proto_goTypes = []any{
-	(*descriptorpb.MethodOptions)(nil), // 0: google.protobuf.MethodOptions
+	(ReadConsistency)(0),               // 0: malonaz.postgres.v1.ReadConsistency
+	(*descriptorpb.MethodOptions)(nil), // 1: google.protobuf.MethodOptions
 }
 var file_malonaz_postgres_v1_postgres_proto_depIdxs = []int32{
-	0, // 0: malonaz.postgres.v1.read_replica:extendee -> google.protobuf.MethodOptions
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
+	1, // 0: malonaz.postgres.v1.read_consistency:extendee -> google.protobuf.MethodOptions
+	0, // 1: malonaz.postgres.v1.read_consistency:type_name -> malonaz.postgres.v1.ReadConsistency
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	1, // [1:2] is the sub-list for extension type_name
 	0, // [0:1] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
 }
@@ -73,13 +127,14 @@ func file_malonaz_postgres_v1_postgres_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_postgres_v1_postgres_proto_rawDesc), len(file_malonaz_postgres_v1_postgres_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   0,
 			NumExtensions: 1,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_postgres_v1_postgres_proto_goTypes,
 		DependencyIndexes: file_malonaz_postgres_v1_postgres_proto_depIdxs,
+		EnumInfos:         file_malonaz_postgres_v1_postgres_proto_enumTypes,
 		ExtensionInfos:    file_malonaz_postgres_v1_postgres_proto_extTypes,
 	}.Build()
 	File_malonaz_postgres_v1_postgres_proto = out.File

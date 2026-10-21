@@ -77,8 +77,9 @@ registry is per package — cross-package parent/child links do not exist):
 - **Store ↔ RPC contract**: the RPC layer only ever calls the generated
   `{service}_{Resource}Store` interface, so a hand-written store can replace
   the Postgres one.
-- **Read replica** is opted in per RPC by `malonaz.postgres.v1.read_replica`
-  (any RPC, not only generated ones): `UnaryServerReadReplica` marks the ctx and
+- **Read replica** is opted in per RPC by `malonaz.postgres.v1.read_consistency`
+  `= READ_CONSISTENCY_EVENTUAL` (any RPC, not only generated ones):
+  `UnaryServerReadConsistency` marks the ctx and
   `postgres.Client.Query`/`QueryRow` run on the `replica-host` pool, else the
   primary. `Exec` and transactions always hit the primary; a write through
   `Query` (e.g. `RETURNING`) in an annotated RPC fails as read-only, so only

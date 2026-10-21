@@ -10,7 +10,7 @@ go_library(
         "hooks.go",
         "logging.go",
         "middleware.go",
-        "read_replica.go",
+        "read_consistency.go",
         "retry.go",
         "timeout.go",
         "trailers.go",

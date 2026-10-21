@@ -30,7 +30,7 @@ type Opts struct {
 	Database string `long:"database" env:"DATABASE" default:"postgres"  description:"Postgres database"`
 	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"        description:"Max number of connections"`
 	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"   description:"Postgres SSL mode"`
-	// Serves the reads of RPCs annotated with `malonaz.postgres.v1.read_replica`. Shares the primary's credentials.
+	// Serves the reads of RPCs with `malonaz.postgres.v1.read_consistency` EVENTUAL. Shares the primary's credentials.
 	ReplicaHost string `long:"replica-host" env:"REPLICA_HOST" description:"Postgres read replica host"`
 }
 
@@ -118,20 +118,20 @@ func (c *Client) newPool(ctx context.Context, host string) (*pgxpool.Pool, error
 	return pool, nil
 }
 
-// readPool is the read replica for a context marked with WithReadReplica, the primary otherwise.
+// readPool is the read replica for a context marked with WithEventualConsistency, the primary otherwise.
 func (c *Client) readPool(ctx context.Context) *pgxpool.Pool {
-	if c.replica != nil && ReadReplicaFromContext(ctx) {
+	if c.replica != nil && EventualConsistencyFromContext(ctx) {
 		return c.replica
 	}
 	return c.Pool
 }
 
-// Query runs on the read replica for a context marked with WithReadReplica, the primary otherwise.
+// Query runs on the read replica for a context marked with WithEventualConsistency, the primary otherwise.
 func (c *Client) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	return c.readPool(ctx).Query(ctx, sql, args...)
 }
 
-// QueryRow runs on the read replica for a context marked with WithReadReplica, the primary otherwise.
+// QueryRow runs on the read replica for a context marked with WithEventualConsistency, the primary otherwise.
 func (c *Client) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	return c.readPool(ctx).QueryRow(ctx, sql, args...)
 }

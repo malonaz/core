@@ -11,34 +11,34 @@ import (
 	"github.com/malonaz/core/go/postgres"
 )
 
-func UnaryServerReadReplica() grpc.UnaryServerInterceptor {
+func UnaryServerReadConsistency() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		if shouldReadFromReplica(ctx) {
-			ctx = postgres.WithReadReplica(ctx)
+		if isEventuallyConsistent(ctx) {
+			ctx = postgres.WithEventualConsistency(ctx)
 		}
 		return handler(ctx, req)
 	}
 }
 
-func StreamServerReadReplica() grpc.StreamServerInterceptor {
+func StreamServerReadConsistency() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		if !shouldReadFromReplica(stream.Context()) {
+		if !isEventuallyConsistent(stream.Context()) {
 			return handler(srv, stream)
 		}
-		ctx := postgres.WithReadReplica(stream.Context())
+		ctx := postgres.WithEventualConsistency(stream.Context())
 		return handler(srv, &grpc_middleware.WrappedServerStream{ServerStream: stream, WrappedContext: ctx})
 	}
 }
 
-func shouldReadFromReplica(ctx context.Context) bool {
+func isEventuallyConsistent(ctx context.Context) bool {
 	methodDescriptor, ok := MethodDescriptorFromContext(ctx)
 	if !ok {
 		return false
 	}
-	// A missing option means the primary.
-	readReplica, err := pbutil.GetExtension[bool](methodDescriptor.Options(), postgrespb.E_ReadReplica)
+	// A missing option means strong consistency.
+	readConsistency, err := pbutil.GetExtension[postgrespb.ReadConsistency](methodDescriptor.Options(), postgrespb.E_ReadConsistency)
 	if err != nil {
 		return false
 	}
-	return readReplica
+	return readConsistency == postgrespb.ReadConsistency_READ_CONSISTENCY_EVENTUAL
 }
