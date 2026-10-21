@@ -30,20 +30,27 @@ type Opts struct {
 	Database string `long:"database" env:"DATABASE" default:"postgres"  description:"Postgres database"`
 	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"        description:"Max number of connections"`
 	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"   description:"Postgres SSL mode"`
+	// Serves the reads of RPCs with `malonaz.postgres.v1.read_consistency` EVENTUAL. Shares the primary's credentials.
+	ReplicaHost string `long:"replica-host" env:"REPLICA_HOST" description:"Postgres read replica host"`
 }
 
 func (o *Opts) Endpoint() string {
+	return o.endpoint(o.Host)
+}
+
+func (o *Opts) endpoint(host string) string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-		o.Host, o.Port, o.User, o.Database, o.Password, o.SSLMode,
+		host, o.Port, o.User, o.Database, o.Password, o.SSLMode,
 	)
 }
 
 // Client is a wrapper around sqlx db to avoid importing it in core packages.
 type Client struct {
 	*pgxpool.Pool
-	log  *slog.Logger
-	opts *Opts
+	replica *pgxpool.Pool
+	log     *slog.Logger
+	opts    *Opts
 }
 
 func NewClient(opts *Opts) *Client {
@@ -62,6 +69,9 @@ func (c *Client) Close() {
 	if c.Pool != nil {
 		c.Pool.Close()
 	}
+	if c.replica != nil {
+		c.replica.Close()
+	}
 }
 
 // NewClient instantiates and returns a new Postgres Client. Returns an error if it fails to ping server.
@@ -74,18 +84,56 @@ func (c *Client) Start(ctx context.Context) error {
 		"ssl", c.opts.SSLMode,
 	)
 	log.InfoContext(ctx, "connecting to postgres server")
-	config, err := pgxpool.ParseConfig(c.opts.Endpoint())
+	pool, err := c.newPool(ctx, c.opts.Host)
 	if err != nil {
-		return fmt.Errorf("parsing configuration: %w", err)
+		return err
+	}
+	c.Pool = pool
+	log.InfoContext(ctx, "connected to postgres server")
+
+	if c.opts.ReplicaHost == "" {
+		return nil
+	}
+	log = log.With("replica_host", c.opts.ReplicaHost)
+	log.InfoContext(ctx, "connecting to postgres read replica")
+	replica, err := c.newPool(ctx, c.opts.ReplicaHost)
+	if err != nil {
+		return fmt.Errorf("read replica: %w", err)
+	}
+	c.replica = replica
+	log.InfoContext(ctx, "connected to postgres read replica")
+	return nil
+}
+
+func (c *Client) newPool(ctx context.Context, host string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(c.opts.endpoint(host))
+	if err != nil {
+		return nil, fmt.Errorf("parsing configuration: %w", err)
 	}
 	config.MaxConns = int32(c.opts.MaxConns)
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return fmt.Errorf("creating pool: %w", err)
+		return nil, fmt.Errorf("creating pool: %w", err)
 	}
-	c.Pool = pool
-	log.InfoContext(ctx, "connected to postgres server")
-	return nil
+	return pool, nil
+}
+
+// readPool is the read replica for a context marked with WithEventualConsistency, the primary otherwise.
+func (c *Client) readPool(ctx context.Context) *pgxpool.Pool {
+	if c.replica != nil && EventualConsistencyFromContext(ctx) {
+		return c.replica
+	}
+	return c.Pool
+}
+
+// Query runs on the read replica for a context marked with WithEventualConsistency, the primary otherwise.
+func (c *Client) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return c.readPool(ctx).Query(ctx, sql, args...)
+}
+
+// QueryRow runs on the read replica for a context marked with WithEventualConsistency, the primary otherwise.
+func (c *Client) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return c.readPool(ctx).QueryRow(ctx, sql, args...)
 }
 
 var (

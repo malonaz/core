@@ -115,6 +115,9 @@ func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *promethe
 	// PRE (3): Method descriptor resolver. Makes the method descriptor available to all downstream interceptors.
 	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerMethodDescriptor())
 	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerMethodDescriptor())
+	// PRE (3.5): Read consistency: routes the reads of RPCs with `malonaz.postgres.v1.read_consistency` EVENTUAL to the read replica.
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerReadConsistency())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerReadConsistency())
 	// PRE (4): Prometheus.
 	if prometheusOpts.Enabled() {
 		prometheusServerMetrics := getPrometheusServerMetrics()

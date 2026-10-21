@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package malonaz.postgres.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/postgres/v1";
+
+// ReadConsistency is the staleness an RPC's reads tolerate.
+enum ReadConsistency {
+  // Used to detect an unset field. Treated as READ_CONSISTENCY_STRONG.
+  READ_CONSISTENCY_UNSPECIFIED = 0;
+  // Reads see every committed write: served from the primary.
+  READ_CONSISTENCY_STRONG = 1;
+  // Reads may lag behind committed writes: served from the read replica, if one is configured.
+  READ_CONSISTENCY_EVENTUAL = 2;
+}
+
+extend google.protobuf.MethodOptions {
+  // The consistency of reads outside a transaction. Only for pure reads: writes and transactions
+  // always go to the primary.
+  ReadConsistency read_consistency = 50002;
+}

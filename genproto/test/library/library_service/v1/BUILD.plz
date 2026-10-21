@@ -9,6 +9,7 @@ go_library(
         "bookmark_service.pb.go",
         "bookmark_service_grpc.pb.go",
         "case.pb.go",
+        "library_config.pb.go",
         "library_service.pb.go",
         "library_service_grpc.pb.go",
         "library_service_nats.pb.go",
