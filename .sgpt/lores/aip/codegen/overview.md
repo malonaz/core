@@ -1,6 +1,6 @@
 ---
 title: AIP codegen (protoc-gen-core) — overview
-description: How a resource proto becomes a model, a Postgres store and a gRPC server — the three plugins, the annotations that drive them, resource-tree semantics (patterns, singletons, silent resources, descendants), the error and lifecycle contracts every generated RPC shares, and how to customize.
+description: How a resource proto becomes a model, a Postgres store and a gRPC server — the three plugins, the annotations that drive them, resource-tree semantics (patterns, singletons, lazy singletons, silent resources, descendants), the error and lifecycle contracts every generated RPC shares, and how to customize.
 labels:
     lang: go, protobuf
     repo: core
@@ -16,7 +16,7 @@ here — this documents what our implementation decides on top of them.
 | Plugin | Emits | Driven by |
 |---|---|---|
 | `model` | `gengo/.../model`: struct per resource with `db` tags, `FromPb`/`ToPb`, `Parse{Resource}Name`, `Err{Resource}{AlreadyExists,NotExist,AlreadyDeleted,NotDeleted,HasChildren,ETagChanged}` | `google.api.resource` + `malonaz.codegen.model.v1.model_opts` (see `lores/style/protobuf`) |
-| `postgres` | `gengo/.../store`: one `Store` per proto package, `BatchInsert/Update/Get/BatchGet/List/Delete/Undelete/Search` per resource (singletons: `Update/Get/BatchGet/List` only), raw SQL | same, plus `field_opts` joins |
+| `postgres` | `gengo/.../store`: one `Store` per proto package, `BatchInsert/Update/Get/BatchGet/List/Delete/Undelete/Search` per resource (singletons: `Update/Get/BatchGet/List` only; lazy singletons `Upsert` for `Update`), raw SQL | same, plus `field_opts` joins |
 | `rpc` | `gengo/.../{service}/rpc`: `{Service}Server` embedding one `{service}_{Resource}Server` per resource, each over a `{service}_{Resource}Store` interface | `malonaz.codegen.aip.v1.standard_method` on each RPC, `pagination`/`ordering`/`filtering`/`update` on requests, `malonaz.codegen.nats.v1.event` on resources |
 
 A method is generated iff it carries `standard_method.resource` **and** is
@@ -37,6 +37,16 @@ registry is per package — cross-package parent/child links do not exist):
 - **Singleton** = pattern ending on a literal (`…/authors/{author}/profile`).
   No `Create`/`Delete` RPCs; the row is inserted with its parent and deleted
   with it. Its `delete_time`-ness must match the parent's (codegen error).
+- **Lazy singleton** = a singleton whose parent is silent in its package (the
+  usual case for settings under an Organization another service owns, re-declared
+  by `resource_definition`). Nothing would ever insert its row, so it exists
+  implicitly (AIP-156): `Get`/`BatchGet` return a default (name + etag of
+  the default, no `create_time`) until the first `Update`, which upserts the
+  row (`Upsert{R}` in the store instead of `Update{R}`; stamps `create_time`).
+  `List` only sees written rows. Codegen rejects a `delete_time`, a
+  soft-deletable ancestor, and any join but reference joins: none can be
+  honoured by a default (`schema.LazySingleton`; reference: `LibraryConfig` +
+  `sat/lazy_singleton_test.go`).
 - **Multi-pattern** resources (e.g. `Note` under Organization | Author | Shelf)
   live in one table: shared identifier columns are `NOT NULL`, pattern-specific
   ones nullable, and unset identifiers match `IS NULL`. They cannot declare

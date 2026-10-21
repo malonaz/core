@@ -14,6 +14,8 @@ Generated for `BatchGet{Plural}` (`rpc/batch_get.go`, `postgres/batch_get.go`).
 - **All or nothing**: one `SELECT … WHERE (ids) OR (ids) …`; if fewer rows
   come back than names were asked for, the whole call is `NotFound`
   (`expected N, found M`). Duplicated names therefore fail too.
+- Lazy singletons are the exception: unwritten names are filled in with their
+  defaults, as `Get` returns them.
 - The response preserves request order (rows are re-keyed by `name`).
 - **Tombstones are included** — like `Get`, unlike `List`.
 - `parent` is optional. When set, every name must have it as a prefix

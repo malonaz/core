@@ -9,9 +9,13 @@ import (
 // generateInsertVars emits the insert queries. A singleton has no Create of
 // its own: it only gets the query its parent's BatchInsert runs alongside the
 // parent rows (ON CONFLICT DO NOTHING keeps a replay of the parent idempotent).
+// A lazy singleton gets neither: its Upsert inserts it.
 func (mc *msgCtx) generateInsertVars() {
 	g := mc.g
 
+	if mc.lazy {
+		return
+	}
 	if mc.singleton {
 		g.P(fmt.Sprintf("const %sInsertSingletonPostgresQuery = `INSERT INTO %s %%s VALUES %%s ON CONFLICT(%s) DO NOTHING`", mc.goType, mc.tableName, mc.columnNames))
 		g.P()

@@ -29,6 +29,7 @@ go_test(
     srcs = [
         "aggregate_join_test.go",
         "correlated_filter_test.go",
+        "lazy_singleton_test.go",
     ],
     external = True,
     deps = [

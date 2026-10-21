@@ -15,6 +15,7 @@ import "malonaz/test/library/library_service/v1/author_profile.proto";
 import "malonaz/test/library/library_service/v1/book.proto";
 import "malonaz/test/library/library_service/v1/book_review.proto";
 import "malonaz/test/library/library_service/v1/case.proto";
+import "malonaz/test/library/library_service/v1/library_config.proto";
 import "malonaz/test/library/library_service/v1/note.proto";
 import "malonaz/test/library/library_service/v1/shelf.proto";
 import "malonaz/test/library/v1/author.proto";
@@ -22,6 +23,7 @@ import "malonaz/test/library/v1/author_profile.proto";
 import "malonaz/test/library/v1/book.proto";
 import "malonaz/test/library/v1/book_review.proto";
 import "malonaz/test/library/v1/case.proto";
+import "malonaz/test/library/v1/library_config.proto";
 import "malonaz/test/library/v1/note.proto";
 import "malonaz/test/library/v1/shelf.proto";
 
@@ -165,6 +167,32 @@ service LibraryService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/authors/*}/profiles:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/AuthorProfile";
+  }
+
+  // ===================== LibraryConfig (Lazy singleton) =====================
+
+  // Gets the library config.
+  rpc GetLibraryConfig(GetLibraryConfigRequest) returns (malonaz.test.library.v1.LibraryConfig) {
+    option (google.api.http) = {get: "/v1/{name=organizations/*/libraryConfig}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/LibraryConfig";
+  }
+
+  // Updates the library config.
+  rpc UpdateLibraryConfig(UpdateLibraryConfigRequest) returns (malonaz.test.library.v1.LibraryConfig) {
+    option (google.api.http) = {
+      patch: "/v1/{library_config.name=organizations/*/libraryConfig}"
+      body: "library_config"
+    };
+    option (google.api.method_signature) = "library_config,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/LibraryConfig";
+  }
+
+  // Gets multiple library configs in a single request.
+  rpc BatchGetLibraryConfigs(BatchGetLibraryConfigsRequest) returns (BatchGetLibraryConfigsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/libraryConfigs:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/LibraryConfig";
   }
 
   // ===================== Shelf =====================

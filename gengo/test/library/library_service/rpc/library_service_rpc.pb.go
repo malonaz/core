@@ -39,6 +39,7 @@ import (
 type libraryServiceStore interface {
 	libraryService_AuthorStore
 	libraryService_AuthorProfileStore
+	libraryService_LibraryConfigStore
 	libraryService_ShelfStore
 	libraryService_BookStore
 	libraryService_BookReviewStore
@@ -52,6 +53,7 @@ type LibraryServiceServer struct {
 	runner                 LibraryServiceRunner
 	*libraryService_AuthorServer
 	*libraryService_AuthorProfileServer
+	*libraryService_LibraryConfigServer
 	*libraryService_ShelfServer
 	*libraryService_BookServer
 	*libraryService_BookReviewServer
@@ -66,6 +68,7 @@ func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client,
 		runner:                             runner,
 		libraryService_AuthorServer:        newLibraryService_AuthorServer(store),
 		libraryService_AuthorProfileServer: newLibraryService_AuthorProfileServer(store),
+		libraryService_LibraryConfigServer: newLibraryService_LibraryConfigServer(store),
 		libraryService_ShelfServer:         newLibraryService_ShelfServer(store, natsClient),
 		libraryService_BookServer:          newLibraryService_BookServer(store, natsClient),
 		libraryService_BookReviewServer:    newLibraryService_BookReviewServer(store),
@@ -943,6 +946,211 @@ func (s *libraryService_AuthorProfileServer) BatchGetAuthorProfiles(ctx context.
 
 	return &v12.BatchGetAuthorProfilesResponse{
 		AuthorProfiles: authorProfiles,
+	}, nil
+}
+
+type libraryService_LibraryConfigStore interface {
+	UpsertLibraryConfig(ctx context.Context, libraryConfig *model.LibraryConfig, columns []string, etag string) (*model.LibraryConfig, error)
+	GetLibraryConfig(ctx context.Context, organizationId string) (*model.LibraryConfig, error)
+	BatchGetLibraryConfigs(ctx context.Context, organizationIds []string) ([]*model.LibraryConfig, error)
+	ListLibraryConfigs(ctx context.Context, organizationId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.LibraryConfig, error)
+}
+
+type libraryService_LibraryConfigServer struct {
+	store libraryService_LibraryConfigStore
+}
+
+func newLibraryService_LibraryConfigServer(store libraryService_LibraryConfigStore) *libraryService_LibraryConfigServer {
+	return &libraryService_LibraryConfigServer{
+		store: store,
+	}
+}
+
+func (s *libraryService_LibraryConfigServer) defaultLibraryConfig(name string) (*v14.LibraryConfig, error) {
+	libraryConfig := &v14.LibraryConfig{Name: name}
+	var err error
+	if libraryConfig.Etag, err = aip.ComputeETag(libraryConfig); err != nil {
+		return nil, status.Errorf(codes.Internal, "computing default libraryConfig etag: %v", err).Err()
+	}
+	return libraryConfig, nil
+}
+
+func (s *libraryService_LibraryConfigServer) GetLibraryConfig(ctx context.Context, request *v12.GetLibraryConfigRequest) (*v14.LibraryConfig, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, err := model.ParseLibraryConfigName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbLibraryConfigModel, err := s.store.GetLibraryConfig(ctx, organizationId)
+	if err != nil {
+		if errors.Is(err, model.ErrLibraryConfigNotExist) {
+			return s.defaultLibraryConfig(request.Name)
+		}
+		return nil, status.FromError(err, "getting libraryConfig").Err()
+	}
+
+	libraryConfig, err := dbLibraryConfigModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting libraryConfig from model to pb: %v", err).Err()
+	}
+	return libraryConfig, nil
+}
+
+var updateLibraryConfigRequestParser = aip.MustNewUpdateRequestParser[*v12.UpdateLibraryConfigRequest, *v14.LibraryConfig]()
+
+func (s *libraryService_LibraryConfigServer) UpdateLibraryConfig(ctx context.Context, request *v12.UpdateLibraryConfigRequest) (*v14.LibraryConfig, error) {
+	for {
+		response, err := s.updateLibraryConfig(ctx, request)
+		if err != nil {
+			if request.GetLibraryConfig().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *libraryService_LibraryConfigServer) updateLibraryConfig(ctx context.Context, request *v12.UpdateLibraryConfigRequest) (*v14.LibraryConfig, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.LibraryConfig.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateLibraryConfigRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getLibraryConfigRequest := &v12.GetLibraryConfigRequest{Name: request.LibraryConfig.Name}
+	existingLibraryConfig, err := s.GetLibraryConfig(ctx, getLibraryConfigRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetLibraryConfig().GetEtag()
+	if etag == "" {
+		etag = existingLibraryConfig.GetEtag()
+	}
+	if etag != existingLibraryConfig.GetEtag() {
+		return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedLibraryConfig := proto.CloneOf(existingLibraryConfig)
+	parsedRequest.ApplyFieldMask(patchedLibraryConfig, request.LibraryConfig)
+	if err := protovalidate.Validate(patchedLibraryConfig); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedLibraryConfig.UpdateTime = timestamppb.Now()
+	if patchedLibraryConfig.CreateTime == nil {
+		patchedLibraryConfig.CreateTime = patchedLibraryConfig.UpdateTime
+	}
+	{ // Compute the new Etag.
+		var err error
+		patchedLibraryConfig.Etag, err = aip.ComputeETag(patchedLibraryConfig)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	libraryConfigModel, err := model.LibraryConfigFromPb(patchedLibraryConfig)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting libraryConfig from pb to model: %v", err).Err()
+	}
+	dbLibraryConfigModel, err := s.store.UpsertLibraryConfig(ctx, libraryConfigModel, parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrLibraryConfigETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating libraryConfig").Err()
+	}
+
+	libraryConfig, err := dbLibraryConfigModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting libraryConfig from model to pb: %v", err).Err()
+	}
+
+	return libraryConfig, nil
+}
+
+func (s *libraryService_LibraryConfigServer) BatchGetLibraryConfigs(ctx context.Context, request *v12.BatchGetLibraryConfigsRequest) (*v12.BatchGetLibraryConfigsResponse, error) {
+	var organizationId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, err := model.ParseLibraryConfigName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+	}
+
+	dbLibraryConfigs, err := s.store.BatchGetLibraryConfigs(ctx, organizationIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting library_config").Err()
+	}
+
+	libraryConfigNameToLibraryConfig := make(map[string]*v14.LibraryConfig, len(request.Names))
+	for _, dbLibraryConfigModel := range dbLibraryConfigs {
+		libraryConfig, err := dbLibraryConfigModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting libraryConfig from model to pb: %v", err).Err()
+		}
+		libraryConfigNameToLibraryConfig[libraryConfig.Name] = libraryConfig
+	}
+
+	libraryConfigs := make([]*v14.LibraryConfig, 0, len(dbLibraryConfigs))
+	for _, name := range request.Names {
+		libraryConfig, ok := libraryConfigNameToLibraryConfig[name]
+		if !ok {
+			if libraryConfig, err = s.defaultLibraryConfig(name); err != nil {
+				return nil, err
+			}
+		}
+		libraryConfigs = append(libraryConfigs, libraryConfig)
+	}
+
+	return &v12.BatchGetLibraryConfigsResponse{
+		LibraryConfigs: libraryConfigs,
 	}, nil
 }
 

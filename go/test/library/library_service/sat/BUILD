@@ -20,6 +20,7 @@ go_test(
         "filter_test.go",
         "join_test.go",
         "labels_test.go",
+        "lazy_singleton_test.go",
         "longrunning_test.go",
         "middleware_canonicalize_test.go",
         "middleware_hooks_test.go",

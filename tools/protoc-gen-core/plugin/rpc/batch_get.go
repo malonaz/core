@@ -102,10 +102,13 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("    return nil, %s(err, \"batch getting %s\").Err()",
 		mc.statusFromError(), xstrings.ToSnakeCase(resourceGoName)))
 	g.P("  }")
-	g.P(fmt.Sprintf("  if len(db%s) != len(request.Names) {", pr.PluralGoName()))
-	g.P(fmt.Sprintf("    return nil, %s(%s, \"expected %%d %s, found %%d\", len(request.Names), len(db%s)).Err()",
-		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Plural, pr.PluralGoName()))
-	g.P("  }")
+	// Unwritten lazy singletons are missing rows, filled in with their defaults below.
+	if !mc.lazy {
+		g.P(fmt.Sprintf("  if len(db%s) != len(request.Names) {", pr.PluralGoName()))
+		g.P(fmt.Sprintf("    return nil, %s(%s, \"expected %%d %s, found %%d\", len(request.Names), len(db%s)).Err()",
+			mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Plural, pr.PluralGoName()))
+		g.P("  }")
+	}
 	g.P()
 
 	g.P(fmt.Sprintf("  %sNameTo%s := make(map[string]*%s, len(request.Names))",
@@ -127,8 +130,14 @@ func (mc *methodCtx) generateBatchGet() error {
 	g.P(fmt.Sprintf("    %s, ok := %sNameTo%s[name]",
 		goident.Var(resourceGoName), xstrings.ToCamelCase(resourceGoName), resourceGoName))
 	g.P("    if !ok {")
-	g.P(fmt.Sprintf("      return nil, %s(%s, \"could not find %%q\", name).Err()",
-		mc.statusErrorf(), mc.codes("NotFound")))
+	if mc.lazy {
+		g.P(fmt.Sprintf("      if %s, err = s.default%s(name); err != nil {", goident.Var(resourceGoName), resourceGoName))
+		g.P("        return nil, err")
+		g.P("      }")
+	} else {
+		g.P(fmt.Sprintf("      return nil, %s(%s, \"could not find %%q\", name).Err()",
+			mc.statusErrorf(), mc.codes("NotFound")))
+	}
 	g.P("    }")
 	g.P(fmt.Sprintf("    %s = append(%s, %s)",
 		goident.Var(pr.PluralGoName()), goident.Var(pr.PluralGoName()), goident.Var(resourceGoName)))

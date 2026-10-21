@@ -39,6 +39,16 @@ need not be listed.
 4. Stamp `update_time`, recompute `etag`, `UPDATE … SET <only the touched
    columns> WHERE ids AND etag = $old`.
 
+## Lazy singletons
+
+An unwritten lazy singleton reads as its default, so the first `Update`
+patches that default: `create_time` is stamped (equal to `update_time`) and the
+store's `Upsert{R}` inserts the full row — `ON CONFLICT (parent ids) DO UPDATE
+SET <masked columns> = EXCLUDED…`, narrowed to the etag. A client etag is
+checked against the read resource in the RPC first, since an unwritten row has
+no stored etag. Two racing first writes resolve through the usual retry: the
+loser's conflict update misses the default's etag and is `Aborted`.
+
 ## Etag and the retry loop
 
 - Client supplied `etag` and it no longer matches → `Aborted`, no retry.

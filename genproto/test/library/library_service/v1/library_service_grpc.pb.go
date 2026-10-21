@@ -35,6 +35,9 @@ const (
 	LibraryService_UpdateAuthorProfile_FullMethodName    = "/malonaz.test.library.library_service.v1.LibraryService/UpdateAuthorProfile"
 	LibraryService_ListAuthorProfiles_FullMethodName     = "/malonaz.test.library.library_service.v1.LibraryService/ListAuthorProfiles"
 	LibraryService_BatchGetAuthorProfiles_FullMethodName = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetAuthorProfiles"
+	LibraryService_GetLibraryConfig_FullMethodName       = "/malonaz.test.library.library_service.v1.LibraryService/GetLibraryConfig"
+	LibraryService_UpdateLibraryConfig_FullMethodName    = "/malonaz.test.library.library_service.v1.LibraryService/UpdateLibraryConfig"
+	LibraryService_BatchGetLibraryConfigs_FullMethodName = "/malonaz.test.library.library_service.v1.LibraryService/BatchGetLibraryConfigs"
 	LibraryService_CreateShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/CreateShelf"
 	LibraryService_GetShelf_FullMethodName               = "/malonaz.test.library.library_service.v1.LibraryService/GetShelf"
 	LibraryService_UpdateShelf_FullMethodName            = "/malonaz.test.library.library_service.v1.LibraryService/UpdateShelf"
@@ -115,6 +118,12 @@ type LibraryServiceClient interface {
 	ListAuthorProfiles(ctx context.Context, in *ListAuthorProfilesRequest, opts ...grpc.CallOption) (*ListAuthorProfilesResponse, error)
 	// Gets multiple author profiles in a single request.
 	BatchGetAuthorProfiles(ctx context.Context, in *BatchGetAuthorProfilesRequest, opts ...grpc.CallOption) (*BatchGetAuthorProfilesResponse, error)
+	// Gets the library config.
+	GetLibraryConfig(ctx context.Context, in *GetLibraryConfigRequest, opts ...grpc.CallOption) (*v1.LibraryConfig, error)
+	// Updates the library config.
+	UpdateLibraryConfig(ctx context.Context, in *UpdateLibraryConfigRequest, opts ...grpc.CallOption) (*v1.LibraryConfig, error)
+	// Gets multiple library configs in a single request.
+	BatchGetLibraryConfigs(ctx context.Context, in *BatchGetLibraryConfigsRequest, opts ...grpc.CallOption) (*BatchGetLibraryConfigsResponse, error)
 	// Creates a shelf.
 	CreateShelf(ctx context.Context, in *CreateShelfRequest, opts ...grpc.CallOption) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -360,6 +369,36 @@ func (c *libraryServiceClient) BatchGetAuthorProfiles(ctx context.Context, in *B
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetAuthorProfilesResponse)
 	err := c.cc.Invoke(ctx, LibraryService_BatchGetAuthorProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) GetLibraryConfig(ctx context.Context, in *GetLibraryConfigRequest, opts ...grpc.CallOption) (*v1.LibraryConfig, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.LibraryConfig)
+	err := c.cc.Invoke(ctx, LibraryService_GetLibraryConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) UpdateLibraryConfig(ctx context.Context, in *UpdateLibraryConfigRequest, opts ...grpc.CallOption) (*v1.LibraryConfig, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.LibraryConfig)
+	err := c.cc.Invoke(ctx, LibraryService_UpdateLibraryConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libraryServiceClient) BatchGetLibraryConfigs(ctx context.Context, in *BatchGetLibraryConfigsRequest, opts ...grpc.CallOption) (*BatchGetLibraryConfigsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetLibraryConfigsResponse)
+	err := c.cc.Invoke(ctx, LibraryService_BatchGetLibraryConfigs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -786,6 +825,12 @@ type LibraryServiceServer interface {
 	ListAuthorProfiles(context.Context, *ListAuthorProfilesRequest) (*ListAuthorProfilesResponse, error)
 	// Gets multiple author profiles in a single request.
 	BatchGetAuthorProfiles(context.Context, *BatchGetAuthorProfilesRequest) (*BatchGetAuthorProfilesResponse, error)
+	// Gets the library config.
+	GetLibraryConfig(context.Context, *GetLibraryConfigRequest) (*v1.LibraryConfig, error)
+	// Updates the library config.
+	UpdateLibraryConfig(context.Context, *UpdateLibraryConfigRequest) (*v1.LibraryConfig, error)
+	// Gets multiple library configs in a single request.
+	BatchGetLibraryConfigs(context.Context, *BatchGetLibraryConfigsRequest) (*BatchGetLibraryConfigsResponse, error)
 	// Creates a shelf.
 	CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error)
 	// Gets a shelf.
@@ -944,6 +989,15 @@ func (UnimplementedLibraryServiceServer) ListAuthorProfiles(context.Context, *Li
 }
 func (UnimplementedLibraryServiceServer) BatchGetAuthorProfiles(context.Context, *BatchGetAuthorProfilesRequest) (*BatchGetAuthorProfilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetAuthorProfiles not implemented")
+}
+func (UnimplementedLibraryServiceServer) GetLibraryConfig(context.Context, *GetLibraryConfigRequest) (*v1.LibraryConfig, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLibraryConfig not implemented")
+}
+func (UnimplementedLibraryServiceServer) UpdateLibraryConfig(context.Context, *UpdateLibraryConfigRequest) (*v1.LibraryConfig, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateLibraryConfig not implemented")
+}
+func (UnimplementedLibraryServiceServer) BatchGetLibraryConfigs(context.Context, *BatchGetLibraryConfigsRequest) (*BatchGetLibraryConfigsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetLibraryConfigs not implemented")
 }
 func (UnimplementedLibraryServiceServer) CreateShelf(context.Context, *CreateShelfRequest) (*v1.Shelf, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateShelf not implemented")
@@ -1309,6 +1363,60 @@ func _LibraryService_BatchGetAuthorProfiles_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibraryServiceServer).BatchGetAuthorProfiles(ctx, req.(*BatchGetAuthorProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_GetLibraryConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLibraryConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).GetLibraryConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_GetLibraryConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).GetLibraryConfig(ctx, req.(*GetLibraryConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_UpdateLibraryConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLibraryConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).UpdateLibraryConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_UpdateLibraryConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).UpdateLibraryConfig(ctx, req.(*UpdateLibraryConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibraryService_BatchGetLibraryConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetLibraryConfigsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibraryServiceServer).BatchGetLibraryConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibraryService_BatchGetLibraryConfigs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibraryServiceServer).BatchGetLibraryConfigs(ctx, req.(*BatchGetLibraryConfigsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2055,6 +2163,18 @@ var LibraryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchGetAuthorProfiles",
 			Handler:    _LibraryService_BatchGetAuthorProfiles_Handler,
+		},
+		{
+			MethodName: "GetLibraryConfig",
+			Handler:    _LibraryService_GetLibraryConfig_Handler,
+		},
+		{
+			MethodName: "UpdateLibraryConfig",
+			Handler:    _LibraryService_UpdateLibraryConfig_Handler,
+		},
+		{
+			MethodName: "BatchGetLibraryConfigs",
+			Handler:    _LibraryService_BatchGetLibraryConfigs_Handler,
 		},
 		{
 			MethodName: "CreateShelf",

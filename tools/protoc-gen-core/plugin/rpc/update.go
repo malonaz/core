@@ -100,6 +100,12 @@ func (mc *methodCtx) generateUpdate() error {
 		g.P("  if etag == \"\" {")
 		g.P(fmt.Sprintf("    etag = existing%s.GetEtag()", resourceGoName))
 		g.P("  }")
+		if mc.lazy {
+			// An unwritten lazy singleton has no row to match the etag in the store.
+			g.P(fmt.Sprintf("  if etag != existing%s.GetEtag() {", resourceGoName))
+			g.P(fmt.Sprintf("    return nil, %s(%s, \"ETag changed\").Err()", mc.statusErrorf(), mc.codes("Aborted")))
+			g.P("  }")
+		}
 	}
 	g.P()
 
@@ -121,10 +127,18 @@ func (mc *methodCtx) generateUpdate() error {
 	}
 
 	// Update time.
-	if mc.mi.rpc.Message.Desc.Fields().ByName("update_time") != nil {
+	fields := mc.mi.rpc.Message.Desc.Fields()
+	now := mc.gen.ident(timestamppbPkg, "Now") + "()"
+	if fields.ByName("update_time") != nil {
 		g.P(" // Set the update time.")
-		g.P(fmt.Sprintf("  patched%s.UpdateTime = %s()",
-			resourceGoName, mc.gen.ident(timestamppbPkg, "Now")))
+		g.P(fmt.Sprintf("  patched%s.UpdateTime = %s", resourceGoName, now))
+		now = fmt.Sprintf("patched%s.UpdateTime", resourceGoName)
+	}
+	// A lazy singleton's first update creates it.
+	if mc.lazy && fields.ByName("create_time") != nil {
+		g.P(fmt.Sprintf("  if patched%s.CreateTime == nil {", resourceGoName))
+		g.P(fmt.Sprintf("    patched%s.CreateTime = %s", resourceGoName, now))
+		g.P("  }")
 	}
 
 	// New etag.
@@ -150,16 +164,23 @@ func (mc *methodCtx) generateUpdate() error {
 		mc.statusErrorf(), mc.codes("Internal"), pr.Desc.Singular))
 	g.P("  }")
 
+	storeMethod := "Update" + resourceGoName
 	updateArgs := fmt.Sprintf("ctx, %s, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns()", goident.Var(mc.modelGoName))
+	if mc.lazy {
+		storeMethod = "Upsert" + resourceGoName
+		updateArgs = fmt.Sprintf("ctx, %s, parsedRequest.GetSQLColumns()", goident.Var(mc.modelGoName))
+	}
 	if mc.hasEtag {
 		updateArgs += ", etag"
 	}
-	g.P(fmt.Sprintf("  db%s, err := s.store.Update%s(%s)", mc.modelGoName, resourceGoName, updateArgs))
+	g.P(fmt.Sprintf("  db%s, err := s.store.%s(%s)", mc.modelGoName, storeMethod, updateArgs))
 	g.P("  if err != nil {")
-	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
-	g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
-		mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
-	g.P("    }")
+	if !mc.lazy {
+		g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
+		g.P(fmt.Sprintf("      return nil, %s(%s, \"%s does not exist\").Err()",
+			mc.statusErrorf(), mc.codes("NotFound"), pr.Desc.Singular))
+		g.P("    }")
+	}
 	if mc.hasEtag {
 		g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errEtagChanged))
 		g.P(fmt.Sprintf("      return nil, %s(%s, \"ETag changed\").Err()",
