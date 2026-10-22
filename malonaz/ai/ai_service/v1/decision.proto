@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// A typed question asked of a decision model about a state.
+message Question {
+  option (buf.validate.message).cel = {
+    id: "question_boolean_requires_instructions_or_criteria"
+    message: "a boolean question without instructions must set criteria_true or criteria_false"
+    expression: "!has(this.boolean) || this.instructions != '' || this.boolean.criteria_true != '' || this.boolean.criteria_false != ''"
+  };
+
+  // What is being asked. Plain text or JSON text. Optional.
+  string instructions = 1;
+
+  // The question's type.
+  oneof type {
+    option (buf.validate.oneof).required = true;
+
+    // Selects one option from a fixed set.
+    ChoiceQuestion choice = 2;
+    // Places the state on an ordered rubric.
+    ScoreQuestion score = 3;
+    // Estimates the probability that a condition is true.
+    BooleanQuestion boolean = 4;
+  }
+}
+
+// Asks the model to select one option from a fixed set.
+message ChoiceQuestion {
+  // Maps an option key to a description of when it applies. Plain text or
+  // JSON text; may be empty.
+  map<string, string> criteria = 1 [(buf.validate.field).map = {
+    min_pairs: 1
+    max_pairs: 255
+  }];
+}
+
+// Asks the model to place the state on an ordered rubric.
+message ScoreQuestion {
+  // Rubric level descriptions, from lowest to highest. Plain text or JSON text.
+  repeated string criteria = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 10
+  }];
+}
+
+// Asks the model for the probability that a condition is true.
+message BooleanQuestion {
+  // Describes the true case. Plain text or JSON text. Optional.
+  string criteria_true = 1;
+  // Describes the false case. Plain text or JSON text. Optional.
+  string criteria_false = 2;
+}
+
+// The typed answer to a Question.
+message Answer {
+  // The answer's type.
+  oneof type {
+    // Answer to a ChoiceQuestion.
+    ChoiceAnswer choice = 1;
+    // Answer to a ScoreQuestion.
+    ScoreAnswer score = 2;
+    // Answer to a BooleanQuestion.
+    BooleanAnswer boolean = 3;
+    // The model declined to answer.
+    Refusal refusal = 4;
+  }
+  // Provider specific extra fields, e.g. {"confidence": 0.93}.
+  google.protobuf.Struct extra_fields = 5;
+}
+
+// Answer to a ChoiceQuestion.
+message ChoiceAnswer {
+  // The selected option key.
+  string choice = 1;
+  // Probability per option key. Empty when the model reports no distribution.
+  map<string, double> probabilities = 2;
+}
+
+// Answer to a ScoreQuestion.
+message ScoreAnswer {
+  // Zero-based rubric level. The probability-weighted mean when probabilities are set.
+  double score = 1;
+  // Probability per zero-based level index, as a string. Empty when the model reports no distribution.
+  map<string, double> probabilities = 2;
+}
+
+// Answer to a BooleanQuestion.
+message BooleanAnswer {
+  // Probability that the condition is true.
+  double probability = 1 [(buf.validate.field).double = {
+    gte: 0.0
+    lte: 1.0
+  }];
+}
+
+// A refusal to answer a question.
+message Refusal {
+  // Why the model refused, when given.
+  string reason = 1;
+}
+
+// Request message for AiService.GenerateDecision.
+message GenerateDecisionRequest {
+  // The resource name of the model used.
+  // Format: providers/{provider}/models/{model}
+  string model = 1 [
+    (google.api.resource_reference).type = "ai.malonaz.com/Model",
+    (buf.validate.field).required = true
+  ];
+  // The state to evaluate, shared by every question. Only text, image and
+  // document blocks are allowed; provider support varies (e.g. Jev is text only).
+  // Structured (JSON) state is not supported yet: send it as JSON text.
+  repeated .malonaz.ai.v1.Block state = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      cel: {
+        id: "state_block_content"
+        message: "state blocks must be text, image or document"
+        expression: "has(this.text) || has(this.image) || has(this.document)"
+      }
+    }
+  }];
+  // The questions to answer about the state, keyed by caller-defined id.
+  map<string, Question> questions = 3 [(buf.validate.field).map.min_pairs = 1];
+  // Labels for this call.
+  map<string, string> labels = 4 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
+}
+
+// Response message for AiService.GenerateDecision.
+message GenerateDecisionResponse {
+  // The answers, keyed by the same ids as the request's questions.
+  map<string, Answer> answers = 1;
+  // Model usage metrics.
+  .malonaz.ai.v1.ModelUsage model_usage = 2;
+}

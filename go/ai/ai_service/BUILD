@@ -15,6 +15,7 @@ go_library(
     name = "ai_service",
     srcs = [
         "chat.go",
+        "decision.go",
         "generate_message.go",
         "metrics.go",
         "runtime.go",
@@ -34,6 +35,7 @@ go_library(
         "//go/ai/ai_service/provider/google",
         "//go/ai/ai_service/provider/mock",
         "//go/ai/ai_service/provider/openai",
+        "//go/ai/ai_service/provider/typesafe",
         "//go/ai/ai_service/provider/xai",
         "//go/ai/ai_service/rpc",
         "//go/ai/model",
@@ -62,13 +64,17 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["generate_message_test.go"],
+    srcs = [
+        "decision_test.go",
+        "generate_message_test.go",
+    ],
     deps = [
         ":ai_service",
         "//go/ai",
         "//go/ai/tool",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__google__go-cmp__cmp",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__proto",
