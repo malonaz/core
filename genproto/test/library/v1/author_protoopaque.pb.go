@@ -45,6 +45,7 @@ type Author struct {
 	xxx_hidden_Annotations    map[string]string      `protobuf:"bytes,14,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_Etag           string                 `protobuf:"bytes,12,opt,name=etag,proto3"`
 	xxx_hidden_Metadata       *AuthorMetadata        `protobuf:"bytes,13,opt,name=metadata,proto3"`
+	xxx_hidden_BookCount      int64                  `protobuf:"varint,15,opt,name=book_count,json=bookCount,proto3"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -172,6 +173,13 @@ func (x *Author) GetMetadata() *AuthorMetadata {
 	return nil
 }
 
+func (x *Author) GetBookCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_BookCount
+	}
+	return 0
+}
+
 func (x *Author) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -226,6 +234,10 @@ func (x *Author) SetEtag(v string) {
 
 func (x *Author) SetMetadata(v *AuthorMetadata) {
 	x.xxx_hidden_Metadata = v
+}
+
+func (x *Author) SetBookCount(v int64) {
+	x.xxx_hidden_BookCount = v
 }
 
 func (x *Author) HasCreateTime() bool {
@@ -304,6 +316,9 @@ type Author_builder struct {
 	Etag string
 	// Author metadata.
 	Metadata *AuthorMetadata
+	// The books naming this author, resolved by an aggregate join back along
+	// Book.author: books live under shelves, not authors.
+	BookCount int64
 }
 
 func (b0 Author_builder) Build() *Author {
@@ -324,6 +339,7 @@ func (b0 Author_builder) Build() *Author {
 	x.xxx_hidden_Annotations = b.Annotations
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_BookCount = b.BookCount
 	return m0
 }
 
@@ -420,7 +436,7 @@ var File_malonaz_test_library_v1_author_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a'malonaz/codegen/aip/v1/annotation.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xce\v\n" +
+	"$malonaz/test/library/v1/author.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a*malonaz/canonicalize/v1/canonicalize.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a'malonaz/codegen/aip/v1/annotation.proto\x1a\"malonaz/codegen/aip/v1/label.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xab\f\n" +
 	"\x06Author\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -440,7 +456,11 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x06labels\x18\v \x03(\v2+.malonaz.test.library.v1.Author.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12\xd1\x01\n" +
 	"\vannotations\x18\x0e \x03(\v20.malonaz.test.library.v1.Author.AnnotationsEntryB}\xbaHr\x9a\x01o\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x05r\x03\x18\x80\b\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x12\n" +
 	"\x04etag\x18\f \x01(\tR\x04etag\x12Q\n" +
-	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x1a9\n" +
+	"\bmetadata\x18\r \x01(\v2'.malonaz.test.library.v1.AuthorMetadataB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\bmetadata\x12[\n" +
+	"\n" +
+	"book_count\x18\x0f \x01(\x03B<\xe0A\x03\xba\xea\x0f5 \x01B1\n" +
+	"\x1dlibrary.test.malonaz.com/Book\x12\x04name*\n" +
+	"\b\x02\x1a\x06authorR\tbookCount\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +

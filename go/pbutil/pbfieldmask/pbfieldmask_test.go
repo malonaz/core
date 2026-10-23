@@ -379,6 +379,7 @@ func TestFromMessage_AllFields_Author(t *testing.T) {
 		"metadata.country",
 		"metadata.email_addresses",
 		"metadata.phone_numbers",
+		"book_count",
 	}, paths)
 }
 

@@ -97,10 +97,11 @@ message Join {
     Query query = 4;
 
     // Folds every descendant row correlated with this resource into one
-    // value. `field` names the aggregated column on the descendant (ignored
-    // for COUNT, which must name "name"). Emitted as a correlated subquery,
-    // so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
-    // Nothing can chain onto an aggregate field: there is no row behind it.
+    // value, or with Aggregate.back_reference every row naming it. `field` names the
+    // aggregated column on the joined resource (ignored for COUNT, which must
+    // name "name"). Emitted as a correlated subquery, so joined fields must be
+    // nullable: SUM/MIN/MAX over no rows is NULL. Nothing can chain onto an
+    // aggregate field: there is no row behind it.
     Aggregate aggregate = 5;
   }
 }
@@ -146,4 +147,11 @@ message Aggregate {
   // rows the filter admits: when the descendant is soft-deletable and only
   // live rows should count, say so with `NOT delete_time:*`.
   string filter = 2;
+
+  // Optional. Correlates through a resource-name field on the joined
+  // resource instead of the name hierarchy, for rows that live elsewhere but
+  // point back: the rows whose `back_reference` equals this resource's name. The field
+  // must declare a google.api.resource_reference to this resource; index its
+  // column.
+  string back_reference = 3;
 }

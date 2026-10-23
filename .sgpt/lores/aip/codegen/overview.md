@@ -105,6 +105,16 @@ registry is per package — cross-package parent/child links do not exist):
   `Shelf.{total_page_count,book_count,total_price,last_book_create_time}` +
   `sat/aggregate_join_test.go`; generation errors are covered by
   `tools/protoc-gen-core/schema/aggregate_join_test.go`.
+- **Aggregates along a back reference** (`aggregate.back_reference`, the
+  inverse of `join.reference`): rows living elsewhere that point back, e.g.
+  loans under lenders naming an application. `back_reference` is a
+  resource-name field on the joined resource whose `resource_reference` is
+  this resource; the correlation is `joined.<back_reference> = <this name>`, rebuilt from
+  this row's identifier columns, so index the column. Equality only: to count
+  rows naming a descendant, store the ancestor's name beside it (onikisu's
+  `Loan.application`, derived from `application_revision`). Reference:
+  `Author.book_count` (back along `Book.author`) +
+  `sat/aggregate_join_test.go: TestAggregateJoin_BackReference`.
 - **Correlated join filters**: a query or aggregate filter may compare the
   descendant against the joining row's own stored scalar columns, spelled
   `this.{field}` — `create_time > this.last_read_time` counts what arrived

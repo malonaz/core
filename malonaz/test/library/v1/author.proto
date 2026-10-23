@@ -187,6 +187,23 @@ message Author {
     (buf.validate.field).required = true,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
   ];
+
+  // The books naming this author, resolved by an aggregate join back along
+  // Book.author: books live under shelves, not authors.
+  int64 book_count = 15 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "library.test.malonaz.com/Book"
+        field: "name"
+        aggregate: {
+          function: FUNCTION_COUNT
+          back_reference: "author"
+        }
+      }
+    }
+  ];
 }
 
 // Metadata for an author.

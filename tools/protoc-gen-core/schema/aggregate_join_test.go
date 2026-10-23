@@ -230,3 +230,54 @@ func TestAggregateJoin_Generation(t *testing.T) {
 		require.ErrorContains(t, err, "aggregate join filter")
 	})
 }
+
+// joinByKey returns the resolved join with the given key.
+func joinByKey(t *testing.T, joins []schema.Join, key string) schema.Join {
+	t.Helper()
+	for _, join := range joins {
+		if join.Key == key {
+			return join
+		}
+	}
+	t.Fatalf("join %q not found", key)
+	return schema.Join{}
+}
+
+func TestAggregateJoin_BackReference(t *testing.T) {
+	const author, shelf = "malonaz.test.library.v1.Author", "malonaz.test.library.v1.Shelf"
+	int64Type := descriptorpb.FieldDescriptorProto_TYPE_INT64
+	countBack := func(backReference string) *modelpb.FieldOpts {
+		opts := aggregate(modelpb.Aggregate_FUNCTION_COUNT, "name", "")
+		opts.Join.GetAggregate().BackReference = backReference
+		return opts
+	}
+
+	t.Run("ReferenceToThisResource_Equality", func(t *testing.T) {
+		joins, err := resolveJoins(t, author)
+		require.NoError(t, err)
+		join := joinByKey(t, joins, "aggregate:book_count")
+		condition := schema.JoinCondition{
+			SourceColumn: "author",
+			ChildExpr:    "'organizations/' || %[1]s.organization_id || '/authors/' || %[1]s.author_id",
+		}
+		require.Equal(t, []schema.JoinCondition{condition}, join.Conditions)
+		require.Equal(t,
+			"book.author = 'organizations/' || author.organization_id || '/authors/' || author.author_id",
+			condition.Render("book", "author"))
+	})
+
+	t.Run("BackReferenceFieldMissing", func(t *testing.T) {
+		err := parseJoins(t, shelf, field{"books", int64Type, "", countBack("no_such_field"), ""})
+		require.ErrorContains(t, err, `back_reference field "no_such_field" not found`)
+	})
+
+	t.Run("BackReferenceFieldWithoutReference", func(t *testing.T) {
+		err := parseJoins(t, shelf, field{"books", int64Type, "", countBack("title"), ""})
+		require.ErrorContains(t, err, "must declare a google.api.resource_reference")
+	})
+
+	t.Run("BackReferenceToAnotherResource", func(t *testing.T) {
+		err := parseJoins(t, shelf, field{"books", int64Type, "", countBack("author"), ""})
+		require.ErrorContains(t, err, `back_reference field "author" references pattern "organizations/{organization}/authors/{author}", not "organizations/{organization}/shelves/{shelf}"`)
+	})
+}
