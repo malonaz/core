@@ -1,11 +1,14 @@
 package sat
 
 import (
+	"path"
 	"testing"
+	"time"
 
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	aippb "github.com/malonaz/core/genproto/aip/v1"
@@ -580,5 +583,68 @@ func TestSearch_FilterOnJoinedField(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, response.Books, 1)
 		require.Equal(t, hit.Name, response.Books[0].Name)
+	})
+}
+
+// The `id` search field indexes each book's resource ID (the last segment of
+// its name), e.g. sequential numbers: prefix-matched like any token, "#" being
+// a separator the query drops.
+func TestSearch_ID(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Resource ID Author")
+	shelf := createTestShelf(t, organizationParent, "Resource ID Shelf", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	createBook := func(bookID, title string) *librarypb.Book {
+		book, err := libraryServiceClient.CreateBook(ctx, &libraryservicepb.CreateBookRequest{
+			Parent: shelf.Name,
+			BookId: bookID,
+			Book: &librarypb.Book{
+				Title:    title,
+				Author:   author.Name,
+				Duration: durationpb.New(time.Second),
+				Metadata: &librarypb.BookMetadata{},
+			},
+		})
+		require.NoError(t, err)
+		return book
+	}
+	exact := createBook("1042", "Moby Dick")
+	prefixed := createBook("10425", "War and Peace")
+	createBook("2042", "Dune")
+
+	cases := []struct {
+		query string
+		want  []string
+	}{
+		{query: "1042", want: []string{exact.Name, prefixed.Name}},
+		{query: "#1042", want: []string{exact.Name, prefixed.Name}},
+		{query: "10425", want: []string{prefixed.Name}},
+		// The id is one token: no mid-token substrings.
+		{query: "042", want: nil},
+		// Tokens AND across the id and the other fields.
+		{query: "moby #1042", want: []string{exact.Name}},
+		// Parent segments are never indexed.
+		{query: path.Base(shelf.Name), want: nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.query, func(t *testing.T) {
+			response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: tc.query})
+			require.NoError(t, err)
+			got := make([]string, 0, len(response.Books))
+			for _, book := range response.Books {
+				got = append(got, book.Name)
+			}
+			require.ElementsMatch(t, tc.want, got, "query %q", tc.query)
+		})
+	}
+
+	t.Run("Snippet", func(t *testing.T) {
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: shelf.Name, Query: "#10425", IncludeSnippets: true})
+		require.NoError(t, err)
+		require.Len(t, response.Books, 1)
+		require.Len(t, response.Snippets, 1)
+		require.Len(t, response.Snippets[0].Matches, 1)
+		require.Equal(t, "id", response.Snippets[0].Matches[0].Path)
+		require.Equal(t, "**10425**", response.Snippets[0].Matches[0].Match)
 	})
 }

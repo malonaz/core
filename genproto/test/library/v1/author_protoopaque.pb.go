@@ -469,20 +469,20 @@ const file_malonaz_test_library_v1_author_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x02\xeaAa\n" +
 	"\x1flibrary.test.malonaz.com/Author\x12-organizations/{organization}/authors/{author}*\aauthors2\x06authorҦ\x04\t\n" +
 	"\alibrary\x9a\xf3-\xaa\x01\n" +
-	"\x10\n" +
-	"\fdisplay_name\x10\x01\n" +
-	"\x13\n" +
-	"\remail_address\x10\x02\x18\x01\n" +
-	"\x12\n" +
-	"\fphone_number\x10\x02\x18\x02\n" +
-	"\x15\n" +
-	"\x0femail_addresses\x10\x03\x18\x01\n" +
-	"\x13\n" +
-	"\rphone_numbers\x10\x03\x18\x02\n" +
-	"\x14\n" +
-	"\x10metadata.country\x10\x02\n" +
-	"\x1e\n" +
-	"\x18metadata.email_addresses\x10\x03\x18\x01\n" +
+	"\x10\x10\x01\n" +
+	"\fdisplay_name\n" +
+	"\x13\x10\x02\x18\x01\n" +
+	"\remail_address\n" +
+	"\x12\x10\x02\x18\x02\n" +
+	"\fphone_number\n" +
+	"\x15\x10\x03\x18\x01\n" +
+	"\x0femail_addresses\n" +
+	"\x13\x10\x03\x18\x02\n" +
+	"\rphone_numbers\n" +
+	"\x14\x10\x02\n" +
+	"\x10metadata.country\n" +
+	"\x1e\x10\x03\x18\x01\n" +
+	"\x18metadata.email_addresses\n" +
 	"\v\n" +
 	"\tbiography\"\x97\x01\n" +
 	"\x0eAuthorMetadata\x12\x18\n" +

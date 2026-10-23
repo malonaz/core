@@ -13,6 +13,7 @@ import (
 	aippb "github.com/malonaz/core/genproto/codegen/aip/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 )
 
 // SearchDocumentColumn is the database column holding a searchable resource's
@@ -44,6 +45,10 @@ const SearchArrayToStringFunction = "core_array_to_string"
 //	$$;
 const SearchPhoneNumberTokensFunction = "core_phone_number_tokens"
 
+// SearchIDSnippetPath is the snippet path of an `id` search field's matches:
+// the same key on every resource.
+const SearchIDSnippetPath = "id"
+
 // SearchDocument resolves a resource message's search options into the SQL
 // expression composing its tsvector search document. Returns nil when the
 // message declares no search option.
@@ -58,15 +63,38 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 
 	expressions := make([]string, 0, len(searchOptions.GetFields()))
 	var snippetFields []SnippetField
+	snippetPaths := map[string]bool{}
 	for _, searchField := range searchOptions.GetFields() {
-		base, err := searchFieldBase(message, searchField.GetPath(), "")
+		snippetField := SnippetField{Path: searchField.GetPath(), ID: searchField.GetId(), Weight: weightLetter(searchField.GetWeight())}
+		if snippetField.ID {
+			if searchField.GetSplit() != aippb.SearchOptions_SPLIT_UNSPECIFIED {
+				return nil, fmt.Errorf("search field id on %s takes no split", message.GoIdent.GoName)
+			}
+			snippetField.Path = SearchIDSnippetPath
+		}
+		// Snippet paths key the response: a resource field named "id" would clash with the id selector.
+		if snippetPaths[snippetField.Path] {
+			return nil, fmt.Errorf("search field %q on %s is declared twice", snippetField.Path, message.GoIdent.GoName)
+		}
+		snippetPaths[snippetField.Path] = true
+
+		// The document's base text, distinct from SearchFieldExpression's
+		// snippet text, which is unusable in a generated column.
+		var base string
+		var err error
+		if snippetField.ID {
+			base, err = resourceIDColumn(message, "")
+		} else {
+			base, err = searchFieldBase(message, snippetField.Path, "")
+		}
 		if err != nil {
 			return nil, err
 		}
+		snippetField.Expression = base
 
 		expression, err := applySplit(base, searchField.GetSplit())
 		if err != nil {
-			return nil, fmt.Errorf("search field %q on %s: %w", searchField.GetPath(), message.GoIdent.GoName, err)
+			return nil, fmt.Errorf("search field %q on %s: %w", snippetField.Path, message.GoIdent.GoName, err)
 		}
 		expressions = append(expressions, fmt.Sprintf(
 			"setweight(to_tsvector('simple', %s), '%s')", expression, weightLetter(searchField.GetWeight()),
@@ -75,7 +103,7 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		// Every search field is snippet-eligible; the client opts in per
 		// request. Snippets headline the raw text (no split variant), or
 		// fragments would surface mangled tokenized text.
-		snippetFields = append(snippetFields, SnippetField{Path: searchField.GetPath(), Expression: base, Weight: weightLetter(searchField.GetWeight())})
+		snippetFields = append(snippetFields, snippetField)
 	}
 	// Snippet matches surface in field-weight order (A first), declaration
 	// order breaking ties.
@@ -93,12 +121,25 @@ type SearchDoc struct {
 
 // SnippetField is one field headlined into a search-result snippet.
 type SnippetField struct {
-	// Path is the resource field path, e.g. "biography".
+	// Path is the resource field path, e.g. "biography", or
+	// SearchIDSnippetPath for the resource ID.
 	Path string
+	// ID is true when the field indexes the resource ID rather than a path.
+	ID bool
 	// Expression is the raw text SQL expression to headline.
 	Expression string
 	// Weight is the field's tsvector weight letter (A-D).
 	Weight string
+}
+
+// SnippetExpression resolves a snippet field to its raw text SQL expression,
+// with column references qualified by the given prefix (see
+// SearchFieldExpression).
+func SnippetExpression(message *protogen.Message, snippetField SnippetField, columnPrefix string) (string, error) {
+	if snippetField.ID {
+		return resourceIDColumn(message, columnPrefix)
+	}
+	return SearchFieldExpression(message, snippetField.Path, columnPrefix)
 }
 
 // SearchFieldExpression resolves a search field path to the raw text SQL
@@ -218,6 +259,31 @@ func searchFieldBase(message *protogen.Message, path, columnPrefix string) (stri
 		}
 	}
 	return fmt.Sprintf("coalesce(%s #>> '{%s}', '')", column, strings.Join(segments[1:], ",")), nil
+}
+
+// resourceIDColumn resolves the column holding the resource ID, the last
+// segment of its name (the name itself is not stored). It is never null, so
+// it needs no coalesce.
+func resourceIDColumn(message *protogen.Message, columnPrefix string) (string, error) {
+	parsedResource, err := resource.ParseFromMessage(message)
+	if err != nil {
+		return "", fmt.Errorf("search field id on %s: %w", message.GoIdent.GoName, err)
+	}
+	for _, pattern := range parsedResource.Patterns {
+		if pattern.Singleton {
+			return "", fmt.Errorf("search field id on %s: a singleton has no resource ID of its own to index", message.GoIdent.GoName)
+		}
+	}
+	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](message.Desc.Options(), modelpb.E_ModelOpts)
+	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+		return "", fmt.Errorf("getting model_opts for %s: %w", message.GoIdent.GoName, err)
+	}
+	bindings, err := UnionColumnBindings(parsedResource, modelOpts)
+	if err != nil {
+		return "", err
+	}
+	// The resource's own identifier is always the last binding.
+	return columnPrefix + bindings[len(bindings)-1].Column, nil
 }
 
 // applySplit layers a field's extra tokenization behavior on its raw text expression.
