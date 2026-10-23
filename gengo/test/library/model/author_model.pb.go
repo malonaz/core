@@ -36,6 +36,7 @@ type Author struct {
 	Annotations    []byte     `db:"annotations" schema:"library" table:"author"`
 	Etag           string     `db:"etag" schema:"library" table:"author"`
 	Metadata       []byte     `db:"metadata" schema:"library" table:"author"`
+	BookCount      *int64     `db:"book_count" external:"true" join_schema:"library" join_table:"book_count" join_column:"value"`
 }
 
 func AuthorFromPb(m *v1.Author) (*Author, error) {
@@ -93,6 +94,10 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling Metadata: %w", err)
 	}
+	var BookCount *int64
+	if m.BookCount != 0 {
+		BookCount = &m.BookCount
+	}
 	return &Author{
 		OrganizationID: OrganizationID,
 		AuthorID:       AuthorID,
@@ -109,6 +114,7 @@ func AuthorFromPb(m *v1.Author) (*Author, error) {
 		Annotations:    AnnotationsBytes,
 		Etag:           m.Etag,
 		Metadata:       MetadataBytes,
+		BookCount:      BookCount,
 	}, nil
 }
 
@@ -152,6 +158,10 @@ func (m *Author) ToPb() (*v1.Author, error) {
 	if err := pbutil.JSONUnmarshal(m.Metadata, Metadata); err != nil {
 		return nil, fmt.Errorf("unmarshaling Metadata: %w", err)
 	}
+	var BookCount int64
+	if m.BookCount != nil {
+		BookCount = *m.BookCount
+	}
 	name := resourcename.Sprint("organizations/{organization}/authors/{author}", m.OrganizationID, m.AuthorID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -171,6 +181,7 @@ func (m *Author) ToPb() (*v1.Author, error) {
 		Annotations:    Annotations,
 		Etag:           m.Etag,
 		Metadata:       Metadata,
+		BookCount:      BookCount,
 	}, nil
 }
 

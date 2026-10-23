@@ -144,9 +144,10 @@ type JoinTarget struct {
 type JoinCondition struct {
 	// SourceColumn is the column on the joined table.
 	SourceColumn string
-	// ChildExpr is a printf template with a single %s placeholder for the
-	// child table qualifier, e.g. "%s.organization_id" or
-	// "split_part(%s.active_revision, '/', 12)".
+	// ChildExpr is a printf template whose placeholders all take the child
+	// table qualifier, e.g. "%s.organization_id",
+	// "split_part(%s.active_revision, '/', 12)" or, for a reconstructed name,
+	// "'shelves/' || %[1]s.shelf_id".
 	ChildExpr string
 }
 
@@ -579,7 +580,11 @@ func ParseJoins(message *protogen.Message) ([]Join, error) {
 				}
 			case aggregateJoin:
 				join.Left = true
-				join.Conditions, err = descendantJoinConditions(message, joinOpts.GetResourceType())
+				if joinOpts.GetAggregate().GetBackReference() != "" {
+					join.Conditions, err = backReferenceJoinConditions(message, joinOpts)
+				} else {
+					join.Conditions, err = descendantJoinConditions(message, joinOpts.GetResourceType())
+				}
 				if err == nil {
 					join.Aggregate, err = buildJoinAggregate(message, joinOpts)
 				}
@@ -682,6 +687,54 @@ func descendantJoinConditions(message *protogen.Message, descendantType string) 
 		conditions = append(conditions, JoinCondition{SourceColumn: descendantColumn, ChildExpr: "%s." + ownBinding.Column})
 	}
 	return conditions, nil
+}
+
+// backReferenceJoinConditions correlates an aggregate's rows through their `back_reference`
+// resource-name field instead of the name hierarchy: the field names this
+// resource, rebuilt from its identifier columns.
+func backReferenceJoinConditions(message *protogen.Message, join *modelpb.Join) ([]JoinCondition, error) {
+	source, err := resolveJoinSource(join.GetResourceType())
+	if err != nil {
+		return nil, err
+	}
+	backReference := join.GetAggregate().GetBackReference()
+	backReferenceField := fieldByTextName(source.message, backReference)
+	if backReferenceField == nil {
+		return nil, fmt.Errorf("back_reference field %q not found on joined resource %q", backReference, join.GetResourceType())
+	}
+	referenced, err := resolveReferenceSource(backReferenceField)
+	if err != nil {
+		return nil, fmt.Errorf("back_reference field: %w", err)
+	}
+	_, _, column, err := joinedColumn(source, backReference)
+	if err != nil {
+		return nil, err
+	}
+
+	ownResource, err := resource.ParseFromMessage(message)
+	if err != nil {
+		return nil, err
+	}
+	ownModelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](message.Desc.Options(), modelpb.E_ModelOpts)
+	if err != nil {
+		return nil, fmt.Errorf("getting model_opts for %s: %w", message.Desc.FullName(), err)
+	}
+	ownPattern, err := ownResource.SinglePattern()
+	if err != nil {
+		return nil, err
+	}
+	ownBindings, err := ColumnBindings(ownPattern, ownModelOpts)
+	if err != nil {
+		return nil, err
+	}
+	referencedPattern, err := referenced.resource.SinglePattern()
+	if err != nil {
+		return nil, fmt.Errorf("back_reference field %q: %w", backReference, err)
+	}
+	if referencedPattern.Value != ownPattern.Value {
+		return nil, fmt.Errorf("back_reference field %q references pattern %q, not %q", backReference, referencedPattern.Value, ownPattern.Value)
+	}
+	return []JoinCondition{{SourceColumn: column, ChildExpr: resourceNameExpr(ownPattern, ownBindings, "%[1]s")}}, nil
 }
 
 // descendantQuery is what a descendant join's subquery is transpiled against:

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/model/v1/model.proto.
  */
 export const file_malonaz_codegen_model_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIsEBCgRKb2luEh0KDXJlc291cmNlX3R5cGUYASABKAlCBvpBAwoBKhINCgVmaWVsZBgCIAEoCRITCglyZWZlcmVuY2UYAyABKAlIABIwCgVxdWVyeRgEIAEoCzIfLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5RdWVyeUgAEjgKCWFnZ3JlZ2F0ZRgFIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGVIAEIKCghzZWxlY3RvciIpCgVRdWVyeRIOCgZmaWx0ZXIYASABKAkSEAoIb3JkZXJfYnkYAiABKAkiywEKCUFnZ3JlZ2F0ZRI+CghmdW5jdGlvbhgBIAEoDjIsLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGUuRnVuY3Rpb24SDgoGZmlsdGVyGAIgASgJIm4KCEZ1bmN0aW9uEhgKFEZVTkNUSU9OX1VOU1BFQ0lGSUVEEAASEAoMRlVOQ1RJT05fU1VNEAESEgoORlVOQ1RJT05fQ09VTlQQAhIQCgxGVU5DVElPTl9NSU4QAxIQCgxGVU5DVElPTl9NQVgQBDpkCgptb2RlbF9vcHRzEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGOpEIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Nb2RlbE9wdHNSCW1vZGVsT3B0czpjCgpmaWVsZF9vcHRzEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxin/QEgASgLMiMubWFsb25hei5jb2RlZ2VuLm1vZGVsLnYxLkZpZWxkT3B0c1IJZmllbGRPcHRzQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbW9kZWwvdjFiBnByb3RvMw", [file_google_api_resource, file_google_protobuf_descriptor]);
+  fileDesc("CiRtYWxvbmF6L2NvZGVnZW4vbW9kZWwvdjEvbW9kZWwucHJvdG8SGG1hbG9uYXouY29kZWdlbi5tb2RlbC52MSJMCglNb2RlbE9wdHMSEwoLc2NoZW1hX25hbWUYASABKAkSEgoKdGFibGVfbmFtZRgCIAEoCRIWCg5pZF9jb2x1bW5fbmFtZRgDIAEoCSK/AQoJRmllbGRPcHRzEhMKC2NvbHVtbl9uYW1lGAEgASgJEhUKDWFzX2pzb25fYnl0ZXMYAiABKAgSFgoOYXNfcHJvdG9fYnl0ZXMYAyABKAgSEAoIbnVsbGFibGUYBCABKAgSDAoEc2tpcBgFIAEoCBINCgVlbWJlZBgGIAEoCBIRCglwZ192ZWN0b3IYByABKAgSLAoEam9pbhgIIAEoCzIeLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Kb2luIsEBCgRKb2luEh0KDXJlc291cmNlX3R5cGUYASABKAlCBvpBAwoBKhINCgVmaWVsZBgCIAEoCRITCglyZWZlcmVuY2UYAyABKAlIABIwCgVxdWVyeRgEIAEoCzIfLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5RdWVyeUgAEjgKCWFnZ3JlZ2F0ZRgFIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGVIAEIKCghzZWxlY3RvciIpCgVRdWVyeRIOCgZmaWx0ZXIYASABKAkSEAoIb3JkZXJfYnkYAiABKAki4wEKCUFnZ3JlZ2F0ZRI+CghmdW5jdGlvbhgBIAEoDjIsLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5BZ2dyZWdhdGUuRnVuY3Rpb24SDgoGZmlsdGVyGAIgASgJEhYKDmJhY2tfcmVmZXJlbmNlGAMgASgJIm4KCEZ1bmN0aW9uEhgKFEZVTkNUSU9OX1VOU1BFQ0lGSUVEEAASEAoMRlVOQ1RJT05fU1VNEAESEgoORlVOQ1RJT05fQ09VTlQQAhIQCgxGVU5DVElPTl9NSU4QAxIQCgxGVU5DVElPTl9NQVgQBDpkCgptb2RlbF9vcHRzEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGOpEIAEoCzIjLm1hbG9uYXouY29kZWdlbi5tb2RlbC52MS5Nb2RlbE9wdHNSCW1vZGVsT3B0czpjCgpmaWVsZF9vcHRzEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxin/QEgASgLMiMubWFsb25hei5jb2RlZ2VuLm1vZGVsLnYxLkZpZWxkT3B0c1IJZmllbGRPcHRzQjNaMWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbW9kZWwvdjFiBnByb3RvMw", [file_google_api_resource, file_google_protobuf_descriptor]);
 
 /**
  * ModelOpts defines code generation options for an entire message/model.
@@ -188,10 +188,11 @@ export type Join = Message<"malonaz.codegen.model.v1.Join"> & {
   } | {
     /**
      * Folds every descendant row correlated with this resource into one
-     * value. `field` names the aggregated column on the descendant (ignored
-     * for COUNT, which must name "name"). Emitted as a correlated subquery,
-     * so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
-     * Nothing can chain onto an aggregate field: there is no row behind it.
+     * value, or with Aggregate.back_reference every row naming it. `field` names the
+     * aggregated column on the joined resource (ignored for COUNT, which must
+     * name "name"). Emitted as a correlated subquery, so joined fields must be
+     * nullable: SUM/MIN/MAX over no rows is NULL. Nothing can chain onto an
+     * aggregate field: there is no row behind it.
      *
      * @generated from field: malonaz.codegen.model.v1.Aggregate aggregate = 5;
      */
@@ -268,6 +269,17 @@ export type Aggregate = Message<"malonaz.codegen.model.v1.Aggregate"> & {
    * @generated from field: string filter = 2;
    */
   filter: string;
+
+  /**
+   * Optional. Correlates through a resource-name field on the joined
+   * resource instead of the name hierarchy, for rows that live elsewhere but
+   * point back: the rows whose `back_reference` equals this resource's name. The field
+   * must declare a google.api.resource_reference to this resource; index its
+   * column.
+   *
+   * @generated from field: string back_reference = 3;
+   */
+  backReference: string;
 };
 
 export type AggregateValid = Aggregate;

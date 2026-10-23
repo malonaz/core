@@ -598,10 +598,11 @@ type Join_builder struct {
 	// fields must be nullable.
 	Query *Query
 	// Folds every descendant row correlated with this resource into one
-	// value. `field` names the aggregated column on the descendant (ignored
-	// for COUNT, which must name "name"). Emitted as a correlated subquery,
-	// so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
-	// Nothing can chain onto an aggregate field: there is no row behind it.
+	// value, or with Aggregate.back_reference every row naming it. `field` names the
+	// aggregated column on the joined resource (ignored for COUNT, which must
+	// name "name"). Emitted as a correlated subquery, so joined fields must be
+	// nullable: SUM/MIN/MAX over no rows is NULL. Nothing can chain onto an
+	// aggregate field: there is no row behind it.
 	Aggregate *Aggregate
 	// -- end of Selector
 }
@@ -655,10 +656,11 @@ type Join_Query struct {
 
 type Join_Aggregate struct {
 	// Folds every descendant row correlated with this resource into one
-	// value. `field` names the aggregated column on the descendant (ignored
-	// for COUNT, which must name "name"). Emitted as a correlated subquery,
-	// so joined fields must be nullable: SUM/MIN/MAX over no rows is NULL.
-	// Nothing can chain onto an aggregate field: there is no row behind it.
+	// value, or with Aggregate.back_reference every row naming it. `field` names the
+	// aggregated column on the joined resource (ignored for COUNT, which must
+	// name "name"). Emitted as a correlated subquery, so joined fields must be
+	// nullable: SUM/MIN/MAX over no rows is NULL. Nothing can chain onto an
+	// aggregate field: there is no row behind it.
 	Aggregate *Aggregate `protobuf:"bytes,5,opt,name=aggregate,proto3,oneof"`
 }
 
@@ -767,7 +769,13 @@ type Aggregate struct {
 	// Query.filter, correlated fields included. The aggregate sees exactly the
 	// rows the filter admits: when the descendant is soft-deletable and only
 	// live rows should count, say so with `NOT delete_time:*`.
-	Filter        string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	// Optional. Correlates through a resource-name field on the joined
+	// resource instead of the name hierarchy, for rows that live elsewhere but
+	// point back: the rows whose `back_reference` equals this resource's name. The field
+	// must declare a google.api.resource_reference to this resource; index its
+	// column.
+	BackReference string `protobuf:"bytes,3,opt,name=back_reference,json=backReference,proto3" json:"back_reference,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -811,12 +819,23 @@ func (x *Aggregate) GetFilter() string {
 	return ""
 }
 
+func (x *Aggregate) GetBackReference() string {
+	if x != nil {
+		return x.BackReference
+	}
+	return ""
+}
+
 func (x *Aggregate) SetFunction(v Aggregate_Function) {
 	x.Function = v
 }
 
 func (x *Aggregate) SetFilter(v string) {
 	x.Filter = v
+}
+
+func (x *Aggregate) SetBackReference(v string) {
+	x.BackReference = v
 }
 
 type Aggregate_builder struct {
@@ -829,6 +848,12 @@ type Aggregate_builder struct {
 	// rows the filter admits: when the descendant is soft-deletable and only
 	// live rows should count, say so with `NOT delete_time:*`.
 	Filter string
+	// Optional. Correlates through a resource-name field on the joined
+	// resource instead of the name hierarchy, for rows that live elsewhere but
+	// point back: the rows whose `back_reference` equals this resource's name. The field
+	// must declare a google.api.resource_reference to this resource; index its
+	// column.
+	BackReference string
 }
 
 func (b0 Aggregate_builder) Build() *Aggregate {
@@ -837,6 +862,7 @@ func (b0 Aggregate_builder) Build() *Aggregate {
 	_, _ = b, x
 	x.Function = b.Function
 	x.Filter = b.Filter
+	x.BackReference = b.BackReference
 	return m0
 }
 
@@ -907,10 +933,11 @@ const file_malonaz_codegen_model_v1_model_proto_rawDesc = "" +
 	"\bselector\":\n" +
 	"\x05Query\x12\x16\n" +
 	"\x06filter\x18\x01 \x01(\tR\x06filter\x12\x19\n" +
-	"\border_by\x18\x02 \x01(\tR\aorderBy\"\xdd\x01\n" +
+	"\border_by\x18\x02 \x01(\tR\aorderBy\"\x84\x02\n" +
 	"\tAggregate\x12H\n" +
 	"\bfunction\x18\x01 \x01(\x0e2,.malonaz.codegen.model.v1.Aggregate.FunctionR\bfunction\x12\x16\n" +
-	"\x06filter\x18\x02 \x01(\tR\x06filter\"n\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12%\n" +
+	"\x0eback_reference\x18\x03 \x01(\tR\rbackReference\"n\n" +
 	"\bFunction\x12\x18\n" +
 	"\x14FUNCTION_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fFUNCTION_SUM\x10\x01\x12\x12\n" +

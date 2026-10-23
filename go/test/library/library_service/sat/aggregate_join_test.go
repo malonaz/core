@@ -207,3 +207,27 @@ func TestAggregateJoin_List(t *testing.T) {
 		require.Equal(t, []string{small.Name, large.Name, empty.Name}, names(listShelves(t, "", "total_price desc")))
 	})
 }
+
+// Aggregates along a back_reference fold rows living elsewhere that name the
+// resource: Author.book_count counts the books naming the author, across
+// shelves.
+func TestAggregateJoin_BackReference(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+
+	t.Run("ReferenceToThisResource", func(t *testing.T) {
+		t.Parallel()
+		author := createTestAuthor(t, organizationParent, "AggregateJoinBackReference Author")
+		other := createTestAuthor(t, organizationParent, "AggregateJoinBackReference Other Author")
+		require.Zero(t, getAuthor(t, author.Name).BookCount)
+
+		fiction := createTestShelf(t, organizationParent, "AggregateJoinBackReference Fiction", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+		history := createTestShelf(t, organizationParent, "AggregateJoinBackReference History", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
+		createTestBookWithPageCount(t, fiction.Name, author.Name, "AggregateJoinBackReference One", 10)
+		createTestBookWithPageCount(t, history.Name, author.Name, "AggregateJoinBackReference Two", 10)
+		createTestBookWithPageCount(t, fiction.Name, other.Name, "AggregateJoinBackReference Other", 10)
+
+		require.EqualValues(t, 2, getAuthor(t, author.Name).BookCount)
+		require.EqualValues(t, 1, getAuthor(t, other.Name).BookCount)
+	})
+}

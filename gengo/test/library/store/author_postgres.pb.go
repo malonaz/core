@@ -30,8 +30,13 @@ type querier interface {
 }
 
 var (
-	AuthorPostgresColumns = postgres.GetDBColumns(model.Author{})
+	AuthorPostgresColumns      = postgres.GetDBColumns(model.Author{})
+	AuthorWritePostgresColumns = postgres.GetDBColumns(model.Author{}, postgres.ExceptColumns("book_count"))
 )
+
+var authorJoinSubqueryExpr = `,(SELECT COUNT(*) FROM library.book AS book WHERE book.author = 'organizations/' || author.organization_id || '/authors/' || author.author_id) AS book_count`
+var authorJoinSelectExprs = `,book_count.value AS book_count`
+var authorJoinClause = `LEFT JOIN LATERAL (SELECT COUNT(*) AS value FROM library.book AS book WHERE book.author = 'organizations/' || author.organization_id || '/authors/' || author.author_id) AS book_count ON TRUE`
 
 func (s *Store) probeAuthor(ctx context.Context, q querier, organizationId, authorId string) (bool, string, error) {
 	query := `SELECT delete_time IS NULL, etag FROM library.author WHERE organization_id = $1 AND author_id = $2`
@@ -53,10 +58,11 @@ type AuthorWithRequestID struct {
 }
 
 var (
-	AuthorWithRequestIDPostgresColumns = postgres.GetDBColumns(AuthorWithRequestID{})
-	authorInsertPostgresQuery          = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id`
-	authorInsertReturningClause        = ` RETURNING ` + strings.Join(AuthorWithRequestIDPostgresColumns, ",")
-	authorGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(AuthorWithRequestIDPostgresColumns, "author") + " FROM library.author" + ` WHERE author.request_id = ANY($1)`
+	AuthorWithRequestIDPostgresColumns      = postgres.GetDBColumns(AuthorWithRequestID{})
+	AuthorWithRequestIDWritePostgresColumns = postgres.GetDBColumns(AuthorWithRequestID{}, postgres.ExceptColumns("book_count"))
+	authorInsertPostgresQuery               = `INSERT INTO library.author %s VALUES %s ON CONFLICT(organization_id, author_id) DO UPDATE SET author_id = EXCLUDED.author_id`
+	authorInsertReturningClause             = ` RETURNING ` + strings.Join(AuthorWithRequestIDWritePostgresColumns, ",") + authorJoinSubqueryExpr
+	authorGetByRequestIDsQuery              = "SELECT " + postgres.QualifyColumns(AuthorWithRequestIDWritePostgresColumns, "author") + authorJoinSelectExprs + " FROM library.author " + authorJoinClause + ` WHERE author.request_id = ANY($1)`
 )
 
 func orderAuthorsByRequestID(requestIDs []string, rows []*AuthorWithRequestID) ([]*model.Author, error) {
@@ -97,7 +103,7 @@ func (s *Store) BatchInsertAuthors(ctx context.Context, requestIDs []string, aut
 	for i, _author := range authors {
 		withRequestIDs[i] = &AuthorWithRequestID{RequestID: requestIDs[i], Author: *_author}
 	}
-	query, params := postgres.BatchInsertQuery(authorInsertPostgresQuery, withRequestIDs, AuthorWithRequestIDPostgresColumns...)
+	query, params := postgres.BatchInsertQuery(authorInsertPostgresQuery, withRequestIDs, AuthorWithRequestIDWritePostgresColumns...)
 	query += authorInsertReturningClause
 	query2, params2 := postgres.BatchInsertQuery(AuthorProfileInsertSingletonPostgresQuery, authorProfiles, AuthorProfileWritePostgresColumns...)
 
@@ -147,7 +153,7 @@ func (s *Store) BatchInsertAuthors(ctx context.Context, requestIDs []string, aut
 }
 
 var updateAuthorPostgresQuery = `UPDATE library.author SET #update_clause# WHERE #where_clause# RETURNING ` +
-	strings.Join(AuthorPostgresColumns, ",")
+	strings.Join(AuthorWritePostgresColumns, ",") + authorJoinSubqueryExpr
 
 func (s *Store) UpdateAuthor(ctx context.Context, _author *model.Author, updateClause string, updateColumns []string, etag string) (*model.Author, error) {
 	updateParams := postgres.GetParams(_author, updateColumns...)
@@ -192,7 +198,7 @@ func (s *Store) UpdateAuthor(ctx context.Context, _author *model.Author, updateC
 }
 
 var softDeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = $3, etag = $4 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NULL RETURNING ` +
-	strings.Join(AuthorPostgresColumns, ",")
+	strings.Join(AuthorWritePostgresColumns, ",") + authorJoinSubqueryExpr
 
 func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Author, error) {
 	query := softDeleteAuthorPostgresQuery
@@ -252,7 +258,7 @@ func (s *Store) SoftDeleteAuthor(ctx context.Context, organizationId, authorId s
 }
 
 var undeleteAuthorPostgresQuery = `UPDATE library.author SET delete_time = NULL, etag = $3 WHERE organization_id = $1 AND author_id = $2 AND delete_time IS NOT NULL RETURNING ` +
-	strings.Join(AuthorPostgresColumns, ",")
+	strings.Join(AuthorWritePostgresColumns, ",") + authorJoinSubqueryExpr
 
 func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId string, etag, newEtag string) (*model.Author, error) {
 	query := undeleteAuthorPostgresQuery
@@ -298,7 +304,7 @@ func (s *Store) UndeleteAuthor(ctx context.Context, organizationId, authorId str
 }
 
 func (s *Store) GetAuthor(ctx context.Context, organizationId, authorId string) (*model.Author, error) {
-	query := "SELECT " + postgres.QualifyColumns(AuthorPostgresColumns, "author") + " FROM library.author" + ` WHERE author.organization_id = $1 AND author.author_id = $2`
+	query := "SELECT " + postgres.QualifyColumns(AuthorWritePostgresColumns, "author") + authorJoinSelectExprs + " FROM library.author " + authorJoinClause + ` WHERE author.organization_id = $1 AND author.author_id = $2`
 	rows, err := s.client.Query(ctx, query, organizationId, authorId)
 	if err != nil {
 		return nil, fmt.Errorf("getting author: %w", err)
@@ -335,7 +341,7 @@ func (s *Store) BatchGetAuthors(ctx context.Context, organizationIds []string, a
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := "SELECT " + postgres.QualifyColumns(AuthorPostgresColumns, "author") + " FROM library.author" + " " + whereClause
+	query := "SELECT " + postgres.QualifyColumns(AuthorWritePostgresColumns, "author") + authorJoinSelectExprs + " FROM library.author " + authorJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -346,7 +352,7 @@ func (s *Store) BatchGetAuthors(ctx context.Context, organizationIds []string, a
 
 func (s *Store) ListAuthors(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Author, error) {
 	if columns == nil {
-		columns = AuthorPostgresColumns
+		columns = AuthorWritePostgresColumns
 	}
 
 	if organizationId != "-" && organizationId != "" {
@@ -358,7 +364,7 @@ func (s *Store) ListAuthors(ctx context.Context, organizationId string, showDele
 		whereClause = postgres.AddToWhereClause(whereClause, "author.delete_time IS NULL")
 	}
 
-	query := "SELECT " + postgres.QualifyColumns(columns, "author") + " FROM library.author" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + postgres.QualifyColumns(columns, "author") + authorJoinSelectExprs + " FROM library.author " + authorJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting authors: %w", err)
@@ -386,7 +392,7 @@ type authorSearchRow struct {
 
 func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
 	if columns == nil {
-		columns = AuthorPostgresColumns
+		columns = AuthorWritePostgresColumns
 	}
 
 	if organizationId != "-" && organizationId != "" {
@@ -416,11 +422,11 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		params = append(params, tsQuery)
 	}
 
-	selectColumns := postgres.QualifyColumns(columns, "author")
+	selectColumns := postgres.QualifyColumns(columns, "author") + authorJoinSelectExprs
 	for _, snippetColumn := range snippetColumns {
 		selectColumns += "," + snippetColumn
 	}
-	query := "SELECT " + selectColumns + " FROM library.author" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + selectColumns + " FROM library.author " + authorJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
