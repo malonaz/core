@@ -30,10 +30,12 @@ go_test(
         "aggregate_join_test.go",
         "correlated_filter_test.go",
         "lazy_singleton_test.go",
+        "search_test.go",
     ],
     external = True,
     deps = [
         ":schema",
+        "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//malonaz/test/library/v1",
         "//third_party/go:github.com__stretchr__testify__require",

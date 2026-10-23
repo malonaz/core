@@ -46,6 +46,10 @@ message Book {
       {
         path: "metadata.summary"
         weight: WEIGHT_B
+      },
+      {
+        id: true
+        weight: WEIGHT_A
       }
     ]
   };

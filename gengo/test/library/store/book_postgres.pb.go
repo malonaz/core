@@ -311,11 +311,12 @@ func (s *Store) ListBooks(ctx context.Context, organizationId, shelfId string, w
 // tsvector search document. The "search_document" column must be declared in migrations as:
 //
 //	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
-const BookSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(title, '')), 'A') || setweight(to_tsvector('simple', coalesce(metadata #>> '{summary}', '')), 'B')`
+const BookSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(title, '')), 'A') || setweight(to_tsvector('simple', coalesce(metadata #>> '{summary}', '')), 'B') || setweight(to_tsvector('simple', book_id), 'A')`
 
 type bookSearchRow struct {
 	model.Book
 	SnippetTitle           *string `db:"__snippet_title"`
+	SnippetId              *string `db:"__snippet_id"`
 	SnippetMetadataSummary *string `db:"__snippet_metadata_summary"`
 }
 
@@ -340,6 +341,7 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(book.search_document, to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
 		if includeSnippets {
 			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', book.book_id, to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_id`, len(params)+1))
 			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
 		}
 		params = append(params, tsQuery)
@@ -370,6 +372,9 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 		snippet := map[string]string{}
 		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
 			snippet["title"] = *searchRow.SnippetTitle
+		}
+		if searchRow.SnippetId != nil && strings.Contains(*searchRow.SnippetId, "**") {
+			snippet["id"] = *searchRow.SnippetId
 		}
 		if searchRow.SnippetMetadataSummary != nil && strings.Contains(*searchRow.SnippetMetadataSummary, "**") {
 			snippet["metadata.summary"] = *searchRow.SnippetMetadataSummary

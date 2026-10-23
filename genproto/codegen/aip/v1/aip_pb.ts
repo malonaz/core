@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/aip/v1/aip.proto.
  */
 export const file_malonaz_codegen_aip_v1_aip: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIlChJFeHBvcnRGaWVsZE9wdGlvbnMSDwoHZXhjbHVkZRgBIAEoCCIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIrUDCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEasQEKBUZpZWxkEhQKBHBhdGgYASABKAlCBrpIA8gBARJGCgZ3ZWlnaHQYAiABKA4yLC5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnMuV2VpZ2h0Qgi6SAWCAQIQARJECgVzcGxpdBgDIAEoDjIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5TcGxpdEIIukgFggECEAFKBAgEEAUiWAoGV2VpZ2h0EhYKEldFSUdIVF9VTlNQRUNJRklFRBAAEgwKCFdFSUdIVF9BEAESDAoIV0VJR0hUX0IQAhIMCghXRUlHSFRfQxADEgwKCFdFSUdIVF9EEAQiTwoFU3BsaXQSFQoRU1BMSVRfVU5TUEVDSUZJRUQQABIXChNTUExJVF9FTUFJTF9BRERSRVNTEAESFgoSU1BMSVRfUEhPTkVfTlVNQkVSEAIiNwoRUGFnaW5hdGlvbk9wdGlvbnMSIgoRZGVmYXVsdF9wYWdlX3NpemUYASABKAVCB7pIBBoCIAAiQQoPT3JkZXJpbmdPcHRpb25zEhUKBXBhdGhzGAEgAygJQga6SAPIAQESFwoHZGVmYXVsdBgCIAEoCUIGukgDyAEBIh4KDVVwZGF0ZU9wdGlvbnMSDQoFcGF0aHMYASADKAkiaAoOU3RhbmRhcmRNZXRob2QSRAoIcmVzb3VyY2UYASABKAlCMrpIL3IqMiheW2EtejAtOV0rKFwuW2EtejAtOV0rKSsvW0EtWl1bYS16QS1aXSokyAEBSgQIAhADUgplbWl0X2V2ZW50OnEKD3N0YW5kYXJkX21ldGhvZBIeLmdvb2dsZS5wcm90b2J1Zi5NZXRob2RPcHRpb25zGMjWBSABKAsyJi5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlN0YW5kYXJkTWV0aG9kUg5zdGFuZGFyZE1ldGhvZDpICg51dWlkX25hbWVzcGFjZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjgzgUgASgJUg11dWlkTmFtZXNwYWNlOmAKBnVwZGF0ZRIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjNkzggASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5VcGRhdGVPcHRpb25zUgZ1cGRhdGU6bAoKcGFnaW5hdGlvbhIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiw3gUgASgLMikubWFsb25hei5jb2RlZ2VuLmFpcC52MS5QYWdpbmF0aW9uT3B0aW9uc1IKcGFnaW5hdGlvbjpmCghvcmRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxix3gUgASgLMicubWFsb25hei5jb2RlZ2VuLmFpcC52MS5PcmRlcmluZ09wdGlvbnNSCG9yZGVyaW5nOmkKCWZpbHRlcmluZxIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiy3gUgASgLMigubWFsb25hei5jb2RlZ2VuLmFpcC52MS5GaWx0ZXJpbmdPcHRpb25zUglmaWx0ZXJpbmc6YAoGc2VhcmNoEh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGLPeBSABKAsyJS5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLlNlYXJjaE9wdGlvbnNSBnNlYXJjaDpjCgZleHBvcnQSHS5nb29nbGUucHJvdG9idWYuRmllbGRPcHRpb25zGJjmBSABKAsyKi5tYWxvbmF6LmNvZGVnZW4uYWlwLnYxLkV4cG9ydEZpZWxkT3B0aW9uc1IGZXhwb3J0QjFaL2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vYWlwL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor]);
+  fileDesc("CiBtYWxvbmF6L2NvZGVnZW4vYWlwL3YxL2FpcC5wcm90bxIWbWFsb25hei5jb2RlZ2VuLmFpcC52MSIlChJFeHBvcnRGaWVsZE9wdGlvbnMSDwoHZXhjbHVkZRgBIAEoCCIhChBGaWx0ZXJpbmdPcHRpb25zEg0KBXBhdGhzGAEgAygJIuADCg1TZWFyY2hPcHRpb25zEkUKBmZpZWxkcxgBIAMoCzIrLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5GaWVsZEIIukgFkgECCAEa3AEKBUZpZWxkEhcKBHBhdGgYASABKAlCB7pIBHICEAFIABIVCgJpZBgFIAEoCEIHukgEagIIAUgAEkYKBndlaWdodBgCIAEoDjIsLm1hbG9uYXouY29kZWdlbi5haXAudjEuU2VhcmNoT3B0aW9ucy5XZWlnaHRCCLpIBYIBAhABEkQKBXNwbGl0GAMgASgOMisubWFsb25hei5jb2RlZ2VuLmFpcC52MS5TZWFyY2hPcHRpb25zLlNwbGl0Qgi6SAWCAQIQAUIPCgZzb3VyY2USBbpIAggBSgQIBBAFIlgKBldlaWdodBIWChJXRUlHSFRfVU5TUEVDSUZJRUQQABIMCghXRUlHSFRfQRABEgwKCFdFSUdIVF9CEAISDAoIV0VJR0hUX0MQAxIMCghXRUlHSFRfRBAEIk8KBVNwbGl0EhUKEVNQTElUX1VOU1BFQ0lGSUVEEAASFwoTU1BMSVRfRU1BSUxfQUREUkVTUxABEhYKElNQTElUX1BIT05FX05VTUJFUhACIjcKEVBhZ2luYXRpb25PcHRpb25zEiIKEWRlZmF1bHRfcGFnZV9zaXplGAEgASgFQge6SAQaAiAAIkEKD09yZGVyaW5nT3B0aW9ucxIVCgVwYXRocxgBIAMoCUIGukgDyAEBEhcKB2RlZmF1bHQYAiABKAlCBrpIA8gBASIeCg1VcGRhdGVPcHRpb25zEg0KBXBhdGhzGAEgAygJImgKDlN0YW5kYXJkTWV0aG9kEkQKCHJlc291cmNlGAEgASgJQjK6SC9yKjIoXlthLXowLTldKyhcLlthLXowLTldKykrL1tBLVpdW2EtekEtWl0qJMgBAUoECAIQA1IKZW1pdF9ldmVudDpxCg9zdGFuZGFyZF9tZXRob2QSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjI1gUgASgLMiYubWFsb25hei5jb2RlZ2VuLmFpcC52MS5TdGFuZGFyZE1ldGhvZFIOc3RhbmRhcmRNZXRob2Q6SAoOdXVpZF9uYW1lc3BhY2USHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMY4M4FIAEoCVINdXVpZE5hbWVzcGFjZTpgCgZ1cGRhdGUSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYzZM4IAEoCzIlLm1hbG9uYXouY29kZWdlbi5haXAudjEuVXBkYXRlT3B0aW9uc1IGdXBkYXRlOmwKCnBhZ2luYXRpb24SHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYsN4FIAEoCzIpLm1hbG9uYXouY29kZWdlbi5haXAudjEuUGFnaW5hdGlvbk9wdGlvbnNSCnBhZ2luYXRpb246ZgoIb3JkZXJpbmcSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYsd4FIAEoCzInLm1hbG9uYXouY29kZWdlbi5haXAudjEuT3JkZXJpbmdPcHRpb25zUghvcmRlcmluZzppCglmaWx0ZXJpbmcSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYst4FIAEoCzIoLm1hbG9uYXouY29kZWdlbi5haXAudjEuRmlsdGVyaW5nT3B0aW9uc1IJZmlsdGVyaW5nOmAKBnNlYXJjaBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiz3gUgASgLMiUubWFsb25hei5jb2RlZ2VuLmFpcC52MS5TZWFyY2hPcHRpb25zUgZzZWFyY2g6YwoGZXhwb3J0Eh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxiY5gUgASgLMioubWFsb25hei5jb2RlZ2VuLmFpcC52MS5FeHBvcnRGaWVsZE9wdGlvbnNSBmV4cG9ydEIxWi9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9jb2RlZ2VuL2FpcC92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor]);
 
 /**
  * Options for exporting a resource's field.
@@ -79,22 +79,7 @@ export type SearchOptions = Message<"malonaz.codegen.aip.v1.SearchOptions"> & {
   fields: SearchOptions_Field[];
 };
 
-/**
- * Options for search. Declares the fields composing a resource's search
- * document, along with their relevance weight and tokenization behavior.
- * The postgres codegen derives the search document SQL expression from these
- * fields, and the rpc codegen wires Search{Plural} methods against it.
- *
- * @generated from message malonaz.codegen.aip.v1.SearchOptions
- */
-export type SearchOptionsValid = Message<"malonaz.codegen.aip.v1.SearchOptions"> & {
-  /**
-   * The fields composing the search document.
-   *
-   * @generated from field: repeated malonaz.codegen.aip.v1.SearchOptions.Field fields = 1;
-   */
-  fields: SearchOptions_FieldValid[];
-};
+export type SearchOptionsValid = SearchOptions;
 
 /**
  * Describes the message malonaz.codegen.aip.v1.SearchOptions.
@@ -110,16 +95,35 @@ export const SearchOptionsSchema: GenMessage<SearchOptions, {validType: SearchOp
  */
 export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
   /**
-   * The field of the resource to index. Either a top-level string or
-   * repeated string field, or a dotted path into a message field stored as
-   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
-   * "metadata.postal_address". JSON keys are proto field names. The terminal
-   * segment may be a string, repeated string, or a message (whose whole JSON
-   * subtree is indexed).
+   * What to index.
    *
-   * @generated from field: string path = 1;
+   * @generated from oneof malonaz.codegen.aip.v1.SearchOptions.Field.source
    */
-  path: string;
+  source: {
+    /**
+     * The field of the resource to index. Either a top-level string or
+     * repeated string field, or a dotted path into a message field stored as
+     * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+     * "metadata.postal_address". JSON keys are proto field names. The terminal
+     * segment may be a string, repeated string, or a message (whose whole JSON
+     * subtree is indexed).
+     *
+     * @generated from field: string path = 1;
+     */
+    value: string;
+    case: "path";
+  } | {
+    /**
+     * Indexes the resource ID: the last segment of the resource name (e.g.
+     * the "1042" of "organizations/1/invoices/1042"), never its parent
+     * segments. Snippet matches report the path "id". Takes no split;
+     * invalid on singletons.
+     *
+     * @generated from field: bool id = 5;
+     */
+    value: boolean;
+    case: "id";
+  } | { case: undefined; value?: undefined };
 
   /**
    * The relevance weight of this field. Defaults to WEIGHT_D.
@@ -136,38 +140,7 @@ export type SearchOptions_Field = Message<"malonaz.codegen.aip.v1.SearchOptions.
   split: SearchOptions_Split;
 };
 
-/**
- * A field contributing to the search document.
- *
- * @generated from message malonaz.codegen.aip.v1.SearchOptions.Field
- */
-export type SearchOptions_FieldValid = Message<"malonaz.codegen.aip.v1.SearchOptions.Field"> & {
-  /**
-   * The field of the resource to index. Either a top-level string or
-   * repeated string field, or a dotted path into a message field stored as
-   * JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
-   * "metadata.postal_address". JSON keys are proto field names. The terminal
-   * segment may be a string, repeated string, or a message (whose whole JSON
-   * subtree is indexed).
-   *
-   * @generated from field: string path = 1;
-   */
-  path: string;
-
-  /**
-   * The relevance weight of this field. Defaults to WEIGHT_D.
-   *
-   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Weight weight = 2;
-   */
-  weight: SearchOptions_Weight;
-
-  /**
-   * Extra tokenization applied to this field.
-   *
-   * @generated from field: malonaz.codegen.aip.v1.SearchOptions.Split split = 3;
-   */
-  split: SearchOptions_Split;
-};
+export type SearchOptions_FieldValid = SearchOptions_Field;
 
 /**
  * Describes the message malonaz.codegen.aip.v1.SearchOptions.Field.

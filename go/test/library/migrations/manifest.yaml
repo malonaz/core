@@ -23,3 +23,5 @@ migrations:
     hash: 5fe7d400804887bd44f29cb640b1a1e2
   - path: library/011_library_config.sql
     hash: f390bb5bfe7dfc9a02217632268016d3
+  - path: library/012_book_search_id.sql
+    hash: a6d002e5e7d385c6eb3b53d00f6ff146

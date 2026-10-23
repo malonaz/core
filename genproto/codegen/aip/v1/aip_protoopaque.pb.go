@@ -574,10 +574,10 @@ func (b0 StandardMethod_builder) Build() *StandardMethod {
 
 // A field contributing to the search document.
 type SearchOptions_Field struct {
-	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Path   string                 `protobuf:"bytes,1,opt,name=path,proto3"`
-	xxx_hidden_Weight SearchOptions_Weight   `protobuf:"varint,2,opt,name=weight,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Weight"`
-	xxx_hidden_Split  SearchOptions_Split    `protobuf:"varint,3,opt,name=split,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Split"`
+	state             protoimpl.MessageState       `protogen:"opaque.v1"`
+	xxx_hidden_Source isSearchOptions_Field_Source `protobuf_oneof:"source"`
+	xxx_hidden_Weight SearchOptions_Weight         `protobuf:"varint,2,opt,name=weight,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Weight"`
+	xxx_hidden_Split  SearchOptions_Split          `protobuf:"varint,3,opt,name=split,proto3,enum=malonaz.codegen.aip.v1.SearchOptions_Split"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -609,9 +609,20 @@ func (x *SearchOptions_Field) ProtoReflect() protoreflect.Message {
 
 func (x *SearchOptions_Field) GetPath() string {
 	if x != nil {
-		return x.xxx_hidden_Path
+		if x, ok := x.xxx_hidden_Source.(*searchOptions_Field_Path); ok {
+			return x.Path
+		}
 	}
 	return ""
+}
+
+func (x *SearchOptions_Field) GetId() bool {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Source.(*searchOptions_Field_Id); ok {
+			return x.Id
+		}
+	}
+	return false
 }
 
 func (x *SearchOptions_Field) GetWeight() SearchOptions_Weight {
@@ -629,7 +640,11 @@ func (x *SearchOptions_Field) GetSplit() SearchOptions_Split {
 }
 
 func (x *SearchOptions_Field) SetPath(v string) {
-	x.xxx_hidden_Path = v
+	x.xxx_hidden_Source = &searchOptions_Field_Path{v}
+}
+
+func (x *SearchOptions_Field) SetId(v bool) {
+	x.xxx_hidden_Source = &searchOptions_Field_Id{v}
 }
 
 func (x *SearchOptions_Field) SetWeight(v SearchOptions_Weight) {
@@ -640,16 +655,82 @@ func (x *SearchOptions_Field) SetSplit(v SearchOptions_Split) {
 	x.xxx_hidden_Split = v
 }
 
+func (x *SearchOptions_Field) HasSource() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Source != nil
+}
+
+func (x *SearchOptions_Field) HasPath() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*searchOptions_Field_Path)
+	return ok
+}
+
+func (x *SearchOptions_Field) HasId() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Source.(*searchOptions_Field_Id)
+	return ok
+}
+
+func (x *SearchOptions_Field) ClearSource() {
+	x.xxx_hidden_Source = nil
+}
+
+func (x *SearchOptions_Field) ClearPath() {
+	if _, ok := x.xxx_hidden_Source.(*searchOptions_Field_Path); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+func (x *SearchOptions_Field) ClearId() {
+	if _, ok := x.xxx_hidden_Source.(*searchOptions_Field_Id); ok {
+		x.xxx_hidden_Source = nil
+	}
+}
+
+const SearchOptions_Field_Source_not_set_case case_SearchOptions_Field_Source = 0
+const SearchOptions_Field_Path_case case_SearchOptions_Field_Source = 1
+const SearchOptions_Field_Id_case case_SearchOptions_Field_Source = 5
+
+func (x *SearchOptions_Field) WhichSource() case_SearchOptions_Field_Source {
+	if x == nil {
+		return SearchOptions_Field_Source_not_set_case
+	}
+	switch x.xxx_hidden_Source.(type) {
+	case *searchOptions_Field_Path:
+		return SearchOptions_Field_Path_case
+	case *searchOptions_Field_Id:
+		return SearchOptions_Field_Id_case
+	default:
+		return SearchOptions_Field_Source_not_set_case
+	}
+}
+
 type SearchOptions_Field_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// What to index.
+
+	// Fields of oneof xxx_hidden_Source:
 	// The field of the resource to index. Either a top-level string or
 	// repeated string field, or a dotted path into a message field stored as
 	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
 	// "metadata.postal_address". JSON keys are proto field names. The terminal
 	// segment may be a string, repeated string, or a message (whose whole JSON
 	// subtree is indexed).
-	Path string
+	Path *string
+	// Indexes the resource ID: the last segment of the resource name (e.g.
+	// the "1042" of "organizations/1/invoices/1042"), never its parent
+	// segments. Snippet matches report the path "id". Takes no split;
+	// invalid on singletons.
+	Id *bool
+	// -- end of xxx_hidden_Source
 	// The relevance weight of this field. Defaults to WEIGHT_D.
 	Weight SearchOptions_Weight
 	// Extra tokenization applied to this field.
@@ -660,11 +741,52 @@ func (b0 SearchOptions_Field_builder) Build() *SearchOptions_Field {
 	m0 := &SearchOptions_Field{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Path = b.Path
+	if b.Path != nil {
+		x.xxx_hidden_Source = &searchOptions_Field_Path{*b.Path}
+	}
+	if b.Id != nil {
+		x.xxx_hidden_Source = &searchOptions_Field_Id{*b.Id}
+	}
 	x.xxx_hidden_Weight = b.Weight
 	x.xxx_hidden_Split = b.Split
 	return m0
 }
+
+type case_SearchOptions_Field_Source protoreflect.FieldNumber
+
+func (x case_SearchOptions_Field_Source) String() string {
+	md := file_malonaz_codegen_aip_v1_aip_proto_msgTypes[7].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isSearchOptions_Field_Source interface {
+	isSearchOptions_Field_Source()
+}
+
+type searchOptions_Field_Path struct {
+	// The field of the resource to index. Either a top-level string or
+	// repeated string field, or a dotted path into a message field stored as
+	// JSONB via (malonaz.codegen.model.v1.field_opts).as_json_bytes, e.g.
+	// "metadata.postal_address". JSON keys are proto field names. The terminal
+	// segment may be a string, repeated string, or a message (whose whole JSON
+	// subtree is indexed).
+	Path string `protobuf:"bytes,1,opt,name=path,proto3,oneof"`
+}
+
+type searchOptions_Field_Id struct {
+	// Indexes the resource ID: the last segment of the resource name (e.g.
+	// the "1042" of "organizations/1/invoices/1042"), never its parent
+	// segments. Snippet matches report the path "id". Takes no split;
+	// invalid on singletons.
+	Id bool `protobuf:"varint,5,opt,name=id,proto3,oneof"`
+}
+
+func (*searchOptions_Field_Path) isSearchOptions_Field_Source() {}
+
+func (*searchOptions_Field_Id) isSearchOptions_Field_Source() {}
 
 var file_malonaz_codegen_aip_v1_aip_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
@@ -785,13 +907,15 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x12ExportFieldOptions\x12\x18\n" +
 	"\aexclude\x18\x01 \x01(\bR\aexclude\"(\n" +
 	"\x10FilteringOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"\xd2\x03\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x81\x04\n" +
 	"\rSearchOptions\x12M\n" +
-	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xc6\x01\n" +
-	"\x05Field\x12\x1a\n" +
-	"\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04path\x12N\n" +
+	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xf5\x01\n" +
+	"\x05Field\x12\x1d\n" +
+	"\x04path\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x04path\x12\x19\n" +
+	"\x02id\x18\x05 \x01(\bB\a\xbaH\x04j\x02\b\x01H\x00R\x02id\x12N\n" +
 	"\x06weight\x18\x02 \x01(\x0e2,.malonaz.codegen.aip.v1.SearchOptions.WeightB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06weight\x12K\n" +
-	"\x05split\x18\x03 \x01(\x0e2+.malonaz.codegen.aip.v1.SearchOptions.SplitB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05splitJ\x04\b\x04\x10\x05\"X\n" +
+	"\x05split\x18\x03 \x01(\x0e2+.malonaz.codegen.aip.v1.SearchOptions.SplitB\b\xbaH\x05\x82\x01\x02\x10\x01R\x05splitB\x0f\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01J\x04\b\x04\x10\x05\"X\n" +
 	"\x06Weight\x12\x16\n" +
 	"\x12WEIGHT_UNSPECIFIED\x10\x00\x12\f\n" +
 	"\bWEIGHT_A\x10\x01\x12\f\n" +
@@ -870,6 +994,10 @@ func init() { file_malonaz_codegen_aip_v1_aip_proto_init() }
 func file_malonaz_codegen_aip_v1_aip_proto_init() {
 	if File_malonaz_codegen_aip_v1_aip_proto != nil {
 		return
+	}
+	file_malonaz_codegen_aip_v1_aip_proto_msgTypes[7].OneofWrappers = []any{
+		(*searchOptions_Field_Path)(nil),
+		(*searchOptions_Field_Id)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

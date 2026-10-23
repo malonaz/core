@@ -14,6 +14,9 @@ func TestBuildPrefixTSQuery(t *testing.T) {
 	require.Equal(t, "john:* & smi:*", BuildPrefixTSQuery("john smi"))
 	require.Equal(t, "john:* & gmail:* & com:*", BuildPrefixTSQuery("john@gmail.com"))
 	require.Equal(t, "1:* & 415:* & 555:*", BuildPrefixTSQuery("+1 (415) 555"))
+	// Sequential ids: "#" is a separator.
+	require.Equal(t, "1042:*", BuildPrefixTSQuery("#1042"))
+	require.Equal(t, "invoice:* & 1042:*", BuildPrefixTSQuery("Invoice #1042"))
 	// Token cap.
 	require.Equal(t,
 		"a:* & b:* & c:* & d:* & e:* & f:* & g:* & h:*",

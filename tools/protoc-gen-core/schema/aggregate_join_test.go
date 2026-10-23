@@ -59,6 +59,35 @@ func resolveJoins(t *testing.T, messageName protoreflect.FullName, fields ...fie
 // the named message, as generation would, and returns that message.
 func compileMessage(t *testing.T, messageName protoreflect.FullName, fields ...field) *protogen.Message {
 	t.Helper()
+	return compile(t, messageName, func(messageProto func(protoreflect.FullName) *descriptorpb.DescriptorProto) {
+		for i, f := range fields {
+			on := f.on
+			if on == "" {
+				on = messageName
+			}
+			options := &descriptorpb.FieldOptions{}
+			if f.opts != nil {
+				proto.SetExtension(options, modelpb.E_FieldOpts, f.opts)
+			}
+			proto.SetExtension(options, annotationspb.E_FieldBehavior, []annotationspb.FieldBehavior{annotationspb.FieldBehavior_OUTPUT_ONLY})
+			mutated := messageProto(on)
+			mutated.Field = append(mutated.Field, &descriptorpb.FieldDescriptorProto{
+				Name:     proto.String(f.name),
+				JsonName: proto.String(f.name),
+				Number:   proto.Int32(int32(1000 + i)),
+				Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+				Type:     f.typ.Enum(),
+				TypeName: proto.String(f.typeName),
+				Options:  options,
+			})
+		}
+	})
+}
+
+// compile compiles the library protos after mutate edits their message
+// descriptors, as generation would, and returns the named message.
+func compile(t *testing.T, messageName protoreflect.FullName, mutate func(messageProto func(protoreflect.FullName) *descriptorpb.DescriptorProto)) *protogen.Message {
+	t.Helper()
 	files := map[string]*descriptorpb.FileDescriptorProto{}
 	var order []string
 	var collect func(fd protoreflect.FileDescriptor)
@@ -101,27 +130,7 @@ func compileMessage(t *testing.T, messageName protoreflect.FullName, fields ...f
 		t.Fatalf("message %s not found", name)
 		return nil
 	}
-	for i, f := range fields {
-		on := f.on
-		if on == "" {
-			on = messageName
-		}
-		options := &descriptorpb.FieldOptions{}
-		if f.opts != nil {
-			proto.SetExtension(options, modelpb.E_FieldOpts, f.opts)
-		}
-		proto.SetExtension(options, annotationspb.E_FieldBehavior, []annotationspb.FieldBehavior{annotationspb.FieldBehavior_OUTPUT_ONLY})
-		mutated := messageProto(on)
-		mutated.Field = append(mutated.Field, &descriptorpb.FieldDescriptorProto{
-			Name:     proto.String(f.name),
-			JsonName: proto.String(f.name),
-			Number:   proto.Int32(int32(1000 + i)),
-			Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
-			Type:     f.typ.Enum(),
-			TypeName: proto.String(f.typeName),
-			Options:  options,
-		})
-	}
+	mutate(messageProto)
 
 	for _, path := range order {
 		request.ProtoFile = append(request.ProtoFile, files[path])
