@@ -1,6 +1,6 @@
 ---
 title: Full-text search (SearchX RPCs)
-description: How to add an AIP-136 Search{Plural} RPC to a resource — the search codegen option, the migration contract (generated tsvector column), and query semantics.
+description: How to add an AIP-136 Search{Plural} RPC to a resource — the search codegen option (field paths, the `id` resource-ID selector), the migration contract (generated tsvector column, changing it), and query semantics.
 labels:
     lang: go, protobuf
     repo: core
@@ -24,6 +24,12 @@ Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
    (whole JSON subtree indexed). The expression uses `column #>> '{...}'`
    (IMMUTABLE, safe in generated columns); JSON keys are proto field names
    (`pbutil.JSONMarshal` sets `UseProtoNames`).
+   A field may instead set `id: true` (oneof with `path`) to index the
+   **resource ID** — the last name segment, read from its `{resource}_id` (or
+   `id_column_name`) column, never the parent segments — e.g. findable
+   invoice numbers (`"1042"`, `"#1042"`). Opt-in per resource: don't add it
+   for meaningless UUID ids. No split; invalid on singletons. See
+   `malonaz/test/library/v1/book.proto`.
 2. **Service proto**: add `Search{Plural}` request/response (like List but with
    `query`, no `order_by` — results are relevance-ranked) and the RPC with the
    usual `standard_method` option. See
@@ -56,11 +62,21 @@ resource list). Each snippet holds `repeated SearchSnippetMatch matches`
 (`path` + `match`), ordered by field weight (A first); fragments are
 highlighted with `**` via `ts_headline` (raw text, not the split variant).
 Dotted JSONB paths (e.g. `metadata.country`) work — the snippet key stays
-dotted.
+dotted. An `id` field's matches use the path `"id"` on every resource (the
+match is the highlighted ID, e.g. `**1042**`); hence a resource field named
+`id` cannot be searched alongside it.
 
 Snippets are opt-in per request: when `include_snippets` is false the query is
 byte-identical to a snippet-less search (no `ts_headline` cost) and the
 response carries no snippets.
+
+## Changing a deployed search document
+
+Any change to the search fields changes `{Resource}SearchDocumentExpression`,
+and Postgres cannot alter a generated column's expression in place: append a
+migration that drops `search_document` (its GIN index goes with it), re-adds
+it with the new expression (recomputing every row) and recreates the index.
+See `go/test/library/migrations/library/012_book_search_id.sql`.
 
 ## Index strategy
 
@@ -75,6 +91,9 @@ toolchain postgres lacks contrib extensions.
 - Case-insensitive; every token prefix-matched and AND-ed
   (`"john smi"` → `john:* & smi:*`); a query with no indexable token is InvalidArgument.
 - `filter` (AIP-160) composes with `query`; ranking is `ts_rank` by field weight.
+- Query tokens split on any non-alphanumeric rune, so `#1042` → `1042:*`;
+  an ID is one token, prefix-matched (`1042` also finds `10425`, `042` finds
+  nothing).
 - No stemming ('simple' config), no mid-token substrings, no synonyms —
   semantic search would be a pgvector addition later.
 - Exception: `SPLIT_PHONE_NUMBER` fields index every suffix (length >= 3) of the
