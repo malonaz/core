@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/grafana/grafana-openapi-client-go/client/provisioning"
 	"github.com/grafana/grafana-openapi-client-go/models"
@@ -20,6 +21,7 @@ var opts struct {
 	Grafana           *grafana.Opts `group:"Grafana" namespace:"grafana" env-namespace:"GRAFANA"`
 	Folder            string        `long:"folder" description:"Folder to upload dashboard to"`
 	RuleGroup         string        `long:"rule-group" description:"Rule group"`
+	RuleGroupInterval time.Duration `long:"rule-group-interval" description:"Evaluation interval of the rule group; Grafana's default if unset"`
 	AlertRuleFilepath string        `long:"alert-rule-filepath" description:"path to the alert rule we wish to upload"`
 	ConfigFilepath    string        `long:"config-filepath" description:"path to the alert config"`
 }
@@ -117,19 +119,22 @@ func run(ctx context.Context) error {
 				return err
 			}
 			slog.InfoContext(ctx, "updated alert rule", "title", *alertRule.Title)
-			return nil
+		} else {
+			request := &provisioning.PostAlertRuleParams{
+				Context: ctx,
+				Body:    alertRule,
+			}
+			if _, err := client.Provisioning.PostAlertRule(request); err != nil {
+				slog.ErrorContext(ctx, "creating alert rule", "title", *alertRule.Title, "error", err)
+				return err
+			}
+			slog.InfoContext(ctx, "created alert rule", "title", *alertRule.Title)
 		}
 
-		request := &provisioning.PostAlertRuleParams{
-			Context: ctx,
-			Body:    alertRule,
+		if opts.RuleGroupInterval == 0 {
+			return nil
 		}
-		if _, err := client.Provisioning.PostAlertRule(request); err != nil {
-			slog.ErrorContext(ctx, "creating alert rule", "title", *alertRule.Title, "error", err)
-			return err
-		}
-		slog.InfoContext(ctx, "created alert rule", "title", *alertRule.Title)
-		return nil
+		return setRuleGroupInterval(ctx, client, folder.UID, opts.RuleGroup, opts.RuleGroupInterval)
 	}
 
 	bytes, err := os.ReadFile(opts.ConfigFilepath)
@@ -210,5 +215,34 @@ func run(ctx context.Context) error {
 		slog.InfoContext(ctx, "updated message template", "name", messageTemplate.Name)
 	}
 
+	return nil
+}
+
+// setRuleGroupInterval sets the evaluation interval of a rule group. Grafana keeps it on the group, not
+// its rules, so it is rewritten with the group's current rules.
+func setRuleGroupInterval(ctx context.Context, client *grafana.Client, folderUID, ruleGroup string, interval time.Duration) error {
+	getAlertRuleGroupResponse, err := client.Provisioning.GetAlertRuleGroup(ruleGroup, folderUID)
+	if err != nil {
+		slog.ErrorContext(ctx, "getting alert rule group", "rule_group", ruleGroup, "error", err)
+		return err
+	}
+	alertRuleGroup := getAlertRuleGroupResponse.Payload
+	intervalSeconds := int64(interval.Seconds())
+	if alertRuleGroup.Interval == intervalSeconds {
+		return nil
+	}
+
+	alertRuleGroup.Interval = intervalSeconds
+	request := &provisioning.PutAlertRuleGroupParams{
+		Context:   ctx,
+		FolderUID: folderUID,
+		Group:     ruleGroup,
+		Body:      alertRuleGroup,
+	}
+	if _, err := client.Provisioning.PutAlertRuleGroup(request); err != nil {
+		slog.ErrorContext(ctx, "setting alert rule group interval", "rule_group", ruleGroup, "error", err)
+		return err
+	}
+	slog.InfoContext(ctx, "set alert rule group interval", "rule_group", ruleGroup, "interval", interval)
 	return nil
 }

@@ -17,7 +17,7 @@ def golang_grafana_dashboard(name:str, binary:str, folder:str, deps:list=[], vis
         visibility = visibility,
     )
 
-def golang_grafana_alert_rule(name:str, binary:str, folder:str, rule_group:str, deps:list=[], visibility:list=[]):
+def golang_grafana_alert_rule(name:str, binary:str, folder:str, rule_group:str, rule_group_interval:str="", deps:list=[], visibility:list=[]):
     json = genrule(
         name = f"{name}_json",
         srcs = [binary],
@@ -30,6 +30,7 @@ def golang_grafana_alert_rule(name:str, binary:str, folder:str, rule_group:str, 
         src = json,
         folder = folder,
         rule_group = rule_group,
+        rule_group_interval = rule_group_interval,
         deps = deps,
         visibility = visibility,
     )
@@ -48,7 +49,8 @@ def grafana_dashboard(name:str, src:str, folder:str, deps:list=[], visibility:li
         ]),
     )
 
-def grafana_alert_rule(name:str, src:str, folder:str, rule_group:str, deps:list=[], visibility:list=[]):
+# rule_group_interval is a Go duration; Grafana evaluates every rule of the group at that interval.
+def grafana_alert_rule(name:str, src:str, folder:str, rule_group:str, rule_group_interval:str="", deps:list=[], visibility:list=[]):
     grafana_upload_alert_rules_tool = plugin_target("//tools/grafana-upload-alert-rules")
     return sh_cmd(
         labels = ["grafana-alert-rule-upload"],
@@ -59,6 +61,7 @@ def grafana_alert_rule(name:str, src:str, folder:str, rule_group:str, deps:list=
             f"$(out_location {grafana_upload_alert_rules_tool})",
             f"--folder {folder}",
             f"--rule-group {rule_group}",
+            f"--rule-group-interval {rule_group_interval}" if rule_group_interval else "",
             f"--alert-rule-filepath $(out_location {src})",
         ]),
     )
