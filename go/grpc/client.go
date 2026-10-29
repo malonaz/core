@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log/slog"
-	"sync"
 	"time"
 
 	"buf.build/go/protovalidate"
@@ -220,13 +219,13 @@ func (c *Connection) WithMetadata(key, value string) *Connection {
 	return c
 }
 
-var kuberesolverMutex sync.Mutex // kuberesolver's Register function is not thread safe.
-// withDNSBalancer returns gRPC DialOption that does client-side load balancing based on DNS.
-func WithDNSBalancer() grpc.DialOption {
-	// Must set the grpc server address resolver to dns.
-	kuberesolverMutex.Lock()
+// gRPC's resolver registry is not thread safe: register only at init, before any goroutine dials.
+func init() {
 	kuberesolver.RegisterInCluster()
-	kuberesolverMutex.Unlock()
+}
+
+// WithDNSBalancer returns gRPC DialOption that does client-side load balancing based on DNS.
+func WithDNSBalancer() grpc.DialOption {
 	serviceConfig := fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, roundrobin.Name)
 	return grpc.WithDefaultServiceConfig(serviceConfig)
 }
