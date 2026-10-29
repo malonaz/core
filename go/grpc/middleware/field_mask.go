@@ -157,6 +157,7 @@ func (s *fieldMaskServerStream) SendMsg(m any) error {
 // If not, it recurses one level deep to find a field whose message type has one.
 // If a resource field is found (repeated or singular), the mask is applied there.
 // If nothing is found, the mask is applied to the top-level response as a fallback.
+// The response_read_mask tool description (go/pbutil/pbjson) mirrors this choice.
 func applyReadMask(message proto.Message, readMask *pbfieldmask.FieldMask, strict bool) error {
 	reflectMessage := message.ProtoReflect()
 	descriptor := reflectMessage.Descriptor()

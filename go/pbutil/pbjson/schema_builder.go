@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/genproto/googleapis/api/annotations"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/decimal"
@@ -188,60 +187,6 @@ func (b *SchemaBuilder) BuildSchema(descriptorFullName protoreflect.FullName, op
 		schema.Description += responseDesc
 	}
 	return schema, nil
-}
-
-// buildResponseReadMaskDescription builds a context-aware description for the response_read_mask
-// field. It inspects the response message to find the resource that the mask will be applied to,
-// mirroring the middleware's resource-finding logic.
-func buildResponseReadMaskDescription(responseDescriptor protoreflect.MessageDescriptor) string {
-	base := "Comma-separated snake_case field paths controlling which fields are returned. Uses dot notation for nested fields. Use the wildcard `*` to return all fields."
-
-	if responseDescriptor == nil {
-		return base
-	}
-
-	// Check if the response itself is a resource.
-	if hasResourceAnnotation(responseDescriptor) {
-		return base + fmt.Sprintf(" Paths are relative to the %s resource.", responseDescriptor.Name()) + buildResourceFieldExample(responseDescriptor)
-	}
-
-	// Scan one level deep for a resource field, matching the middleware's logic.
-	fields := responseDescriptor.Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		if field.Kind() != protoreflect.MessageKind {
-			continue
-		}
-		if !hasResourceAnnotation(field.Message()) {
-			continue
-		}
-		resourceName := field.Message().Name()
-		if field.IsList() {
-			return base + fmt.Sprintf(" Paths are relative to each %s resource in the response (not the response envelope).", resourceName) + buildResourceFieldExample(field.Message())
-		}
-		return base + fmt.Sprintf(" Paths are relative to the %s resource in the response (not the response envelope).", resourceName) + buildResourceFieldExample(field.Message())
-	}
-
-	return base
-}
-
-// buildResourceFieldExample returns an example string showing a few field names from the resource.
-func buildResourceFieldExample(resourceDescriptor protoreflect.MessageDescriptor) string {
-	var fieldNames []string
-	fields := resourceDescriptor.Fields()
-	for i := 0; i < fields.Len() && len(fieldNames) < 3; i++ {
-		field := fields.Get(i)
-		fieldNames = append(fieldNames, string(field.Name()))
-	}
-	if len(fieldNames) == 0 {
-		return ""
-	}
-	return fmt.Sprintf(" Example: '%s'.", strings.Join(fieldNames, ","))
-}
-
-func hasResourceAnnotation(descriptor protoreflect.MessageDescriptor) bool {
-	_, err := pbutil.GetExtension[*annotations.ResourceDescriptor](descriptor.Options(), annotations.E_Resource)
-	return err == nil
 }
 
 // postalAddressSchema returns a hand-pruned schema for google.type.PostalAddress. The upstream
