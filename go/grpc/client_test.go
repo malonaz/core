@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
@@ -41,4 +42,21 @@ func TestConnectBeforeServerIsBound(t *testing.T) {
 	response, err := healthpb.NewHealthClient(connection.Get()).Check(callCtx, &healthpb.HealthCheckRequest{})
 	require.NoError(t, err)
 	require.Equal(t, healthpb.HealthCheckResponse_SERVING, response.GetStatus())
+}
+
+// Building a balancer option while another goroutine dials must not race on gRPC's resolver registry.
+func TestWithDNSBalancerConcurrentWithNewClient(t *testing.T) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for range 100 {
+			WithDNSBalancer()
+		}
+	}()
+	for range 100 {
+		conn, err := grpc.NewClient("passthrough:///localhost:0", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		require.NoError(t, err)
+		conn.Close()
+	}
+	<-done
 }
