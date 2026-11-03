@@ -200,6 +200,67 @@ message RetryJobRequest {
   ];
 }
 
+// Request message for SchedulerService.BatchDeleteJobs.
+message BatchDeleteJobsRequest {
+  // The parent shared by every job. Optional; when set, every name must be a
+  // direct child of it.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
+
+  // The resource names of the jobs to delete.
+  // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
+  // A maximum of 1000 jobs can be deleted in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+
+  // If true, missing jobs are skipped instead of failing the request.
+  bool allow_missing = 3;
+}
+
+// Request message for SchedulerService.BatchRetryJobs.
+message BatchRetryJobsRequest {
+  // The parent shared by every job. Optional; when set, every name must be a
+  // direct child of it.
+  // Format: organizations/{organization}
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [(google.api.resource_reference).child_type = "scheduler.malonaz.com/Job"];
+
+  // The resource names of the jobs to retry.
+  // Format: jobs/{job}
+  // Format: organizations/{organization}/jobs/{job}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
+  // A maximum of 1000 jobs can be retried in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Job"
+  ];
+}
+
+// Response message for SchedulerService.BatchRetryJobs.
+message BatchRetryJobsResponse {
+  // The retried jobs, in the order of the request's names.
+  repeated scheduler.v1.Job jobs = 1;
+}
+
 // Request message for SchedulerService.CancelJob.
 message CancelJobRequest {
   // The resource name of the job to cancel.

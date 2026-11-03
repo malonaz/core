@@ -2,6 +2,7 @@ package sat
 
 import (
 	"fmt"
+	"path"
 	"strings"
 	"testing"
 	"time"
@@ -255,6 +256,93 @@ func TestDeleteJob(t *testing.T) {
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.DeleteJob(ctx, &schedulerservicepb.DeleteJobRequest{Name: job.GetName()})
 		require.NoError(t, err)
+	})
+}
+
+func TestBatchDeleteJobs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("deletes every job", func(t *testing.T) {
+		t.Parallel()
+		first := createJob(t, &processorpb.EchoRequest{Value: "batch-delete"}, scheduler.WithScheduleTime(farFuture))
+		second := createJob(t, &processorpb.EchoRequest{Value: "batch-delete"}, scheduler.WithScheduleTime(farFuture))
+		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: []string{first.GetName(), second.GetName()}})
+		require.NoError(t, err)
+		for _, name := range []string{first.GetName(), second.GetName()} {
+			_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: name})
+			grpcrequire.Error(t, codes.NotFound, err)
+		}
+	})
+
+	t.Run("missing deletes nothing", func(t *testing.T) {
+		t.Parallel()
+		job := createJob(t, &processorpb.EchoRequest{Value: "batch-delete"}, scheduler.WithScheduleTime(farFuture))
+		names := []string{job.GetName(), "jobs/does-not-exist"}
+		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: names})
+		grpcrequire.Error(t, codes.NotFound, err)
+		_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: job.GetName()})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: names, AllowMissing: true})
+		require.NoError(t, err)
+		_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: job.GetName()})
+		grpcrequire.Error(t, codes.NotFound, err)
+	})
+
+	t.Run("running deletes nothing", func(t *testing.T) {
+		t.Parallel()
+		key := uuid.MustNewV7().String()
+		running := createJob(t, &processorpb.SleepRequest{Key: key, Duration: durationpb.New(sleepTimeout)})
+		pending := createJob(t, &processorpb.EchoRequest{Value: key}, scheduler.WithScheduleTime(farFuture))
+		waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
+		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: []string{running.GetName(), pending.GetName()}})
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: pending.GetName()})
+		require.NoError(t, err)
+		cancelJob(t, running.GetName())
+	})
+
+	t.Run("name under another parent", func(t *testing.T) {
+		t.Parallel()
+		job := createJobUnder(t, "organizations/batch-delete", &processorpb.EchoRequest{Value: "batch-delete"}, scheduler.WithScheduleTime(farFuture))
+		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: []string{"organizations/other/jobs/" + path.Base(job.GetName())}})
+		grpcrequire.Error(t, codes.NotFound, err)
+		_, err = schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Parent: "organizations/other", Names: []string{job.GetName()}})
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+}
+
+func TestBatchRetryJobs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("retries every job in order", func(t *testing.T) {
+		t.Parallel()
+		first := createJob(t, &processorpb.EchoRequest{Value: "batch-retry"}, scheduler.WithScheduleTime(farFuture))
+		second := createJob(t, &processorpb.EchoRequest{Value: "batch-retry"}, scheduler.WithScheduleTime(farFuture))
+		cancelJob(t, first.GetName())
+		cancelJob(t, second.GetName())
+		response, err := schedulerServiceClient.BatchRetryJobs(ctx, &schedulerservicepb.BatchRetryJobsRequest{Names: []string{second.GetName(), first.GetName()}})
+		require.NoError(t, err)
+		require.Len(t, response.GetJobs(), 2)
+		require.Equal(t, second.GetName(), response.GetJobs()[0].GetName())
+		require.Equal(t, first.GetName(), response.GetJobs()[1].GetName())
+		for _, job := range response.GetJobs() {
+			require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, job.GetState())
+		}
+	})
+
+	t.Run("ineligible retries nothing", func(t *testing.T) {
+		t.Parallel()
+		cancelled := createJob(t, &processorpb.EchoRequest{Value: "batch-retry"}, scheduler.WithScheduleTime(farFuture))
+		pending := createJob(t, &processorpb.EchoRequest{Value: "batch-retry"}, scheduler.WithScheduleTime(farFuture))
+		cancelJob(t, cancelled.GetName())
+		_, err := schedulerServiceClient.BatchRetryJobs(ctx, &schedulerservicepb.BatchRetryJobsRequest{Names: []string{cancelled.GetName(), pending.GetName()}})
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		job, err := schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: cancelled.GetName()})
+		require.NoError(t, err)
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_CANCELLED, job.GetState())
+		_, err = schedulerServiceClient.BatchRetryJobs(ctx, &schedulerservicepb.BatchRetryJobsRequest{Names: []string{cancelled.GetName(), "jobs/does-not-exist"}})
+		grpcrequire.Error(t, codes.NotFound, err)
+		cancelJob(t, pending.GetName())
 	})
 }
 

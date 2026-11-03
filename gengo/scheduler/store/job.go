@@ -69,32 +69,43 @@ func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string,
 
 	var jobs []*model.Job
 	transactionFN := func(tx postgres.Tx) error {
-		jobs = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return fmt.Errorf("selecting jobs: %w", err)
+		var err error
+		if jobs, err = lockJobs(ctx, tx, query, params...); err != nil {
+			return err
 		}
-		jobs, err = v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
-		if err != nil {
-			return fmt.Errorf("collecting rows: %w", err)
-		}
-		if len(jobs) == 0 {
-			return nil
-		}
-		batch := &v5.Batch{}
-		for _, job := range jobs {
-			if err := transition(job); err != nil {
-				return err
-			}
-			params := append(postgres.GetParams(job, jobTransitionColumns...), job.JobID)
-			batch.Queue(jobTransitionQuery, params...)
-		}
-		return tx.SendBatch(ctx, batch).Close()
+		return writeJobs(ctx, tx, jobs, transition)
 	}
 	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
 	return jobs, nil
+}
+
+func lockJobs(ctx context.Context, tx postgres.Tx, query string, params ...any) ([]*model.Job, error) {
+	rows, err := tx.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("selecting jobs: %w", err)
+	}
+	jobs, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
+	if err != nil {
+		return nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	return jobs, nil
+}
+
+func writeJobs(ctx context.Context, tx postgres.Tx, jobs []*model.Job, transition func(*model.Job) error) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+	batch := &v5.Batch{}
+	for _, job := range jobs {
+		if err := transition(job); err != nil {
+			return err
+		}
+		params := append(postgres.GetParams(job, jobTransitionColumns...), job.JobID)
+		batch.Queue(jobTransitionQuery, params...)
+	}
+	return tx.SendBatch(ctx, batch).Close()
 }
 
 // TransitionJob locks one job and applies transition to it. The transition
@@ -110,6 +121,71 @@ func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func
 		return nil, model.ErrJobNotExist
 	}
 	return jobs[0], nil
+}
+
+// jobsByNameForUpdate locks the jobs named by parallel organization, user and
+// job id arrays ("" for no parent segment). Locking in job_id order makes
+// concurrent batches over overlapping jobs queue instead of deadlocking.
+var jobsByNameForUpdate = postgres.SelectQuery(`SELECT %s FROM scheduler.job
+JOIN unnest($1::text[], $2::text[], $3::text[]) AS name(organization, usr, job)
+ON job_id = name.job AND organization_id IS NOT DISTINCT FROM NULLIF(name.organization, '') AND user_id IS NOT DISTINCT FROM NULLIF(name.usr, '')
+ORDER BY job_id FOR UPDATE OF job`, JobPostgresColumns)
+
+// JobNames holds parsed job names as parallel arrays, as BatchGetJobs takes them.
+type JobNames struct {
+	OrganizationIDs, UserIDs, JobIDs []string
+}
+
+func (n JobNames) lock(ctx context.Context, tx postgres.Tx) ([]*model.Job, error) {
+	return lockJobs(ctx, tx, jobsByNameForUpdate, n.OrganizationIDs, n.UserIDs, n.JobIDs)
+}
+
+// TransitionJobsByName locks the jobs, waiting on held rows, and applies
+// transition to each in one transaction: every job transitions or none does.
+// Returns model.ErrJobNotExist when any job is missing.
+func (s *Store) TransitionJobsByName(ctx context.Context, names JobNames, transition func(*model.Job) error) ([]*model.Job, error) {
+	var jobs []*model.Job
+	transactionFN := func(tx postgres.Tx) error {
+		var err error
+		if jobs, err = names.lock(ctx, tx); err != nil {
+			return err
+		}
+		if len(jobs) != len(names.JobIDs) {
+			return model.ErrJobNotExist
+		}
+		return writeJobs(ctx, tx, jobs, transition)
+	}
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+		return nil, err
+	}
+	return jobs, nil
+}
+
+// DeleteJobsByName locks the jobs and deletes them in one transaction once
+// check accepts each: every job is deleted or none is. Returns
+// model.ErrJobNotExist when any job is missing, unless allowMissing.
+func (s *Store) DeleteJobsByName(ctx context.Context, names JobNames, allowMissing bool, check func(*model.Job) error) error {
+	transactionFN := func(tx postgres.Tx) error {
+		jobs, err := names.lock(ctx, tx)
+		if err != nil {
+			return err
+		}
+		if !allowMissing && len(jobs) != len(names.JobIDs) {
+			return model.ErrJobNotExist
+		}
+		jobIDs := make([]string, len(jobs))
+		for i, job := range jobs {
+			if err := check(job); err != nil {
+				return err
+			}
+			jobIDs[i] = job.JobID
+		}
+		if _, err := tx.Exec(ctx, "DELETE FROM scheduler.job WHERE job_id = ANY($1)", jobIDs); err != nil {
+			return fmt.Errorf("deleting jobs: %w", err)
+		}
+		return nil
+	}
+	return s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN)
 }
 
 // UpdateRunningJob writes the given columns of a job the caller believes to be

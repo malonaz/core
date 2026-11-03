@@ -870,6 +870,262 @@ func (b0 RetryJobRequest_builder) Build() *RetryJobRequest {
 	return m0
 }
 
+// Request message for SchedulerService.BatchDeleteJobs.
+type BatchDeleteJobsRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent shared by every job. Optional; when set, every name must be a
+	// direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The resource names of the jobs to delete.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	// A maximum of 1000 jobs can be deleted in a batch.
+	Names []string `protobuf:"bytes,2,rep,name=names,proto3" json:"names,omitempty"`
+	// If true, missing jobs are skipped instead of failing the request.
+	AllowMissing  bool `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchDeleteJobsRequest) Reset() {
+	*x = BatchDeleteJobsRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchDeleteJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchDeleteJobsRequest) ProtoMessage() {}
+
+func (x *BatchDeleteJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchDeleteJobsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *BatchDeleteJobsRequest) GetNames() []string {
+	if x != nil {
+		return x.Names
+	}
+	return nil
+}
+
+func (x *BatchDeleteJobsRequest) GetAllowMissing() bool {
+	if x != nil {
+		return x.AllowMissing
+	}
+	return false
+}
+
+func (x *BatchDeleteJobsRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *BatchDeleteJobsRequest) SetNames(v []string) {
+	x.Names = v
+}
+
+func (x *BatchDeleteJobsRequest) SetAllowMissing(v bool) {
+	x.AllowMissing = v
+}
+
+type BatchDeleteJobsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent shared by every job. Optional; when set, every name must be a
+	// direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
+	// The resource names of the jobs to delete.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	// A maximum of 1000 jobs can be deleted in a batch.
+	Names []string
+	// If true, missing jobs are skipped instead of failing the request.
+	AllowMissing bool
+}
+
+func (b0 BatchDeleteJobsRequest_builder) Build() *BatchDeleteJobsRequest {
+	m0 := &BatchDeleteJobsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Names = b.Names
+	x.AllowMissing = b.AllowMissing
+	return m0
+}
+
+// Request message for SchedulerService.BatchRetryJobs.
+type BatchRetryJobsRequest struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The parent shared by every job. Optional; when set, every name must be a
+	// direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// The resource names of the jobs to retry.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	// A maximum of 1000 jobs can be retried in a batch.
+	Names         []string `protobuf:"bytes,2,rep,name=names,proto3" json:"names,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRetryJobsRequest) Reset() {
+	*x = BatchRetryJobsRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRetryJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRetryJobsRequest) ProtoMessage() {}
+
+func (x *BatchRetryJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchRetryJobsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *BatchRetryJobsRequest) GetNames() []string {
+	if x != nil {
+		return x.Names
+	}
+	return nil
+}
+
+func (x *BatchRetryJobsRequest) SetParent(v string) {
+	x.Parent = v
+}
+
+func (x *BatchRetryJobsRequest) SetNames(v []string) {
+	x.Names = v
+}
+
+type BatchRetryJobsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent shared by every job. Optional; when set, every name must be a
+	// direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
+	// The resource names of the jobs to retry.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	// A maximum of 1000 jobs can be retried in a batch.
+	Names []string
+}
+
+func (b0 BatchRetryJobsRequest_builder) Build() *BatchRetryJobsRequest {
+	m0 := &BatchRetryJobsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Parent = b.Parent
+	x.Names = b.Names
+	return m0
+}
+
+// Response message for SchedulerService.BatchRetryJobs.
+type BatchRetryJobsResponse struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The retried jobs, in the order of the request's names.
+	Jobs          []*v1.Job `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRetryJobsResponse) Reset() {
+	*x = BatchRetryJobsResponse{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRetryJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRetryJobsResponse) ProtoMessage() {}
+
+func (x *BatchRetryJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchRetryJobsResponse) GetJobs() []*v1.Job {
+	if x != nil {
+		return x.Jobs
+	}
+	return nil
+}
+
+func (x *BatchRetryJobsResponse) SetJobs(v []*v1.Job) {
+	x.Jobs = v
+}
+
+type BatchRetryJobsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The retried jobs, in the order of the request's names.
+	Jobs []*v1.Job
+}
+
+func (b0 BatchRetryJobsResponse_builder) Build() *BatchRetryJobsResponse {
+	m0 := &BatchRetryJobsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Jobs = b.Jobs
+	return m0
+}
+
 // Request message for SchedulerService.CancelJob.
 type CancelJobRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -884,7 +1140,7 @@ type CancelJobRequest struct {
 
 func (x *CancelJobRequest) Reset() {
 	*x = CancelJobRequest{}
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[9]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +1152,7 @@ func (x *CancelJobRequest) String() string {
 func (*CancelJobRequest) ProtoMessage() {}
 
 func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[9]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -952,7 +1208,7 @@ type ReportJobProgressRequest struct {
 
 func (x *ReportJobProgressRequest) Reset() {
 	*x = ReportJobProgressRequest{}
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[10]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -964,7 +1220,7 @@ func (x *ReportJobProgressRequest) String() string {
 func (*ReportJobProgressRequest) ProtoMessage() {}
 
 func (x *ReportJobProgressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[10]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1049,7 +1305,7 @@ type WaitJobRequest struct {
 
 func (x *WaitJobRequest) Reset() {
 	*x = WaitJobRequest{}
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1061,7 +1317,7 @@ func (x *WaitJobRequest) String() string {
 func (*WaitJobRequest) ProtoMessage() {}
 
 func (x *WaitJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[11]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1184,7 +1440,18 @@ const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\"N\n" +
 	"\x0fRetryJobRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"O\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\xbe\x01\n" +
+	"\x16BatchDeleteJobsRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x12G\n" +
+	"\x05names\x18\x02 \x03(\tB1\xfaA\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\x12#\n" +
+	"\rallow_missing\x18\x03 \x01(\bR\fallowMissing\"\x98\x01\n" +
+	"\x15BatchRetryJobsRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x12G\n" +
+	"\x05names\x18\x02 \x03(\tB1\xfaA\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"G\n" +
+	"\x16BatchRetryJobsResponse\x12-\n" +
+	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\"O\n" +
 	"\x10CancelJobRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\x91\x01\n" +
@@ -1197,7 +1464,7 @@ const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\atimeoutBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
-var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*CreateJobRequest)(nil),         // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest
 	(*GetJobRequest)(nil),            // 1: malonaz.scheduler.scheduler_service.v1.GetJobRequest
@@ -1208,27 +1475,31 @@ var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*BatchGetJobsRequest)(nil),      // 6: malonaz.scheduler.scheduler_service.v1.BatchGetJobsRequest
 	(*BatchGetJobsResponse)(nil),     // 7: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse
 	(*RetryJobRequest)(nil),          // 8: malonaz.scheduler.scheduler_service.v1.RetryJobRequest
-	(*CancelJobRequest)(nil),         // 9: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
-	(*ReportJobProgressRequest)(nil), // 10: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
-	(*WaitJobRequest)(nil),           // 11: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
-	(*v1.Job)(nil),                   // 12: malonaz.scheduler.v1.Job
-	(*fieldmaskpb.FieldMask)(nil),    // 13: google.protobuf.FieldMask
-	(*anypb.Any)(nil),                // 14: google.protobuf.Any
-	(*durationpb.Duration)(nil),      // 15: google.protobuf.Duration
+	(*BatchDeleteJobsRequest)(nil),   // 9: malonaz.scheduler.scheduler_service.v1.BatchDeleteJobsRequest
+	(*BatchRetryJobsRequest)(nil),    // 10: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsRequest
+	(*BatchRetryJobsResponse)(nil),   // 11: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsResponse
+	(*CancelJobRequest)(nil),         // 12: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
+	(*ReportJobProgressRequest)(nil), // 13: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
+	(*WaitJobRequest)(nil),           // 14: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+	(*v1.Job)(nil),                   // 15: malonaz.scheduler.v1.Job
+	(*fieldmaskpb.FieldMask)(nil),    // 16: google.protobuf.FieldMask
+	(*anypb.Any)(nil),                // 17: google.protobuf.Any
+	(*durationpb.Duration)(nil),      // 18: google.protobuf.Duration
 }
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_depIdxs = []int32{
-	12, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	12, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	13, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
-	12, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	12, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	14, // 5: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
-	15, // 6: malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout:type_name -> google.protobuf.Duration
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	15, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	15, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	16, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
+	15, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	15, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	15, // 5: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	17, // 6: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
+	18, // 7: malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout:type_name -> google.protobuf.Duration
+	8,  // [8:8] is the sub-list for method output_type
+	8,  // [8:8] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_scheduler_service_v1_job_proto_init() }
@@ -1242,7 +1513,7 @@ func file_malonaz_scheduler_scheduler_service_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc), len(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
