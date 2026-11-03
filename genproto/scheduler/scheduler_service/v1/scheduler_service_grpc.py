@@ -85,6 +85,14 @@ class SchedulerServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def BatchDeleteJobs(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.BatchDeleteJobsRequest, google.protobuf.empty_pb2.Empty]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchRetryJobs(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsRequest, malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def CancelJob(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
         pass
 
@@ -219,6 +227,18 @@ class SchedulerServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.scheduler.scheduler_service.v1.job_pb2.RetryJobRequest,
                 malonaz.scheduler.v1.job_pb2.Job,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchDeleteJobs': grpclib.const.Handler(
+                self.BatchDeleteJobs,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.BatchDeleteJobsRequest,
+                google.protobuf.empty_pb2.Empty,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchRetryJobs': grpclib.const.Handler(
+                self.BatchRetryJobs,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsRequest,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsResponse,
             ),
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob': grpclib.const.Handler(
                 self.CancelJob,
@@ -381,6 +401,18 @@ class SchedulerServiceStub:
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/RetryJob',
             malonaz.scheduler.scheduler_service.v1.job_pb2.RetryJobRequest,
             malonaz.scheduler.v1.job_pb2.Job,
+        )
+        self.BatchDeleteJobs = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchDeleteJobs',
+            malonaz.scheduler.scheduler_service.v1.job_pb2.BatchDeleteJobsRequest,
+            google.protobuf.empty_pb2.Empty,
+        )
+        self.BatchRetryJobs = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchRetryJobs',
+            malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsRequest,
+            malonaz.scheduler.scheduler_service.v1.job_pb2.BatchRetryJobsResponse,
         )
         self.CancelJob = grpclib.client.UnaryUnaryMethod(
             channel,

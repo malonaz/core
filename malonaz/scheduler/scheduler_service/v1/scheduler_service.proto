@@ -308,6 +308,50 @@ service SchedulerService {
     option (google.api.method_signature) = "name";
   }
 
+  // Delete multiple jobs atomically: either every job is deleted or none is.
+  // Fails with FAILED_PRECONDITION when any job is RUNNING, and with NOT_FOUND
+  // when any job is missing unless `allow_missing` is set.
+  //
+  // See: https://google.aip.dev/235 (Batch methods: Delete).
+  rpc BatchDeleteJobs(BatchDeleteJobsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/jobs:batchDelete"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/jobs:batchDelete"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/users/*}/jobs:batchDelete"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "parent,names";
+  }
+
+  // Retry multiple jobs atomically, with the semantics of
+  // [RetryJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.RetryJob]:
+  // either every job is retried or none is. Fails with NOT_FOUND when any job
+  // is missing, FAILED_PRECONDITION when any is neither FAILED nor CANCELLED,
+  // and ALREADY_EXISTS when any job's `unique_key` already has a PENDING job.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc BatchRetryJobs(BatchRetryJobsRequest) returns (BatchRetryJobsResponse) {
+    option (google.api.http) = {
+      post: "/v1/jobs:batchRetry"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/jobs:batchRetry"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/users/*}/jobs:batchRetry"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "parent,names";
+  }
+
   // Cancel a job. A PENDING job is cancelled at once; a RUNNING job is marked
   // CANCELLED and its in-flight processor call is cancelled on a best-effort
   // basis. Fails with FAILED_PRECONDITION on a terminal job.

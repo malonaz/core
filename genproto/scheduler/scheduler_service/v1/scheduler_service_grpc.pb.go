@@ -36,6 +36,8 @@ const (
 	SchedulerService_ListJobs_FullMethodName          = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ListJobs"
 	SchedulerService_BatchGetJobs_FullMethodName      = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetJobs"
 	SchedulerService_RetryJob_FullMethodName          = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/RetryJob"
+	SchedulerService_BatchDeleteJobs_FullMethodName   = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchDeleteJobs"
+	SchedulerService_BatchRetryJobs_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchRetryJobs"
 	SchedulerService_CancelJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob"
 	SchedulerService_WaitJob_FullMethodName           = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob"
 	SchedulerService_ReportJobProgress_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress"
@@ -202,6 +204,20 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	RetryJob(ctx context.Context, in *RetryJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
+	// Delete multiple jobs atomically: either every job is deleted or none is.
+	// Fails with FAILED_PRECONDITION when any job is RUNNING, and with NOT_FOUND
+	// when any job is missing unless `allow_missing` is set.
+	//
+	// See: https://google.aip.dev/235 (Batch methods: Delete).
+	BatchDeleteJobs(ctx context.Context, in *BatchDeleteJobsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Retry multiple jobs atomically, with the semantics of
+	// [RetryJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.RetryJob]:
+	// either every job is retried or none is. Fails with NOT_FOUND when any job
+	// is missing, FAILED_PRECONDITION when any is neither FAILED nor CANCELLED,
+	// and ALREADY_EXISTS when any job's `unique_key` already has a PENDING job.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	BatchRetryJobs(ctx context.Context, in *BatchRetryJobsRequest, opts ...grpc.CallOption) (*BatchRetryJobsResponse, error)
 	// Cancel a job. A PENDING job is cancelled at once; a RUNNING job is marked
 	// CANCELLED and its in-flight processor call is cancelled on a best-effort
 	// basis. Fails with FAILED_PRECONDITION on a terminal job.
@@ -417,6 +433,26 @@ func (c *schedulerServiceClient) RetryJob(ctx context.Context, in *RetryJobReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Job)
 	err := c.cc.Invoke(ctx, SchedulerService_RetryJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchDeleteJobs(ctx context.Context, in *BatchDeleteJobsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchDeleteJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchRetryJobs(ctx context.Context, in *BatchRetryJobsRequest, opts ...grpc.CallOption) (*BatchRetryJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchRetryJobsResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchRetryJobs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -686,6 +722,20 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	RetryJob(context.Context, *RetryJobRequest) (*v1.Job, error)
+	// Delete multiple jobs atomically: either every job is deleted or none is.
+	// Fails with FAILED_PRECONDITION when any job is RUNNING, and with NOT_FOUND
+	// when any job is missing unless `allow_missing` is set.
+	//
+	// See: https://google.aip.dev/235 (Batch methods: Delete).
+	BatchDeleteJobs(context.Context, *BatchDeleteJobsRequest) (*emptypb.Empty, error)
+	// Retry multiple jobs atomically, with the semantics of
+	// [RetryJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.RetryJob]:
+	// either every job is retried or none is. Fails with NOT_FOUND when any job
+	// is missing, FAILED_PRECONDITION when any is neither FAILED nor CANCELLED,
+	// and ALREADY_EXISTS when any job's `unique_key` already has a PENDING job.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	BatchRetryJobs(context.Context, *BatchRetryJobsRequest) (*BatchRetryJobsResponse, error)
 	// Cancel a job. A PENDING job is cancelled at once; a RUNNING job is marked
 	// CANCELLED and its in-flight processor call is cancelled on a best-effort
 	// basis. Fails with FAILED_PRECONDITION on a terminal job.
@@ -800,6 +850,12 @@ func (UnimplementedSchedulerServiceServer) BatchGetJobs(context.Context, *BatchG
 }
 func (UnimplementedSchedulerServiceServer) RetryJob(context.Context, *RetryJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method RetryJob not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchDeleteJobs(context.Context, *BatchDeleteJobsRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchDeleteJobs not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchRetryJobs(context.Context, *BatchRetryJobsRequest) (*BatchRetryJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchRetryJobs not implemented")
 }
 func (UnimplementedSchedulerServiceServer) CancelJob(context.Context, *CancelJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelJob not implemented")
@@ -1124,6 +1180,42 @@ func _SchedulerService_RetryJob_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchedulerService_BatchDeleteJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDeleteJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchDeleteJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchDeleteJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchDeleteJobs(ctx, req.(*BatchDeleteJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_BatchRetryJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRetryJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchRetryJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchRetryJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchRetryJobs(ctx, req.(*BatchRetryJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SchedulerService_CancelJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CancelJobRequest)
 	if err := dec(in); err != nil {
@@ -1388,6 +1480,14 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetryJob",
 			Handler:    _SchedulerService_RetryJob_Handler,
+		},
+		{
+			MethodName: "BatchDeleteJobs",
+			Handler:    _SchedulerService_BatchDeleteJobs_Handler,
+		},
+		{
+			MethodName: "BatchRetryJobs",
+			Handler:    _SchedulerService_BatchRetryJobs_Handler,
 		},
 		{
 			MethodName: "CancelJob",

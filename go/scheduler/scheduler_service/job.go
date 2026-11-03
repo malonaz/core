@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 	"slices"
 	"strings"
 	"time"
 
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -25,11 +27,12 @@ import (
 
 // statePreconditionError refuses a transition from the job's current state.
 type statePreconditionError struct {
+	name  string
 	state schedulerpb.JobState
 }
 
 func (e *statePreconditionError) Error() string {
-	return fmt.Sprintf("job is %s", e.state)
+	return fmt.Sprintf("job %s is %s", e.name, e.state)
 }
 
 // uniqueKeyCreateAttempts bounds the passes a keyed create makes when the
@@ -172,33 +175,106 @@ func (s *Service) DeleteJob(ctx context.Context, request *pb.DeleteJobRequest) (
 	return s.SchedulerServiceServer.DeleteJob(ctx, request)
 }
 
-// RetryJob returns a FAILED or CANCELLED job to PENDING for one more, manual,
-// attempt, keeping its history. The expiry is dropped: a retry asks for the job
-// to run regardless. A keyed job whose key already has a job not yet started
-// is refused: that job is the retry.
+// RetryJob retries a FAILED or CANCELLED job; see retry. A keyed job whose key
+// already has a job not yet started is refused: that job is the retry.
 func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*schedulerpb.Job, error) {
-	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
-		switch job.GetState() {
-		case schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
-		default:
-			return &statePreconditionError{state: job.GetState()}
-		}
-		job.State = schedulerpb.JobState_JOB_STATE_PENDING
-		job.ScheduleTime = nil
-		job.StartTime = nil
-		job.CompleteTime = nil
-		job.LockTime = nil
-		job.ExpireTime = nil
-		job.PurgeTime = nil
-		job.Error = nil
-		job.Progress = nil
-		aip.SetLabel(job, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True)
-		return nil
-	})
+	return s.transitionJob(ctx, request.GetName(), retry)
+}
+
+// BatchRetryJobs retries every job as RetryJob does, in one transaction.
+func (s *Service) BatchRetryJobs(ctx context.Context, request *pb.BatchRetryJobsRequest) (*pb.BatchRetryJobsResponse, error) {
+	names, err := parseBatchJobNames(request.GetParent(), request.GetNames())
 	if err != nil {
 		return nil, err
 	}
-	return job, nil
+	now := transition.Now()
+	jobModels, err := s.schedulerPostgresStore.TransitionJobsByName(ctx, names, func(job *model.Job) error {
+		return transition.Mutate(job, now, retry)
+	})
+	if err != nil {
+		return nil, jobTransitionError(err)
+	}
+	jobsByName := make(map[string]*schedulerpb.Job, len(jobModels))
+	for _, jobModel := range jobModels {
+		job, err := jobModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting job from model to pb: %v", err).Err()
+		}
+		jobsByName[job.GetName()] = job
+	}
+	response := &pb.BatchRetryJobsResponse{Jobs: make([]*schedulerpb.Job, len(request.GetNames()))}
+	for i, name := range request.GetNames() {
+		response.Jobs[i] = jobsByName[name]
+	}
+	return response, nil
+}
+
+// retry returns a FAILED or CANCELLED job to PENDING for one more, manual,
+// attempt, keeping its history. The expiry is dropped: a retry asks for the job
+// to run regardless.
+func retry(job *schedulerpb.Job) error {
+	switch job.GetState() {
+	case schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
+	default:
+		return &statePreconditionError{name: job.GetName(), state: job.GetState()}
+	}
+	job.State = schedulerpb.JobState_JOB_STATE_PENDING
+	job.ScheduleTime = nil
+	job.StartTime = nil
+	job.CompleteTime = nil
+	job.LockTime = nil
+	job.ExpireTime = nil
+	job.PurgeTime = nil
+	job.Error = nil
+	job.Progress = nil
+	aip.SetLabel(job, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True)
+	return nil
+}
+
+// BatchDeleteJobs deletes every job in one transaction, refusing them all when
+// any is RUNNING.
+func (s *Service) BatchDeleteJobs(ctx context.Context, request *pb.BatchDeleteJobsRequest) (*emptypb.Empty, error) {
+	names, err := parseBatchJobNames(request.GetParent(), request.GetNames())
+	if err != nil {
+		return nil, err
+	}
+	err = s.schedulerPostgresStore.DeleteJobsByName(ctx, names, request.GetAllowMissing(), func(jobModel *model.Job) error {
+		if schedulerpb.JobState(jobModel.State) != schedulerpb.JobState_JOB_STATE_RUNNING {
+			return nil
+		}
+		job, err := jobModel.ToPb()
+		if err != nil {
+			return err
+		}
+		return &statePreconditionError{name: job.GetName(), state: job.GetState()}
+	})
+	if err != nil {
+		return nil, jobTransitionError(err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+// parseBatchJobNames parses the names of a batch request, each a direct child
+// of parent when it is set.
+func parseBatchJobNames(parent string, names []string) (store.JobNames, error) {
+	parsed := store.JobNames{
+		OrganizationIDs: make([]string, len(names)),
+		UserIDs:         make([]string, len(names)),
+		JobIDs:          make([]string, len(names)),
+	}
+	for i, name := range names {
+		if resourcename.ContainsWildcard(name) {
+			return parsed, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if parent != "" && path.Dir(path.Dir(name)) != parent {
+			return parsed, status.Errorf(codes.InvalidArgument, "name %q is not a direct child of parent %q", name, parent).Err()
+		}
+		var err error
+		if parsed.OrganizationIDs[i], parsed.UserIDs[i], parsed.JobIDs[i], err = model.ParseJobName(name); err != nil {
+			return parsed, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+	}
+	return parsed, nil
 }
 
 // CancelJob moves a PENDING or RUNNING job to CANCELLED; the dispatcher running
@@ -207,7 +283,7 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 	now := transition.Now()
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		if transition.IsTerminal(job.GetState()) {
-			return &statePreconditionError{state: job.GetState()}
+			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
 		cancelled := grpcstatus.New(codes.Canceled, "cancelled by client")
 		if job.GetState() == schedulerpb.JobState_JOB_STATE_RUNNING {
@@ -258,7 +334,7 @@ func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*sch
 func (s *Service) ReportJobProgress(ctx context.Context, request *pb.ReportJobProgressRequest) (*schedulerpb.Job, error) {
 	return s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		if job.GetState() != schedulerpb.JobState_JOB_STATE_RUNNING {
-			return &statePreconditionError{state: job.GetState()}
+			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
 		job.Progress = request.GetProgress()
 		return nil
@@ -277,20 +353,25 @@ func (s *Service) transitionJob(ctx context.Context, name string, fn func(*sched
 		return transition.Mutate(job, now, fn)
 	})
 	if err != nil {
-		var preconditionErr *statePreconditionError
-		switch {
-		case errors.Is(err, model.ErrJobNotExist):
-			return nil, status.Errorf(codes.NotFound, "job does not exist").Err()
-		case errors.As(err, &preconditionErr):
-			return nil, status.Errorf(codes.FailedPrecondition, "%v", preconditionErr).Err()
-		case store.IsUniqueKeyConflict(err):
-			return nil, status.Errorf(codes.AlreadyExists, "unique key already has a job not yet started").Err()
-		}
-		return nil, status.FromError(err, "transitioning job").Err()
+		return nil, jobTransitionError(err)
 	}
 	job, err := jobModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting job from model to pb: %v", err).Err()
 	}
 	return job, nil
+}
+
+// jobTransitionError translates store and precondition errors to gRPC statuses.
+func jobTransitionError(err error) error {
+	var preconditionErr *statePreconditionError
+	switch {
+	case errors.Is(err, model.ErrJobNotExist):
+		return status.Errorf(codes.NotFound, "%v", err).Err()
+	case errors.As(err, &preconditionErr):
+		return status.Errorf(codes.FailedPrecondition, "%v", preconditionErr).Err()
+	case store.IsUniqueKeyConflict(err):
+		return status.Errorf(codes.AlreadyExists, "unique key already has a job not yet started").Err()
+	}
+	return status.FromError(err, "transitioning job").Err()
 }

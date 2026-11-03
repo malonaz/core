@@ -42,6 +42,7 @@ go_library(
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__prometheus__client_golang__prometheus",
         "//third_party/go:github.com__prometheus__client_golang__prometheus__promauto",
+        "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
