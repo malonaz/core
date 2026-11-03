@@ -15,8 +15,8 @@ import (
 
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
 	type streamEntry struct {
-		fqn    string
-		goName string
+		options *natspb.StreamOptions
+		goName  string
 	}
 
 	var streams []streamEntry
@@ -38,7 +38,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 				continue
 			}
 			seen[streamGoName] = true
-			streams = append(streams, streamEntry{fqn: streamFQN, goName: streamGoName})
+			streams = append(streams, streamEntry{options: streamOptions, goName: streamGoName})
 		}
 	}
 
@@ -53,7 +53,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	g.P()
 
 	for _, stream := range streams {
-		nats.GenerateStreamSingleton(g, stream.fqn, stream.goName)
+		nats.GenerateStreamSingleton(g, stream.options, stream.goName)
 	}
 	return nil
 }

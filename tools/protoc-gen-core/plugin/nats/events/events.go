@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 
 	natspb "github.com/malonaz/core/genproto/codegen/nats/v1"
+	natsoptspb "github.com/malonaz/core/genproto/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
@@ -90,9 +91,10 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	g.P("package ", packageName)
 	g.P()
 
-	// Streams are emitted in first-seen order to keep the output deterministic.
+	// Streams are emitted in first-seen order to keep the output deterministic. An event only
+	// names its stream; the stream's options live on the service that declares it.
 	for _, streamFQN := range streamFQNs {
-		nats.GenerateStreamSingleton(g, streamFQN, streamFQNToGoName[streamFQN])
+		nats.GenerateStreamSingleton(g, &natsoptspb.StreamOptions{Name: streamFQN}, streamFQNToGoName[streamFQN])
 	}
 
 	for _, em := range eventMessages {
