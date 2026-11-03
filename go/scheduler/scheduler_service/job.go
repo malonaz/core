@@ -27,11 +27,12 @@ import (
 
 // statePreconditionError refuses a transition from the job's current state.
 type statePreconditionError struct {
+	name  string
 	state schedulerpb.JobState
 }
 
 func (e *statePreconditionError) Error() string {
-	return fmt.Sprintf("job is %s", e.state)
+	return fmt.Sprintf("job %s is %s", e.name, e.state)
 }
 
 // uniqueKeyCreateAttempts bounds the passes a keyed create makes when the
@@ -215,7 +216,7 @@ func retry(job *schedulerpb.Job) error {
 	switch job.GetState() {
 	case schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
 	default:
-		return &statePreconditionError{state: job.GetState()}
+		return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 	}
 	job.State = schedulerpb.JobState_JOB_STATE_PENDING
 	job.ScheduleTime = nil
@@ -237,11 +238,15 @@ func (s *Service) BatchDeleteJobs(ctx context.Context, request *pb.BatchDeleteJo
 	if err != nil {
 		return nil, err
 	}
-	err = s.schedulerPostgresStore.DeleteJobsByName(ctx, names, request.GetAllowMissing(), func(job *model.Job) error {
-		if state := schedulerpb.JobState(job.State); state == schedulerpb.JobState_JOB_STATE_RUNNING {
-			return &statePreconditionError{state: state}
+	err = s.schedulerPostgresStore.DeleteJobsByName(ctx, names, request.GetAllowMissing(), func(jobModel *model.Job) error {
+		if schedulerpb.JobState(jobModel.State) != schedulerpb.JobState_JOB_STATE_RUNNING {
+			return nil
 		}
-		return nil
+		job, err := jobModel.ToPb()
+		if err != nil {
+			return err
+		}
+		return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 	})
 	if err != nil {
 		return nil, jobTransitionError(err)
@@ -278,7 +283,7 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 	now := transition.Now()
 	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		if transition.IsTerminal(job.GetState()) {
-			return &statePreconditionError{state: job.GetState()}
+			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
 		cancelled := grpcstatus.New(codes.Canceled, "cancelled by client")
 		if job.GetState() == schedulerpb.JobState_JOB_STATE_RUNNING {
@@ -329,7 +334,7 @@ func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*sch
 func (s *Service) ReportJobProgress(ctx context.Context, request *pb.ReportJobProgressRequest) (*schedulerpb.Job, error) {
 	return s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
 		if job.GetState() != schedulerpb.JobState_JOB_STATE_RUNNING {
-			return &statePreconditionError{state: job.GetState()}
+			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
 		job.Progress = request.GetProgress()
 		return nil
@@ -362,7 +367,7 @@ func jobTransitionError(err error) error {
 	var preconditionErr *statePreconditionError
 	switch {
 	case errors.Is(err, model.ErrJobNotExist):
-		return status.Errorf(codes.NotFound, "job does not exist").Err()
+		return status.Errorf(codes.NotFound, "%v", err).Err()
 	case errors.As(err, &preconditionErr):
 		return status.Errorf(codes.FailedPrecondition, "%v", preconditionErr).Err()
 	case store.IsUniqueKeyConflict(err):

@@ -280,6 +280,7 @@ func TestBatchDeleteJobs(t *testing.T) {
 		names := []string{job.GetName(), "jobs/does-not-exist"}
 		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: names})
 		grpcrequire.Error(t, codes.NotFound, err)
+		require.ErrorContains(t, err, "does-not-exist")
 		_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: job.GetName()})
 		require.NoError(t, err)
 		_, err = schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: names, AllowMissing: true})
@@ -296,6 +297,7 @@ func TestBatchDeleteJobs(t *testing.T) {
 		waitForState(t, running.GetName(), schedulerpb.JobState_JOB_STATE_RUNNING)
 		_, err := schedulerServiceClient.BatchDeleteJobs(ctx, &schedulerservicepb.BatchDeleteJobsRequest{Names: []string{running.GetName(), pending.GetName()}})
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		require.ErrorContains(t, err, running.GetName())
 		_, err = schedulerServiceClient.GetJob(ctx, &schedulerservicepb.GetJobRequest{Name: pending.GetName()})
 		require.NoError(t, err)
 		cancelJob(t, running.GetName())

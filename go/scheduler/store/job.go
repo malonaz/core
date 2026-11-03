@@ -140,6 +140,22 @@ func (n JobNames) lock(ctx context.Context, tx postgres.Tx) ([]*model.Job, error
 	return lockJobs(ctx, tx, jobsByNameForUpdate, n.OrganizationIDs, n.UserIDs, n.JobIDs)
 }
 
+// missing names the requested jobs absent from the locked ones, so a batch
+// failure says which job it was.
+func (n JobNames) missing(jobs []*model.Job) error {
+	found := make(map[string]bool, len(jobs))
+	for _, job := range jobs {
+		found[job.JobID] = true
+	}
+	var missing []string
+	for _, jobID := range n.JobIDs {
+		if !found[jobID] {
+			missing = append(missing, jobID)
+		}
+	}
+	return fmt.Errorf("%w: %s", model.ErrJobNotExist, strings.Join(missing, ", "))
+}
+
 // TransitionJobsByName locks the jobs, waiting on held rows, and applies
 // transition to each in one transaction: every job transitions or none does.
 // Returns model.ErrJobNotExist when any job is missing.
@@ -151,7 +167,7 @@ func (s *Store) TransitionJobsByName(ctx context.Context, names JobNames, transi
 			return err
 		}
 		if len(jobs) != len(names.JobIDs) {
-			return model.ErrJobNotExist
+			return names.missing(jobs)
 		}
 		return writeJobs(ctx, tx, jobs, transition)
 	}
@@ -171,7 +187,7 @@ func (s *Store) DeleteJobsByName(ctx context.Context, names JobNames, allowMissi
 			return err
 		}
 		if !allowMissing && len(jobs) != len(names.JobIDs) {
-			return model.ErrJobNotExist
+			return names.missing(jobs)
 		}
 		jobIDs := make([]string, len(jobs))
 		for i, job := range jobs {
