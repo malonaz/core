@@ -1,0 +1,265 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "malonaz/ai/agent/agent_service/v1/agent.proto";
+import "malonaz/ai/agent/agent_service/v1/definition.proto";
+import "malonaz/ai/agent/agent_service/v1/executor.proto";
+import "malonaz/ai/agent/v1/agent.proto";
+import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/ai/agent/v1/executor.proto";
+import "malonaz/ai/agent/v1/input.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// This API stores and drives agents. It owns state only: executors, which
+// hold the tools, compute and credentials, dial in to run agents' turns.
+//
+// # Resource model
+//
+// - [Definition][malonaz.ai.agent.v1.Definition]: a reusable agent blueprint.
+//   Format: organizations/{organization}/definitions/{definition}
+// - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
+//   an AiService chat, its sub-agents linked by `parent_agent`.
+//   Format: organizations/{organization}/users/{user}/agents/{agent}
+// - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
+//   Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
+// - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
+//   Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
+// - [Executor][malonaz.ai.agent.v1.Executor]: a process running agents' turns.
+//   Format: organizations/{organization}/executors/{executor}
+//
+// # Messaging
+//
+// Inputs are the only way into an agent, from a client or another agent, and
+// always asynchronous: an input queues, and the agent's next turn drains every
+// pending input. Each turn a sub-agent ends is queued as an input on its
+// parent, so a parent never waits: it ends its turn and wakes on the report.
+service AgentService {
+  option (google.api.default_host) = "agent.ai.malonaz.com";
+
+  // ===================== Definition Management =====================
+
+
+  // Create a definition.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateDefinition(CreateDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/definitions"
+      body: "definition"
+    };
+    option (google.api.method_signature) = "parent,definition";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Get a definition.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetDefinition(GetDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/definitions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Update a definition.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      patch: "/v1/{definition.name=organizations/*/definitions/*}"
+      body: "definition"
+    };
+    option (google.api.method_signature) = "definition,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Delete a definition.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteDefinition(DeleteDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/definitions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Undelete a definition.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteDefinition(UndeleteDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/definitions/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // List definitions.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListDefinitions(ListDefinitionsRequest) returns (ListDefinitionsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/definitions"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // ===================== Agent Management =====================
+
+
+  // Create a agent.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateAgent(CreateAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/agents"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "parent,agent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Get a agent.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetAgent(GetAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Update a agent.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateAgent(UpdateAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      patch: "/v1/{agent.name=organizations/*/users/*/agents/*}"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "agent,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Delete a agent.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteAgent(DeleteAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Undelete a agent.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteAgent(UndeleteAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // List agents.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/agents"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Cancel an agent's running turn. Its pending inputs stay queued.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc CancelAgent(CancelAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:cancel"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Stream an agent's activity: its event log replayed from a sequence then
+  // live, with token deltas in the FULL view, optionally for its whole tree.
+  rpc StreamAgent(StreamAgentRequest) returns (stream StreamAgentResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*}:stream"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ===================== Input Management =====================
+
+
+  // Send an agent an input, queued for its next turn. Wakes an idle agent.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateInput(CreateInputRequest) returns (malonaz.ai.agent.v1.Input) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/agents/*}/inputs"
+      body: "input"
+    };
+    option (google.api.method_signature) = "parent,input";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Input";
+  }
+
+  // List an agent's inputs.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListInputs(ListInputsRequest) returns (ListInputsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/agents/*}/inputs"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Input";
+  }
+
+  // ===================== Event Management =====================
+
+
+  // List an agent's events.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/agents/*}/events"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Event";
+  }
+
+  // ===================== Executor Management =====================
+
+
+  // Get an executor.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetExecutor(GetExecutorRequest) returns (malonaz.ai.agent.v1.Executor) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/executors/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Executor";
+  }
+
+  // List executors.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListExecutors(ListExecutorsRequest) returns (ListExecutorsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/executors"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Executor";
+  }
+
+  // Connect an executor: it registers, heartbeats and reports its agents'
+  // events and deltas up; the service leases it agents and forwards their
+  // inputs, cancellations and revocations down. Closing the stream releases
+  // every agent it holds.
+  rpc ConnectExecutor(stream ConnectExecutorRequest) returns (stream ConnectExecutorResponse) {}
+}

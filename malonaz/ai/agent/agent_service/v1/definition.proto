@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// Request message for AgentService.CreateDefinition.
+message CreateDefinitionRequest {
+  // The organization owning the definition.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Organization"
+  ];
+
+  // The definition to create.
+  malonaz.ai.agent.v1.Definition definition = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the definition, which becomes the final component of its name.
+  string definition_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for AgentService.GetDefinition.
+message GetDefinitionRequest {
+  // The definition to retrieve.
+  // Format: organizations/{organization}/definitions/{definition}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
+  ];
+}
+
+// Request message for AgentService.UpdateDefinition.
+message UpdateDefinitionRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "display_name",
+      "description",
+      "spec"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "definition.name_required"
+    message: "definition.name must be set"
+    expression: "has(this.definition.name)"
+  };
+
+  // The definition to update.
+  malonaz.ai.agent.v1.Definition definition = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AgentService.DeleteDefinition.
+message DeleteDefinitionRequest {
+  // The definition to delete. Agents created from it keep their snapshot.
+  // Format: organizations/{organization}/definitions/{definition}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
+  ];
+
+  // If true, and the definition is not found, the request succeeds without action.
+  bool allow_missing = 2;
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for AgentService.UndeleteDefinition.
+message UndeleteDefinitionRequest {
+  // The deleted definition to restore.
+  // Format: organizations/{organization}/definitions/{definition}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
+  ];
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for AgentService.ListDefinitions.
+message ListDefinitionsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The organization owning the definitions.
+  // Format: organizations/{organization}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Organization"
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted definitions.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of definitions to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListDefinitions` call.
+  string page_token = 6;
+}
+
+// Response message for AgentService.ListDefinitions.
+message ListDefinitionsResponse {
+  // The definitions.
+  repeated malonaz.ai.agent.v1.Definition definitions = 1;
+
+  // A token to retrieve the next page. Omitted when there are no more pages.
+  string next_page_token = 2;
+}

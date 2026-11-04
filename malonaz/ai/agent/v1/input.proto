@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
+
+// An Input is a message queued in an agent's inbox. Clients send inputs at any
+// time; the executor drains every pending input into the agent's next turn as
+// extra blocks, waking an idle agent, and marks them consumed. Inputs pending
+// when a lease is lost are redelivered to the next executor.
+message Input {
+  option (google.api.resource) = {
+    type: "agent.ai.malonaz.com/Input"
+    pattern: "organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}"
+    singular: "input"
+    plural: "inputs"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "6f4fefa0-7782-492f-8349-cd401e08e5ae";
+
+  // The resource name of the input.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the input: when it was queued.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The message to deliver. Its sender (a user, the parent agent, a
+  // sub-agent's report) is recorded in its annotations.
+  malonaz.ai.v1.Message message = 3 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
+
+  // When a turn consumed the input. Unset while pending.
+  google.protobuf.Timestamp consume_time = 4 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+}
