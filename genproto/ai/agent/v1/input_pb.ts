@@ -46,8 +46,8 @@ export type Input = Message<"malonaz.ai.agent.v1.Input"> & {
   createTime?: Timestamp;
 
   /**
-   * The message to deliver. Its sender (a user, the parent agent, a
-   * sub-agent's report) is recorded in its annotations.
+   * The message to deliver. Its sender is stamped in the
+   * agent.ai.malonaz.com/sender annotation.
    *
    * @generated from field: malonaz.ai.v1.Message message = 3;
    */
@@ -86,8 +86,8 @@ export type InputValid = Message<"malonaz.ai.agent.v1.Input"> & {
   createTime?: Timestamp;
 
   /**
-   * The message to deliver. Its sender (a user, the parent agent, a
-   * sub-agent's report) is recorded in its annotations.
+   * The message to deliver. Its sender is stamped in the
+   * agent.ai.malonaz.com/sender annotation.
    *
    * @generated from field: malonaz.ai.v1.Message message = 3;
    */

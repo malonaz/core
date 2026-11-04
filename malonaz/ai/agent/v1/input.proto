@@ -33,8 +33,8 @@ message Input {
   // The creation timestamp of the input: when it was queued.
   google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The message to deliver. Its sender (a user, the parent agent, a
-  // sub-agent's report) is recorded in its annotations.
+  // The message to deliver. Its sender is stamped in the
+  // agent.ai.malonaz.com/sender annotation.
   malonaz.ai.v1.Message message = 3 [
     (buf.validate.field).required = true,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true

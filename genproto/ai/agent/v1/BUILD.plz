@@ -3,6 +3,8 @@ go_library(
     srcs = [
         "agent.pb.go",
         "agent_aip.pb.go",
+        "annotations.pb.go",
+        "annotations_aip.pb.go",
         "definition.pb.go",
         "definition_aip.pb.go",
         "event.pb.go",
