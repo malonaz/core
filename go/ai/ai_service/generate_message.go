@@ -251,6 +251,15 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		}
 	}
 
+	// Some providers treat NONE as advisory (Gemini calls tools regardless), so
+	// the service enforces it: the model is told, provider-bound only, and Send
+	// drops any call it makes anyway.
+	toolsDisabled := request.GetConfiguration().GetToolChoice().GetMode() == aipb.ToolChoiceMode_TOOL_CHOICE_MODE_NONE
+	providerHistory := history
+	if toolsDisabled {
+		providerHistory = append(slices.Clip(history), ai.NewUserMessage(ai.NewTextBlock(toolsDisabledNotice)))
+	}
+
 	wrapper := &generateMessageWrapper{
 		AiService_StreamGenerateMessageServer: srv,
 		messageAccumulator:                    accumulator,
@@ -260,11 +269,12 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		toolSetNameToToolNameToTool:           toolSetNameToToolNameToTool,
 		toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
 		useExecuteTool:                        useExecuteTool,
+		toolsDisabled:                         toolsDisabled,
 	}
 
 	// The service owns the sender lifecycle; providers only emit events.
 	sender := provider.NewAsyncMessageContentSender(wrapper, 100)
-	generationError := providerClient.StreamGenerateMessage(ctx, request, history, sender)
+	generationError := providerClient.StreamGenerateMessage(ctx, request, providerHistory, sender)
 	sender.Close()
 	if generationError == nil {
 		generationError = sender.Wait(ctx)
@@ -345,6 +355,10 @@ func withoutForeignThoughts(history []*aipb.Message, providerID string) []*aipb.
 	}
 	return ownHistory
 }
+
+// toolsDisabledNotice closes the provider-bound history of a generation whose
+// tool choice is NONE.
+const toolsDisabledNotice = "Tool calls are unavailable for this reply: respond in text only."
 
 // errToolResultMissing answers a tool call left without a result. Worded
 // neutrally: most are calls a client chose not to answer, not failures.
@@ -461,6 +475,7 @@ type generateMessageWrapper struct {
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool
 	toolCallIDToToolCall        map[string]*aipb.ToolCall
 	useExecuteTool              bool
+	toolsDisabled               bool
 }
 
 func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse) error {
@@ -472,6 +487,9 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 		}
 		if c.Block.GetPartialToolCall() != nil {
 			toolCall = c.Block.GetPartialToolCall()
+		}
+		if toolCall != nil && w.toolsDisabled {
+			return nil
 		}
 		if toolCall != nil {
 			// Partial proxy calls carry nothing to forward until the target name streams in.

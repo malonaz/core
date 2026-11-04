@@ -176,6 +176,35 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 		require.Equal(t, "call-1", result.GetToolCallId())
 		require.Contains(t, result.GetError().GetMessage(), `unknown tool "Nope"`)
 	})
+
+	t.Run("tool calls are dropped when tools are disabled", func(t *testing.T) {
+		// Gemini emits calls despite tool choice NONE: none may reach the caller.
+		stream := &fakeStream{}
+		accumulator := ai.NewMessageAccumulator()
+		wrapper := &generateMessageWrapper{
+			AiService_StreamGenerateMessageServer: stream,
+			messageAccumulator:                    accumulator,
+			toolNameToTool:                        map[string]*aipb.Tool{"A": {Name: "A"}},
+			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+			toolsDisabled:                         true,
+		}
+		textBlock := ai.NewTextBlock("answer")
+		partialToolCall := &aipb.ToolCall{Id: "call-1", Name: "A", Partial: true}
+		toolCallBlock := ai.NewToolCallBlock(&aipb.ToolCall{Id: "call-1", Name: "A"})
+		toolCallBlock.Index = 1
+		for _, block := range []*aipb.Block{
+			textBlock,
+			{Index: 1, Content: &aipb.Block_PartialToolCall{PartialToolCall: partialToolCall}},
+			toolCallBlock,
+		} {
+			require.NoError(t, wrapper.Send(&pb.StreamGenerateMessageResponse{
+				Content: &pb.StreamGenerateMessageResponse_Block{Block: block},
+			}))
+		}
+		require.Len(t, stream.responses, 1)
+		require.Equal(t, "answer", stream.responses[0].GetBlock().GetText())
+		require.Empty(t, ai.FilterBlocks(accumulator.Message.GetBlocks(), ai.BlockTypeToolCall))
+	})
 }
 
 func newTestToolCall(toolCallID string) *aipb.ToolCall {

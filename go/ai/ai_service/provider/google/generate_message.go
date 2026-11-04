@@ -671,7 +671,9 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 // supporting none/auto/required modes and specific tool name targeting.
 func buildToolConfig(configuration *aiservicepb.MessageGenerationConfiguration, backend genai.Backend) (*genai.ToolConfig, error) {
 	functionCallingConfig := &genai.FunctionCallingConfig{}
-	streamPartialToolCalls := configuration.GetStreamPartialToolCalls()
+	// Nothing to stream when calls are forbidden.
+	streamPartialToolCalls := configuration.GetStreamPartialToolCalls() &&
+		configuration.GetToolChoice().GetMode() != aipb.ToolChoiceMode_TOOL_CHOICE_MODE_NONE
 	// Only Vertex AI supports streaming partial tool call arguments.
 	if streamPartialToolCalls && backend == genai.BackendVertexAI {
 		functionCallingConfig.StreamFunctionCallArguments = &streamPartialToolCalls
