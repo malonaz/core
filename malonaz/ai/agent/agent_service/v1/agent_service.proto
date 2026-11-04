@@ -29,8 +29,8 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 //   Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 // - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
 //   Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
-// - [Executor][malonaz.ai.agent.v1.Executor]: a process running agents' turns.
-//   Format: organizations/{organization}/executors/{executor}
+// - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
+//   Format: organizations/{organization}/users/{user}/executors/{executor}
 //
 // # Messaging
 //
@@ -236,7 +236,7 @@ service AgentService {
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetExecutor(GetExecutorRequest) returns (malonaz.ai.agent.v1.Executor) {
     option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{name=organizations/*/executors/*}"};
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/executors/*}"};
     option (google.api.method_signature) = "name";
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Executor";
   }
@@ -246,7 +246,7 @@ service AgentService {
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListExecutors(ListExecutorsRequest) returns (ListExecutorsResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{parent=organizations/*}/executors"};
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/executors"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Executor";
   }

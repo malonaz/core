@@ -77,7 +77,7 @@ message Event {
   // LeaseChanged records a lease taken or lost.
   message LeaseChanged {
     // The executor now holding the lease. Empty when released.
-    // Format: organizations/{organization}/executors/{executor}
+    // Format: organizations/{organization}/users/{user}/executors/{executor}
     string executor = 1 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Executor"];
   }
 

@@ -15,10 +15,12 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
 // compute and the credentials, so the AgentService needs none. Executors are
 // never called: they dial in through ConnectExecutor, which registers them,
 // carries their heartbeats and leases them agents, up to `max_agents` at once.
+// An executor belongs to a user and runs only that user's agents: its tools
+// and credentials are the user's.
 message Executor {
   option (google.api.resource) = {
     type: "agent.ai.malonaz.com/Executor"
-    pattern: "organizations/{organization}/executors/{executor}"
+    pattern: "organizations/{organization}/users/{user}/executors/{executor}"
     singular: "executor"
     plural: "executors"
   };
@@ -36,7 +38,7 @@ message Executor {
   }
 
   // The resource name of the executor.
-  // Format: organizations/{organization}/executors/{executor}
+  // Format: organizations/{organization}/users/{user}/executors/{executor}
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // The creation timestamp of the executor: its first registration.

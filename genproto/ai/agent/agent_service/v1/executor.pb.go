@@ -30,7 +30,7 @@ const (
 type GetExecutorRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The executor to retrieve.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -76,7 +76,7 @@ type GetExecutorRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The executor to retrieve.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Name string
 }
 
@@ -91,8 +91,8 @@ func (b0 GetExecutorRequest_builder) Build() *GetExecutorRequest {
 // Request message for AgentService.ListExecutors.
 type ListExecutorsRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The organization owning the executors.
-	// Format: organizations/{organization}
+	// The user owning the executors.
+	// Format: organizations/{organization}/users/{user}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// @autogen.
 	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
@@ -189,8 +189,8 @@ func (x *ListExecutorsRequest) SetPageToken(v string) {
 type ListExecutorsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The organization owning the executors.
-	// Format: organizations/{organization}
+	// The user owning the executors.
+	// Format: organizations/{organization}/users/{user}
 	Parent string
 	// @autogen.
 	Filter string
@@ -959,8 +959,8 @@ func (*ConnectExecutorResponse_Revoke_) isConnectExecutorResponse_Content() {}
 // Register names and describes the executor.
 type ConnectExecutorRequest_Register struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The organization the executor serves.
-	// Format: organizations/{organization}
+	// The user the executor runs agents for.
+	// Format: organizations/{organization}/users/{user}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The executor's ID: stable across reconnects, so it resumes its identity.
 	ExecutorId string `protobuf:"bytes,2,opt,name=executor_id,json=executorId,proto3" json:"executor_id,omitempty"`
@@ -1042,8 +1042,8 @@ func (x *ConnectExecutorRequest_Register) ClearExecutor() {
 type ConnectExecutorRequest_Register_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The organization the executor serves.
-	// Format: organizations/{organization}
+	// The user the executor runs agents for.
+	// Format: organizations/{organization}/users/{user}
 	Parent string
 	// The executor's ID: stable across reconnects, so it resumes its identity.
 	ExecutorId string
@@ -1389,10 +1389,10 @@ const file_malonaz_ai_agent_agent_service_v1_executor_proto_rawDesc = "" +
 	"0malonaz/ai/agent/agent_service/v1/executor.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1fmalonaz/ai/agent/v1/event.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto\"U\n" +
 	"\x12GetExecutorRequest\x12?\n" +
 	"\x04name\x18\x01 \x01(\tB+\xe0A\x02\xfaA\x1f\n" +
-	"\x1dagent.ai.malonaz.com/Executor\xbaH\x03\xc8\x01\x01R\x04name\"\x9b\x02\n" +
-	"\x14ListExecutorsRequest\x12G\n" +
-	"\x06parent\x18\x01 \x01(\tB/\xe0A\x02\xfaA#\n" +
-	"!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
+	"\x1dagent.ai.malonaz.com/Executor\xbaH\x03\xc8\x01\x01R\x04name\"\x93\x02\n" +
+	"\x14ListExecutorsRequest\x12?\n" +
+	"\x06parent\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
+	"\x19agent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
 	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x19\n" +
 	"\border_by\x18\x03 \x01(\tR\aorderBy\x12&\n" +
 	"\tpage_size\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1d\n" +
@@ -1403,16 +1403,16 @@ const file_malonaz_ai_agent_agent_service_v1_executor_proto_rawDesc = "" +
 	"\x01*\"|\n" +
 	"\x15ListExecutorsResponse\x12;\n" +
 	"\texecutors\x18\x01 \x03(\v2\x1d.malonaz.ai.agent.v1.ExecutorR\texecutors\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x91\a\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x89\a\n" +
 	"\x16ConnectExecutorRequest\x12`\n" +
 	"\bregister\x18\x01 \x01(\v2B.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.RegisterH\x00R\bregister\x12c\n" +
 	"\theartbeat\x18\x02 \x01(\v2C.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.HeartbeatH\x00R\theartbeat\x12Z\n" +
 	"\x06report\x18\x03 \x01(\v2@.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReportH\x00R\x06report\x122\n" +
 	"\x05delta\x18\x04 \x01(\v2\x1a.malonaz.ai.agent.v1.DeltaH\x00R\x05delta\x12]\n" +
-	"\arelease\x18\x05 \x01(\v2A.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReleaseH\x00R\arelease\x1a\xd8\x01\n" +
-	"\bRegister\x12D\n" +
-	"\x06parent\x18\x01 \x01(\tB,\xfaA#\n" +
-	"!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01R\x06parent\x12C\n" +
+	"\arelease\x18\x05 \x01(\v2A.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReleaseH\x00R\arelease\x1a\xd0\x01\n" +
+	"\bRegister\x12<\n" +
+	"\x06parent\x18\x01 \x01(\tB$\xfaA\x1b\n" +
+	"\x19agent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12C\n" +
 	"\vexecutor_id\x18\x02 \x01(\tB\"\xbaH\x1fr\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\n" +
 	"executorId\x12A\n" +
 	"\bexecutor\x18\x03 \x01(\v2\x1d.malonaz.ai.agent.v1.ExecutorB\x06\xbaH\x03\xc8\x01\x01R\bexecutor\x1a\v\n" +

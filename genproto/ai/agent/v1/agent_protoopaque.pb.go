@@ -490,13 +490,13 @@ type Agent_builder struct {
 	// The chat holding the agent's transcript, created with the agent.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Chat string
-	// The executor the agent must run on. Empty lets placement pick one: the
-	// parent agent's executor first, then any online executor matching the
-	// spec's selector with spare capacity.
-	// Format: organizations/{organization}/executors/{executor}
+	// The executor the agent must run on, one of its user's. Empty lets
+	// placement pick one of its user's: the parent agent's executor first, then
+	// any online executor matching the spec's selector with spare capacity.
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor string
 	// The executor currently holding the agent's lease. Empty while pending.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	LeasedExecutor string
 	// Where the agent is in its lifecycle.
 	State Agent_State

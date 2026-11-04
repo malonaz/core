@@ -738,7 +738,7 @@ type Event_LeaseChanged_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The executor now holding the lease. Empty when released.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor string
 }
 
