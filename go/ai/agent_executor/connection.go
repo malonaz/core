@@ -13,17 +13,24 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/codes"
 
 	pb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 // errConnectionClosed fails the sends of a connection that ended or is closing.
 var errConnectionClosed = errors.New("connection closed")
 
+// permanentRegistrationCodes refuse a registration for good: no retry fixes the
+// executor's configuration or credentials.
+var permanentRegistrationCodes = []codes.Code{codes.InvalidArgument, codes.PermissionDenied, codes.Unauthenticated, codes.FailedPrecondition}
+
 // Run connects to the AgentService and runs the agents it leases, reconnecting
 // with backoff whenever the connection is lost. It returns nil once ctx is
-// done, after the running turns had a chance to report their cancellation.
+// done, after the running turns had a chance to report their cancellation, and
+// an error if the service refuses the registration for good.
 func (e *Executor) Run(ctx context.Context) error {
 	if e.opts.HeartbeatInterval <= 0 {
 		return fmt.Errorf("heartbeat interval must be positive, got %s", e.opts.HeartbeatInterval)
@@ -40,6 +47,9 @@ func (e *Executor) Run(ctx context.Context) error {
 		registered, err := e.connect(ctx)
 		if ctx.Err() != nil {
 			return nil
+		}
+		if !registered && status.HasCode(err, permanentRegistrationCodes...) {
+			return fmt.Errorf("registration refused: %w", err)
 		}
 		// Only failures in a row back off further.
 		if registered {

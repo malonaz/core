@@ -472,6 +472,42 @@ func TestRunReconnectsWhenNotRegistered(t *testing.T) {
 	require.Equal(t, connectionTestExecutorID, register.GetExecutorId())
 }
 
+func TestRunRegistrationErrors(t *testing.T) {
+	for _, test := range []struct {
+		code  codes.Code
+		fatal bool
+	}{
+		{code: codes.InvalidArgument, fatal: true},
+		{code: codes.PermissionDenied, fatal: true},
+		{code: codes.Unauthenticated, fatal: true},
+		{code: codes.FailedPrecondition, fatal: true},
+		{code: codes.Unavailable},
+		{code: codes.DeadlineExceeded},
+		{code: codes.ResourceExhausted},
+		{code: codes.Aborted},
+		{code: codes.Internal},
+	} {
+		t.Run(test.code.String(), func(t *testing.T) {
+			h := startExecutor(t, nil)
+			stream := h.awaitStream(t)
+			stream.await(t, func(request *pb.ConnectExecutorRequest) bool { return request.GetRegister() != nil })
+			stream.recvErrors <- status.Errorf(test.code, "refused").Err()
+			if !test.fatal {
+				_, register := h.accept(t)
+				require.Equal(t, connectionTestExecutorID, register.GetExecutorId())
+				return
+			}
+			select {
+			case err := <-h.runError:
+				h.runError <- err
+				require.True(t, status.HasCode(err, test.code), "got %v", err)
+			case <-time.After(connectionTestTimeout):
+				t.Fatal("Run did not return")
+			}
+		})
+	}
+}
+
 func TestRunReadoptsAgentAfterReconnect(t *testing.T) {
 	h := startExecutor(t, nil)
 	stream, _ := h.accept(t)
