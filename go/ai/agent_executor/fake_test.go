@@ -280,7 +280,7 @@ func (c *fakeAgentServiceClient) UpdateAgent(ctx context.Context, request *pb.Up
 // newTestAgent returns an actor for a leased agent, and what it sends up.
 func newTestAgent(t *testing.T, aiServiceClient *fakeAiServiceClient, spec *agentpb.AgentSpec, tools ...Tool) (*agent, *fakeConnection) {
 	t.Helper()
-	executor, err := New(&Opts{}, newFakeAgentServiceClient(), aiServiceClient, tools...)
+	executor, err := New(&Opts{User: testUser}, newFakeAgentServiceClient(), aiServiceClient, tools...)
 	require.NoError(t, err)
 	leasedAgent := &agentpb.Agent{
 		Name:      testAgent,
