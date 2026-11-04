@@ -43,7 +43,6 @@ service AgentService {
 
   // ===================== Definition Management =====================
 
-
   // Create a definition.
   //
   // See: https://google.aip.dev/133 (Standard methods: Create).
@@ -110,7 +109,6 @@ service AgentService {
   }
 
   // ===================== Agent Management =====================
-
 
   // Create a agent.
   //
@@ -198,7 +196,6 @@ service AgentService {
 
   // ===================== Input Management =====================
 
-
   // Send an agent an input, queued for its next turn. Wakes an idle agent.
   //
   // See: https://google.aip.dev/133 (Standard methods: Create).
@@ -223,7 +220,6 @@ service AgentService {
 
   // ===================== Event Management =====================
 
-
   // List an agent's events.
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
@@ -235,7 +231,6 @@ service AgentService {
   }
 
   // ===================== Executor Management =====================
-
 
   // Get an executor.
   //
