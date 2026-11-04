@@ -13,8 +13,8 @@ import (
 
 // Opts configures an executor.
 type Opts struct {
-	User              string            `long:"user" env:"EXECUTOR_USER" description:"The user the executor runs agents for. Format: organizations/{organization}/users/{user}" required:"true"`
-	ExecutorID        string            `long:"executor-id" env:"EXECUTOR_ID" description:"The executor's ID, stable across restarts." required:"true"`
+	User              string            `long:"user" env:"USER" description:"The user the executor runs agents for. Format: organizations/{organization}/users/{user}" required:"true"`
+	ExecutorID        string            `long:"executor-id" env:"ID" description:"The executor's ID, stable across restarts." required:"true"`
 	DisplayName       string            `long:"display-name" env:"DISPLAY_NAME" description:"A human-readable name for the executor."`
 	Labels            map[string]string `long:"label" env:"LABELS" env-delim:"," description:"A key:value label matched against agents' executor selectors. Repeatable."`
 	MaxAgents         int32             `long:"max-agents" env:"MAX_AGENTS" description:"The most agents the executor runs at once." default:"8"`

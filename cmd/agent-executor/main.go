@@ -25,7 +25,7 @@ var opts struct {
 	Logging *logging.Opts `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	Certs   *certs.Opts   `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
 
-	Executor *agent_executor.Opts `group:"Executor"`
+	Executor *agent_executor.Opts `group:"Executor" env-namespace:"EXECUTOR"`
 	Workdir  string               `long:"workdir" env:"WORKDIR" description:"The directory the coding tools work in. Defaults to the current directory."`
 	// Credentials, e.g. an API key or a bearer token, as the services' authentication expects them.
 	Metadata map[string]string `long:"metadata" env:"METADATA" env-delim:"," description:"A key:value gRPC metadata pair sent with every call to both services, e.g. x-api-key:{key}. Repeatable."`
