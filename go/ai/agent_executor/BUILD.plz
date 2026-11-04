@@ -1,0 +1,17 @@
+go_library(
+    name = "agent_executor",
+    srcs = [
+        "agent.go",
+        "agent_tools.go",
+        "executor.go",
+        "tool.go",
+        "turn.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/ai/agent/agent_service/v1",
+        "//malonaz/ai/agent/v1",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+    ],
+)
