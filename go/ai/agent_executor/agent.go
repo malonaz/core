@@ -29,6 +29,10 @@ type agent struct {
 	inputNameSet map[string]struct{}
 	// cancelTurn cancels the running turn. Nil while idle.
 	cancelTurn context.CancelFunc
+
+	// instructionsEnsured is set once the lease's first turn persisted the
+	// system message. Touched by the run loop only.
+	instructionsEnsured bool
 }
 
 func newAgent(ctx context.Context, executor *Executor, leasedAgent *agentpb.Agent, send func(context.Context, *pb.ConnectExecutorRequest) error) *agent {
