@@ -17,6 +17,7 @@ go_library(
     srcs = [
         "broker.go",
         "runtime.go",
+        "stream.go",
         "txn.go",
         ":service.tmpl.go",
     ],
@@ -31,6 +32,7 @@ go_library(
         "//malonaz/ai/agent/v1",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
@@ -39,8 +41,10 @@ go_library(
 go_test(
     name = "test",
     srcs = [
+        "broker_test.go",
         "service_test.go",
         "store_test.go",
+        "stream_test.go",
     ],
     data = ["//go/ai/agent/migrations"],
     deps = [
@@ -48,10 +52,12 @@ go_test(
         "//go/ai/agent/model",
         "//go/ai/agent/store",
         "//go/aip",
+        "//go/grpc/grpcinproc",
         "//go/grpc/status",
         "//go/postgres",
         "//go/postgres/test_server",
         "//go/uuid",
+        "//malonaz/ai/agent/agent_service/v1",
         "//malonaz/ai/agent/v1",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
