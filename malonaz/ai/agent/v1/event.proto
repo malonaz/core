@@ -3,11 +3,11 @@ syntax = "proto3";
 package malonaz.ai.agent.v1;
 
 import "buf/validate/validate.proto";
-import "malonaz/ai/agent/v1/agent.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
+import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
