@@ -1,0 +1,15 @@
+go_binary(
+    name = "agent-executor",
+    srcs = ["main.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/agent_executor",
+        "//go/ai/agent_executor/workspace",
+        "//go/certs",
+        "//go/flags",
+        "//go/grpc",
+        "//go/logging",
+        "//malonaz/ai/agent/agent_service/v1",
+        "//malonaz/ai/ai_service/v1",
+    ],
+)
