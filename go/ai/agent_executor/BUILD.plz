@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "agent.go",
         "agent_tools.go",
+        "connection.go",
         "executor.go",
         "tool.go",
         "turn.go",
@@ -20,6 +21,7 @@ go_library(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
+        "//third_party/go:github.com__cenkalti__backoff__v4",
         "//third_party/go:golang.org__x__sync__errgroup",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
@@ -32,6 +34,7 @@ go_test(
     name = "test",
     srcs = [
         "agent_tools_test.go",
+        "connection_test.go",
         "fake_test.go",
         "turn_test.go",
     ],
