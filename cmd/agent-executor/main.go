@@ -101,5 +101,8 @@ func run() error {
 		return fmt.Errorf("creating executor: %w", err)
 	}
 	slog.InfoContext(ctx, "running executor", "user", opts.Executor.User, "executor_id", opts.Executor.ExecutorID, "workdir", workdir)
-	return executor.Run(ctx)
+	if err := executor.Run(ctx); err != nil {
+		return fmt.Errorf("running executor: %w", err)
+	}
+	return nil
 }
