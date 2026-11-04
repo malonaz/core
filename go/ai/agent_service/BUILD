@@ -1,0 +1,64 @@
+subinclude("//build_defs/codegen/onyx:build_defs")
+
+onyx_manifest(
+    name = "manifest",
+    visibility = ["PUBLIC"],
+    deps = ["//malonaz/ai/ai_service/v1"],
+)
+
+onyx_service_src(
+    name = "service.tmpl.go",
+    labels = ["copy_generated_code::"],
+    manifest = ":manifest",
+)
+
+go_library(
+    name = "agent_service",
+    srcs = [
+        "broker.go",
+        "runtime.go",
+        "txn.go",
+        ":service.tmpl.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/ai/agent/agent_service/rpc",
+        "//go/ai/agent/model",
+        "//go/ai/agent/store",
+        "//go/aip",
+        "//go/grpc/status",
+        "//malonaz/ai/agent/agent_service/v1",
+        "//malonaz/ai/agent/v1",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = [
+        "service_test.go",
+        "store_test.go",
+    ],
+    data = ["//go/ai/agent/migrations"],
+    deps = [
+        ":agent_service",
+        "//go/ai/agent/model",
+        "//go/ai/agent/store",
+        "//go/aip",
+        "//go/grpc/status",
+        "//go/postgres",
+        "//go/postgres/test_server",
+        "//go/uuid",
+        "//malonaz/ai/agent/v1",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
