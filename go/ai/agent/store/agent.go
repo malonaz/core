@@ -49,7 +49,7 @@ func (t *Tx) InsertAgent(ctx context.Context, requestID string, agent *model.Age
 
 // SaveAgent rewrites every non-key column of an agent.
 func (t *Tx) SaveAgent(ctx context.Context, agent *model.Agent) error {
-	commandTag, err := t.tx.Exec(ctx, agentSaveQuery.sql, postgres.GetParams(*agent, agentSaveQuery.columns...)...)
+	commandTag, err := t.tx.Exec(ctx, agentSaveQuery.sql, postgres.GetParams(agent, agentSaveQuery.columns...)...)
 	if err != nil {
 		return fmt.Errorf("saving agent: %w", err)
 	}
@@ -107,7 +107,7 @@ func (s *Store) collectAgents(ctx context.Context, query string, params ...any) 
 // that request inserted, a conflict on the primary key alone is alreadyExists.
 func insertOnce[T any](ctx context.Context, tx pgx.Tx, table string, columns []string, row T, requestID string, alreadyExists error) (*T, bool, error) {
 	returning := " RETURNING " + strings.Join(columns, ",")
-	query, params := postgres.InsertQuery("INSERT INTO "+table+" %s VALUES %s ON CONFLICT DO NOTHING", row, columns...)
+	query, params := postgres.InsertQuery("INSERT INTO "+table+" %s VALUES %s ON CONFLICT DO NOTHING", &row, columns...)
 	rows, err := tx.Query(ctx, query+returning, params...)
 	if err != nil {
 		return nil, false, fmt.Errorf("inserting %s: %w", table, err)
