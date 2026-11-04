@@ -568,7 +568,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x91\x0f\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x87\x0f\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -618,9 +618,9 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x18TURN_OUTCOME_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TURN_OUTCOME_SUCCEEDED\x10\x01\x12\x17\n" +
 	"\x13TURN_OUTCOME_FAILED\x10\x02\x12\x1a\n" +
-	"\x16TURN_OUTCOME_CANCELLED\x10\x03:\x86\x02\xeaAe\n" +
-	"\x1aagent.ai.malonaz.com/Agent\x128organizations/{organization}/users/{user}/agents/{agent}*\x06agents2\x05agent\xbaHo\x1am\n" +
-	"\x18agent.spec_or_definition\x12%one of definition or spec must be set\x1a*(this.definition == '') != !has(this.spec)Ҧ\x04\x00\x82\xf6,$a8d40bb6-3f99-4d02-95ff-71b5be47b1e7B\x84\x01\xeaAS\n" +
+	"\x16TURN_OUTCOME_CANCELLED\x10\x03:\xfc\x01\xeaAe\n" +
+	"\x1aagent.ai.malonaz.com/Agent\x128organizations/{organization}/users/{user}/agents/{agent}*\x06agents2\x05agent\xbaHe\x1ac\n" +
+	"\x18agent.spec_or_definition\x12\x1edefinition or spec must be set\x1a'this.definition != '' || has(this.spec)Ҧ\x04\x00\x82\xf6,$a8d40bb6-3f99-4d02-95ff-71b5be47b1e7B\x84\x01\xeaAS\n" +
 	"\x19agent.ai.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
