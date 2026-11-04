@@ -22,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/executor.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_executor: GenFile = /*@__PURE__*/
-  fileDesc("CjBtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvZXhlY3V0b3IucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSJPChJHZXRFeGVjdXRvclJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvcrpIA8gBASLtAQoUTGlzdEV4ZWN1dG9yc1JlcXVlc3QSPwoGcGFyZW50GAEgASgJQi/gQQL6QSMKIWFnZW50LmFpLm1hbG9uYXouY29tL09yZ2FuaXphdGlvbrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHAoJcGFnZV9zaXplGAQgASgFQgm6SAYaBBhkKAASEgoKcGFnZV90b2tlbhgFIAEoCTpAgvMtAghkivMtLwoLY3JlYXRlX3RpbWUKDmhlYXJ0YmVhdF90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJiChVMaXN0RXhlY3V0b3JzUmVzcG9uc2USMAoJZXhlY3V0b3JzGAEgAygLMh0ubWFsb25hei5haS5hZ2VudC52MS5FeGVjdXRvchIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkisQYKFkNvbm5lY3RFeGVjdXRvclJlcXVlc3QSVgoIcmVnaXN0ZXIYASABKAsyQi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVxdWVzdC5SZWdpc3RlckgAElgKCWhlYXJ0YmVhdBgCIAEoCzJDLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5Db25uZWN0RXhlY3V0b3JSZXF1ZXN0LkhlYXJ0YmVhdEgAElIKBnJlcG9ydBgDIAEoCzJALm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5Db25uZWN0RXhlY3V0b3JSZXF1ZXN0LlJlcG9ydEgAEisKBWRlbHRhGAQgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5EZWx0YUgAElQKB3JlbGVhc2UYBSABKAsyQS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVxdWVzdC5SZWxlYXNlSAAaugEKCFJlZ2lzdGVyEjwKBnBhcmVudBgBIAEoCUIs+kEjCiFhZ2VudC5haS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb266SAPIAQESNwoLZXhlY3V0b3JfaWQYAiABKAlCIrpIH3IdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiQSNwoIZXhlY3V0b3IYAyABKAsyHS5tYWxvbmF6LmFpLmFnZW50LnYxLkV4ZWN1dG9yQga6SAPIAQEaCwoJSGVhcnRiZWF0GnEKBlJlcG9ydBI0CgVhZ2VudBgBIAEoCUIl+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIxCgVldmVudBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnRCBrpIA8gBARo/CgdSZWxlYXNlEjQKBWFnZW50GAEgASgJQiX6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBQhAKB2NvbnRlbnQSBbpIAggBItgDChdDb25uZWN0RXhlY3V0b3JSZXNwb25zZRIzCgpyZWdpc3RlcmVkGAEgASgLMh0ubWFsb25hei5haS5hZ2VudC52MS5FeGVjdXRvckgAEisKBWxlYXNlGAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEgAEisKBWlucHV0GAMgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5JbnB1dEgAElMKBmNhbmNlbBgEIAEoCzJBLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5Db25uZWN0RXhlY3V0b3JSZXNwb25zZS5DYW5jZWxIABJTCgZyZXZva2UYBSABKAsyQS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVzcG9uc2UuUmV2b2tlSAAaOAoGQ2FuY2VsEi4KBWFnZW50GAEgASgJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50GjgKBlJldm9rZRIuCgVhZ2VudBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudEIQCgdjb250ZW50EgW6SAIIAUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_event, file_malonaz_ai_agent_v1_executor, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CjBtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvZXhlY3V0b3IucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSJPChJHZXRFeGVjdXRvclJlcXVlc3QSOQoEbmFtZRgBIAEoCUIr4EEC+kEfCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvcrpIA8gBASLlAQoUTGlzdEV4ZWN1dG9yc1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEhwKCXBhZ2Vfc2l6ZRgEIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBSABKAk6QILzLQIIZIrzLS8KC2NyZWF0ZV90aW1lCg5oZWFydGJlYXRfdGltZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiYgoVTGlzdEV4ZWN1dG9yc1Jlc3BvbnNlEjAKCWV4ZWN1dG9ycxgBIAMoCzIdLm1hbG9uYXouYWkuYWdlbnQudjEuRXhlY3V0b3ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIqkGChZDb25uZWN0RXhlY3V0b3JSZXF1ZXN0ElYKCHJlZ2lzdGVyGAEgASgLMkIubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNvbm5lY3RFeGVjdXRvclJlcXVlc3QuUmVnaXN0ZXJIABJYCgloZWFydGJlYXQYAiABKAsyQy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVxdWVzdC5IZWFydGJlYXRIABJSCgZyZXBvcnQYAyABKAsyQC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVxdWVzdC5SZXBvcnRIABIrCgVkZWx0YRgEIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuRGVsdGFIABJUCgdyZWxlYXNlGAUgASgLMkEubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNvbm5lY3RFeGVjdXRvclJlcXVlc3QuUmVsZWFzZUgAGrIBCghSZWdpc3RlchI0CgZwYXJlbnQYASABKAlCJPpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARI3CgtleGVjdXRvcl9pZBgCIAEoCUIiukgfch0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJBI3CghleGVjdXRvchgDIAEoCzIdLm1hbG9uYXouYWkuYWdlbnQudjEuRXhlY3V0b3JCBrpIA8gBARoLCglIZWFydGJlYXQacQoGUmVwb3J0EjQKBWFnZW50GAEgASgJQiX6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEjEKBWV2ZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5FdmVudEIGukgDyAEBGj8KB1JlbGVhc2USNAoFYWdlbnQYASABKAlCJfpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQFCEAoHY29udGVudBIFukgCCAEi2AMKF0Nvbm5lY3RFeGVjdXRvclJlc3BvbnNlEjMKCnJlZ2lzdGVyZWQYASABKAsyHS5tYWxvbmF6LmFpLmFnZW50LnYxLkV4ZWN1dG9ySAASKwoFbGVhc2UYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASKwoFaW5wdXQYAyABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLklucHV0SAASUwoGY2FuY2VsGAQgASgLMkEubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNvbm5lY3RFeGVjdXRvclJlc3BvbnNlLkNhbmNlbEgAElMKBnJldm9rZRgFIAEoCzJBLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5Db25uZWN0RXhlY3V0b3JSZXNwb25zZS5SZXZva2VIABo4CgZDYW5jZWwSLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQaOAoGUmV2b2tlEi4KBWFnZW50GAEgASgJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50QhAKB2NvbnRlbnQSBbpIAggBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_event, file_malonaz_ai_agent_v1_executor, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.GetExecutor.
@@ -32,7 +32,7 @@ export const file_malonaz_ai_agent_agent_service_v1_executor: GenFile = /*@__PUR
 export type GetExecutorRequest = Message<"malonaz.ai.agent.agent_service.v1.GetExecutorRequest"> & {
   /**
    * The executor to retrieve.
-   * Format: organizations/{organization}/executors/{executor}
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string name = 1;
    */
@@ -47,7 +47,7 @@ export type GetExecutorRequest = Message<"malonaz.ai.agent.agent_service.v1.GetE
 export type GetExecutorRequestValid = Message<"malonaz.ai.agent.agent_service.v1.GetExecutorRequest"> & {
   /**
    * The executor to retrieve.
-   * Format: organizations/{organization}/executors/{executor}
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string name = 1;
    */
@@ -68,8 +68,8 @@ export const GetExecutorRequestSchema: GenMessage<GetExecutorRequest, {validType
  */
 export type ListExecutorsRequest = Message<"malonaz.ai.agent.agent_service.v1.ListExecutorsRequest"> & {
   /**
-   * The organization owning the executors.
-   * Format: organizations/{organization}
+   * The user owning the executors.
+   * Format: organizations/{organization}/users/{user}
    *
    * @generated from field: string parent = 1;
    */
@@ -111,8 +111,8 @@ export type ListExecutorsRequest = Message<"malonaz.ai.agent.agent_service.v1.Li
  */
 export type ListExecutorsRequestValid = Message<"malonaz.ai.agent.agent_service.v1.ListExecutorsRequest"> & {
   /**
-   * The organization owning the executors.
-   * Format: organizations/{organization}
+   * The user owning the executors.
+   * Format: organizations/{organization}/users/{user}
    *
    * @generated from field: string parent = 1;
    */
@@ -308,8 +308,8 @@ export const ConnectExecutorRequestSchema: GenMessage<ConnectExecutorRequest, {v
  */
 export type ConnectExecutorRequest_Register = Message<"malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.Register"> & {
   /**
-   * The organization the executor serves.
-   * Format: organizations/{organization}
+   * The user the executor runs agents for.
+   * Format: organizations/{organization}/users/{user}
    *
    * @generated from field: string parent = 1;
    */
@@ -337,8 +337,8 @@ export type ConnectExecutorRequest_Register = Message<"malonaz.ai.agent.agent_se
  */
 export type ConnectExecutorRequest_RegisterValid = Message<"malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.Register"> & {
   /**
-   * The organization the executor serves.
-   * Format: organizations/{organization}
+   * The user the executor runs agents for.
+   * Format: organizations/{organization}/users/{user}
    *
    * @generated from field: string parent = 1;
    */

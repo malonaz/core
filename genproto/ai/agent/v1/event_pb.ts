@@ -268,7 +268,7 @@ export const Event_StateChangedSchema: GenMessage<Event_StateChanged, {validType
 export type Event_LeaseChanged = Message<"malonaz.ai.agent.v1.Event.LeaseChanged"> & {
   /**
    * The executor now holding the lease. Empty when released.
-   * Format: organizations/{organization}/executors/{executor}
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string executor = 1;
    */

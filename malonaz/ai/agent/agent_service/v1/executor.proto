@@ -16,7 +16,7 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // Request message for AgentService.GetExecutor.
 message GetExecutorRequest {
   // The executor to retrieve.
-  // Format: organizations/{organization}/executors/{executor}
+  // Format: organizations/{organization}/users/{user}/executors/{executor}
   string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
@@ -38,12 +38,12 @@ message ListExecutorsRequest {
     paths: ["*"]
   };
 
-  // The organization owning the executors.
-  // Format: organizations/{organization}
+  // The user owning the executors.
+  // Format: organizations/{organization}/users/{user}
   string parent = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "agent.ai.malonaz.com/Organization"
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
   ];
 
   // @autogen.
@@ -96,11 +96,11 @@ message ConnectExecutorRequest {
 
   // Register names and describes the executor.
   message Register {
-    // The organization the executor serves.
-    // Format: organizations/{organization}
+    // The user the executor runs agents for.
+    // Format: organizations/{organization}/users/{user}
     string parent = 1 [
       (buf.validate.field).required = true,
-      (google.api.resource_reference).type = "agent.ai.malonaz.com/Organization"
+      (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
     ];
 
     // The executor's ID: stable across reconnects, so it resumes its identity.

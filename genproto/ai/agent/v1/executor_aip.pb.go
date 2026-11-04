@@ -13,12 +13,12 @@ import (
 // ExecutorRnType is the resource type of ExecutorRn.
 const ExecutorRnType = "agent.ai.malonaz.com/Executor"
 
-// NewExecutorRn is the resource named executor under parent, which must follow one of: "organizations/{organization}".
+// NewExecutorRn is the resource named executor under parent, which must follow one of: "organizations/{organization}/users/{user}".
 func NewExecutorRn(parent string, executor string) (*ExecutorRn, error) {
 	switch {
-	case resourcename.Match("organizations/{organization}", parent):
+	case resourcename.Match("organizations/{organization}/users/{user}", parent):
 		n := &ExecutorRn{}
-		if err := resourcename.Sscan(parent, "organizations/{organization}", &n.Organization); err != nil {
+		if err := resourcename.Sscan(parent, "organizations/{organization}/users/{user}", &n.Organization, &n.User); err != nil {
 			return nil, err
 		}
 		n.Executor = executor
@@ -28,11 +28,12 @@ func NewExecutorRn(parent string, executor string) (*ExecutorRn, error) {
 }
 
 // ExecutorRnPattern is the pattern ExecutorRn follows.
-const ExecutorRnPattern = "organizations/{organization}/executors/{executor}"
+const ExecutorRnPattern = "organizations/{organization}/users/{user}/executors/{executor}"
 
-// ExecutorRn is the resource name "organizations/{organization}/executors/{executor}".
+// ExecutorRn is the resource name "organizations/{organization}/users/{user}/executors/{executor}".
 type ExecutorRn struct {
 	Organization string
+	User         string
 	Executor     string
 }
 
@@ -51,9 +52,19 @@ func MatchExecutorRn(name string) bool {
 }
 
 // ExecutorRn returns the agent.ai.malonaz.com/Executor under n.
-func (n *OrganizationRn) ExecutorRn(executor string) *ExecutorRn {
+func (n *OrganizationRn) ExecutorRn(user string, executor string) *ExecutorRn {
 	return &ExecutorRn{
 		Organization: n.Organization,
+		User:         user,
+		Executor:     executor,
+	}
+}
+
+// ExecutorRn returns the agent.ai.malonaz.com/Executor under n.
+func (n *UserRn) ExecutorRn(executor string) *ExecutorRn {
+	return &ExecutorRn{
+		Organization: n.Organization,
+		User:         n.User,
 		Executor:     executor,
 	}
 }
@@ -65,6 +76,12 @@ func (n *ExecutorRn) Validate() error {
 	if strings.IndexByte(n.Organization, '/') != -1 {
 		return fmt.Errorf("organization: contains illegal character '/'")
 	}
+	if n.User == "" {
+		return fmt.Errorf("user: empty")
+	}
+	if strings.IndexByte(n.User, '/') != -1 {
+		return fmt.Errorf("user: contains illegal character '/'")
+	}
 	if n.Executor == "" {
 		return fmt.Errorf("executor: empty")
 	}
@@ -75,11 +92,11 @@ func (n *ExecutorRn) Validate() error {
 }
 
 func (n *ExecutorRn) ContainsWildcard() bool {
-	return n.Organization == aip.Wildcard || n.Executor == aip.Wildcard
+	return n.Organization == aip.Wildcard || n.User == aip.Wildcard || n.Executor == aip.Wildcard
 }
 
 func (n *ExecutorRn) String() string {
-	return resourcename.Sprint(ExecutorRnPattern, n.Organization, n.Executor)
+	return resourcename.Sprint(ExecutorRnPattern, n.Organization, n.User, n.Executor)
 }
 
 // MarshalText implements encoding.TextMarshaler.
@@ -92,7 +109,7 @@ func (n *ExecutorRn) MarshalText() ([]byte, error) {
 
 // UnmarshalString parses and validates name against ExecutorRnPattern.
 func (n *ExecutorRn) UnmarshalString(name string) error {
-	if err := resourcename.Sscan(name, ExecutorRnPattern, &n.Organization, &n.Executor); err != nil {
+	if err := resourcename.Sscan(name, ExecutorRnPattern, &n.Organization, &n.User, &n.Executor); err != nil {
 		return err
 	}
 	return n.Validate()
@@ -110,7 +127,15 @@ func (n *ExecutorRn) Pattern() string { return ExecutorRnPattern }
 func (n *ExecutorRn) ID() string { return n.Executor }
 
 func (n *ExecutorRn) Parent() string {
-	return resourcename.Sprint("organizations/{organization}", n.Organization)
+	return resourcename.Sprint("organizations/{organization}/users/{user}", n.Organization, n.User)
+}
+
+// UserRn returns the agent.ai.malonaz.com/User n is under.
+func (n *ExecutorRn) UserRn() *UserRn {
+	return &UserRn{
+		Organization: n.Organization,
+		User:         n.User,
+	}
 }
 
 // OrganizationRn returns the agent.ai.malonaz.com/Organization n is under.
