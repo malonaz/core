@@ -163,7 +163,7 @@ func (t *txn) send(ctx context.Context, executor string, response *agentservicep
 	if err != nil {
 		return status.Errorf(codes.Internal, "parsing executor name: %v", err).Err()
 	}
-	session, err := t.GetExecutorSession(ctx, executorRn.Organization, executorRn.Executor)
+	session, err := t.GetExecutorSession(ctx, executorRn.Organization, executorRn.User, executorRn.Executor)
 	if err != nil {
 		return status.FromError(err, "getting executor session").Err()
 	}
