@@ -29,7 +29,7 @@ var File_malonaz_ai_agent_agent_service_v1_agent_service_proto protoreflect.File
 
 const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\n" +
-	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a0malonaz/ai/agent/agent_service/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xfe \n" +
+	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a0malonaz/ai/agent/agent_service/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xde \n" +
 	"\fAgentService\x12\xe6\x01\n" +
 	"\x10CreateDefinition\x12:.malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest\x1a\x1f.malonaz.ai.agent.v1.Definition\"u\xdaA\x11parent,definition´-!\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x026:\n" +
@@ -59,9 +59,8 @@ const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"ListAgents\x124.malonaz.ai.agent.agent_service.v1.ListAgentsRequest\x1a5.malonaz.ai.agent.agent_service.v1.ListAgentsResponse\"_\xdaA\x06parent´-\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=organizations/*/users/*}/agents\x90\x02\x01\x12\xa6\x01\n" +
 	"\vCancelAgent\x125.malonaz.ai.agent.agent_service.v1.CancelAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"D\xdaA\x04name\x82\xd3\xe4\x93\x027:\x01*\"2/v1/{name=organizations/*/users/*/agents/*}:cancel\x12\xc4\x01\n" +
-	"\vStreamAgent\x125.malonaz.ai.agent.agent_service.v1.StreamAgentRequest\x1a6.malonaz.ai.agent.agent_service.v1.StreamAgentResponse\"D\xdaA\x04name\x82\xd3\xe4\x93\x024\x122/v1/{name=organizations/*/users/*/agents/*}:stream\x90\x02\x010\x01\x12\xd4\x01\n" +
-	"\vCreateInput\x125.malonaz.ai.agent.agent_service.v1.CreateInputRequest\x1a\x1a.malonaz.ai.agent.v1.Input\"r\xdaA\fparent,input´-\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Input\x82\xd3\xe4\x93\x02=:\x05input\"4/v1/{parent=organizations/*/users/*/agents/*}/inputs\x12\xe3\x01\n" +
+	"\vStreamAgent\x125.malonaz.ai.agent.agent_service.v1.StreamAgentRequest\x1a6.malonaz.ai.agent.agent_service.v1.StreamAgentResponse\"D\xdaA\x04name\x82\xd3\xe4\x93\x024\x122/v1/{name=organizations/*/users/*/agents/*}:stream\x90\x02\x010\x01\x12\xb4\x01\n" +
+	"\vCreateInput\x125.malonaz.ai.agent.agent_service.v1.CreateInputRequest\x1a\x1a.malonaz.ai.agent.v1.Input\"R\xdaA\fparent,input\x82\xd3\xe4\x93\x02=:\x05input\"4/v1/{parent=organizations/*/users/*/agents/*}/inputs\x12\xe3\x01\n" +
 	"\n" +
 	"ListInputs\x124.malonaz.ai.agent.agent_service.v1.ListInputsRequest\x1a5.malonaz.ai.agent.agent_service.v1.ListInputsResponse\"h\xdaA\x06parent´-\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Input\x82\xd3\xe4\x93\x026\x124/v1/{parent=organizations/*/users/*/agents/*}/inputs\x90\x02\x01\x12\xc3\x01\n" +

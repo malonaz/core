@@ -205,7 +205,6 @@ service AgentService {
       body: "input"
     };
     option (google.api.method_signature) = "parent,input";
-    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Input";
   }
 
   // List an agent's inputs.
