@@ -32,7 +32,7 @@ from malonaz.ai.agent.v1 import input_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0malonaz/ai/agent/agent_service/v1/executor.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1fmalonaz/ai/agent/v1/event.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto\"O\n\x12GetExecutorRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1d\x61gent.ai.malonaz.com/Executor\xbaH\x03\xc8\x01\x01\"\xed\x01\n\x14ListExecutorsRequest\x12?\n\x06parent\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1c\n\tpage_size\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:@\x82\xf3-\x02\x08\x64\x8a\xf3-/\n\x0b\x63reate_time\n\x0eheartbeat_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"b\n\x15ListExecutorsResponse\x12\x30\n\texecutors\x18\x01 \x03(\x0b\x32\x1d.malonaz.ai.agent.v1.Executor\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xb1\x06\n\x16\x43onnectExecutorRequest\x12V\n\x08register\x18\x01 \x01(\x0b\x32\x42.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.RegisterH\x00\x12X\n\theartbeat\x18\x02 \x01(\x0b\x32\x43.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.HeartbeatH\x00\x12R\n\x06report\x18\x03 \x01(\x0b\x32@.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReportH\x00\x12+\n\x05\x64\x65lta\x18\x04 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.DeltaH\x00\x12T\n\x07release\x18\x05 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReleaseH\x00\x1a\xba\x01\n\x08Register\x12<\n\x06parent\x18\x01 \x01(\tB,\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x37\n\x0b\x65xecutor_id\x18\x02 \x01(\tB\"\xbaH\x1fr\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\x12\x37\n\x08\x65xecutor\x18\x03 \x01(\x0b\x32\x1d.malonaz.ai.agent.v1.ExecutorB\x06\xbaH\x03\xc8\x01\x01\x1a\x0b\n\tHeartbeat\x1aq\n\x06Report\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x31\n\x05\x65vent\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.EventB\x06\xbaH\x03\xc8\x01\x01\x1a?\n\x07Release\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\xd8\x03\n\x17\x43onnectExecutorResponse\x12\x33\n\nregistered\x18\x01 \x01(\x0b\x32\x1d.malonaz.ai.agent.v1.ExecutorH\x00\x12+\n\x05lease\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentH\x00\x12+\n\x05input\x18\x03 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.InputH\x00\x12S\n\x06\x63\x61ncel\x18\x04 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse.CancelH\x00\x12S\n\x06revoke\x18\x05 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse.RevokeH\x00\x1a\x38\n\x06\x43\x61ncel\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x1a\x38\n\x06Revoke\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/AgentB\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0malonaz/ai/agent/agent_service/v1/executor.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1fmalonaz/ai/agent/v1/event.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto\"O\n\x12GetExecutorRequest\x12\x39\n\x04name\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1d\x61gent.ai.malonaz.com/Executor\xbaH\x03\xc8\x01\x01\"\xe5\x01\n\x14ListExecutorsRequest\x12\x37\n\x06parent\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1c\n\tpage_size\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:@\x82\xf3-\x02\x08\x64\x8a\xf3-/\n\x0b\x63reate_time\n\x0eheartbeat_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"b\n\x15ListExecutorsResponse\x12\x30\n\texecutors\x18\x01 \x03(\x0b\x32\x1d.malonaz.ai.agent.v1.Executor\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xa9\x06\n\x16\x43onnectExecutorRequest\x12V\n\x08register\x18\x01 \x01(\x0b\x32\x42.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.RegisterH\x00\x12X\n\theartbeat\x18\x02 \x01(\x0b\x32\x43.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.HeartbeatH\x00\x12R\n\x06report\x18\x03 \x01(\x0b\x32@.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReportH\x00\x12+\n\x05\x64\x65lta\x18\x04 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.DeltaH\x00\x12T\n\x07release\x18\x05 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest.ReleaseH\x00\x1a\xb2\x01\n\x08Register\x12\x34\n\x06parent\x18\x01 \x01(\tB$\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x37\n\x0b\x65xecutor_id\x18\x02 \x01(\tB\"\xbaH\x1fr\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\x12\x37\n\x08\x65xecutor\x18\x03 \x01(\x0b\x32\x1d.malonaz.ai.agent.v1.ExecutorB\x06\xbaH\x03\xc8\x01\x01\x1a\x0b\n\tHeartbeat\x1aq\n\x06Report\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x31\n\x05\x65vent\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.EventB\x06\xbaH\x03\xc8\x01\x01\x1a?\n\x07Release\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x42\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\xd8\x03\n\x17\x43onnectExecutorResponse\x12\x33\n\nregistered\x18\x01 \x01(\x0b\x32\x1d.malonaz.ai.agent.v1.ExecutorH\x00\x12+\n\x05lease\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentH\x00\x12+\n\x05input\x18\x03 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.InputH\x00\x12S\n\x06\x63\x61ncel\x18\x04 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse.CancelH\x00\x12S\n\x06revoke\x18\x05 \x01(\x0b\x32\x41.malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse.RevokeH\x00\x1a\x38\n\x06\x43\x61ncel\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x1a\x38\n\x06Revoke\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/AgentB\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -43,13 +43,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETEXECUTORREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_GETEXECUTORREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\037\n\035agent.ai.malonaz.com/Executor\272H\003\310\001\001'
   _globals['_LISTEXECUTORSREQUEST'].fields_by_name['parent']._loaded_options = None
-  _globals['_LISTEXECUTORSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A#\n!agent.ai.malonaz.com/Organization\272H\003\310\001\001'
+  _globals['_LISTEXECUTORSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\033\n\031agent.ai.malonaz.com/User\272H\003\310\001\001'
   _globals['_LISTEXECUTORSREQUEST'].fields_by_name['page_size']._loaded_options = None
   _globals['_LISTEXECUTORSREQUEST'].fields_by_name['page_size']._serialized_options = b'\272H\006\032\004\030d(\000'
   _globals['_LISTEXECUTORSREQUEST']._loaded_options = None
   _globals['_LISTEXECUTORSREQUEST']._serialized_options = b'\202\363-\002\010d\212\363-/\n\013create_time\n\016heartbeat_time\022\020create_time desc\222\363-\003\n\001*'
   _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['parent']._loaded_options = None
-  _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['parent']._serialized_options = b'\372A#\n!agent.ai.malonaz.com/Organization\272H\003\310\001\001'
+  _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['parent']._serialized_options = b'\372A\033\n\031agent.ai.malonaz.com/User\272H\003\310\001\001'
   _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['executor_id']._loaded_options = None
   _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['executor_id']._serialized_options = b'\272H\037r\035\020\001\030?2\027^[a-z0-9](-?[a-z0-9])*$'
   _globals['_CONNECTEXECUTORREQUEST_REGISTER'].fields_by_name['executor']._loaded_options = None
@@ -71,23 +71,23 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETEXECUTORREQUEST']._serialized_start=345
   _globals['_GETEXECUTORREQUEST']._serialized_end=424
   _globals['_LISTEXECUTORSREQUEST']._serialized_start=427
-  _globals['_LISTEXECUTORSREQUEST']._serialized_end=664
-  _globals['_LISTEXECUTORSRESPONSE']._serialized_start=666
-  _globals['_LISTEXECUTORSRESPONSE']._serialized_end=764
-  _globals['_CONNECTEXECUTORREQUEST']._serialized_start=767
-  _globals['_CONNECTEXECUTORREQUEST']._serialized_end=1584
-  _globals['_CONNECTEXECUTORREQUEST_REGISTER']._serialized_start=1187
-  _globals['_CONNECTEXECUTORREQUEST_REGISTER']._serialized_end=1373
-  _globals['_CONNECTEXECUTORREQUEST_HEARTBEAT']._serialized_start=1375
-  _globals['_CONNECTEXECUTORREQUEST_HEARTBEAT']._serialized_end=1386
-  _globals['_CONNECTEXECUTORREQUEST_REPORT']._serialized_start=1388
-  _globals['_CONNECTEXECUTORREQUEST_REPORT']._serialized_end=1501
-  _globals['_CONNECTEXECUTORREQUEST_RELEASE']._serialized_start=1503
-  _globals['_CONNECTEXECUTORREQUEST_RELEASE']._serialized_end=1566
-  _globals['_CONNECTEXECUTORRESPONSE']._serialized_start=1587
-  _globals['_CONNECTEXECUTORRESPONSE']._serialized_end=2059
-  _globals['_CONNECTEXECUTORRESPONSE_CANCEL']._serialized_start=1927
-  _globals['_CONNECTEXECUTORRESPONSE_CANCEL']._serialized_end=1983
-  _globals['_CONNECTEXECUTORRESPONSE_REVOKE']._serialized_start=1985
-  _globals['_CONNECTEXECUTORRESPONSE_REVOKE']._serialized_end=2041
+  _globals['_LISTEXECUTORSREQUEST']._serialized_end=656
+  _globals['_LISTEXECUTORSRESPONSE']._serialized_start=658
+  _globals['_LISTEXECUTORSRESPONSE']._serialized_end=756
+  _globals['_CONNECTEXECUTORREQUEST']._serialized_start=759
+  _globals['_CONNECTEXECUTORREQUEST']._serialized_end=1568
+  _globals['_CONNECTEXECUTORREQUEST_REGISTER']._serialized_start=1179
+  _globals['_CONNECTEXECUTORREQUEST_REGISTER']._serialized_end=1357
+  _globals['_CONNECTEXECUTORREQUEST_HEARTBEAT']._serialized_start=1359
+  _globals['_CONNECTEXECUTORREQUEST_HEARTBEAT']._serialized_end=1370
+  _globals['_CONNECTEXECUTORREQUEST_REPORT']._serialized_start=1372
+  _globals['_CONNECTEXECUTORREQUEST_REPORT']._serialized_end=1485
+  _globals['_CONNECTEXECUTORREQUEST_RELEASE']._serialized_start=1487
+  _globals['_CONNECTEXECUTORREQUEST_RELEASE']._serialized_end=1550
+  _globals['_CONNECTEXECUTORRESPONSE']._serialized_start=1571
+  _globals['_CONNECTEXECUTORRESPONSE']._serialized_end=2043
+  _globals['_CONNECTEXECUTORRESPONSE_CANCEL']._serialized_start=1911
+  _globals['_CONNECTEXECUTORRESPONSE_CANCEL']._serialized_end=1967
+  _globals['_CONNECTEXECUTORRESPONSE_REVOKE']._serialized_start=1969
+  _globals['_CONNECTEXECUTORRESPONSE_REVOKE']._serialized_end=2025
 # @@protoc_insertion_point(module_scope)

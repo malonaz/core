@@ -79,10 +79,12 @@ func (x Executor_State) Number() protoreflect.EnumNumber {
 // compute and the credentials, so the AgentService needs none. Executors are
 // never called: they dial in through ConnectExecutor, which registers them,
 // carries their heartbeats and leases them agents, up to `max_agents` at once.
+// An executor belongs to a user and runs only that user's agents: its tools
+// and credentials are the user's.
 type Executor struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the executor.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The creation timestamp of the executor: its first registration.
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
@@ -302,7 +304,7 @@ type Executor_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The resource name of the executor.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Name string
 	// The creation timestamp of the executor: its first registration.
 	CreateTime *timestamppb.Timestamp
@@ -348,7 +350,7 @@ var File_malonaz_ai_agent_v1_executor_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_executor_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/ai/agent/v1/executor.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x98\b\n" +
+	"\"malonaz/ai/agent/v1/executor.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa5\b\n" +
 	"\bExecutor\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -372,8 +374,8 @@ const file_malonaz_ai_agent_v1_executor_proto_rawDesc = "" +
 	"\x05State\x12\x15\n" +
 	"\x11STATE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fSTATE_ONLINE\x10\x01\x12\x11\n" +
-	"\rSTATE_OFFLINE\x10\x02:\x96\x01\xeaAg\n" +
-	"\x1dagent.ai.malonaz.com/Executor\x121organizations/{organization}/executors/{executor}*\texecutors2\bexecutorҦ\x04\x00\x82\xf6,$ff5f13c0-4122-4b2d-b40a-6757bc495044B.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
+	"\rSTATE_OFFLINE\x10\x02:\xa3\x01\xeaAt\n" +
+	"\x1dagent.ai.malonaz.com/Executor\x12>organizations/{organization}/users/{user}/executors/{executor}*\texecutors2\bexecutorҦ\x04\x00\x82\xf6,$ff5f13c0-4122-4b2d-b40a-6757bc495044B.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_executor_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_ai_agent_v1_executor_proto_msgTypes = make([]protoimpl.MessageInfo, 2)

@@ -60,8 +60,8 @@ const (
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 //   - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
-//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running agents' turns.
-//     Format: organizations/{organization}/executors/{executor}
+//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
+//     Format: organizations/{organization}/users/{user}/executors/{executor}
 //
 // # Messaging
 //
@@ -390,8 +390,8 @@ type AgentService_ConnectExecutorClient = grpc.BidiStreamingClient[ConnectExecut
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 //   - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
-//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running agents' turns.
-//     Format: organizations/{organization}/executors/{executor}
+//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
+//     Format: organizations/{organization}/users/{user}/executors/{executor}
 //
 // # Messaging
 //

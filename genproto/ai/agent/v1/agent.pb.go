@@ -175,13 +175,13 @@ type Agent struct {
 	// The chat holding the agent's transcript, created with the agent.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Chat string `protobuf:"bytes,13,opt,name=chat,proto3" json:"chat,omitempty"`
-	// The executor the agent must run on. Empty lets placement pick one: the
-	// parent agent's executor first, then any online executor matching the
-	// spec's selector with spare capacity.
-	// Format: organizations/{organization}/executors/{executor}
+	// The executor the agent must run on, one of its user's. Empty lets
+	// placement pick one of its user's: the parent agent's executor first, then
+	// any online executor matching the spec's selector with spare capacity.
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor string `protobuf:"bytes,14,opt,name=executor,proto3" json:"executor,omitempty"`
 	// The executor currently holding the agent's lease. Empty while pending.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	LeasedExecutor string `protobuf:"bytes,15,opt,name=leased_executor,json=leasedExecutor,proto3" json:"leased_executor,omitempty"`
 	// Where the agent is in its lifecycle.
 	State Agent_State `protobuf:"varint,16,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State" json:"state,omitempty"`
@@ -520,13 +520,13 @@ type Agent_builder struct {
 	// The chat holding the agent's transcript, created with the agent.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Chat string
-	// The executor the agent must run on. Empty lets placement pick one: the
-	// parent agent's executor first, then any online executor matching the
-	// spec's selector with spare capacity.
-	// Format: organizations/{organization}/executors/{executor}
+	// The executor the agent must run on, one of its user's. Empty lets
+	// placement pick one of its user's: the parent agent's executor first, then
+	// any online executor matching the spec's selector with spare capacity.
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor string
 	// The executor currently holding the agent's lease. Empty while pending.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	LeasedExecutor string
 	// Where the agent is in its lifecycle.
 	State Agent_State

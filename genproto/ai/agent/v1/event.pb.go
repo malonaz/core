@@ -721,7 +721,7 @@ func (b0 Event_StateChanged_builder) Build() *Event_StateChanged {
 type Event_LeaseChanged struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The executor now holding the lease. Empty when released.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor      string `protobuf:"bytes,1,opt,name=executor,proto3" json:"executor,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -767,7 +767,7 @@ type Event_LeaseChanged_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The executor now holding the lease. Empty when released.
-	// Format: organizations/{organization}/executors/{executor}
+	// Format: organizations/{organization}/users/{user}/executors/{executor}
 	Executor string
 }
 

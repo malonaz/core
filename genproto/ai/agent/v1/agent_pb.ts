@@ -135,10 +135,10 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   chat: string;
 
   /**
-   * The executor the agent must run on. Empty lets placement pick one: the
-   * parent agent's executor first, then any online executor matching the
-   * spec's selector with spare capacity.
-   * Format: organizations/{organization}/executors/{executor}
+   * The executor the agent must run on, one of its user's. Empty lets
+   * placement pick one of its user's: the parent agent's executor first, then
+   * any online executor matching the spec's selector with spare capacity.
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string executor = 14;
    */
@@ -146,7 +146,7 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
 
   /**
    * The executor currently holding the agent's lease. Empty while pending.
-   * Format: organizations/{organization}/executors/{executor}
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string leased_executor = 15;
    */
@@ -293,10 +293,10 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   chat: string;
 
   /**
-   * The executor the agent must run on. Empty lets placement pick one: the
-   * parent agent's executor first, then any online executor matching the
-   * spec's selector with spare capacity.
-   * Format: organizations/{organization}/executors/{executor}
+   * The executor the agent must run on, one of its user's. Empty lets
+   * placement pick one of its user's: the parent agent's executor first, then
+   * any online executor matching the spec's selector with spare capacity.
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string executor = 14;
    */
@@ -304,7 +304,7 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
 
   /**
    * The executor currently holding the agent's lease. Empty while pending.
-   * Format: organizations/{organization}/executors/{executor}
+   * Format: organizations/{organization}/users/{user}/executors/{executor}
    *
    * @generated from field: string leased_executor = 15;
    */
