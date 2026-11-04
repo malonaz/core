@@ -838,10 +838,9 @@ func (b0 Event_InputQueued_builder) Build() *Event_InputQueued {
 
 // TurnStarted records the start of a turn.
 type Event_TurnStarted struct {
-	state             protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Inputs []string               `protobuf:"bytes,1,rep,name=inputs,proto3"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Event_TurnStarted) Reset() {
@@ -869,30 +868,15 @@ func (x *Event_TurnStarted) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Event_TurnStarted) GetInputs() []string {
-	if x != nil {
-		return x.xxx_hidden_Inputs
-	}
-	return nil
-}
-
-func (x *Event_TurnStarted) SetInputs(v []string) {
-	x.xxx_hidden_Inputs = v
-}
-
 type Event_TurnStarted_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The inputs the turn consumed.
-	// Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
-	Inputs []string
 }
 
 func (b0 Event_TurnStarted_builder) Build() *Event_TurnStarted {
 	m0 := &Event_TurnStarted{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Inputs = b.Inputs
 	return m0
 }
 
@@ -900,6 +884,7 @@ func (b0 Event_TurnStarted_builder) Build() *Event_TurnStarted {
 type Event_MessageCreated struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Message *v1.Message            `protobuf:"bytes,1,opt,name=message,proto3"`
+	xxx_hidden_Inputs  []string               `protobuf:"bytes,2,rep,name=inputs,proto3"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -936,8 +921,19 @@ func (x *Event_MessageCreated) GetMessage() *v1.Message {
 	return nil
 }
 
+func (x *Event_MessageCreated) GetInputs() []string {
+	if x != nil {
+		return x.xxx_hidden_Inputs
+	}
+	return nil
+}
+
 func (x *Event_MessageCreated) SetMessage(v *v1.Message) {
 	x.xxx_hidden_Message = v
+}
+
+func (x *Event_MessageCreated) SetInputs(v []string) {
+	x.xxx_hidden_Inputs = v
 }
 
 func (x *Event_MessageCreated) HasMessage() bool {
@@ -956,6 +952,11 @@ type Event_MessageCreated_builder struct {
 
 	// The persisted message, with its resource name.
 	Message *v1.Message
+	// The inputs this message delivered, when the executor drained them into
+	// it, at a turn's start or between its tool rounds. The service marks
+	// them consumed.
+	// Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
+	Inputs []string
 }
 
 func (b0 Event_MessageCreated_builder) Build() *Event_MessageCreated {
@@ -963,6 +964,7 @@ func (b0 Event_MessageCreated_builder) Build() *Event_MessageCreated {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Message = b.Message
+	x.xxx_hidden_Inputs = b.Inputs
 	return m0
 }
 
@@ -1174,7 +1176,7 @@ var File_malonaz_ai_agent_v1_event_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_event_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xdd\r\n" +
+	"\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xde\r\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1199,12 +1201,12 @@ const file_malonaz_ai_agent_v1_event_proto_rawDesc = "" +
 	"\vInputQueued\x125\n" +
 	"\x05input\x18\x01 \x01(\tB\x1f\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/InputR\x05input\x128\n" +
-	"\amessage\x18\x02 \x01(\v2\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01R\amessage\x1aF\n" +
-	"\vTurnStarted\x127\n" +
-	"\x06inputs\x18\x01 \x03(\tB\x1f\xfaA\x1c\n" +
-	"\x1aagent.ai.malonaz.com/InputR\x06inputs\x1aJ\n" +
+	"\amessage\x18\x02 \x01(\v2\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01R\amessage\x1a\r\n" +
+	"\vTurnStarted\x1a\x83\x01\n" +
 	"\x0eMessageCreated\x128\n" +
-	"\amessage\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01R\amessage\x1a\x85\x01\n" +
+	"\amessage\x18\x01 \x01(\v2\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01R\amessage\x127\n" +
+	"\x06inputs\x18\x02 \x03(\tB\x1f\xfaA\x1c\n" +
+	"\x1aagent.ai.malonaz.com/InputR\x06inputs\x1a\x85\x01\n" +
 	"\tTurnEnded\x12L\n" +
 	"\aoutcome\x18\x01 \x01(\x0e2&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\aoutcome\x12*\n" +

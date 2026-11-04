@@ -2,6 +2,7 @@ filegroup(
     name = "proto",
     srcs = [
         "agent.proto",
+        "annotations.proto",
         "definition.proto",
         "event.proto",
         "executor.proto",
@@ -14,6 +15,7 @@ proto_library(
     name = "v1",
     srcs = [
         "agent.proto",
+        "annotations.proto",
         "definition.proto",
         "event.proto",
         "executor.proto",
