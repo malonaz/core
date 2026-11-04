@@ -5,25 +5,24 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
-import type { Agent_State, Agent_TurnOutcome } from "./agent_pb";
-import { file_malonaz_ai_agent_v1_agent } from "./agent_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Status } from "../../../../google/rpc/status_pb";
 import { file_google_rpc_status } from "../../../../google/rpc/status_pb";
+import type { Agent_State, Agent_TurnOutcome } from "./agent_pb";
+import { file_malonaz_ai_agent_v1_agent } from "./agent_pb";
 import type { Block, BlockValid, Message as Message$1, MessageValid } from "../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../v1/message_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
-import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/agent/v1/event.proto.
  */
 export const file_malonaz_ai_agent_v1_event: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2V2ZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIvULCgVFdmVudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSFQoIc2VxdWVuY2UYAyABKANCA+BBAxJACg1zdGF0ZV9jaGFuZ2VkGAQgASgLMicubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5TdGF0ZUNoYW5nZWRIABJACg1sZWFzZV9jaGFuZ2VkGAUgASgLMicubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5MZWFzZUNoYW5nZWRIABI+CgxpbnB1dF9xdWV1ZWQYBiABKAsyJi5tYWxvbmF6LmFpLmFnZW50LnYxLkV2ZW50LklucHV0UXVldWVkSAASPgoMdHVybl9zdGFydGVkGAcgASgLMiYubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5UdXJuU3RhcnRlZEgAEkQKD21lc3NhZ2VfY3JlYXRlZBgIIAEoCzIpLm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuTWVzc2FnZUNyZWF0ZWRIABI6Cgp0dXJuX2VuZGVkGAkgASgLMiQubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5UdXJuRW5kZWRIABJHChFzdWJfYWdlbnRfY3JlYXRlZBgKIAEoCzIqLm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuU3ViQWdlbnRDcmVhdGVkSAASQgoObGFiZWxzX2NoYW5nZWQYCyABKAsyKC5tYWxvbmF6LmFpLmFnZW50LnYxLkV2ZW50LkxhYmVsc0NoYW5nZWRIABpLCgxTdGF0ZUNoYW5nZWQSOwoFc3RhdGUYASABKA4yIC5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50LlN0YXRlQgq6SAeCAQQQASAAGkQKDExlYXNlQ2hhbmdlZBI0CghleGVjdXRvchgBIAEoCUIi+kEfCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvchpuCgtJbnB1dFF1ZXVlZBIuCgVpbnB1dBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9JbnB1dBIvCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQga6SAPIAQEaPgoLVHVyblN0YXJ0ZWQSLwoGaW5wdXRzGAEgAygJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0lucHV0GkEKDk1lc3NhZ2VDcmVhdGVkEi8KB21lc3NhZ2UYASABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCBrpIA8gBARp0CglUdXJuRW5kZWQSQwoHb3V0Y29tZRgBIAEoDjImLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuVHVybk91dGNvbWVCCrpIB4IBBBABIAASIgoGc3RhdHVzGAIgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMaQQoPU3ViQWdlbnRDcmVhdGVkEi4KBWFnZW50GAEgASgJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50GoQBCg1MYWJlbHNDaGFuZ2VkEkQKBmxhYmVscxgBIAMoCzI0Lm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuTGFiZWxzQ2hhbmdlZC5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOqMB6kF0ChphZ2VudC5haS5tYWxvbmF6LmNvbS9FdmVudBJHb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vYWdlbnRzL3thZ2VudH0vZXZlbnRzL3tldmVudH0qBmV2ZW50czIFZXZlbnTSpgQAgvYsJDNjODhkYmFkLWZlZGYtNDdkZS1hMmI4LWUxOWMyZmQ3MzY1Y0INCgRraW5kEgW6SAIIASJqCgVEZWx0YRI0CgVhZ2VudBgBIAEoCUIl+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIrCgVibG9jaxgCIAEoCzIULm1hbG9uYXouYWkudjEuQmxvY2tCBrpIA8gBAUIuWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MWIGcHJvdG8z", [file_buf_validate_validate, file_malonaz_ai_agent_v1_agent, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2V2ZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIvELCgVFdmVudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSFQoIc2VxdWVuY2UYAyABKANCA+BBAxJACg1zdGF0ZV9jaGFuZ2VkGAQgASgLMicubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5TdGF0ZUNoYW5nZWRIABJACg1sZWFzZV9jaGFuZ2VkGAUgASgLMicubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5MZWFzZUNoYW5nZWRIABI+CgxpbnB1dF9xdWV1ZWQYBiABKAsyJi5tYWxvbmF6LmFpLmFnZW50LnYxLkV2ZW50LklucHV0UXVldWVkSAASPgoMdHVybl9zdGFydGVkGAcgASgLMiYubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5UdXJuU3RhcnRlZEgAEkQKD21lc3NhZ2VfY3JlYXRlZBgIIAEoCzIpLm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuTWVzc2FnZUNyZWF0ZWRIABI6Cgp0dXJuX2VuZGVkGAkgASgLMiQubWFsb25hei5haS5hZ2VudC52MS5FdmVudC5UdXJuRW5kZWRIABJHChFzdWJfYWdlbnRfY3JlYXRlZBgKIAEoCzIqLm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuU3ViQWdlbnRDcmVhdGVkSAASQgoObGFiZWxzX2NoYW5nZWQYCyABKAsyKC5tYWxvbmF6LmFpLmFnZW50LnYxLkV2ZW50LkxhYmVsc0NoYW5nZWRIABpLCgxTdGF0ZUNoYW5nZWQSOwoFc3RhdGUYASABKA4yIC5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50LlN0YXRlQgq6SAeCAQQQASAAGkQKDExlYXNlQ2hhbmdlZBI0CghleGVjdXRvchgBIAEoCUIi+kEfCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvchpuCgtJbnB1dFF1ZXVlZBIuCgVpbnB1dBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9JbnB1dBIvCgdtZXNzYWdlGAIgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlQga6SAPIAQEaPgoLVHVyblN0YXJ0ZWQSLwoGaW5wdXRzGAEgAygJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0lucHV0GkEKDk1lc3NhZ2VDcmVhdGVkEi8KB21lc3NhZ2UYASABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCBrpIA8gBARp0CglUdXJuRW5kZWQSQwoHb3V0Y29tZRgBIAEoDjImLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuVHVybk91dGNvbWVCCrpIB4IBBBABIAASIgoGc3RhdHVzGAIgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMaQQoPU3ViQWdlbnRDcmVhdGVkEi4KBWFnZW50GAEgASgJQh/6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50GoQBCg1MYWJlbHNDaGFuZ2VkEkQKBmxhYmVscxgBIAMoCzI0Lm1hbG9uYXouYWkuYWdlbnQudjEuRXZlbnQuTGFiZWxzQ2hhbmdlZC5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOp8B6kF0ChphZ2VudC5haS5tYWxvbmF6LmNvbS9FdmVudBJHb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vYWdlbnRzL3thZ2VudH0vZXZlbnRzL3tldmVudH0qBmV2ZW50czIFZXZlbnSC9iwkM2M4OGRiYWQtZmVkZi00N2RlLWEyYjgtZTE5YzJmZDczNjVjQg0KBGtpbmQSBbpIAggBImoKBURlbHRhEjQKBWFnZW50GAEgASgJQiX6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEisKBWJsb2NrGAIgASgLMhQubWFsb25hei5haS52MS5CbG9ja0IGukgDyAEBQi5aLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * An Event is one entry in an agent's append-only log: everything a client
@@ -34,7 +33,7 @@ export const file_malonaz_ai_agent_v1_event: GenFile = /*@__PURE__*/
  */
 export type Event = Message<"malonaz.ai.agent.v1.Event"> & {
   /**
-   * The resource name of the event.
+   * The resource name of the event, its ID being its sequence.
    * Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
    *
    * @generated from field: string name = 1;
@@ -137,7 +136,7 @@ export type Event = Message<"malonaz.ai.agent.v1.Event"> & {
  */
 export type EventValid = Message<"malonaz.ai.agent.v1.Event"> & {
   /**
-   * The resource name of the event.
+   * The resource name of the event, its ID being its sequence.
    * Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
    *
    * @generated from field: string name = 1;

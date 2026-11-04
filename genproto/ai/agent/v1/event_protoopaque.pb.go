@@ -12,7 +12,6 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
-	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -409,7 +408,7 @@ func (x *Event) WhichKind() case_Event_Kind {
 type Event_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The resource name of the event.
+	// The resource name of the event, its ID being its sequence.
 	// Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
 	Name string
 	// The creation timestamp of the event.
@@ -1175,7 +1174,7 @@ var File_malonaz_ai_agent_v1_event_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_event_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe1\r\n" +
+	"\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xdd\r\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1217,8 +1216,8 @@ const file_malonaz_ai_agent_v1_event_proto_rawDesc = "" +
 	"\x06labels\x18\x01 \x03(\v24.malonaz.ai.agent.v1.Event.LabelsChanged.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa3\x01\xeaAt\n" +
-	"\x1aagent.ai.malonaz.com/Event\x12Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\x06events2\x05eventҦ\x04\x00\x82\xf6,$3c88dbad-fedf-47de-a2b8-e19c2fd7365cB\r\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x9f\x01\xeaAt\n" +
+	"\x1aagent.ai.malonaz.com/Event\x12Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\x06events2\x05event\x82\xf6,$3c88dbad-fedf-47de-a2b8-e19c2fd7365cB\r\n" +
 	"\x04kind\x12\x05\xbaH\x02\b\x01\"x\n" +
 	"\x05Delta\x12;\n" +
 	"\x05agent\x18\x01 \x01(\tB%\xfaA\x1c\n" +

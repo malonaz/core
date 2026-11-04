@@ -538,7 +538,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x91\x0f\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x91\x0f\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
