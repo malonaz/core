@@ -1,0 +1,14 @@
+name: agent-service
+target: //go/ai/agent_service
+codegens:
+  - rpc:
+      name: agent-service
+      store: agent
+      target: //gengo/ai/agent/agent_service/rpc
+dependencies:
+  - postgres_db_client:
+      name: agent
+      target: //gengo/ai/agent/store
+  - grpc_client:
+      service: ai-service
+      proto: //malonaz/ai/ai_service/v1
