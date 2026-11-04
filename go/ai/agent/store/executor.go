@@ -102,11 +102,25 @@ func (t *Tx) FindExecutor(ctx context.Context, executorQuery *ExecutorQuery) (*m
 
 // RefreshExecutorAgentCount recounts the live agents leased to an executor.
 func (t *Tx) RefreshExecutorAgentCount(ctx context.Context, organizationID, userID, executorID string, updateTime time.Time) error {
+	if err := lockExecutor(ctx, t.tx, organizationID, userID, executorID); err != nil {
+		return err
+	}
 	query := "UPDATE executor SET agent_count = " + fmt.Sprintf(executorAgentCount, 4) +
 		", update_time = $5 WHERE organization_id = $1 AND user_id = $2 AND executor_id = $3"
 	executor := executorName(organizationID, userID, executorID)
 	if _, err := t.tx.Exec(ctx, query, organizationID, userID, executorID, executor, updateTime); err != nil {
 		return fmt.Errorf("refreshing executor agent count: %w", err)
+	}
+	return nil
+}
+
+// lockExecutor locks an executor's row before a statement counting its agents: a statement waiting on the lock
+// re-checks only the row, while its count subquery keeps the snapshot taken before the wait, missing the agents
+// leased by the transaction it waited on. A statement run after the lock gets a fresh snapshot.
+func lockExecutor(ctx context.Context, tx pgx.Tx, organizationID, userID, executorID string) error {
+	query := "SELECT 1 FROM executor WHERE organization_id = $1 AND user_id = $2 AND executor_id = $3 FOR UPDATE"
+	if _, err := tx.Exec(ctx, query, organizationID, userID, executorID); err != nil {
+		return fmt.Errorf("locking executor: %w", err)
 	}
 	return nil
 }
@@ -143,11 +157,22 @@ func (s *Store) RegisterExecutor(ctx context.Context, executor *model.Executor, 
 		executor.Labels, executor.DisplayName, executor.MaxAgents, nonNil(executor.Tools), executor.State,
 		executor.ConnectTime, executor.HeartbeatTime, name, sessionID,
 	}
-	rows, err := s.client.Query(ctx, query, params...)
+	var registered *model.Executor
+	err := s.Transaction(ctx, func(tx *Tx) error {
+		if err := lockExecutor(ctx, tx.tx, executor.OrganizationID, executor.UserID, executor.ExecutorID); err != nil {
+			return err
+		}
+		rows, err := tx.tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("registering executor: %w", err)
+		}
+		registered, err = pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[model.Executor])
+		return err
+	})
 	if err != nil {
-		return nil, fmt.Errorf("registering executor: %w", err)
+		return nil, err
 	}
-	return pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[model.Executor])
+	return registered, nil
 }
 
 // HeartbeatExecutor stamps an executor's heartbeat while it is ONLINE with that session. It reports whether it did.
