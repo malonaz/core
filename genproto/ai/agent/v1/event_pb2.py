@@ -23,17 +23,16 @@ _sym_db = _symbol_database.Default()
 
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
-from malonaz.ai.agent.v1 import agent_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot_agent__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from google.rpc import status_pb2 as google_dot_rpc_dot_status__pb2
+from malonaz.ai.agent.v1 import agent_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot_agent__pb2
 from malonaz.ai.v1 import message_pb2 as malonaz_dot_ai_dot_v1_dot_message__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
-from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf5\x0b\n\x05\x45vent\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x15\n\x08sequence\x18\x03 \x01(\x03\x42\x03\xe0\x41\x03\x12@\n\rstate_changed\x18\x04 \x01(\x0b\x32\'.malonaz.ai.agent.v1.Event.StateChangedH\x00\x12@\n\rlease_changed\x18\x05 \x01(\x0b\x32\'.malonaz.ai.agent.v1.Event.LeaseChangedH\x00\x12>\n\x0cinput_queued\x18\x06 \x01(\x0b\x32&.malonaz.ai.agent.v1.Event.InputQueuedH\x00\x12>\n\x0cturn_started\x18\x07 \x01(\x0b\x32&.malonaz.ai.agent.v1.Event.TurnStartedH\x00\x12\x44\n\x0fmessage_created\x18\x08 \x01(\x0b\x32).malonaz.ai.agent.v1.Event.MessageCreatedH\x00\x12:\n\nturn_ended\x18\t \x01(\x0b\x32$.malonaz.ai.agent.v1.Event.TurnEndedH\x00\x12G\n\x11sub_agent_created\x18\n \x01(\x0b\x32*.malonaz.ai.agent.v1.Event.SubAgentCreatedH\x00\x12\x42\n\x0elabels_changed\x18\x0b \x01(\x0b\x32(.malonaz.ai.agent.v1.Event.LabelsChangedH\x00\x1aK\n\x0cStateChanged\x12;\n\x05state\x18\x01 \x01(\x0e\x32 .malonaz.ai.agent.v1.Agent.StateB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x1a\x44\n\x0cLeaseChanged\x12\x34\n\x08\x65xecutor\x18\x01 \x01(\tB\"\xfa\x41\x1f\n\x1d\x61gent.ai.malonaz.com/Executor\x1an\n\x0bInputQueued\x12.\n\x05input\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Input\x12/\n\x07message\x18\x02 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01\x1a>\n\x0bTurnStarted\x12/\n\x06inputs\x18\x01 \x03(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Input\x1a\x41\n\x0eMessageCreated\x12/\n\x07message\x18\x01 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01\x1at\n\tTurnEnded\x12\x43\n\x07outcome\x18\x01 \x01(\x0e\x32&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\"\n\x06status\x18\x02 \x01(\x0b\x32\x12.google.rpc.Status\x1a\x41\n\x0fSubAgentCreated\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x1a\x84\x01\n\rLabelsChanged\x12\x44\n\x06labels\x18\x01 \x03(\x0b\x32\x34.malonaz.ai.agent.v1.Event.LabelsChanged.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xa3\x01\xea\x41t\n\x1a\x61gent.ai.malonaz.com/Event\x12Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\x06\x65vents2\x05\x65vent\xd2\xa6\x04\x00\x82\xf6,$3c88dbad-fedf-47de-a2b8-e19c2fd7365cB\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\"j\n\x05\x44\x65lta\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12+\n\x05\x62lock\x18\x02 \x01(\x0b\x32\x14.malonaz.ai.v1.BlockB\x06\xbaH\x03\xc8\x01\x01\x42.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fmalonaz/ai/agent/v1/event.proto\x12\x13malonaz.ai.agent.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xf1\x0b\n\x05\x45vent\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x15\n\x08sequence\x18\x03 \x01(\x03\x42\x03\xe0\x41\x03\x12@\n\rstate_changed\x18\x04 \x01(\x0b\x32\'.malonaz.ai.agent.v1.Event.StateChangedH\x00\x12@\n\rlease_changed\x18\x05 \x01(\x0b\x32\'.malonaz.ai.agent.v1.Event.LeaseChangedH\x00\x12>\n\x0cinput_queued\x18\x06 \x01(\x0b\x32&.malonaz.ai.agent.v1.Event.InputQueuedH\x00\x12>\n\x0cturn_started\x18\x07 \x01(\x0b\x32&.malonaz.ai.agent.v1.Event.TurnStartedH\x00\x12\x44\n\x0fmessage_created\x18\x08 \x01(\x0b\x32).malonaz.ai.agent.v1.Event.MessageCreatedH\x00\x12:\n\nturn_ended\x18\t \x01(\x0b\x32$.malonaz.ai.agent.v1.Event.TurnEndedH\x00\x12G\n\x11sub_agent_created\x18\n \x01(\x0b\x32*.malonaz.ai.agent.v1.Event.SubAgentCreatedH\x00\x12\x42\n\x0elabels_changed\x18\x0b \x01(\x0b\x32(.malonaz.ai.agent.v1.Event.LabelsChangedH\x00\x1aK\n\x0cStateChanged\x12;\n\x05state\x18\x01 \x01(\x0e\x32 .malonaz.ai.agent.v1.Agent.StateB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x1a\x44\n\x0cLeaseChanged\x12\x34\n\x08\x65xecutor\x18\x01 \x01(\tB\"\xfa\x41\x1f\n\x1d\x61gent.ai.malonaz.com/Executor\x1an\n\x0bInputQueued\x12.\n\x05input\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Input\x12/\n\x07message\x18\x02 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01\x1a>\n\x0bTurnStarted\x12/\n\x06inputs\x18\x01 \x03(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Input\x1a\x41\n\x0eMessageCreated\x12/\n\x07message\x18\x01 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageB\x06\xbaH\x03\xc8\x01\x01\x1at\n\tTurnEnded\x12\x43\n\x07outcome\x18\x01 \x01(\x0e\x32&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\"\n\x06status\x18\x02 \x01(\x0b\x32\x12.google.rpc.Status\x1a\x41\n\x0fSubAgentCreated\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x1a\x84\x01\n\rLabelsChanged\x12\x44\n\x06labels\x18\x01 \x03(\x0b\x32\x34.malonaz.ai.agent.v1.Event.LabelsChanged.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\x9f\x01\xea\x41t\n\x1a\x61gent.ai.malonaz.com/Event\x12Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\x06\x65vents2\x05\x65vent\x82\xf6,$3c88dbad-fedf-47de-a2b8-e19c2fd7365cB\r\n\x04kind\x12\x05\xbaH\x02\x08\x01\"j\n\x05\x44\x65lta\x12\x34\n\x05\x61gent\x18\x01 \x01(\tB%\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12+\n\x05\x62lock\x18\x02 \x01(\x0b\x32\x14.malonaz.ai.v1.BlockB\x06\xbaH\x03\xc8\x01\x01\x42.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -68,31 +67,31 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_EVENT'].fields_by_name['sequence']._loaded_options = None
   _globals['_EVENT'].fields_by_name['sequence']._serialized_options = b'\340A\003'
   _globals['_EVENT']._loaded_options = None
-  _globals['_EVENT']._serialized_options = b'\352At\n\032agent.ai.malonaz.com/Event\022Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\006events2\005event\322\246\004\000\202\366,$3c88dbad-fedf-47de-a2b8-e19c2fd7365c'
+  _globals['_EVENT']._serialized_options = b'\352At\n\032agent.ai.malonaz.com/Event\022Gorganizations/{organization}/users/{user}/agents/{agent}/events/{event}*\006events2\005event\202\366,$3c88dbad-fedf-47de-a2b8-e19c2fd7365c'
   _globals['_DELTA'].fields_by_name['agent']._loaded_options = None
   _globals['_DELTA'].fields_by_name['agent']._serialized_options = b'\372A\034\n\032agent.ai.malonaz.com/Agent\272H\003\310\001\001'
   _globals['_DELTA'].fields_by_name['block']._loaded_options = None
   _globals['_DELTA'].fields_by_name['block']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_EVENT']._serialized_start=338
-  _globals['_EVENT']._serialized_end=1863
-  _globals['_EVENT_STATECHANGED']._serialized_start=974
-  _globals['_EVENT_STATECHANGED']._serialized_end=1049
-  _globals['_EVENT_LEASECHANGED']._serialized_start=1051
-  _globals['_EVENT_LEASECHANGED']._serialized_end=1119
-  _globals['_EVENT_INPUTQUEUED']._serialized_start=1121
-  _globals['_EVENT_INPUTQUEUED']._serialized_end=1231
-  _globals['_EVENT_TURNSTARTED']._serialized_start=1233
-  _globals['_EVENT_TURNSTARTED']._serialized_end=1295
-  _globals['_EVENT_MESSAGECREATED']._serialized_start=1297
-  _globals['_EVENT_MESSAGECREATED']._serialized_end=1362
-  _globals['_EVENT_TURNENDED']._serialized_start=1364
-  _globals['_EVENT_TURNENDED']._serialized_end=1480
-  _globals['_EVENT_SUBAGENTCREATED']._serialized_start=1482
-  _globals['_EVENT_SUBAGENTCREATED']._serialized_end=1547
-  _globals['_EVENT_LABELSCHANGED']._serialized_start=1550
-  _globals['_EVENT_LABELSCHANGED']._serialized_end=1682
-  _globals['_EVENT_LABELSCHANGED_LABELSENTRY']._serialized_start=1637
-  _globals['_EVENT_LABELSCHANGED_LABELSENTRY']._serialized_end=1682
-  _globals['_DELTA']._serialized_start=1865
-  _globals['_DELTA']._serialized_end=1971
+  _globals['_EVENT']._serialized_start=300
+  _globals['_EVENT']._serialized_end=1821
+  _globals['_EVENT_STATECHANGED']._serialized_start=936
+  _globals['_EVENT_STATECHANGED']._serialized_end=1011
+  _globals['_EVENT_LEASECHANGED']._serialized_start=1013
+  _globals['_EVENT_LEASECHANGED']._serialized_end=1081
+  _globals['_EVENT_INPUTQUEUED']._serialized_start=1083
+  _globals['_EVENT_INPUTQUEUED']._serialized_end=1193
+  _globals['_EVENT_TURNSTARTED']._serialized_start=1195
+  _globals['_EVENT_TURNSTARTED']._serialized_end=1257
+  _globals['_EVENT_MESSAGECREATED']._serialized_start=1259
+  _globals['_EVENT_MESSAGECREATED']._serialized_end=1324
+  _globals['_EVENT_TURNENDED']._serialized_start=1326
+  _globals['_EVENT_TURNENDED']._serialized_end=1442
+  _globals['_EVENT_SUBAGENTCREATED']._serialized_start=1444
+  _globals['_EVENT_SUBAGENTCREATED']._serialized_end=1509
+  _globals['_EVENT_LABELSCHANGED']._serialized_start=1512
+  _globals['_EVENT_LABELSCHANGED']._serialized_end=1644
+  _globals['_EVENT_LABELSCHANGED_LABELSENTRY']._serialized_start=1599
+  _globals['_EVENT_LABELSCHANGED_LABELSENTRY']._serialized_end=1644
+  _globals['_DELTA']._serialized_start=1823
+  _globals['_DELTA']._serialized_end=1929
 # @@protoc_insertion_point(module_scope)
