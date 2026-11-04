@@ -45,8 +45,6 @@ message Executor {
   // The last update timestamp of the executor.
   google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-
-
   // The labels on this executor, matched against agents' executor selectors.
   map<string, string> labels = 6 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
