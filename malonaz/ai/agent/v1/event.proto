@@ -92,16 +92,18 @@ message Event {
   }
 
   // TurnStarted records the start of a turn.
-  message TurnStarted {
-    // The inputs the turn consumed.
-    // Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
-    repeated string inputs = 1 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Input"];
-  }
+  message TurnStarted {}
 
   // MessageCreated carries a message persisted to the agent's chat.
   message MessageCreated {
     // The persisted message, with its resource name.
     malonaz.ai.v1.Message message = 1 [(buf.validate.field).required = true];
+
+    // The inputs this message delivered, when the executor drained them into
+    // it, at a turn's start or between its tool rounds. The service marks
+    // them consumed.
+    // Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
+    repeated string inputs = 2 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Input"];
   }
 
   // TurnEnded records the end of a turn.

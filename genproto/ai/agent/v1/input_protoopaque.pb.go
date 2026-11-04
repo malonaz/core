@@ -152,8 +152,8 @@ type Input_builder struct {
 	Name string
 	// The creation timestamp of the input: when it was queued.
 	CreateTime *timestamppb.Timestamp
-	// The message to deliver. Its sender (a user, the parent agent, a
-	// sub-agent's report) is recorded in its annotations.
+	// The message to deliver. Its sender is stamped in the
+	// agent.ai.malonaz.com/sender annotation.
 	Message *v1.Message
 	// When a turn consumed the input. Unset while pending.
 	ConsumeTime *timestamppb.Timestamp

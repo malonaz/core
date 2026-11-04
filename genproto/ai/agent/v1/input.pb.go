@@ -39,8 +39,8 @@ type Input struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The creation timestamp of the input: when it was queued.
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// The message to deliver. Its sender (a user, the parent agent, a
-	// sub-agent's report) is recorded in its annotations.
+	// The message to deliver. Its sender is stamped in the
+	// agent.ai.malonaz.com/sender annotation.
 	Message *v1.Message `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	// When a turn consumed the input. Unset while pending.
 	ConsumeTime   *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=consume_time,json=consumeTime,proto3" json:"consume_time,omitempty"`
@@ -158,8 +158,8 @@ type Input_builder struct {
 	Name string
 	// The creation timestamp of the input: when it was queued.
 	CreateTime *timestamppb.Timestamp
-	// The message to deliver. Its sender (a user, the parent agent, a
-	// sub-agent's report) is recorded in its annotations.
+	// The message to deliver. Its sender is stamped in the
+	// agent.ai.malonaz.com/sender annotation.
 	Message *v1.Message
 	// When a turn consumed the input. Unset while pending.
 	ConsumeTime *timestamppb.Timestamp
