@@ -417,13 +417,13 @@ func forwardResponseOptionHTTPHeadersForwarder(ctx context.Context, w http.Respo
 	headers := w.Header()
 	for key := range httpHeaderSet {
 		if values, ok := headers[runtime.MetadataHeaderPrefix+key]; ok {
-			w.Header().Set(key, values[0])
-			if key == HTTPHeaderLocation {
-				w.WriteHeader(http.StatusFound)
-			}
+			headers.Set(key, values[0])
 		}
 	}
-
+	// WriteHeader freezes the headers: redirect only once every header is copied.
+	if _, ok := headers[runtime.MetadataHeaderPrefix+HTTPHeaderLocation]; ok {
+		w.WriteHeader(http.StatusFound)
+	}
 	return nil
 }
 

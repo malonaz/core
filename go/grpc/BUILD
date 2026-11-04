@@ -59,11 +59,13 @@ go_test(
     srcs = [
         "client_test.go",
         "cookie_test.go",
+        "gateway_test.go",
     ],
     deps = [
         ":grpc",
         "//go/prometheus",
         "//malonaz/grpc/v1",
+        "//third_party/go:github.com__grpc-ecosystem__grpc-gateway__v2__runtime",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__connectivity",
