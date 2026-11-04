@@ -36,8 +36,8 @@ message Agent {
   };
   option (buf.validate.message).cel = {
     id: "agent.spec_or_definition"
-    message: "one of definition or spec must be set"
-    expression: "(this.definition == '') != !has(this.spec)"
+    message: "definition or spec must be set"
+    expression: "this.definition != '' || has(this.spec)"
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a8d40bb6-3f99-4d02-95ff-71b5be47b1e7";
