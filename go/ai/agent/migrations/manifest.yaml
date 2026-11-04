@@ -1,0 +1,15 @@
+# Ordered list of every migration in this database.
+# Append-only: never reorder or edit an entry whose migration has been applied.
+migrations:
+  - path: definition/001_init.sql
+    hash: 8d8a38231b4818b105bddf61a4bc2650
+  - path: agent/001_init.sql
+    hash: 46c214c27598bc7dc9ba3b884863e0c6
+  - path: input/001_init.sql
+    hash: 7e99edb225b89961cbc006ceac9f2f03
+  - path: event/001_init.sql
+    hash: 8d0299609dfab2397f55eac550f3569e
+  - path: executor/001_init.sql
+    hash: 0e8a917da70635bf27a91bff13c1e166
+  - path: executor_refusal/001_init.sql
+    hash: 51296acc1f3cd333808135a17a7173bb
