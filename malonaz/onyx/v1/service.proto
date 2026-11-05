@@ -25,6 +25,11 @@ message ServiceManifest {
 
   // Constructor arguments, in order. Resolved by the binary hosting the service.
   repeated Dependency dependencies = 6;
+
+  // Stop the service in the binary's graceful chain ahead of every server, with the processors,
+  // rather than after the servers' graceful stops: for a service whose stop releases work that
+  // still needs the servers, or ends streams that would hold their graceful stop.
+  bool stop_before_servers = 7;
 }
 
 // A generated component the Service embeds.
