@@ -1,0 +1,8 @@
+name: workspace-server
+servers:
+  - name: workspace-service
+    grpc:
+      services:
+        - service: workspace-service
+          proto: //malonaz/workspace/workspace_service/v1
+          manifest: //go/workspace/workspace_service:manifest
