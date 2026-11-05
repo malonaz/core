@@ -71,6 +71,18 @@ func (c *fakeAiService) script(chat string, generations ...*fakeGeneration) {
 	c.chatToGenerations[chat] = append(c.chatToGenerations[chat], generations...)
 }
 
+// chat returns a chat created by CreateChat.
+func (c *fakeAiService) chat(name string) *aipb.Chat {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	for _, chat := range c.requestIDToChat {
+		if chat.Name == name {
+			return proto.CloneOf(chat)
+		}
+	}
+	return nil
+}
+
 // setDefaultGeneration sets the generation played by chats with no scripted generation left.
 func (c *fakeAiService) setDefaultGeneration(generation *fakeGeneration) {
 	c.mutex.Lock()
