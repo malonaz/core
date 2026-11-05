@@ -120,7 +120,7 @@ func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
 	for range 2 {
 		toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
 		require.Nil(t, toolResult.GetError())
-		require.Equal(t, 2, strings.Count(toolResult.GetContent(), ": launched"))
+		require.Equal(t, 2, strings.Count(toolResult.GetContent(), ": launched"), toolResult.GetContent())
 	}
 
 	subAgents := listChildAgents(t, service, agent)

@@ -3,6 +3,7 @@ package agent_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 
 	"google.golang.org/grpc/codes"
@@ -115,7 +116,7 @@ func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.
 		if errors.Is(err, model.ErrAgentAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "agent %s already exists", agent.Name).Err()
 		}
-		return nil, status.FromError(err, "inserting agent").Err()
+		return nil, fmt.Errorf("inserting agent: %w", err)
 	}
 	if agent, err = agentModel.ToPb(); err != nil {
 		return nil, status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
@@ -222,8 +223,14 @@ func (s *Service) deleteDescendantAgents(ctx context.Context, name string) error
 // deleteAgent soft-deletes an agent, which must have no live children, ending its running turn CANCELLED and
 // dropping its lease, then cancels the turn wherever it runs.
 func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string) (*agentpb.Agent, error) {
+	agentRn, err := agentpb.ParseAgentRn(name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
+	}
 	var agent *agentpb.Agent
 	var cancelTurn bool
+	// The address of another live replica running the turn, if any.
+	var holderAddress string
 	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
 		var err error
 		if agent, err = t.getAgent(ctx, name); err != nil {
@@ -241,13 +248,20 @@ func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing boo
 		// Read under the agent's lock, which CreateAgent takes on a parent: no child can appear before we commit.
 		childAgents, err := s.agentPostgresStore.ListChildAgents(ctx, name)
 		if err != nil {
-			return status.FromError(err, "listing child agents").Err()
+			return fmt.Errorf("listing child agents: %w", err)
 		}
 		if len(childAgents) > 0 {
 			return status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
 		}
 		cancelTurn = agent.State == agentpb.Agent_STATE_RUNNING
 		if cancelTurn {
+			lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
+			if err != nil {
+				return fmt.Errorf("getting lease: %w", err)
+			}
+			if lease != nil && !lease.Expired && lease.Replica != s.replica {
+				holderAddress = lease.Address
+			}
 			if err := t.cancelTurn(ctx, agent); err != nil {
 				return err
 			}
@@ -257,9 +271,21 @@ func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing boo
 	}); err != nil {
 		return nil, err
 	}
-	if cancelTurn {
-		// The turn's lease is gone, so it stops without ending again: cancelling it only stops it sooner.
-		s.turns.cancel(name, errTurnCancelled)
+	if !cancelTurn {
+		return agent, nil
+	}
+	// The turn's lease is gone, so it stops without ending again: cancelling it only stops it sooner than its
+	// replica's next heartbeat would.
+	if _, ok := s.turns.cancel(name, errTurnCancelled); ok || holderAddress == "" {
+		return agent, nil
+	}
+	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: name}
+	peerClient, err := s.peerClient(ctx, holderAddress)
+	if err == nil {
+		_, err = peerClient.CancelAgent(forwardedContext(ctx), cancelAgentRequest)
+	}
+	if err != nil {
+		s.log.WarnContext(ctx, "cancelling a deleted agent's turn on the replica running it", "agent", name, "address", holderAddress, "error", err)
 	}
 	return agent, nil
 }
@@ -272,7 +298,7 @@ func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
 		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
 	if err := t.DeleteLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent); err != nil {
-		return status.FromError(err, "deleting lease").Err()
+		return fmt.Errorf("deleting lease: %w", err)
 	}
 	agent.State = agentpb.Agent_STATE_IDLE
 	agent.LastTurnOutcome = agentpb.Agent_TURN_OUTCOME_CANCELLED

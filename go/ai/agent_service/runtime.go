@@ -30,8 +30,8 @@ type runtime struct {
 	toolRouter  *toolRouter
 	// builtinTools are the tools every agent holds.
 	builtinTools *builtinTools
-	hub         *hub
-	turns       *turns
+	hub          *hub
+	turns        *turns
 	// runCtx spans the replica's life, with the service's identity: turns run on it.
 	runCtx context.Context
 }
@@ -55,11 +55,11 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	return &runtime{
 		replica:      uuid.MustNewV7().String(),
 		builtinTools: builtinTools,
-		address:     opts.AdvertisedAddress,
-		connections: connections,
-		toolRouter:  toolRouter,
-		hub:         newHub(),
-		turns:       newTurns(),
+		address:      opts.AdvertisedAddress,
+		connections:  connections,
+		toolRouter:   toolRouter,
+		hub:          newHub(),
+		turns:        newTurns(),
 	}, nil
 }
 

@@ -3,9 +3,11 @@ package agent_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -30,7 +32,7 @@ type txn struct {
 }
 
 // transact runs fn in a transaction, retried from scratch on deadlocks, then publishes what it saved and starts
-// the turns it claimed.
+// the turns it claimed. Store errors must reach it wrapped, never converted to a status, for their retries.
 func (s *Service) transact(ctx context.Context, fn func(ctx context.Context, t *txn) error) error {
 	var t *txn
 	if err := s.agentPostgresStore.Transaction(ctx, func(tx *store.Tx) error {
@@ -38,7 +40,10 @@ func (s *Service) transact(ctx context.Context, fn func(ctx context.Context, t *
 		t = &txn{Tx: tx, service: s, now: time.Now().UTC().Truncate(time.Microsecond)}
 		return fn(ctx, t)
 	}); err != nil {
-		return err
+		if _, ok := grpcstatus.FromError(err); ok {
+			return err
+		}
+		return status.FromError(err, "running transaction").Err()
 	}
 	for _, snapshot := range t.snapshots {
 		s.publishSnapshot(snapshot)
@@ -60,7 +65,7 @@ func (t *txn) getAgent(ctx context.Context, name string) (*agentpb.Agent, error)
 		if errors.Is(err, model.ErrAgentNotExist) {
 			return nil, status.Errorf(codes.NotFound, "agent %s does not exist", name).Err()
 		}
-		return nil, status.FromError(err, "getting agent").Err()
+		return nil, fmt.Errorf("getting agent: %w", err)
 	}
 	agent, err := agentModel.ToPb()
 	if err != nil {
@@ -93,7 +98,7 @@ func (t *txn) saveAgent(ctx context.Context, agent *agentpb.Agent) error {
 		return status.Errorf(codes.Internal, "converting agent from pb to model: %v", err).Err()
 	}
 	if err := t.SaveAgent(ctx, agentModel); err != nil {
-		return status.FromError(err, "saving agent").Err()
+		return fmt.Errorf("saving agent: %w", err)
 	}
 	t.snapshots = append(t.snapshots, proto.CloneOf(agent))
 	return nil
@@ -120,7 +125,7 @@ func (t *txn) queueInput(ctx context.Context, agent *agentpb.Agent, requestID st
 		if errors.Is(err, model.ErrInputAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "input already exists").Err()
 		}
-		return nil, status.FromError(err, "inserting input").Err()
+		return nil, fmt.Errorf("inserting input: %w", err)
 	}
 	if input, err = inputModel.ToPb(); err != nil {
 		return nil, status.Errorf(codes.Internal, "converting input from model to pb: %v", err).Err()
@@ -147,7 +152,7 @@ func (t *txn) claimTurn(ctx context.Context, agent *agentpb.Agent) error {
 	}
 	claimed, err := t.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, t.service.replica, t.service.address, t.service.opts.LeaseDuration)
 	if err != nil {
-		return status.FromError(err, "claiming lease").Err()
+		return fmt.Errorf("claiming lease: %w", err)
 	}
 	if !claimed {
 		return nil
