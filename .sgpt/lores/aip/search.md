@@ -24,6 +24,9 @@ Postgres FTS, fully codegen-driven. Reference implementation: library `Author`
    (whole JSON subtree indexed). The expression uses `column #>> '{...}'`
    (IMMUTABLE, safe in generated columns); JSON keys are proto field names
    (`pbutil.JSONMarshal` sets `UseProtoNames`).
+   A single-segment `path` may also name a map or message field stored with
+   as_json_bytes (e.g. `labels`): its whole JSON text is indexed, keys
+   included (`column #>> '{}'`), and its snippets headline its string leaves.
    A field may instead set `id: true` (oneof with `path`) to index the
    **resource ID** — the last name segment, read from its `{resource}_id` (or
    `id_column_name`) column, never the parent segments — e.g. findable
