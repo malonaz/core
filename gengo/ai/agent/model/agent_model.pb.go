@@ -7,6 +7,7 @@ import (
 	errors "errors"
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
+	v11 "github.com/malonaz/core/genproto/ai/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
 	status "google.golang.org/genproto/googleapis/rpc/status"
@@ -40,6 +41,7 @@ type Agent struct {
 	State           int16      `db:"state" schema:"public" table:"agent"`
 	LastTurnOutcome int16      `db:"last_turn_outcome" schema:"public" table:"agent"`
 	Status          []byte     `db:"status" schema:"public" table:"agent"`
+	QueuedMessages  []byte     `db:"queued_messages" schema:"public" table:"agent"`
 }
 
 func AgentFromPb(m *v1.Agent) (*Agent, error) {
@@ -98,6 +100,10 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 			return nil, fmt.Errorf("marshaling Status: %w", err)
 		}
 	}
+	QueuedMessagesBytes, err := pbutil.JSONMarshalSlice(pbutil.JsonMarshalOptions, m.QueuedMessages)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling QueuedMessages: %w", err)
+	}
 	return &Agent{
 		OrganizationID:  OrganizationID,
 		UserID:          UserID,
@@ -117,6 +123,7 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 		State:           int16(m.State),
 		LastTurnOutcome: int16(m.LastTurnOutcome),
 		Status:          StatusBytes,
+		QueuedMessages:  QueuedMessagesBytes,
 	}, nil
 }
 
@@ -166,6 +173,10 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 			return nil, fmt.Errorf("unmarshaling Status: %w", err)
 		}
 	}
+	QueuedMessages, err := pbutil.JSONUnmarshalSlice[v11.Message](pbutil.JsonUnmarshalOptions, m.QueuedMessages)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshaling QueuedMessages: %w", err)
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/agents/{agent}", m.OrganizationID, m.UserID, m.AgentID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -187,6 +198,7 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 		State:           v1.Agent_State(m.State),
 		LastTurnOutcome: v1.Agent_TurnOutcome(m.LastTurnOutcome),
 		Status:          Status,
+		QueuedMessages:  QueuedMessages,
 	}, nil
 }
 

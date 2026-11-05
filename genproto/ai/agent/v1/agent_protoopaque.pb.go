@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v1 "github.com/malonaz/core/genproto/ai/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -152,6 +153,7 @@ type Agent struct {
 	xxx_hidden_State           Agent_State            `protobuf:"varint,14,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State"`
 	xxx_hidden_LastTurnOutcome Agent_TurnOutcome      `protobuf:"varint,15,opt,name=last_turn_outcome,json=lastTurnOutcome,proto3,enum=malonaz.ai.agent.v1.Agent_TurnOutcome"`
 	xxx_hidden_Status          *status.Status         `protobuf:"bytes,16,opt,name=status,proto3"`
+	xxx_hidden_QueuedMessages  *[]*v1.Message         `protobuf:"bytes,17,rep,name=queued_messages,json=queuedMessages,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -293,6 +295,15 @@ func (x *Agent) GetStatus() *status.Status {
 	return nil
 }
 
+func (x *Agent) GetQueuedMessages() []*v1.Message {
+	if x != nil {
+		if x.xxx_hidden_QueuedMessages != nil {
+			return *x.xxx_hidden_QueuedMessages
+		}
+	}
+	return nil
+}
+
 func (x *Agent) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -355,6 +366,10 @@ func (x *Agent) SetLastTurnOutcome(v Agent_TurnOutcome) {
 
 func (x *Agent) SetStatus(v *status.Status) {
 	x.xxx_hidden_Status = v
+}
+
+func (x *Agent) SetQueuedMessages(v []*v1.Message) {
+	x.xxx_hidden_QueuedMessages = &v
 }
 
 func (x *Agent) HasCreateTime() bool {
@@ -454,6 +469,9 @@ type Agent_builder struct {
 	LastTurnOutcome Agent_TurnOutcome
 	// The error the latest turn failed on. Set only when it failed.
 	Status *status.Status
+	// The messages sent to the agent and not yet delivered, oldest first. A turn
+	// delivers them to its chat, at its start and between its tool rounds.
+	QueuedMessages []*v1.Message
 }
 
 func (b0 Agent_builder) Build() *Agent {
@@ -476,6 +494,7 @@ func (b0 Agent_builder) Build() *Agent {
 	x.xxx_hidden_State = b.State
 	x.xxx_hidden_LastTurnOutcome = b.LastTurnOutcome
 	x.xxx_hidden_Status = b.Status
+	x.xxx_hidden_QueuedMessages = &b.QueuedMessages
 	return m0
 }
 
@@ -483,7 +502,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe1\r\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xad\x0e\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -511,7 +530,8 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x13ai.malonaz.com/ChatR\x04chat\x12C\n" +
 	"\x05state\x18\x0e \x01(\x0e2 .malonaz.ai.agent.v1.Agent.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12_\n" +
 	"\x11last_turn_outcome\x18\x0f \x01(\x0e2&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x0flastTurnOutcome\x127\n" +
-	"\x06status\x18\x10 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x1a9\n" +
+	"\x06status\x18\x10 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x12J\n" +
+	"\x0fqueued_messages\x18\x11 \x03(\v2\x16.malonaz.ai.v1.MessageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\x0equeuedMessages\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -550,22 +570,24 @@ var file_malonaz_ai_agent_v1_agent_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 	(*AgentSpec)(nil),             // 6: malonaz.ai.agent.v1.AgentSpec
 	(*status.Status)(nil),         // 7: google.rpc.Status
+	(*v1.Message)(nil),            // 8: malonaz.ai.v1.Message
 }
 var file_malonaz_ai_agent_v1_agent_proto_depIdxs = []int32{
-	5, // 0: malonaz.ai.agent.v1.Agent.create_time:type_name -> google.protobuf.Timestamp
-	5, // 1: malonaz.ai.agent.v1.Agent.update_time:type_name -> google.protobuf.Timestamp
-	5, // 2: malonaz.ai.agent.v1.Agent.delete_time:type_name -> google.protobuf.Timestamp
-	3, // 3: malonaz.ai.agent.v1.Agent.labels:type_name -> malonaz.ai.agent.v1.Agent.LabelsEntry
-	4, // 4: malonaz.ai.agent.v1.Agent.annotations:type_name -> malonaz.ai.agent.v1.Agent.AnnotationsEntry
-	6, // 5: malonaz.ai.agent.v1.Agent.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
-	0, // 6: malonaz.ai.agent.v1.Agent.state:type_name -> malonaz.ai.agent.v1.Agent.State
-	1, // 7: malonaz.ai.agent.v1.Agent.last_turn_outcome:type_name -> malonaz.ai.agent.v1.Agent.TurnOutcome
-	7, // 8: malonaz.ai.agent.v1.Agent.status:type_name -> google.rpc.Status
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	5,  // 0: malonaz.ai.agent.v1.Agent.create_time:type_name -> google.protobuf.Timestamp
+	5,  // 1: malonaz.ai.agent.v1.Agent.update_time:type_name -> google.protobuf.Timestamp
+	5,  // 2: malonaz.ai.agent.v1.Agent.delete_time:type_name -> google.protobuf.Timestamp
+	3,  // 3: malonaz.ai.agent.v1.Agent.labels:type_name -> malonaz.ai.agent.v1.Agent.LabelsEntry
+	4,  // 4: malonaz.ai.agent.v1.Agent.annotations:type_name -> malonaz.ai.agent.v1.Agent.AnnotationsEntry
+	6,  // 5: malonaz.ai.agent.v1.Agent.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
+	0,  // 6: malonaz.ai.agent.v1.Agent.state:type_name -> malonaz.ai.agent.v1.Agent.State
+	1,  // 7: malonaz.ai.agent.v1.Agent.last_turn_outcome:type_name -> malonaz.ai.agent.v1.Agent.TurnOutcome
+	7,  // 8: malonaz.ai.agent.v1.Agent.status:type_name -> google.rpc.Status
+	8,  // 9: malonaz.ai.agent.v1.Agent.queued_messages:type_name -> malonaz.ai.v1.Message
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_v1_agent_proto_init() }

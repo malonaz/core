@@ -10,7 +10,6 @@ package v1
 
 import (
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
-	v11 "github.com/malonaz/core/genproto/ai/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -30,7 +29,7 @@ var File_malonaz_ai_agent_agent_service_v1_agent_service_proto protoreflect.File
 
 const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\n" +
-	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xd3\x1a\n" +
+	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xd7\x1a\n" +
 	"\fAgentService\x12\xe6\x01\n" +
 	"\x10CreateDefinition\x12:.malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest\x1a\x1f.malonaz.ai.agent.v1.Definition\"u\xdaA\x11parent,definition´-!\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x026:\n" +
@@ -62,8 +61,8 @@ const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\fSearchAgents\x126.malonaz.ai.agent.agent_service.v1.SearchAgentsRequest\x1a7.malonaz.ai.agent.agent_service.v1.SearchAgentsResponse\"l\xdaA\fparent,query´-\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\x82\xd3\xe4\x93\x024\x122/v1/{parent=organizations/*/users/*}/agents:search\x90\x02\x01\x12\xa6\x01\n" +
 	"\vCancelAgent\x125.malonaz.ai.agent.agent_service.v1.CancelAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"D\xdaA\x04name\x82\xd3\xe4\x93\x027:\x01*\"2/v1/{name=organizations/*/users/*/agents/*}:cancel\x12\xc4\x01\n" +
-	"\vStreamAgent\x125.malonaz.ai.agent.agent_service.v1.StreamAgentRequest\x1a6.malonaz.ai.agent.agent_service.v1.StreamAgentResponse\"D\xdaA\x04name\x82\xd3\xe4\x93\x024\x122/v1/{name=organizations/*/users/*/agents/*}:stream\x90\x02\x010\x01\x12\xad\x01\n" +
-	"\fMessageAgent\x126.malonaz.ai.agent.agent_service.v1.MessageAgentRequest\x1a\x16.malonaz.ai.v1.Message\"M\xdaA\fname,message\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=organizations/*/users/*/agents/*}:message\x1a\x17\xcaA\x14agent.ai.malonaz.comB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
+	"\vStreamAgent\x125.malonaz.ai.agent.agent_service.v1.StreamAgentRequest\x1a6.malonaz.ai.agent.agent_service.v1.StreamAgentResponse\"D\xdaA\x04name\x82\xd3\xe4\x93\x024\x122/v1/{name=organizations/*/users/*/agents/*}:stream\x90\x02\x010\x01\x12\xb1\x01\n" +
+	"\fMessageAgent\x126.malonaz.ai.agent.agent_service.v1.MessageAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"M\xdaA\fname,message\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=organizations/*/users/*/agents/*}:message\x1a\x17\xcaA\x14agent.ai.malonaz.comB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
 
 var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_goTypes = []any{
 	(*CreateDefinitionRequest)(nil),   // 0: malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest
@@ -88,7 +87,6 @@ var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_goTypes = []any{
 	(*ListAgentsResponse)(nil),        // 19: malonaz.ai.agent.agent_service.v1.ListAgentsResponse
 	(*SearchAgentsResponse)(nil),      // 20: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
 	(*StreamAgentResponse)(nil),       // 21: malonaz.ai.agent.agent_service.v1.StreamAgentResponse
-	(*v11.Message)(nil),               // 22: malonaz.ai.v1.Message
 }
 var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition:input_type -> malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest
@@ -122,7 +120,7 @@ var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_depIdxs = []int32
 	20, // 28: malonaz.ai.agent.agent_service.v1.AgentService.SearchAgents:output_type -> malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
 	18, // 29: malonaz.ai.agent.agent_service.v1.AgentService.CancelAgent:output_type -> malonaz.ai.agent.v1.Agent
 	21, // 30: malonaz.ai.agent.agent_service.v1.AgentService.StreamAgent:output_type -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse
-	22, // 31: malonaz.ai.agent.agent_service.v1.AgentService.MessageAgent:output_type -> malonaz.ai.v1.Message
+	18, // 31: malonaz.ai.agent.agent_service.v1.AgentService.MessageAgent:output_type -> malonaz.ai.agent.v1.Agent
 	16, // [16:32] is the sub-list for method output_type
 	0,  // [0:16] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

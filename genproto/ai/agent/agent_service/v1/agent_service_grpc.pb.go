@@ -9,7 +9,6 @@ package v1
 import (
 	context "context"
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
-	v11 "github.com/malonaz/core/genproto/ai/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -58,12 +57,11 @@ const (
 // # Messaging
 //
 // Messages are the only way into an agent, from a client or another agent, and
-// always asynchronous: MessageAgent queues a message in the agent's chat,
-// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
-// agent's next turn delivers every pending message, at its start and between
-// its tool rounds, as one user message at the chat's end. Each turn a
-// sub-agent ends is sent to its parent as a report, so a parent never waits:
-// it ends its turn and wakes on the report.
+// always asynchronous: MessageAgent queues a message on the agent, in its
+// `queued_messages`, waking it if idle, and the agent's turn delivers every
+// queued message to its chat, at its start and between its tool rounds. Each
+// turn a sub-agent ends is sent to its parent as a report, so a parent never
+// waits: it ends its turn and wakes on the report.
 type AgentServiceClient interface {
 	// Create a definition.
 	//
@@ -125,11 +123,11 @@ type AgentServiceClient interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(ctx context.Context, in *StreamAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamAgentResponse], error)
-	// Send an agent a message, queued in its chat for its next turn. Wakes an
-	// idle agent. Returns the queued message.
+	// Send an agent a message, queued on the agent for its turn to deliver.
+	// Wakes an idle agent. Returns the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v11.Message, error)
+	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
 }
 
 type agentServiceClient struct {
@@ -299,9 +297,9 @@ func (c *agentServiceClient) StreamAgent(ctx context.Context, in *StreamAgentReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AgentService_StreamAgentClient = grpc.ServerStreamingClient[StreamAgentResponse]
 
-func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v11.Message, error) {
+func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.Message)
+	out := new(v1.Agent)
 	err := c.cc.Invoke(ctx, AgentService_MessageAgent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -328,12 +326,11 @@ func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentR
 // # Messaging
 //
 // Messages are the only way into an agent, from a client or another agent, and
-// always asynchronous: MessageAgent queues a message in the agent's chat,
-// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
-// agent's next turn delivers every pending message, at its start and between
-// its tool rounds, as one user message at the chat's end. Each turn a
-// sub-agent ends is sent to its parent as a report, so a parent never waits:
-// it ends its turn and wakes on the report.
+// always asynchronous: MessageAgent queues a message on the agent, in its
+// `queued_messages`, waking it if idle, and the agent's turn delivers every
+// queued message to its chat, at its start and between its tool rounds. Each
+// turn a sub-agent ends is sent to its parent as a report, so a parent never
+// waits: it ends its turn and wakes on the report.
 type AgentServiceServer interface {
 	// Create a definition.
 	//
@@ -395,11 +392,11 @@ type AgentServiceServer interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error
-	// Send an agent a message, queued in its chat for its next turn. Wakes an
-	// idle agent. Returns the queued message.
+	// Send an agent a message, queued on the agent for its turn to deliver.
+	// Wakes an idle agent. Returns the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	MessageAgent(context.Context, *MessageAgentRequest) (*v11.Message, error)
+	MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error)
 }
 
 // UnimplementedAgentServiceServer should be embedded to have
@@ -454,7 +451,7 @@ func (UnimplementedAgentServiceServer) CancelAgent(context.Context, *CancelAgent
 func (UnimplementedAgentServiceServer) StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamAgent not implemented")
 }
-func (UnimplementedAgentServiceServer) MessageAgent(context.Context, *MessageAgentRequest) (*v11.Message, error) {
+func (UnimplementedAgentServiceServer) MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error) {
 	return nil, status.Error(codes.Unimplemented, "method MessageAgent not implemented")
 }
 func (UnimplementedAgentServiceServer) testEmbeddedByValue() {}

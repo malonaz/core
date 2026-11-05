@@ -27,9 +27,8 @@ var File_malonaz_ai_agent_v1_annotations_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_annotations_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\x9b\x05\x9a\x95\x15\x93\x02\n" +
-	"\x1bagent.ai.malonaz.com/sender\x12\xf3\x01On a message sent to an agent: the resource name of who sent it, a user or an agent. Clients stamp their own; the service stamps the messages agents send through their built-in tools, and each sub-agent's turn report with the sub-agent's name.\x9a\x95\x15\xd0\x02\n" +
-	"\x1dagent.ai.malonaz.com/messages\x12\xae\x02On a user message of an agent's chat delivering the messages sent to it: the comma-separated resource names of the delivered messages, oldest first. Its blocks are theirs in order, each agent-sent one preceded by a header naming its sender; read each delivered message for its exact content and sender.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
+	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xd4\x02\x9a\x95\x15\xa1\x02\n" +
+	"\x1bagent.ai.malonaz.com/sender\x12\x81\x02On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_annotations_proto_goTypes = []any{}
 var file_malonaz_ai_agent_v1_annotations_proto_depIdxs = []int32{
