@@ -11,8 +11,8 @@ import (
 )
 
 // HistoryFilter is the AIP-160 filter of the messages of a chat making up its conversation history: those neither
-// failed, superseded nor excluded.
-var HistoryFilter = fmt.Sprintf("-status:* AND -labels.%q:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey(), aipb.Labels.Excluded.GetKey())
+// failed nor superseded.
+var HistoryFilter = fmt.Sprintf("-status:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey())
 
 type BlockType int
 
