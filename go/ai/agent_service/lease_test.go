@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
@@ -15,6 +16,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -350,4 +352,32 @@ func TestLease_DeleteCancelsTheTurnOnTheReplicaRunningIt(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Eventually(t, func() bool { return replicaA.turns.count() == 0 }, 5*time.Second, waitTick)
+}
+
+func TestLease_FailedTurnReportsOnceAcrossATakeover(t *testing.T) {
+	aiService := newFakeAiService()
+	aiService.setDefaultGeneration(textGeneration("noted"))
+	idleReplica := newIdleReplica(t, aiService)
+	parentAgent := createTestAgent(t, idleReplica)
+	agent := createTestSubAgent(t, idleReplica, parentAgent)
+	generationError := status.Errorf(codes.Unavailable, "the model is down").Err()
+	aiService.script(agent.Chat, &fakeGeneration{err: generationError}, &fakeGeneration{err: generationError})
+	sendText(t, idleReplica, agent.Name, "work")
+
+	service := newTestReplica(t, aiService, nil)
+	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
+	// A crash after the report left the turn running: its replay fails at the same point, reporting under the same id.
+	crashTurn(t, idleReplica, agent.Name)
+	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
+	var generationCount int
+	for _, generateMessageRequest := range aiService.generateMessageRequests() {
+		if generateMessageRequest.Parent == agent.Chat {
+			generationCount++
+		}
+	}
+	require.Equal(t, 2, generationCount)
+
+	reports := sentMessages(t, service, parentAgent.Name)
+	require.Len(t, reports, 1)
+	require.Contains(t, reports[0].Blocks[0].GetText(), "the model is down")
 }
