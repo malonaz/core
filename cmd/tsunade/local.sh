@@ -13,6 +13,7 @@ mappings = {
     'AI_SERVICE_OPENAI_API_KEY': 'openai_api_key',
     'AI_SERVICE_CEREBRAS_API_KEY': 'cerebras_api_key',
     'AI_SERVICE_DEEPGRAM_API_KEY': 'deepgram_api_key',
+    'AI_SERVICE_TYPESAFE_API_KEY': 'typesafe_api_key',
     'AI_SERVICE_GOOGLE_CLOUD_PROJECT': 'google_cloud_project',
     'AI_SERVICE_GOOGLE_CLOUD_LOCATION': 'google_cloud_location',
 }
