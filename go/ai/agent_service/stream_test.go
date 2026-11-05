@@ -110,9 +110,8 @@ func TestStream_LocalTurn(t *testing.T) {
 	require.Equal(t, 1, countContent[*agentservicepb.StreamAgentResponse_ToolCall_](responses))
 	require.Equal(t, 1, countContent[*agentservicepb.StreamAgentResponse_ToolCallEnded_](responses))
 	require.Equal(t, 2, countContent[*agentservicepb.StreamAgentResponse_Delta](responses))
-	// The queued message twice (queued, then delivered), the instructions, its delivery, both assistant messages and
-	// the tool result.
-	require.Equal(t, 7, countContent[*agentservicepb.StreamAgentResponse_Message](responses))
+	// The instructions, the delivered message, both assistant messages and the tool result.
+	require.Equal(t, 5, countContent[*agentservicepb.StreamAgentResponse_Message](responses))
 	var labelled bool
 	for _, response := range responses {
 		if toolCall := response.GetToolCall(); toolCall != nil {
@@ -223,32 +222,14 @@ func TestStream_QueuedMessagesReachEveryReplica(t *testing.T) {
 	replicaA := newIdleReplica(t, aiService)
 	replicaB := newIdleReplica(t, aiService)
 	agent := createTestAgent(t, replicaA)
-	stream := openTestStream(t, replicaB, &agentservicepb.StreamAgentRequest{Name: agent.Name, View: agentservicepb.AgentView_AGENT_VIEW_FULL})
+	stream := openTestStream(t, replicaB, &agentservicepb.StreamAgentRequest{Name: agent.Name})
 	require.Equal(t, agent.Name, stream.next(t).Agent)
 
-	// Sent through the other replica, the message reaches B's stream through its poll; sent through B, through its hub.
-	sentThroughA := sendText(t, replicaA, agent.Name, "through a")
-	sentThroughB := sendText(t, replicaB, agent.Name, "through b")
+	// Queued through the other replica, the message reaches B's stream through its poll; through B, through its hub.
+	sendText(t, replicaA, agent.Name, "through a")
+	sendText(t, replicaB, agent.Name, "through b")
 
-	queuedMessageNameSet := map[string]struct{}{}
-	deadline := time.After(waitTimeout)
-	for len(queuedMessageNameSet) < 2 {
-		select {
-		case response := <-stream.responses:
-			if message := response.GetMessage(); message != nil {
-				require.True(t, isPending(message))
-				require.NotContains(t, queuedMessageNameSet, message.Name)
-				queuedMessageNameSet[message.Name] = struct{}{}
-			}
-		case <-deadline:
-			require.FailNow(t, "queued messages never streamed")
-		}
-	}
-	require.Contains(t, queuedMessageNameSet, sentThroughA.Name)
-	require.Contains(t, queuedMessageNameSet, sentThroughB.Name)
-	// Later polls stream neither again.
-	time.Sleep(3 * replicaB.opts.StreamPollInterval)
-	for len(stream.responses) > 0 {
-		require.Nil(t, (<-stream.responses).GetMessage())
-	}
+	stream.until(t, func(response *agentservicepb.StreamAgentResponse) bool {
+		return len(response.GetSnapshot().GetQueuedMessages()) == 2
+	})
 }

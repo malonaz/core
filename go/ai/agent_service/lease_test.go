@@ -2,7 +2,6 @@ package agent_service
 
 import (
 	"context"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -15,7 +14,6 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
-	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -83,32 +81,11 @@ func TestLease_NoLostWakeups(t *testing.T) {
 	waitGroup.Wait()
 
 	require.Eventually(t, func() bool {
-		messages := sentMessages(t, service, agent.Name)
-		for _, message := range messages {
-			if isPending(message) {
-				return false
-			}
-		}
-		return len(messages) == 30 && getAgent(t, service, agent.Name).State == agentpb.Agent_STATE_IDLE
+		agent := getAgent(t, service, agent.Name)
+		return len(agent.QueuedMessages) == 0 && agent.State == agentpb.Agent_STATE_IDLE
 	}, waitTimeout, waitTick)
-	// Every message was delivered exactly once, and no generation saw one where it was queued.
-	deliveredMessageSet := map[string]struct{}{}
-	for _, message := range service.aiService.messages(agent.Chat) {
-		deliveredMessages, ok := agentpb.Annotations.Messages.Get(message)
-		if !ok {
-			continue
-		}
-		for _, deliveredMessage := range strings.Split(deliveredMessages, ",") {
-			require.NotContains(t, deliveredMessageSet, deliveredMessage)
-			deliveredMessageSet[deliveredMessage] = struct{}{}
-		}
-	}
-	require.Len(t, deliveredMessageSet, 30)
-	for _, generationHistory := range service.aiService.generateMessageHistories() {
-		for _, message := range generationHistory {
-			require.False(t, aip.HasLabel(message, aipb.Labels.Excluded.GetKey()))
-		}
-	}
+	// Every message was delivered exactly once.
+	require.Len(t, deliveredMessages(t, service, agent.Name), 30)
 	require.Empty(t, getLease(t, service, agent.Name))
 }
 
@@ -116,32 +93,30 @@ func TestLease_DeliveryIsIdempotent(t *testing.T) {
 	aiService := newFakeAiService()
 	idleReplica := newIdleReplica(t, aiService)
 	agent := createTestAgent(t, idleReplica)
-	firstMessage := sendText(t, idleReplica, agent.Name, "first")
-	secondMessage := sendText(t, idleReplica, agent.Name, "second")
-	// A crash between delivering the first message and un-pending it left it pending.
-	deliveryMessage := ai.NewUserMessage(firstMessage.Blocks...)
-	agentpb.Annotations.Messages.Set(deliveryMessage, firstMessage.Name)
+	sendText(t, idleReplica, agent.Name, "first")
+	queuedMessages := sendText(t, idleReplica, agent.Name, "second").QueuedMessages
+	// A crash between delivering the first message and removing it from the queue left it queued.
+	firstMessageRn, err := aipb.ParseMessageRn(queuedMessages[0].Name)
+	require.NoError(t, err)
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    agent.Chat,
-		Message:   deliveryMessage,
-		MessageId: aip.NewDeterministicBase32ResourceID(deliveryMessageNamespace, firstMessage.Name),
+		Message:   ai.NewUserMessage(queuedMessages[0].Blocks...),
+		MessageId: firstMessageRn.Message,
 	}
-	_, err := aiService.CreateMessage(context.Background(), createMessageRequest)
+	_, err = aiService.CreateMessage(context.Background(), createMessageRequest)
 	require.NoError(t, err)
 	aiService.script(agent.Chat, textGeneration("both read"))
 
-	// The safety net claims the idle agent with undelivered messages.
+	// The claim scan takes the RUNNING agent no replica had room for.
 	service := newTestReplica(t, aiService, nil)
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	messages := history(aiService.messages(agent.Chat))
+	messages := aiService.messages(agent.Chat)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_USER, aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
-	deliveredMessages, _ := agentpb.Annotations.Messages.Get(messages[2])
-	require.Equal(t, secondMessage.Name, deliveredMessages)
-	for _, message := range sentMessages(t, service, agent.Name) {
-		require.False(t, isPending(message))
-	}
-	require.Len(t, aiService.generateMessageRequests(), 1)
+	require.Equal(t, queuedMessages[0].Name, messages[0].Name)
+	require.Equal(t, queuedMessages[1].Name, messages[2].Name)
+	require.Empty(t, getAgent(t, service, agent.Name).QueuedMessages)
+	require.Len(t, aiService.generateMessageRequests(agent.Chat), 1)
 }
 
 func TestLease_TakeoverAnswersDanglingToolCalls(t *testing.T) {
@@ -165,7 +140,7 @@ func TestLease_TakeoverAnswersDanglingToolCalls(t *testing.T) {
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetContent())
 	require.Contains(t, toolCallIDToToolResult["call-2"].GetError().GetMessage(), "interrupted by a server restart")
 	require.Equal(t, "discovered", toolCallIDToToolResult["call-3"].GetContent())
-	require.Len(t, aiService.generateMessageRequests(), 1)
+	require.Len(t, aiService.generateMessageRequests(agent.Chat), 1)
 	require.Empty(t, getLease(t, service, agent.Name))
 }
 
@@ -200,12 +175,11 @@ func TestLease_TakeoverFinishesAnAnsweredTurnOnce(t *testing.T) {
 	}
 
 	// Nothing was generated for the finished turn, and its report was queued once.
-	for _, generateMessageRequest := range aiService.generateMessageRequests() {
-		require.NotEqual(t, agent.Chat, generateMessageRequest.Parent)
-	}
+	require.Empty(t, aiService.generateMessageRequests(agent.Chat))
+	require.Eventually(t, func() bool { return getAgent(t, service, parentAgent.Name).State == agentpb.Agent_STATE_IDLE }, waitTimeout, waitTick)
 	reports := sentMessages(t, service, parentAgent.Name)
 	require.Len(t, reports, 1)
-	require.Equal(t, "final answer", reports[0].Blocks[0].GetText())
+	require.Equal(t, "final answer", lastText(reports[0]))
 }
 
 func TestLease_LostLeaseIsTakenOver(t *testing.T) {
@@ -229,7 +203,7 @@ func TestLease_LostLeaseIsTakenOver(t *testing.T) {
 	}))
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	require.Len(t, service.aiService.generateMessageRequests(), 2)
+	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
 }
 
 func TestLease_CancelLocalTurn(t *testing.T) {
@@ -369,15 +343,10 @@ func TestLease_FailedTurnReportsOnceAcrossATakeover(t *testing.T) {
 	// A crash after the report left the turn running: its replay fails at the same point, reporting under the same id.
 	crashTurn(t, idleReplica, agent.Name)
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
-	var generationCount int
-	for _, generateMessageRequest := range aiService.generateMessageRequests() {
-		if generateMessageRequest.Parent == agent.Chat {
-			generationCount++
-		}
-	}
-	require.Equal(t, 2, generationCount)
+	require.Len(t, aiService.generateMessageRequests(agent.Chat), 2)
 
+	require.Eventually(t, func() bool { return getAgent(t, service, parentAgent.Name).State == agentpb.Agent_STATE_IDLE }, waitTimeout, waitTick)
 	reports := sentMessages(t, service, parentAgent.Name)
 	require.Len(t, reports, 1)
-	require.Contains(t, reports[0].Blocks[0].GetText(), "the model is down")
+	require.Contains(t, lastText(reports[0]), "the model is down")
 }
