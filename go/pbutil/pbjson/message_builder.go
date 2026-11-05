@@ -642,3 +642,17 @@ func splitPaths(s string) []string {
 	}
 	return paths
 }
+
+// StripTitle returns args without the injected `tool_call_title` argument, which no request carries.
+func StripTitle(args map[string]any) map[string]any {
+	if _, ok := args[titleKey]; !ok {
+		return args
+	}
+	stripped := make(map[string]any, len(args)-1)
+	for key, value := range args {
+		if key != titleKey {
+			stripped[key] = value
+		}
+	}
+	return stripped
+}
