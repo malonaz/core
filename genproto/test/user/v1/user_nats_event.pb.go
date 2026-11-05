@@ -25,7 +25,9 @@ type UserStream struct {
 func GetUserStream() *UserStream {
 	userStreamOnce.Do(func() {
 		userStreamVal = &UserStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.user"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name: "malonaz.test.user.v1.user",
+			}),
 		}
 	})
 	return userStreamVal

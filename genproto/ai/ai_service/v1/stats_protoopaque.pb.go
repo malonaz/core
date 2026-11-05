@@ -111,8 +111,8 @@ type ComputeStatsRequest_builder struct {
 
 	// The resource to compute stats for: a user or an organization.
 	// Formats:
-	//   - organizations/{organization}
-	//   - organizations/{organization}/users/{user}
+	//  - organizations/{organization}
+	//  - organizations/{organization}/users/{user}
 	Name string
 	// The interval to compute stats over. Unset means all time.
 	Interval *interval.Interval

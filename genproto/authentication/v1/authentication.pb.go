@@ -939,8 +939,8 @@ type Session struct {
 	// An authorized session does not get checked again method permissions.
 	// We only check at edges entry point.
 	// For example, let's look at an external call:
-	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
-	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+	//  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+	//  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
 	Authorized bool `protobuf:"varint,5,opt,name=authorized,proto3" json:"authorized,omitempty"`
 	// The labels on this sessino.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -1205,8 +1205,8 @@ type Session_builder struct {
 	// An authorized session does not get checked again method permissions.
 	// We only check at edges entry point.
 	// For example, let's look at an external call:
-	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
-	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+	//  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+	//  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
 	Authorized bool
 	// The labels on this sessino.
 	Labels map[string]string

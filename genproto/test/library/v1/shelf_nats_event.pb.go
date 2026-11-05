@@ -28,7 +28,9 @@ type ShelfStream struct {
 func GetShelfStream() *ShelfStream {
 	shelfStreamOnce.Do(func() {
 		shelfStreamVal = &ShelfStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.shelf"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name: "malonaz.test.library.v1.shelf",
+			}),
 		}
 	})
 	return shelfStreamVal

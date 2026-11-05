@@ -32,8 +32,8 @@ type ComputeStatsRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource to compute stats for: a user or an organization.
 	// Formats:
-	//   - organizations/{organization}
-	//   - organizations/{organization}/users/{user}
+	//  - organizations/{organization}
+	//  - organizations/{organization}/users/{user}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The interval to compute stats over. Unset means all time.
 	Interval *interval.Interval `protobuf:"bytes,2,opt,name=interval,proto3" json:"interval,omitempty"`
@@ -117,8 +117,8 @@ type ComputeStatsRequest_builder struct {
 
 	// The resource to compute stats for: a user or an organization.
 	// Formats:
-	//   - organizations/{organization}
-	//   - organizations/{organization}/users/{user}
+	//  - organizations/{organization}
+	//  - organizations/{organization}/users/{user}
 	Name string
 	// The interval to compute stats over. Unset means all time.
 	Interval *interval.Interval

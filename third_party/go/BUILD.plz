@@ -1265,7 +1265,7 @@ go_mod_download(
     name = "github.com__go-json-experiment__json",
     _tag = "download",
     module = "github.com/go-json-experiment/json",
-    version = "v0.0.0-20251027170946-4849db3c2f7e",
+    version = "v0.0.0-20260820222146-c27c302e5fc3",
     visibility = ["PUBLIC"],
 )
 
@@ -1275,66 +1275,7 @@ go_module(
     install = ["."],
     module = "github.com/go-json-experiment/json",
     visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__go-json-experiment__json__internal",
-        ":github.com__go-json-experiment__json__internal__jsonflags",
-        ":github.com__go-json-experiment__json__internal__jsonopts",
-        ":github.com__go-json-experiment__json__internal__jsonwire",
-        ":github.com__go-json-experiment__json__jsontext",
-    ],
-)
-
-go_module(
-    name = "github.com__go-json-experiment__json__internal",
-    download = ":_github.com__go-json-experiment__json#download",
-    install = ["internal"],
-    module = "github.com/go-json-experiment/json",
-    visibility = ["PUBLIC"],
     deps = [],
-)
-
-go_module(
-    name = "github.com__go-json-experiment__json__internal__jsonflags",
-    download = ":_github.com__go-json-experiment__json#download",
-    install = ["internal/jsonflags"],
-    module = "github.com/go-json-experiment/json",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__go-json-experiment__json__internal"],
-)
-
-go_module(
-    name = "github.com__go-json-experiment__json__internal__jsonopts",
-    download = ":_github.com__go-json-experiment__json#download",
-    install = ["internal/jsonopts"],
-    module = "github.com/go-json-experiment/json",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//third_party/go:github.com__go-json-experiment__json__internal",
-        "//third_party/go:github.com__go-json-experiment__json__internal__jsonflags",
-    ],
-)
-
-go_module(
-    name = "github.com__go-json-experiment__json__internal__jsonwire",
-    download = ":_github.com__go-json-experiment__json#download",
-    install = ["internal/jsonwire"],
-    module = "github.com/go-json-experiment/json",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__go-json-experiment__json__internal__jsonflags"],
-)
-
-go_module(
-    name = "github.com__go-json-experiment__json__jsontext",
-    download = ":_github.com__go-json-experiment__json#download",
-    install = ["jsontext"],
-    module = "github.com/go-json-experiment/json",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//third_party/go:github.com__go-json-experiment__json__internal",
-        "//third_party/go:github.com__go-json-experiment__json__internal__jsonflags",
-        "//third_party/go:github.com__go-json-experiment__json__internal__jsonopts",
-        "//third_party/go:github.com__go-json-experiment__json__internal__jsonwire",
-    ],
 )
 
 go_mod_download(

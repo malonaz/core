@@ -865,7 +865,7 @@ var (
 
 // Extension fields to descriptorpb.MessageOptions.
 var (
-	//	The uuid namespace for a resource.
+	//  The uuid namespace for a resource.
 	//
 	// optional string uuid_namespace = 92000;
 	E_UuidNamespace = &file_malonaz_codegen_aip_v1_aip_proto_extTypes[1]

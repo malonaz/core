@@ -5,6 +5,7 @@ package v1
 import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	nats "github.com/malonaz/core/go/nats"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	sync "sync"
 )
 
@@ -20,7 +21,12 @@ type LibraryServiceBookStream struct {
 func GetLibraryServiceBookStream() *LibraryServiceBookStream {
 	libraryServiceBookStreamOnce.Do(func() {
 		libraryServiceBookStreamVal = &LibraryServiceBookStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.book"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name:      "malonaz.test.library.v1.book",
+				MaxAge:    &durationpb.Duration{Seconds: 2592000, Nanos: 0},
+				Retention: v1.RetentionPolicy_RETENTION_POLICY_LIMITS,
+				Storage:   v1.StorageType_STORAGE_TYPE_FILE,
+			}),
 		}
 	})
 	return libraryServiceBookStreamVal
@@ -42,7 +48,12 @@ type LibraryServiceShelfStream struct {
 func GetLibraryServiceShelfStream() *LibraryServiceShelfStream {
 	libraryServiceShelfStreamOnce.Do(func() {
 		libraryServiceShelfStreamVal = &LibraryServiceShelfStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.shelf"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name:      "malonaz.test.library.v1.shelf",
+				MaxAge:    &durationpb.Duration{Seconds: 2592000, Nanos: 0},
+				Retention: v1.RetentionPolicy_RETENTION_POLICY_LIMITS,
+				Storage:   v1.StorageType_STORAGE_TYPE_FILE,
+			}),
 		}
 	})
 	return libraryServiceShelfStreamVal
@@ -64,7 +75,12 @@ type LibraryServiceCaseStream struct {
 func GetLibraryServiceCaseStream() *LibraryServiceCaseStream {
 	libraryServiceCaseStreamOnce.Do(func() {
 		libraryServiceCaseStreamVal = &LibraryServiceCaseStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.case"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name:      "malonaz.test.library.v1.case",
+				MaxAge:    &durationpb.Duration{Seconds: 2592000, Nanos: 0},
+				Retention: v1.RetentionPolicy_RETENTION_POLICY_LIMITS,
+				Storage:   v1.StorageType_STORAGE_TYPE_FILE,
+			}),
 		}
 	})
 	return libraryServiceCaseStreamVal

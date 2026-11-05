@@ -26,7 +26,9 @@ type CaseStream struct {
 func GetCaseStream() *CaseStream {
 	caseStreamOnce.Do(func() {
 		caseStreamVal = &CaseStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.case"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name: "malonaz.test.library.v1.case",
+			}),
 		}
 	})
 	return caseStreamVal
