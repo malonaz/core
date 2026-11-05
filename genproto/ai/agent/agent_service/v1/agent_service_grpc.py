@@ -71,6 +71,10 @@ class AgentServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def SearchAgents(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsRequest, malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def CancelAgent(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.CancelAgentRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
         pass
 
@@ -155,6 +159,12 @@ class AgentServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.ListAgentsRequest,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.ListAgentsResponse,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/SearchAgents': grpclib.const.Handler(
+                self.SearchAgents,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsRequest,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsResponse,
             ),
             '/malonaz.ai.agent.agent_service.v1.AgentService/CancelAgent': grpclib.const.Handler(
                 self.CancelAgent,
@@ -251,6 +261,12 @@ class AgentServiceStub:
             '/malonaz.ai.agent.agent_service.v1.AgentService/ListAgents',
             malonaz.ai.agent.agent_service.v1.agent_pb2.ListAgentsRequest,
             malonaz.ai.agent.agent_service.v1.agent_pb2.ListAgentsResponse,
+        )
+        self.SearchAgents = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/SearchAgents',
+            malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsRequest,
+            malonaz.ai.agent.agent_service.v1.agent_pb2.SearchAgentsResponse,
         )
         self.CancelAgent = grpclib.client.UnaryUnaryMethod(
             channel,

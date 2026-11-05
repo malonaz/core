@@ -8,6 +8,7 @@ import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/v1/message.proto";
+import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -159,6 +160,61 @@ message ListAgentsResponse {
 
   // A token to retrieve the next page. Omitted when there are no more pages.
   string next_page_token = 2;
+}
+
+// Request message for AgentService.SearchAgents.
+message SearchAgentsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The user owning the agents. Use "organizations/{organization}/users/-" to
+  // search across users.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
+  ];
+
+  // The free-text search query, over the agents' titles, labels and
+  // instructions. Results are ranked by relevance. Must contain at least one
+  // searchable term.
+  string query = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
+  // @autogen. ANDed with the query.
+  string filter = 3;
+
+  // If true, include soft-deleted agents.
+  bool show_deleted = 4;
+
+  // Maximum number of agents to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `SearchAgents` call.
+  string page_token = 6;
+
+  // If true, highlighted snippets are computed and returned for each result.
+  bool include_snippets = 7;
+}
+
+// Response message for AgentService.SearchAgents.
+message SearchAgentsResponse {
+  // The agents matching the query, ranked by relevance.
+  repeated malonaz.ai.agent.v1.Agent agents = 1;
+
+  // Highlighted snippets, index-aligned with `agents`.
+  repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+
+  // A token to retrieve the next page. Omitted when there are no more pages.
+  string next_page_token = 3;
 }
 
 // Request message for AgentService.CancelAgent.
