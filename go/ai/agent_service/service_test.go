@@ -139,16 +139,42 @@ func createTestAgentWithSpec(t *testing.T, service *testReplica, user string, sp
 	return agent
 }
 
-// sendText queues a text input on an agent.
-func sendText(t *testing.T, service *testReplica, agent, text string) *agentpb.Input {
+// sendText messages an agent with a text.
+func sendText(t *testing.T, service *testReplica, agent, text string) *aipb.Message {
 	t.Helper()
-	createInputRequest := &agentservicepb.CreateInputRequest{
-		Parent: agent,
-		Input:  &agentpb.Input{Message: ai.NewUserMessage(ai.NewTextBlock(text))},
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{
+		Name:    agent,
+		Message: ai.NewUserMessage(ai.NewTextBlock(text)),
 	}
-	input, err := service.CreateInput(context.Background(), createInputRequest)
+	message, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
-	return input
+	return message
+}
+
+// sentMessages returns the messages sent to an agent, queued in its chat, oldest first.
+func sentMessages(t *testing.T, service *testReplica, agent string) []*aipb.Message {
+	t.Helper()
+	var messages []*aipb.Message
+	for _, message := range service.aiService.messages(getAgent(t, service, agent).Chat) {
+		if aip.HasLabel(message, aipb.Labels.Excluded.GetKey()) {
+			messages = append(messages, message)
+		}
+	}
+	return messages
+}
+
+// isPending reports whether a sent message awaits its delivery.
+func isPending(message *aipb.Message) bool {
+	return aip.HasLabel(message, agentpb.Labels.Pending.GetKey())
+}
+
+// history returns the messages of a chat the model sees.
+func history(messages []*aipb.Message) []*aipb.Message {
+	history, err := filterMessages(messages, ai.HistoryFilter)
+	if err != nil {
+		panic(err)
+	}
+	return history
 }
 
 // getAgent reads an agent.

@@ -127,7 +127,7 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 
 	// Every tool, built-ins included, requires a title.
 	generateMessageRequest := service.aiService.generateMessageRequests()[0]
-	for _, name := range []string{healthCheckTool, createAgentsToolName, sendInputToolName, listAgentsToolName, updateLabelsToolName} {
+	for _, name := range []string{healthCheckTool, createAgentsToolName, messageAgentToolName, listAgentsToolName, updateLabelsToolName} {
 		tool := findTool(generateMessageRequest.GetTools(), name)
 		require.NotNil(t, tool, name)
 		require.Contains(t, tool.GetJsonSchema().GetRequired(), "tool_call_title", name)
