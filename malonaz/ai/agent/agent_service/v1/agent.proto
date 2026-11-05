@@ -8,7 +8,6 @@ import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/v1/message.proto";
-import "malonaz/ai/agent/v1/input.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -164,7 +163,7 @@ message ListAgentsResponse {
 
 // Request message for AgentService.CancelAgent.
 message CancelAgentRequest {
-  // The agent whose running turn to cancel. Pending inputs stay queued.
+  // The agent whose running turn to cancel. Its pending messages stay queued.
   // Format: organizations/{organization}/users/{user}/agents/{agent}
   string name = 1 [
     (buf.validate.field).required = true,
@@ -256,66 +255,26 @@ message StreamAgentResponse {
   message GenerationReset {}
 }
 
-// Request message for AgentService.CreateInput.
-message CreateInputRequest {
-  // The agent to send the input to.
+// Request message for AgentService.MessageAgent.
+message MessageAgentRequest {
+  // The agent to message.
   // Format: organizations/{organization}/users/{user}/agents/{agent}
-  string parent = 1 [
+  string name = 1 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
   ];
 
-  // The input to queue.
-  malonaz.ai.agent.v1.Input input = 2 [(buf.validate.field).required = true];
+  // The message, a USER message written by the caller, who stamps itself in its
+  // agent.ai.malonaz.com/sender annotation.
+  malonaz.ai.v1.Message message = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // A unique identifier for this request. Must be a UUID.
   string request_id = 3 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true
   ];
-}
-
-// Request message for AgentService.ListInputs.
-message ListInputsRequest {
-  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
-  option (malonaz.codegen.aip.v1.ordering) = {
-    paths: ["create_time"]
-    default: "create_time asc"
-  };
-  option (malonaz.codegen.aip.v1.filtering) = {
-    paths: ["*"]
-  };
-
-  // The agent whose inputs to list.
-  // Format: organizations/{organization}/users/{user}/agents/{agent}
-  string parent = 1 [
-    (buf.validate.field).required = true,
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
-  ];
-
-  // @autogen. `NOT consume_time:*` lists the pending inputs.
-  string filter = 2;
-
-  // @autogen
-  string order_by = 3;
-
-  // Maximum number of inputs to return (max 100).
-  int32 page_size = 4 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 100
-  }];
-
-  // A page token, received from a previous `ListInputs` call.
-  string page_token = 5;
-}
-
-// Response message for AgentService.ListInputs.
-message ListInputsResponse {
-  // The inputs.
-  repeated malonaz.ai.agent.v1.Input inputs = 1;
-
-  // A token to retrieve the next page. Omitted when there are no more pages.
-  string next_page_token = 2;
 }

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/builtin_tool.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_builtin_tool: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEivQIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGr4BCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBINCgV0b29scxgHIAMoCSJIChZTZW5kSW5wdXRUb29sQXJndW1lbnRzEhUKBWFnZW50GAEgASgJQga6SAPIAQESFwoHbWVzc2FnZRgCIAEoCUIGukgDyAEBIhkKF0xpc3RBZ2VudHNUb29sQXJndW1lbnRzIqsBChlVcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzElIKA3NldBgBIAMoCzJFLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5VcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzLlNldEVudHJ5Eg4KBnJlbW92ZRgCIAMoCRoqCghTZXRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_v1_message]);
+  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEivQIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGr4BCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBINCgV0b29scxgHIAMoCSJLChlNZXNzYWdlQWdlbnRUb29sQXJndW1lbnRzEhUKBWFnZW50GAEgASgJQga6SAPIAQESFwoHbWVzc2FnZRgCIAEoCUIGukgDyAEBIhkKF0xpc3RBZ2VudHNUb29sQXJndW1lbnRzIqsBChlVcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzElIKA3NldBgBIAMoCzJFLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5VcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzLlNldEVudHJ5Eg4KBnJlbW92ZRgCIAMoCRoqCghTZXRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_v1_message]);
 
 /**
  * The arguments of the built-in create_agents tool.
@@ -178,11 +178,11 @@ export const CreateAgentsToolArguments_SubAgentSchema: GenMessage<CreateAgentsTo
   messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 0, 0);
 
 /**
- * The arguments of the built-in send_input tool.
+ * The arguments of the built-in message_agent tool.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.SendInputToolArguments
+ * @generated from message malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments
  */
-export type SendInputToolArguments = Message<"malonaz.ai.agent.agent_service.v1.SendInputToolArguments"> & {
+export type MessageAgentToolArguments = Message<"malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments"> & {
   /**
    * The recipient, an agent of your tree.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
@@ -200,11 +200,11 @@ export type SendInputToolArguments = Message<"malonaz.ai.agent.agent_service.v1.
 };
 
 /**
- * The arguments of the built-in send_input tool.
+ * The arguments of the built-in message_agent tool.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.SendInputToolArguments
+ * @generated from message malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments
  */
-export type SendInputToolArgumentsValid = Message<"malonaz.ai.agent.agent_service.v1.SendInputToolArguments"> & {
+export type MessageAgentToolArgumentsValid = Message<"malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments"> & {
   /**
    * The recipient, an agent of your tree.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
@@ -222,10 +222,10 @@ export type SendInputToolArgumentsValid = Message<"malonaz.ai.agent.agent_servic
 };
 
 /**
- * Describes the message malonaz.ai.agent.agent_service.v1.SendInputToolArguments.
- * Use `create(SendInputToolArgumentsSchema)` to create a new message.
+ * Describes the message malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments.
+ * Use `create(MessageAgentToolArgumentsSchema)` to create a new message.
  */
-export const SendInputToolArgumentsSchema: GenMessage<SendInputToolArguments, {validType: SendInputToolArgumentsValid}> = /*@__PURE__*/
+export const MessageAgentToolArgumentsSchema: GenMessage<MessageAgentToolArguments, {validType: MessageAgentToolArgumentsValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 1);
 
 /**

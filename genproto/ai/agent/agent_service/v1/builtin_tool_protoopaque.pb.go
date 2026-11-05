@@ -85,8 +85,8 @@ func (b0 CreateAgentsToolArguments_builder) Build() *CreateAgentsToolArguments {
 	return m0
 }
 
-// The arguments of the built-in send_input tool.
-type SendInputToolArguments struct {
+// The arguments of the built-in message_agent tool.
+type MessageAgentToolArguments struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Agent   string                 `protobuf:"bytes,1,opt,name=agent,proto3"`
 	xxx_hidden_Message string                 `protobuf:"bytes,2,opt,name=message,proto3"`
@@ -94,20 +94,20 @@ type SendInputToolArguments struct {
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *SendInputToolArguments) Reset() {
-	*x = SendInputToolArguments{}
+func (x *MessageAgentToolArguments) Reset() {
+	*x = MessageAgentToolArguments{}
 	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SendInputToolArguments) String() string {
+func (x *MessageAgentToolArguments) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SendInputToolArguments) ProtoMessage() {}
+func (*MessageAgentToolArguments) ProtoMessage() {}
 
-func (x *SendInputToolArguments) ProtoReflect() protoreflect.Message {
+func (x *MessageAgentToolArguments) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -119,29 +119,29 @@ func (x *SendInputToolArguments) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *SendInputToolArguments) GetAgent() string {
+func (x *MessageAgentToolArguments) GetAgent() string {
 	if x != nil {
 		return x.xxx_hidden_Agent
 	}
 	return ""
 }
 
-func (x *SendInputToolArguments) GetMessage() string {
+func (x *MessageAgentToolArguments) GetMessage() string {
 	if x != nil {
 		return x.xxx_hidden_Message
 	}
 	return ""
 }
 
-func (x *SendInputToolArguments) SetAgent(v string) {
+func (x *MessageAgentToolArguments) SetAgent(v string) {
 	x.xxx_hidden_Agent = v
 }
 
-func (x *SendInputToolArguments) SetMessage(v string) {
+func (x *MessageAgentToolArguments) SetMessage(v string) {
 	x.xxx_hidden_Message = v
 }
 
-type SendInputToolArguments_builder struct {
+type MessageAgentToolArguments_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The recipient, an agent of your tree.
@@ -151,8 +151,8 @@ type SendInputToolArguments_builder struct {
 	Message string
 }
 
-func (b0 SendInputToolArguments_builder) Build() *SendInputToolArguments {
-	m0 := &SendInputToolArguments{}
+func (b0 MessageAgentToolArguments_builder) Build() *MessageAgentToolArguments {
+	m0 := &MessageAgentToolArguments{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Agent = b.Agent
@@ -447,8 +447,8 @@ const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"\finstructions\x18\x04 \x01(\tR\finstructions\x12\x14\n" +
 	"\x05model\x18\x05 \x01(\tR\x05model\x12I\n" +
 	"\x10reasoning_effort\x18\x06 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12\x14\n" +
-	"\x05tools\x18\a \x03(\tR\x05tools\"X\n" +
-	"\x16SendInputToolArguments\x12\x1c\n" +
+	"\x05tools\x18\a \x03(\tR\x05tools\"[\n" +
+	"\x19MessageAgentToolArguments\x12\x1c\n" +
 	"\x05agent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05agent\x12 \n" +
 	"\amessage\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\amessage\"\x19\n" +
 	"\x17ListAgentsToolArguments\"\xc4\x01\n" +
@@ -462,7 +462,7 @@ const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_goTypes = []any{
 	(*CreateAgentsToolArguments)(nil),          // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments
-	(*SendInputToolArguments)(nil),             // 1: malonaz.ai.agent.agent_service.v1.SendInputToolArguments
+	(*MessageAgentToolArguments)(nil),          // 1: malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments
 	(*ListAgentsToolArguments)(nil),            // 2: malonaz.ai.agent.agent_service.v1.ListAgentsToolArguments
 	(*UpdateLabelsToolArguments)(nil),          // 3: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments
 	(*CreateAgentsToolArguments_SubAgent)(nil), // 4: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
