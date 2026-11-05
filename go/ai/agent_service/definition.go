@@ -11,7 +11,7 @@ import (
 
 // CreateDefinition creates a definition, whose tools' services must have targets.
 func (s *Service) CreateDefinition(ctx context.Context, request *agentservicepb.CreateDefinitionRequest) (*agentpb.Definition, error) {
-	if err := s.toolRouter.validate(request.Definition.GetSpec()); err != nil {
+	if err := s.validateTools(request.Definition.GetSpec()); err != nil {
 		return nil, err
 	}
 	return s.AgentServiceServer.CreateDefinition(ctx, request)
@@ -23,7 +23,7 @@ func (s *Service) UpdateDefinition(ctx context.Context, request *agentservicepb.
 		return path == "*" || path == "spec" || strings.HasPrefix(path, "spec.")
 	})
 	if updatesSpec {
-		if err := s.toolRouter.validate(request.Definition.GetSpec()); err != nil {
+		if err := s.validateTools(request.Definition.GetSpec()); err != nil {
 			return nil, err
 		}
 	}

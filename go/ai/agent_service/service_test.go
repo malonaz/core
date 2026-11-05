@@ -134,7 +134,16 @@ func newTestUser(t *testing.T) string {
 // createTestAgent creates an ad-hoc root agent with the given tools under a fresh user.
 func createTestAgent(t *testing.T, service *testReplica, tools ...string) *agentpb.Agent {
 	t.Helper()
-	return createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: tools})
+	return createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(tools...), MaxSubAgentDepth: 2})
+}
+
+// ungatedTools returns spec tools no call to which awaits approval.
+func ungatedTools(names ...string) []*agentpb.AgentSpec_Tool {
+	tools := make([]*agentpb.AgentSpec_Tool, 0, len(names))
+	for _, name := range names {
+		tools = append(tools, &agentpb.AgentSpec_Tool{Name: name, Approval: agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED})
+	}
+	return tools
 }
 
 // createTestAgentWithSpec creates an ad-hoc root agent with the given spec under a user.
@@ -194,12 +203,12 @@ func getAgent(t *testing.T, service *testReplica, name string) *agentpb.Agent {
 }
 
 // waitForIdle waits until the agent's latest turn ended with the given outcome and the agent is idle.
-func waitForIdle(t *testing.T, service *testReplica, name string, outcome agentpb.Agent_TurnOutcome) *agentpb.Agent {
+func waitForIdle(t *testing.T, service *testReplica, name string, outcome agentpb.Turn_Outcome) *agentpb.Agent {
 	t.Helper()
 	var agent *agentpb.Agent
 	require.Eventually(t, func() bool {
 		agent = getAgent(t, service, name)
-		return agent.State == agentpb.Agent_STATE_IDLE && agent.LastTurnOutcome == outcome
+		return agent.State == agentpb.Agent_STATE_IDLE && agent.GetLatestTurn().GetOutcome() == outcome
 	}, waitTimeout, waitTick, "agent %s never went idle with outcome %s", name, outcome)
 	return agent
 }

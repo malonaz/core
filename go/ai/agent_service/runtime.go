@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -28,10 +29,11 @@ type runtime struct {
 	address     string
 	connections *connections
 	toolRouter  *toolRouter
-	// builtinTools are the tools every agent holds.
-	builtinTools *builtinTools
-	hub          *hub
-	turns        *turns
+	// builtinTools are the tools every agent holds, genuiComponents those an agent may render.
+	builtinTools    *builtinTools
+	genuiComponents *genuiComponents
+	hub             *hub
+	turns           *turns
 	// runCtx spans the replica's life, with the service's identity: turns run on it.
 	runCtx context.Context
 }
@@ -52,14 +54,19 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if err != nil {
 		return nil, fmt.Errorf("instantiating built-in tools: %w", err)
 	}
+	genuiComponents, err := newGenuiComponents(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("instantiating genui components: %w", err)
+	}
 	return &runtime{
-		replica:      uuid.MustNewV7().String(),
-		builtinTools: builtinTools,
-		address:      opts.AdvertisedAddress,
-		connections:  connections,
-		toolRouter:   toolRouter,
-		hub:          newHub(),
-		turns:        newTurns(),
+		replica:         uuid.MustNewV7().String(),
+		builtinTools:    builtinTools,
+		genuiComponents: genuiComponents,
+		address:         opts.AdvertisedAddress,
+		connections:     connections,
+		toolRouter:      toolRouter,
+		hub:             newHub(),
+		turns:           newTurns(),
 	}, nil
 }
 
@@ -69,6 +76,11 @@ func (s *Service) asService(ctx context.Context) context.Context {
 		return ctx
 	}
 	return s.withServiceAccount(ctx)
+}
+
+// validateTools checks that every tool of a spec resolves: RPC tools need a target.
+func (s *Service) validateTools(spec *agentpb.AgentSpec) error {
+	return s.toolRouter.validate(spec, s.genuiComponents)
 }
 
 // now returns the current time at Postgres precision.

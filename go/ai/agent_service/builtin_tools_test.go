@@ -88,7 +88,7 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 	// The parent's first turn ends on its own; the report wakes it for a second, played by the default generation.
 	require.Eventually(t, func() bool {
 		subAgents := listChildAgents(t, service, agent)
-		if len(subAgents) != 1 || subAgents[0].LastTurnOutcome != agentpb.Agent_TURN_OUTCOME_SUCCEEDED {
+		if len(subAgents) != 1 || subAgents[0].GetLatestTurn().GetOutcome() != agentpb.Turn_OUTCOME_SUCCEEDED {
 			return false
 		}
 		return len(deliveredMessages(t, service, agent.Name)) == 2
@@ -108,7 +108,7 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 	reportMessage := deliveredMessages(t, service, agent.Name)[1]
 	sender, _ = agentpb.Annotations.Sender.Get(reportMessage)
 	require.Equal(t, subAgent.Name, sender)
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 
 	// The delivered messages name the sender agents: the parent to its sub-agent, the sub-agent to its parent.
 	require.Equal(t, []string{fmt.Sprintf("[Message from agent %s (%q)]", agent.Name, agent.Title), "research things"}, deliveredTexts(t, service, subAgent.Chat, taskMessage.Name))
@@ -169,6 +169,7 @@ func TestBuiltinTools_CreateAgentsGatesDefinitions(t *testing.T) {
 	agent = createTestAgentWithSpec(t, service, agentRn.UserRn().String(), &agentpb.AgentSpec{
 		Model:               testModel,
 		SubAgentDefinitions: []string{definition.Name},
+		MaxSubAgentDepth:    1,
 	})
 	toolResult = callBuiltinTool(t, service, agent, createAgentsCall)
 	require.Nil(t, toolResult.GetError())
@@ -183,11 +184,11 @@ func TestBuiltinTools_CreateAgentsRejectsToolsTheCallerLacks(t *testing.T) {
 	agent := createTestAgent(t, service, healthCheckMethod)
 	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
 		"tool_call_title": "Launch",
-		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{"other.Service"}}},
+		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{map[string]any{"name": "other.Service"}}}},
 	})
 
 	toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
-	require.Contains(t, toolResult.GetError().GetMessage(), "tools you do not hold")
+	require.Contains(t, toolResult.GetError().GetMessage(), "you do not hold tool other.Service")
 	require.Empty(t, listChildAgents(t, service, agent))
 }
 
