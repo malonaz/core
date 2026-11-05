@@ -204,7 +204,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 			last = delivered
 		}
 		switch {
-		case last == nil || last.GetRole() == aipb.Role_ROLE_SYSTEM:
+		case last == nil:
 			return nil, nil
 		case last.GetRole() == aipb.Role_ROLE_ASSISTANT && len(toolCalls(last)) == 0:
 			return last, nil
@@ -259,11 +259,17 @@ func (r *turnRunner) recover(ctx context.Context) (*aipb.Message, error) {
 		if err != nil {
 			return nil, status.FromError(err, "listing messages").Err()
 		}
-		if message.GetRole() == aipb.Role_ROLE_ASSISTANT {
+		switch message.GetRole() {
+		case aipb.Role_ROLE_ASSISTANT:
 			assistantMessage = message
-			break
+		case aipb.Role_ROLE_SYSTEM:
+			// The instructions answer nothing, wherever a first turn's takeover persisted them.
+			continue
+		default:
+			tail = append(tail, message)
+			continue
 		}
-		tail = append(tail, message)
+		break
 	}
 	last := assistantMessage
 	if len(tail) > 0 {

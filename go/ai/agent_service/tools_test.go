@@ -28,8 +28,8 @@ const (
 	healthCheckTool   = "Health_Check"
 )
 
-// fakeHealthServer is a tool target: it records its Check requests and answers SERVING, or NOT_FOUND for the
-// service "missing".
+// fakeHealthServer is a tool target: it records its Check requests and answers SERVING, NOT_FOUND for the service
+// "missing", after a while for "slow", and never for "block".
 type fakeHealthServer struct {
 	grpc_health_v1.UnimplementedHealthServer
 	mutex    sync.Mutex
@@ -38,10 +38,16 @@ type fakeHealthServer struct {
 
 func (s *fakeHealthServer) Check(ctx context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
 	s.mutex.Lock()
-	defer s.mutex.Unlock()
 	s.services = append(s.services, request.Service)
-	if request.Service == "missing" {
+	s.mutex.Unlock()
+	switch request.Service {
+	case "missing":
 		return nil, status.Errorf(codes.NotFound, "service missing is unknown").Err()
+	case "slow":
+		time.Sleep(300 * time.Millisecond)
+	case "block":
+		<-ctx.Done()
+		return nil, status.FromError(ctx.Err(), "checking").Err()
 	}
 	return &grpc_health_v1.HealthCheckResponse{Status: grpc_health_v1.HealthCheckResponse_SERVING}, nil
 }
