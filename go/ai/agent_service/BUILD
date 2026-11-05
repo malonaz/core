@@ -31,7 +31,6 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
-        ":agent_service",
         "//go/ai",
         "//go/ai/agent/agent_service/rpc",
         "//go/ai/agent/model",
@@ -55,14 +54,18 @@ go_library(
 go_test(
     name = "test",
     srcs = [
+        "agent_test.go",
         "broker_test.go",
+        "event_test.go",
         "executor_test.go",
+        "input_test.go",
         "service_test.go",
         "store_test.go",
         "stream_test.go",
     ],
     data = ["//go/ai/agent/migrations"],
     deps = [
+        ":agent_service",
         "//go/ai",
         "//go/ai/agent/model",
         "//go/ai/agent/store",
@@ -81,6 +84,7 @@ go_test(
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
