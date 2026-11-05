@@ -68,6 +68,7 @@ go_test(
         "//go/ai/agent/store",
         "//go/aip",
         "//go/grpc/status",
+        "//go/pbutil/pbjson",
         "//go/postgres",
         "//go/postgres/test_server",
         "//go/uuid",
