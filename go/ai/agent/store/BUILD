@@ -17,9 +17,8 @@ filegroup(
     name = "handwritten",
     srcs = [
         "agent.go",
-        "event.go",
-        "executor.go",
         "input.go",
+        "lease.go",
         "transaction.go",
     ],
     labels = [
@@ -32,9 +31,8 @@ go_library(
     name = "store",
     srcs = [
         "agent.go",
-        "event.go",
-        "executor.go",
         "input.go",
+        "lease.go",
         "transaction.go",
         ":codegen",
     ],
@@ -42,10 +40,7 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//go/ai/agent/model",
-        "//go/aip",
-        "//go/pbutil",
         "//go/postgres",
-        "//go/uuid",
         "//malonaz/ai/agent/v1",
         "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
