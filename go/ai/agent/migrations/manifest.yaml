@@ -2,14 +2,10 @@
 # Append-only: never reorder or edit an entry whose migration has been applied.
 migrations:
   - path: definition/001_init.sql
-    hash: 8d8a38231b4818b105bddf61a4bc2650
+    hash: 76c7531ae76e9a534484a26286eef5c2
   - path: agent/001_init.sql
-    hash: 46c214c27598bc7dc9ba3b884863e0c6
+    hash: 8e94c59ba7ca6367b1ec0e00027adbb7
   - path: input/001_init.sql
     hash: 7e99edb225b89961cbc006ceac9f2f03
-  - path: event/001_init.sql
-    hash: 8d0299609dfab2397f55eac550f3569e
-  - path: executor/001_init.sql
-    hash: 0e8a917da70635bf27a91bff13c1e166
-  - path: executor_refusal/001_init.sql
-    hash: 51296acc1f3cd333808135a17a7173bb
+  - path: agent_lease/001_init.sql
+    hash: d290846f3fda2ef98863739cf917605e
