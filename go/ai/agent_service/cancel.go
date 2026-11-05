@@ -3,6 +3,7 @@ package agent_service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -11,6 +12,9 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/uuid"
 )
+
+// cancelRetryInterval paces the retries of a cancellation waiting for a turn to settle on a replica.
+const cancelRetryInterval = 50 * time.Millisecond
 
 // CancelAgent cancels the agent's running turn wherever it runs: here, on the replica holding its lease, or, if no
 // replica holds it any more, by ending the turn CANCELLED directly. The turn has ended when it returns.
@@ -49,8 +53,14 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 	}
 	if lease != nil && !lease.Expired {
 		if lease.Replica == s.replica || lease.Address == s.address {
-			// Claimed here an instant ago, or by this replica's previous process whose lease is still to expire.
-			return nil, status.Errorf(codes.Unavailable, "the turn of agent %s is changing replicas: retry", agent.Name).Err()
+			// Claimed here an instant ago, or by this replica's previous process whose lease is still to expire: the
+			// turn settles shortly.
+			select {
+			case <-time.After(cancelRetryInterval):
+			case <-ctx.Done():
+				return nil, status.FromError(ctx.Err(), "waiting for the turn of agent %s to settle", agent.Name).Err()
+			}
+			return s.CancelAgent(ctx, request)
 		}
 		peerClient, err := s.peerClient(ctx, lease.Address)
 		if err != nil {

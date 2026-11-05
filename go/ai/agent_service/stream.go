@@ -54,7 +54,7 @@ func (s *Service) streamLocalAgent(request *agentservicepb.StreamAgentRequest, s
 		case <-subscription.overflowed:
 			return errStreamOverflowed
 		case response := <-subscription.responses:
-			if !inView(request.View, response) {
+			if !streams(request.IncludeTranscript, response) {
 				continue
 			}
 			if err := srv.Send(response); err != nil {
@@ -64,13 +64,13 @@ func (s *Service) streamLocalAgent(request *agentservicepb.StreamAgentRequest, s
 	}
 }
 
-// inView reports whether a view streams a piece of activity.
-func inView(view agentservicepb.AgentView, response *agentservicepb.StreamAgentResponse) bool {
+// streams reports whether a stream streams a piece of activity: transcript activity only if asked.
+func streams(includeTranscript bool, response *agentservicepb.StreamAgentResponse) bool {
 	switch response.Content.(type) {
 	case *agentservicepb.StreamAgentResponse_Snapshot, *agentservicepb.StreamAgentResponse_ToolCall_, *agentservicepb.StreamAgentResponse_ToolCallEnded_:
 		return true
 	default:
-		return view == agentservicepb.AgentView_AGENT_VIEW_FULL
+		return includeTranscript
 	}
 }
 
@@ -301,7 +301,7 @@ func (a *agentStream) proxy(ctx context.Context, agent, owner string) {
 		a.service.log.WarnContext(ctx, "connecting to the replica running a turn", "address", owner, "error", err)
 		return
 	}
-	streamAgentRequest := &agentservicepb.StreamAgentRequest{Name: agent, View: a.request.View}
+	streamAgentRequest := &agentservicepb.StreamAgentRequest{Name: agent, IncludeTranscript: a.request.IncludeTranscript}
 	stream, err := peerClient.StreamAgent(forwardedContext(ctx), streamAgentRequest)
 	if err != nil {
 		return
@@ -317,7 +317,7 @@ func (a *agentStream) proxy(ctx context.Context, agent, owner string) {
 	}
 }
 
-// send streams a piece of an agent's activity, if the view streams it. Snapshots are sent only when they change
+// send streams a piece of an agent's activity, if the stream streams it. Snapshots are sent only when they change
 // and never older than the last one sent.
 func (a *agentStream) send(streamedAgent *streamedAgent, response *agentservicepb.StreamAgentResponse) error {
 	switch content := response.Content.(type) {
@@ -333,7 +333,7 @@ func (a *agentStream) send(streamedAgent *streamedAgent, response *agentservicep
 	case *agentservicepb.StreamAgentResponse_Message, *agentservicepb.StreamAgentResponse_GenerationReset_:
 		streamedAgent.generating = false
 	}
-	if !inView(a.request.View, response) {
+	if !streams(a.request.IncludeTranscript, response) {
 		return nil
 	}
 	return a.srv.Send(response)

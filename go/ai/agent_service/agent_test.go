@@ -169,3 +169,13 @@ func TestAgent_UpdateTitleAndLabels(t *testing.T) {
 	require.Equal(t, map[string]string{"team": "core"}, updatedAgent.Labels)
 	require.NotEqual(t, agent.Etag, updatedAgent.Etag)
 }
+
+func TestAgent_CreateAgentRequestNamesDefinitionOrSpec(t *testing.T) {
+	user := "organizations/o/users/u"
+	both := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Definition: "organizations/o/definitions/d", Spec: &agentpb.AgentSpec{Model: testModel}}}
+	require.ErrorContains(t, protovalidate.Validate(both), "exactly one of agent.definition and agent.spec")
+	neither := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{}}
+	require.Error(t, protovalidate.Validate(neither))
+	spec := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: &agentpb.AgentSpec{Model: testModel}}}
+	require.NoError(t, protovalidate.Validate(spec))
+}

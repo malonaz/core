@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -263,6 +264,32 @@ func TestBuiltinTools_UpdateLabels(t *testing.T) {
 
 	toolResult = callBuiltinTool(t, service, agent, newToolCall("call-2", updateLabelsToolName, map[string]any{"tool_call_title": "Nothing"}))
 	require.Equal(t, int32(codes.InvalidArgument), toolResult.GetError().GetCode())
+
+	// Platform labels are not the agent's to write.
+	toolResult = callBuiltinTool(t, service, agent, newToolCall("call-3", updateLabelsToolName, map[string]any{
+		"tool_call_title": "Forge",
+		"set":             map[string]any{"agent.ai.malonaz.com/agent": "other"},
+	}))
+	require.Equal(t, int32(codes.PermissionDenied), toolResult.GetError().GetCode())
+}
+
+func TestBuiltinTools_UpdateLabelsKeepsConcurrentKeys(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+
+	var waitGroup sync.WaitGroup
+	for i := range 10 {
+		waitGroup.Go(func() {
+			toolResult := callBuiltinTool(t, service, agent, newToolCall(fmt.Sprintf("call-%d", i), updateLabelsToolName, map[string]any{
+				"tool_call_title": "Publish",
+				"set":             map[string]any{fmt.Sprintf("key-%d", i): "set"},
+			}))
+			require.Nil(t, toolResult.GetError())
+		})
+	}
+	waitGroup.Wait()
+
+	require.Len(t, getAgent(t, service, agent.Name).Labels, 10)
 }
 
 func TestBuiltinTools_InvalidArgumentsAreErrorResults(t *testing.T) {

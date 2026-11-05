@@ -28,9 +28,6 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
 	}
-	if request.Agent.Definition != "" && request.Agent.Spec != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "exactly one of agent.definition and agent.spec must be set").Err()
-	}
 	agentID := request.AgentId
 	if agentID == "" {
 		agentID = aip.NewSystemGeneratedBase32ResourceID()
