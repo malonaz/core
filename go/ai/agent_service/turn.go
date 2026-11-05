@@ -459,7 +459,7 @@ func (r *turnRunner) streamGeneration(ctx context.Context, request *aiservicepb.
 		return nil, false, err
 	}
 	var streamed bool
-	announcedToolCallIDSet := map[string]struct{}{}
+	announcer := newToolCallAnnouncer()
 	for {
 		streamGenerateMessageResponse, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
@@ -474,28 +474,66 @@ func (r *turnRunner) streamGeneration(ctx context.Context, request *aiservicepb.
 			r.publish(&agentservicepb.StreamAgentResponse{
 				Content: &agentservicepb.StreamAgentResponse_Delta{Delta: content.Block},
 			})
-			r.announceToolCall(content.Block, announcedToolCallIDSet)
+			if toolCall := announcer.complete(content.Block); toolCall != nil {
+				r.announceToolCall(toolCall)
+			}
 		case *aiservicepb.StreamGenerateMessageResponse_GeneratedMessage:
+			// Calls never streamed whole are announced with the message holding them.
+			for _, toolCall := range toolCalls(content.GeneratedMessage) {
+				if toolCall := announcer.complete(ai.NewToolCallBlock(toolCall)); toolCall != nil {
+					r.announceToolCall(toolCall)
+				}
+			}
 			r.publishMessage(content.GeneratedMessage)
 			return content.GeneratedMessage, streamed, nil
 		}
 	}
 }
 
-// announceToolCall announces a streamed tool call once its title is complete: once its arguments hold another
-// field after the title, generated first, or once the call is whole.
-func (r *turnRunner) announceToolCall(block *aipb.Block, announcedToolCallIDSet map[string]struct{}) {
+// toolCallAnnouncer tells when a streamed tool call's title is complete, whatever order the model generates its
+// arguments in: once the call is whole, or once another argument appeared after the title did.
+type toolCallAnnouncer struct {
+	announcedToolCallIDSet map[string]struct{}
+	// The number of arguments a partial call held when its title first appeared.
+	toolCallIDToTitleFieldCount map[string]int
+}
+
+func newToolCallAnnouncer() *toolCallAnnouncer {
+	return &toolCallAnnouncer{announcedToolCallIDSet: map[string]struct{}{}, toolCallIDToTitleFieldCount: map[string]int{}}
+}
+
+// complete returns the block's tool call the first time its title is complete, nil otherwise.
+func (a *toolCallAnnouncer) complete(block *aipb.Block) *aipb.ToolCall {
 	toolCall := block.GetToolCall()
 	if toolCall == nil {
 		toolCall = block.GetPartialToolCall()
-		if toolCall == nil || len(toolCall.GetArguments().GetFields()) < 2 {
-			return
+		if toolCall == nil || !a.partialTitleComplete(toolCall) {
+			return nil
 		}
 	}
-	if _, ok := announcedToolCallIDSet[toolCall.GetId()]; ok {
-		return
+	if _, ok := a.announcedToolCallIDSet[toolCall.GetId()]; ok {
+		return nil
 	}
-	announcedToolCallIDSet[toolCall.GetId()] = struct{}{}
+	a.announcedToolCallIDSet[toolCall.GetId()] = struct{}{}
+	return toolCall
+}
+
+// partialTitleComplete reports whether a partial call's title is complete: a later argument streamed after it.
+func (a *toolCallAnnouncer) partialTitleComplete(toolCall *aipb.ToolCall) bool {
+	fieldCount := len(toolCall.GetArguments().GetFields())
+	if _, ok := pbjson.GetTitle(toolCall.GetArguments().AsMap()); !ok {
+		return false
+	}
+	titleFieldCount, ok := a.toolCallIDToTitleFieldCount[toolCall.GetId()]
+	if !ok {
+		a.toolCallIDToTitleFieldCount[toolCall.GetId()] = fieldCount
+		return false
+	}
+	return fieldCount > titleFieldCount
+}
+
+// announceToolCall announces a tool call with its title.
+func (r *turnRunner) announceToolCall(toolCall *aipb.ToolCall) {
 	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
 	r.publish(&agentservicepb.StreamAgentResponse{
 		Content: &agentservicepb.StreamAgentResponse_ToolCall_{ToolCall: &agentservicepb.StreamAgentResponse_ToolCall{
