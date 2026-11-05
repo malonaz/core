@@ -10,7 +10,6 @@ import (
 	v11 "github.com/malonaz/core/genproto/ai/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
-	status "google.golang.org/genproto/googleapis/rpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -23,25 +22,24 @@ var ErrAgentHasChildren = errors.New("agent has child resources")
 var ErrAgentETagChanged = errors.New("agent etag changed")
 
 type Agent struct {
-	OrganizationID  string     `db:"organization_id" schema:"public" table:"agent"`
-	UserID          string     `db:"user_id" schema:"public" table:"agent"`
-	AgentID         string     `db:"agent_id" schema:"public" table:"agent"`
-	CreateTime      time.Time  `db:"create_time" schema:"public" table:"agent"`
-	UpdateTime      time.Time  `db:"update_time" schema:"public" table:"agent"`
-	DeleteTime      *time.Time `db:"delete_time" schema:"public" table:"agent"`
-	Etag            string     `db:"etag" schema:"public" table:"agent"`
-	Labels          []byte     `db:"labels" schema:"public" table:"agent"`
-	Annotations     []byte     `db:"annotations" schema:"public" table:"agent"`
-	Title           string     `db:"title" schema:"public" table:"agent"`
-	Definition      string     `db:"definition" schema:"public" table:"agent"`
-	Spec            []byte     `db:"spec" schema:"public" table:"agent"`
-	ParentAgent     string     `db:"parent_agent" schema:"public" table:"agent"`
-	RootAgent       string     `db:"root_agent" schema:"public" table:"agent"`
-	Chat            string     `db:"chat" schema:"public" table:"agent"`
-	State           int16      `db:"state" schema:"public" table:"agent"`
-	LastTurnOutcome int16      `db:"last_turn_outcome" schema:"public" table:"agent"`
-	Status          []byte     `db:"status" schema:"public" table:"agent"`
-	QueuedMessages  []byte     `db:"queued_messages" schema:"public" table:"agent"`
+	OrganizationID string     `db:"organization_id" schema:"public" table:"agent"`
+	UserID         string     `db:"user_id" schema:"public" table:"agent"`
+	AgentID        string     `db:"agent_id" schema:"public" table:"agent"`
+	CreateTime     time.Time  `db:"create_time" schema:"public" table:"agent"`
+	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"agent"`
+	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"agent"`
+	Etag           string     `db:"etag" schema:"public" table:"agent"`
+	Labels         []byte     `db:"labels" schema:"public" table:"agent"`
+	Annotations    []byte     `db:"annotations" schema:"public" table:"agent"`
+	Title          string     `db:"title" schema:"public" table:"agent"`
+	Definition     string     `db:"definition" schema:"public" table:"agent"`
+	Spec           []byte     `db:"spec" schema:"public" table:"agent"`
+	ParentAgent    string     `db:"parent_agent" schema:"public" table:"agent"`
+	RootAgent      string     `db:"root_agent" schema:"public" table:"agent"`
+	Chat           string     `db:"chat" schema:"public" table:"agent"`
+	State          int16      `db:"state" schema:"public" table:"agent"`
+	LatestTurn     []byte     `db:"latest_turn" schema:"public" table:"agent"`
+	QueuedMessages []byte     `db:"queued_messages" schema:"public" table:"agent"`
 }
 
 func AgentFromPb(m *v1.Agent) (*Agent, error) {
@@ -92,12 +90,12 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 			return nil, fmt.Errorf("marshaling Spec: %w", err)
 		}
 	}
-	var StatusBytes []byte
-	if m.Status != nil {
+	var LatestTurnBytes []byte
+	if m.LatestTurn != nil {
 		var err error
-		StatusBytes, err = pbutil.JSONMarshal(m.Status)
+		LatestTurnBytes, err = pbutil.JSONMarshal(m.LatestTurn)
 		if err != nil {
-			return nil, fmt.Errorf("marshaling Status: %w", err)
+			return nil, fmt.Errorf("marshaling LatestTurn: %w", err)
 		}
 	}
 	QueuedMessagesBytes, err := pbutil.JSONMarshalSlice(pbutil.JsonMarshalOptions, m.QueuedMessages)
@@ -105,25 +103,24 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 		return nil, fmt.Errorf("marshaling QueuedMessages: %w", err)
 	}
 	return &Agent{
-		OrganizationID:  OrganizationID,
-		UserID:          UserID,
-		AgentID:         AgentID,
-		CreateTime:      m.CreateTime.AsTime(),
-		UpdateTime:      m.UpdateTime.AsTime(),
-		DeleteTime:      DeleteTime,
-		Etag:            m.Etag,
-		Labels:          LabelsBytes,
-		Annotations:     AnnotationsBytes,
-		Title:           m.Title,
-		Definition:      m.Definition,
-		Spec:            SpecBytes,
-		ParentAgent:     m.ParentAgent,
-		RootAgent:       m.RootAgent,
-		Chat:            m.Chat,
-		State:           int16(m.State),
-		LastTurnOutcome: int16(m.LastTurnOutcome),
-		Status:          StatusBytes,
-		QueuedMessages:  QueuedMessagesBytes,
+		OrganizationID: OrganizationID,
+		UserID:         UserID,
+		AgentID:        AgentID,
+		CreateTime:     m.CreateTime.AsTime(),
+		UpdateTime:     m.UpdateTime.AsTime(),
+		DeleteTime:     DeleteTime,
+		Etag:           m.Etag,
+		Labels:         LabelsBytes,
+		Annotations:    AnnotationsBytes,
+		Title:          m.Title,
+		Definition:     m.Definition,
+		Spec:           SpecBytes,
+		ParentAgent:    m.ParentAgent,
+		RootAgent:      m.RootAgent,
+		Chat:           m.Chat,
+		State:          int16(m.State),
+		LatestTurn:     LatestTurnBytes,
+		QueuedMessages: QueuedMessagesBytes,
 	}, nil
 }
 
@@ -166,11 +163,11 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 			return nil, fmt.Errorf("unmarshaling Spec: %w", err)
 		}
 	}
-	var Status *status.Status
-	if m.Status != nil {
-		Status = &status.Status{}
-		if err := pbutil.JSONUnmarshal(m.Status, Status); err != nil {
-			return nil, fmt.Errorf("unmarshaling Status: %w", err)
+	var LatestTurn *v1.Turn
+	if m.LatestTurn != nil {
+		LatestTurn = &v1.Turn{}
+		if err := pbutil.JSONUnmarshal(m.LatestTurn, LatestTurn); err != nil {
+			return nil, fmt.Errorf("unmarshaling LatestTurn: %w", err)
 		}
 	}
 	QueuedMessages, err := pbutil.JSONUnmarshalSlice[v11.Message](pbutil.JsonUnmarshalOptions, m.QueuedMessages)
@@ -182,23 +179,22 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Agent{
-		Name:            name,
-		CreateTime:      CreateTime,
-		UpdateTime:      UpdateTime,
-		DeleteTime:      DeleteTime,
-		Etag:            m.Etag,
-		Labels:          Labels,
-		Annotations:     Annotations,
-		Title:           m.Title,
-		Definition:      m.Definition,
-		Spec:            Spec,
-		ParentAgent:     m.ParentAgent,
-		RootAgent:       m.RootAgent,
-		Chat:            m.Chat,
-		State:           v1.Agent_State(m.State),
-		LastTurnOutcome: v1.Agent_TurnOutcome(m.LastTurnOutcome),
-		Status:          Status,
-		QueuedMessages:  QueuedMessages,
+		Name:           name,
+		CreateTime:     CreateTime,
+		UpdateTime:     UpdateTime,
+		DeleteTime:     DeleteTime,
+		Etag:           m.Etag,
+		Labels:         Labels,
+		Annotations:    Annotations,
+		Title:          m.Title,
+		Definition:     m.Definition,
+		Spec:           Spec,
+		ParentAgent:    m.ParentAgent,
+		RootAgent:      m.RootAgent,
+		Chat:           m.Chat,
+		State:          v1.Agent_State(m.State),
+		LatestTurn:     LatestTurn,
+		QueuedMessages: QueuedMessages,
 	}, nil
 }
 
