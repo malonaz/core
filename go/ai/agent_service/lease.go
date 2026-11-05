@@ -3,6 +3,7 @@ package agent_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
 	"slices"
 	"sync"
@@ -228,7 +229,7 @@ func (s *Service) claimTurns(ctx context.Context) error {
 	return s.transact(ctx, func(ctx context.Context, t *txn) error {
 		agentModels, err := t.ListClaimableAgents(ctx, room)
 		if err != nil {
-			return status.FromError(err, "listing claimable agents").Err()
+			return fmt.Errorf("listing claimable agents: %w", err)
 		}
 		for _, agentModel := range agentModels {
 			agent, err := agentModel.ToPb()

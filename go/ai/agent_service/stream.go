@@ -28,11 +28,11 @@ func (s *Service) StreamAgent(request *agentservicepb.StreamAgentRequest, srv ag
 		return s.streamLocalAgent(request, srv)
 	}
 	agentStream := &agentStream{
-		service:        s,
-		request:        request,
-		srv:            srv,
-		subscription:   s.hub.subscribe(),
-		proxyEvents:    make(chan *proxyEvent, subscriptionBufferSize),
+		service:         s,
+		request:         request,
+		srv:             srv,
+		subscription:    s.hub.subscribe(),
+		proxyEvents:     make(chan *proxyEvent, subscriptionBufferSize),
 		agentToStreamed: map[string]*streamedAgent{},
 	}
 	defer agentStream.close()
@@ -344,4 +344,3 @@ func (a *agentStream) close() {
 	}
 	a.service.hub.unsubscribe(a.subscription, agents...)
 }
-

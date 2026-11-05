@@ -2,6 +2,7 @@ package agent_service
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 
@@ -71,7 +72,7 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 		}
 		lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
 		if err != nil {
-			return status.FromError(err, "getting lease").Err()
+			return fmt.Errorf("getting lease: %w", err)
 		}
 		if claimedMeanwhile = lease != nil && !lease.Expired; claimedMeanwhile {
 			return nil

@@ -10,8 +10,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
