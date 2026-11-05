@@ -67,10 +67,11 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 		return nil, err
 	}
 
-	// The chat is created outside the transaction, which may be retried; its request id makes replays reuse it.
+	// The chat is created outside the transaction, which may be retried; its request id makes replays reuse it. Agent
+	// ids match label values: lowercase letters, digits and hyphens.
 	createChatRequest := &aiservicepb.CreateChatRequest{
 		Parent:    (&aipb.OrganizationRn{Organization: userRn.Organization}).UserRn(userRn.User).String(),
-		Chat:      &aipb.Chat{Title: agent.Title},
+		Chat:      &aipb.Chat{Title: agent.Title, Labels: map[string]string{agentpb.Labels.Agent.GetKey(): agentID}},
 		RequestId: uuid.NewV5(agentNamespace, requestID).String(),
 	}
 	chat, err := s.aiServiceClient.CreateChat(ctx, createChatRequest)

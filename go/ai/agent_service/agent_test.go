@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"buf.build/go/protovalidate"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -42,6 +43,11 @@ func TestAgent_CreateFromADefinitionSnapshotsItsSpec(t *testing.T) {
 	require.Equal(t, agent.Name, agent.RootAgent)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, agent.State)
 	require.NotEmpty(t, agent.Chat)
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	require.NoError(t, err)
+	chat := service.aiService.chat(agent.Chat)
+	require.Equal(t, map[string]string{agentpb.Labels.Agent.GetKey(): agentRn.Agent}, chat.Labels)
+	require.NoError(t, protovalidate.Validate(chat))
 
 	// Editing the definition never changes the agent.
 	updateDefinitionRequest := &agentservicepb.UpdateDefinitionRequest{
