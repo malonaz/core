@@ -63,6 +63,9 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 			return nil, err
 		}
 	}
+	if err := s.toolRouter.validate(agent.Spec); err != nil {
+		return nil, err
+	}
 
 	// The chat is created outside the transaction, which may be retried; its request id makes replays reuse it.
 	createChatRequest := &aiservicepb.CreateChatRequest{

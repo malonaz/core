@@ -11,14 +11,14 @@ import (
 )
 
 type Opts struct {
-	AdvertisedAddress  string            `long:"advertised-address" env:"ADVERTISED_ADDRESS" required:"true" description:"Where the other replicas reach this replica's gRPC server, to cancel and stream the turns it runs: http://host:port (plaintext), https://host:port or host:port (TLS), or unix:path. Tool services without a target are dialed here too"`
+	AdvertisedAddress  string            `long:"advertised-address" env:"ADVERTISED_ADDRESS" required:"true" description:"Where the other replicas reach this replica's gRPC server, to cancel and stream the turns it runs: http://host:port (plaintext), https://host:port or host:port (TLS), or unix:path"`
 	LeaseDuration      time.Duration     `long:"lease-duration" env:"LEASE_DURATION" default:"15s" description:"How long a turn's lease outlives its replica's last heartbeat before another replica takes the turn over"`
 	HeartbeatInterval  time.Duration     `long:"heartbeat-interval" env:"HEARTBEAT_INTERVAL" default:"5s" description:"How often a replica renews the leases of the turns it runs"`
 	ClaimInterval      time.Duration     `long:"claim-interval" env:"CLAIM_INTERVAL" default:"2s" description:"How often a replica claims the turns needing one: expired leases, and idle agents with undelivered messages"`
 	MaxConcurrentTurns int               `long:"max-concurrent-turns" env:"MAX_CONCURRENT_TURNS" default:"100" description:"How many turns a replica runs at once"`
 	ShutdownGrace      time.Duration     `long:"shutdown-grace" env:"SHUTDOWN_GRACE" default:"10s" description:"How long a stopping replica lets in-flight tool calls finish before cancelling its turns and releasing their leases"`
 	StreamPollInterval time.Duration     `long:"stream-poll-interval" env:"STREAM_POLL_INTERVAL" default:"1s" description:"How often a StreamAgent call re-reads its agents for changes made elsewhere: snapshots, turns moving between replicas, new descendants"`
-	ToolTargets        map[string]string `long:"tool-target" env:"TOOL_TARGETS" env-delim:"," key-value-delimiter:"=" description:"Where a tool service is served, as pkg.Service=endpoint (endpoint as for advertised-address). Repeatable. Services without a target are dialed at the advertised address"`
+	ToolTargets        map[string]string `long:"tool-target" env:"TOOL_TARGETS" env-delim:"," key-value-delimiter:"=" description:"Where a tool service is served, as pkg.Service=endpoint (endpoint as for advertised-address). Repeatable. Every service an agent's tools name needs one: specs naming another are refused"`
 }
 
 type runtime struct {
@@ -44,7 +44,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		return nil, fmt.Errorf("parsing advertised address: %w", err)
 	}
 	connections := newConnections()
-	toolRouter, err := newToolRouter(opts.ToolTargets, opts.AdvertisedAddress, connections)
+	toolRouter, err := newToolRouter(opts.ToolTargets, connections)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating tool router: %w", err)
 	}

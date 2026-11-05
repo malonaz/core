@@ -185,7 +185,7 @@ func TestBuiltinTools_CreateAgentsGatesDefinitions(t *testing.T) {
 }
 
 func TestBuiltinTools_CreateAgentsRejectsToolsTheCallerLacks(t *testing.T) {
-	service := newTestReplica(t, newFakeAiService(), nil, (&fakeHealthServer{}).register)
+	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
 	agent := createTestAgent(t, service, healthCheckMethod)
 	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
 		"tool_call_title": "Launch",

@@ -171,6 +171,9 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	subAgents := make([]*agentpb.Agent, 0, len(arguments.GetAgents()))
 	for i, subAgentArguments := range arguments.GetAgents() {
 		subAgent, err := newSubAgent(agent, subAgentArguments)
+		if err == nil {
+			err = s.toolRouter.validate(subAgent.GetSpec())
+		}
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "agent %d: %v", i+1, err).Err()
 		}

@@ -75,7 +75,10 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 
 	schemaConfiguration := aitool.NewSchemaConfiguration(aitool.WithTitle(toolCallTitleDescription))
 	for _, name := range agent.GetSpec().GetTools() {
-		endpoint := s.toolRouter.locate(name)
+		endpoint, err := s.toolRouter.endpoint(name)
+		if err != nil {
+			return nil, err
+		}
 		schema, err := s.toolRouter.schema(ctx, endpoint)
 		if err != nil {
 			return nil, status.Errorf(codes.Unavailable, "resolving tool %s: %v", name, err).Err()
