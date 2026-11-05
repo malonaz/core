@@ -2,8 +2,8 @@
 // @generated from file malonaz/ai/agent/agent_service/v1/agent.proto (package malonaz.ai.agent.agent_service.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../../google/api/resource_pb";
@@ -24,7 +24,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSLrAQoTU2VhcmNoQWdlbnRzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ+BBAvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEhQKDHNob3dfZGVsZXRlZBgEIAEoCBIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYByABKAg6DYLzLQIIZJLzLQMKASoijAEKFFNlYXJjaEFnZW50c1Jlc3BvbnNlEioKBmFnZW50cxgBIAMoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQSLwoIc25pcHBldHMYAiADKAsyHS5tYWxvbmF6LmFpcC52MS5TZWFyY2hTbmlwcGV0EhcKD25leHRfcGFnZV90b2tlbhgDIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoTTWVzc2FnZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEjIKB21lc3NhZ2UYAiABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBArpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASJxChZBcHByb3ZlVG9vbENhbGxSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESHwoMdG9vbF9jYWxsX2lkGAIgASgJQgngQQK6SAPIAQEipwEKFlJlc29sdmVUb29sQ2FsbFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIfCgx0b29sX2NhbGxfaWQYAiABKAlCCeBBArpIA8gBARI0CgZyZXN1bHQYAyABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCCeBBArpIA8gBASpSCglBZ2VudFZpZXcSGgoWQUdFTlRfVklFV19VTlNQRUNJRklFRBAAEhQKEEFHRU5UX1ZJRVdfQkFTSUMQARITCg9BR0VOVF9WSUVXX0ZVTEwQAkI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSL4AgoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBOpsBukiXARqUAQofY3JlYXRlX2FnZW50LmRlZmluaXRpb25fb3Jfc3BlYxI6ZXhhY3RseSBvbmUgb2YgYWdlbnQuZGVmaW5pdGlvbiBhbmQgYWdlbnQuc3BlYyBtdXN0IGJlIHNldBo1KHRoaXMuYWdlbnQuZGVmaW5pdGlvbiAhPSAnJykgIT0gaGFzKHRoaXMuYWdlbnQuc3BlYykiSQoPR2V0QWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQEi6wEKElVwZGF0ZUFnZW50UmVxdWVzdBIxCgVhZ2VudBgBIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhFGkMKE2FnZW50Lm5hbWVfcmVxdWlyZWQSFmFnZW50Lm5hbWUgbXVzdCBiZSBzZXQaFGhhcyh0aGlzLmFnZW50Lm5hbWUp6pzBAxwKBmxhYmVscwoLYW5ub3RhdGlvbnMKBXRpdGxlIoABChJEZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkSDQoFZm9yY2UYBCABKAgiXAoUVW5kZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIMCgRldGFnGAIgASgJIvUBChFMaXN0QWdlbnRzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ+BBAvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAk6PYLzLQIIZIrzLSwKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWQoSTGlzdEFnZW50c1Jlc3BvbnNlEioKBmFnZW50cxgBIAMoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIusBChNTZWFyY2hBZ2VudHNSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEhoKBXF1ZXJ5GAIgASgJQgu6SAhyAxiAAsgBARIOCgZmaWx0ZXIYAyABKAkSFAoMc2hvd19kZWxldGVkGAQgASgIEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAkSGAoQaW5jbHVkZV9zbmlwcGV0cxgHIAEoCDoNgvMtAghkkvMtAwoBKiKMAQoUU2VhcmNoQWdlbnRzUmVzcG9uc2USKgoGYWdlbnRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudBIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIkwKEkNhbmNlbEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIoUBChJTdHJlYW1BZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIaChJpbmNsdWRlX3RyYW5zY3JpcHQYAiABKAgSGwoTaW5jbHVkZV9kZXNjZW5kYW50cxgDIAEoCCLpBAoTU3RyZWFtQWdlbnRSZXNwb25zZRIuCgVhZ2VudBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBIuCghzbmFwc2hvdBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRIABJUCgl0b29sX2NhbGwYAyABKAsyPy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEgAEl8KD3Rvb2xfY2FsbF9lbmRlZBgEIAEoCzJELm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLlRvb2xDYWxsRW5kZWRIABIlCgVkZWx0YRgFIAEoCzIULm1hbG9uYXouYWkudjEuQmxvY2tIABIpCgdtZXNzYWdlGAYgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlSAASYgoQZ2VuZXJhdGlvbl9yZXNldBgHIAEoCzJGLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLkdlbmVyYXRpb25SZXNldEgAGjMKCFRvb2xDYWxsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDQoFdGl0bGUYAyABKAkaKwoNVG9vbENhbGxFbmRlZBIKCgJpZBgBIAEoCRIOCgZmYWlsZWQYAiABKAgaEQoPR2VuZXJhdGlvblJlc2V0QhAKB2NvbnRlbnQSBbpIAggBIqIBChNNZXNzYWdlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESMgoHbWVzc2FnZRgCIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIJ4EECukgDyAEBEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBInEKFkFwcHJvdmVUb29sQ2FsbFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIfCgx0b29sX2NhbGxfaWQYAiABKAlCCeBBArpIA8gBASKnAQoWUmVzb2x2ZVRvb2xDYWxsUmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEh8KDHRvb2xfY2FsbF9pZBgCIAEoCUIJ4EECukgDyAEBEjQKBnJlc3VsdBgDIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdEIJ4EECukgDyAEBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.CreateAgent.
@@ -723,11 +723,13 @@ export type StreamAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.Stre
   name: string;
 
   /**
-   * How much activity to stream.
+   * If true, also stream generation deltas and persisted messages: enough to
+   * render a chat live. Otherwise, snapshots and the tool calls' titles and
+   * ends: enough to follow a tree.
    *
-   * @generated from field: malonaz.ai.agent.agent_service.v1.AgentView view = 2;
+   * @generated from field: bool include_transcript = 2;
    */
-  view: AgentView;
+  includeTranscript: boolean;
 
   /**
    * If true, also stream every descendant agent, present and future: a whole
@@ -753,11 +755,13 @@ export type StreamAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1
   name: string;
 
   /**
-   * How much activity to stream.
+   * If true, also stream generation deltas and persisted messages: enough to
+   * render a chat live. Otherwise, snapshots and the tool calls' titles and
+   * ends: enough to follow a tree.
    *
-   * @generated from field: malonaz.ai.agent.agent_service.v1.AgentView view = 2;
+   * @generated from field: bool include_transcript = 2;
    */
-  view: AgentView;
+  includeTranscript: boolean;
 
   /**
    * If true, also stream every descendant agent, present and future: a whole
@@ -821,7 +825,7 @@ export type StreamAgentResponse = Message<"malonaz.ai.agent.agent_service.v1.Str
     case: "toolCallEnded";
   } | {
     /**
-     * A block delta of the message being generated. FULL view only.
+     * A block delta of the message being generated. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.v1.Block delta = 5;
      */
@@ -829,7 +833,7 @@ export type StreamAgentResponse = Message<"malonaz.ai.agent.agent_service.v1.Str
     case: "delta";
   } | {
     /**
-     * A message persisted to the agent's chat. FULL view only.
+     * A message persisted to the agent's chat. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.v1.Message message = 6;
      */
@@ -837,7 +841,7 @@ export type StreamAgentResponse = Message<"malonaz.ai.agent.agent_service.v1.Str
     case: "message";
   } | {
     /**
-     * The generation in flight was interrupted: discard its deltas. FULL view only.
+     * The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset generation_reset = 7;
      */
@@ -892,7 +896,7 @@ export type StreamAgentResponseValid = Message<"malonaz.ai.agent.agent_service.v
     case: "toolCallEnded";
   } | {
     /**
-     * A block delta of the message being generated. FULL view only.
+     * A block delta of the message being generated. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.v1.Block delta = 5;
      */
@@ -900,7 +904,7 @@ export type StreamAgentResponseValid = Message<"malonaz.ai.agent.agent_service.v
     case: "delta";
   } | {
     /**
-     * A message persisted to the agent's chat. FULL view only.
+     * A message persisted to the agent's chat. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.v1.Message message = 6;
      */
@@ -908,7 +912,7 @@ export type StreamAgentResponseValid = Message<"malonaz.ai.agent.agent_service.v
     case: "message";
   } | {
     /**
-     * The generation in flight was interrupted: discard its deltas. FULL view only.
+     * The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
      *
      * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset generation_reset = 7;
      */
@@ -1196,38 +1200,4 @@ export type ResolveToolCallRequestValid = Message<"malonaz.ai.agent.agent_servic
  */
 export const ResolveToolCallRequestSchema: GenMessage<ResolveToolCallRequest, {validType: ResolveToolCallRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 14);
-
-/**
- * The amount of an agent's activity a StreamAgent call streams.
- *
- * @generated from enum malonaz.ai.agent.agent_service.v1.AgentView
- */
-export enum AgentView {
-  /**
-   * Used to detect an unset field. Behaves as BASIC.
-   *
-   * @generated from enum value: AGENT_VIEW_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * Agent snapshots and the tool calls' titles and ends: enough to follow a tree.
-   *
-   * @generated from enum value: AGENT_VIEW_BASIC = 1;
-   */
-  BASIC = 1,
-
-  /**
-   * BASIC plus generation deltas and persisted messages: enough to render a chat live.
-   *
-   * @generated from enum value: AGENT_VIEW_FULL = 2;
-   */
-  FULL = 2,
-}
-
-/**
- * Describes the enum malonaz.ai.agent.agent_service.v1.AgentView.
- */
-export const AgentViewSchema: GenEnum<AgentView> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_agent_agent_service_v1_agent, 0);
 
