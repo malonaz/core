@@ -27,8 +27,8 @@ var File_malonaz_ai_agent_v1_annotations_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_annotations_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xb7\x02\x9a\x95\x15\x84\x02\n" +
-	"\x1bagent.ai.malonaz.com/sender\x12\xe4\x01On an input's message: the resource name of who sent it, a user or an agent. Callers stamp it, as the service cannot tell which agent an executor calls for; the service stamps a sub-agent's turn report with the sub-agent's name.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
+	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xbc\x02\x9a\x95\x15\x89\x02\n" +
+	"\x1bagent.ai.malonaz.com/sender\x12\xe9\x01On an input's message: the resource name of who sent it, a user or an agent. Clients stamp their own; the service stamps the inputs agents send through their built-in tools, and each sub-agent's turn report with the sub-agent's name.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_annotations_proto_goTypes = []any{}
 var file_malonaz_ai_agent_v1_annotations_proto_depIdxs = []int32{

@@ -22,10 +22,10 @@ export const file_malonaz_ai_agent_v1_input: GenFile = /*@__PURE__*/
   fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2lucHV0LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIuoCCgVJbnB1dBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNQoHbWVzc2FnZRgDIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIMukgDyAEBuuoPAhABEjsKDGNvbnN1bWVfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgATqjAepBdAoaYWdlbnQuYWkubWFsb25hei5jb20vSW5wdXQSR29yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9L2lucHV0cy97aW5wdXR9KgZpbnB1dHMyBWlucHV00qYEAIL2LCQ2ZjRmZWZhMC03NzgyLTQ5MmYtODM0OS1jZDQwMWUwOGU1YWVCLlosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
- * An Input is a message queued in an agent's inbox. Clients send inputs at any
- * time; the executor drains every pending input into the agent's next turn as
- * extra blocks, waking an idle agent, and marks them consumed. Inputs pending
- * when a lease is lost are redelivered to the next executor.
+ * An Input is a message queued in an agent's inbox. Inputs can be sent at any
+ * time: a turn drains every pending input into the agent's chat, at its start
+ * or between its tool rounds, and an input sent to an idle agent starts a turn.
+ * An input is consumed once the chat message delivering it is saved.
  *
  * @generated from message malonaz.ai.agent.v1.Input
  */
@@ -62,10 +62,10 @@ export type Input = Message<"malonaz.ai.agent.v1.Input"> & {
 };
 
 /**
- * An Input is a message queued in an agent's inbox. Clients send inputs at any
- * time; the executor drains every pending input into the agent's next turn as
- * extra blocks, waking an idle agent, and marks them consumed. Inputs pending
- * when a lease is lost are redelivered to the next executor.
+ * An Input is a message queued in an agent's inbox. Inputs can be sent at any
+ * time: a turn drains every pending input into the agent's chat, at its start
+ * or between its tool rounds, and an input sent to an idle agent starts a turn.
+ * An input is consumed once the chat message delivering it is saved.
  *
  * @generated from message malonaz.ai.agent.v1.Input
  */

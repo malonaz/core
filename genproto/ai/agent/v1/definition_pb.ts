@@ -19,11 +19,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/v1/definition.proto.
  */
 export const file_malonaz_ai_agent_v1_definition: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2FpL2FnZW50L3YxL2RlZmluaXRpb24ucHJvdG8SE21hbG9uYXouYWkuYWdlbnQudjEi+QUKCkRlZmluaXRpb24SEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkS0QEKBmxhYmVscxgGIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIhCgxkaXNwbGF5X25hbWUYByABKAlCC7pICHIDGIAByAEBEh0KC2Rlc2NyaXB0aW9uGAggASgJQgi6SAVyAxiAEBI6CgRzcGVjGAkgASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCDLpIA8gBAbrqDwIQARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOqAB6kFxCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9uEjVvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L2RlZmluaXRpb25zL3tkZWZpbml0aW9ufSoLZGVmaW5pdGlvbnMyCmRlZmluaXRpb27SpgQAgvYsJDUyZGY2OGMzLTA0OGMtNGI3OC1hMTJmLTYwNTY2NTBhMDExMyKTAwoJQWdlbnRTcGVjEh8KDGluc3RydWN0aW9ucxgBIAEoCUIJukgGcgQYgIAQEi4KBW1vZGVsGAIgASgJQh/6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsukgDyAEBEkIKEHJlYXNvbmluZ19lZmZvcnQYAyABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydEIIukgFggECEAESGgoFdG9vbHMYBCADKAlCC7pICJIBBRCAAhgBEksKFXN1Yl9hZ2VudF9kZWZpbml0aW9ucxgFIAMoCUIs+kEhCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9uukgFkgECGAESTwoRZXhlY3V0b3Jfc2VsZWN0b3IYBiADKAsyNC5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50U3BlYy5FeGVjdXRvclNlbGVjdG9yRW50cnkaNwoVRXhlY3V0b3JTZWxlY3RvckVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFCjwFaLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L3Yx6kFeCiFhZ2VudC5haS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiRtYWxvbmF6L2FpL2FnZW50L3YxL2RlZmluaXRpb24ucHJvdG8SE21hbG9uYXouYWkuYWdlbnQudjEi8gUKCkRlZmluaXRpb24SEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkS0QEKBmxhYmVscxgGIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIaCgV0aXRsZRgHIAEoCUILukgIcgMYgAHIAQESHQoLZGVzY3JpcHRpb24YCCABKAlCCLpIBXIDGIAQEjoKBHNwZWMYCSABKAsyHi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50U3BlY0IMukgDyAEBuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6oAHqQXEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb24SNW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vZGVmaW5pdGlvbnMve2RlZmluaXRpb259KgtkZWZpbml0aW9uczIKZGVmaW5pdGlvbtKmBACC9iwkNTJkZjY4YzMtMDQ4Yy00Yjc4LWExMmYtNjA1NjY1MGEwMTEzIsICCglBZ2VudFNwZWMSHwoMaW5zdHJ1Y3Rpb25zGAEgASgJQgm6SAZyBBiAgBASLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESQgoQcmVhc29uaW5nX2VmZm9ydBgDIAEoDjIeLm1hbG9uYXouYWkudjEuUmVhc29uaW5nRWZmb3J0Qgi6SAWCAQIQARJTCgV0b29scxgEIAMoCUJEukhBkgE+EIACGAEiN3I1MjNeW0EtWmEtel9dW0EtWmEtejAtOV9dKihcLltBLVphLXpfXVtBLVphLXowLTlfXSopKyQSSwoVc3ViX2FnZW50X2RlZmluaXRpb25zGAUgAygJQiz6QSEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb266SAWSAQIYAUKPAVosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvdjHqQV4KIWFnZW50LmFpLm1hbG9uYXouY29tL09yZ2FuaXphdGlvbhIcb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufSoNb3JnYW5pemF0aW9uczIMb3JnYW5pemF0aW9uYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Definition is a reusable agent blueprint: what an agent is told, which
- * model it runs on, which tools it holds and where it may run. Agents
+ * model it runs on and which tools it holds. Agents
  * snapshot their definition's spec at creation, so editing a definition never
  * changes a running agent.
  *
@@ -74,11 +74,11 @@ export type Definition = Message<"malonaz.ai.agent.v1.Definition"> & {
   labels: { [key: string]: string };
 
   /**
-   * A human-readable name for this definition.
+   * A human-readable title for this definition.
    *
-   * @generated from field: string display_name = 7;
+   * @generated from field: string title = 7;
    */
-  displayName: string;
+  title: string;
 
   /**
    * What this definition is for, shown when picking one.
@@ -97,7 +97,7 @@ export type Definition = Message<"malonaz.ai.agent.v1.Definition"> & {
 
 /**
  * A Definition is a reusable agent blueprint: what an agent is told, which
- * model it runs on, which tools it holds and where it may run. Agents
+ * model it runs on and which tools it holds. Agents
  * snapshot their definition's spec at creation, so editing a definition never
  * changes a running agent.
  *
@@ -148,11 +148,11 @@ export type DefinitionValid = Message<"malonaz.ai.agent.v1.Definition"> & {
   labels: { [key: string]: string };
 
   /**
-   * A human-readable name for this definition.
+   * A human-readable title for this definition.
    *
-   * @generated from field: string display_name = 7;
+   * @generated from field: string title = 7;
    */
-  displayName: string;
+  title: string;
 
   /**
    * What this definition is for, shown when picking one.
@@ -207,8 +207,10 @@ export type AgentSpec = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   reasoningEffort: ReasoningEffort;
 
   /**
-   * The names of the tools the agent may call. The executor running the agent
-   * provides them; one it does not provide fails the lease.
+   * The gRPC methods the agent may call as tools, by full name
+   * ("pkg.Service.Method"), or every method of a service ("pkg.Service").
+   * Built-in agent tools (launching sub-agents, sending inputs, labelling
+   * itself) are always available.
    *
    * @generated from field: repeated string tools = 4;
    */
@@ -222,13 +224,6 @@ export type AgentSpec = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
    * @generated from field: repeated string sub_agent_definitions = 5;
    */
   subAgentDefinitions: string[];
-
-  /**
-   * Labels an executor must carry to run the agent. Empty matches any.
-   *
-   * @generated from field: map<string, string> executor_selector = 6;
-   */
-  executorSelector: { [key: string]: string };
 };
 
 /**
@@ -262,8 +257,10 @@ export type AgentSpecValid = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   reasoningEffort: ReasoningEffort;
 
   /**
-   * The names of the tools the agent may call. The executor running the agent
-   * provides them; one it does not provide fails the lease.
+   * The gRPC methods the agent may call as tools, by full name
+   * ("pkg.Service.Method"), or every method of a service ("pkg.Service").
+   * Built-in agent tools (launching sub-agents, sending inputs, labelling
+   * itself) are always available.
    *
    * @generated from field: repeated string tools = 4;
    */
@@ -277,13 +274,6 @@ export type AgentSpecValid = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
    * @generated from field: repeated string sub_agent_definitions = 5;
    */
   subAgentDefinitions: string[];
-
-  /**
-   * Labels an executor must carry to run the agent. Empty matches any.
-   *
-   * @generated from field: map<string, string> executor_selector = 6;
-   */
-  executorSelector: { [key: string]: string };
 };
 
 /**

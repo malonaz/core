@@ -19,7 +19,7 @@ option (google.api.resource_definition) = {
 };
 
 // A Definition is a reusable agent blueprint: what an agent is told, which
-// model it runs on, which tools it holds and where it may run. Agents
+// model it runs on and which tools it holds. Agents
 // snapshot their definition's spec at creation, so editing a definition never
 // changes a running agent.
 message Definition {
@@ -69,8 +69,8 @@ message Definition {
     }
   ];
 
-  // A human-readable name for this definition.
-  string display_name = 7 [
+  // A human-readable title for this definition.
+  string title = 7 [
     (buf.validate.field).required = true,
     (buf.validate.field).string.max_len = 128
   ];
@@ -102,11 +102,16 @@ message AgentSpec {
   // The reasoning effort the agent generates with.
   malonaz.ai.v1.ReasoningEffort reasoning_effort = 3 [(buf.validate.field).enum.defined_only = true];
 
-  // The names of the tools the agent may call. The executor running the agent
-  // provides them; one it does not provide fails the lease.
+  // The gRPC methods the agent may call as tools, by full name
+  // ("pkg.Service.Method"), or every method of a service ("pkg.Service").
+  // Built-in agent tools (launching sub-agents, sending inputs, labelling
+  // itself) are always available.
   repeated string tools = 4 [(buf.validate.field).repeated = {
     max_items: 256
     unique: true
+    items: {
+      string: {pattern: "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$"}
+    }
   }];
 
   // The definitions this agent may launch sub-agents from. Empty allows ad-hoc
@@ -116,7 +121,4 @@ message AgentSpec {
     (buf.validate.field).repeated.unique = true,
     (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
   ];
-
-  // Labels an executor must carry to run the agent. Empty matches any.
-  map<string, string> executor_selector = 6;
 }

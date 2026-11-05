@@ -24,14 +24,12 @@ type agentServiceStore interface {
 	agentService_DefinitionStore
 	agentService_AgentStore
 	agentService_InputStore
-	agentService_ExecutorStore
 }
 
 type AgentServiceServer struct {
 	*agentService_DefinitionServer
 	*agentService_AgentServer
 	*agentService_InputServer
-	*agentService_ExecutorServer
 }
 
 func NewAgentServiceServer(store agentServiceStore) *AgentServiceServer {
@@ -39,7 +37,6 @@ func NewAgentServiceServer(store agentServiceStore) *AgentServiceServer {
 		agentService_DefinitionServer: newAgentService_DefinitionServer(store),
 		agentService_AgentServer:      newAgentService_AgentServer(store),
 		agentService_InputServer:      newAgentService_InputServer(store),
-		agentService_ExecutorServer:   newAgentService_ExecutorServer(store),
 	}
 }
 
@@ -847,95 +844,6 @@ func (s *agentService_InputServer) ListInputs(ctx context.Context, request *v1.L
 	// Create and return response.
 	return &v1.ListInputsResponse{
 		Inputs:        inputs,
-		NextPageToken: nextPageToken,
-	}, nil
-}
-
-type agentService_ExecutorStore interface {
-	BatchInsertExecutors(ctx context.Context, requestIDs []string, executors []*model.Executor) ([]*model.Executor, error)
-	UpdateExecutor(ctx context.Context, executor *model.Executor, updateClause string, columns []string) (*model.Executor, error)
-	DeleteExecutor(ctx context.Context, organizationId, userId, executorId string) (*model.Executor, error)
-	GetExecutor(ctx context.Context, organizationId, userId, executorId string) (*model.Executor, error)
-	BatchGetExecutors(ctx context.Context, organizationIds []string, userIds []string, executorIds []string) ([]*model.Executor, error)
-	ListExecutors(ctx context.Context, organizationId, userId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Executor, error)
-}
-
-type agentService_ExecutorServer struct {
-	store agentService_ExecutorStore
-}
-
-func newAgentService_ExecutorServer(store agentService_ExecutorStore) *agentService_ExecutorServer {
-	return &agentService_ExecutorServer{
-		store: store,
-	}
-}
-
-func (s *agentService_ExecutorServer) GetExecutor(ctx context.Context, request *v1.GetExecutorRequest) (*v11.Executor, error) {
-	if resourcename.ContainsWildcard(request.Name) {
-		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
-	}
-
-	organizationId, userId, executorId, err := model.ParseExecutorName(request.Name)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
-	}
-
-	// Retrieve from the database.
-	dbExecutorModel, err := s.store.GetExecutor(ctx, organizationId, userId, executorId)
-	if err != nil {
-		if errors.Is(err, model.ErrExecutorNotExist) {
-			return nil, status.Errorf(codes.NotFound, "executor does not exist").Err()
-		}
-		return nil, status.FromError(err, "getting executor").Err()
-	}
-
-	executor, err := dbExecutorModel.ToPb()
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting executor from model to pb: %v", err).Err()
-	}
-	return executor, nil
-}
-
-var listExecutorsRequestParser = aip.MustNewListRequestParser[*v1.ListExecutorsRequest, *v11.Executor](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
-
-func (s *agentService_ExecutorServer) ListExecutors(ctx context.Context, request *v1.ListExecutorsRequest) (*v1.ListExecutorsResponse, error) {
-	// Parse parent names
-	var organizationId, userId string
-	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
-	}
-
-	// Parse request
-	parsedRequest, err := listExecutorsRequestParser.Parse(request)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
-	}
-	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-	var dbColumns []string
-
-	// Retrieve from the database.
-	dbExecutors, err := s.store.ListExecutors(ctx, organizationId, userId, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
-	if err != nil {
-		return nil, status.FromError(err, "listing executors").Err()
-	}
-	nextPageToken := parsedRequest.GetNextPageToken(len(dbExecutors))
-	if nextPageToken != "" {
-		dbExecutors = dbExecutors[:len(dbExecutors)-1]
-	}
-
-	// Convert back to proto.
-	executors := make([]*v11.Executor, 0, len(dbExecutors))
-	for _, dbExecutor := range dbExecutors {
-		executor, err := dbExecutor.ToPb()
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting model.Executor to Executor: %v", err).Err()
-		}
-		executors = append(executors, executor)
-	}
-
-	// Create and return response.
-	return &v1.ListExecutorsResponse{
-		Executors:     executors,
 		NextPageToken: nextPageToken,
 	}, nil
 }

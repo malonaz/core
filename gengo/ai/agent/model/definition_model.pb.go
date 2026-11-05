@@ -28,7 +28,7 @@ type Definition struct {
 	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"definition"`
 	Etag           string     `db:"etag" schema:"public" table:"definition"`
 	Labels         []byte     `db:"labels" schema:"public" table:"definition"`
-	DisplayName    string     `db:"display_name" schema:"public" table:"definition"`
+	Title          string     `db:"title" schema:"public" table:"definition"`
 	Description    string     `db:"description" schema:"public" table:"definition"`
 	Spec           []byte     `db:"spec" schema:"public" table:"definition"`
 }
@@ -80,7 +80,7 @@ func DefinitionFromPb(m *v1.Definition) (*Definition, error) {
 		DeleteTime:     DeleteTime,
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
-		DisplayName:    m.DisplayName,
+		Title:          m.Title,
 		Description:    m.Description,
 		Spec:           SpecBytes,
 	}, nil
@@ -126,7 +126,7 @@ func (m *Definition) ToPb() (*v1.Definition, error) {
 		DeleteTime:  DeleteTime,
 		Etag:        m.Etag,
 		Labels:      Labels,
-		DisplayName: m.DisplayName,
+		Title:       m.Title,
 		Description: m.Description,
 		Spec:        Spec,
 	}, nil

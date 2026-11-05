@@ -19,14 +19,12 @@ option (google.api.resource_definition) = {
   plural: "users"
 };
 
-// An Agent is a running instance of a spec: a conversation driven by an
-// executor, one turn at a time, fed by the inputs clients send it. The agent
-// owns its lifecycle, labels and event log; the transcript lives in its
-// [Chat][malonaz.ai.v1.Chat] on the AiService. Clients only ever talk to the
-// AgentService: executors lease agents and report back over ConnectExecutor.
-// Agents talk to each other asynchronously, through inputs only: a parent
-// sends its sub-agent inputs, and each turn a sub-agent ends is queued as an
-// input on its parent, waking it.
+// An Agent is a running instance of a spec: a conversation the AgentService
+// drives one turn at a time, fed by the inputs it is sent. The transcript
+// lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
+// agent's durable history. Agents talk to each other asynchronously, through
+// inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
+// ends is queued as an input on its parent, waking it.
 message Agent {
   option (google.api.resource) = {
     type: "agent.ai.malonaz.com/Agent"
@@ -46,12 +44,10 @@ message Agent {
   enum State {
     // Used to detect an unset field.
     STATE_UNSPECIFIED = 0;
-    // No executor holds the agent: it waits for one matching its selector.
-    STATE_PENDING = 1;
-    // An executor holds the agent, which waits for input.
-    STATE_IDLE = 2;
-    // An executor is running one of the agent's turns.
-    STATE_RUNNING = 3;
+    // The agent waits for input.
+    STATE_IDLE = 1;
+    // One of the agent's turns is running.
+    STATE_RUNNING = 2;
   }
 
   // TurnOutcome is how a turn ended.
@@ -76,7 +72,7 @@ message Agent {
   // The last update timestamp of the agent.
   google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The deletion timestamp of the agent. Set when soft-deleted, which revokes its lease.
+  // The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
   google.protobuf.Timestamp delete_time = 4 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
@@ -85,7 +81,7 @@ message Agent {
   // A checksum computed by the server based on the current value of the resource.
   string etag = 5;
 
-  // The labels on this agent. Agents label and unlabel themselves through UpdateAgent.
+  // The labels on this agent. Agents label themselves through their built-in update_labels tool.
   map<string, string> labels = 6 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,
@@ -149,38 +145,22 @@ message Agent {
     (google.api.resource_reference).type = "ai.malonaz.com/Chat"
   ];
 
-  // The executor the agent must run on, one of its user's. Empty lets
-  // placement pick one of its user's: the parent agent's executor first, then
-  // any online executor matching the spec's selector with spare capacity.
-  // Format: organizations/{organization}/users/{user}/executors/{executor}
-  string executor = 14 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Executor"];
-
-  // The executor currently holding the agent's lease. Empty while pending.
-  // Format: organizations/{organization}/users/{user}/executors/{executor}
-  string leased_executor = 15 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.resource_reference).type = "agent.ai.malonaz.com/Executor"
-  ];
-
   // Where the agent is in its lifecycle.
-  State state = 16 [
+  State state = 14 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (buf.validate.field).enum.defined_only = true
   ];
 
   // How the agent's latest turn ended. Unset until a turn ends.
-  TurnOutcome last_turn_outcome = 17 [
+  TurnOutcome last_turn_outcome = 15 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (buf.validate.field).enum.defined_only = true
   ];
 
   // The error the latest turn failed on. Set only when it failed.
-  google.rpc.Status status = 18 [
+  google.rpc.Status status = 16 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
-
-  // The sequence of the agent's latest event: resume StreamAgent from it.
-  int64 last_event_sequence = 19 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
