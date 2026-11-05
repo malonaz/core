@@ -62,6 +62,7 @@ go_test(
     srcs = glob(["*_test.go"]),
     data = ["//go/ai/agent/migrations"],
     deps = [
+        "//third_party/go:buf.build__go__protovalidate",
         ":agent_service",
         "//go/ai",
         "//go/ai/agent/model",
