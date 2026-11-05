@@ -45,6 +45,8 @@ type fakeAiService struct {
 	chatToGenerations  map[string][]*fakeGeneration
 	generateRequests   []*aiservicepb.GenerateMessageRequest
 	lastCreateTime     time.Time
+	// defaultGeneration, if set, plays when a chat has no scripted generation left.
+	defaultGeneration *fakeGeneration
 }
 
 func newFakeAiService() *fakeAiService {
@@ -61,6 +63,13 @@ func (c *fakeAiService) script(chat string, generations ...*fakeGeneration) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.chatToGenerations[chat] = append(c.chatToGenerations[chat], generations...)
+}
+
+// setDefaultGeneration sets the generation played by chats with no scripted generation left.
+func (c *fakeAiService) setDefaultGeneration(generation *fakeGeneration) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.defaultGeneration = generation
 }
 
 // messages returns the messages of a chat, oldest first.
@@ -197,13 +206,18 @@ func (c *fakeAiService) StreamGenerateMessage(ctx context.Context, request *aise
 	defer c.mutex.Unlock()
 	c.generateRequests = append(c.generateRequests, proto.CloneOf(request))
 	generations := c.chatToGenerations[request.Parent]
-	if len(generations) == 0 {
+	var generation *fakeGeneration
+	switch {
+	case len(generations) > 0:
+		generation = generations[0]
+		c.chatToGenerations[request.Parent] = generations[1:]
+		if generation.started != nil {
+			close(generation.started)
+		}
+	case c.defaultGeneration != nil:
+		generation = c.defaultGeneration
+	default:
 		return nil, status.Errorf(codes.FailedPrecondition, "no generation scripted for chat %s", request.Parent).Err()
-	}
-	generation := generations[0]
-	c.chatToGenerations[request.Parent] = generations[1:]
-	if generation.started != nil {
-		close(generation.started)
 	}
 	return &fakeGenerationStream{ctx: ctx, service: c, chat: request.Parent, generation: generation}, nil
 }
