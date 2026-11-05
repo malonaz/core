@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "agent.proto",
         "agent_service.proto",
+        "builtin_tool.proto",
         "definition.proto",
     ],
     visibility = ["PUBLIC"],
@@ -13,6 +14,7 @@ grpc_library(
     srcs = [
         "agent.proto",
         "agent_service.proto",
+        "builtin_tool.proto",
         "definition.proto",
     ],
     additional_context = {
