@@ -24,30 +24,21 @@ func callBuiltinTool(t *testing.T, service *testReplica, agent *agentpb.Agent, t
 	return toolbox.call(context.Background(), toolCall)
 }
 
-// listInputs lists an agent's inputs, oldest first.
-func listInputs(t *testing.T, service *testReplica, agent string) []*agentpb.Input {
+// deliveredTexts returns the texts of the chat message delivering a sent message.
+func deliveredTexts(t *testing.T, service *testReplica, chat, message string) []string {
 	t.Helper()
-	listInputsRequest := &agentservicepb.ListInputsRequest{Parent: agent}
-	listInputsResponse, err := service.ListInputs(context.Background(), listInputsRequest)
-	require.NoError(t, err)
-	return listInputsResponse.Inputs
-}
-
-// deliveredTexts returns the texts of the chat message delivering an input.
-func deliveredTexts(t *testing.T, service *testReplica, chat, input string) []string {
-	t.Helper()
-	for _, message := range service.aiService.messages(chat) {
-		deliveredInputs, _ := agentpb.Annotations.Inputs.Get(message)
-		if !slices.Contains(strings.Split(deliveredInputs, ","), input) {
+	for _, chatMessage := range service.aiService.messages(chat) {
+		deliveredMessages, _ := agentpb.Annotations.Messages.Get(chatMessage)
+		if !slices.Contains(strings.Split(deliveredMessages, ","), message) {
 			continue
 		}
 		var texts []string
-		for _, block := range message.GetBlocks() {
+		for _, block := range chatMessage.GetBlocks() {
 			texts = append(texts, block.GetText())
 		}
 		return texts
 	}
-	require.FailNow(t, "input never delivered", input)
+	require.FailNow(t, "message never delivered", message)
 	return nil
 }
 
@@ -102,8 +93,8 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 		if len(subAgents) != 1 || subAgents[0].LastTurnOutcome != agentpb.Agent_TURN_OUTCOME_SUCCEEDED {
 			return false
 		}
-		inputs := listInputs(t, service, agent.Name)
-		return len(inputs) == 2 && inputs[1].ConsumeTime != nil
+		messages := sentMessages(t, service, agent.Name)
+		return len(messages) == 2 && !isPending(messages[1])
 	}, waitTimeout, waitTick)
 	subAgent := listChildAgents(t, service, agent)[0]
 	require.Equal(t, "researcher", subAgent.Title)
@@ -112,23 +103,23 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 	require.Equal(t, testModel, subAgent.Spec.Model)
 
 	// The sub-agent got its task from its parent.
-	taskInput := listInputs(t, service, subAgent.Name)[0]
-	sender, _ := agentpb.Annotations.Sender.Get(taskInput.Message)
+	taskMessage := sentMessages(t, service, subAgent.Name)[0]
+	sender, _ := agentpb.Annotations.Sender.Get(taskMessage)
 	require.Equal(t, agent.Name, sender)
-	require.Len(t, taskInput.Message.Blocks, 1)
-	require.Equal(t, "research things", taskInput.Message.Blocks[0].GetText())
+	require.Len(t, taskMessage.Blocks, 1)
+	require.Equal(t, "research things", taskMessage.Blocks[0].GetText())
 
 	// The parent got the sub-agent's report.
-	reportInput := listInputs(t, service, agent.Name)[1]
-	sender, _ = agentpb.Annotations.Sender.Get(reportInput.Message)
+	reportMessage := sentMessages(t, service, agent.Name)[1]
+	sender, _ = agentpb.Annotations.Sender.Get(reportMessage)
 	require.Equal(t, subAgent.Name, sender)
-	require.Len(t, reportInput.Message.Blocks, 1)
-	require.Equal(t, "sub-agent report", reportInput.Message.Blocks[0].GetText())
+	require.Len(t, reportMessage.Blocks, 1)
+	require.Equal(t, "sub-agent report", reportMessage.Blocks[0].GetText())
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
 
 	// The delivered messages name the sender agents: the parent to its sub-agent, the sub-agent to its parent.
-	require.Equal(t, []string{fmt.Sprintf("[Message from agent %s (%q)]", agent.Name, agent.Title), "research things"}, deliveredTexts(t, service, subAgent.Chat, taskInput.Name))
-	require.Equal(t, []string{fmt.Sprintf("[Report from sub-agent %s (%q)]", subAgent.Name, subAgent.Title), "sub-agent report"}, deliveredTexts(t, service, agent.Chat, reportInput.Name))
+	require.Equal(t, []string{fmt.Sprintf("[Message from agent %s (%q)]", agent.Name, agent.Title), "research things"}, deliveredTexts(t, service, subAgent.Chat, taskMessage.Name))
+	require.Equal(t, []string{fmt.Sprintf("[Report from sub-agent %s (%q)]", subAgent.Name, subAgent.Title), "sub-agent report"}, deliveredTexts(t, service, agent.Chat, reportMessage.Name))
 }
 
 func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
@@ -152,7 +143,7 @@ func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
 	subAgents := listChildAgents(t, service, agent)
 	require.Len(t, subAgents, 2)
 	for _, subAgent := range subAgents {
-		require.Len(t, listInputs(t, service, subAgent.Name), 1)
+		require.Len(t, sentMessages(t, service, subAgent.Name), 1)
 	}
 }
 
@@ -206,31 +197,31 @@ func TestBuiltinTools_CreateAgentsRejectsToolsTheCallerLacks(t *testing.T) {
 	require.Empty(t, listChildAgents(t, service, agent))
 }
 
-func TestBuiltinTools_SendInputStaysInTheTree(t *testing.T) {
+func TestBuiltinTools_MessageAgentStaysInTheTree(t *testing.T) {
 	service := newTestService(t)
 	service.aiService.setDefaultGeneration(textGeneration("done"))
 	agent := createTestAgent(t, service)
 	subAgent := createTestSubAgent(t, service, agent)
 	strangerAgent := createTestAgent(t, service)
-	sendInputCall := func(recipient string) *aipb.ToolCall {
-		return newToolCall("call-"+recipient, sendInputToolName, map[string]any{"tool_call_title": "Follow up", "agent": recipient, "message": "carry on"})
+	messageAgentCall := func(recipient string) *aipb.ToolCall {
+		return newToolCall("call-"+recipient, messageAgentToolName, map[string]any{"tool_call_title": "Follow up", "agent": recipient, "message": "carry on"})
 	}
 
-	toolResult := callBuiltinTool(t, service, agent, sendInputCall(strangerAgent.Name))
+	toolResult := callBuiltinTool(t, service, agent, messageAgentCall(strangerAgent.Name))
 	require.Equal(t, int32(codes.PermissionDenied), toolResult.GetError().GetCode())
-	toolResult = callBuiltinTool(t, service, agent, sendInputCall(agent.Name))
+	toolResult = callBuiltinTool(t, service, agent, messageAgentCall(agent.Name))
 	require.Equal(t, int32(codes.InvalidArgument), toolResult.GetError().GetCode())
 
 	for range 2 {
-		toolResult = callBuiltinTool(t, service, agent, sendInputCall(subAgent.Name))
+		toolResult = callBuiltinTool(t, service, agent, messageAgentCall(subAgent.Name))
 		require.Nil(t, toolResult.GetError())
 	}
-	inputs := listInputs(t, service, subAgent.Name)
-	require.Len(t, inputs, 1)
-	sender, _ := agentpb.Annotations.Sender.Get(inputs[0].Message)
+	messages := sentMessages(t, service, subAgent.Name)
+	require.Len(t, messages, 1)
+	sender, _ := agentpb.Annotations.Sender.Get(messages[0])
 	require.Equal(t, agent.Name, sender)
-	require.Len(t, inputs[0].Message.Blocks, 1)
-	require.Equal(t, "carry on", inputs[0].Message.Blocks[0].GetText())
+	require.Len(t, messages[0].Blocks, 1)
+	require.Equal(t, "carry on", messages[0].Blocks[0].GetText())
 }
 
 func TestBuiltinTools_ListAgents(t *testing.T) {
@@ -283,9 +274,9 @@ func TestBuiltinTools_InvalidArgumentsAreErrorResults(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgent(t, service)
 
-	toolResult := callBuiltinTool(t, service, agent, newToolCall("call-1", sendInputToolName, map[string]any{"tool_call_title": "Send"}))
+	toolResult := callBuiltinTool(t, service, agent, newToolCall("call-1", messageAgentToolName, map[string]any{"tool_call_title": "Send"}))
 
 	require.Equal(t, int32(codes.InvalidArgument), toolResult.GetError().GetCode())
-	require.Equal(t, sendInputToolName, toolResult.GetToolName())
+	require.Equal(t, messageAgentToolName, toolResult.GetToolName())
 	require.Equal(t, "call-1", toolResult.GetToolCallId())
 }
