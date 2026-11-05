@@ -3,10 +3,8 @@ package agent_service
 import (
 	"context"
 	"errors"
-	"maps"
 	"slices"
 
-	"buf.build/go/protovalidate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -21,12 +19,9 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-var (
-	agentNamespace           = aip.MustGetUUIDNamespace(&agentpb.Agent{})
-	updateAgentRequestParser = aip.MustNewUpdateRequestParser[*agentservicepb.UpdateAgentRequest, *agentpb.Agent]()
-)
+var agentNamespace = aip.MustGetUUIDNamespace(&agentpb.Agent{})
 
-// CreateAgent creates an agent, from a definition or ad-hoc, with the chat holding its transcript, then places it.
+// CreateAgent creates an idle agent, from a definition or ad-hoc, with the chat holding its transcript.
 func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.CreateAgentRequest) (*agentpb.Agent, error) {
 	userRn, err := agentpb.ParseUserRn(request.Parent)
 	if err != nil {
@@ -53,11 +48,7 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 		Definition:  request.Agent.Definition,
 		Spec:        request.Agent.Spec,
 		ParentAgent: request.Agent.ParentAgent,
-		Executor:    request.Agent.Executor,
-		State:       agentpb.Agent_STATE_PENDING,
-	}
-	if err := validateExecutorPin(agentRn, agent.Executor); err != nil {
-		return nil, err
+		State:       agentpb.Agent_STATE_IDLE,
 	}
 
 	var parentAgent *agentpb.Agent
@@ -84,34 +75,28 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 	}
 	agent.Chat = chat.Name
 
-	// A replay returns the agent its request created, whose id may differ from the one generated here.
-	var name string
+	var createdAgent *agentpb.Agent
 	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
 		var err error
-		name, err = t.createAgent(ctx, requestID, proto.CloneOf(agent))
+		createdAgent, err = t.createAgent(ctx, requestID, proto.CloneOf(agent))
 		return err
 	}); err != nil {
 		return nil, err
 	}
-	if err := s.placeAgent(ctx, name); err != nil {
-		s.log.WarnContext(ctx, "placing agent", "agent", name, "error", err)
-	}
-	getAgentRequest := &agentservicepb.GetAgentRequest{Name: name}
-	return s.GetAgent(ctx, getAgentRequest)
+	return createdAgent, nil
 }
 
-// createAgent inserts an agent and records its creation on it and its parent, returning its name. A replayed
-// request id records nothing and returns the name of the agent it created.
-func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.Agent) (string, error) {
+// createAgent inserts an agent. A replayed request id returns the agent it created, whose id may differ.
+func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.Agent) (*agentpb.Agent, error) {
 	agent.RootAgent = agent.Name
-	var parentAgent *agentpb.Agent
 	if agent.ParentAgent != "" {
-		var err error
-		if parentAgent, err = t.getAgent(ctx, agent.ParentAgent); err != nil {
-			return "", err
+		// Locked, so a parent being deleted never gains a child.
+		parentAgent, err := t.getAgent(ctx, agent.ParentAgent)
+		if err != nil {
+			return nil, err
 		}
 		if parentAgent.DeleteTime != nil {
-			return "", status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted", agent.ParentAgent).Err()
+			return nil, status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted", agent.ParentAgent).Err()
 		}
 		agent.RootAgent = parentAgent.RootAgent
 	}
@@ -119,40 +104,26 @@ func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.
 	agent.UpdateTime = agent.CreateTime
 	var err error
 	if agent.Etag, err = aip.ComputeETag(agent); err != nil {
-		return "", status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
 	agentModel, err := model.AgentFromPb(agent)
 	if err != nil {
-		return "", status.Errorf(codes.Internal, "converting agent from pb to model: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting agent from pb to model: %v", err).Err()
 	}
 	agentModel, inserted, err := t.InsertAgent(ctx, requestID, agentModel)
 	if err != nil {
 		if errors.Is(err, model.ErrAgentAlreadyExists) {
-			return "", status.Errorf(codes.AlreadyExists, "agent %s already exists", agent.Name).Err()
+			return nil, status.Errorf(codes.AlreadyExists, "agent %s already exists", agent.Name).Err()
 		}
-		return "", status.FromError(err, "inserting agent").Err()
-	}
-	if !inserted {
-		return (&agentpb.AgentRn{Organization: agentModel.OrganizationID, User: agentModel.UserID, Agent: agentModel.AgentID}).String(), nil
+		return nil, status.FromError(err, "inserting agent").Err()
 	}
 	if agent, err = agentModel.ToPb(); err != nil {
-		return "", status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
+		return nil, status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
 	}
-
-	stateChanged := newStateChangedEvent(agentpb.Agent_STATE_PENDING)
-	if err := t.saveAgent(ctx, agent, stateChanged); err != nil {
-		return "", err
+	if inserted {
+		t.snapshots = append(t.snapshots, proto.CloneOf(agent))
 	}
-	if parentAgent == nil {
-		return agent.Name, nil
-	}
-	subAgentCreated := &agentpb.Event{Kind: &agentpb.Event_SubAgentCreated_{SubAgentCreated: &agentpb.Event_SubAgentCreated{
-		Agent: agent.Name,
-	}}}
-	if err := t.saveAgent(ctx, parentAgent, subAgentCreated); err != nil {
-		return "", err
-	}
-	return agent.Name, nil
+	return agent, nil
 }
 
 // getLiveParentAgent reads the parent of a new agent, which must be a live agent of the same user.
@@ -198,83 +169,19 @@ func (s *Service) snapshotDefinitionSpec(ctx context.Context, agentRn *agentpb.A
 	return definition.Spec, nil
 }
 
-// validateExecutorPin rejects a pin on another user's executor: an executor runs its own user's agents only.
-func validateExecutorPin(agentRn *agentpb.AgentRn, executor string) error {
-	if executor == "" {
-		return nil
-	}
-	executorRn, err := agentpb.ParseExecutorRn(executor)
-	if err != nil {
-		return status.Errorf(codes.InvalidArgument, "parsing executor: %v", err).Err()
-	}
-	if executorRn.Organization != agentRn.Organization || executorRn.User != agentRn.User {
-		return status.Errorf(codes.InvalidArgument, "executor %s belongs to another user", executor).Err()
-	}
-	return nil
-}
-
-// UpdateAgent updates an agent's labels, annotations, title or executor pin. A new pin places a pending agent but
-// never moves a held lease: it applies from the agent's next placement.
+// UpdateAgent updates an agent's labels, annotations or title.
 func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.UpdateAgentRequest) (*agentpb.Agent, error) {
-	parsedRequest, err := updateAgentRequestParser.Parse(request)
+	agent, err := s.AgentServiceServer.UpdateAgent(ctx, request)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
-	}
-	agentRn, err := agentpb.ParseAgentRn(request.Agent.Name)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
-	}
-
-	var patchedAgent *agentpb.Agent
-	var executorChanged bool
-	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-		agent, err := t.getAgent(ctx, request.Agent.Name)
-		if err != nil {
-			return err
-		}
-		if agent.DeleteTime != nil {
-			return status.Errorf(codes.NotFound, "agent %s does not exist", agent.Name).Err()
-		}
-		if request.Agent.Etag != "" && request.Agent.Etag != agent.Etag {
-			return status.Errorf(codes.Aborted, "etag changed").Err()
-		}
-		patchedAgent = proto.CloneOf(agent)
-		parsedRequest.ApplyFieldMask(patchedAgent, request.Agent)
-		if err := protovalidate.Validate(patchedAgent); err != nil {
-			return status.Errorf(codes.InvalidArgument, "validating patched agent: %v", err).Err()
-		}
-		if err := validateExecutorPin(agentRn, patchedAgent.Executor); err != nil {
-			return err
-		}
-		executorChanged = patchedAgent.Executor != agent.Executor
-		var events []*agentpb.Event
-		if !maps.Equal(patchedAgent.Labels, agent.Labels) {
-			events = append(events, &agentpb.Event{Kind: &agentpb.Event_LabelsChanged_{LabelsChanged: &agentpb.Event_LabelsChanged{
-				Labels: patchedAgent.Labels,
-			}}})
-		}
-		return t.saveAgent(ctx, patchedAgent, events...)
-	}); err != nil {
 		return nil, err
 	}
-
-	if executorChanged && patchedAgent.State == agentpb.Agent_STATE_PENDING {
-		if err := s.placeAgent(ctx, patchedAgent.Name); err != nil {
-			s.log.WarnContext(ctx, "placing agent", "agent", patchedAgent.Name, "error", err)
-		}
-		getAgentRequest := &agentservicepb.GetAgentRequest{Name: patchedAgent.Name}
-		return s.GetAgent(ctx, getAgentRequest)
-	}
-	return patchedAgent, nil
+	s.publishSnapshot(agent)
+	return agent, nil
 }
 
-// DeleteAgent soft-deletes an agent, ending its turn and revoking its lease. With force, its descendants go first,
-// deepest first. Its chat is kept.
+// DeleteAgent soft-deletes an agent, cancelling its running turn. With force, its descendants go first, deepest
+// first. Its chat is kept.
 func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.DeleteAgentRequest) (*agentpb.Agent, error) {
-	agentRn, err := agentpb.ParseAgentRn(request.Name)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
-	}
 	if request.Force {
 		// Checked before the cascade, so a stale etag or a missing agent never costs the descendants.
 		getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
@@ -291,17 +198,7 @@ func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.Delet
 			}
 		}
 	}
-
-	var agent *agentpb.Agent
-	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-		agent, err = t.deleteAgent(ctx, request.Name, request.AllowMissing, request.Etag)
-		return err
-	}); err != nil {
-		return nil, err
-	}
-	// The deleted agent's lease freed capacity.
-	s.placePendingAgents(ctx, agentRn.Organization, agentRn.User)
-	return agent, nil
+	return s.deleteAgent(ctx, request.Name, request.AllowMissing, request.Etag)
 }
 
 // deleteDescendantAgents deletes every live descendant of an agent, deepest first, each in its own transaction.
@@ -315,63 +212,75 @@ func (s *Service) deleteDescendantAgents(ctx context.Context, name string) error
 		if err := s.deleteDescendantAgents(ctx, childAgentName); err != nil {
 			return err
 		}
-		if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-			_, err := t.deleteAgent(ctx, childAgentName, true, "")
-			return err
-		}); err != nil {
+		if _, err := s.deleteAgent(ctx, childAgentName, true, ""); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// deleteAgent soft-deletes an agent locked here, which must have no live children: its running turn is cancelled,
-// its lease revoked and released.
-func (t *txn) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string) (*agentpb.Agent, error) {
-	agent, err := t.getAgent(ctx, name)
-	if err != nil {
+// deleteAgent soft-deletes an agent, which must have no live children, ending its running turn CANCELLED and
+// dropping its lease, then cancels the turn wherever it runs.
+func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string) (*agentpb.Agent, error) {
+	var agent *agentpb.Agent
+	var cancelTurn bool
+	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
+		var err error
+		if agent, err = t.getAgent(ctx, name); err != nil {
+			return err
+		}
+		if agent.DeleteTime != nil {
+			if allowMissing {
+				return nil
+			}
+			return status.Errorf(codes.NotFound, "agent %s already deleted", name).Err()
+		}
+		if etag != "" && etag != agent.Etag {
+			return status.Errorf(codes.Aborted, "etag changed").Err()
+		}
+		// Read under the agent's lock, which CreateAgent takes on a parent: no child can appear before we commit.
+		childAgents, err := s.agentPostgresStore.ListChildAgents(ctx, name)
+		if err != nil {
+			return status.FromError(err, "listing child agents").Err()
+		}
+		if len(childAgents) > 0 {
+			return status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
+		}
+		cancelTurn = agent.State == agentpb.Agent_STATE_RUNNING
+		if cancelTurn {
+			if err := t.cancelTurn(ctx, agent); err != nil {
+				return err
+			}
+		}
+		agent.DeleteTime = timestamppb.New(t.now)
+		return t.saveAgent(ctx, agent)
+	}); err != nil {
 		return nil, err
 	}
-	if agent.DeleteTime != nil {
-		if allowMissing {
-			return agent, nil
-		}
-		return nil, status.Errorf(codes.NotFound, "agent %s already deleted", name).Err()
-	}
-	if etag != "" && etag != agent.Etag {
-		return nil, status.Errorf(codes.Aborted, "etag changed").Err()
-	}
-	// Read under the agent's lock, which CreateAgent takes on a parent: no child can appear before we commit.
-	childAgents, err := t.service.agentPostgresStore.ListChildAgents(ctx, name)
-	if err != nil {
-		return nil, status.FromError(err, "listing child agents").Err()
-	}
-	if len(childAgents) > 0 {
-		return nil, status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
-	}
-
-	if agent.State == agentpb.Agent_STATE_RUNNING {
-		if err := t.endTurn(ctx, agent, agentpb.Agent_TURN_OUTCOME_CANCELLED, nil); err != nil {
-			return nil, err
-		}
-	}
-	if agent.LeasedExecutor != "" {
-		revoke := &agentservicepb.ConnectExecutorResponse{Content: &agentservicepb.ConnectExecutorResponse_Revoke_{
-			Revoke: &agentservicepb.ConnectExecutorResponse_Revoke{Agent: agent.Name},
-		}}
-		if err := t.send(ctx, agent.LeasedExecutor, revoke); err != nil {
-			return nil, err
-		}
-	}
-	// Deleted first, so the release's agent count no longer includes it.
-	agent.DeleteTime = timestamppb.New(t.now)
-	if err := t.releaseAgent(ctx, agent); err != nil {
-		return nil, err
+	if cancelTurn {
+		// The turn's lease is gone, so it stops without ending again: cancelling it only stops it sooner.
+		s.turns.cancel(name, errTurnCancelled)
 	}
 	return agent, nil
 }
 
-// UndeleteAgent restores a deleted agent, whose parent must be live, then places it.
+// cancelTurn ends the running turn of an agent locked by getAgent CANCELLED and drops its lease, whoever holds it:
+// a replica still running the turn stops at its next write.
+func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	if err != nil {
+		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
+	if err := t.DeleteLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent); err != nil {
+		return status.FromError(err, "deleting lease").Err()
+	}
+	agent.State = agentpb.Agent_STATE_IDLE
+	agent.LastTurnOutcome = agentpb.Agent_TURN_OUTCOME_CANCELLED
+	agent.Status = nil
+	return nil
+}
+
+// UndeleteAgent restores a deleted agent, whose parent must be live.
 func (s *Service) UndeleteAgent(ctx context.Context, request *agentservicepb.UndeleteAgentRequest) (*agentpb.Agent, error) {
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
 	agent, err := s.GetAgent(ctx, getAgentRequest)
@@ -391,37 +300,6 @@ func (s *Service) UndeleteAgent(ctx context.Context, request *agentservicepb.Und
 	if agent, err = s.AgentServiceServer.UndeleteAgent(ctx, request); err != nil {
 		return nil, err
 	}
-	if err := s.placeAgent(ctx, agent.Name); err != nil {
-		s.log.WarnContext(ctx, "placing agent", "agent", agent.Name, "error", err)
-	}
-	return s.GetAgent(ctx, getAgentRequest)
-}
-
-// CancelAgent asks the agent's executor to cancel its running turn. Nothing is recorded here: the executor
-// reports the cancelled turn.
-func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.CancelAgentRequest) (*agentpb.Agent, error) {
-	var agent *agentpb.Agent
-	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-		var err error
-		if agent, err = t.getAgent(ctx, request.Name); err != nil {
-			return err
-		}
-		if agent.DeleteTime != nil {
-			return status.Errorf(codes.NotFound, "agent %s does not exist", agent.Name).Err()
-		}
-		if agent.LeasedExecutor == "" {
-			return nil
-		}
-		cancel := &agentservicepb.ConnectExecutorResponse{Content: &agentservicepb.ConnectExecutorResponse_Cancel_{
-			Cancel: &agentservicepb.ConnectExecutorResponse_Cancel{Agent: agent.Name},
-		}}
-		return t.send(ctx, agent.LeasedExecutor, cancel)
-	}); err != nil {
-		return nil, err
-	}
+	s.publishSnapshot(agent)
 	return agent, nil
-}
-
-func newStateChangedEvent(state agentpb.Agent_State) *agentpb.Event {
-	return &agentpb.Event{Kind: &agentpb.Event_StateChanged_{StateChanged: &agentpb.Event_StateChanged{State: state}}}
 }
