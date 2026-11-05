@@ -16,6 +16,12 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 
 // Request message for AgentService.CreateAgent.
 message CreateAgentRequest {
+  option (buf.validate.message).cel = {
+    id: "create_agent.definition_or_spec"
+    message: "exactly one of agent.definition and agent.spec must be set"
+    expression: "(this.agent.definition != '') != has(this.agent.spec)"
+  };
+
   // The user owning the agent.
   // Format: organizations/{organization}/users/{user}
   string parent = 1 [
@@ -229,16 +235,6 @@ message CancelAgentRequest {
   ];
 }
 
-// The amount of an agent's activity a StreamAgent call streams.
-enum AgentView {
-  // Used to detect an unset field. Behaves as BASIC.
-  AGENT_VIEW_UNSPECIFIED = 0;
-  // Agent snapshots and the tool calls' titles and ends: enough to follow a tree.
-  AGENT_VIEW_BASIC = 1;
-  // BASIC plus generation deltas and persisted messages: enough to render a chat live.
-  AGENT_VIEW_FULL = 2;
-}
-
 // Request message for AgentService.StreamAgent.
 message StreamAgentRequest {
   // The agent to stream.
@@ -249,8 +245,10 @@ message StreamAgentRequest {
     (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
   ];
 
-  // How much activity to stream.
-  AgentView view = 2 [(buf.validate.field).enum.defined_only = true];
+  // If true, also stream generation deltas and persisted messages: enough to
+  // render a chat live. Otherwise, snapshots and the tool calls' titles and
+  // ends: enough to follow a tree.
+  bool include_transcript = 2;
 
   // If true, also stream every descendant agent, present and future: a whole
   // tree in one stream.
@@ -277,13 +275,13 @@ message StreamAgentResponse {
     // A tool call that returned.
     ToolCallEnded tool_call_ended = 4;
 
-    // A block delta of the message being generated. FULL view only.
+    // A block delta of the message being generated. Streamed with include_transcript.
     malonaz.ai.v1.Block delta = 5;
 
-    // A message persisted to the agent's chat. FULL view only.
+    // A message persisted to the agent's chat. Streamed with include_transcript.
     malonaz.ai.v1.Message message = 6;
 
-    // The generation in flight was interrupted: discard its deltas. FULL view only.
+    // The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
     GenerationReset generation_reset = 7;
   }
 
