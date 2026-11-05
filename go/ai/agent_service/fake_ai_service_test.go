@@ -31,6 +31,8 @@ type fakeGeneration struct {
 	block   bool
 	// started, if set, is closed when the generation is requested.
 	started chan struct{}
+	// gate, if set, holds the generation back until it is closed.
+	gate chan struct{}
 }
 
 // fakeAiService is an in-memory AiService client: chats, messages and scripted generations. Methods not
@@ -233,6 +235,12 @@ type fakeGenerationStream struct {
 }
 
 func (s *fakeGenerationStream) Recv() (*aiservicepb.StreamGenerateMessageResponse, error) {
+	if s.generation.gate != nil {
+		select {
+		case <-s.generation.gate:
+		case <-s.ctx.Done():
+		}
+	}
 	if err := s.ctx.Err(); err != nil {
 		return nil, status.FromError(err, "generating").Err()
 	}
