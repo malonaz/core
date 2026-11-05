@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"slices"
 	"strings"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -28,9 +30,9 @@ import (
 const instructionsMessageID = "instructions"
 
 var (
-	// inputsMessageNamespace derives the id of the message delivering inputs from the oldest of them, so a
+	// deliveryMessageNamespace derives the id of the message delivering queued messages from the oldest of them, so a
 	// delivery retried after a crash is persisted once.
-	inputsMessageNamespace = uuid.MustParse("31a36018-4937-45ed-843c-19bb447034bf")
+	deliveryMessageNamespace = uuid.MustParse("31a36018-4937-45ed-843c-19bb447034bf")
 	// toolResultNamespace derives a tool result's request id from its call.
 	toolResultNamespace = uuid.MustParse("0d7c4b0e-5f2a-4c39-9b57-2a8f3e61c4d1")
 	// reportNamespace derives the request id of a turn's report to the parent from the turn's final message.
@@ -40,10 +42,10 @@ var (
 	errToolCallCancelled   = errors.New("cancelled: the turn was cancelled before this call completed; it may or may not have run")
 )
 
-// historyFilter excludes the messages the AiService leaves out of generations.
-var historyFilter = fmt.Sprintf("-status:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey())
+// pendingFilter lists the messages of an agent's chat queued for its next delivery.
+var pendingFilter = fmt.Sprintf("labels.%q:*", agentpb.Labels.Pending.GetKey())
 
-// runTurns runs the agent's turns while it has inputs, until it goes idle or its run stops.
+// runTurns runs the agent's turns while messages keep arriving, until it goes idle or its run stops.
 func (s *Service) runTurns(turn *turn) {
 	for {
 		turnEnd := s.runTurn(turn)
@@ -69,25 +71,27 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	ctx := turn.ctx
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: turn.agent}
 	agent, err := s.GetAgent(ctx, getAgentRequest)
+	runner := &turnRunner{service: s, agent: agent}
 	var finalMessage *aipb.Message
 	if err == nil {
-		runner := &turnRunner{service: s, agent: agent}
 		finalMessage, err = runner.run(ctx)
 	}
+	turnEnd := &turnEnd{deliveredCount: runner.deliveredCount, delivered: runner.delivered}
 	switch cause := context.Cause(ctx); {
 	case errors.Is(cause, errLeaseLost), errors.Is(cause, errShuttingDown), errors.Is(err, errShuttingDown):
 		return nil
 	case errors.Is(cause, errTurnCancelled):
-		return &turnEnd{outcome: agentpb.Agent_TURN_OUTCOME_CANCELLED, report: "My turn was cancelled."}
+		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_CANCELLED
+		turnEnd.report = "My turn was cancelled."
+		return turnEnd
 	case err != nil:
 		s.log.Warn("turn failed", "agent", turn.agent, "error", err)
-		return &turnEnd{
-			outcome: agentpb.Agent_TURN_OUTCOME_FAILED,
-			err:     err,
-			report:  fmt.Sprintf("My turn failed: %s", grpcstatus.Convert(err).Message()),
-		}
+		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_FAILED
+		turnEnd.err = err
+		turnEnd.report = fmt.Sprintf("My turn failed: %s", grpcstatus.Convert(err).Message())
+		return turnEnd
 	}
-	turnEnd := &turnEnd{outcome: agentpb.Agent_TURN_OUTCOME_SUCCEEDED}
+	turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_SUCCEEDED
 	if finalMessage != nil {
 		turnEnd.report = cmp.Or(messageText(finalMessage), "My turn ended without a reply.")
 		turnEnd.reportRequestID = uuid.NewV5(reportNamespace, finalMessage.GetName()).String()
@@ -95,13 +99,18 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	return turnEnd
 }
 
-// endTurn records how the agent's turn ended and queues its report on its parent, if any, in one transaction under
-// the agent's lock. With pending inputs, a succeeded turn keeps the agent RUNNING and returns true: the next turn
-// follows. Otherwise the agent goes IDLE and its lease is released.
+// endTurn sends the turn's report to the agent's parent, if any, then records how the turn ended under the
+// agent's lock. If messages were sent since the turn's latest delivery, a succeeded turn keeps the agent RUNNING and
+// returns true: the next turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
+// a turn ended without its report would leave the parent waiting, while a report sent again is deduped by its request
+// id, derived from the turn's final message.
 func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (bool, error) {
 	agentRn, err := agentpb.ParseAgentRn(name)
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
+	if err := s.report(ctx, name, turnEnd); err != nil {
+		return false, err
 	}
 	var next bool
 	err = s.transact(ctx, func(ctx context.Context, t *txn) error {
@@ -129,11 +138,18 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		if turnEnd.err != nil {
 			agent.Status = grpcstatus.Convert(turnEnd.err).Proto()
 		}
-		if turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED {
-			if next, err = t.HasPendingInputs(ctx, agentRn.Organization, agentRn.User, agentRn.Agent); err != nil {
-				return fmt.Errorf("checking pending inputs: %w", err)
+		mailbox, err := t.GetMailbox(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
+		if err != nil {
+			return fmt.Errorf("getting mailbox: %w", err)
+		}
+		deliveredCount := mailbox.DeliveredCount
+		if turnEnd.delivered {
+			deliveredCount = turnEnd.deliveredCount
+			if err := t.SetDeliveredCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, deliveredCount); err != nil {
+				return fmt.Errorf("setting delivered count: %w", err)
 			}
 		}
+		next = turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED && mailbox.SentCount > deliveredCount
 		if next {
 			if _, err := t.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica, s.address, s.opts.LeaseDuration); err != nil {
 				return fmt.Errorf("renewing lease: %w", err)
@@ -144,40 +160,41 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 				return fmt.Errorf("releasing lease: %w", err)
 			}
 		}
-		if err := t.saveAgent(ctx, agent); err != nil {
-			return err
-		}
-		return t.report(ctx, agent, turnEnd)
+		return t.saveAgent(ctx, agent)
 	})
 	return next, err
 }
 
-// report queues a turn's report on the agent's parent, so a parent never waits forever on its sub-agents.
-func (t *txn) report(ctx context.Context, agent *agentpb.Agent, turnEnd *turnEnd) error {
-	if agent.ParentAgent == "" || turnEnd.report == "" {
+// report sends a turn's report to the agent's parent, so a parent never waits forever on its sub-agents.
+func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) error {
+	if turnEnd.report == "" {
 		return nil
 	}
-	parentAgent, err := t.getAgent(ctx, agent.ParentAgent)
+	getAgentRequest := &agentservicepb.GetAgentRequest{Name: name}
+	agent, err := s.GetAgent(ctx, getAgentRequest)
 	if err != nil {
 		return err
 	}
-	if parentAgent.DeleteTime != nil {
+	if agent.ParentAgent == "" {
 		return nil
 	}
 	message := ai.NewUserMessage(ai.NewTextBlock(turnEnd.report))
 	agentpb.Annotations.Sender.Set(message, agent.Name)
-	requestID := turnEnd.reportRequestID
-	if requestID == "" {
-		requestID = uuid.MustNewV7().String()
+	requestID := cmp.Or(turnEnd.reportRequestID, uuid.MustNewV7().String())
+	// A deleted parent awaits no report.
+	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, requestID); err != nil && !status.HasCode(err, codes.NotFound) {
+		return status.FromError(err, "sending the turn's report").Err()
 	}
-	_, err = t.queueInput(ctx, parentAgent, requestID, message)
-	return err
+	return nil
 }
 
 // turnRunner runs one turn of an agent.
 type turnRunner struct {
 	service *Service
 	agent   *agentpb.Agent
+	// The agent's sent message count read before the turn's latest delivery, once it delivered.
+	deliveredCount int64
+	delivered      bool
 }
 
 // run runs the turn until the model answers without calling tools, and returns that final message: nil when the
@@ -195,7 +212,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 		return nil, err
 	}
 	for {
-		delivered, err := r.drainInputs(ctx)
+		delivered, err := r.deliverMessages(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +265,7 @@ func (r *turnRunner) ensureInstructions(ctx context.Context) error {
 func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 	listMessagesRequest := &aiservicepb.ListMessagesRequest{
 		Parent:  r.agent.GetChat(),
-		Filter:  historyFilter,
+		Filter:  ai.HistoryFilter,
 		OrderBy: "create_time desc",
 	}
 	// The messages after the latest assistant message, newest first: only its tool calls may lack results.
@@ -301,75 +318,116 @@ func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 	return last, nil
 }
 
-// drainInputs delivers the agent's pending inputs as one user message, listing them in its inputs annotation, then
-// marks them consumed. It returns the message, or nil if there was nothing new to deliver.
-func (r *turnRunner) drainInputs(ctx context.Context) (*aipb.Message, error) {
+// deliverMessages delivers the messages queued for the agent as one user message at the chat's end, listing them in
+// its messages annotation, then un-pends them. It returns the message, or nil if nothing was pending. The sent count
+// is read first: a message sent after it is counted after it, and the turn's end sees it.
+func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error) {
 	agentRn, err := agentpb.ParseAgentRn(r.agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
+	chatRn, err := aipb.ParseChatRn(r.agent.GetChat())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
+	}
 	for {
-		inputModels, err := r.service.agentPostgresStore.ListPendingInputs(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
+		sentCount, err := r.service.agentPostgresStore.GetSentCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
 		if err != nil {
-			return nil, status.FromError(err, "listing pending inputs").Err()
+			return nil, status.FromError(err, "getting sent count").Err()
 		}
-		if len(inputModels) == 0 {
+		listMessagesRequest := &aiservicepb.ListMessagesRequest{
+			Parent:  r.agent.GetChat(),
+			Filter:  pendingFilter,
+			OrderBy: "create_time asc",
+		}
+		pendingMessages, err := aip.Paginate[*aipb.Message](ctx, listMessagesRequest, r.service.aiServiceClient.ListMessages)
+		if err != nil {
+			return nil, status.FromError(err, "listing pending messages").Err()
+		}
+		if len(pendingMessages) == 0 {
+			r.deliveredCount, r.delivered = sentCount, true
 			return nil, nil
 		}
-		inputNames := make([]string, 0, len(inputModels))
+
+		messageNames := make([]string, 0, len(pendingMessages))
 		var blocks []*aipb.Block
 		senderToHeader := map[string]string{}
-		for _, inputModel := range inputModels {
-			input, err := inputModel.ToPb()
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting input from model to pb: %v", err).Err()
-			}
-			inputNames = append(inputNames, input.GetName())
-			header, err := r.senderHeader(ctx, input.GetMessage(), senderToHeader)
+		for _, pendingMessage := range pendingMessages {
+			messageNames = append(messageNames, pendingMessage.GetName())
+			header, err := r.senderHeader(ctx, pendingMessage, senderToHeader)
 			if err != nil {
 				return nil, err
 			}
 			if header != "" {
 				blocks = append(blocks, ai.NewTextBlock(header))
 			}
-			blocks = append(blocks, input.GetMessage().GetBlocks()...)
+			blocks = append(blocks, pendingMessage.GetBlocks()...)
 		}
 		message := ai.NewUserMessage(blocks...)
-		agentpb.Annotations.Inputs.Set(message, strings.Join(inputNames, ","))
-		messageID := aip.NewDeterministicBase32ResourceID(inputsMessageNamespace, inputNames[0])
+		agentpb.Annotations.Messages.Set(message, strings.Join(messageNames, ","))
+		messageID := aip.NewDeterministicBase32ResourceID(deliveryMessageNamespace, messageNames[0])
 		createMessageRequest := &aiservicepb.CreateMessageRequest{
 			Parent:    r.agent.GetChat(),
 			Message:   message,
 			MessageId: messageID,
 		}
-		createdMessage, err := r.service.aiServiceClient.CreateMessage(ctx, createMessageRequest)
+		deliveredMessage, err := r.service.aiServiceClient.CreateMessage(ctx, createMessageRequest)
 		if err == nil {
-			r.publishMessage(createdMessage)
-			return createdMessage, r.consumeInputs(ctx, agentRn, inputNames)
+			r.publishMessage(deliveredMessage)
+			if err := r.unpend(ctx, pendingMessages); err != nil {
+				return nil, err
+			}
+			r.deliveredCount, r.delivered = sentCount, true
+			return deliveredMessage, nil
 		}
 		if !status.HasCode(err, codes.AlreadyExists) {
-			return nil, status.FromError(err, "creating inputs message").Err()
+			return nil, status.FromError(err, "creating delivery message").Err()
 		}
 
-		// Delivered before a crash left its inputs pending: consume what it delivered, then drain the rest.
-		chatRn, err := aipb.ParseChatRn(r.agent.GetChat())
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
-		}
+		// Delivered before a crash left its messages pending: un-pend what it delivered, then deliver the rest.
 		getMessageRequest := &aiservicepb.GetMessageRequest{Name: chatRn.MessageRn(messageID).String()}
 		existingMessage, err := r.service.aiServiceClient.GetMessage(ctx, getMessageRequest)
 		if err != nil {
-			return nil, status.FromError(err, "getting inputs message").Err()
+			return nil, status.FromError(err, "getting delivery message").Err()
 		}
-		deliveredInputs, _ := agentpb.Annotations.Inputs.Get(existingMessage)
-		if err := r.consumeInputs(ctx, agentRn, strings.Split(deliveredInputs, ",")); err != nil {
+		deliveredMessageNames, _ := agentpb.Annotations.Messages.Get(existingMessage)
+		deliveredMessageNameSet := map[string]struct{}{}
+		for _, deliveredMessageName := range strings.Split(deliveredMessageNames, ",") {
+			deliveredMessageNameSet[deliveredMessageName] = struct{}{}
+		}
+		var deliveredMessages []*aipb.Message
+		for _, pendingMessage := range pendingMessages {
+			if _, ok := deliveredMessageNameSet[pendingMessage.GetName()]; ok {
+				deliveredMessages = append(deliveredMessages, pendingMessage)
+			}
+		}
+		if err := r.unpend(ctx, deliveredMessages); err != nil {
 			return nil, err
 		}
 	}
 }
 
-// senderHeader returns the header naming the agent that sent an input, empty for any other sender: the model sees
-// only the blocks it is delivered, while the input keeps exactly what its sender said.
+// unpend removes the pending label from delivered messages, which stay excluded from the model's view.
+func (r *turnRunner) unpend(ctx context.Context, messages []*aipb.Message) error {
+	labelsMask := pbfieldmask.FromPaths("labels").MustValidate(&aipb.Message{}).Proto()
+	for _, message := range messages {
+		labels := maps.Clone(message.GetLabels())
+		delete(labels, agentpb.Labels.Pending.GetKey())
+		updateMessageRequest := &aiservicepb.UpdateMessageRequest{
+			Message:    &aipb.Message{Name: message.GetName(), Labels: labels},
+			UpdateMask: labelsMask,
+		}
+		updatedMessage, err := r.service.aiServiceClient.UpdateMessage(ctx, updateMessageRequest)
+		if err != nil {
+			return status.FromError(err, "un-pending message %s", message.GetName()).Err()
+		}
+		r.publishMessage(updatedMessage)
+	}
+	return nil
+}
+
+// senderHeader returns the header naming the agent that sent a message, empty for any other sender: the model sees
+// only the blocks it is delivered, while the message keeps exactly what its sender said.
 func (r *turnRunner) senderHeader(ctx context.Context, message *aipb.Message, senderToHeader map[string]string) (string, error) {
 	sender, ok := agentpb.Annotations.Sender.Get(message)
 	if !ok || !agentpb.MatchAgentRn(sender) {
@@ -393,21 +451,6 @@ func (r *turnRunner) senderHeader(ctx context.Context, message *aipb.Message, se
 	}
 	senderToHeader[sender] = header
 	return header, nil
-}
-
-func (r *turnRunner) consumeInputs(ctx context.Context, agentRn *agentpb.AgentRn, inputNames []string) error {
-	inputIDs := make([]string, 0, len(inputNames))
-	for _, inputName := range inputNames {
-		inputRn, err := agentpb.ParseInputRn(inputName)
-		if err != nil {
-			return status.Errorf(codes.Internal, "parsing input name: %v", err).Err()
-		}
-		inputIDs = append(inputIDs, inputRn.Input)
-	}
-	if err := r.service.agentPostgresStore.ConsumeInputs(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, inputIDs, r.service.now()); err != nil {
-		return status.FromError(err, "consuming inputs").Err()
-	}
-	return nil
 }
 
 // generate streams one assistant message, which the AiService persists, publishing its deltas and announcing its

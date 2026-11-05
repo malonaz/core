@@ -18,7 +18,7 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-// newIdleReplica starts a replica that claims no turn: it stores agents and inputs only.
+// newIdleReplica starts a replica that claims no turn: it stores agents and queues messages only.
 func newIdleReplica(t *testing.T, aiService *fakeAiService) *testReplica {
 	t.Helper()
 	return newTestReplica(t, aiService, func(opts *Opts) { opts.MaxConcurrentTurns = 0 })
@@ -81,57 +81,63 @@ func TestLease_NoLostWakeups(t *testing.T) {
 	waitGroup.Wait()
 
 	require.Eventually(t, func() bool {
-		inputs := listInputs(t, service, agent.Name)
-		for _, input := range inputs {
-			if input.ConsumeTime == nil {
+		messages := sentMessages(t, service, agent.Name)
+		for _, message := range messages {
+			if isPending(message) {
 				return false
 			}
 		}
-		return len(inputs) == 30 && getAgent(t, service, agent.Name).State == agentpb.Agent_STATE_IDLE
+		return len(messages) == 30 && getAgent(t, service, agent.Name).State == agentpb.Agent_STATE_IDLE
 	}, waitTimeout, waitTick)
-	// Every input was delivered exactly once.
-	deliveredInputSet := map[string]struct{}{}
+	// Every message was delivered exactly once, and no generation saw one where it was queued.
+	deliveredMessageSet := map[string]struct{}{}
 	for _, message := range service.aiService.messages(agent.Chat) {
-		deliveredInputs, ok := agentpb.Annotations.Inputs.Get(message)
+		deliveredMessages, ok := agentpb.Annotations.Messages.Get(message)
 		if !ok {
 			continue
 		}
-		for _, input := range strings.Split(deliveredInputs, ",") {
-			require.NotContains(t, deliveredInputSet, input)
-			deliveredInputSet[input] = struct{}{}
+		for _, deliveredMessage := range strings.Split(deliveredMessages, ",") {
+			require.NotContains(t, deliveredMessageSet, deliveredMessage)
+			deliveredMessageSet[deliveredMessage] = struct{}{}
 		}
 	}
-	require.Len(t, deliveredInputSet, 30)
+	require.Len(t, deliveredMessageSet, 30)
+	for _, generationHistory := range service.aiService.generateMessageHistories() {
+		for _, message := range generationHistory {
+			require.False(t, aip.HasLabel(message, aipb.Labels.Excluded.GetKey()))
+		}
+	}
 	require.Empty(t, getLease(t, service, agent.Name))
 }
 
-func TestLease_DrainingIsIdempotent(t *testing.T) {
+func TestLease_DeliveryIsIdempotent(t *testing.T) {
 	aiService := newFakeAiService()
 	idleReplica := newIdleReplica(t, aiService)
 	agent := createTestAgent(t, idleReplica)
-	firstInput := sendText(t, idleReplica, agent.Name, "first")
-	secondInput := sendText(t, idleReplica, agent.Name, "second")
-	// A crash between delivering the first input and consuming it left it pending.
-	deliveredMessage := ai.NewUserMessage(firstInput.Message.Blocks...)
-	agentpb.Annotations.Inputs.Set(deliveredMessage, firstInput.Name)
+	firstMessage := sendText(t, idleReplica, agent.Name, "first")
+	secondMessage := sendText(t, idleReplica, agent.Name, "second")
+	// A crash between delivering the first message and un-pending it left it pending.
+	deliveryMessage := ai.NewUserMessage(firstMessage.Blocks...)
+	agentpb.Annotations.Messages.Set(deliveryMessage, firstMessage.Name)
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    agent.Chat,
-		Message:   deliveredMessage,
-		MessageId: aip.NewDeterministicBase32ResourceID(inputsMessageNamespace, firstInput.Name),
+		Message:   deliveryMessage,
+		MessageId: aip.NewDeterministicBase32ResourceID(deliveryMessageNamespace, firstMessage.Name),
 	}
 	_, err := aiService.CreateMessage(context.Background(), createMessageRequest)
 	require.NoError(t, err)
 	aiService.script(agent.Chat, textGeneration("both read"))
 
+	// The safety net claims the idle agent with undelivered messages.
 	service := newTestReplica(t, aiService, nil)
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	messages := aiService.messages(agent.Chat)
+	messages := history(aiService.messages(agent.Chat))
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_USER, aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
-	deliveredInputs, _ := agentpb.Annotations.Inputs.Get(messages[2])
-	require.Equal(t, secondInput.Name, deliveredInputs)
-	for _, input := range listInputs(t, service, agent.Name) {
-		require.NotNil(t, input.ConsumeTime)
+	deliveredMessages, _ := agentpb.Annotations.Messages.Get(messages[2])
+	require.Equal(t, secondMessage.Name, deliveredMessages)
+	for _, message := range sentMessages(t, service, agent.Name) {
+		require.False(t, isPending(message))
 	}
 	require.Len(t, aiService.generateMessageRequests(), 1)
 }
@@ -195,9 +201,9 @@ func TestLease_TakeoverFinishesAnAnsweredTurnOnce(t *testing.T) {
 	for _, generateMessageRequest := range aiService.generateMessageRequests() {
 		require.NotEqual(t, agent.Chat, generateMessageRequest.Parent)
 	}
-	inputs := listInputs(t, service, parentAgent.Name)
-	require.Len(t, inputs, 1)
-	require.Equal(t, "final answer", inputs[0].Message.Blocks[0].GetText())
+	reports := sentMessages(t, service, parentAgent.Name)
+	require.Len(t, reports, 1)
+	require.Equal(t, "final answer", reports[0].Blocks[0].GetText())
 }
 
 func TestLease_LostLeaseIsTakenOver(t *testing.T) {

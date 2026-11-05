@@ -15,7 +15,6 @@ import (
 	"github.com/malonaz/core/gengo/ai/agent/store"
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
-	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 )
@@ -102,41 +101,6 @@ func (t *txn) saveAgent(ctx context.Context, agent *agentpb.Agent) error {
 	}
 	t.snapshots = append(t.snapshots, proto.CloneOf(agent))
 	return nil
-}
-
-// queueInput queues a message on an agent locked by getAgent and, if the agent is idle, claims its turn here. A
-// replayed request id returns the input it queued.
-func (t *txn) queueInput(ctx context.Context, agent *agentpb.Agent, requestID string, message *aipb.Message) (*agentpb.Input, error) {
-	agentRn, err := agentpb.ParseAgentRn(agent.Name)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
-	}
-	input := &agentpb.Input{
-		Name:       agentRn.InputRn(aip.NewSystemGeneratedBase32ResourceID()).String(),
-		CreateTime: timestamppb.New(t.now),
-		Message:    message,
-	}
-	inputModel, err := model.InputFromPb(input)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting input from pb to model: %v", err).Err()
-	}
-	inputModel, _, err = t.InsertInput(ctx, requestID, inputModel)
-	if err != nil {
-		if errors.Is(err, model.ErrInputAlreadyExists) {
-			return nil, status.Errorf(codes.AlreadyExists, "input already exists").Err()
-		}
-		return nil, fmt.Errorf("inserting input: %w", err)
-	}
-	if input, err = inputModel.ToPb(); err != nil {
-		return nil, status.Errorf(codes.Internal, "converting input from model to pb: %v", err).Err()
-	}
-	// A running turn drains the input itself: its end checks for pending inputs under this same row lock.
-	if agent.State == agentpb.Agent_STATE_IDLE {
-		if err := t.claimTurn(ctx, agent); err != nil {
-			return nil, err
-		}
-	}
-	return input, nil
 }
 
 // claimTurn claims the turn of an agent locked by getAgent for this replica, if it has room and no other replica

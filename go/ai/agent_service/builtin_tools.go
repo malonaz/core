@@ -32,14 +32,14 @@ import (
 
 const (
 	createAgentsToolName = "create_agents"
-	sendInputToolName    = "send_input"
+	messageAgentToolName = "message_agent"
 	listAgentsToolName   = "list_agents"
 	updateLabelsToolName = "update_labels"
 
 	// builtinToolFile declares the built-in tools' arguments.
 	builtinToolFile = "malonaz/ai/agent/agent_service/v1/builtin_tool.proto"
 
-	// endTurnHint closes the results of the tools that message agents: replies are inputs that wake the caller,
+	// endTurnHint closes the results of the tools that message agents: replies are messages that wake the caller,
 	// never something to wait for.
 	endTurnHint = "End your turn now: each reply arrives later as a new message that wakes you. Never poll for it."
 )
@@ -82,7 +82,7 @@ func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
 	if err != nil {
 		return nil, err
 	}
-	sendInputTool, err := newBuiltinTool(builder, sendInputToolName, sendInputToolDescription, sendInput)
+	messageAgentTool, err := newBuiltinTool(builder, messageAgentToolName, messageAgentToolDescription, messageAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
 		return nil, err
 	}
 	builtinTools := &builtinTools{nameToBuiltinTool: map[string]*builtinTool{}}
-	for _, builtinTool := range []*builtinTool{createAgentsTool, sendInputTool, listAgentsTool, updateLabelsTool} {
+	for _, builtinTool := range []*builtinTool{createAgentsTool, messageAgentTool, listAgentsTool, updateLabelsTool} {
 		builtinTools.tools = append(builtinTools.tools, builtinTool.tool)
 		builtinTools.nameToBuiltinTool[builtinTool.tool.GetName()] = builtinTool
 	}
@@ -143,19 +143,6 @@ func builtinRequestID(agent *agentpb.Agent, toolCall *aipb.ToolCall, parts ...st
 	return uuid.NewV5(builtinToolNamespace, strings.Join(append([]string{agent.GetName(), toolCall.GetId()}, parts...), "/")).String()
 }
 
-// sendAgentInput queues a text message from an agent on another, stamped with its sender.
-func (s *Service) sendAgentInput(ctx context.Context, sender *agentpb.Agent, recipient, text, requestID string) error {
-	message := ai.NewUserMessage(ai.NewTextBlock(text))
-	agentpb.Annotations.Sender.Set(message, sender.GetName())
-	createInputRequest := &agentservicepb.CreateInputRequest{
-		Parent:    recipient,
-		Input:     &agentpb.Input{Message: message},
-		RequestId: requestID,
-	}
-	_, err := s.CreateInput(ctx, createInputRequest)
-	return err
-}
-
 // structuredToolResult renders a message as a tool call's structured result.
 func structuredToolResult(toolCall *aipb.ToolCall, message proto.Message) (*aipb.ToolResult, error) {
 	content, err := pbutil.MarshalToStruct(message)
@@ -173,7 +160,7 @@ const createAgentsToolDescription = "Launch one or more sub-agents, each working
 	"It receives its `task` as its first message and shares none of your context: include everything it needs, and what to report back. " +
 	"Launching never blocks: this returns the sub-agents' names at once. " +
 	"After launching, END YOUR TURN: each time a sub-agent ends a turn, its report arrives as a new message that wakes you, naming the sub-agent. " +
-	"Never poll for reports with list_agents. Use send_input to follow up with a sub-agent."
+	"Never poll for reports with list_agents. Use message_agent to follow up with a sub-agent."
 
 func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.CreateAgentsToolArguments) (*aipb.ToolResult, error) {
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
@@ -210,8 +197,8 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 				return nil
 			}
 			task := arguments.GetAgents()[i].GetTask()
-			if err := s.sendAgentInput(ctx, agent, createdAgent.GetName(), task, builtinRequestID(agent, toolCall, strconv.Itoa(i), "task")); err != nil {
-				lines[i] = fmt.Sprintf("- %s (%q): created, but sending its task failed, so it is idle; retry with send_input: %v", createdAgent.GetName(), subAgent.GetTitle(), err)
+			if err := s.sendAgentMessage(ctx, agent, createdAgent.GetName(), task, builtinRequestID(agent, toolCall, strconv.Itoa(i), "task")); err != nil {
+				lines[i] = fmt.Sprintf("- %s (%q): created, but sending its task failed, so it is idle; retry with message_agent: %v", createdAgent.GetName(), subAgent.GetTitle(), err)
 				return nil
 			}
 			lines[i] = fmt.Sprintf("- %s (%q): launched", createdAgent.GetName(), subAgent.GetTitle())
@@ -272,13 +259,13 @@ func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToo
 	return subAgent, nil
 }
 
-// ================================ send_input ================================
+// =============================== message_agent ==============================
 
-const sendInputToolDescription = "Send a message to another agent in your tree: typically one of your sub-agents, to follow up or redirect it, or your parent agent. " +
+const messageAgentToolDescription = "Send a message to another agent in your tree: typically one of your sub-agents, to follow up or redirect it, or your parent agent. " +
 	"Sending never blocks and returns no reply: the recipient reads the message on its next turn. " +
 	"After sending, END YOUR TURN: a sub-agent's next turn report arrives later as a new message that wakes you. Never poll for it."
 
-func sendInput(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.SendInputToolArguments) (*aipb.ToolResult, error) {
+func messageAgent(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.MessageAgentToolArguments) (*aipb.ToolResult, error) {
 	if _, err := agentpb.ParseAgentRn(arguments.GetAgent()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid agent %q: %v", arguments.GetAgent(), err).Err()
 	}
@@ -293,7 +280,7 @@ func sendInput(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *
 	if recipient.GetRootAgent() != agent.GetRootAgent() {
 		return nil, status.Errorf(codes.PermissionDenied, "agent %q is not in your agent tree", arguments.GetAgent()).Err()
 	}
-	if err := s.sendAgentInput(ctx, agent, recipient.GetName(), arguments.GetMessage(), builtinRequestID(agent, toolCall)); err != nil {
+	if err := s.sendAgentMessage(ctx, agent, recipient.GetName(), arguments.GetMessage(), builtinRequestID(agent, toolCall)); err != nil {
 		return nil, err
 	}
 	content := fmt.Sprintf("Sent to %s. %s", recipient.GetName(), endTurnHint)

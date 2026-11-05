@@ -21,11 +21,13 @@ func TestTurn_InputStartsATurnThatEndsIdle(t *testing.T) {
 	sendText(t, service, agent.Name, "hello")
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	messages := service.aiService.messages(agent.Chat)
+	messages := history(service.aiService.messages(agent.Chat))
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
-	inputs, ok := agentpb.Annotations.Inputs.Get(messages[1])
+	deliveredMessages, ok := agentpb.Annotations.Messages.Get(messages[1])
 	require.True(t, ok)
-	require.NotEmpty(t, inputs)
+	sentMessage := sentMessages(t, service, agent.Name)[0]
+	require.Equal(t, sentMessage.Name, deliveredMessages)
+	require.False(t, isPending(sentMessage))
 }
 
 func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
@@ -37,12 +39,12 @@ func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
 	missingAgent := agentRn.UserRn().AgentRn("missing").String()
 	message := ai.NewUserMessage(ai.NewTextBlock("hello"))
 	agentpb.Annotations.Sender.Set(message, missingAgent)
-	createInputRequest := &agentservicepb.CreateInputRequest{Parent: agent.Name, Input: &agentpb.Input{Message: message}}
-	input, err := service.CreateInput(context.Background(), createInputRequest)
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: message}
+	sentMessage, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	require.Equal(t, []string{"[Message from agent " + missingAgent + "]", "hello"}, deliveredTexts(t, service, agent.Chat, input.Name))
+	require.Equal(t, []string{"[Message from agent " + missingAgent + "]", "hello"}, deliveredTexts(t, service, agent.Chat, sentMessage.Name))
 }
 
 // partialToolCallBlock returns a block streaming a partial tool call with the given arguments.
@@ -104,4 +106,26 @@ func TestToolCallAnnouncer_WaitsForTheWholeTitle(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTurn_MessagesArriveBetweenToolRounds(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	toolCallGeneration := toolCallGeneration(newToolCall("call-1", listAgentsToolName, map[string]any{"tool_call_title": "List"}))
+	toolCallGeneration.started = make(chan struct{})
+	toolCallGeneration.gate = make(chan struct{})
+	service.aiService.script(agent.Chat, toolCallGeneration, textGeneration("both read"))
+	sendText(t, service, agent.Name, "first")
+	<-toolCallGeneration.started
+
+	// Queued while the first generation runs: hidden from it, delivered after its tool round.
+	sendText(t, service, agent.Name, "second")
+	close(toolCallGeneration.gate)
+
+	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	histories := service.aiService.generateMessageHistories()
+	require.Len(t, histories, 2)
+	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER}, roles(histories[0]))
+	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT, aipb.Role_ROLE_TOOL, aipb.Role_ROLE_USER}, roles(histories[1]))
+	require.Equal(t, "second", histories[1][4].GetBlocks()[0].GetText())
 }

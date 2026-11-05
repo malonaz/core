@@ -53,23 +53,38 @@ func TestAgent_CreateFromADefinitionSnapshotsItsSpec(t *testing.T) {
 	require.Equal(t, "You write.", getAgent(t, service, agent.Name).Spec.Instructions)
 }
 
-func TestAgent_CreateInputReplaysItsRequestID(t *testing.T) {
+func TestAgent_MessageAgentReplaysItsRequestID(t *testing.T) {
 	service := newTestService(t)
 	service.aiService.setDefaultGeneration(textGeneration("ok"))
 	agent := createTestAgent(t, service)
-	createInputRequest := &agentservicepb.CreateInputRequest{
-		Parent:    agent.Name,
-		Input:     &agentpb.Input{Message: ai.NewUserMessage(ai.NewTextBlock("once"))},
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{
+		Name:      agent.Name,
+		Message:   ai.NewUserMessage(ai.NewTextBlock("once")),
 		RequestId: uuid.MustNewV7().String(),
 	}
 
-	input, err := service.CreateInput(context.Background(), createInputRequest)
+	message, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
-	replayedInput, err := service.CreateInput(context.Background(), createInputRequest)
+	replayedMessage, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
 
-	require.Equal(t, input.Name, replayedInput.Name)
-	require.Len(t, listInputs(t, service, agent.Name), 1)
+	require.Equal(t, message.Name, replayedMessage.Name)
+	require.Len(t, sentMessages(t, service, agent.Name), 1)
+	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+}
+
+func TestAgent_MessageAgentRefusesOtherRoles(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{
+		Name:    agent.Name,
+		Message: ai.NewAssistantMessage(ai.NewTextBlock("not mine")),
+	}
+
+	_, err := service.MessageAgent(context.Background(), messageAgentRequest)
+
+	require.True(t, status.HasCode(err, codes.InvalidArgument))
+	require.Empty(t, sentMessages(t, service, agent.Name))
 }
 
 func TestAgent_DeleteNeedsForceForSubAgents(t *testing.T) {
