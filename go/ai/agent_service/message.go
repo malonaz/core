@@ -74,6 +74,10 @@ func (s *Service) messageAgent(ctx context.Context, name string, message *aipb.M
 // queueMessage appends a message to the queue of an agent locked by getAgent, named after the chat message its
 // delivery writes, and claims the agent's turn if idle. A message already queued is not queued again.
 func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *aipb.Message, requestID string) error {
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	if err != nil {
+		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
 	chatRn, err := aipb.ParseChatRn(agent.Chat)
 	if err != nil {
 		return status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
@@ -94,11 +98,18 @@ func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *a
 	}
 	message.CreateTime = timestamppb.New(t.now)
 	agent.QueuedMessages = append(agent.QueuedMessages, message)
-	if agent.State == agentpb.Agent_STATE_IDLE {
+	switch sender, _ := agentpb.Annotations.Sender.Get(message); {
+	case agent.State == agentpb.Agent_STATE_IDLE:
 		return t.claimTurn(ctx, agent)
+	case agent.State == agentpb.Agent_STATE_AWAITING && sender == agentRn.UserRn().String():
+		// The user replied instead of settling the awaited calls: they are denied, and the turn resumes.
+		resolveAwaitedToolCalls(agent, sender, errUserReplied)
+		return t.resumeIfSettled(ctx, agent)
+	default:
+		// A running turn delivers the message itself: its end checks the queue under this same row lock. An awaiting
+		// one, once its user settles it.
+		return t.saveAgent(ctx, agent)
 	}
-	// A running turn delivers the message itself: its end checks the queue under this same row lock.
-	return t.saveAgent(ctx, agent)
 }
 
 // sendAgentMessage queues a text message from an agent on another.

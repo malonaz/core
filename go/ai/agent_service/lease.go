@@ -280,10 +280,12 @@ func (s *Service) runHeartbeatLoop(ctx context.Context) {
 
 // turnEnd is how a turn ended.
 type turnEnd struct {
-	outcome agentpb.Agent_TurnOutcome
+	outcome agentpb.Turn_Outcome
 	// The error a FAILED turn ended on.
 	err error
 	// The report sent to the parent agent, if any, and its request id.
 	report          string
 	reportRequestID string
+	// The calls a turn paused on, awaiting a user: the turn did not end.
+	awaitedToolCalls []*agentpb.AwaitedToolCall
 }

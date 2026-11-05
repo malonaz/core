@@ -155,7 +155,7 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 
 	sendText(t, service, agent.Name, "check")
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	require.ElementsMatch(t, []string{"library", "missing"}, healthServer.checkedServices())
 	toolCallIDToToolResult := toolResults(service.aiService.messages(agent.Chat))
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetStructuredContent().GetStructValue().GetFields()["status"].GetStringValue())
@@ -185,7 +185,7 @@ func TestTools_ServiceCoHostedOnTheReplica(t *testing.T) {
 
 	sendText(t, service, agent.Name, "check")
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	require.Equal(t, []string{"co-hosted"}, healthServer.checkedServices())
 	toolSets := service.aiService.generateMessageRequests(agent.Chat)[0].GetToolSets()
 	require.Len(t, toolSets, 1)
@@ -211,7 +211,7 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 
 	sendText(t, service, agent.Name, "discover")
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	require.Empty(t, healthServer.checkedServices())
 	require.Equal(t, "discovered", toolResults(service.aiService.messages(agent.Chat))["call-1"].GetContent())
 }
@@ -222,7 +222,7 @@ func TestTools_UntargetedServicesAreRefused(t *testing.T) {
 	user := newTestUser(t)
 	userRn, err := agentpb.ParseUserRn(user)
 	require.NoError(t, err)
-	spec := &agentpb.AgentSpec{Model: testModel, Tools: []string{"no.such.Service.Method"}}
+	spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_Tool{{Name: "no.such.Service.Method"}}}
 
 	createAgentRequest := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: spec}}
 	_, err = service.CreateAgent(context.Background(), createAgentRequest)
@@ -260,14 +260,14 @@ func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
 	// A replica configured without the target takes the turn.
 	service := newTestReplica(t, aiService, nil)
 
-	agent = waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
-	require.Equal(t, int32(codes.InvalidArgument), agent.Status.GetCode())
+	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_FAILED)
+	require.Equal(t, int32(codes.InvalidArgument), agent.GetLatestTurn().GetError().GetCode())
 	// Failed before delivering, the turn stays idle with its message queued: only a new message wakes it.
 	time.Sleep(3 * service.opts.ClaimInterval)
 	agent = getAgent(t, service, agent.Name)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, agent.State)
 	require.Len(t, agent.QueuedMessages, 1)
-	require.Contains(t, agent.Status.GetMessage(), "no tool target configured for tool "+healthCheckMethod)
+	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "no tool target configured for tool "+healthCheckMethod)
 }
 
 func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {

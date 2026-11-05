@@ -68,10 +68,10 @@ func (s *testStream) until(t *testing.T, match func(*agentservicepb.StreamAgentR
 }
 
 // isIdleSnapshot matches an agent's snapshot once its turn ended with the outcome.
-func isIdleSnapshot(agent string, outcome agentpb.Agent_TurnOutcome) func(*agentservicepb.StreamAgentResponse) bool {
+func isIdleSnapshot(agent string, outcome agentpb.Turn_Outcome) func(*agentservicepb.StreamAgentResponse) bool {
 	return func(response *agentservicepb.StreamAgentResponse) bool {
 		snapshot := response.GetSnapshot()
-		return response.Agent == agent && snapshot.GetState() == agentpb.Agent_STATE_IDLE && snapshot.GetLastTurnOutcome() == outcome
+		return response.Agent == agent && snapshot.GetState() == agentpb.Agent_STATE_IDLE && snapshot.GetLatestTurn().GetOutcome() == outcome
 	}
 }
 
@@ -106,7 +106,7 @@ func TestStream_LocalTurn(t *testing.T) {
 
 	sendText(t, service, agent.Name, "go")
 
-	responses := fullStream.until(t, isIdleSnapshot(agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED))
+	responses := fullStream.until(t, isIdleSnapshot(agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED))
 	require.Equal(t, 1, countContent[*agentservicepb.StreamAgentResponse_ToolCall_](responses))
 	require.Equal(t, 1, countContent[*agentservicepb.StreamAgentResponse_ToolCallEnded_](responses))
 	require.Equal(t, 2, countContent[*agentservicepb.StreamAgentResponse_Delta](responses))
@@ -123,7 +123,7 @@ func TestStream_LocalTurn(t *testing.T) {
 	}
 	require.True(t, labelled)
 
-	responses = basicStream.until(t, isIdleSnapshot(agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED))
+	responses = basicStream.until(t, isIdleSnapshot(agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED))
 	require.Equal(t, 1, countContent[*agentservicepb.StreamAgentResponse_ToolCall_](responses))
 	require.Zero(t, countContent[*agentservicepb.StreamAgentResponse_Delta](responses))
 	require.Zero(t, countContent[*agentservicepb.StreamAgentResponse_Message](responses))
@@ -181,7 +181,7 @@ func TestStream_ProxiesTheReplicaRunningTheTurn(t *testing.T) {
 	// Replica A stops mid-generation: B takes the turn over, and its stream resets the cut generation.
 	replicaA.stop()
 
-	responses := stream.until(t, isIdleSnapshot(agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED))
+	responses := stream.until(t, isIdleSnapshot(agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED))
 	resetIndex, messageIndex := -1, -1
 	for i, response := range responses {
 		if response.GetGenerationReset() != nil && resetIndex == -1 {

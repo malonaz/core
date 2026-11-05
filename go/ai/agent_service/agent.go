@@ -63,8 +63,13 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 			return nil, err
 		}
 	}
-	if err := s.toolRouter.validate(agent.Spec); err != nil {
+	if err := s.validateTools(agent.Spec); err != nil {
 		return nil, err
+	}
+	if parentAgent != nil {
+		// A sub-agent launches sub-agents one level less deep than its parent may.
+		agent.Spec = proto.CloneOf(agent.Spec)
+		agent.Spec.MaxSubAgentDepth = max(0, min(agent.Spec.GetMaxSubAgentDepth(), parentAgent.GetSpec().GetMaxSubAgentDepth()-1))
 	}
 
 	// The chat is created outside the transaction, which may be retried; its request id makes replays reuse it. Agent
@@ -257,7 +262,7 @@ func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing boo
 		if len(childAgents) > 0 {
 			return status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
 		}
-		cancelTurn = agent.State == agentpb.Agent_STATE_RUNNING
+		cancelTurn = agent.State != agentpb.Agent_STATE_IDLE
 		if cancelTurn {
 			lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
 			if err != nil {
@@ -294,8 +299,9 @@ func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing boo
 	return agent, nil
 }
 
-// cancelTurn ends the running turn of an agent locked by getAgent CANCELLED and drops its lease, whoever holds it:
-// a replica still running the turn stops at its next write.
+// cancelTurn ends the running or awaiting turn of an agent locked by getAgent CANCELLED and drops its lease, whoever
+// holds it: a replica still running the turn stops at its next write. The calls the turn awaited are resolved as
+// cancelled, results the next turn writes.
 func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
 	agentRn, err := agentpb.ParseAgentRn(agent.Name)
 	if err != nil {
@@ -305,8 +311,13 @@ func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
 		return fmt.Errorf("deleting lease: %w", err)
 	}
 	agent.State = agentpb.Agent_STATE_IDLE
-	agent.LastTurnOutcome = agentpb.Agent_TURN_OUTCOME_CANCELLED
-	agent.Status = nil
+	if agent.LatestTurn == nil {
+		agent.LatestTurn = &agentpb.Turn{StartTime: timestamppb.New(t.now)}
+	}
+	agent.LatestTurn.EndTime = timestamppb.New(t.now)
+	agent.LatestTurn.Outcome = agentpb.Turn_OUTCOME_CANCELLED
+	agent.LatestTurn.Error = nil
+	resolveAwaitedToolCalls(agent, agentRn.UserRn().String(), errToolCallCancelled)
 	return nil
 }
 

@@ -20,7 +20,7 @@ func TestTurn_InputStartsATurnThatEndsIdle(t *testing.T) {
 
 	sendText(t, service, agent.Name, "hello")
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	messages := service.aiService.messages(agent.Chat)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
 	// The user's message, delivered as sent, stamped with its sender.
@@ -42,7 +42,7 @@ func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
 	_, err = service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("hello")), missingAgent, uuid.MustNewV7().String())
 	require.NoError(t, err)
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	deliveredMessage := deliveredMessages(t, service, agent.Name)[0]
 	require.Equal(t, []string{"[Message from agent " + missingAgent + "]", "hello"}, deliveredTexts(t, service, agent.Chat, deliveredMessage.Name))
 }
@@ -122,7 +122,7 @@ func TestTurn_MessagesArriveBetweenToolRounds(t *testing.T) {
 	sendText(t, service, agent.Name, "second")
 	close(toolCallGeneration.gate)
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	histories := service.aiService.generateMessageHistories(agent.Chat)
 	require.Len(t, histories, 2)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER}, roles(histories[0]))

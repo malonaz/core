@@ -53,10 +53,13 @@ func (r *toolRouter) endpoint(tool string) (string, error) {
 	return "", status.Errorf(codes.InvalidArgument, "no tool target configured for tool %s: add --tool-target for its service", tool).Err()
 }
 
-// validate checks that the service of every tool of a spec has a target.
-func (r *toolRouter) validate(spec *agentpb.AgentSpec) error {
+// validate checks that the service of every RPC tool of a spec has a target; genui components need none.
+func (r *toolRouter) validate(spec *agentpb.AgentSpec, genuiComponents *genuiComponents) error {
 	for _, tool := range spec.GetTools() {
-		if _, err := r.endpoint(tool); err != nil {
+		if _, ok := genuiComponents.nameToComponent[tool.GetName()]; ok {
+			continue
+		}
+		if _, err := r.endpoint(tool.GetName()); err != nil {
 			return err
 		}
 	}

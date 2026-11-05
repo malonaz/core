@@ -107,6 +107,10 @@ func (t *txn) saveAgent(ctx context.Context, agent *agentpb.Agent) error {
 // and no other holds the agent's lease, claims the lease here, the turn starting once the transaction commits. A
 // RUNNING agent without a lease is left to the claim scans.
 func (t *txn) claimTurn(ctx context.Context, agent *agentpb.Agent) error {
+	if agent.State == agentpb.Agent_STATE_IDLE {
+		// A new turn, carrying the results of the calls its predecessor left awaited for it to write.
+		agent.LatestTurn = &agentpb.Turn{StartTime: timestamppb.New(t.now), AwaitedToolCalls: agent.GetLatestTurn().GetAwaitedToolCalls()}
+	}
 	if agent.State != agentpb.Agent_STATE_RUNNING {
 		agent.State = agentpb.Agent_STATE_RUNNING
 		if err := t.saveAgent(ctx, agent); err != nil {

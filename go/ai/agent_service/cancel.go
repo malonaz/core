@@ -9,6 +9,7 @@ import (
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/uuid"
 )
 
 // CancelAgent cancels the agent's running turn wherever it runs: here, on the replica holding its lease, or, if no
@@ -39,7 +40,7 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 	if agent.DeleteTime != nil {
 		return nil, status.Errorf(codes.NotFound, "agent %s does not exist", agent.Name).Err()
 	}
-	if agent.State != agentpb.Agent_STATE_RUNNING {
+	if agent.State == agentpb.Agent_STATE_IDLE {
 		return agent, nil
 	}
 	lease, err := s.agentPostgresStore.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
@@ -61,13 +62,13 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 		return s.GetAgent(ctx, getAgentRequest)
 	}
 
-	// No replica runs the turn: end it here, unless a replica claimed it meanwhile.
-	var claimedMeanwhile bool
+	// No replica runs the turn, awaiting or interrupted: end it here, unless a replica claimed it meanwhile.
+	var claimedMeanwhile, cancelled bool
 	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
 		if agent, err = t.getLiveAgent(ctx, request.Name); err != nil {
 			return err
 		}
-		if agent.State != agentpb.Agent_STATE_RUNNING {
+		if agent.State == agentpb.Agent_STATE_IDLE {
 			return nil
 		}
 		lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
@@ -80,12 +81,24 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 		if err := t.cancelTurn(ctx, agent); err != nil {
 			return err
 		}
+		cancelled = true
 		return t.saveAgent(ctx, agent)
 	}); err != nil {
 		return nil, err
 	}
 	if claimedMeanwhile {
 		return s.CancelAgent(ctx, request)
+	}
+	if cancelled {
+		// No turn ends to report it: report the cancellation, under an id the turn's start fixes.
+		turnEnd := &turnEnd{
+			outcome:         agentpb.Turn_OUTCOME_CANCELLED,
+			report:          "My turn was cancelled.",
+			reportRequestID: uuid.NewV5(reportNamespace, agentpb.Turn_OUTCOME_CANCELLED.String()+"/"+agent.Name+"/"+agent.GetLatestTurn().GetStartTime().AsTime().String()).String(),
+		}
+		if err := s.report(ctx, agent.Name, turnEnd); err != nil {
+			return nil, err
+		}
 	}
 	return agent, nil
 }
