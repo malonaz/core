@@ -84,29 +84,34 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 	}
 	agent.Chat = chat.Name
 
+	// A replay returns the agent its request created, whose id may differ from the one generated here.
+	var name string
 	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-		return t.createAgent(ctx, requestID, proto.CloneOf(agent))
+		var err error
+		name, err = t.createAgent(ctx, requestID, proto.CloneOf(agent))
+		return err
 	}); err != nil {
 		return nil, err
 	}
-	if err := s.placeAgent(ctx, agent.Name); err != nil {
-		s.log.WarnContext(ctx, "placing agent", "agent", agent.Name, "error", err)
+	if err := s.placeAgent(ctx, name); err != nil {
+		s.log.WarnContext(ctx, "placing agent", "agent", name, "error", err)
 	}
-	getAgentRequest := &agentservicepb.GetAgentRequest{Name: agent.Name}
+	getAgentRequest := &agentservicepb.GetAgentRequest{Name: name}
 	return s.GetAgent(ctx, getAgentRequest)
 }
 
-// createAgent inserts an agent and records its creation on it and its parent. A replayed request id records nothing.
-func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.Agent) error {
+// createAgent inserts an agent and records its creation on it and its parent, returning its name. A replayed
+// request id records nothing and returns the name of the agent it created.
+func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.Agent) (string, error) {
 	agent.RootAgent = agent.Name
 	var parentAgent *agentpb.Agent
 	if agent.ParentAgent != "" {
 		var err error
 		if parentAgent, err = t.getAgent(ctx, agent.ParentAgent); err != nil {
-			return err
+			return "", err
 		}
 		if parentAgent.DeleteTime != nil {
-			return status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted", agent.ParentAgent).Err()
+			return "", status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted", agent.ParentAgent).Err()
 		}
 		agent.RootAgent = parentAgent.RootAgent
 	}
@@ -114,37 +119,40 @@ func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.
 	agent.UpdateTime = agent.CreateTime
 	var err error
 	if agent.Etag, err = aip.ComputeETag(agent); err != nil {
-		return status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		return "", status.Errorf(codes.Internal, "computing etag: %v", err).Err()
 	}
 	agentModel, err := model.AgentFromPb(agent)
 	if err != nil {
-		return status.Errorf(codes.Internal, "converting agent from pb to model: %v", err).Err()
+		return "", status.Errorf(codes.Internal, "converting agent from pb to model: %v", err).Err()
 	}
 	agentModel, inserted, err := t.InsertAgent(ctx, requestID, agentModel)
 	if err != nil {
 		if errors.Is(err, model.ErrAgentAlreadyExists) {
-			return status.Errorf(codes.AlreadyExists, "agent %s already exists", agent.Name).Err()
+			return "", status.Errorf(codes.AlreadyExists, "agent %s already exists", agent.Name).Err()
 		}
-		return status.FromError(err, "inserting agent").Err()
+		return "", status.FromError(err, "inserting agent").Err()
 	}
 	if !inserted {
-		return nil
+		return (&agentpb.AgentRn{Organization: agentModel.OrganizationID, User: agentModel.UserID, Agent: agentModel.AgentID}).String(), nil
 	}
 	if agent, err = agentModel.ToPb(); err != nil {
-		return status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
+		return "", status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
 	}
 
 	stateChanged := newStateChangedEvent(agentpb.Agent_STATE_PENDING)
 	if err := t.saveAgent(ctx, agent, stateChanged); err != nil {
-		return err
+		return "", err
 	}
 	if parentAgent == nil {
-		return nil
+		return agent.Name, nil
 	}
 	subAgentCreated := &agentpb.Event{Kind: &agentpb.Event_SubAgentCreated_{SubAgentCreated: &agentpb.Event_SubAgentCreated{
 		Agent: agent.Name,
 	}}}
-	return t.saveAgent(ctx, parentAgent, subAgentCreated)
+	if err := t.saveAgent(ctx, parentAgent, subAgentCreated); err != nil {
+		return "", err
+	}
+	return agent.Name, nil
 }
 
 // getLiveParentAgent reads the parent of a new agent, which must be a live agent of the same user.

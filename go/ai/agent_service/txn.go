@@ -43,7 +43,8 @@ type sessionCommand struct {
 func (s *Service) transact(ctx context.Context, fn func(ctx context.Context, t *txn) error) error {
 	var t *txn
 	if err := s.agentPostgresStore.Transaction(ctx, func(tx *store.Tx) error {
-		t = &txn{Tx: tx, service: s, now: time.Now().UTC()}
+		// Postgres keeps microseconds: what a transaction returns must equal what it stored.
+		t = &txn{Tx: tx, service: s, now: time.Now().UTC().Truncate(time.Microsecond)}
 		return fn(ctx, t)
 	}); err != nil {
 		return err
