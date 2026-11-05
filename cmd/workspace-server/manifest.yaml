@@ -2,6 +2,7 @@ name: workspace-server
 servers:
   - name: workspace-service
     grpc:
+      descriptor_set: descriptor_set.bin
       services:
         - service: workspace-service
           proto: //malonaz/workspace/workspace_service/v1

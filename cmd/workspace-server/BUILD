@@ -1,4 +1,14 @@
-subinclude("//build_defs/codegen/onyx:build_defs")
+subinclude(
+    "//build_defs/codegen/onyx:build_defs",
+    "//build_defs/proto:descriptor",
+)
+
+# Reflection serves this, not the Go registry, whose descriptors drop the comments agents read as tool descriptions.
+proto_descriptor_set(
+    name = "descriptor_set",
+    srcs = ["//malonaz/workspace/workspace_service/v1"],
+    deps = ["//malonaz/workspace/workspace_service/v1"],
+)
 
 onyx_manifest(
     name = "manifest",
@@ -16,6 +26,7 @@ onyx_main_src(
 go_binary(
     name = "workspace-server",
     srcs = [":main.go"],
+    resources = [":descriptor_set"],
     visibility = ["PUBLIC"],
     deps = [
         "//go/certs",
