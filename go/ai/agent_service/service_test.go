@@ -26,7 +26,12 @@ import (
 // agentMigrationsDirectory holds the agent database's migrations, provided to the test as data.
 const agentMigrationsDirectory = "go/ai/agent/migrations"
 
-const testModel = "providers/p/models/m"
+const (
+	testModel = "providers/p/models/m"
+	// waitTimeout and waitTick pace the tests waiting on turns.
+	waitTimeout = 10 * time.Second
+	waitTick    = 10 * time.Millisecond
+)
 
 // testPostgresClient is connected to the test Postgres, migrated, shared by every test: isolate tests by
 // organization. Claim loops span every organization: tests starting replicas never run in parallel.
@@ -62,8 +67,8 @@ type testReplica struct {
 }
 
 // newTestReplica starts a replica over the test Postgres and the given AiService, stopped when the test ends.
-// configure, if set, adjusts its opts.
-func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts)) *testReplica {
+// configure, if set, adjusts its opts; register adds services to its server, co-hosted with the AgentService.
+func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts), register ...func(*grpc.Server)) *testReplica {
 	t.Helper()
 	// Unix socket paths are capped at 108 bytes: test temp dirs may be too deep.
 	socketDirectory, err := os.MkdirTemp("", "agent")
@@ -80,6 +85,9 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	require.NoError(t, err)
 	server := grpc.NewServer()
 	agentservicepb.RegisterAgentServiceServer(server, service)
+	for _, registerService := range register {
+		registerService(server)
+	}
 	reflection.Register(server)
 	go server.Serve(listener)
 
@@ -116,12 +124,15 @@ func newTestUser(t *testing.T) string {
 // createTestAgent creates an ad-hoc root agent with the given tools under a fresh user.
 func createTestAgent(t *testing.T, service *testReplica, tools ...string) *agentpb.Agent {
 	t.Helper()
+	return createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: tools})
+}
+
+// createTestAgentWithSpec creates an ad-hoc root agent with the given spec under a user.
+func createTestAgentWithSpec(t *testing.T, service *testReplica, user string, spec *agentpb.AgentSpec) *agentpb.Agent {
+	t.Helper()
 	createAgentRequest := &agentservicepb.CreateAgentRequest{
-		Parent: newTestUser(t),
-		Agent: &agentpb.Agent{
-			Title: "test agent",
-			Spec:  &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: tools},
-		},
+		Parent: user,
+		Agent:  &agentpb.Agent{Title: "test agent", Spec: spec},
 	}
 	agent, err := service.CreateAgent(context.Background(), createAgentRequest)
 	require.NoError(t, err)
@@ -156,7 +167,7 @@ func waitForIdle(t *testing.T, service *testReplica, name string, outcome agentp
 	require.Eventually(t, func() bool {
 		agent = getAgent(t, service, name)
 		return agent.State == agentpb.Agent_STATE_IDLE && agent.LastTurnOutcome == outcome
-	}, 10*time.Second, 10*time.Millisecond, "agent %s never went idle with outcome %s", name, outcome)
+	}, waitTimeout, waitTick, "agent %s never went idle with outcome %s", name, outcome)
 	return agent
 }
 
