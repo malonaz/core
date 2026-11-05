@@ -197,7 +197,7 @@ func TestLease_TakeoverFinishesAnAnsweredTurnOnce(t *testing.T) {
 	}
 	inputs := listInputs(t, service, parentAgent.Name)
 	require.Len(t, inputs, 1)
-	require.Equal(t, "final answer", inputs[0].Message.Blocks[1].GetText())
+	require.Equal(t, "final answer", inputs[0].Message.Blocks[0].GetText())
 }
 
 func TestLease_LostLeaseIsTakenOver(t *testing.T) {

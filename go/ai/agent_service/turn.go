@@ -164,8 +164,7 @@ func (t *txn) report(ctx context.Context, agent *agentpb.Agent, turnEnd *turnEnd
 	if parentAgent.DeleteTime != nil {
 		return nil
 	}
-	header := fmt.Sprintf("[Report from sub-agent %s (%q), whose turn ended]", agent.Name, agent.Title)
-	message := ai.NewUserMessage(ai.NewTextBlock(header), ai.NewTextBlock(turnEnd.report))
+	message := ai.NewUserMessage(ai.NewTextBlock(turnEnd.report))
 	agentpb.Annotations.Sender.Set(message, agent.Name)
 	requestID := turnEnd.reportRequestID
 	if requestID == "" {
@@ -319,12 +318,20 @@ func (r *turnRunner) drainInputs(ctx context.Context) (*aipb.Message, error) {
 		}
 		inputNames := make([]string, 0, len(inputModels))
 		var blocks []*aipb.Block
+		senderToHeader := map[string]string{}
 		for _, inputModel := range inputModels {
 			input, err := inputModel.ToPb()
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting input from model to pb: %v", err).Err()
 			}
 			inputNames = append(inputNames, input.GetName())
+			header, err := r.senderHeader(ctx, input.GetMessage(), senderToHeader)
+			if err != nil {
+				return nil, err
+			}
+			if header != "" {
+				blocks = append(blocks, ai.NewTextBlock(header))
+			}
 			blocks = append(blocks, input.GetMessage().GetBlocks()...)
 		}
 		message := ai.NewUserMessage(blocks...)
@@ -359,6 +366,33 @@ func (r *turnRunner) drainInputs(ctx context.Context) (*aipb.Message, error) {
 			return nil, err
 		}
 	}
+}
+
+// senderHeader returns the header naming the agent that sent an input, empty for any other sender: the model sees
+// only the blocks it is delivered, while the input keeps exactly what its sender said.
+func (r *turnRunner) senderHeader(ctx context.Context, message *aipb.Message, senderToHeader map[string]string) (string, error) {
+	sender, ok := agentpb.Annotations.Sender.Get(message)
+	if !ok || !agentpb.MatchAgentRn(sender) {
+		return "", nil
+	}
+	if header, ok := senderToHeader[sender]; ok {
+		return header, nil
+	}
+	getAgentRequest := &agentservicepb.GetAgentRequest{Name: sender}
+	senderAgent, err := r.service.GetAgent(ctx, getAgentRequest)
+	var header string
+	switch {
+	case status.HasCode(err, codes.NotFound):
+		header = fmt.Sprintf("[Message from agent %s]", sender)
+	case err != nil:
+		return "", status.FromError(err, "getting sender agent").Err()
+	case senderAgent.GetParentAgent() == r.agent.GetName():
+		header = fmt.Sprintf("[Report from sub-agent %s (%q)]", sender, senderAgent.GetTitle())
+	default:
+		header = fmt.Sprintf("[Message from agent %s (%q)]", sender, senderAgent.GetTitle())
+	}
+	senderToHeader[sender] = header
+	return header, nil
 }
 
 func (r *turnRunner) consumeInputs(ctx context.Context, agentRn *agentpb.AgentRn, inputNames []string) error {
