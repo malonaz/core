@@ -412,6 +412,8 @@ func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (literal, error) {
 	if err != nil {
 		return literal{}, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
 	}
+	// Bound to a timestamp column the driver keeps the wall clock and drops the zone, so the clock must be UTC.
+	timeArg = timeArg.UTC()
 	return literal{expr: t.addParam(timeArg), value: timeArg}, nil
 }
 
