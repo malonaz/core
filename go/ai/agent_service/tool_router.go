@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"unicode"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
@@ -48,7 +47,7 @@ func (r *toolRouter) endpoint(tool string) (string, error) {
 			return endpoint, nil
 		}
 	}
-	return "", status.Errorf(codes.InvalidArgument, "no tool target configured for service %s", toolService(tool)).Err()
+	return "", status.Errorf(codes.InvalidArgument, "no tool target configured for tool %s: add --tool-target for its service", tool).Err()
 }
 
 // validate checks that the service of every tool of a spec has a target.
@@ -59,18 +58,6 @@ func (r *toolRouter) validate(spec *agentpb.AgentSpec) error {
 		}
 	}
 	return nil
-}
-
-// toolService returns the service a tool names, itself or its method's: the name up to its first CamelCase segment,
-// packages being lowercase in the protobuf style.
-func toolService(tool string) string {
-	segments := strings.Split(tool, ".")
-	for i, segment := range segments {
-		if segment != "" && unicode.IsUpper(rune(segment[0])) {
-			return strings.Join(segments[:i+1], ".")
-		}
-	}
-	return tool
 }
 
 // schema returns the schema an endpoint serves, resolved through its gRPC server reflection.

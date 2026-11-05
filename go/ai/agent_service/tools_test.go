@@ -185,7 +185,7 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 
 func TestTools_UntargetedServicesAreRefused(t *testing.T) {
 	service := newTestService(t)
-	const refusal = "no tool target configured for service no.such.Service"
+	const refusal = "no tool target configured for tool no.such.Service.Method: add --tool-target for its service"
 	user := newTestUser(t)
 	userRn, err := agentpb.ParseUserRn(user)
 	require.NoError(t, err)
@@ -229,7 +229,7 @@ func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
 
 	agent = waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
 	require.Equal(t, int32(codes.InvalidArgument), agent.Status.GetCode())
-	require.Contains(t, agent.Status.GetMessage(), "no tool target configured for service grpc.health.v1.Health")
+	require.Contains(t, agent.Status.GetMessage(), "no tool target configured for tool "+healthCheckMethod)
 }
 
 func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
