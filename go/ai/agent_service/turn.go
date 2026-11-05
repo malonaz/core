@@ -187,7 +187,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 	if err := r.ensureInstructions(ctx); err != nil {
 		return nil, err
 	}
-	last, err := r.recover(ctx)
+	last, err := r.resume(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -244,9 +244,9 @@ func (r *turnRunner) ensureInstructions(ctx context.Context) error {
 	return nil
 }
 
-// recover reads the end of the chat, where a turn interrupted on another replica left off, answers the tool calls
+// resume reads the end of the chat, where a turn interrupted on another replica left off, answers the tool calls
 // it left without a result and returns the chat's last message.
-func (r *turnRunner) recover(ctx context.Context) (*aipb.Message, error) {
+func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 	listMessagesRequest := &aiservicepb.ListMessagesRequest{
 		Parent:  r.agent.GetChat(),
 		Filter:  historyFilter,
@@ -401,8 +401,7 @@ func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Mess
 			StreamPartialToolCalls: true,
 		},
 	}
-	var streamed bool
-	generatedMessage, err := r.streamGeneration(ctx, generateMessageRequest, &streamed)
+	generatedMessage, streamed, err := r.streamGeneration(ctx, generateMessageRequest)
 	if err == nil {
 		return generatedMessage, nil
 	}
@@ -419,30 +418,32 @@ func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Mess
 	}
 }
 
-func (r *turnRunner) streamGeneration(ctx context.Context, request *aiservicepb.GenerateMessageRequest, streamed *bool) (*aipb.Message, error) {
+// streamGeneration streams a generation, reporting whether any of its deltas were published.
+func (r *turnRunner) streamGeneration(ctx context.Context, request *aiservicepb.GenerateMessageRequest) (*aipb.Message, bool, error) {
 	stream, err := r.service.aiServiceClient.StreamGenerateMessage(ctx, request)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	var streamed bool
 	announcedToolCallIDSet := map[string]struct{}{}
 	for {
 		streamGenerateMessageResponse, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
-			return nil, status.Errorf(codes.Internal, "generation ended without a generated message").Err()
+			return nil, streamed, status.Errorf(codes.Internal, "generation ended without a generated message").Err()
 		}
 		if err != nil {
-			return nil, err
+			return nil, streamed, err
 		}
 		switch content := streamGenerateMessageResponse.GetContent().(type) {
 		case *aiservicepb.StreamGenerateMessageResponse_Block:
-			*streamed = true
+			streamed = true
 			r.publish(&agentservicepb.StreamAgentResponse{
 				Content: &agentservicepb.StreamAgentResponse_Delta{Delta: content.Block},
 			})
 			r.announceToolCall(content.Block, announcedToolCallIDSet)
 		case *aiservicepb.StreamGenerateMessageResponse_GeneratedMessage:
 			r.publishMessage(content.GeneratedMessage)
-			return content.GeneratedMessage, nil
+			return content.GeneratedMessage, streamed, nil
 		}
 	}
 }
