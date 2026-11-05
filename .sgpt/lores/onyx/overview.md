@@ -29,6 +29,7 @@ name: library-service            # kebab-case; flag namespace + service account
 target: //go/test/library/library_service
 include_runtime: false           # true: generate empty Opts/runtime/start()
 export_service_fields: false     # true: exported struct fields, for embedding
+stop_before_servers: false       # true: stopped with the processors, ahead of the servers' graceful stops
 codegens:
   - rpc:                         # a protoc-gen-core rpc server the Service embeds
       name: library-service
@@ -59,8 +60,11 @@ Dependency kinds (`Dependency.kind`, a `oneof` — one key per list entry):
 
 The package must define `Opts`, `runtime`, `newRuntime(*Opts)` and
 `(*Service).start(ctx) (func(), error)` unless `include_runtime: true`
-generates empty ones. A `longrunning` codegen without a `scheduler-service`
-client is a generation error.
+generates empty ones. `stop_before_servers` is for a service whose stop must
+run while the servers still serve — releasing work that calls them, ending
+streams that would hold their graceful stop (`lores/onyx/binary`, Shutdown);
+otherwise a service stops after every server. A `longrunning` codegen
+without a `scheduler-service` client is a generation error.
 
 ## MainManifest
 
