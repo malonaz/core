@@ -5,7 +5,7 @@ migrations:
     hash: 76c7531ae76e9a534484a26286eef5c2
   - path: agent/001_init.sql
     hash: 8e94c59ba7ca6367b1ec0e00027adbb7
-  - path: input/001_init.sql
-    hash: 7e99edb225b89961cbc006ceac9f2f03
   - path: agent_lease/001_init.sql
     hash: d290846f3fda2ef98863739cf917605e
+  - path: agent_mailbox/001_init.sql
+    hash: 9559d2ec0d9795fbfbbec3a821630d73
