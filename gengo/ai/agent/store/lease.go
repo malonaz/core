@@ -16,7 +16,6 @@ import (
 const now = "(NOW() AT TIME ZONE 'UTC')"
 
 var (
-	agentStateIdle    = int16(agentpb.Agent_STATE_IDLE)
 	agentStateRunning = int16(agentpb.Agent_STATE_RUNNING)
 	leaseSelectQuery  = "SELECT agent_lease.replica::TEXT, agent_lease.address, agent_lease.expire_time, agent_lease.expire_time <= " +
 		now + " AS expired FROM agent_lease "
@@ -161,8 +160,8 @@ func (s *Store) ReleaseLeases(ctx context.Context, replica string) error {
 	return nil
 }
 
-// ListClaimableAgents lists, oldest update first and locked until the transaction ends, up to limit live agents
-// needing a replica: RUNNING ones whose lease expired or is missing, and IDLE ones with undelivered messages. Agents
+// ListClaimableAgents lists, oldest update first and locked until the transaction ends, up to limit live RUNNING
+// agents whose lease expired or is missing: a replica stopped running them, or none had room to claim them. Agents
 // locked by other transactions are skipped.
 func (t *Tx) ListClaimableAgents(ctx context.Context, limit int) ([]*model.Agent, error) {
 	query := agentSelectQuery + `WHERE (organization_id, user_id, agent_id) IN (
@@ -170,10 +169,6 @@ func (t *Tx) ListClaimableAgents(ctx context.Context, limit int) ([]*model.Agent
 			FROM agent LEFT JOIN agent_lease USING (organization_id, user_id, agent_id)
 			WHERE agent.delete_time IS NULL AND agent.state = $1
 				AND (agent_lease.expire_time IS NULL OR agent_lease.expire_time <= ` + now + `)
-			UNION
-			SELECT agent_mailbox.organization_id, agent_mailbox.user_id, agent_mailbox.agent_id
-			FROM agent_mailbox JOIN agent USING (organization_id, user_id, agent_id)
-			WHERE agent_mailbox.sent_count > agent_mailbox.delivered_count AND agent.delete_time IS NULL AND agent.state = $2
-		) ORDER BY update_time LIMIT $3 FOR UPDATE SKIP LOCKED`
-	return collectAgents(ctx, t.tx, query, agentStateRunning, agentStateIdle, limit)
+		) ORDER BY update_time LIMIT $2 FOR UPDATE SKIP LOCKED`
+	return collectAgents(ctx, t.tx, query, agentStateRunning, limit)
 }

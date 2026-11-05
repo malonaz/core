@@ -4,8 +4,6 @@ migrations:
   - path: definition/001_init.sql
     hash: 76c7531ae76e9a534484a26286eef5c2
   - path: agent/001_init.sql
-    hash: f1c755b7b5b88a6c086ebe79944b8d3a
+    hash: 498896762457d74b4cfa39502c298f98
   - path: agent_lease/001_init.sql
     hash: d290846f3fda2ef98863739cf917605e
-  - path: agent_mailbox/001_init.sql
-    hash: 9559d2ec0d9795fbfbbec3a821630d73

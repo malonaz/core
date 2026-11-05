@@ -5,7 +5,6 @@ go_library(
         "agent_postgres.pb.go",
         "definition_postgres.pb.go",
         "lease.go",
-        "mailbox.go",
         "transaction.go",
     ],
     visibility = ["//gengo/ai/agent/..."],
