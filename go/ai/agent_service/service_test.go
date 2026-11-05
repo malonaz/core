@@ -139,42 +139,39 @@ func createTestAgentWithSpec(t *testing.T, service *testReplica, user string, sp
 	return agent
 }
 
-// sendText messages an agent with a text.
-func sendText(t *testing.T, service *testReplica, agent, text string) *aipb.Message {
+// sendText messages an agent with a text, as the user owning it.
+func sendText(t *testing.T, service *testReplica, agent, text string) *agentpb.Agent {
 	t.Helper()
 	messageAgentRequest := &agentservicepb.MessageAgentRequest{
 		Name:    agent,
 		Message: ai.NewUserMessage(ai.NewTextBlock(text)),
 	}
-	message, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	updatedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
-	return message
+	return updatedAgent
 }
 
-// sentMessages returns the messages sent to an agent, queued in its chat, oldest first.
-func sentMessages(t *testing.T, service *testReplica, agent string) []*aipb.Message {
+// deliveredMessages returns the messages a turn delivered to an agent's chat, oldest first.
+func deliveredMessages(t *testing.T, service *testReplica, agent string) []*aipb.Message {
 	t.Helper()
 	var messages []*aipb.Message
 	for _, message := range service.aiService.messages(getAgent(t, service, agent).Chat) {
-		if aip.HasLabel(message, aipb.Labels.Excluded.GetKey()) {
+		if agentpb.Annotations.Sender.Has(message) {
 			messages = append(messages, message)
 		}
 	}
 	return messages
 }
 
-// isPending reports whether a sent message awaits its delivery.
-func isPending(message *aipb.Message) bool {
-	return aip.HasLabel(message, agentpb.Labels.Pending.GetKey())
+// sentMessages returns the messages sent to an agent: delivered to its chat, then still queued.
+func sentMessages(t *testing.T, service *testReplica, agent string) []*aipb.Message {
+	t.Helper()
+	return append(deliveredMessages(t, service, agent), getAgent(t, service, agent).QueuedMessages...)
 }
 
-// history returns the messages of a chat the model sees.
-func history(messages []*aipb.Message) []*aipb.Message {
-	history, err := filterMessages(messages, ai.HistoryFilter)
-	if err != nil {
-		panic(err)
-	}
-	return history
+// lastText returns the text of a message's last block: a delivered message opens with its sender's header.
+func lastText(message *aipb.Message) string {
+	return message.GetBlocks()[len(message.GetBlocks())-1].GetText()
 }
 
 // getAgent reads an agent.

@@ -2,6 +2,7 @@ package agent_service
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"buf.build/go/protovalidate"
@@ -60,8 +61,8 @@ func TestAgent_CreateFromADefinitionSnapshotsItsSpec(t *testing.T) {
 }
 
 func TestAgent_MessageAgentReplaysItsRequestID(t *testing.T) {
-	service := newTestService(t)
-	service.aiService.setDefaultGeneration(textGeneration("ok"))
+	// Without room to run turns, the messages stay queued.
+	service := newIdleReplica(t, newFakeAiService())
 	agent := createTestAgent(t, service)
 	messageAgentRequest := &agentservicepb.MessageAgentRequest{
 		Name:      agent.Name,
@@ -69,14 +70,50 @@ func TestAgent_MessageAgentReplaysItsRequestID(t *testing.T) {
 		RequestId: uuid.MustNewV7().String(),
 	}
 
-	message, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	messagedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
-	replayedMessage, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	replayedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
 	require.NoError(t, err)
 
-	require.Equal(t, message.Name, replayedMessage.Name)
-	require.Len(t, sentMessages(t, service, agent.Name), 1)
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	require.Len(t, messagedAgent.QueuedMessages, 1)
+	require.Equal(t, agentpb.Agent_STATE_RUNNING, messagedAgent.State)
+	require.Len(t, replayedAgent.QueuedMessages, 1)
+	require.Equal(t, messagedAgent.QueuedMessages[0].Name, replayedAgent.QueuedMessages[0].Name)
+	require.Equal(t, messagedAgent.Etag, replayedAgent.Etag)
+}
+
+func TestAgent_MessageAgentStampsTheOwningUser(t *testing.T) {
+	service := newIdleReplica(t, newFakeAiService())
+	agent := createTestAgent(t, service)
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	require.NoError(t, err)
+
+	messagedAgent := sendText(t, service, agent.Name, "hello")
+	sender, _ := agentpb.Annotations.Sender.Get(messagedAgent.QueuedMessages[0])
+	require.Equal(t, agentRn.UserRn().String(), sender)
+
+	forged := ai.NewUserMessage(ai.NewTextBlock("hello"))
+	agentpb.Annotations.Sender.Set(forged, agent.Name)
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: forged}
+	_, err = service.MessageAgent(context.Background(), messageAgentRequest)
+	require.True(t, status.HasCode(err, codes.InvalidArgument))
+}
+
+func TestAgent_MessageAgentCapsTheQueue(t *testing.T) {
+	service := newIdleReplica(t, newFakeAiService())
+	agent := createTestAgent(t, service)
+
+	oversized := ai.NewUserMessage(ai.NewTextBlock(strings.Repeat("x", maxQueuedMessageBytes)))
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: oversized}
+	_, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	require.True(t, status.HasCode(err, codes.InvalidArgument))
+
+	for range maxQueuedMessages {
+		sendText(t, service, agent.Name, "hello")
+	}
+	messageAgentRequest.Message = ai.NewUserMessage(ai.NewTextBlock("one too many"))
+	_, err = service.MessageAgent(context.Background(), messageAgentRequest)
+	require.True(t, status.HasCode(err, codes.ResourceExhausted))
 }
 
 func TestAgent_MessageAgentRefusesOtherRoles(t *testing.T) {
