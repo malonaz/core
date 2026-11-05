@@ -12,6 +12,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
@@ -77,15 +78,18 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	case errors.Is(cause, errLeaseLost), errors.Is(cause, errShuttingDown), errors.Is(err, errShuttingDown):
 		return nil
 	case errors.Is(cause, errTurnCancelled):
-		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_CANCELLED
+		turnEnd.outcome = agentpb.Turn_OUTCOME_CANCELLED
 		turnEnd.report = "My turn was cancelled."
+	case errors.Is(err, errAwaiting):
+		turnEnd.awaitedToolCalls = runner.awaitedToolCalls
+		return turnEnd
 	case err != nil:
 		s.log.Warn("turn failed", "agent", turn.agent, "error", err)
-		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_FAILED
+		turnEnd.outcome = agentpb.Turn_OUTCOME_FAILED
 		turnEnd.err = err
 		turnEnd.report = fmt.Sprintf("My turn failed: %s", grpcstatus.Convert(err).Message())
 	default:
-		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_SUCCEEDED
+		turnEnd.outcome = agentpb.Turn_OUTCOME_SUCCEEDED
 		if finalMessage != nil {
 			turnEnd.report = cmp.Or(messageText(finalMessage), "My turn ended without a reply.")
 		}
@@ -95,7 +99,7 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 }
 
 // endTurn sends the turn's report to the agent's parent, if any, then records how the turn ended under the
-// agent's lock. If messages were queued since the turn's latest delivery, a succeeded turn keeps the agent RUNNING
+// agent's lock. A turn paused on calls only a user can settle leaves the agent AWAITING, reporting nothing. If messages were queued since the turn's latest delivery, a succeeded turn keeps the agent RUNNING
 // and returns true: the next turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
 // a turn ended without its report would leave the parent waiting, while a report sent again is deduped by its request
 // id, derived from the turn's final message.
@@ -104,8 +108,10 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
-	if err := s.report(ctx, name, turnEnd); err != nil {
-		return false, err
+	if turnEnd.awaitedToolCalls == nil {
+		if err := s.report(ctx, name, turnEnd); err != nil {
+			return false, err
+		}
 	}
 	var next bool
 	err = s.transact(ctx, func(ctx context.Context, t *txn) error {
@@ -128,19 +134,32 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 			return nil
 		}
 
-		agent.LastTurnOutcome = turnEnd.outcome
-		agent.Status = nil
-		if turnEnd.err != nil {
-			agent.Status = grpcstatus.Convert(turnEnd.err).Proto()
+		latestTurn := agent.GetLatestTurn()
+		if latestTurn == nil {
+			latestTurn = &agentpb.Turn{StartTime: timestamppb.New(t.now)}
 		}
-		// A failed or cancelled turn stays idle until the next message wakes it: retrying would fail again.
-		next = turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED && len(agent.QueuedMessages) > 0
+		agent.LatestTurn = latestTurn
+		if turnEnd.awaitedToolCalls != nil {
+			agent.State = agentpb.Agent_STATE_AWAITING
+			latestTurn.AwaitedToolCalls = turnEnd.awaitedToolCalls
+		} else {
+			latestTurn.EndTime = timestamppb.New(t.now)
+			latestTurn.Outcome = turnEnd.outcome
+			if turnEnd.err != nil {
+				latestTurn.Error = grpcstatus.Convert(turnEnd.err).Proto()
+			}
+			// A failed or cancelled turn stays idle until the next message wakes it: retrying would fail again.
+			next = turnEnd.outcome == agentpb.Turn_OUTCOME_SUCCEEDED && len(agent.QueuedMessages) > 0
+		}
 		if next {
+			agent.LatestTurn = &agentpb.Turn{StartTime: timestamppb.New(t.now)}
 			if _, err := t.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica, s.address, s.opts.LeaseDuration); err != nil {
 				return fmt.Errorf("renewing lease: %w", err)
 			}
 		} else {
-			agent.State = agentpb.Agent_STATE_IDLE
+			if agent.State == agentpb.Agent_STATE_RUNNING {
+				agent.State = agentpb.Agent_STATE_IDLE
+			}
 			if _, err := t.ReleaseLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica); err != nil {
 				return fmt.Errorf("releasing lease: %w", err)
 			}
@@ -171,18 +190,26 @@ func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) err
 	return nil
 }
 
+// errAwaiting pauses a turn on tool calls only a user can settle.
+var errAwaiting = errors.New("the turn awaits a user")
+
 // turnRunner runs one turn of an agent.
 type turnRunner struct {
 	service *Service
 	agent   *agentpb.Agent
+	toolbox *toolbox
 	// The chat's last message the turn saw or wrote.
 	last *aipb.Message
+	// The calls the turn pauses on, with errAwaiting.
+	awaitedToolCalls []*agentpb.AwaitedToolCall
+	// The approvers of the approved calls the turn runs, by tool call id: their results name them.
+	toolCallIDToApprover map[string]string
 }
 
 // reportRequestID derives the request id of the turn's report from how it ended and the chat's last message it saw,
 // which a replay of the turn after a crash sees again: a report is never sent twice. A turn that saw no message falls
 // back on the agent's etag as the turn read it, which only the turn's end changes.
-func (r *turnRunner) reportRequestID(outcome agentpb.Agent_TurnOutcome) string {
+func (r *turnRunner) reportRequestID(outcome agentpb.Turn_Outcome) string {
 	key := r.agent.GetEtag()
 	if r.last != nil {
 		key = r.last.GetName()
@@ -196,11 +223,12 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 	if err := r.ensureInstructions(ctx); err != nil {
 		return nil, err
 	}
-	if err := r.resume(ctx); err != nil {
-		return nil, err
-	}
 	toolbox, err := r.service.newToolbox(ctx, r.agent)
 	if err != nil {
+		return nil, err
+	}
+	r.toolbox = toolbox
+	if err := r.resume(ctx); err != nil {
 		return nil, err
 	}
 	for {
@@ -219,7 +247,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 		}
 		r.last = generatedMessage
 		if calls := toolCalls(generatedMessage); len(calls) > 0 {
-			if err := r.answerToolCalls(ctx, toolbox, calls); err != nil {
+			if err := r.answerToolCalls(ctx, calls); err != nil {
 				return nil, err
 			}
 		}
@@ -289,19 +317,106 @@ func (r *turnRunner) resume(ctx context.Context) error {
 			toolCallIDSet[block.GetToolResult().GetToolCallId()] = struct{}{}
 		}
 	}
+	var unansweredToolCalls []*aipb.ToolCall
 	for _, toolCall := range toolCalls(assistantMessage) {
-		if _, ok := toolCallIDSet[toolCall.GetId()]; ok {
-			continue
+		if _, ok := toolCallIDSet[toolCall.GetId()]; !ok {
+			unansweredToolCalls = append(unansweredToolCalls, toolCall)
 		}
+	}
+	return r.settle(ctx, unansweredToolCalls)
+}
+
+// settle answers the calls an interrupted or paused turn left without a result: the results users supplied and
+// the approved calls, run now, for the calls the turn awaited; for the others, the turn's policy again, which awaits
+// gated calls and answers the rest as interrupted. A call approved and started before was interrupted too. The turn
+// pauses again if calls still await a user.
+func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.ToolCall) error {
+	toolCallIDToAwaitedToolCall := map[string]*agentpb.AwaitedToolCall{}
+	for _, awaitedToolCall := range r.agent.GetLatestTurn().GetAwaitedToolCalls() {
+		toolCallIDToAwaitedToolCall[awaitedToolCall.GetToolCallId()] = awaitedToolCall
+	}
+	var approvedToolCalls []*aipb.ToolCall
+	var stillAwaitedToolCalls []*agentpb.AwaitedToolCall
+	r.toolCallIDToApprover = map[string]string{}
+	for _, toolCall := range unansweredToolCalls {
 		toolResult := toolCall.GetResult()
+		if awaitedToolCall, ok := toolCallIDToAwaitedToolCall[toolCall.GetId()]; ok && toolResult == nil {
+			resolution := awaitedToolCall.GetResolution()
+			switch {
+			case resolution == nil:
+				stillAwaitedToolCalls = append(stillAwaitedToolCalls, awaitedToolCall)
+				continue
+			case resolution.GetResult() != nil:
+				toolResult = resolution.GetResult()
+			case resolution.GetStartTime() == nil:
+				approvedToolCalls = append(approvedToolCalls, toolCall)
+				r.toolCallIDToApprover[toolCall.GetId()] = resolution.GetResolver()
+				continue
+			default:
+				toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
+				agentpb.Annotations.ApprovedBy.Set(toolResult, resolution.GetResolver())
+			}
+		}
 		if toolResult == nil {
+			if reason, ok := r.toolbox.await(toolCall); ok {
+				stillAwaitedToolCalls = append(stillAwaitedToolCalls, newAwaitedToolCall(toolCall, reason))
+				continue
+			}
 			toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
 		}
 		if err := r.persistToolResult(ctx, toolResult); err != nil {
 			return err
 		}
 	}
-	return nil
+	if len(approvedToolCalls) > 0 {
+		// Marked started first: a call found started without a result after a crash may have run.
+		if err := r.updateAwaitedToolCalls(ctx, func(awaitedToolCall *agentpb.AwaitedToolCall) {
+			if _, ok := r.toolCallIDToApprover[awaitedToolCall.GetToolCallId()]; ok {
+				awaitedToolCall.Resolution.StartTime = timestamppb.New(r.service.now())
+			}
+		}); err != nil {
+			return err
+		}
+		if err := r.runToolCalls(ctx, approvedToolCalls); err != nil {
+			return err
+		}
+	}
+	if len(stillAwaitedToolCalls) > 0 {
+		r.awaitedToolCalls = stillAwaitedToolCalls
+		return errAwaiting
+	}
+	if len(toolCallIDToAwaitedToolCall) == 0 {
+		return nil
+	}
+	// Every awaited call has its result: the turn awaits nothing any more.
+	return r.updateAwaitedToolCalls(ctx, nil)
+}
+
+// updateAwaitedToolCalls updates the awaited calls of the agent's latest turn under its lock: each by update, or all
+// cleared without one.
+func (r *turnRunner) updateAwaitedToolCalls(ctx context.Context, update func(*agentpb.AwaitedToolCall)) error {
+	return r.service.transact(ctx, func(ctx context.Context, t *txn) error {
+		agent, err := t.getAgent(ctx, r.agent.GetName())
+		if err != nil {
+			return err
+		}
+		if agent.LatestTurn == nil {
+			return nil
+		}
+		if update == nil {
+			agent.LatestTurn.AwaitedToolCalls = nil
+		}
+		for _, awaitedToolCall := range agent.LatestTurn.GetAwaitedToolCalls() {
+			update(awaitedToolCall)
+		}
+		return t.saveAgent(ctx, agent)
+	})
+}
+
+// newAwaitedToolCall returns a call awaiting a user.
+func newAwaitedToolCall(toolCall *aipb.ToolCall, reason agentpb.AwaitedToolCall_Reason) *agentpb.AwaitedToolCall {
+	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
+	return &agentpb.AwaitedToolCall{ToolCallId: toolCall.GetId(), ToolName: toolCall.GetName(), Title: title, Reason: reason}
 }
 
 // deliverMessages writes the agent's queued messages to its chat, each as its own user message named as it was queued:
@@ -521,10 +636,34 @@ func (r *turnRunner) announceToolCall(toolCall *aipb.ToolCall) {
 	})
 }
 
-// answerToolCalls runs a generation's tool calls concurrently, persisting each result as soon as its call returns,
-// one write at a time. Calls the AiService answered are fed back verbatim. A cancelled turn answers its unfinished
-// calls as cancelled; a stopped one leaves them to its next replica.
-func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, calls []*aipb.ToolCall) error {
+// answerToolCalls answers a generation's tool calls: the calls the AiService answered with their results, the calls
+// only a user can settle by pausing the turn on them, once every other call ran.
+func (r *turnRunner) answerToolCalls(ctx context.Context, calls []*aipb.ToolCall) error {
+	var runnableToolCalls []*aipb.ToolCall
+	var awaitedToolCalls []*agentpb.AwaitedToolCall
+	for _, toolCall := range calls {
+		if toolCall.GetResult() == nil {
+			if reason, ok := r.toolbox.await(toolCall); ok {
+				awaitedToolCalls = append(awaitedToolCalls, newAwaitedToolCall(toolCall, reason))
+				continue
+			}
+		}
+		runnableToolCalls = append(runnableToolCalls, toolCall)
+	}
+	if err := r.runToolCalls(ctx, runnableToolCalls); err != nil {
+		return err
+	}
+	if len(awaitedToolCalls) > 0 {
+		r.awaitedToolCalls = awaitedToolCalls
+		return errAwaiting
+	}
+	return nil
+}
+
+// runToolCalls runs tool calls concurrently, persisting each result as soon as its call returns, one write at a
+// time. Calls the AiService answered are fed back verbatim. A cancelled turn answers its unfinished calls as
+// cancelled; a stopped one leaves them to its next replica.
+func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolCall) error {
 	type indexedToolResult struct {
 		index      int
 		toolResult *aipb.ToolResult
@@ -535,7 +674,7 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 		go func() {
 			toolResult := toolCall.GetResult()
 			if toolResult == nil {
-				toolResult = toolbox.call(ctx, toolCall)
+				toolResult = r.toolbox.call(ctx, toolCall)
 				// A call failing as the turn is cancelled failed because of it.
 				if toolResult.GetError() != nil && ctx.Err() != nil {
 					toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallCancelled)
@@ -584,8 +723,12 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 	return nil
 }
 
-// persistToolResult persists a tool result as its own tool message, idempotently, and announces the call's end.
+// persistToolResult persists a tool result as its own tool message, idempotently, and announces the call's end. The
+// result of an approved call names its approver.
 func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.ToolResult) error {
+	if approver, ok := r.toolCallIDToApprover[toolResult.GetToolCallId()]; ok {
+		agentpb.Annotations.ApprovedBy.Set(toolResult, approver)
+	}
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    r.agent.GetChat(),
 		Message:   ai.NewToolMessage(ai.NewToolResultBlock(toolResult)),

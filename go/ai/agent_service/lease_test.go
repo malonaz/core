@@ -110,7 +110,7 @@ func TestLease_DeliveryIsIdempotent(t *testing.T) {
 	// The claim scan takes the RUNNING agent no replica had room for.
 	service := newTestReplica(t, aiService, nil)
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	messages := aiService.messages(agent.Chat)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_USER, aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
 	require.Equal(t, queuedMessages[0].Name, messages[0].Name)
@@ -135,7 +135,7 @@ func TestLease_TakeoverAnswersDanglingToolCalls(t *testing.T) {
 
 	service := newTestReplica(t, aiService, nil)
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	toolCallIDToToolResult := toolResults(aiService.messages(agent.Chat))
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetContent())
 	require.Contains(t, toolCallIDToToolResult["call-2"].GetError().GetMessage(), "interrupted by a server restart")
@@ -154,7 +154,7 @@ func TestLease_TakeoverRegeneratesAnUnansweredMessage(t *testing.T) {
 
 	service := newTestReplica(t, aiService, nil)
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	messages := aiService.messages(agent.Chat)
 	require.Equal(t, "hello back", messages[len(messages)-1].GetBlocks()[0].GetText())
 }
@@ -171,7 +171,7 @@ func TestLease_TakeoverFinishesAnAnsweredTurnOnce(t *testing.T) {
 	service := newTestReplica(t, aiService, nil)
 	for range 2 {
 		crashTurn(t, idleReplica, agent.Name)
-		waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+		waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	}
 
 	// Nothing was generated for the finished turn, and its report was queued once.
@@ -202,7 +202,7 @@ func TestLease_LostLeaseIsTakenOver(t *testing.T) {
 		return err
 	}))
 
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
 }
 
@@ -225,7 +225,7 @@ func TestLease_CancelLocalTurn(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
-	require.Equal(t, agentpb.Agent_TURN_OUTCOME_CANCELLED, cancelledAgent.LastTurnOutcome)
+	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, cancelledAgent.GetLatestTurn().GetOutcome())
 	toolCallIDToToolResult := toolResults(service.aiService.messages(agent.Chat))
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetStructuredContent().GetStructValue().GetFields()["status"].GetStringValue())
 	require.Contains(t, toolCallIDToToolResult["call-2"].GetError().GetMessage(), "cancelled")
@@ -247,7 +247,7 @@ func TestLease_CancelForwardsToTheReplicaRunningTheTurn(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
-	require.Equal(t, agentpb.Agent_TURN_OUTCOME_CANCELLED, cancelledAgent.LastTurnOutcome)
+	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, cancelledAgent.GetLatestTurn().GetOutcome())
 }
 
 func TestLease_CancelATurnNoReplicaRuns(t *testing.T) {
@@ -260,7 +260,7 @@ func TestLease_CancelATurnNoReplicaRuns(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
-	require.Equal(t, agentpb.Agent_TURN_OUTCOME_CANCELLED, cancelledAgent.LastTurnOutcome)
+	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, cancelledAgent.GetLatestTurn().GetOutcome())
 	require.Empty(t, getLease(t, idleReplica, agent.Name))
 }
 
@@ -277,7 +277,7 @@ func TestLease_DeleteCancelsTheTurn(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, deletedAgent.DeleteTime)
-	require.Equal(t, agentpb.Agent_TURN_OUTCOME_CANCELLED, deletedAgent.LastTurnOutcome)
+	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, deletedAgent.GetLatestTurn().GetOutcome())
 	require.Empty(t, getLease(t, service, agent.Name))
 	require.Eventually(t, func() bool { return service.turns.count() == 0 }, waitTimeout, waitTick)
 }
@@ -302,7 +302,7 @@ func TestLease_ShutdownFinishesToolCallsThenHandsTheTurnOver(t *testing.T) {
 	require.Equal(t, agentpb.Agent_STATE_RUNNING, getAgent(t, replicaA, agent.Name).State)
 
 	replicaB := newTestReplica(t, aiService, configure)
-	waitForIdle(t, replicaB, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+	waitForIdle(t, replicaB, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	messages := aiService.messages(agent.Chat)
 	require.Equal(t, "finished elsewhere", messages[len(messages)-1].GetBlocks()[0].GetText())
 }
@@ -339,10 +339,10 @@ func TestLease_FailedTurnReportsOnceAcrossATakeover(t *testing.T) {
 	sendText(t, idleReplica, agent.Name, "work")
 
 	service := newTestReplica(t, aiService, nil)
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_FAILED)
 	// A crash after the report left the turn running: its replay fails at the same point, reporting under the same id.
 	crashTurn(t, idleReplica, agent.Name)
-	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_FAILED)
 	require.Len(t, aiService.generateMessageRequests(agent.Chat), 2)
 
 	require.Eventually(t, func() bool { return getAgent(t, service, parentAgent.Name).State == agentpb.Agent_STATE_IDLE }, waitTimeout, waitTick)

@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
@@ -24,14 +25,16 @@ import (
 const toolCallTitleDescription = "A short user-facing title for this call, shown in place of its arguments: " +
 	"what it does and why, at most 8 words, sentence case, no trailing period (e.g. 'Find where pendingReview is used')."
 
-// toolbox holds the tools of one turn of an agent: the built-in tools and its spec's gRPC methods.
+// toolbox holds the tools of one turn of an agent: the built-in tools, and its spec's gRPC methods and genui components.
 type toolbox struct {
 	service  *Service
 	agent    *agentpb.Agent
 	tools    []*aipb.Tool
 	toolSets []*aipb.ToolSet
-	// toolNameToMethodTool routes the calls to the spec's tools, whatever the calls' annotations say.
-	toolNameToMethodTool map[string]*methodTool
+	// toolNameToMethodTool and toolNameToGenuiComponent route the calls to the spec's tools, whatever the calls'
+	// annotations say.
+	toolNameToMethodTool     map[string]*methodTool
+	toolNameToGenuiComponent map[string]*genuiComponent
 }
 
 // methodTool is a tool calling a gRPC method.
@@ -39,16 +42,45 @@ type methodTool struct {
 	endpoint      string
 	method        protoreflect.MethodDescriptor
 	schemaBuilder *pbjson.SchemaBuilder
+	// Whether a call awaits the user's approval.
+	approvalRequired bool
+}
+
+// approvalRequired reports whether a call to a method awaits the user's approval: by its tool's setting, else unless
+// the method has no side effects.
+func approvalRequired(approval agentpb.AgentSpec_Tool_Approval, method protoreflect.MethodDescriptor) bool {
+	switch approval {
+	case agentpb.AgentSpec_Tool_APPROVAL_REQUIRED:
+		return true
+	case agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED:
+		return false
+	default:
+		return method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() != descriptorpb.MethodOptions_NO_SIDE_EFFECTS
+	}
+}
+
+// await reports whether a call awaits a user, and why: the approval of a gated method, or the answer to an input
+// component.
+func (b *toolbox) await(toolCall *aipb.ToolCall) (agentpb.AwaitedToolCall_Reason, bool) {
+	if genuiComponent, ok := b.toolNameToGenuiComponent[toolCall.GetName()]; ok && genuiComponent.input {
+		return agentpb.AwaitedToolCall_REASON_INPUT, true
+	}
+	if methodTool, ok := b.toolNameToMethodTool[toolCall.GetName()]; ok && methodTool.approvalRequired {
+		return agentpb.AwaitedToolCall_REASON_APPROVAL, true
+	}
+	return agentpb.AwaitedToolCall_REASON_UNSPECIFIED, false
 }
 
 // newToolbox resolves the tools of the agent's turn: each spec tool naming a method becomes a tool, each naming a
-// service a tool set its methods are discovered from. Schemas are reflected from the endpoints serving them.
+// service a tool set its methods are discovered from, each naming a genui component that component's tool. Methods'
+// schemas are reflected from the endpoints serving them.
 func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbox, error) {
 	toolbox := &toolbox{
-		service:              s,
-		agent:                agent,
-		tools:                slices.Clone(s.builtinTools.tools),
-		toolNameToMethodTool: map[string]*methodTool{},
+		service:                  s,
+		agent:                    agent,
+		tools:                    slices.Clone(s.builtinTools.tools),
+		toolNameToMethodTool:     map[string]*methodTool{},
+		toolNameToGenuiComponent: map[string]*genuiComponent{},
 	}
 	if definitions := agent.GetSpec().GetSubAgentDefinitions(); len(definitions) > 0 {
 		for i, tool := range toolbox.tools {
@@ -74,7 +106,16 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 	}
 
 	schemaConfiguration := aitool.NewSchemaConfiguration(aitool.WithTitle(toolCallTitleDescription))
-	for _, name := range agent.GetSpec().GetTools() {
+	for _, specTool := range agent.GetSpec().GetTools() {
+		name := specTool.GetName()
+		if genuiComponent, ok := s.genuiComponents.nameToComponent[name]; ok {
+			if err := addToolName(genuiComponent.tool.GetName()); err != nil {
+				return nil, err
+			}
+			toolbox.tools = append(toolbox.tools, genuiComponent.tool)
+			toolbox.toolNameToGenuiComponent[genuiComponent.tool.GetName()] = genuiComponent
+			continue
+		}
 		endpoint, err := s.toolRouter.endpoint(name)
 		if err != nil {
 			return nil, err
@@ -135,10 +176,12 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "finding method %s: %v", methodName, err).Err()
 			}
+			method := methodDescriptor.(protoreflect.MethodDescriptor)
 			toolbox.toolNameToMethodTool[tool.GetName()] = &methodTool{
-				endpoint:      endpoint,
-				method:        methodDescriptor.(protoreflect.MethodDescriptor),
-				schemaBuilder: builder.SchemaBuilder(),
+				endpoint:         endpoint,
+				method:           method,
+				schemaBuilder:    builder.SchemaBuilder(),
+				approvalRequired: approvalRequired(specTool.GetApproval(), method),
 			}
 		}
 	}
@@ -172,6 +215,10 @@ func (b *toolbox) call(ctx context.Context, toolCall *aipb.ToolCall) *aipb.ToolR
 func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.ToolResult, error) {
 	if builtinTool, ok := b.service.builtinTools.nameToBuiltinTool[toolCall.GetName()]; ok {
 		return builtinTool.execute(ctx, b.service, b.agent, toolCall)
+	}
+	if _, ok := b.toolNameToGenuiComponent[toolCall.GetName()]; ok {
+		// A display component is rendered by the clients following the agent: acknowledged as such.
+		return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), "ok"), nil
 	}
 	methodTool, ok := b.toolNameToMethodTool[toolCall.GetName()]
 	if !ok {

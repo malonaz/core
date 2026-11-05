@@ -60,8 +60,9 @@ type builtinTool struct {
 	execute func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall) (*aipb.ToolResult, error)
 }
 
-func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
-	// The arguments' schemas come from this binary's own descriptors, through the same machinery as RPC tools.
+// newInProcessBuilder returns a tool builder over this binary's own descriptors of the given proto files: built-in
+// tools and genui components go through the same schema machinery as RPC tools.
+func newInProcessBuilder(ctx context.Context, files ...string) (*aitool.Builder, error) {
 	serviceInfoProvider, err := pbreflection.NewServiceInfoProvider(protoregistry.GlobalFiles, nil)
 	if err != nil {
 		return nil, err
@@ -72,11 +73,18 @@ func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
 		ExtensionResolver:  protoregistry.GlobalTypes,
 	}
 	reflectionClient := pbreflection.NewServerReflectionClientInProc(reflectionServerOptions)
-	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithFiles(builtinToolFile))
+	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithFiles(files...))
 	if err != nil {
-		return nil, fmt.Errorf("resolving the built-in tools' schema: %w", err)
+		return nil, fmt.Errorf("resolving the schema of %v: %w", files, err)
 	}
-	builder := aitool.NewBuilder(schema)
+	return aitool.NewBuilder(schema), nil
+}
+
+func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
+	builder, err := newInProcessBuilder(ctx, builtinToolFile)
+	if err != nil {
+		return nil, err
+	}
 
 	createAgentsTool, err := newBuiltinTool(builder, createAgentsToolName, createAgentsToolDescription, createAgents)
 	if err != nil {
@@ -167,12 +175,15 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
+	if agent.GetSpec().GetMaxSubAgentDepth() == 0 {
+		return nil, status.Errorf(codes.PermissionDenied, "you may not launch sub-agents").Err()
+	}
 	// Validate every launch first, so an invalid one launches none.
 	subAgents := make([]*agentpb.Agent, 0, len(arguments.GetAgents()))
 	for i, subAgentArguments := range arguments.GetAgents() {
 		subAgent, err := newSubAgent(agent, subAgentArguments)
 		if err == nil {
-			err = s.toolRouter.validate(subAgent.GetSpec())
+			err = s.validateTools(subAgent.GetSpec())
 		}
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "agent %d: %v", i+1, err).Err()
@@ -240,26 +251,56 @@ func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToo
 	if strings.TrimSpace(arguments.GetInstructions()) == "" {
 		return nil, fmt.Errorf("instructions are required without a definition")
 	}
-	tools := spec.GetTools()
-	if len(arguments.GetTools()) > 0 {
-		var unavailableTools []string
-		for _, tool := range arguments.GetTools() {
-			if !slices.Contains(spec.GetTools(), tool) {
-				unavailableTools = append(unavailableTools, tool)
-			}
-		}
-		if len(unavailableTools) > 0 {
-			return nil, fmt.Errorf("tools you do not hold: %s (yours: %s)", strings.Join(unavailableTools, ", "), strings.Join(spec.GetTools(), ", "))
-		}
-		tools = arguments.GetTools()
+	tools, err := subAgentTools(spec.GetTools(), arguments.GetTools())
+	if err != nil {
+		return nil, err
 	}
 	subAgent.Spec = &agentpb.AgentSpec{
-		Instructions:    arguments.GetInstructions(),
-		Model:           cmp.Or(arguments.GetModel(), spec.GetModel()),
-		ReasoningEffort: cmp.Or(arguments.GetReasoningEffort(), spec.GetReasoningEffort()),
-		Tools:           slices.Clone(tools),
+		Instructions:     arguments.GetInstructions(),
+		Model:            cmp.Or(arguments.GetModel(), spec.GetModel()),
+		ReasoningEffort:  cmp.Or(arguments.GetReasoningEffort(), spec.GetReasoningEffort()),
+		Tools:            tools,
+		MaxSubAgentDepth: spec.GetMaxSubAgentDepth() - 1,
 	}
 	return subAgent, nil
+}
+
+// approvalStrictness orders tool approvals from the loosest: no approval, approval of the calls with side effects,
+// approval of every call.
+var approvalStrictness = map[agentpb.AgentSpec_Tool_Approval]int{
+	agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED: 0,
+	agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED:  1,
+	agentpb.AgentSpec_Tool_APPROVAL_REQUIRED:     2,
+}
+
+// subAgentTools returns the tools of an ad-hoc sub-agent: a subset of its parent's, all of them by default, each
+// approval inheriting its parent's or tightening it, never loosening it.
+func subAgentTools(parentTools, requestedTools []*agentpb.AgentSpec_Tool) ([]*agentpb.AgentSpec_Tool, error) {
+	nameToParentTool := make(map[string]*agentpb.AgentSpec_Tool, len(parentTools))
+	parentToolNames := make([]string, 0, len(parentTools))
+	for _, parentTool := range parentTools {
+		nameToParentTool[parentTool.GetName()] = parentTool
+		parentToolNames = append(parentToolNames, parentTool.GetName())
+	}
+	if len(requestedTools) == 0 {
+		requestedTools = parentTools
+	}
+	tools := make([]*agentpb.AgentSpec_Tool, 0, len(requestedTools))
+	for _, requestedTool := range requestedTools {
+		parentTool, ok := nameToParentTool[requestedTool.GetName()]
+		if !ok {
+			return nil, fmt.Errorf("you do not hold tool %s (yours: %s)", requestedTool.GetName(), strings.Join(parentToolNames, ", "))
+		}
+		tool := proto.CloneOf(parentTool)
+		if requestedTool.GetApproval() != agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED {
+			if approvalStrictness[requestedTool.GetApproval()] < approvalStrictness[parentTool.GetApproval()] {
+				return nil, fmt.Errorf("tool %s may not loosen your approval %s to %s", tool.GetName(), parentTool.GetApproval(), requestedTool.GetApproval())
+			}
+			tool.Approval = requestedTool.GetApproval()
+		}
+		tools = append(tools, tool)
+	}
+	return tools, nil
 }
 
 // =============================== message_agent ==============================
@@ -292,10 +333,10 @@ func messageAgent(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 
 // ================================ list_agents ===============================
 
-const listAgentsToolDescription = "List your sub-agents: their name, title, state, how their latest turn ended and labels. " +
+const listAgentsToolDescription = "List your sub-agents: their name, title, state, latest turn and labels. " +
 	"For an overview only: sub-agent reports arrive by themselves as new messages, so never call this to wait for them."
 
-var subAgentSummaryMask = pbfieldmask.FromPaths("name", "title", "state", "last_turn_outcome", "labels").MustValidate(&agentpb.Agent{})
+var subAgentSummaryMask = pbfieldmask.FromPaths("name", "title", "state", "latest_turn", "labels").MustValidate(&agentpb.Agent{})
 
 func listAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, _ *agentservicepb.ListAgentsToolArguments) (*aipb.ToolResult, error) {
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
