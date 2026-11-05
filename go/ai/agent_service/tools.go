@@ -181,11 +181,7 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 	if err != nil {
 		return nil, err
 	}
-	invoker, err := b.service.toolRouter.invoker(ctx, methodTool.endpoint)
-	if err != nil {
-		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", methodTool.endpoint, err).Err()
-	}
-	response, err := invoker.Invoke(ctx, methodTool.method, request)
+	response, err := b.service.toolRouter.invoke(ctx, methodTool.endpoint, methodTool.method, request)
 	if err != nil {
 		return nil, err
 	}
