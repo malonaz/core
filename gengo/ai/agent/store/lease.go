@@ -162,8 +162,8 @@ func (s *Store) ReleaseLeases(ctx context.Context, replica string) error {
 }
 
 // ListClaimableAgents lists, oldest update first and locked until the transaction ends, up to limit live agents
-// needing a replica: RUNNING ones whose lease expired or is missing, and IDLE ones with pending inputs. Agents locked
-// by other transactions are skipped.
+// needing a replica: RUNNING ones whose lease expired or is missing, and IDLE ones with undelivered messages. Agents
+// locked by other transactions are skipped.
 func (t *Tx) ListClaimableAgents(ctx context.Context, limit int) ([]*model.Agent, error) {
 	query := agentSelectQuery + `WHERE (organization_id, user_id, agent_id) IN (
 			SELECT agent.organization_id, agent.user_id, agent.agent_id
@@ -171,9 +171,9 @@ func (t *Tx) ListClaimableAgents(ctx context.Context, limit int) ([]*model.Agent
 			WHERE agent.delete_time IS NULL AND agent.state = $1
 				AND (agent_lease.expire_time IS NULL OR agent_lease.expire_time <= ` + now + `)
 			UNION
-			SELECT input.organization_id, input.user_id, input.agent_id
-			FROM input JOIN agent USING (organization_id, user_id, agent_id)
-			WHERE input.consume_time IS NULL AND agent.delete_time IS NULL AND agent.state = $2
+			SELECT agent_mailbox.organization_id, agent_mailbox.user_id, agent_mailbox.agent_id
+			FROM agent_mailbox JOIN agent USING (organization_id, user_id, agent_id)
+			WHERE agent_mailbox.sent_count > agent_mailbox.delivered_count AND agent.delete_time IS NULL AND agent.state = $2
 		) ORDER BY update_time LIMIT $3 FOR UPDATE SKIP LOCKED`
 	return collectAgents(ctx, t.tx, query, agentStateRunning, agentStateIdle, limit)
 }

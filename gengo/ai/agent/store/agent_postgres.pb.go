@@ -171,58 +171,35 @@ func (s *Store) UpdateAgent(ctx context.Context, _agent *model.Agent, updateClau
 var softDeleteAgentPostgresQuery = `UPDATE agent SET delete_time = $4, etag = $5 WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3 AND delete_time IS NULL RETURNING ` +
 	strings.Join(AgentPostgresColumns, ",")
 
-func (s *Store) SoftDeleteAgent(ctx context.Context, organizationId, userId, agentId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Agent, error) {
+func (s *Store) SoftDeleteAgent(ctx context.Context, organizationId, userId, agentId string, etag, newEtag string, deleteTime time.Time) (*model.Agent, error) {
 	query := softDeleteAgentPostgresQuery
 	params := []any{organizationId, userId, agentId, deleteTime, newEtag}
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
 	}
-	var result *model.Agent
-	transactionFN := func(tx postgres.Tx) error {
-		result = nil
-		rows, err := tx.Query(ctx, query, params...)
-		if err != nil {
-			return fmt.Errorf("soft deleting agent: %w", err)
-		}
-		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Agent])
-		if err != nil {
-			if err == v5.ErrNoRows {
-				live, currentEtag, probeErr := s.probeAgent(ctx, tx, organizationId, userId, agentId)
-				if probeErr != nil {
-					return probeErr
-				}
-				if !live {
-					return model.ErrAgentAlreadyDeleted
-				}
-				if etag != "" && currentEtag != etag {
-					return model.ErrAgentETagChanged
-				}
-				return fmt.Errorf("soft delete matched no rows but agent is live")
-			}
-			return err
-		}
-
-		if !force {
-			var hasChildren bool
-			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM input WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3)`, organizationId, userId, agentId).Scan(&hasChildren); err != nil {
-				return fmt.Errorf("checking agent children: %w", err)
-			}
-			if hasChildren {
-				return model.ErrAgentHasChildren
-			}
-		}
-		if _, err := tx.Exec(ctx, `DELETE FROM input WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3`, organizationId, userId, agentId); err != nil {
-			return fmt.Errorf("cascading agent delete to input: %w", err)
-		}
-
-		return nil
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("soft deleting agent: %w", err)
 	}
-
-	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
+	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Agent])
+	if err != nil {
+		if err == v5.ErrNoRows {
+			live, currentEtag, probeErr := s.probeAgent(ctx, s.client, organizationId, userId, agentId)
+			if probeErr != nil {
+				return nil, probeErr
+			}
+			if !live {
+				return nil, model.ErrAgentAlreadyDeleted
+			}
+			if etag != "" && currentEtag != etag {
+				return nil, model.ErrAgentETagChanged
+			}
+			return nil, fmt.Errorf("soft delete matched no rows but agent is live")
+		}
 		return nil, err
 	}
-	return result, nil
+	return row, nil
 }
 
 var undeleteAgentPostgresQuery = `UPDATE agent SET delete_time = NULL, etag = $4 WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3 AND delete_time IS NOT NULL RETURNING ` +
