@@ -9,3 +9,7 @@ option (malonaz.codegen.aip.v1.label) = {
   key: "agent.ai.malonaz.com/pending"
   description: "On a message of an agent's chat: the message was sent to the agent (MessageAgent, a sub-agent's turn report, a built-in tool) and awaits its next delivery. A pending message is also ai.malonaz.com/excluded: the model never sees it where it was queued. A turn delivers every pending message at its start and between its tool rounds as one user message at the chat's end, then removes this label from each, which stay excluded. List an agent's queued messages with the filter `labels.\"agent.ai.malonaz.com/pending\":*`."
 };
+option (malonaz.codegen.aip.v1.label) = {
+  key: "agent.ai.malonaz.com/agent"
+  description: "On an AiService chat: the id of the agent owning it, the last segment of the agent's resource name. Set by the AgentService when it creates the agent's chat, never by clients: it marks the chat as an agent's transcript, which the AgentService writes."
+};
