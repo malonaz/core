@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc"
@@ -67,18 +70,24 @@ func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection
 		return nil, err
 	}
 	reflectionClient := grpc_reflection_v1.NewServerReflectionClient(connection.Get())
-	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
+	schema, err := pbreflection.ResolveSchema(withoutIdentity(ctx), reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
 	if err != nil {
 		return nil, fmt.Errorf("resolving the schema served at %s: %w", endpoint, err)
 	}
 	return schema, nil
 }
 
-// invoker returns the method invoker of an endpoint.
-func (r *toolRouter) invoker(ctx context.Context, endpoint string) (*pbreflection.MethodInvoker, error) {
+// invoke calls a method at an endpoint.
+func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
 	}
-	return pbreflection.NewMethodInvoker(connection.Get()), nil
+	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(withoutIdentity(ctx), method, request)
+}
+
+// withoutIdentity strips a call's outgoing metadata, the service's own identity included: tool targets are never
+// trusted with it. Cancellation and deadlines are kept.
+func withoutIdentity(ctx context.Context) context.Context {
+	return metadata.NewOutgoingContext(ctx, metadata.MD{})
 }
