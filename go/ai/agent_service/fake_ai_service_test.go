@@ -3,7 +3,6 @@ package agent_service
 import (
 	"context"
 	"io"
-	"maps"
 	"slices"
 	"strconv"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
@@ -101,18 +99,31 @@ func (c *fakeAiService) messages(chat string) []*aipb.Message {
 	return messages
 }
 
-// generateMessageHistories returns the conversation history of each generation so far.
-func (c *fakeAiService) generateMessageHistories() [][]*aipb.Message {
+// generateMessageHistories returns the conversation history of each generation of a chat so far.
+func (c *fakeAiService) generateMessageHistories(chat string) [][]*aipb.Message {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return slices.Clone(c.generateHistories)
+	var histories [][]*aipb.Message
+	for i, generateRequest := range c.generateRequests {
+		if generateRequest.Parent == chat {
+			histories = append(histories, c.generateHistories[i])
+		}
+	}
+	return histories
 }
 
-// generateMessageRequests returns the StreamGenerateMessage requests received so far.
-func (c *fakeAiService) generateMessageRequests() []*aiservicepb.GenerateMessageRequest {
+// generateMessageRequests returns the StreamGenerateMessage requests of a chat received so far. Tests filter by chat:
+// replicas also take over the agents other tests left running.
+func (c *fakeAiService) generateMessageRequests(chat string) []*aiservicepb.GenerateMessageRequest {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return slices.Clone(c.generateRequests)
+	var generateRequests []*aiservicepb.GenerateMessageRequest
+	for _, generateRequest := range c.generateRequests {
+		if generateRequest.Parent == chat {
+			generateRequests = append(generateRequests, generateRequest)
+		}
+	}
+	return generateRequests
 }
 
 // CreateChat creates a chat named after its request id: replaying a request id returns the same chat.
@@ -195,7 +206,7 @@ func (c *fakeAiService) GetMessage(ctx context.Context, request *aiservicepb.Get
 }
 
 // ListMessages pages through a chat in create_time order, ascending unless ordered "create_time desc". It knows the
-// filters the AgentService sends: the conversation history and the pending messages.
+// filter the AgentService sends: the conversation history.
 func (c *fakeAiService) ListMessages(ctx context.Context, request *aiservicepb.ListMessagesRequest, _ ...grpc.CallOption) (*aiservicepb.ListMessagesResponse, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -235,10 +246,8 @@ func filterMessages(messages []*aipb.Message, filter string) ([]*aipb.Message, e
 		keep = func(*aipb.Message) bool { return true }
 	case ai.HistoryFilter:
 		keep = func(message *aipb.Message) bool {
-			return message.GetStatus() == nil && !aip.HasLabel(message, aipb.Labels.Superseded.GetKey()) && !aip.HasLabel(message, aipb.Labels.Excluded.GetKey())
+			return message.GetStatus() == nil && !aip.HasLabel(message, aipb.Labels.Superseded.GetKey())
 		}
-	case pendingFilter:
-		keep = func(message *aipb.Message) bool { return aip.HasLabel(message, agentpb.Labels.Pending.GetKey()) }
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "unsupported filter %q", filter).Err()
 	}
@@ -249,26 +258,6 @@ func filterMessages(messages []*aipb.Message, filter string) ([]*aipb.Message, e
 		}
 	}
 	return kept, nil
-}
-
-// UpdateMessage updates a message's labels, the only field the AgentService updates.
-func (c *fakeAiService) UpdateMessage(ctx context.Context, request *aiservicepb.UpdateMessageRequest, _ ...grpc.CallOption) (*aipb.Message, error) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if !slices.Equal(request.UpdateMask.GetPaths(), []string{"labels"}) {
-		return nil, status.Errorf(codes.InvalidArgument, "only labels are updated").Err()
-	}
-	messageRn, err := aipb.ParseMessageRn(request.Message.GetName())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
-	}
-	for _, message := range c.chatToMessages[messageRn.ChatRn().String()] {
-		if message.Name == request.Message.GetName() {
-			message.Labels = maps.Clone(request.Message.GetLabels())
-			return proto.CloneOf(message), nil
-		}
-	}
-	return nil, status.Errorf(codes.NotFound, "message %s does not exist", request.Message.GetName()).Err()
 }
 
 // StreamGenerateMessage plays the chat's next scripted generation, persisting its message as the AiService does.

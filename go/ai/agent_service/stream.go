@@ -9,9 +9,6 @@ import (
 	"github.com/malonaz/core/gengo/ai/agent/store"
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
-	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
-	aipb "github.com/malonaz/core/genproto/ai/v1"
-	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
@@ -98,9 +95,6 @@ type streamedAgent struct {
 	proxyClosed bool
 	// generating is set while a generation's deltas were streamed and neither its message nor a reset followed.
 	generating bool
-	// The number of messages sent to the agent when last polled, and the queued messages streamed.
-	sentCount            int64
-	queuedMessageNameSet map[string]struct{}
 }
 
 // proxyEvent is a piece of activity proxied from an owner, or the end of its proxy.
@@ -168,16 +162,10 @@ func (a *agentStream) poll(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	firstPoll := len(a.agentToStreamed) == 0
 	for _, agent := range polledAgents.agents {
-		sentCount := polledAgents.agentToSentCount[agent.Name]
 		streamed, ok := a.agentToStreamed[agent.Name]
 		if !ok {
-			streamed = &streamedAgent{queuedMessageNameSet: map[string]struct{}{}}
-			// Messages queued before the stream opened are history; an agent attached later streams its own.
-			if firstPoll {
-				streamed.sentCount = sentCount
-			}
+			streamed = &streamedAgent{}
 			a.agentToStreamed[agent.Name] = streamed
 			// Subscribed before its snapshot is sent: later activity follows it, older snapshots are dropped.
 			a.service.hub.add(a.subscription, agent.Name)
@@ -192,51 +180,17 @@ func (a *agentStream) poll(ctx context.Context) error {
 		if err := a.follow(ctx, agent.Name, streamed, a.owner(polledAgents.agentToLease[agent.Name])); err != nil {
 			return err
 		}
-		if sentCount > streamed.sentCount {
-			streamed.sentCount = sentCount
-			if err := a.sendQueuedMessages(ctx, agent, streamed); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-// sendQueuedMessages streams the messages queued for an agent not streamed yet: those sent through other replicas
-// reach this one only through the poll.
-func (a *agentStream) sendQueuedMessages(ctx context.Context, agent *agentpb.Agent, streamed *streamedAgent) error {
-	if a.request.View != agentservicepb.AgentView_AGENT_VIEW_FULL {
-		return nil
-	}
-	listMessagesRequest := &aiservicepb.ListMessagesRequest{
-		Parent:  agent.Chat,
-		Filter:  pendingFilter,
-		OrderBy: "create_time asc",
-	}
-	pendingMessages, err := aip.Paginate[*aipb.Message](ctx, listMessagesRequest, a.service.aiServiceClient.ListMessages)
-	if err != nil {
-		return status.FromError(err, "listing pending messages").Err()
-	}
-	for _, pendingMessage := range pendingMessages {
-		message := &agentservicepb.StreamAgentResponse{
-			Agent:   agent.Name,
-			Content: &agentservicepb.StreamAgentResponse_Message{Message: pendingMessage},
-		}
-		if err := a.send(streamed, message); err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 // polledAgents are the streamed agents as a poll read them.
 type polledAgents struct {
-	agents           []*agentpb.Agent
-	agentToLease     map[string]*store.Lease
-	agentToSentCount map[string]int64
+	agents       []*agentpb.Agent
+	agentToLease map[string]*store.Lease
 }
 
-// readAgents reads the streamed agent, and its descendants if asked, with their leases and sent message counts.
+// readAgents reads the streamed agent, and its descendants if asked, with their leases.
 func (a *agentStream) readAgents(ctx context.Context) (*polledAgents, error) {
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: a.request.Name}
 	agent, err := a.service.GetAgent(ctx, getAgentRequest)
@@ -252,15 +206,7 @@ func (a *agentStream) readAgents(ctx context.Context) (*polledAgents, error) {
 		if err != nil {
 			return nil, status.FromError(err, "getting lease").Err()
 		}
-		sentCount, err := a.service.agentPostgresStore.GetSentCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
-		if err != nil {
-			return nil, status.FromError(err, "getting sent count").Err()
-		}
-		return &polledAgents{
-			agents:           []*agentpb.Agent{agent},
-			agentToLease:     map[string]*store.Lease{agent.Name: lease},
-			agentToSentCount: map[string]int64{agent.Name: sentCount},
-		}, nil
+		return &polledAgents{agents: []*agentpb.Agent{agent}, agentToLease: map[string]*store.Lease{agent.Name: lease}}, nil
 	}
 
 	agentModels, err := a.service.agentPostgresStore.ListTreeAgents(ctx, agent.RootAgent)
@@ -270,10 +216,6 @@ func (a *agentStream) readAgents(ctx context.Context) (*polledAgents, error) {
 	agentToLease, err := a.service.agentPostgresStore.ListTreeLeases(ctx, agent.RootAgent)
 	if err != nil {
 		return nil, status.FromError(err, "listing tree leases").Err()
-	}
-	agentToSentCount, err := a.service.agentPostgresStore.ListTreeSentCounts(ctx, agent.RootAgent)
-	if err != nil {
-		return nil, status.FromError(err, "listing tree sent counts").Err()
 	}
 	treeAgents := make([]*agentpb.Agent, 0, len(agentModels))
 	agentToParent := make(map[string]string, len(agentModels))
@@ -292,7 +234,7 @@ func (a *agentStream) readAgents(ctx context.Context) (*polledAgents, error) {
 			agents = append(agents, treeAgent)
 		}
 	}
-	return &polledAgents{agents: agents, agentToLease: agentToLease, agentToSentCount: agentToSentCount}, nil
+	return &polledAgents{agents: agents, agentToLease: agentToLease}, nil
 }
 
 // descendsFrom reports whether an agent descends from an ancestor, following parent links.
@@ -388,17 +330,7 @@ func (a *agentStream) send(streamedAgent *streamedAgent, response *agentservicep
 		streamedAgent.updateTime = updateTime
 	case *agentservicepb.StreamAgentResponse_Delta:
 		streamedAgent.generating = true
-	case *agentservicepb.StreamAgentResponse_Message:
-		// A queued message reaches a stream from its sender's replica, the owner's or the poll: stream it once.
-		if aip.HasLabel(content.Message, agentpb.Labels.Pending.GetKey()) {
-			if _, ok := streamedAgent.queuedMessageNameSet[content.Message.GetName()]; ok {
-				return nil
-			}
-			streamedAgent.queuedMessageNameSet[content.Message.GetName()] = struct{}{}
-		} else {
-			streamedAgent.generating = false
-		}
-	case *agentservicepb.StreamAgentResponse_GenerationReset_:
+	case *agentservicepb.StreamAgentResponse_Message, *agentservicepb.StreamAgentResponse_GenerationReset_:
 		streamedAgent.generating = false
 	}
 	if !inView(a.request.View, response) {

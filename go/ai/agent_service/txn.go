@@ -103,10 +103,16 @@ func (t *txn) saveAgent(ctx context.Context, agent *agentpb.Agent) error {
 	return nil
 }
 
-// claimTurn claims the turn of an agent locked by getAgent for this replica, if it has room and no other replica
-// holds the agent's lease, marking the agent RUNNING. The turn starts once the transaction commits. A replica out
-// of room leaves the agent to the claim loops.
+// claimTurn starts the turn of an agent locked by getAgent: it marks the agent RUNNING and, if this replica has room
+// and no other holds the agent's lease, claims the lease here, the turn starting once the transaction commits. A
+// RUNNING agent without a lease is left to the claim scans.
 func (t *txn) claimTurn(ctx context.Context, agent *agentpb.Agent) error {
+	if agent.State != agentpb.Agent_STATE_RUNNING {
+		agent.State = agentpb.Agent_STATE_RUNNING
+		if err := t.saveAgent(ctx, agent); err != nil {
+			return err
+		}
+	}
 	if !t.service.turns.hasRoom(t.service.opts.MaxConcurrentTurns) {
 		return nil
 	}
@@ -118,16 +124,9 @@ func (t *txn) claimTurn(ctx context.Context, agent *agentpb.Agent) error {
 	if err != nil {
 		return fmt.Errorf("claiming lease: %w", err)
 	}
-	if !claimed {
-		return nil
+	if claimed {
+		t.claimedTurns = append(t.claimedTurns, agent.Name)
 	}
-	if agent.State != agentpb.Agent_STATE_RUNNING {
-		agent.State = agentpb.Agent_STATE_RUNNING
-		if err := t.saveAgent(ctx, agent); err != nil {
-			return err
-		}
-	}
-	t.claimedTurns = append(t.claimedTurns, agent.Name)
 	return nil
 }
 

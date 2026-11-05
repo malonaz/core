@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/pbutil/pbjson"
+	"github.com/malonaz/core/go/uuid"
 )
 
 func TestTurn_InputStartsATurnThatEndsIdle(t *testing.T) {
@@ -21,13 +21,15 @@ func TestTurn_InputStartsATurnThatEndsIdle(t *testing.T) {
 	sendText(t, service, agent.Name, "hello")
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	messages := history(service.aiService.messages(agent.Chat))
+	messages := service.aiService.messages(agent.Chat)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT}, roles(messages))
-	deliveredMessages, ok := agentpb.Annotations.Messages.Get(messages[1])
-	require.True(t, ok)
-	sentMessage := sentMessages(t, service, agent.Name)[0]
-	require.Equal(t, sentMessage.Name, deliveredMessages)
-	require.False(t, isPending(sentMessage))
+	// The user's message, delivered as sent, stamped with its sender.
+	sender, _ := agentpb.Annotations.Sender.Get(messages[1])
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	require.NoError(t, err)
+	require.Equal(t, agentRn.UserRn().String(), sender)
+	require.Equal(t, []string{"hello"}, deliveredTexts(t, service, agent.Chat, messages[1].Name))
+	require.Empty(t, getAgent(t, service, agent.Name).QueuedMessages)
 }
 
 func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
@@ -37,14 +39,12 @@ func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
 	agentRn, err := agentpb.ParseAgentRn(agent.Name)
 	require.NoError(t, err)
 	missingAgent := agentRn.UserRn().AgentRn("missing").String()
-	message := ai.NewUserMessage(ai.NewTextBlock("hello"))
-	agentpb.Annotations.Sender.Set(message, missingAgent)
-	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: message}
-	sentMessage, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	_, err = service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("hello")), missingAgent, uuid.MustNewV7().String())
 	require.NoError(t, err)
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	require.Equal(t, []string{"[Message from agent " + missingAgent + "]", "hello"}, deliveredTexts(t, service, agent.Chat, sentMessage.Name))
+	deliveredMessage := deliveredMessages(t, service, agent.Name)[0]
+	require.Equal(t, []string{"[Message from agent " + missingAgent + "]", "hello"}, deliveredTexts(t, service, agent.Chat, deliveredMessage.Name))
 }
 
 // partialToolCallBlock returns a block streaming a partial tool call with the given arguments.
@@ -123,7 +123,7 @@ func TestTurn_MessagesArriveBetweenToolRounds(t *testing.T) {
 	close(toolCallGeneration.gate)
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
-	histories := service.aiService.generateMessageHistories()
+	histories := service.aiService.generateMessageHistories(agent.Chat)
 	require.Len(t, histories, 2)
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER}, roles(histories[0]))
 	require.Equal(t, []aipb.Role{aipb.Role_ROLE_SYSTEM, aipb.Role_ROLE_USER, aipb.Role_ROLE_ASSISTANT, aipb.Role_ROLE_TOOL, aipb.Role_ROLE_USER}, roles(histories[1]))

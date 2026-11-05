@@ -204,8 +204,8 @@ func (s *Service) startTurn(agent string) {
 	}()
 }
 
-// runClaimLoop claims the turns needing a replica, up to the replica's room: RUNNING agents whose lease expired
-// (takeover) and IDLE agents with undelivered messages (a safety net: messages claim their agent's turn themselves).
+// runClaimLoop claims the turns needing a replica, up to the replica's room: RUNNING agents whose lease expired (a
+// takeover) or that no replica had room to claim.
 func (s *Service) runClaimLoop(ctx context.Context) {
 	ticker := time.NewTicker(s.opts.ClaimInterval)
 	defer ticker.Stop()
@@ -286,7 +286,4 @@ type turnEnd struct {
 	// The report sent to the parent agent, if any, and its request id.
 	report          string
 	reportRequestID string
-	// The agent's sent message count read before the turn's latest delivery, if it delivered.
-	deliveredCount int64
-	delivered      bool
 }

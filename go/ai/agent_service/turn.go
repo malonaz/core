@@ -20,7 +20,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -41,9 +40,6 @@ var (
 	errToolCallInterrupted = errors.New("interrupted by a server restart; the call may or may not have completed")
 	errToolCallCancelled   = errors.New("cancelled: the turn was cancelled before this call completed; it may or may not have run")
 )
-
-// pendingFilter lists the messages of an agent's chat queued for its next delivery.
-var pendingFilter = fmt.Sprintf("labels.%q:*", agentpb.Labels.Pending.GetKey())
 
 // runTurns runs the agent's turns while messages keep arriving, until it goes idle or its run stops.
 func (s *Service) runTurns(turn *turn) {
@@ -76,7 +72,7 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	if err == nil {
 		finalMessage, err = runner.run(ctx)
 	}
-	turnEnd := &turnEnd{deliveredCount: runner.deliveredCount, delivered: runner.delivered}
+	turnEnd := &turnEnd{}
 	switch cause := context.Cause(ctx); {
 	case errors.Is(cause, errLeaseLost), errors.Is(cause, errShuttingDown), errors.Is(err, errShuttingDown):
 		return nil
@@ -99,8 +95,8 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 }
 
 // endTurn sends the turn's report to the agent's parent, if any, then records how the turn ended under the
-// agent's lock. If messages were sent since the turn's latest delivery, a succeeded turn keeps the agent RUNNING and
-// returns true: the next turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
+// agent's lock. If messages were queued since the turn's latest delivery, a succeeded turn keeps the agent RUNNING
+// and returns true: the next turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
 // a turn ended without its report would leave the parent waiting, while a report sent again is deduped by its request
 // id, derived from the turn's final message.
 func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (bool, error) {
@@ -137,18 +133,8 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		if turnEnd.err != nil {
 			agent.Status = grpcstatus.Convert(turnEnd.err).Proto()
 		}
-		mailbox, err := t.GetMailbox(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
-		if err != nil {
-			return fmt.Errorf("getting mailbox: %w", err)
-		}
-		deliveredCount := mailbox.DeliveredCount
-		if turnEnd.delivered {
-			deliveredCount = turnEnd.deliveredCount
-			if err := t.SetDeliveredCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, deliveredCount); err != nil {
-				return fmt.Errorf("setting delivered count: %w", err)
-			}
-		}
-		next = turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED && mailbox.SentCount > deliveredCount
+		// A failed or cancelled turn stays idle until the next message wakes it: retrying would fail again.
+		next = turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED && len(agent.QueuedMessages) > 0
 		if next {
 			if _, err := t.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica, s.address, s.opts.LeaseDuration); err != nil {
 				return fmt.Errorf("renewing lease: %w", err)
@@ -178,9 +164,8 @@ func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) err
 		return nil
 	}
 	message := ai.NewUserMessage(ai.NewTextBlock(turnEnd.report))
-	agentpb.Annotations.Sender.Set(message, agent.Name)
 	// A deleted parent awaits no report.
-	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, turnEnd.reportRequestID); err != nil && !status.HasCode(err, codes.NotFound) {
+	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, agent.Name, turnEnd.reportRequestID); err != nil && !status.HasCode(err, codes.NotFound) {
 		return status.FromError(err, "sending the turn's report").Err()
 	}
 	return nil
@@ -190,9 +175,6 @@ func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) err
 type turnRunner struct {
 	service *Service
 	agent   *agentpb.Agent
-	// The agent's sent message count read before the turn's latest delivery, once it delivered.
-	deliveredCount int64
-	delivered      bool
 	// The chat's last message the turn saw or wrote.
 	last *aipb.Message
 }
@@ -322,113 +304,60 @@ func (r *turnRunner) resume(ctx context.Context) error {
 	return nil
 }
 
-// deliverMessages delivers the messages queued for the agent as one user message at the chat's end, listing them in
-// its messages annotation, then un-pends them. The sent count is read first: a message sent after it is counted after
-// it, and the turn's end sees it.
+// deliverMessages writes the agent's queued messages to its chat, each as its own user message named as it was queued:
+// a delivery replayed after a crash hits AlreadyExists and is dropped. It then removes them from the queue.
 func (r *turnRunner) deliverMessages(ctx context.Context) error {
-	agentRn, err := agentpb.ParseAgentRn(r.agent.GetName())
+	getAgentRequest := &agentservicepb.GetAgentRequest{Name: r.agent.GetName()}
+	agent, err := r.service.GetAgent(ctx, getAgentRequest)
 	if err != nil {
-		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+		return err
 	}
-	chatRn, err := aipb.ParseChatRn(r.agent.GetChat())
-	if err != nil {
-		return status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
+	if len(agent.QueuedMessages) == 0 {
+		return nil
 	}
-	for {
-		sentCount, err := r.service.agentPostgresStore.GetSentCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
+	deliveredMessageNameSet := map[string]struct{}{}
+	senderToHeader := map[string]string{}
+	for _, queuedMessage := range agent.QueuedMessages {
+		messageRn, err := aipb.ParseMessageRn(queuedMessage.GetName())
 		if err != nil {
-			return status.FromError(err, "getting sent count").Err()
+			return status.Errorf(codes.Internal, "parsing queued message name: %v", err).Err()
 		}
-		listMessagesRequest := &aiservicepb.ListMessagesRequest{
-			Parent:  r.agent.GetChat(),
-			Filter:  pendingFilter,
-			OrderBy: "create_time asc",
-		}
-		pendingMessages, err := aip.Paginate[*aipb.Message](ctx, listMessagesRequest, r.service.aiServiceClient.ListMessages)
+		header, err := r.senderHeader(ctx, queuedMessage, senderToHeader)
 		if err != nil {
-			return status.FromError(err, "listing pending messages").Err()
+			return err
 		}
-		if len(pendingMessages) == 0 {
-			r.deliveredCount, r.delivered = sentCount, true
-			return nil
-		}
-
-		messageNames := make([]string, 0, len(pendingMessages))
 		var blocks []*aipb.Block
-		senderToHeader := map[string]string{}
-		for _, pendingMessage := range pendingMessages {
-			messageNames = append(messageNames, pendingMessage.GetName())
-			header, err := r.senderHeader(ctx, pendingMessage, senderToHeader)
-			if err != nil {
-				return err
-			}
-			if header != "" {
-				blocks = append(blocks, ai.NewTextBlock(header))
-			}
-			blocks = append(blocks, pendingMessage.GetBlocks()...)
+		if header != "" {
+			blocks = append(blocks, ai.NewTextBlock(header))
 		}
-		message := ai.NewUserMessage(blocks...)
-		agentpb.Annotations.Messages.Set(message, strings.Join(messageNames, ","))
-		messageID := aip.NewDeterministicBase32ResourceID(deliveryMessageNamespace, messageNames[0])
+		message := ai.NewUserMessage(append(blocks, queuedMessage.GetBlocks()...)...)
+		message.Annotations = maps.Clone(queuedMessage.GetAnnotations())
 		createMessageRequest := &aiservicepb.CreateMessageRequest{
 			Parent:    r.agent.GetChat(),
 			Message:   message,
-			MessageId: messageID,
+			MessageId: messageRn.Message,
 		}
 		deliveredMessage, err := r.service.aiServiceClient.CreateMessage(ctx, createMessageRequest)
-		if err == nil {
+		switch {
+		case err == nil:
 			r.publishMessage(deliveredMessage)
-			if err := r.unpend(ctx, pendingMessages); err != nil {
-				return err
-			}
-			r.deliveredCount, r.delivered = sentCount, true
 			r.last = deliveredMessage
-			return nil
+		case !status.HasCode(err, codes.AlreadyExists):
+			return status.FromError(err, "delivering message %s", queuedMessage.GetName()).Err()
 		}
-		if !status.HasCode(err, codes.AlreadyExists) {
-			return status.FromError(err, "creating delivery message").Err()
-		}
-
-		// Delivered before a crash left its messages pending: un-pend what it delivered, then deliver the rest.
-		getMessageRequest := &aiservicepb.GetMessageRequest{Name: chatRn.MessageRn(messageID).String()}
-		existingMessage, err := r.service.aiServiceClient.GetMessage(ctx, getMessageRequest)
+		deliveredMessageNameSet[queuedMessage.GetName()] = struct{}{}
+	}
+	return r.service.transact(ctx, func(ctx context.Context, t *txn) error {
+		agent, err := t.getAgent(ctx, r.agent.GetName())
 		if err != nil {
-			return status.FromError(err, "getting delivery message").Err()
-		}
-		deliveredMessageNames, _ := agentpb.Annotations.Messages.Get(existingMessage)
-		deliveredMessageNameSet := map[string]struct{}{}
-		for _, deliveredMessageName := range strings.Split(deliveredMessageNames, ",") {
-			deliveredMessageNameSet[deliveredMessageName] = struct{}{}
-		}
-		var deliveredMessages []*aipb.Message
-		for _, pendingMessage := range pendingMessages {
-			if _, ok := deliveredMessageNameSet[pendingMessage.GetName()]; ok {
-				deliveredMessages = append(deliveredMessages, pendingMessage)
-			}
-		}
-		if err := r.unpend(ctx, deliveredMessages); err != nil {
 			return err
 		}
-	}
-}
-
-// unpend removes the pending label from delivered messages, which stay excluded from the model's view.
-func (r *turnRunner) unpend(ctx context.Context, messages []*aipb.Message) error {
-	labelsMask := pbfieldmask.FromPaths("labels").MustValidate(&aipb.Message{}).Proto()
-	for _, message := range messages {
-		labels := maps.Clone(message.GetLabels())
-		delete(labels, agentpb.Labels.Pending.GetKey())
-		updateMessageRequest := &aiservicepb.UpdateMessageRequest{
-			Message:    &aipb.Message{Name: message.GetName(), Labels: labels},
-			UpdateMask: labelsMask,
-		}
-		updatedMessage, err := r.service.aiServiceClient.UpdateMessage(ctx, updateMessageRequest)
-		if err != nil {
-			return status.FromError(err, "un-pending message %s", message.GetName()).Err()
-		}
-		r.publishMessage(updatedMessage)
-	}
-	return nil
+		agent.QueuedMessages = slices.DeleteFunc(agent.QueuedMessages, func(queuedMessage *aipb.Message) bool {
+			_, ok := deliveredMessageNameSet[queuedMessage.GetName()]
+			return ok
+		})
+		return t.saveAgent(ctx, agent)
+	})
 }
 
 // senderHeader returns the header naming the agent that sent a message, empty for any other sender: the model sees

@@ -133,7 +133,7 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 	require.Equal(t, int32(codes.NotFound), toolCallIDToToolResult["call-2"].GetError().GetCode())
 
 	// Every tool, built-ins included, requires a title.
-	generateMessageRequest := service.aiService.generateMessageRequests()[0]
+	generateMessageRequest := service.aiService.generateMessageRequests(agent.Chat)[0]
 	for _, name := range []string{healthCheckTool, createAgentsToolName, messageAgentToolName, listAgentsToolName, updateLabelsToolName} {
 		tool := findTool(generateMessageRequest.GetTools(), name)
 		require.NotNil(t, tool, name)
@@ -154,7 +154,7 @@ func TestTools_ServiceCoHostedOnTheReplica(t *testing.T) {
 
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
 	require.Equal(t, []string{"co-hosted"}, healthServer.checkedServices())
-	toolSets := service.aiService.generateMessageRequests()[0].GetToolSets()
+	toolSets := service.aiService.generateMessageRequests(agent.Chat)[0].GetToolSets()
 	require.Len(t, toolSets, 1)
 	require.Equal(t, healthService, toolSets[0].GetName())
 	require.Equal(t, "Health_Discover", toolSets[0].GetDiscoveryTool().GetName())
@@ -229,6 +229,11 @@ func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
 
 	agent = waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
 	require.Equal(t, int32(codes.InvalidArgument), agent.Status.GetCode())
+	// Failed before delivering, the turn stays idle with its message queued: only a new message wakes it.
+	time.Sleep(3 * service.opts.ClaimInterval)
+	agent = getAgent(t, service, agent.Name)
+	require.Equal(t, agentpb.Agent_STATE_IDLE, agent.State)
+	require.Len(t, agent.QueuedMessages, 1)
 	require.Contains(t, agent.Status.GetMessage(), "no tool target configured for tool "+healthCheckMethod)
 }
 
