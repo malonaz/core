@@ -232,7 +232,7 @@ func TestLease_LostLeaseIsTakenOver(t *testing.T) {
 
 func TestLease_CancelLocalTurn(t *testing.T) {
 	healthServer := &fakeHealthServer{}
-	service := newTestReplica(t, newFakeAiService(), nil, healthServer.register)
+	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
 	agent := createTestAgent(t, service, healthCheckMethod)
 	service.aiService.script(agent.Chat, toolCallGeneration(
 		newToolCall("call-1", healthCheckTool, map[string]any{"service": "a"}),
