@@ -28,10 +28,10 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// An Input is a message queued in an agent's inbox. Clients send inputs at any
-// time; the executor drains every pending input into the agent's next turn as
-// extra blocks, waking an idle agent, and marks them consumed. Inputs pending
-// when a lease is lost are redelivered to the next executor.
+// An Input is a message queued in an agent's inbox. Inputs can be sent at any
+// time: a turn drains every pending input into the agent's chat, at its start
+// or between its tool rounds, and an input sent to an idle agent starts a turn.
+// An input is consumed once the chat message delivering it is saved.
 type Input struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`

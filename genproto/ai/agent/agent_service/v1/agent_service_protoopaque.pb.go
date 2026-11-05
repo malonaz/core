@@ -29,7 +29,7 @@ var File_malonaz_ai_agent_agent_service_v1_agent_service_proto protoreflect.File
 
 const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\n" +
-	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a0malonaz/ai/agent/agent_service/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\"malonaz/ai/agent/v1/executor.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xde \n" +
+	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xd0\x1a\n" +
 	"\fAgentService\x12\xe6\x01\n" +
 	"\x10CreateDefinition\x12:.malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest\x1a\x1f.malonaz.ai.agent.v1.Definition\"u\xdaA\x11parent,definition´-!\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x026:\n" +
@@ -63,14 +63,7 @@ const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\vCreateInput\x125.malonaz.ai.agent.agent_service.v1.CreateInputRequest\x1a\x1a.malonaz.ai.agent.v1.Input\"R\xdaA\fparent,input\x82\xd3\xe4\x93\x02=:\x05input\"4/v1/{parent=organizations/*/users/*/agents/*}/inputs\x12\xe3\x01\n" +
 	"\n" +
 	"ListInputs\x124.malonaz.ai.agent.agent_service.v1.ListInputsRequest\x1a5.malonaz.ai.agent.agent_service.v1.ListInputsResponse\"h\xdaA\x06parent´-\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Input\x82\xd3\xe4\x93\x026\x124/v1/{parent=organizations/*/users/*/agents/*}/inputs\x90\x02\x01\x12\xc3\x01\n" +
-	"\n" +
-	"ListEvents\x124.malonaz.ai.agent.agent_service.v1.ListEventsRequest\x1a5.malonaz.ai.agent.agent_service.v1.ListEventsResponse\"H\xdaA\x06parent\x82\xd3\xe4\x93\x026\x124/v1/{parent=organizations/*/users/*/agents/*}/events\x90\x02\x01\x12\xc8\x01\n" +
-	"\vGetExecutor\x125.malonaz.ai.agent.agent_service.v1.GetExecutorRequest\x1a\x1d.malonaz.ai.agent.v1.Executor\"c\xdaA\x04name´-\x1f\n" +
-	"\x1dagent.ai.malonaz.com/Executor\x82\xd3\xe4\x93\x020\x12./v1/{name=organizations/*/users/*/executors/*}\x90\x02\x01\x12\xe9\x01\n" +
-	"\rListExecutors\x127.malonaz.ai.agent.agent_service.v1.ListExecutorsRequest\x1a8.malonaz.ai.agent.agent_service.v1.ListExecutorsResponse\"e\xdaA\x06parent´-\x1f\n" +
-	"\x1dagent.ai.malonaz.com/Executor\x82\xd3\xe4\x93\x020\x12./v1/{parent=organizations/*/users/*}/executors\x90\x02\x01\x12\x8e\x01\n" +
-	"\x0fConnectExecutor\x129.malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest\x1a:.malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse\"\x00(\x010\x01\x1a\x17\xcaA\x14agent.ai.malonaz.comB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
+	"\x1aagent.ai.malonaz.com/Input\x82\xd3\xe4\x93\x026\x124/v1/{parent=organizations/*/users/*/agents/*}/inputs\x90\x02\x01\x1a\x17\xcaA\x14agent.ai.malonaz.comB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
 
 var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_goTypes = []any{
 	(*CreateDefinitionRequest)(nil),   // 0: malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest
@@ -89,21 +82,13 @@ var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_goTypes = []any{
 	(*StreamAgentRequest)(nil),        // 13: malonaz.ai.agent.agent_service.v1.StreamAgentRequest
 	(*CreateInputRequest)(nil),        // 14: malonaz.ai.agent.agent_service.v1.CreateInputRequest
 	(*ListInputsRequest)(nil),         // 15: malonaz.ai.agent.agent_service.v1.ListInputsRequest
-	(*ListEventsRequest)(nil),         // 16: malonaz.ai.agent.agent_service.v1.ListEventsRequest
-	(*GetExecutorRequest)(nil),        // 17: malonaz.ai.agent.agent_service.v1.GetExecutorRequest
-	(*ListExecutorsRequest)(nil),      // 18: malonaz.ai.agent.agent_service.v1.ListExecutorsRequest
-	(*ConnectExecutorRequest)(nil),    // 19: malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest
-	(*v1.Definition)(nil),             // 20: malonaz.ai.agent.v1.Definition
-	(*ListDefinitionsResponse)(nil),   // 21: malonaz.ai.agent.agent_service.v1.ListDefinitionsResponse
-	(*v1.Agent)(nil),                  // 22: malonaz.ai.agent.v1.Agent
-	(*ListAgentsResponse)(nil),        // 23: malonaz.ai.agent.agent_service.v1.ListAgentsResponse
-	(*StreamAgentResponse)(nil),       // 24: malonaz.ai.agent.agent_service.v1.StreamAgentResponse
-	(*v1.Input)(nil),                  // 25: malonaz.ai.agent.v1.Input
-	(*ListInputsResponse)(nil),        // 26: malonaz.ai.agent.agent_service.v1.ListInputsResponse
-	(*ListEventsResponse)(nil),        // 27: malonaz.ai.agent.agent_service.v1.ListEventsResponse
-	(*v1.Executor)(nil),               // 28: malonaz.ai.agent.v1.Executor
-	(*ListExecutorsResponse)(nil),     // 29: malonaz.ai.agent.agent_service.v1.ListExecutorsResponse
-	(*ConnectExecutorResponse)(nil),   // 30: malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse
+	(*v1.Definition)(nil),             // 16: malonaz.ai.agent.v1.Definition
+	(*ListDefinitionsResponse)(nil),   // 17: malonaz.ai.agent.agent_service.v1.ListDefinitionsResponse
+	(*v1.Agent)(nil),                  // 18: malonaz.ai.agent.v1.Agent
+	(*ListAgentsResponse)(nil),        // 19: malonaz.ai.agent.agent_service.v1.ListAgentsResponse
+	(*StreamAgentResponse)(nil),       // 20: malonaz.ai.agent.agent_service.v1.StreamAgentResponse
+	(*v1.Input)(nil),                  // 21: malonaz.ai.agent.v1.Input
+	(*ListInputsResponse)(nil),        // 22: malonaz.ai.agent.agent_service.v1.ListInputsResponse
 }
 var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition:input_type -> malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest
@@ -122,32 +107,24 @@ var file_malonaz_ai_agent_agent_service_v1_agent_service_proto_depIdxs = []int32
 	13, // 13: malonaz.ai.agent.agent_service.v1.AgentService.StreamAgent:input_type -> malonaz.ai.agent.agent_service.v1.StreamAgentRequest
 	14, // 14: malonaz.ai.agent.agent_service.v1.AgentService.CreateInput:input_type -> malonaz.ai.agent.agent_service.v1.CreateInputRequest
 	15, // 15: malonaz.ai.agent.agent_service.v1.AgentService.ListInputs:input_type -> malonaz.ai.agent.agent_service.v1.ListInputsRequest
-	16, // 16: malonaz.ai.agent.agent_service.v1.AgentService.ListEvents:input_type -> malonaz.ai.agent.agent_service.v1.ListEventsRequest
-	17, // 17: malonaz.ai.agent.agent_service.v1.AgentService.GetExecutor:input_type -> malonaz.ai.agent.agent_service.v1.GetExecutorRequest
-	18, // 18: malonaz.ai.agent.agent_service.v1.AgentService.ListExecutors:input_type -> malonaz.ai.agent.agent_service.v1.ListExecutorsRequest
-	19, // 19: malonaz.ai.agent.agent_service.v1.AgentService.ConnectExecutor:input_type -> malonaz.ai.agent.agent_service.v1.ConnectExecutorRequest
-	20, // 20: malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition:output_type -> malonaz.ai.agent.v1.Definition
-	20, // 21: malonaz.ai.agent.agent_service.v1.AgentService.GetDefinition:output_type -> malonaz.ai.agent.v1.Definition
-	20, // 22: malonaz.ai.agent.agent_service.v1.AgentService.UpdateDefinition:output_type -> malonaz.ai.agent.v1.Definition
-	20, // 23: malonaz.ai.agent.agent_service.v1.AgentService.DeleteDefinition:output_type -> malonaz.ai.agent.v1.Definition
-	20, // 24: malonaz.ai.agent.agent_service.v1.AgentService.UndeleteDefinition:output_type -> malonaz.ai.agent.v1.Definition
-	21, // 25: malonaz.ai.agent.agent_service.v1.AgentService.ListDefinitions:output_type -> malonaz.ai.agent.agent_service.v1.ListDefinitionsResponse
-	22, // 26: malonaz.ai.agent.agent_service.v1.AgentService.CreateAgent:output_type -> malonaz.ai.agent.v1.Agent
-	22, // 27: malonaz.ai.agent.agent_service.v1.AgentService.GetAgent:output_type -> malonaz.ai.agent.v1.Agent
-	22, // 28: malonaz.ai.agent.agent_service.v1.AgentService.UpdateAgent:output_type -> malonaz.ai.agent.v1.Agent
-	22, // 29: malonaz.ai.agent.agent_service.v1.AgentService.DeleteAgent:output_type -> malonaz.ai.agent.v1.Agent
-	22, // 30: malonaz.ai.agent.agent_service.v1.AgentService.UndeleteAgent:output_type -> malonaz.ai.agent.v1.Agent
-	23, // 31: malonaz.ai.agent.agent_service.v1.AgentService.ListAgents:output_type -> malonaz.ai.agent.agent_service.v1.ListAgentsResponse
-	22, // 32: malonaz.ai.agent.agent_service.v1.AgentService.CancelAgent:output_type -> malonaz.ai.agent.v1.Agent
-	24, // 33: malonaz.ai.agent.agent_service.v1.AgentService.StreamAgent:output_type -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse
-	25, // 34: malonaz.ai.agent.agent_service.v1.AgentService.CreateInput:output_type -> malonaz.ai.agent.v1.Input
-	26, // 35: malonaz.ai.agent.agent_service.v1.AgentService.ListInputs:output_type -> malonaz.ai.agent.agent_service.v1.ListInputsResponse
-	27, // 36: malonaz.ai.agent.agent_service.v1.AgentService.ListEvents:output_type -> malonaz.ai.agent.agent_service.v1.ListEventsResponse
-	28, // 37: malonaz.ai.agent.agent_service.v1.AgentService.GetExecutor:output_type -> malonaz.ai.agent.v1.Executor
-	29, // 38: malonaz.ai.agent.agent_service.v1.AgentService.ListExecutors:output_type -> malonaz.ai.agent.agent_service.v1.ListExecutorsResponse
-	30, // 39: malonaz.ai.agent.agent_service.v1.AgentService.ConnectExecutor:output_type -> malonaz.ai.agent.agent_service.v1.ConnectExecutorResponse
-	20, // [20:40] is the sub-list for method output_type
-	0,  // [0:20] is the sub-list for method input_type
+	16, // 16: malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition:output_type -> malonaz.ai.agent.v1.Definition
+	16, // 17: malonaz.ai.agent.agent_service.v1.AgentService.GetDefinition:output_type -> malonaz.ai.agent.v1.Definition
+	16, // 18: malonaz.ai.agent.agent_service.v1.AgentService.UpdateDefinition:output_type -> malonaz.ai.agent.v1.Definition
+	16, // 19: malonaz.ai.agent.agent_service.v1.AgentService.DeleteDefinition:output_type -> malonaz.ai.agent.v1.Definition
+	16, // 20: malonaz.ai.agent.agent_service.v1.AgentService.UndeleteDefinition:output_type -> malonaz.ai.agent.v1.Definition
+	17, // 21: malonaz.ai.agent.agent_service.v1.AgentService.ListDefinitions:output_type -> malonaz.ai.agent.agent_service.v1.ListDefinitionsResponse
+	18, // 22: malonaz.ai.agent.agent_service.v1.AgentService.CreateAgent:output_type -> malonaz.ai.agent.v1.Agent
+	18, // 23: malonaz.ai.agent.agent_service.v1.AgentService.GetAgent:output_type -> malonaz.ai.agent.v1.Agent
+	18, // 24: malonaz.ai.agent.agent_service.v1.AgentService.UpdateAgent:output_type -> malonaz.ai.agent.v1.Agent
+	18, // 25: malonaz.ai.agent.agent_service.v1.AgentService.DeleteAgent:output_type -> malonaz.ai.agent.v1.Agent
+	18, // 26: malonaz.ai.agent.agent_service.v1.AgentService.UndeleteAgent:output_type -> malonaz.ai.agent.v1.Agent
+	19, // 27: malonaz.ai.agent.agent_service.v1.AgentService.ListAgents:output_type -> malonaz.ai.agent.agent_service.v1.ListAgentsResponse
+	18, // 28: malonaz.ai.agent.agent_service.v1.AgentService.CancelAgent:output_type -> malonaz.ai.agent.v1.Agent
+	20, // 29: malonaz.ai.agent.agent_service.v1.AgentService.StreamAgent:output_type -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse
+	21, // 30: malonaz.ai.agent.agent_service.v1.AgentService.CreateInput:output_type -> malonaz.ai.agent.v1.Input
+	22, // 31: malonaz.ai.agent.agent_service.v1.AgentService.ListInputs:output_type -> malonaz.ai.agent.agent_service.v1.ListInputsResponse
+	16, // [16:32] is the sub-list for method output_type
+	0,  // [0:16] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -160,7 +137,6 @@ func file_malonaz_ai_agent_agent_service_v1_agent_service_proto_init() {
 	}
 	file_malonaz_ai_agent_agent_service_v1_agent_proto_init()
 	file_malonaz_ai_agent_agent_service_v1_definition_proto_init()
-	file_malonaz_ai_agent_agent_service_v1_executor_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

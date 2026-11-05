@@ -4,8 +4,6 @@ filegroup(
         "agent.proto",
         "annotations.proto",
         "definition.proto",
-        "event.proto",
-        "executor.proto",
         "input.proto",
     ],
     visibility = ["PUBLIC"],
@@ -17,8 +15,6 @@ proto_library(
         "agent.proto",
         "annotations.proto",
         "definition.proto",
-        "event.proto",
-        "executor.proto",
         "input.proto",
     ],
     additional_context = {

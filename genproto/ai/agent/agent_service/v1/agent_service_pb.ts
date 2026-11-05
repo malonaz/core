@@ -6,18 +6,14 @@ import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_annotations } from "../../../../../google/api/annotations_pb";
 import { file_google_api_client } from "../../../../../google/api/client_pb";
-import type { CancelAgentRequestSchema, CreateAgentRequestSchema, CreateInputRequestSchema, DeleteAgentRequestSchema, GetAgentRequestSchema, ListAgentsRequestSchema, ListAgentsResponseSchema, ListEventsRequestSchema, ListEventsResponseSchema, ListInputsRequestSchema, ListInputsResponseSchema, StreamAgentRequestSchema, StreamAgentResponseSchema, UndeleteAgentRequestSchema, UpdateAgentRequestSchema } from "./agent_pb";
+import type { CancelAgentRequestSchema, CreateAgentRequestSchema, CreateInputRequestSchema, DeleteAgentRequestSchema, GetAgentRequestSchema, ListAgentsRequestSchema, ListAgentsResponseSchema, ListInputsRequestSchema, ListInputsResponseSchema, StreamAgentRequestSchema, StreamAgentResponseSchema, UndeleteAgentRequestSchema, UpdateAgentRequestSchema } from "./agent_pb";
 import { file_malonaz_ai_agent_agent_service_v1_agent } from "./agent_pb";
 import type { CreateDefinitionRequestSchema, DeleteDefinitionRequestSchema, GetDefinitionRequestSchema, ListDefinitionsRequestSchema, ListDefinitionsResponseSchema, UndeleteDefinitionRequestSchema, UpdateDefinitionRequestSchema } from "./definition_pb";
 import { file_malonaz_ai_agent_agent_service_v1_definition } from "./definition_pb";
-import type { ConnectExecutorRequestSchema, ConnectExecutorResponseSchema, GetExecutorRequestSchema, ListExecutorsRequestSchema, ListExecutorsResponseSchema } from "./executor_pb";
-import { file_malonaz_ai_agent_agent_service_v1_executor } from "./executor_pb";
 import type { AgentSchema } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
 import type { DefinitionSchema } from "../../v1/definition_pb";
 import { file_malonaz_ai_agent_v1_definition } from "../../v1/definition_pb";
-import type { ExecutorSchema } from "../../v1/executor_pb";
-import { file_malonaz_ai_agent_v1_executor } from "../../v1/executor_pb";
 import type { InputSchema } from "../../v1/input_pb";
 import { file_malonaz_ai_agent_v1_input } from "../../v1/input_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
@@ -26,11 +22,12 @@ import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_
  * Describes the file malonaz/ai/agent/agent_service/v1/agent_service.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@__PURE__*/
-  fileDesc("CjVtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnRfc2VydmljZS5wcm90bxIhbWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxMt4gCgxBZ2VudFNlcnZpY2US5gEKEENyZWF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iddpBEXBhcmVudCxkZWZpbml0aW9uwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCNiIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9uczoKZGVmaW5pdGlvbhLKAQoNR2V0RGVmaW5pdGlvbhI3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXREZWZpbml0aW9uUmVxdWVzdBofLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbiJfkAIB2kEEbmFtZcK0LSEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb26C0+STAioSKC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovZGVmaW5pdGlvbnMvKn0S9wEKEFVwZGF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24ihQHaQRZkZWZpbml0aW9uLHVwZGF0ZV9tYXNrwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCQTIzL3YxL3tkZWZpbml0aW9uLm5hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OgpkZWZpbml0aW9uEs0BChBEZWxldGVEZWZpbml0aW9uEjoubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkRlbGV0ZURlZmluaXRpb25SZXF1ZXN0Gh8ubWFsb25hei5haS5hZ2VudC52MS5EZWZpbml0aW9uIlzaQQRuYW1lwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKiooL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9kZWZpbml0aW9ucy8qfRLdAQoSVW5kZWxldGVEZWZpbml0aW9uEjwubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVuZGVsZXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iaNpBBG5hbWXCtC0hCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9ugtPkkwI2IjEvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OnVuZGVsZXRlOgEqEusBCg9MaXN0RGVmaW5pdGlvbnMSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdERlZmluaXRpb25zUmVxdWVzdBo6Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RGVmaW5pdGlvbnNSZXNwb25zZSJhkAIB2kEGcGFyZW50wrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKhIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9ucxLLAQoLQ3JlYXRlQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJp2kEMcGFyZW50LGFnZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjQiKy92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9hZ2VudHM6BWFnZW50ErkBCghHZXRBZ2VudBIyLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXRBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Il2QAgHaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0SKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0S1gEKC1VwZGF0ZUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVwZGF0ZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQidNpBEWFnZW50LHVwZGF0ZV9tYXNrwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjoyMS92MS97YWdlbnQubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06BWFnZW50ErwBCgtEZWxldGVBZ2VudBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5EZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50IlraQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0qKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0SzAEKDVVuZGVsZXRlQWdlbnQSNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVW5kZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImbaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjkiNC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06dW5kZWxldGU6ASoS2gEKCkxpc3RBZ2VudHMSNC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1JlcXVlc3QaNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1Jlc3BvbnNlIl+QAgHaQQZwYXJlbnTCtC0cChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudILT5JMCLRIrL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2FnZW50cxKmAQoLQ2FuY2VsQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ2FuY2VsQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJE2kEEbmFtZYLT5JMCNyIyL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTpjYW5jZWw6ASoSxAEKC1N0cmVhbUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVxdWVzdBo2Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlIkSQAgHaQQRuYW1lgtPkkwI0EjIvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OnN0cmVhbTABErQBCgtDcmVhdGVJbnB1dBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5DcmVhdGVJbnB1dFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLklucHV0IlLaQQxwYXJlbnQsaW5wdXSC0+STAj0iNC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfS9pbnB1dHM6BWlucHV0EuMBCgpMaXN0SW5wdXRzEjQubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkxpc3RJbnB1dHNSZXF1ZXN0GjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkxpc3RJbnB1dHNSZXNwb25zZSJokAIB2kEGcGFyZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vSW5wdXSC0+STAjYSNC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfS9pbnB1dHMSwwEKCkxpc3RFdmVudHMSNC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEV2ZW50c1JlcXVlc3QaNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEV2ZW50c1Jlc3BvbnNlIkiQAgHaQQZwYXJlbnSC0+STAjYSNC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfS9ldmVudHMSyAEKC0dldEV4ZWN1dG9yEjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkdldEV4ZWN1dG9yUmVxdWVzdBodLm1hbG9uYXouYWkuYWdlbnQudjEuRXhlY3V0b3IiY5ACAdpBBG5hbWXCtC0fCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvcoLT5JMCMBIuL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2V4ZWN1dG9ycy8qfRLpAQoNTGlzdEV4ZWN1dG9ycxI3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RXhlY3V0b3JzUmVxdWVzdBo4Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RXhlY3V0b3JzUmVzcG9uc2UiZZACAdpBBnBhcmVudMK0LR8KHWFnZW50LmFpLm1hbG9uYXouY29tL0V4ZWN1dG9ygtPkkwIwEi4vdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vZXhlY3V0b3JzEo4BCg9Db25uZWN0RXhlY3V0b3ISOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ29ubmVjdEV4ZWN1dG9yUmVxdWVzdBo6Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5Db25uZWN0RXhlY3V0b3JSZXNwb25zZSIAKAEwARoXykEUYWdlbnQuYWkubWFsb25hei5jb21CPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_agent_agent_service_v1_agent, file_malonaz_ai_agent_agent_service_v1_definition, file_malonaz_ai_agent_agent_service_v1_executor, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_agent_v1_executor, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("CjVtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnRfc2VydmljZS5wcm90bxIhbWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxMtAaCgxBZ2VudFNlcnZpY2US5gEKEENyZWF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iddpBEXBhcmVudCxkZWZpbml0aW9uwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCNiIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9uczoKZGVmaW5pdGlvbhLKAQoNR2V0RGVmaW5pdGlvbhI3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXREZWZpbml0aW9uUmVxdWVzdBofLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbiJfkAIB2kEEbmFtZcK0LSEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb26C0+STAioSKC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovZGVmaW5pdGlvbnMvKn0S9wEKEFVwZGF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24ihQHaQRZkZWZpbml0aW9uLHVwZGF0ZV9tYXNrwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCQTIzL3YxL3tkZWZpbml0aW9uLm5hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OgpkZWZpbml0aW9uEs0BChBEZWxldGVEZWZpbml0aW9uEjoubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkRlbGV0ZURlZmluaXRpb25SZXF1ZXN0Gh8ubWFsb25hei5haS5hZ2VudC52MS5EZWZpbml0aW9uIlzaQQRuYW1lwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKiooL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9kZWZpbml0aW9ucy8qfRLdAQoSVW5kZWxldGVEZWZpbml0aW9uEjwubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVuZGVsZXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iaNpBBG5hbWXCtC0hCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9ugtPkkwI2IjEvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OnVuZGVsZXRlOgEqEusBCg9MaXN0RGVmaW5pdGlvbnMSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdERlZmluaXRpb25zUmVxdWVzdBo6Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RGVmaW5pdGlvbnNSZXNwb25zZSJhkAIB2kEGcGFyZW50wrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKhIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9ucxLLAQoLQ3JlYXRlQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJp2kEMcGFyZW50LGFnZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjQiKy92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9hZ2VudHM6BWFnZW50ErkBCghHZXRBZ2VudBIyLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXRBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Il2QAgHaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0SKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0S1gEKC1VwZGF0ZUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVwZGF0ZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQidNpBEWFnZW50LHVwZGF0ZV9tYXNrwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjoyMS92MS97YWdlbnQubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06BWFnZW50ErwBCgtEZWxldGVBZ2VudBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5EZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50IlraQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0qKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0SzAEKDVVuZGVsZXRlQWdlbnQSNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVW5kZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImbaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjkiNC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06dW5kZWxldGU6ASoS2gEKCkxpc3RBZ2VudHMSNC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1JlcXVlc3QaNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1Jlc3BvbnNlIl+QAgHaQQZwYXJlbnTCtC0cChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudILT5JMCLRIrL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2FnZW50cxKmAQoLQ2FuY2VsQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ2FuY2VsQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJE2kEEbmFtZYLT5JMCNyIyL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTpjYW5jZWw6ASoSxAEKC1N0cmVhbUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVxdWVzdBo2Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlIkSQAgHaQQRuYW1lgtPkkwI0EjIvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OnN0cmVhbTABErQBCgtDcmVhdGVJbnB1dBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5DcmVhdGVJbnB1dFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLklucHV0IlLaQQxwYXJlbnQsaW5wdXSC0+STAj0iNC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfS9pbnB1dHM6BWlucHV0EuMBCgpMaXN0SW5wdXRzEjQubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkxpc3RJbnB1dHNSZXF1ZXN0GjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkxpc3RJbnB1dHNSZXNwb25zZSJokAIB2kEGcGFyZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vSW5wdXSC0+STAjYSNC92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfS9pbnB1dHMaF8pBFGFnZW50LmFpLm1hbG9uYXouY29tQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_agent_agent_service_v1_agent, file_malonaz_ai_agent_agent_service_v1_definition, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
 
 /**
- * This API stores and drives agents. It owns state only: executors, which
- * hold the tools, compute and credentials, dial in to run agents' turns.
+ * This API stores agents and runs their turns. Every tool an agent holds is a
+ * gRPC method, called on the service's behalf; built-in tools let agents
+ * launch sub-agents, message their tree and label themselves.
  *
  * # Resource model
  *
@@ -41,10 +38,6 @@ export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@
  *   Format: organizations/{organization}/users/{user}/agents/{agent}
  * - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
  *   Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
- * - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
- *   Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
- * - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
- *   Format: organizations/{organization}/users/{user}/executors/{executor}
  *
  * # Messaging
  *
@@ -129,7 +122,7 @@ export const AgentService: GenService<{
     output: typeof ListDefinitionsResponseSchema;
   },
   /**
-   * Create a agent.
+   * Create an agent.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *
@@ -141,7 +134,7 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Get a agent.
+   * Get an agent.
    *
    * See: https://google.aip.dev/131 (Standard methods: Get).
    *
@@ -153,7 +146,7 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Update a agent.
+   * Update an agent.
    *
    * See: https://google.aip.dev/134 (Standard methods: Update).
    *
@@ -165,7 +158,7 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Delete a agent.
+   * Delete an agent.
    *
    * See: https://google.aip.dev/135 (Standard methods: Delete).
    *
@@ -177,7 +170,7 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Undelete a agent.
+   * Undelete an agent.
    *
    * See: https://google.aip.dev/164 (Soft delete).
    *
@@ -213,8 +206,9 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Stream an agent's activity: its event log replayed from a sequence then
-   * live, with token deltas in the FULL view, optionally for its whole tree.
+   * Stream an agent's live activity, optionally for its whole tree. There is
+   * no replay: the agent's chat is its history, so clients open the stream,
+   * then list the chat's messages, deduping by message name.
    *
    * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.StreamAgent
    */
@@ -246,55 +240,6 @@ export const AgentService: GenService<{
     methodKind: "unary";
     input: typeof ListInputsRequestSchema;
     output: typeof ListInputsResponseSchema;
-  },
-  /**
-   * List an agent's events.
-   *
-   * See: https://google.aip.dev/132 (Standard methods: List).
-   *
-   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.ListEvents
-   */
-  listEvents: {
-    methodKind: "unary";
-    input: typeof ListEventsRequestSchema;
-    output: typeof ListEventsResponseSchema;
-  },
-  /**
-   * Get an executor.
-   *
-   * See: https://google.aip.dev/131 (Standard methods: Get).
-   *
-   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.GetExecutor
-   */
-  getExecutor: {
-    methodKind: "unary";
-    input: typeof GetExecutorRequestSchema;
-    output: typeof ExecutorSchema;
-  },
-  /**
-   * List executors.
-   *
-   * See: https://google.aip.dev/132 (Standard methods: List).
-   *
-   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.ListExecutors
-   */
-  listExecutors: {
-    methodKind: "unary";
-    input: typeof ListExecutorsRequestSchema;
-    output: typeof ListExecutorsResponseSchema;
-  },
-  /**
-   * Connect an executor: it registers, heartbeats and reports its agents'
-   * events and deltas up; the service leases it agents and forwards their
-   * inputs, cancellations and revocations down. Closing the stream releases
-   * every agent it holds.
-   *
-   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.ConnectExecutor
-   */
-  connectExecutor: {
-    methodKind: "bidi_streaming";
-    input: typeof ConnectExecutorRequestSchema;
-    output: typeof ConnectExecutorResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_malonaz_ai_agent_agent_service_v1_agent_service, 0);
