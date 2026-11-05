@@ -29,54 +29,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The amount of an agent's activity a StreamAgent call streams.
-type AgentView int32
-
-const (
-	// Used to detect an unset field. Behaves as BASIC.
-	AgentView_AGENT_VIEW_UNSPECIFIED AgentView = 0
-	// Agent snapshots and the tool calls' titles and ends: enough to follow a tree.
-	AgentView_AGENT_VIEW_BASIC AgentView = 1
-	// BASIC plus generation deltas and persisted messages: enough to render a chat live.
-	AgentView_AGENT_VIEW_FULL AgentView = 2
-)
-
-// Enum value maps for AgentView.
-var (
-	AgentView_name = map[int32]string{
-		0: "AGENT_VIEW_UNSPECIFIED",
-		1: "AGENT_VIEW_BASIC",
-		2: "AGENT_VIEW_FULL",
-	}
-	AgentView_value = map[string]int32{
-		"AGENT_VIEW_UNSPECIFIED": 0,
-		"AGENT_VIEW_BASIC":       1,
-		"AGENT_VIEW_FULL":        2,
-	}
-)
-
-func (x AgentView) Enum() *AgentView {
-	p := new(AgentView)
-	*p = x
-	return p
-}
-
-func (x AgentView) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (AgentView) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_agent_agent_service_v1_agent_proto_enumTypes[0].Descriptor()
-}
-
-func (AgentView) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_agent_agent_service_v1_agent_proto_enumTypes[0]
-}
-
-func (x AgentView) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
 // Request message for AgentService.CreateAgent.
 type CreateAgentRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
@@ -1052,7 +1004,7 @@ func (b0 CancelAgentRequest_builder) Build() *CancelAgentRequest {
 type StreamAgentRequest struct {
 	state                         protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name               string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_View               AgentView              `protobuf:"varint,2,opt,name=view,proto3,enum=malonaz.ai.agent.agent_service.v1.AgentView"`
+	xxx_hidden_IncludeTranscript  bool                   `protobuf:"varint,2,opt,name=include_transcript,json=includeTranscript,proto3"`
 	xxx_hidden_IncludeDescendants bool                   `protobuf:"varint,3,opt,name=include_descendants,json=includeDescendants,proto3"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
@@ -1090,11 +1042,11 @@ func (x *StreamAgentRequest) GetName() string {
 	return ""
 }
 
-func (x *StreamAgentRequest) GetView() AgentView {
+func (x *StreamAgentRequest) GetIncludeTranscript() bool {
 	if x != nil {
-		return x.xxx_hidden_View
+		return x.xxx_hidden_IncludeTranscript
 	}
-	return AgentView_AGENT_VIEW_UNSPECIFIED
+	return false
 }
 
 func (x *StreamAgentRequest) GetIncludeDescendants() bool {
@@ -1108,8 +1060,8 @@ func (x *StreamAgentRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
 
-func (x *StreamAgentRequest) SetView(v AgentView) {
-	x.xxx_hidden_View = v
+func (x *StreamAgentRequest) SetIncludeTranscript(v bool) {
+	x.xxx_hidden_IncludeTranscript = v
 }
 
 func (x *StreamAgentRequest) SetIncludeDescendants(v bool) {
@@ -1122,8 +1074,10 @@ type StreamAgentRequest_builder struct {
 	// The agent to stream.
 	// Format: organizations/{organization}/users/{user}/agents/{agent}
 	Name string
-	// How much activity to stream.
-	View AgentView
+	// If true, also stream generation deltas and persisted messages: enough to
+	// render a chat live. Otherwise, snapshots and the tool calls' titles and
+	// ends: enough to follow a tree.
+	IncludeTranscript bool
 	// If true, also stream every descendant agent, present and future: a whole
 	// tree in one stream.
 	IncludeDescendants bool
@@ -1134,7 +1088,7 @@ func (b0 StreamAgentRequest_builder) Build() *StreamAgentRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
-	x.xxx_hidden_View = b.View
+	x.xxx_hidden_IncludeTranscript = b.IncludeTranscript
 	x.xxx_hidden_IncludeDescendants = b.IncludeDescendants
 	return m0
 }
@@ -1427,11 +1381,11 @@ type StreamAgentResponse_builder struct {
 	ToolCall *StreamAgentResponse_ToolCall
 	// A tool call that returned.
 	ToolCallEnded *StreamAgentResponse_ToolCallEnded
-	// A block delta of the message being generated. FULL view only.
+	// A block delta of the message being generated. Streamed with include_transcript.
 	Delta *v12.Block
-	// A message persisted to the agent's chat. FULL view only.
+	// A message persisted to the agent's chat. Streamed with include_transcript.
 	Message *v12.Message
-	// The generation in flight was interrupted: discard its deltas. FULL view only.
+	// The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
 	GenerationReset *StreamAgentResponse_GenerationReset
 	// -- end of xxx_hidden_Content
 }
@@ -1493,17 +1447,17 @@ type streamAgentResponse_ToolCallEnded_ struct {
 }
 
 type streamAgentResponse_Delta struct {
-	// A block delta of the message being generated. FULL view only.
+	// A block delta of the message being generated. Streamed with include_transcript.
 	Delta *v12.Block `protobuf:"bytes,5,opt,name=delta,proto3,oneof"`
 }
 
 type streamAgentResponse_Message struct {
-	// A message persisted to the agent's chat. FULL view only.
+	// A message persisted to the agent's chat. Streamed with include_transcript.
 	Message *v12.Message `protobuf:"bytes,6,opt,name=message,proto3,oneof"`
 }
 
 type streamAgentResponse_GenerationReset_ struct {
-	// The generation in flight was interrupted: discard its deltas. FULL view only.
+	// The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
 	GenerationReset *StreamAgentResponse_GenerationReset `protobuf:"bytes,7,opt,name=generation_reset,json=generationReset,proto3,oneof"`
 }
 
@@ -2011,14 +1965,15 @@ var File_malonaz_ai_agent_agent_service_v1_agent_proto protoreflect.FileDescript
 
 const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xfd\x01\n" +
+	"-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\x9b\x03\n" +
 	"\x12CreateAgentRequest\x12?\n" +
 	"\x06parent\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19agent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x128\n" +
 	"\x05agent\x18\x02 \x01(\v2\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xc8\x01\x01R\x05agent\x12@\n" +
 	"\bagent_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\aagentId\x12*\n" +
 	"\n" +
-	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"O\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId:\x9b\x01\xbaH\x97\x01\x1a\x94\x01\n" +
+	"\x1fcreate_agent.definition_or_spec\x12:exactly one of agent.definition and agent.spec must be set\x1a5(this.agent.definition != '') != has(this.agent.spec)\"O\n" +
 	"\x0fGetAgentRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\"\xfe\x01\n" +
@@ -2072,11 +2027,11 @@ const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\"R\n" +
 	"\x12CancelAgentRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\"\xcf\x01\n" +
+	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\"\xb2\x01\n" +
 	"\x12StreamAgentRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12J\n" +
-	"\x04view\x18\x02 \x01(\x0e2,.malonaz.ai.agent.agent_service.v1.AgentViewB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04view\x12/\n" +
+	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12-\n" +
+	"\x12include_transcript\x18\x02 \x01(\bR\x11includeTranscript\x12/\n" +
 	"\x13include_descendants\x18\x03 \x01(\bR\x12includeDescendants\"\xd1\x05\n" +
 	"\x13StreamAgentResponse\x125\n" +
 	"\x05agent\x18\x01 \x01(\tB\x1f\xfaA\x1c\n" +
@@ -2112,62 +2067,55 @@ const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12+\n" +
 	"\ftool_call_id\x18\x02 \x01(\tB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\n" +
 	"toolCallId\x12<\n" +
-	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x06result*R\n" +
-	"\tAgentView\x12\x1a\n" +
-	"\x16AGENT_VIEW_UNSPECIFIED\x10\x00\x12\x14\n" +
-	"\x10AGENT_VIEW_BASIC\x10\x01\x12\x13\n" +
-	"\x0fAGENT_VIEW_FULL\x10\x02B<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
+	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x06resultB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
 
-var file_malonaz_ai_agent_agent_service_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_malonaz_ai_agent_agent_service_v1_agent_proto_goTypes = []any{
-	(AgentView)(0),                              // 0: malonaz.ai.agent.agent_service.v1.AgentView
-	(*CreateAgentRequest)(nil),                  // 1: malonaz.ai.agent.agent_service.v1.CreateAgentRequest
-	(*GetAgentRequest)(nil),                     // 2: malonaz.ai.agent.agent_service.v1.GetAgentRequest
-	(*UpdateAgentRequest)(nil),                  // 3: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest
-	(*DeleteAgentRequest)(nil),                  // 4: malonaz.ai.agent.agent_service.v1.DeleteAgentRequest
-	(*UndeleteAgentRequest)(nil),                // 5: malonaz.ai.agent.agent_service.v1.UndeleteAgentRequest
-	(*ListAgentsRequest)(nil),                   // 6: malonaz.ai.agent.agent_service.v1.ListAgentsRequest
-	(*ListAgentsResponse)(nil),                  // 7: malonaz.ai.agent.agent_service.v1.ListAgentsResponse
-	(*SearchAgentsRequest)(nil),                 // 8: malonaz.ai.agent.agent_service.v1.SearchAgentsRequest
-	(*SearchAgentsResponse)(nil),                // 9: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
-	(*CancelAgentRequest)(nil),                  // 10: malonaz.ai.agent.agent_service.v1.CancelAgentRequest
-	(*StreamAgentRequest)(nil),                  // 11: malonaz.ai.agent.agent_service.v1.StreamAgentRequest
-	(*StreamAgentResponse)(nil),                 // 12: malonaz.ai.agent.agent_service.v1.StreamAgentResponse
-	(*MessageAgentRequest)(nil),                 // 13: malonaz.ai.agent.agent_service.v1.MessageAgentRequest
-	(*ApproveToolCallRequest)(nil),              // 14: malonaz.ai.agent.agent_service.v1.ApproveToolCallRequest
-	(*ResolveToolCallRequest)(nil),              // 15: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest
-	(*StreamAgentResponse_ToolCall)(nil),        // 16: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
-	(*StreamAgentResponse_ToolCallEnded)(nil),   // 17: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
-	(*StreamAgentResponse_GenerationReset)(nil), // 18: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
-	(*v1.Agent)(nil),                            // 19: malonaz.ai.agent.v1.Agent
-	(*fieldmaskpb.FieldMask)(nil),               // 20: google.protobuf.FieldMask
-	(*v11.SearchSnippet)(nil),                   // 21: malonaz.aip.v1.SearchSnippet
-	(*v12.Block)(nil),                           // 22: malonaz.ai.v1.Block
-	(*v12.Message)(nil),                         // 23: malonaz.ai.v1.Message
-	(*v12.ToolResult)(nil),                      // 24: malonaz.ai.v1.ToolResult
+	(*CreateAgentRequest)(nil),                  // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest
+	(*GetAgentRequest)(nil),                     // 1: malonaz.ai.agent.agent_service.v1.GetAgentRequest
+	(*UpdateAgentRequest)(nil),                  // 2: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest
+	(*DeleteAgentRequest)(nil),                  // 3: malonaz.ai.agent.agent_service.v1.DeleteAgentRequest
+	(*UndeleteAgentRequest)(nil),                // 4: malonaz.ai.agent.agent_service.v1.UndeleteAgentRequest
+	(*ListAgentsRequest)(nil),                   // 5: malonaz.ai.agent.agent_service.v1.ListAgentsRequest
+	(*ListAgentsResponse)(nil),                  // 6: malonaz.ai.agent.agent_service.v1.ListAgentsResponse
+	(*SearchAgentsRequest)(nil),                 // 7: malonaz.ai.agent.agent_service.v1.SearchAgentsRequest
+	(*SearchAgentsResponse)(nil),                // 8: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
+	(*CancelAgentRequest)(nil),                  // 9: malonaz.ai.agent.agent_service.v1.CancelAgentRequest
+	(*StreamAgentRequest)(nil),                  // 10: malonaz.ai.agent.agent_service.v1.StreamAgentRequest
+	(*StreamAgentResponse)(nil),                 // 11: malonaz.ai.agent.agent_service.v1.StreamAgentResponse
+	(*MessageAgentRequest)(nil),                 // 12: malonaz.ai.agent.agent_service.v1.MessageAgentRequest
+	(*ApproveToolCallRequest)(nil),              // 13: malonaz.ai.agent.agent_service.v1.ApproveToolCallRequest
+	(*ResolveToolCallRequest)(nil),              // 14: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest
+	(*StreamAgentResponse_ToolCall)(nil),        // 15: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
+	(*StreamAgentResponse_ToolCallEnded)(nil),   // 16: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
+	(*StreamAgentResponse_GenerationReset)(nil), // 17: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
+	(*v1.Agent)(nil),                            // 18: malonaz.ai.agent.v1.Agent
+	(*fieldmaskpb.FieldMask)(nil),               // 19: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),                   // 20: malonaz.aip.v1.SearchSnippet
+	(*v12.Block)(nil),                           // 21: malonaz.ai.v1.Block
+	(*v12.Message)(nil),                         // 22: malonaz.ai.v1.Message
+	(*v12.ToolResult)(nil),                      // 23: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_agent_agent_service_v1_agent_proto_depIdxs = []int32{
-	19, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
-	19, // 1: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
-	20, // 2: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.update_mask:type_name -> google.protobuf.FieldMask
-	19, // 3: malonaz.ai.agent.agent_service.v1.ListAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
-	19, // 4: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
-	21, // 5: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
-	0,  // 6: malonaz.ai.agent.agent_service.v1.StreamAgentRequest.view:type_name -> malonaz.ai.agent.agent_service.v1.AgentView
-	19, // 7: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.snapshot:type_name -> malonaz.ai.agent.v1.Agent
-	16, // 8: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
-	17, // 9: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call_ended:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
-	22, // 10: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.delta:type_name -> malonaz.ai.v1.Block
-	23, // 11: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.message:type_name -> malonaz.ai.v1.Message
-	18, // 12: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.generation_reset:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
-	23, // 13: malonaz.ai.agent.agent_service.v1.MessageAgentRequest.message:type_name -> malonaz.ai.v1.Message
-	24, // 14: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest.result:type_name -> malonaz.ai.v1.ToolResult
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	18, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
+	18, // 1: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
+	19, // 2: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.update_mask:type_name -> google.protobuf.FieldMask
+	18, // 3: malonaz.ai.agent.agent_service.v1.ListAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
+	18, // 4: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
+	20, // 5: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	18, // 6: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.snapshot:type_name -> malonaz.ai.agent.v1.Agent
+	15, // 7: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
+	16, // 8: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call_ended:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
+	21, // 9: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.delta:type_name -> malonaz.ai.v1.Block
+	22, // 10: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.message:type_name -> malonaz.ai.v1.Message
+	17, // 11: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.generation_reset:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
+	22, // 12: malonaz.ai.agent.agent_service.v1.MessageAgentRequest.message:type_name -> malonaz.ai.v1.Message
+	23, // 13: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest.result:type_name -> malonaz.ai.v1.ToolResult
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_agent_service_v1_agent_proto_init() }
@@ -2188,14 +2136,13 @@ func file_malonaz_ai_agent_agent_service_v1_agent_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc), len(file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_ai_agent_agent_service_v1_agent_proto_goTypes,
 		DependencyIndexes: file_malonaz_ai_agent_agent_service_v1_agent_proto_depIdxs,
-		EnumInfos:         file_malonaz_ai_agent_agent_service_v1_agent_proto_enumTypes,
 		MessageInfos:      file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes,
 	}.Build()
 	File_malonaz_ai_agent_agent_service_v1_agent_proto = out.File
