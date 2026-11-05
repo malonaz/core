@@ -1,5 +1,6 @@
 name: h-service
 target: //h/h_service
+stop_before_servers: true
 dependencies:
   - grpc_client:
       service: b-service

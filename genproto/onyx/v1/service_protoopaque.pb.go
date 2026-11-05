@@ -33,6 +33,7 @@ type ServiceManifest struct {
 	xxx_hidden_Codegens            *[]*Codegen            `protobuf:"bytes,5,rep,name=codegens,proto3"`
 	xxx_hidden_Dependencies        *[]*Dependency         `protobuf:"bytes,6,rep,name=dependencies,proto3"`
 	xxx_hidden_Deployment          *MainManifest          `protobuf:"bytes,7,opt,name=deployment,proto3"`
+	xxx_hidden_StopBeforeServers   bool                   `protobuf:"varint,8,opt,name=stop_before_servers,json=stopBeforeServers,proto3"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -115,6 +116,13 @@ func (x *ServiceManifest) GetDeployment() *MainManifest {
 	return nil
 }
 
+func (x *ServiceManifest) GetStopBeforeServers() bool {
+	if x != nil {
+		return x.xxx_hidden_StopBeforeServers
+	}
+	return false
+}
+
 func (x *ServiceManifest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -141,6 +149,10 @@ func (x *ServiceManifest) SetDependencies(v []*Dependency) {
 
 func (x *ServiceManifest) SetDeployment(v *MainManifest) {
 	x.xxx_hidden_Deployment = v
+}
+
+func (x *ServiceManifest) SetStopBeforeServers(v bool) {
+	x.xxx_hidden_StopBeforeServers = v
 }
 
 func (x *ServiceManifest) HasDeployment() bool {
@@ -172,6 +184,10 @@ type ServiceManifest_builder struct {
 	// The binary running only this service, which onyx_manifest builds with its `binary`. A server
 	// naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment *MainManifest
+	// Stop the service in the binary's graceful chain ahead of every server, with the processors,
+	// rather than after the servers' graceful stops: for a service whose stop releases work that
+	// still needs the servers, or ends streams that would hold their graceful stop.
+	StopBeforeServers bool
 }
 
 func (b0 ServiceManifest_builder) Build() *ServiceManifest {
@@ -185,6 +201,7 @@ func (b0 ServiceManifest_builder) Build() *ServiceManifest {
 	x.xxx_hidden_Codegens = &b.Codegens
 	x.xxx_hidden_Dependencies = &b.Dependencies
 	x.xxx_hidden_Deployment = b.Deployment
+	x.xxx_hidden_StopBeforeServers = b.StopBeforeServers
 	return m0
 }
 
@@ -1150,7 +1167,7 @@ var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1amalonaz/onyx/v1/main.proto\"\x82\x03\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1amalonaz/onyx/v1/main.proto\"\xb2\x03\n" +
 	"\x0fServiceManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12'\n" +
@@ -1160,7 +1177,8 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12E\n" +
 	"\n" +
 	"deployment\x18\a \x01(\v2\x1d.malonaz.onyx.v1.MainManifestB\x06\xbaH\x03\xd8\x01\x03R\n" +
-	"deployment\"\x8d\x02\n" +
+	"deployment\x12.\n" +
+	"\x13stop_before_servers\x18\b \x01(\bR\x11stopBeforeServers\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
 	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
 	"\x03Rpc\x123\n" +
