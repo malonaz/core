@@ -350,3 +350,30 @@ func TestLease_FailedTurnReportsOnceAcrossATakeover(t *testing.T) {
 	require.Len(t, reports, 1)
 	require.Contains(t, lastText(reports[0]), "the model is down")
 }
+
+func TestLease_CancelWaitsOutAPreviousProcessLease(t *testing.T) {
+	idleReplica := newIdleReplica(t, newFakeAiService())
+	agent := createTestAgent(t, idleReplica)
+	// This replica's previous process held the turn under the same address: its lease is still to expire.
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	require.NoError(t, err)
+	require.NoError(t, idleReplica.transact(context.Background(), func(ctx context.Context, tx *txn) error {
+		lockedAgent, err := tx.getAgent(ctx, agent.Name)
+		if err != nil {
+			return err
+		}
+		lockedAgent.State = agentpb.Agent_STATE_RUNNING
+		if err := tx.saveAgent(ctx, lockedAgent); err != nil {
+			return err
+		}
+		_, err = tx.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, uuid.MustNewV7().String(), idleReplica.address, 300*time.Millisecond)
+		return err
+	}))
+
+	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
+	cancelledAgent, err := idleReplica.CancelAgent(context.Background(), cancelAgentRequest)
+
+	require.NoError(t, err)
+	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
+	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, cancelledAgent.GetLatestTurn().GetOutcome())
+}

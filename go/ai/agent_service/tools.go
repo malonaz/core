@@ -18,12 +18,17 @@ import (
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
+	"github.com/malonaz/core/go/uuid"
 )
 
 // toolCallTitleDescription documents the title every tool call carries, shown to the users following the agent.
 const toolCallTitleDescription = "A short user-facing title for this call, shown in place of its arguments: " +
 	"what it does and why, at most 8 words, sentence case, no trailing period (e.g. 'Find where pendingReview is used')."
+
+// toolRequestIDNamespace derives the request id of an RPC tool call from the call's id.
+var toolRequestIDNamespace = uuid.MustParse("6d1f2b84-93a7-4c5e-b0d8-71e4a9c3f652")
 
 // toolbox holds the tools of one turn of an agent: the built-in tools, and its spec's gRPC methods and genui components.
 type toolbox struct {
@@ -138,7 +143,7 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			}
 			createToolRequest := &aienginepb.CreateToolRequest{
 				DescriptorReference: &aienginepb.DescriptorReference{FullName: &aienginepb.DescriptorReference_Method{Method: name}},
-				SchemaConfiguration: schemaConfiguration,
+				SchemaConfiguration: methodSchemaConfiguration(descriptor),
 			}
 			tool, err := builder.CreateTool(createToolRequest)
 			if err != nil {
@@ -148,10 +153,18 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			tools = append(tools, tool)
 
 		case protoreflect.ServiceDescriptor:
+			methodNameToSchemaConfiguration := map[string]*aienginepb.SchemaConfiguration{}
+			for i := 0; i < descriptor.Methods().Len(); i++ {
+				method := descriptor.Methods().Get(i)
+				if requestIDField(method) != nil {
+					methodNameToSchemaConfiguration[string(method.Name())] = methodSchemaConfiguration(method)
+				}
+			}
 			createServiceToolSetRequest := &aienginepb.CreateServiceToolSetRequest{
-				ServiceFullName:     name,
-				MethodNames:         unaryMethodNames(descriptor),
-				SchemaConfiguration: schemaConfiguration,
+				ServiceFullName:                 name,
+				MethodNames:                     unaryMethodNames(descriptor),
+				SchemaConfiguration:             schemaConfiguration,
+				MethodNameToSchemaConfiguration: methodNameToSchemaConfiguration,
 			}
 			toolSet, err := builder.CreateServiceToolSet(createServiceToolSetRequest)
 			if err != nil {
@@ -186,6 +199,37 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		}
 	}
 	return toolbox, nil
+}
+
+// requestIDField returns the request_id field of a method's request, if any: the service seeds it from the call's
+// id, so a call run again after a crash is deduplicated, and the model never generates it.
+func requestIDField(method protoreflect.MethodDescriptor) protoreflect.FieldDescriptor {
+	return messageRequestIDField(method.Input())
+}
+
+// messageRequestIDField returns a request message's string request_id field, if any.
+func messageRequestIDField(message protoreflect.MessageDescriptor) protoreflect.FieldDescriptor {
+	field := message.Fields().ByName("request_id")
+	if field == nil || field.Kind() != protoreflect.StringKind || field.Cardinality() == protoreflect.Repeated {
+		return nil
+	}
+	return field
+}
+
+// methodSchemaConfiguration returns the schema configuration of a method's tool: titled, without a request id.
+func methodSchemaConfiguration(method protoreflect.MethodDescriptor) *aienginepb.SchemaConfiguration {
+	options := []aitool.Option{aitool.WithTitle(toolCallTitleDescription)}
+	if requestIDField(method) != nil {
+		var paths []string
+		fields := method.Input().Fields()
+		for i := 0; i < fields.Len(); i++ {
+			if field := fields.Get(i); field.Name() != "request_id" {
+				paths = append(paths, string(field.Name()))
+			}
+		}
+		options = append(options, aitool.WithFieldMask(pbfieldmask.FromPaths(paths...)))
+	}
+	return aitool.NewSchemaConfiguration(options...)
 }
 
 // unaryMethodNames returns the names of a service's unary methods: streaming methods are no tools.
@@ -228,6 +272,10 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 	if err != nil {
 		return nil, err
 	}
+	if field := requestIDField(methodTool.method); field != nil {
+		requestID := uuid.NewV5(toolRequestIDNamespace, b.agent.GetName()+"/"+toolCall.GetId()).String()
+		request.ProtoReflect().Set(field, protoreflect.ValueOfString(requestID))
+	}
 	response, err := b.service.toolRouter.invoke(ctx, methodTool.endpoint, methodTool.method, request)
 	if err != nil {
 		return nil, err
@@ -243,9 +291,14 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 	return ai.NewStructuredToolResult(toolCall.GetName(), toolCall.GetId(), content), nil
 }
 
-// buildToolCallMessage builds the message a tool call's arguments describe, its title stripped.
+// buildToolCallMessage builds the message a tool call's arguments describe, its title stripped, and any request id
+// the model made up.
 func buildToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, messageDescriptor protoreflect.MessageDescriptor, toolCall *aipb.ToolCall) (protoreflect.ProtoMessage, error) {
-	arguments, err := structpb.NewStruct(pbjson.StripTitle(toolCall.GetArguments().AsMap()))
+	argumentMap := pbjson.StripTitle(toolCall.GetArguments().AsMap())
+	if messageRequestIDField(messageDescriptor) != nil {
+		delete(argumentMap, "request_id")
+	}
+	arguments, err := structpb.NewStruct(argumentMap)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "reading arguments: %v", err).Err()
 	}

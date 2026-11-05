@@ -289,3 +289,31 @@ func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
 	require.Equal(t, "library", request.ProtoReflect().Get(request.ProtoReflect().Descriptor().Fields().ByName("service")).String())
 	require.Empty(t, request.ProtoReflect().GetUnknown())
 }
+
+func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
+	// The replica's own AgentService serves as the tool target: MessageAgent carries a request id.
+	const messageAgentMethod = "malonaz.ai.agent.agent_service.v1.AgentService.MessageAgent"
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
+		opts.MaxConcurrentTurns = 0
+		opts.ToolTargets = map[string]string{"malonaz.ai.agent.agent_service.v1.AgentService": opts.AdvertisedAddress}
+	})
+	agent := createTestAgent(t, service, messageAgentMethod)
+	recipient := createTestAgent(t, service)
+	toolbox, err := service.newToolbox(context.Background(), agent)
+	require.NoError(t, err)
+	tool := findTool(toolbox.tools, "AgentService_MessageAgent")
+	require.NotNil(t, tool)
+	require.NotContains(t, tool.GetJsonSchema().GetProperties(), "request_id")
+
+	toolCall := newToolCall("call-1", "AgentService_MessageAgent", map[string]any{
+		"tool_call_title": "Message",
+		"name":            recipient.Name,
+		"message":         map[string]any{"role": "ROLE_USER", "blocks": []any{map[string]any{"text": "hello"}}},
+		"request_id":      "made-up",
+	})
+	// Run again, as after a crash: the same request id queues the message once.
+	for range 2 {
+		require.Nil(t, toolbox.call(context.Background(), toolCall).GetError())
+	}
+	require.Len(t, getAgent(t, service, recipient.Name).QueuedMessages, 1)
+}
