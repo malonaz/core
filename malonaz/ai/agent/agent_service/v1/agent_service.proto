@@ -8,7 +8,6 @@ import "malonaz/ai/agent/agent_service/v1/agent.proto";
 import "malonaz/ai/agent/agent_service/v1/definition.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
-import "malonaz/ai/v1/message.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -28,12 +27,11 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // # Messaging
 //
 // Messages are the only way into an agent, from a client or another agent, and
-// always asynchronous: MessageAgent queues a message in the agent's chat,
-// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
-// agent's next turn delivers every pending message, at its start and between
-// its tool rounds, as one user message at the chat's end. Each turn a
-// sub-agent ends is sent to its parent as a report, so a parent never waits:
-// it ends its turn and wakes on the report.
+// always asynchronous: MessageAgent queues a message on the agent, in its
+// `queued_messages`, waking it if idle, and the agent's turn delivers every
+// queued message to its chat, at its start and between its tool rounds. Each
+// turn a sub-agent ends is sent to its parent as a report, so a parent never
+// waits: it ends its turn and wakes on the report.
 service AgentService {
   option (google.api.default_host) = "agent.ai.malonaz.com";
 
@@ -203,11 +201,11 @@ service AgentService {
 
   // ===================== Messaging =====================
 
-  // Send an agent a message, queued in its chat for its next turn. Wakes an
-  // idle agent. Returns the queued message.
+  // Send an agent a message, queued on the agent for its turn to deliver.
+  // Wakes an idle agent. Returns the agent, the message in its queue.
   //
   // See: https://google.aip.dev/136 (Custom methods).
-  rpc MessageAgent(MessageAgentRequest) returns (malonaz.ai.v1.Message) {
+  rpc MessageAgent(MessageAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
     option (google.api.http) = {
       post: "/v1/{name=organizations/*/users/*/agents/*}:message"
       body: "*"

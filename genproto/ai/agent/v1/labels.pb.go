@@ -27,8 +27,7 @@ var File_malonaz_ai_agent_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	" malonaz/ai/agent/v1/labels.proto\x12\x13malonaz.ai.agent.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xf6\x06\x92\x95\x15\xa5\x04\n" +
-	"\x1cagent.ai.malonaz.com/pending\x1a\x84\x04On a message of an agent's chat: the message was sent to the agent (MessageAgent, a sub-agent's turn report, a built-in tool) and awaits its next delivery. A pending message is also ai.malonaz.com/excluded: the model never sees it where it was queued. A turn delivers every pending message at its start and between its tool rounds as one user message at the chat's end, then removes this label from each, which stay excluded. List an agent's queued messages with the filter `labels.\"agent.ai.malonaz.com/pending\":*`.\x92\x95\x15\x99\x02\n" +
+	" malonaz/ai/agent/v1/labels.proto\x12\x13malonaz.ai.agent.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xcc\x02\x92\x95\x15\x99\x02\n" +
 	"\x1aagent.ai.malonaz.com/agent\x1a\xfa\x01On an AiService chat: the id of the agent owning it, the last segment of the agent's resource name. Set by the AgentService when it creates the agent's chat, never by clients: it marks the chat as an agent's transcript, which the AgentService writes.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_labels_proto_goTypes = []any{}

@@ -1021,8 +1021,9 @@ export type MessageAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.Mes
   name: string;
 
   /**
-   * The message, a USER message written by the caller, who stamps itself in its
-   * agent.ai.malonaz.com/sender annotation.
+   * The message, a USER message written by the caller. The service stamps its
+   * agent.ai.malonaz.com/sender annotation: a sender the caller set must name
+   * the user owning the agent.
    *
    * @generated from field: malonaz.ai.v1.Message message = 2;
    */
@@ -1051,8 +1052,9 @@ export type MessageAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v
   name: string;
 
   /**
-   * The message, a USER message written by the caller, who stamps itself in its
-   * agent.ai.malonaz.com/sender annotation.
+   * The message, a USER message written by the caller. The service stamps its
+   * agent.ai.malonaz.com/sender annotation: a sender the caller set must name
+   * the user owning the agent.
    *
    * @generated from field: malonaz.ai.v1.Message message = 2;
    */

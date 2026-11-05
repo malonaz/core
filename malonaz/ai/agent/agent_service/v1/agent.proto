@@ -321,8 +321,9 @@ message MessageAgentRequest {
     (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
   ];
 
-  // The message, a USER message written by the caller, who stamps itself in its
-  // agent.ai.malonaz.com/sender annotation.
+  // The message, a USER message written by the caller. The service stamps its
+  // agent.ai.malonaz.com/sender annotation: a sender the caller set must name
+  // the user owning the agent.
   malonaz.ai.v1.Message message = 2 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED
