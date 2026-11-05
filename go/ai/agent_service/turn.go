@@ -112,14 +112,14 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		}
 		lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
 		if err != nil {
-			return status.FromError(err, "getting lease").Err()
+			return fmt.Errorf("getting lease: %w", err)
 		}
 		if lease == nil || lease.Replica != s.replica {
 			return errLeaseLost
 		}
 		if agent.DeleteTime != nil {
 			if _, err := t.ReleaseLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica); err != nil {
-				return status.FromError(err, "releasing lease").Err()
+				return fmt.Errorf("releasing lease: %w", err)
 			}
 			return nil
 		}
@@ -131,17 +131,17 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		}
 		if turnEnd.outcome == agentpb.Agent_TURN_OUTCOME_SUCCEEDED {
 			if next, err = t.HasPendingInputs(ctx, agentRn.Organization, agentRn.User, agentRn.Agent); err != nil {
-				return status.FromError(err, "checking pending inputs").Err()
+				return fmt.Errorf("checking pending inputs: %w", err)
 			}
 		}
 		if next {
 			if _, err := t.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica, s.address, s.opts.LeaseDuration); err != nil {
-				return status.FromError(err, "renewing lease").Err()
+				return fmt.Errorf("renewing lease: %w", err)
 			}
 		} else {
 			agent.State = agentpb.Agent_STATE_IDLE
 			if _, err := t.ReleaseLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica); err != nil {
-				return status.FromError(err, "releasing lease").Err()
+				return fmt.Errorf("releasing lease: %w", err)
 			}
 		}
 		if err := t.saveAgent(ctx, agent); err != nil {
@@ -486,6 +486,10 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 			toolResult := toolCall.GetResult()
 			if toolResult == nil {
 				toolResult = toolbox.call(ctx, toolCall)
+				// A call failing as the turn is cancelled failed because of it.
+				if toolResult.GetError() != nil && ctx.Err() != nil {
+					toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallCancelled)
+				}
 			}
 			indexedToolResults <- indexedToolResult{index: i, toolResult: toolResult}
 		}()
@@ -509,6 +513,14 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 		case <-ctx.Done():
 			if !errors.Is(context.Cause(ctx), errTurnCancelled) {
 				return nil, ctx.Err()
+			}
+			// Calls that returned as the turn was cancelled keep their results.
+			for len(indexedToolResults) > 0 {
+				result := <-indexedToolResults
+				if _, err := r.persistToolResult(context.WithoutCancel(ctx), result.toolResult); err != nil {
+					return nil, err
+				}
+				answeredSet[result.index] = struct{}{}
 			}
 			for i, toolCall := range calls {
 				if _, ok := answeredSet[i]; ok {

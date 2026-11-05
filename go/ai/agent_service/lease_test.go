@@ -233,7 +233,10 @@ func TestLease_CancelLocalTurn(t *testing.T) {
 		newToolCall("call-2", healthCheckTool, map[string]any{"service": "block"}),
 	))
 	sendText(t, service, agent.Name, "go")
-	require.Eventually(t, func() bool { return len(healthServer.checkedServices()) == 2 }, waitTimeout, waitTick)
+	require.Eventually(t, func() bool {
+		_, ok := toolResults(service.aiService.messages(agent.Chat))["call-1"]
+		return ok && len(healthServer.checkedServices()) == 2
+	}, waitTimeout, waitTick)
 
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
 	cancelledAgent, err := service.CancelAgent(context.Background(), cancelAgentRequest)
@@ -320,4 +323,25 @@ func TestLease_ShutdownFinishesToolCallsThenHandsTheTurnOver(t *testing.T) {
 	waitForIdle(t, replicaB, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
 	messages := aiService.messages(agent.Chat)
 	require.Equal(t, "finished elsewhere", messages[len(messages)-1].GetBlocks()[0].GetText())
+}
+
+func TestLease_DeleteCancelsTheTurnOnTheReplicaRunningIt(t *testing.T) {
+	aiService := newFakeAiService()
+	// Heartbeats too slow to notice the lost lease: only the forwarded cancellation stops the turn in time.
+	replicaA := newTestReplica(t, aiService, func(opts *Opts) {
+		opts.HeartbeatInterval = time.Minute
+		opts.LeaseDuration = 3 * time.Minute
+	})
+	replicaB := newTestReplica(t, aiService, nil)
+	agent := createTestAgent(t, replicaA)
+	started := make(chan struct{})
+	aiService.script(agent.Chat, &fakeGeneration{block: true, started: started})
+	sendText(t, replicaA, agent.Name, "go")
+	<-started
+
+	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
+	_, err := replicaB.DeleteAgent(context.Background(), deleteAgentRequest)
+
+	require.NoError(t, err)
+	require.Eventually(t, func() bool { return replicaA.turns.count() == 0 }, 5*time.Second, waitTick)
 }
