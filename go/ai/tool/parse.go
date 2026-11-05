@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
@@ -143,6 +144,20 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 }
 
 func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolCall) (*structpb.Struct, error) {
+	dynamicMessage, err := BuildToolCallMessage(schemaBuilder, toolCall)
+	if err != nil {
+		return nil, err
+	}
+	message := &structpb.Struct{}
+	if err := pbutil.UnmarshalFromDynamic(message, dynamicMessage); err != nil {
+		return nil, status.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
+	}
+	return message, nil
+}
+
+// BuildToolCallMessage builds the message a tool call generates, named by its proto message annotation, from its
+// arguments: unwrapped from a stray envelope, normalized to proto names, restricted to the generation field mask.
+func BuildToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolCall) (*dynamicpb.Message, error) {
 	messageFullName, ok := aipb.Annotations.ProtoMessage.Get(toolCall)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", aipb.Annotations.ProtoMessage.Key).Err()
@@ -176,13 +191,7 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 		}
 		fieldMask.Apply(dynamicMessage)
 	}
-
-	message := &structpb.Struct{}
-	if err := pbutil.UnmarshalFromDynamic(message, dynamicMessage); err != nil {
-		return nil, status.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
-	}
-
-	return message, nil
+	return dynamicMessage, nil
 }
 
 // pruneArguments returns a copy of arguments restricted to the field mask.
