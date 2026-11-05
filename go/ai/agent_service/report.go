@@ -63,9 +63,8 @@ func (s *executorSession) handleRelease(ctx context.Context, release *agentservi
 		return err
 	}
 	s.forget(ctx, release.Agent)
-	if err := s.service.placeAgent(ctx, release.Agent); err != nil {
-		s.service.log.WarnContext(ctx, "placing released agent", "agent", release.Agent, "error", err)
-	}
+	// The released agent and the capacity it freed: placement skips this executor for it.
+	s.service.placePendingAgents(ctx, s.executorRn.Organization, s.executorRn.User)
 	return nil
 }
 
