@@ -5,6 +5,7 @@ package v1
 import (
 	v1 "github.com/malonaz/core/genproto/nats/v1"
 	nats "github.com/malonaz/core/go/nats"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	sync "sync"
 )
 
@@ -20,7 +21,12 @@ type UserServiceOrganizationStream struct {
 func GetUserServiceOrganizationStream() *UserServiceOrganizationStream {
 	userServiceOrganizationStreamOnce.Do(func() {
 		userServiceOrganizationStreamVal = &UserServiceOrganizationStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.organization"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name:      "malonaz.test.user.v1.organization",
+				MaxAge:    &durationpb.Duration{Seconds: 2592000, Nanos: 0},
+				Retention: v1.RetentionPolicy_RETENTION_POLICY_LIMITS,
+				Storage:   v1.StorageType_STORAGE_TYPE_FILE,
+			}),
 		}
 	})
 	return userServiceOrganizationStreamVal
@@ -42,7 +48,12 @@ type UserServiceUserStream struct {
 func GetUserServiceUserStream() *UserServiceUserStream {
 	userServiceUserStreamOnce.Do(func() {
 		userServiceUserStreamVal = &UserServiceUserStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.user"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name:      "malonaz.test.user.v1.user",
+				MaxAge:    &durationpb.Duration{Seconds: 2592000, Nanos: 0},
+				Retention: v1.RetentionPolicy_RETENTION_POLICY_LIMITS,
+				Storage:   v1.StorageType_STORAGE_TYPE_FILE,
+			}),
 		}
 	})
 	return userServiceUserStreamVal

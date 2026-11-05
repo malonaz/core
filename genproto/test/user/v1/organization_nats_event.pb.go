@@ -25,7 +25,9 @@ type OrganizationStream struct {
 func GetOrganizationStream() *OrganizationStream {
 	organizationStreamOnce.Do(func() {
 		organizationStreamVal = &OrganizationStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.user.v1.organization"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name: "malonaz.test.user.v1.organization",
+			}),
 		}
 	})
 	return organizationStreamVal

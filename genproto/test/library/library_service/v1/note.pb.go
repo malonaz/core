@@ -431,9 +431,8 @@ type UndeleteNoteRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the deleted note to restore.
 	// Format: organizations/{organization}/notes/{note}
-	//
-	//	organizations/{organization}/authors/{author}/notes/{note}
-	//	organizations/{organization}/shelves/{shelf}/notes/{note}
+	//         organizations/{organization}/authors/{author}/notes/{note}
+	//         organizations/{organization}/shelves/{shelf}/notes/{note}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// If set, the request will only succeed if the current etag matches this value.
 	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
@@ -493,9 +492,8 @@ type UndeleteNoteRequest_builder struct {
 
 	// The resource name of the deleted note to restore.
 	// Format: organizations/{organization}/notes/{note}
-	//
-	//	organizations/{organization}/authors/{author}/notes/{note}
-	//	organizations/{organization}/shelves/{shelf}/notes/{note}
+	//         organizations/{organization}/authors/{author}/notes/{note}
+	//         organizations/{organization}/shelves/{shelf}/notes/{note}
 	Name string
 	// If set, the request will only succeed if the current etag matches this value.
 	Etag string

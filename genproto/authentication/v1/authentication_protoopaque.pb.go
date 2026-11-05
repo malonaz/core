@@ -1141,8 +1141,8 @@ type Session_builder struct {
 	// An authorized session does not get checked again method permissions.
 	// We only check at edges entry point.
 	// For example, let's look at an external call:
-	//   - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
-	//   - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
+	//  - Call serviceA.Method1: we verify permissions and if valid, set `authorized=true`
+	//  - serviceA.Method1 calls serviceB.Method2: the session is authorized so we do not verify permissions.
 	Authorized bool
 	// The labels on this sessino.
 	Labels map[string]string

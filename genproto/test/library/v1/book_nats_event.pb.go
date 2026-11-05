@@ -27,7 +27,9 @@ type BookStream struct {
 func GetBookStream() *BookStream {
 	bookStreamOnce.Do(func() {
 		bookStreamVal = &BookStream{
-			stream: nats.NewStream(&v1.StreamOptions{Name: "malonaz.test.library.v1.book"}),
+			stream: nats.NewStream(&v1.StreamOptions{
+				Name: "malonaz.test.library.v1.book",
+			}),
 		}
 	})
 	return bookStreamVal

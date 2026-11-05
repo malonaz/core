@@ -469,9 +469,8 @@ type UndeleteNoteRequest_builder struct {
 
 	// The resource name of the deleted note to restore.
 	// Format: organizations/{organization}/notes/{note}
-	//
-	//	organizations/{organization}/authors/{author}/notes/{note}
-	//	organizations/{organization}/shelves/{shelf}/notes/{note}
+	//         organizations/{organization}/authors/{author}/notes/{note}
+	//         organizations/{organization}/shelves/{shelf}/notes/{note}
 	Name string
 	// If set, the request will only succeed if the current etag matches this value.
 	Etag string
