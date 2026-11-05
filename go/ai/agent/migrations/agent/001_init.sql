@@ -16,8 +16,7 @@ CREATE TABLE agent (
     root_agent TEXT NOT NULL,
     chat TEXT NOT NULL,
     state SMALLINT NOT NULL,
-    last_turn_outcome SMALLINT NOT NULL,
-    status JSONB,
+    latest_turn JSONB,
     queued_messages JSONB NOT NULL,
     -- Must match AgentSearchDocumentExpression, emitted by the postgres codegen.
     search_document tsvector GENERATED ALWAYS AS (
