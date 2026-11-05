@@ -1,5 +1,6 @@
 name: agent-service
 target: //go/ai/agent_service
+stop_before_servers: true
 codegens:
   - rpc:
       name: agent-service
