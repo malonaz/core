@@ -79,3 +79,17 @@ func TestSearchDocument_ID(t *testing.T) {
 		require.ErrorContains(t, err, "validating extension")
 	})
 }
+
+func TestSearchDocument_JSONColumn(t *testing.T) {
+	const shelf = "malonaz.test.library.v1.Shelf"
+	labels := &aippb.SearchOptions_Field{Source: &aippb.SearchOptions_Field_Path{Path: "labels"}, Weight: aippb.SearchOptions_WEIGHT_B}
+
+	message, searchDoc, err := searchDocument(t, shelf, labels)
+	require.NoError(t, err)
+	require.Equal(t, "setweight(to_tsvector('simple', coalesce(labels #>> '{}', '')), 'B')", searchDoc.Expression)
+
+	// Snippets headline the string leaves, never raw JSON.
+	expression, err := schema.SnippetExpression(message, searchDoc.SnippetFields[0], "shelf.")
+	require.NoError(t, err)
+	require.Equal(t, `coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(shelf.labels, 'strict $.** ? (@.type() == "string")') AS j), '')`, expression)
+}
