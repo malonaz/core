@@ -5,8 +5,8 @@ postgres_migrations(
     dirs = [
         "agent",
         "agent_lease",
+        "agent_mailbox",
         "definition",
-        "input",
     ],
     visibility = ["PUBLIC"],
 )
