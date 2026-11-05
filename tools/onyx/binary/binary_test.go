@@ -52,6 +52,9 @@ func TestLoad(t *testing.T) {
 
 	source, err := Generate(b)
 	require.NoError(t, err)
+	// h-service asks to stop before the servers: with the processor, ahead of the servers' graceful stops.
+	require.Contains(t, string(source), "hServiceStop := sync.OnceFunc(hServiceCleanup)")
+	require.Contains(t, string(source), "lifecycle.CloseAll(dProcessorStop, hServiceStop)")
 	golden := "tools/onyx/binary/testdata/main.golden"
 	if os.Getenv("UPDATE_GOLDEN") != "" {
 		require.NoError(t, os.WriteFile(golden, source, 0o644))

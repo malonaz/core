@@ -32,6 +32,7 @@ type ServiceManifest struct {
 	xxx_hidden_ExportServiceFields bool                   `protobuf:"varint,4,opt,name=export_service_fields,json=exportServiceFields,proto3"`
 	xxx_hidden_Codegens            *[]*Codegen            `protobuf:"bytes,5,rep,name=codegens,proto3"`
 	xxx_hidden_Dependencies        *[]*Dependency         `protobuf:"bytes,6,rep,name=dependencies,proto3"`
+	xxx_hidden_StopBeforeServers   bool                   `protobuf:"varint,7,opt,name=stop_before_servers,json=stopBeforeServers,proto3"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -107,6 +108,13 @@ func (x *ServiceManifest) GetDependencies() []*Dependency {
 	return nil
 }
 
+func (x *ServiceManifest) GetStopBeforeServers() bool {
+	if x != nil {
+		return x.xxx_hidden_StopBeforeServers
+	}
+	return false
+}
+
 func (x *ServiceManifest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -131,6 +139,10 @@ func (x *ServiceManifest) SetDependencies(v []*Dependency) {
 	x.xxx_hidden_Dependencies = &v
 }
 
+func (x *ServiceManifest) SetStopBeforeServers(v bool) {
+	x.xxx_hidden_StopBeforeServers = v
+}
+
 type ServiceManifest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -146,6 +158,10 @@ type ServiceManifest_builder struct {
 	Codegens []*Codegen
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
+	// Stop the service in the binary's graceful chain ahead of every server, with the processors,
+	// rather than after the servers' graceful stops: for a service whose stop releases work that
+	// still needs the servers, or ends streams that would hold their graceful stop.
+	StopBeforeServers bool
 }
 
 func (b0 ServiceManifest_builder) Build() *ServiceManifest {
@@ -158,6 +174,7 @@ func (b0 ServiceManifest_builder) Build() *ServiceManifest {
 	x.xxx_hidden_ExportServiceFields = b.ExportServiceFields
 	x.xxx_hidden_Codegens = &b.Codegens
 	x.xxx_hidden_Dependencies = &b.Dependencies
+	x.xxx_hidden_StopBeforeServers = b.StopBeforeServers
 	return m0
 }
 
@@ -1123,14 +1140,15 @@ var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xbb\x02\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xeb\x02\n" +
 	"\x0fServiceManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12'\n" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8d\x02\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12.\n" +
+	"\x13stop_before_servers\x18\a \x01(\bR\x11stopBeforeServers\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
 	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
 	"\x03Rpc\x123\n" +

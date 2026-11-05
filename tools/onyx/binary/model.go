@@ -80,6 +80,12 @@ func (s *Service) IsProcessor() bool {
 	return true
 }
 
+// StopsBeforeServers reports whether the service stops in the graceful chain ahead of every
+// server: a processor, or a service whose manifest asks to.
+func (s *Service) StopsBeforeServers() bool {
+	return s.GetStopBeforeServers() || s.IsProcessor()
+}
+
 // Dependency is one resolved constructor argument.
 type Dependency struct {
 	GRPCClient *GRPCClient
