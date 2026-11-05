@@ -83,19 +83,18 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	case errors.Is(cause, errTurnCancelled):
 		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_CANCELLED
 		turnEnd.report = "My turn was cancelled."
-		return turnEnd
 	case err != nil:
 		s.log.Warn("turn failed", "agent", turn.agent, "error", err)
 		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_FAILED
 		turnEnd.err = err
 		turnEnd.report = fmt.Sprintf("My turn failed: %s", grpcstatus.Convert(err).Message())
-		return turnEnd
+	default:
+		turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_SUCCEEDED
+		if finalMessage != nil {
+			turnEnd.report = cmp.Or(messageText(finalMessage), "My turn ended without a reply.")
+		}
 	}
-	turnEnd.outcome = agentpb.Agent_TURN_OUTCOME_SUCCEEDED
-	if finalMessage != nil {
-		turnEnd.report = cmp.Or(messageText(finalMessage), "My turn ended without a reply.")
-		turnEnd.reportRequestID = uuid.NewV5(reportNamespace, finalMessage.GetName()).String()
-	}
+	turnEnd.reportRequestID = runner.reportRequestID(turnEnd.outcome)
 	return turnEnd
 }
 
@@ -180,9 +179,8 @@ func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) err
 	}
 	message := ai.NewUserMessage(ai.NewTextBlock(turnEnd.report))
 	agentpb.Annotations.Sender.Set(message, agent.Name)
-	requestID := cmp.Or(turnEnd.reportRequestID, uuid.MustNewV7().String())
 	// A deleted parent awaits no report.
-	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, requestID); err != nil && !status.HasCode(err, codes.NotFound) {
+	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, turnEnd.reportRequestID); err != nil && !status.HasCode(err, codes.NotFound) {
 		return status.FromError(err, "sending the turn's report").Err()
 	}
 	return nil
@@ -195,6 +193,19 @@ type turnRunner struct {
 	// The agent's sent message count read before the turn's latest delivery, once it delivered.
 	deliveredCount int64
 	delivered      bool
+	// The chat's last message the turn saw or wrote.
+	last *aipb.Message
+}
+
+// reportRequestID derives the request id of the turn's report from how it ended and the chat's last message it saw,
+// which a replay of the turn after a crash sees again: a report is never sent twice. A turn that saw no message falls
+// back on the agent's etag as the turn read it, which only the turn's end changes.
+func (r *turnRunner) reportRequestID(outcome agentpb.Agent_TurnOutcome) string {
+	key := r.agent.GetEtag()
+	if r.last != nil {
+		key = r.last.GetName()
+	}
+	return uuid.NewV5(reportNamespace, outcome.String()+"/"+key).String()
 }
 
 // run runs the turn until the model answers without calling tools, and returns that final message: nil when the
@@ -203,8 +214,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 	if err := r.ensureInstructions(ctx); err != nil {
 		return nil, err
 	}
-	last, err := r.resume(ctx)
-	if err != nil {
+	if err := r.resume(ctx); err != nil {
 		return nil, err
 	}
 	toolbox, err := r.service.newToolbox(ctx, r.agent)
@@ -212,26 +222,22 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 		return nil, err
 	}
 	for {
-		delivered, err := r.deliverMessages(ctx)
-		if err != nil {
+		if err := r.deliverMessages(ctx); err != nil {
 			return nil, err
 		}
-		if delivered != nil {
-			last = delivered
-		}
 		switch {
-		case last == nil:
+		case r.last == nil:
 			return nil, nil
-		case last.GetRole() == aipb.Role_ROLE_ASSISTANT && len(toolCalls(last)) == 0:
-			return last, nil
+		case r.last.GetRole() == aipb.Role_ROLE_ASSISTANT && len(toolCalls(r.last)) == 0:
+			return r.last, nil
 		}
 		generatedMessage, err := r.generate(ctx, toolbox)
 		if err != nil {
 			return nil, err
 		}
-		last = generatedMessage
+		r.last = generatedMessage
 		if calls := toolCalls(generatedMessage); len(calls) > 0 {
-			if last, err = r.answerToolCalls(ctx, toolbox, calls); err != nil {
+			if err := r.answerToolCalls(ctx, toolbox, calls); err != nil {
 				return nil, err
 			}
 		}
@@ -260,9 +266,9 @@ func (r *turnRunner) ensureInstructions(ctx context.Context) error {
 	return nil
 }
 
-// resume reads the end of the chat, where a turn interrupted on another replica left off, answers the tool calls
-// it left without a result and returns the chat's last message.
-func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
+// resume reads the end of the chat, where a turn interrupted on another replica left off, and answers the tool calls
+// it left without a result.
+func (r *turnRunner) resume(ctx context.Context) error {
 	listMessagesRequest := &aiservicepb.ListMessagesRequest{
 		Parent:  r.agent.GetChat(),
 		Filter:  ai.HistoryFilter,
@@ -273,7 +279,7 @@ func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 	var assistantMessage *aipb.Message
 	for message, err := range aip.Iterator[*aipb.Message](ctx, listMessagesRequest, r.service.aiServiceClient.ListMessages) {
 		if err != nil {
-			return nil, status.FromError(err, "listing messages").Err()
+			return status.FromError(err, "listing messages").Err()
 		}
 		switch message.GetRole() {
 		case aipb.Role_ROLE_ASSISTANT:
@@ -287,12 +293,12 @@ func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 		}
 		break
 	}
-	last := assistantMessage
+	r.last = assistantMessage
 	if len(tail) > 0 {
-		last = tail[0]
+		r.last = tail[0]
 	}
 	if assistantMessage == nil {
-		return last, nil
+		return nil
 	}
 
 	toolCallIDSet := map[string]struct{}{}
@@ -309,31 +315,29 @@ func (r *turnRunner) resume(ctx context.Context) (*aipb.Message, error) {
 		if toolResult == nil {
 			toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
 		}
-		message, err := r.persistToolResult(ctx, toolResult)
-		if err != nil {
-			return nil, err
+		if err := r.persistToolResult(ctx, toolResult); err != nil {
+			return err
 		}
-		last = message
 	}
-	return last, nil
+	return nil
 }
 
 // deliverMessages delivers the messages queued for the agent as one user message at the chat's end, listing them in
-// its messages annotation, then un-pends them. It returns the message, or nil if nothing was pending. The sent count
-// is read first: a message sent after it is counted after it, and the turn's end sees it.
-func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error) {
+// its messages annotation, then un-pends them. The sent count is read first: a message sent after it is counted after
+// it, and the turn's end sees it.
+func (r *turnRunner) deliverMessages(ctx context.Context) error {
 	agentRn, err := agentpb.ParseAgentRn(r.agent.GetName())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
 	chatRn, err := aipb.ParseChatRn(r.agent.GetChat())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
+		return status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
 	}
 	for {
 		sentCount, err := r.service.agentPostgresStore.GetSentCount(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
 		if err != nil {
-			return nil, status.FromError(err, "getting sent count").Err()
+			return status.FromError(err, "getting sent count").Err()
 		}
 		listMessagesRequest := &aiservicepb.ListMessagesRequest{
 			Parent:  r.agent.GetChat(),
@@ -342,11 +346,11 @@ func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error)
 		}
 		pendingMessages, err := aip.Paginate[*aipb.Message](ctx, listMessagesRequest, r.service.aiServiceClient.ListMessages)
 		if err != nil {
-			return nil, status.FromError(err, "listing pending messages").Err()
+			return status.FromError(err, "listing pending messages").Err()
 		}
 		if len(pendingMessages) == 0 {
 			r.deliveredCount, r.delivered = sentCount, true
-			return nil, nil
+			return nil
 		}
 
 		messageNames := make([]string, 0, len(pendingMessages))
@@ -356,7 +360,7 @@ func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error)
 			messageNames = append(messageNames, pendingMessage.GetName())
 			header, err := r.senderHeader(ctx, pendingMessage, senderToHeader)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if header != "" {
 				blocks = append(blocks, ai.NewTextBlock(header))
@@ -375,20 +379,21 @@ func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error)
 		if err == nil {
 			r.publishMessage(deliveredMessage)
 			if err := r.unpend(ctx, pendingMessages); err != nil {
-				return nil, err
+				return err
 			}
 			r.deliveredCount, r.delivered = sentCount, true
-			return deliveredMessage, nil
+			r.last = deliveredMessage
+			return nil
 		}
 		if !status.HasCode(err, codes.AlreadyExists) {
-			return nil, status.FromError(err, "creating delivery message").Err()
+			return status.FromError(err, "creating delivery message").Err()
 		}
 
 		// Delivered before a crash left its messages pending: un-pend what it delivered, then deliver the rest.
 		getMessageRequest := &aiservicepb.GetMessageRequest{Name: chatRn.MessageRn(messageID).String()}
 		existingMessage, err := r.service.aiServiceClient.GetMessage(ctx, getMessageRequest)
 		if err != nil {
-			return nil, status.FromError(err, "getting delivery message").Err()
+			return status.FromError(err, "getting delivery message").Err()
 		}
 		deliveredMessageNames, _ := agentpb.Annotations.Messages.Get(existingMessage)
 		deliveredMessageNameSet := map[string]struct{}{}
@@ -402,7 +407,7 @@ func (r *turnRunner) deliverMessages(ctx context.Context) (*aipb.Message, error)
 			}
 		}
 		if err := r.unpend(ctx, deliveredMessages); err != nil {
-			return nil, err
+			return err
 		}
 	}
 }
@@ -588,9 +593,9 @@ func (r *turnRunner) announceToolCall(toolCall *aipb.ToolCall) {
 }
 
 // answerToolCalls runs a generation's tool calls concurrently, persisting each result as soon as its call returns,
-// one write at a time, and returns the last result's message. Calls the AiService answered are fed back verbatim.
-// A cancelled turn answers its unfinished calls as cancelled; a stopped one leaves them to its next replica.
-func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, calls []*aipb.ToolCall) (*aipb.Message, error) {
+// one write at a time. Calls the AiService answered are fed back verbatim. A cancelled turn answers its unfinished
+// calls as cancelled; a stopped one leaves them to its next replica.
+func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, calls []*aipb.ToolCall) error {
 	type indexedToolResult struct {
 		index      int
 		toolResult *aipb.ToolResult
@@ -612,29 +617,26 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 	}
 
 	answeredSet := map[int]struct{}{}
-	var last *aipb.Message
 	for len(answeredSet) < len(calls) {
 		select {
 		case result := <-indexedToolResults:
 			// A turn stopped while the call ran must not answer it: its next replica does.
 			if ctx.Err() != nil && !errors.Is(context.Cause(ctx), errTurnCancelled) {
-				return nil, ctx.Err()
+				return ctx.Err()
 			}
-			message, err := r.persistToolResult(context.WithoutCancel(ctx), result.toolResult)
-			if err != nil {
-				return nil, err
+			if err := r.persistToolResult(context.WithoutCancel(ctx), result.toolResult); err != nil {
+				return err
 			}
 			answeredSet[result.index] = struct{}{}
-			last = message
 		case <-ctx.Done():
 			if !errors.Is(context.Cause(ctx), errTurnCancelled) {
-				return nil, ctx.Err()
+				return ctx.Err()
 			}
 			// Calls that returned as the turn was cancelled keep their results.
 			for len(indexedToolResults) > 0 {
 				result := <-indexedToolResults
-				if _, err := r.persistToolResult(context.WithoutCancel(ctx), result.toolResult); err != nil {
-					return nil, err
+				if err := r.persistToolResult(context.WithoutCancel(ctx), result.toolResult); err != nil {
+					return err
 				}
 				answeredSet[result.index] = struct{}{}
 			}
@@ -643,18 +645,18 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, toolbox *toolbox, call
 					continue
 				}
 				toolResult := ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallCancelled)
-				if _, err := r.persistToolResult(context.WithoutCancel(ctx), toolResult); err != nil {
-					return nil, err
+				if err := r.persistToolResult(context.WithoutCancel(ctx), toolResult); err != nil {
+					return err
 				}
 			}
-			return nil, ctx.Err()
+			return ctx.Err()
 		}
 	}
-	return last, nil
+	return nil
 }
 
 // persistToolResult persists a tool result as its own tool message, idempotently, and announces the call's end.
-func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.ToolResult) (*aipb.Message, error) {
+func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.ToolResult) error {
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    r.agent.GetChat(),
 		Message:   ai.NewToolMessage(ai.NewToolResultBlock(toolResult)),
@@ -662,7 +664,7 @@ func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.Too
 	}
 	message, err := r.service.aiServiceClient.CreateMessage(ctx, createMessageRequest)
 	if err != nil {
-		return nil, status.FromError(err, "creating tool result message").Err()
+		return status.FromError(err, "creating tool result message").Err()
 	}
 	r.publish(&agentservicepb.StreamAgentResponse{
 		Content: &agentservicepb.StreamAgentResponse_ToolCallEnded_{ToolCallEnded: &agentservicepb.StreamAgentResponse_ToolCallEnded{
@@ -671,7 +673,8 @@ func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.Too
 		}},
 	})
 	r.publishMessage(message)
-	return message, nil
+	r.last = message
+	return nil
 }
 
 func (r *turnRunner) publishMessage(message *aipb.Message) {
