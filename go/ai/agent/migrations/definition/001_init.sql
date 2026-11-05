@@ -7,7 +7,7 @@ CREATE TABLE definition (
     delete_time TIMESTAMP,
     etag TEXT NOT NULL,
     labels JSONB,
-    display_name TEXT NOT NULL,
+    title TEXT NOT NULL,
     description TEXT NOT NULL,
     spec JSONB NOT NULL,
     PRIMARY KEY (organization_id, definition_id),

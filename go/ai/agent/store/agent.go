@@ -9,14 +9,12 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/malonaz/core/gengo/ai/agent/model"
-	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/postgres"
 )
 
 var (
 	agentSelectQuery = "SELECT " + postgres.QualifyColumns(AgentPostgresColumns, "agent") + " FROM agent "
 	agentSaveQuery   = newSaveQuery("agent", AgentPostgresColumns, "organization_id", "user_id", "agent_id")
-	agentStatePending = int16(agentpb.Agent_STATE_PENDING)
 )
 
 // GetAgentForUpdate reads an agent, tombstones included, and locks it until the transaction ends.
@@ -59,44 +57,20 @@ func (t *Tx) SaveAgent(ctx context.Context, agent *model.Agent) error {
 	return nil
 }
 
-// ListLeasedAgents lists the live agents leased to an executor, by name.
-func (s *Store) ListLeasedAgents(ctx context.Context, executor string) ([]*model.Agent, error) {
-	query := agentSelectQuery + "WHERE delete_time IS NULL AND leased_executor = $1 ORDER BY create_time, agent_id"
-	return s.collectAgents(ctx, query, executor)
-}
-
-// ListOrphanedAgents lists live agents leased to an executor that is OFFLINE or missing.
-func (s *Store) ListOrphanedAgents(ctx context.Context, limit int) ([]*model.Agent, error) {
-	query := agentSelectQuery + `WHERE delete_time IS NULL AND leased_executor <> '' AND NOT EXISTS (
-		SELECT 1 FROM executor WHERE executor.state = $1
-		-- leased_executor holds a resource name: rebuilt from the executor's ids to join on it.
-		AND agent.leased_executor = 'organizations/' || executor.organization_id || '/users/' || executor.user_id || '/executors/' || executor.executor_id
-	) ORDER BY create_time, agent_id LIMIT $2`
-	return s.collectAgents(ctx, query, executorStateOnline, limit)
-}
-
-// ListPendingAgents lists live PENDING agents, oldest first. An empty organizationID (or userID) spans them all.
-func (s *Store) ListPendingAgents(ctx context.Context, organizationID, userID string, limit int) ([]*model.Agent, error) {
-	query := agentSelectQuery + `WHERE delete_time IS NULL AND state = $1
-		AND ($2 = '' OR organization_id = $2) AND ($3 = '' OR user_id = $3)
-		ORDER BY create_time, agent_id LIMIT $4`
-	return s.collectAgents(ctx, query, agentStatePending, organizationID, userID, limit)
-}
-
 // ListChildAgents lists the live agents a parent agent launched, by name.
 func (s *Store) ListChildAgents(ctx context.Context, parentAgent string) ([]*model.Agent, error) {
 	query := agentSelectQuery + "WHERE delete_time IS NULL AND parent_agent = $1 ORDER BY create_time, agent_id"
-	return s.collectAgents(ctx, query, parentAgent)
+	return collectAgents(ctx, s.client, query, parentAgent)
 }
 
 // ListTreeAgents lists every agent of the tree rooted at rootAgent, deleted ones included, oldest first.
 func (s *Store) ListTreeAgents(ctx context.Context, rootAgent string) ([]*model.Agent, error) {
 	query := agentSelectQuery + "WHERE root_agent = $1 ORDER BY create_time, agent_id"
-	return s.collectAgents(ctx, query, rootAgent)
+	return collectAgents(ctx, s.client, query, rootAgent)
 }
 
-func (s *Store) collectAgents(ctx context.Context, query string, params ...any) ([]*model.Agent, error) {
-	rows, err := s.client.Query(ctx, query, params...)
+func collectAgents(ctx context.Context, q querier, query string, params ...any) ([]*model.Agent, error) {
+	rows, err := q.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting agents: %w", err)
 	}

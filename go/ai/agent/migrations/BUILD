@@ -4,10 +4,8 @@ postgres_migrations(
     name = "migrations",
     dirs = [
         "agent",
+        "agent_lease",
         "definition",
-        "event",
-        "executor",
-        "executor_refusal",
         "input",
     ],
     visibility = ["PUBLIC"],
