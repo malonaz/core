@@ -209,7 +209,7 @@ export type AgentSpec = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   /**
    * The gRPC methods the agent may call as tools, by full name
    * ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-   * Built-in agent tools (launching sub-agents, sending inputs, labelling
+   * Built-in agent tools (launching sub-agents, messaging its tree, labelling
    * itself) are always available.
    *
    * @generated from field: repeated string tools = 4;
@@ -259,7 +259,7 @@ export type AgentSpecValid = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   /**
    * The gRPC methods the agent may call as tools, by full name
    * ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-   * Built-in agent tools (launching sub-agents, sending inputs, labelling
+   * Built-in agent tools (launching sub-agents, messaging its tree, labelling
    * itself) are always available.
    *
    * @generated from field: repeated string tools = 4;

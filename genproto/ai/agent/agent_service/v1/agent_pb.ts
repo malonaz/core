@@ -13,8 +13,6 @@ import type { Agent, AgentValid } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
 import type { Block, BlockValid, Message as Message$1, MessageValid } from "../../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../../v1/message_pb";
-import type { Input, InputValid } from "../../v1/input_pb";
-import { file_malonaz_ai_agent_v1_input } from "../../v1/input_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -22,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoSQ3JlYXRlSW5wdXRSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIxCgVpbnB1dBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuSW5wdXRCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASLSAQoRTGlzdElucHV0c1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEg4KBmZpbHRlchgCIAEoCRIQCghvcmRlcl9ieRgDIAEoCRIcCglwYWdlX3NpemUYBCABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAUgASgJOi+C8y0CCGSK8y0eCgtjcmVhdGVfdGltZRIPY3JlYXRlX3RpbWUgYXNjkvMtAwoBKiJZChJMaXN0SW5wdXRzUmVzcG9uc2USKgoGaW5wdXRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5JbnB1dBIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkqUgoJQWdlbnRWaWV3EhoKFkFHRU5UX1ZJRVdfVU5TUEVDSUZJRUQQABIUChBBR0VOVF9WSUVXX0JBU0lDEAESEwoPQUdFTlRfVklFV19GVUxMEAJCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoTTWVzc2FnZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEjIKB21lc3NhZ2UYAiABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBArpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASpSCglBZ2VudFZpZXcSGgoWQUdFTlRfVklFV19VTlNQRUNJRklFRBAAEhQKEEFHRU5UX1ZJRVdfQkFTSUMQARITCg9BR0VOVF9WSUVXX0ZVTEwQAkI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.CreateAgent.
@@ -486,7 +484,7 @@ export const ListAgentsResponseSchema: GenMessage<ListAgentsResponse, {validType
  */
 export type CancelAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.CancelAgentRequest"> & {
   /**
-   * The agent whose running turn to cancel. Pending inputs stay queued.
+   * The agent whose running turn to cancel. Its pending messages stay queued.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
    *
    * @generated from field: string name = 1;
@@ -501,7 +499,7 @@ export type CancelAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.Canc
  */
 export type CancelAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1.CancelAgentRequest"> & {
   /**
-   * The agent whose running turn to cancel. Pending inputs stay queued.
+   * The agent whose running turn to cancel. Its pending messages stay queued.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
    *
    * @generated from field: string name = 1;
@@ -817,25 +815,26 @@ export const StreamAgentResponse_GenerationResetSchema: GenMessage<StreamAgentRe
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 2);
 
 /**
- * Request message for AgentService.CreateInput.
+ * Request message for AgentService.MessageAgent.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.CreateInputRequest
+ * @generated from message malonaz.ai.agent.agent_service.v1.MessageAgentRequest
  */
-export type CreateInputRequest = Message<"malonaz.ai.agent.agent_service.v1.CreateInputRequest"> & {
+export type MessageAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.MessageAgentRequest"> & {
   /**
-   * The agent to send the input to.
+   * The agent to message.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
    *
-   * @generated from field: string parent = 1;
+   * @generated from field: string name = 1;
    */
-  parent: string;
+  name: string;
 
   /**
-   * The input to queue.
+   * The message, a USER message written by the caller, who stamps itself in its
+   * agent.ai.malonaz.com/sender annotation.
    *
-   * @generated from field: malonaz.ai.agent.v1.Input input = 2;
+   * @generated from field: malonaz.ai.v1.Message message = 2;
    */
-  input?: Input;
+  message?: Message$1;
 
   /**
    * A unique identifier for this request. Must be a UUID.
@@ -846,25 +845,26 @@ export type CreateInputRequest = Message<"malonaz.ai.agent.agent_service.v1.Crea
 };
 
 /**
- * Request message for AgentService.CreateInput.
+ * Request message for AgentService.MessageAgent.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.CreateInputRequest
+ * @generated from message malonaz.ai.agent.agent_service.v1.MessageAgentRequest
  */
-export type CreateInputRequestValid = Message<"malonaz.ai.agent.agent_service.v1.CreateInputRequest"> & {
+export type MessageAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1.MessageAgentRequest"> & {
   /**
-   * The agent to send the input to.
+   * The agent to message.
    * Format: organizations/{organization}/users/{user}/agents/{agent}
    *
-   * @generated from field: string parent = 1;
+   * @generated from field: string name = 1;
    */
-  parent: string;
+  name: string;
 
   /**
-   * The input to queue.
+   * The message, a USER message written by the caller, who stamps itself in its
+   * agent.ai.malonaz.com/sender annotation.
    *
-   * @generated from field: malonaz.ai.agent.v1.Input input = 2;
+   * @generated from field: malonaz.ai.v1.Message message = 2;
    */
-  input: InputValid;
+  message: MessageValid;
 
   /**
    * A unique identifier for this request. Must be a UUID.
@@ -875,153 +875,11 @@ export type CreateInputRequestValid = Message<"malonaz.ai.agent.agent_service.v1
 };
 
 /**
- * Describes the message malonaz.ai.agent.agent_service.v1.CreateInputRequest.
- * Use `create(CreateInputRequestSchema)` to create a new message.
+ * Describes the message malonaz.ai.agent.agent_service.v1.MessageAgentRequest.
+ * Use `create(MessageAgentRequestSchema)` to create a new message.
  */
-export const CreateInputRequestSchema: GenMessage<CreateInputRequest, {validType: CreateInputRequestValid}> = /*@__PURE__*/
+export const MessageAgentRequestSchema: GenMessage<MessageAgentRequest, {validType: MessageAgentRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 10);
-
-/**
- * Request message for AgentService.ListInputs.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListInputsRequest
- */
-export type ListInputsRequest = Message<"malonaz.ai.agent.agent_service.v1.ListInputsRequest"> & {
-  /**
-   * The agent whose inputs to list.
-   * Format: organizations/{organization}/users/{user}/agents/{agent}
-   *
-   * @generated from field: string parent = 1;
-   */
-  parent: string;
-
-  /**
-   * @autogen. `NOT consume_time:*` lists the pending inputs.
-   *
-   * @generated from field: string filter = 2;
-   */
-  filter: string;
-
-  /**
-   * @autogen
-   *
-   * @generated from field: string order_by = 3;
-   */
-  orderBy: string;
-
-  /**
-   * Maximum number of inputs to return (max 100).
-   *
-   * @generated from field: int32 page_size = 4;
-   */
-  pageSize: number;
-
-  /**
-   * A page token, received from a previous `ListInputs` call.
-   *
-   * @generated from field: string page_token = 5;
-   */
-  pageToken: string;
-};
-
-/**
- * Request message for AgentService.ListInputs.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListInputsRequest
- */
-export type ListInputsRequestValid = Message<"malonaz.ai.agent.agent_service.v1.ListInputsRequest"> & {
-  /**
-   * The agent whose inputs to list.
-   * Format: organizations/{organization}/users/{user}/agents/{agent}
-   *
-   * @generated from field: string parent = 1;
-   */
-  parent: string;
-
-  /**
-   * @autogen. `NOT consume_time:*` lists the pending inputs.
-   *
-   * @generated from field: string filter = 2;
-   */
-  filter: string;
-
-  /**
-   * @autogen
-   *
-   * @generated from field: string order_by = 3;
-   */
-  orderBy: string;
-
-  /**
-   * Maximum number of inputs to return (max 100).
-   *
-   * @generated from field: int32 page_size = 4;
-   */
-  pageSize: number;
-
-  /**
-   * A page token, received from a previous `ListInputs` call.
-   *
-   * @generated from field: string page_token = 5;
-   */
-  pageToken: string;
-};
-
-/**
- * Describes the message malonaz.ai.agent.agent_service.v1.ListInputsRequest.
- * Use `create(ListInputsRequestSchema)` to create a new message.
- */
-export const ListInputsRequestSchema: GenMessage<ListInputsRequest, {validType: ListInputsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11);
-
-/**
- * Response message for AgentService.ListInputs.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListInputsResponse
- */
-export type ListInputsResponse = Message<"malonaz.ai.agent.agent_service.v1.ListInputsResponse"> & {
-  /**
-   * The inputs.
-   *
-   * @generated from field: repeated malonaz.ai.agent.v1.Input inputs = 1;
-   */
-  inputs: Input[];
-
-  /**
-   * A token to retrieve the next page. Omitted when there are no more pages.
-   *
-   * @generated from field: string next_page_token = 2;
-   */
-  nextPageToken: string;
-};
-
-/**
- * Response message for AgentService.ListInputs.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListInputsResponse
- */
-export type ListInputsResponseValid = Message<"malonaz.ai.agent.agent_service.v1.ListInputsResponse"> & {
-  /**
-   * The inputs.
-   *
-   * @generated from field: repeated malonaz.ai.agent.v1.Input inputs = 1;
-   */
-  inputs: InputValid[];
-
-  /**
-   * A token to retrieve the next page. Omitted when there are no more pages.
-   *
-   * @generated from field: string next_page_token = 2;
-   */
-  nextPageToken: string;
-};
-
-/**
- * Describes the message malonaz.ai.agent.agent_service.v1.ListInputsResponse.
- * Use `create(ListInputsResponseSchema)` to create a new message.
- */
-export const ListInputsResponseSchema: GenMessage<ListInputsResponse, {validType: ListInputsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 12);
 
 /**
  * The amount of an agent's activity a StreamAgent call streams.

@@ -9,6 +9,7 @@ package v1
 import (
 	context "context"
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
+	v11 "github.com/malonaz/core/genproto/ai/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -34,8 +35,7 @@ const (
 	AgentService_ListAgents_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/ListAgents"
 	AgentService_CancelAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CancelAgent"
 	AgentService_StreamAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/StreamAgent"
-	AgentService_CreateInput_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CreateInput"
-	AgentService_ListInputs_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/ListInputs"
+	AgentService_MessageAgent_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -53,15 +53,16 @@ const (
 //   - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //     an AiService chat, its sub-agents linked by `parent_agent`.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
-//   - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
-//     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 //
 // # Messaging
 //
-// Inputs are the only way into an agent, from a client or another agent, and
-// always asynchronous: an input queues, and the agent's next turn drains every
-// pending input. Each turn a sub-agent ends is queued as an input on its
-// parent, so a parent never waits: it ends its turn and wakes on the report.
+// Messages are the only way into an agent, from a client or another agent, and
+// always asynchronous: MessageAgent queues a message in the agent's chat,
+// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
+// agent's next turn delivers every pending message, at its start and between
+// its tool rounds, as one user message at the chat's end. Each turn a
+// sub-agent ends is sent to its parent as a report, so a parent never waits:
+// it ends its turn and wakes on the report.
 type AgentServiceClient interface {
 	// Create a definition.
 	//
@@ -111,7 +112,7 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListAgents(ctx context.Context, in *ListAgentsRequest, opts ...grpc.CallOption) (*ListAgentsResponse, error)
-	// Cancel an agent's running turn. Its pending inputs stay queued.
+	// Cancel an agent's running turn. Its pending messages stay queued.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelAgent(ctx context.Context, in *CancelAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
@@ -119,14 +120,11 @@ type AgentServiceClient interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(ctx context.Context, in *StreamAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamAgentResponse], error)
-	// Send an agent an input, queued for its next turn. Wakes an idle agent.
+	// Send an agent a message, queued in its chat for its next turn. Wakes an
+	// idle agent. Returns the queued message.
 	//
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateInput(ctx context.Context, in *CreateInputRequest, opts ...grpc.CallOption) (*v1.Input, error)
-	// List an agent's inputs.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListInputs(ctx context.Context, in *ListInputsRequest, opts ...grpc.CallOption) (*ListInputsResponse, error)
+	// See: https://google.aip.dev/136 (Custom methods).
+	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v11.Message, error)
 }
 
 type agentServiceClient struct {
@@ -286,20 +284,10 @@ func (c *agentServiceClient) StreamAgent(ctx context.Context, in *StreamAgentReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AgentService_StreamAgentClient = grpc.ServerStreamingClient[StreamAgentResponse]
 
-func (c *agentServiceClient) CreateInput(ctx context.Context, in *CreateInputRequest, opts ...grpc.CallOption) (*v1.Input, error) {
+func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v11.Message, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Input)
-	err := c.cc.Invoke(ctx, AgentService_CreateInput_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) ListInputs(ctx context.Context, in *ListInputsRequest, opts ...grpc.CallOption) (*ListInputsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListInputsResponse)
-	err := c.cc.Invoke(ctx, AgentService_ListInputs_FullMethodName, in, out, cOpts...)
+	out := new(v11.Message)
+	err := c.cc.Invoke(ctx, AgentService_MessageAgent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,15 +309,16 @@ func (c *agentServiceClient) ListInputs(ctx context.Context, in *ListInputsReque
 //   - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //     an AiService chat, its sub-agents linked by `parent_agent`.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
-//   - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
-//     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 //
 // # Messaging
 //
-// Inputs are the only way into an agent, from a client or another agent, and
-// always asynchronous: an input queues, and the agent's next turn drains every
-// pending input. Each turn a sub-agent ends is queued as an input on its
-// parent, so a parent never waits: it ends its turn and wakes on the report.
+// Messages are the only way into an agent, from a client or another agent, and
+// always asynchronous: MessageAgent queues a message in the agent's chat,
+// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
+// agent's next turn delivers every pending message, at its start and between
+// its tool rounds, as one user message at the chat's end. Each turn a
+// sub-agent ends is sent to its parent as a report, so a parent never waits:
+// it ends its turn and wakes on the report.
 type AgentServiceServer interface {
 	// Create a definition.
 	//
@@ -379,7 +368,7 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
-	// Cancel an agent's running turn. Its pending inputs stay queued.
+	// Cancel an agent's running turn. Its pending messages stay queued.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelAgent(context.Context, *CancelAgentRequest) (*v1.Agent, error)
@@ -387,14 +376,11 @@ type AgentServiceServer interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error
-	// Send an agent an input, queued for its next turn. Wakes an idle agent.
+	// Send an agent a message, queued in its chat for its next turn. Wakes an
+	// idle agent. Returns the queued message.
 	//
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateInput(context.Context, *CreateInputRequest) (*v1.Input, error)
-	// List an agent's inputs.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListInputs(context.Context, *ListInputsRequest) (*ListInputsResponse, error)
+	// See: https://google.aip.dev/136 (Custom methods).
+	MessageAgent(context.Context, *MessageAgentRequest) (*v11.Message, error)
 }
 
 // UnimplementedAgentServiceServer should be embedded to have
@@ -446,11 +432,8 @@ func (UnimplementedAgentServiceServer) CancelAgent(context.Context, *CancelAgent
 func (UnimplementedAgentServiceServer) StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamAgent not implemented")
 }
-func (UnimplementedAgentServiceServer) CreateInput(context.Context, *CreateInputRequest) (*v1.Input, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateInput not implemented")
-}
-func (UnimplementedAgentServiceServer) ListInputs(context.Context, *ListInputsRequest) (*ListInputsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListInputs not implemented")
+func (UnimplementedAgentServiceServer) MessageAgent(context.Context, *MessageAgentRequest) (*v11.Message, error) {
+	return nil, status.Error(codes.Unimplemented, "method MessageAgent not implemented")
 }
 func (UnimplementedAgentServiceServer) testEmbeddedByValue() {}
 
@@ -717,38 +700,20 @@ func _AgentService_StreamAgent_Handler(srv interface{}, stream grpc.ServerStream
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AgentService_StreamAgentServer = grpc.ServerStreamingServer[StreamAgentResponse]
 
-func _AgentService_CreateInput_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateInputRequest)
+func _AgentService_MessageAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageAgentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).CreateInput(ctx, in)
+		return srv.(AgentServiceServer).MessageAgent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_CreateInput_FullMethodName,
+		FullMethod: AgentService_MessageAgent_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).CreateInput(ctx, req.(*CreateInputRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_ListInputs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListInputsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ListInputs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ListInputs_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ListInputs(ctx, req.(*ListInputsRequest))
+		return srv.(AgentServiceServer).MessageAgent(ctx, req.(*MessageAgentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -813,12 +778,8 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_CancelAgent_Handler,
 		},
 		{
-			MethodName: "CreateInput",
-			Handler:    _AgentService_CreateInput_Handler,
-		},
-		{
-			MethodName: "ListInputs",
-			Handler:    _AgentService_ListInputs_Handler,
+			MethodName: "MessageAgent",
+			Handler:    _AgentService_MessageAgent_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -34,7 +34,7 @@ type Agent_State int32
 const (
 	// Used to detect an unset field.
 	Agent_STATE_UNSPECIFIED Agent_State = 0
-	// The agent waits for input.
+	// The agent waits for messages.
 	Agent_STATE_IDLE Agent_State = 1
 	// One of the agent's turns is running.
 	Agent_STATE_RUNNING Agent_State = 2
@@ -129,11 +129,11 @@ func (x Agent_TurnOutcome) Number() protoreflect.EnumNumber {
 }
 
 // An Agent is a running instance of a spec: a conversation the AgentService
-// drives one turn at a time, fed by the inputs it is sent. The transcript
+// drives one turn at a time, fed by the messages it is sent. The transcript
 // lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
 // agent's durable history. Agents talk to each other asynchronously, through
-// inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
-// ends is queued as an input on its parent, waking it.
+// messages only: a parent messages its sub-agents, and each turn a sub-agent
+// ends is sent to its parent as a report, waking it.
 type Agent struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the agent.

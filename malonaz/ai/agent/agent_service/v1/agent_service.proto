@@ -8,7 +8,7 @@ import "malonaz/ai/agent/agent_service/v1/agent.proto";
 import "malonaz/ai/agent/agent_service/v1/definition.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
-import "malonaz/ai/agent/v1/input.proto";
+import "malonaz/ai/v1/message.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -24,15 +24,16 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //   an AiService chat, its sub-agents linked by `parent_agent`.
 //   Format: organizations/{organization}/users/{user}/agents/{agent}
-// - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
-//   Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
 //
 // # Messaging
 //
-// Inputs are the only way into an agent, from a client or another agent, and
-// always asynchronous: an input queues, and the agent's next turn drains every
-// pending input. Each turn a sub-agent ends is queued as an input on its
-// parent, so a parent never waits: it ends its turn and wakes on the report.
+// Messages are the only way into an agent, from a client or another agent, and
+// always asynchronous: MessageAgent queues a message in the agent's chat,
+// labelled agent.ai.malonaz.com/pending and hidden from the model, and the
+// agent's next turn delivers every pending message, at its start and between
+// its tool rounds, as one user message at the chat's end. Each turn a
+// sub-agent ends is sent to its parent as a report, so a parent never waits:
+// it ends its turn and wakes on the report.
 service AgentService {
   option (google.api.default_host) = "agent.ai.malonaz.com";
 
@@ -170,7 +171,7 @@ service AgentService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
   }
 
-  // Cancel an agent's running turn. Its pending inputs stay queued.
+  // Cancel an agent's running turn. Its pending messages stay queued.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc CancelAgent(CancelAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
@@ -190,26 +191,17 @@ service AgentService {
     option (google.api.method_signature) = "name";
   }
 
-  // ===================== Input Management =====================
+  // ===================== Messaging =====================
 
-  // Send an agent an input, queued for its next turn. Wakes an idle agent.
+  // Send an agent a message, queued in its chat for its next turn. Wakes an
+  // idle agent. Returns the queued message.
   //
-  // See: https://google.aip.dev/133 (Standard methods: Create).
-  rpc CreateInput(CreateInputRequest) returns (malonaz.ai.agent.v1.Input) {
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc MessageAgent(MessageAgentRequest) returns (malonaz.ai.v1.Message) {
     option (google.api.http) = {
-      post: "/v1/{parent=organizations/*/users/*/agents/*}/inputs"
-      body: "input"
+      post: "/v1/{name=organizations/*/users/*/agents/*}:message"
+      body: "*"
     };
-    option (google.api.method_signature) = "parent,input";
-  }
-
-  // List an agent's inputs.
-  //
-  // See: https://google.aip.dev/132 (Standard methods: List).
-  rpc ListInputs(ListInputsRequest) returns (ListInputsResponse) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/agents/*}/inputs"};
-    option (google.api.method_signature) = "parent";
-    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Input";
+    option (google.api.method_signature) = "name,message";
   }
 }

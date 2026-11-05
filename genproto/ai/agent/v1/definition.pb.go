@@ -279,7 +279,7 @@ type AgentSpec struct {
 	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,3,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
 	// The gRPC methods the agent may call as tools, by full name
 	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-	// Built-in agent tools (launching sub-agents, sending inputs, labelling
+	// Built-in agent tools (launching sub-agents, messaging its tree, labelling
 	// itself) are always available.
 	Tools []string `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc
@@ -382,7 +382,7 @@ type AgentSpec_builder struct {
 	ReasoningEffort v1.ReasoningEffort
 	// The gRPC methods the agent may call as tools, by full name
 	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-	// Built-in agent tools (launching sub-agents, sending inputs, labelling
+	// Built-in agent tools (launching sub-agents, messaging its tree, labelling
 	// itself) are always available.
 	Tools []string
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc

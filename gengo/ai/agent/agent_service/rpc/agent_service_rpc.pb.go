@@ -23,20 +23,17 @@ import (
 type agentServiceStore interface {
 	agentService_DefinitionStore
 	agentService_AgentStore
-	agentService_InputStore
 }
 
 type AgentServiceServer struct {
 	*agentService_DefinitionServer
 	*agentService_AgentServer
-	*agentService_InputServer
 }
 
 func NewAgentServiceServer(store agentServiceStore) *AgentServiceServer {
 	return &AgentServiceServer{
 		agentService_DefinitionServer: newAgentService_DefinitionServer(store),
 		agentService_AgentServer:      newAgentService_AgentServer(store),
-		agentService_InputServer:      newAgentService_InputServer(store),
 	}
 }
 
@@ -416,7 +413,7 @@ func (s *agentService_DefinitionServer) ListDefinitions(ctx context.Context, req
 type agentService_AgentStore interface {
 	BatchInsertAgents(ctx context.Context, requestIDs []string, agents []*model.Agent) ([]*model.Agent, error)
 	UpdateAgent(ctx context.Context, agent *model.Agent, updateClause string, columns []string, etag string) (*model.Agent, error)
-	SoftDeleteAgent(ctx context.Context, organizationId, userId, agentId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Agent, error)
+	SoftDeleteAgent(ctx context.Context, organizationId, userId, agentId string, etag, newEtag string, deleteTime time.Time) (*model.Agent, error)
 	UndeleteAgent(ctx context.Context, organizationId, userId, agentId string, etag, newEtag string) (*model.Agent, error)
 	GetAgent(ctx context.Context, organizationId, userId, agentId string) (*model.Agent, error)
 	BatchGetAgents(ctx context.Context, organizationIds []string, userIds []string, agentIds []string) ([]*model.Agent, error)
@@ -660,13 +657,10 @@ func (s *agentService_AgentServer) DeleteAgent(ctx context.Context, request *v1.
 	}
 
 	// STEP 2: Soft delete the resource.
-	dbAgentModel, err := s.store.SoftDeleteAgent(ctx, organizationId, userId, agentId, request.GetEtag(), newEtag, request.GetForce(), deleteTime)
+	dbAgentModel, err := s.store.SoftDeleteAgent(ctx, organizationId, userId, agentId, request.GetEtag(), newEtag, deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrAgentNotExist) {
 			return nil, status.Errorf(codes.NotFound, "agent does not exist").Err()
-		}
-		if errors.Is(err, model.ErrAgentHasChildren) {
-			return nil, status.Errorf(codes.FailedPrecondition, "agent has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrAgentETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
@@ -781,69 +775,6 @@ func (s *agentService_AgentServer) ListAgents(ctx context.Context, request *v1.L
 	// Create and return response.
 	return &v1.ListAgentsResponse{
 		Agents:        agents,
-		NextPageToken: nextPageToken,
-	}, nil
-}
-
-type agentService_InputStore interface {
-	BatchInsertInputs(ctx context.Context, requestIDs []string, inputs []*model.Input) ([]*model.Input, error)
-	UpdateInput(ctx context.Context, input *model.Input, updateClause string, columns []string) (*model.Input, error)
-	DeleteInput(ctx context.Context, organizationId, userId, agentId, inputId string) (*model.Input, error)
-	GetInput(ctx context.Context, organizationId, userId, agentId, inputId string) (*model.Input, error)
-	BatchGetInputs(ctx context.Context, organizationIds []string, userIds []string, agentIds []string, inputIds []string) ([]*model.Input, error)
-	ListInputs(ctx context.Context, organizationId, userId, agentId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Input, error)
-}
-
-type agentService_InputServer struct {
-	store agentService_InputStore
-}
-
-func newAgentService_InputServer(store agentService_InputStore) *agentService_InputServer {
-	return &agentService_InputServer{
-		store: store,
-	}
-}
-
-var listInputsRequestParser = aip.MustNewListRequestParser[*v1.ListInputsRequest, *v11.Input](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
-
-func (s *agentService_InputServer) ListInputs(ctx context.Context, request *v1.ListInputsRequest) (*v1.ListInputsResponse, error) {
-	// Parse parent names
-	var organizationId, userId, agentId string
-	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/agents/{agent}", &organizationId, &userId, &agentId); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
-	}
-
-	// Parse request
-	parsedRequest, err := listInputsRequestParser.Parse(request)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
-	}
-	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
-	var dbColumns []string
-
-	// Retrieve from the database.
-	dbInputs, err := s.store.ListInputs(ctx, organizationId, userId, agentId, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
-	if err != nil {
-		return nil, status.FromError(err, "listing inputs").Err()
-	}
-	nextPageToken := parsedRequest.GetNextPageToken(len(dbInputs))
-	if nextPageToken != "" {
-		dbInputs = dbInputs[:len(dbInputs)-1]
-	}
-
-	// Convert back to proto.
-	inputs := make([]*v11.Input, 0, len(dbInputs))
-	for _, dbInput := range dbInputs {
-		input, err := dbInput.ToPb()
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting model.Input to Input: %v", err).Err()
-		}
-		inputs = append(inputs, input)
-	}
-
-	// Create and return response.
-	return &v1.ListInputsResponse{
-		Inputs:        inputs,
 		NextPageToken: nextPageToken,
 	}, nil
 }

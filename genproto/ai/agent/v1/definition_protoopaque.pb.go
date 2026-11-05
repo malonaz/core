@@ -361,7 +361,7 @@ type AgentSpec_builder struct {
 	ReasoningEffort v1.ReasoningEffort
 	// The gRPC methods the agent may call as tools, by full name
 	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-	// Built-in agent tools (launching sub-agents, sending inputs, labelling
+	// Built-in agent tools (launching sub-agents, messaging its tree, labelling
 	// itself) are always available.
 	Tools []string
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc

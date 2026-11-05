@@ -4,7 +4,7 @@ filegroup(
         "agent.proto",
         "annotations.proto",
         "definition.proto",
-        "input.proto",
+        "labels.proto",
     ],
     visibility = ["PUBLIC"],
 )
@@ -15,7 +15,7 @@ proto_library(
         "agent.proto",
         "annotations.proto",
         "definition.proto",
-        "input.proto",
+        "labels.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/agent/v1",

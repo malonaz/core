@@ -8,13 +8,13 @@ import (
 )
 
 type AnnotationSet struct {
-	// On an input's message: the resource name of who sent it, a user or an agent. Clients stamp their own; the service stamps the inputs agents send through their built-in tools, and each sub-agent's turn report with the sub-agent's name.
+	// On a message sent to an agent: the resource name of who sent it, a user or an agent. Clients stamp their own; the service stamps the messages agents send through their built-in tools, and each sub-agent's turn report with the sub-agent's name.
 	Sender aip.StringAnnotation
-	// On a user message of an agent's chat: the comma-separated resource names of the inputs it delivers, oldest first. A turn drains every pending input into one such message, its blocks the inputs' blocks in order; read each input for its sender.
-	Inputs aip.StringAnnotation
+	// On a user message of an agent's chat delivering the messages sent to it: the comma-separated resource names of the delivered messages, oldest first. Its blocks are theirs in order, each agent-sent one preceded by a header naming its sender; read each delivered message for its exact content and sender.
+	Messages aip.StringAnnotation
 }
 
 var Annotations = AnnotationSet{
-	Sender: aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
-	Inputs: aip.StringAnnotation{Key: "agent.ai.malonaz.com/inputs"},
+	Sender:   aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
+	Messages: aip.StringAnnotation{Key: "agent.ai.malonaz.com/messages"},
 }

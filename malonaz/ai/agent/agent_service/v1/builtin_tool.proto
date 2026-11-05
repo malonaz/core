@@ -44,8 +44,8 @@ message CreateAgentsToolArguments {
   repeated SubAgent agents = 1 [(buf.validate.field).repeated.min_items = 1];
 }
 
-// The arguments of the built-in send_input tool.
-message SendInputToolArguments {
+// The arguments of the built-in message_agent tool.
+message MessageAgentToolArguments {
   // The recipient, an agent of your tree.
   // Format: organizations/{organization}/users/{user}/agents/{agent}
   string agent = 1 [(buf.validate.field).required = true];
