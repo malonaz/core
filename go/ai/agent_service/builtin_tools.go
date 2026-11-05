@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
@@ -366,40 +367,32 @@ const updateLabelsToolDescription = "Set and remove labels on yourself, e.g. to 
 	"`set` maps keys to values (lowercase letters, digits, '_' and '-', at most 63 characters); `remove` lists keys to drop. " +
 	"Returns your labels after the change."
 
-// updateLabelsMaxAttempts bounds the retries of a label update racing other updates of the agent.
-const updateLabelsMaxAttempts = 5
-
 func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.UpdateLabelsToolArguments) (*aipb.ToolResult, error) {
 	if len(arguments.GetSet()) == 0 && len(arguments.GetRemove()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "nothing to set or remove").Err()
 	}
-	for attempt := 1; ; attempt++ {
-		// Merged into the current labels, guarded by their etag.
-		getAgentRequest := &agentservicepb.GetAgentRequest{Name: agent.GetName()}
-		currentAgent, err := s.GetAgent(ctx, getAgentRequest)
-		if err != nil {
-			return nil, err
+	// One path per key: concurrent updates of other keys survive, and the update retries on their etag races.
+	var paths []string
+	for _, key := range append(slices.Collect(maps.Keys(arguments.GetSet())), arguments.GetRemove()...) {
+		if isPlatformLabel(key) {
+			return nil, status.Errorf(codes.PermissionDenied, "label %s is reserved to the platform", key).Err()
 		}
-		labels := maps.Clone(currentAgent.GetLabels())
-		if labels == nil {
-			labels = map[string]string{}
-		}
-		for _, key := range arguments.GetRemove() {
-			delete(labels, key)
-		}
-		maps.Copy(labels, arguments.GetSet())
-		updateAgentRequest := &agentservicepb.UpdateAgentRequest{
-			Agent:      &agentpb.Agent{Name: agent.GetName(), Labels: labels, Etag: currentAgent.GetEtag()},
-			UpdateMask: pbfieldmask.FromPaths("labels").MustValidate(&agentpb.Agent{}).Proto(),
-		}
-		updatedAgent, err := s.UpdateAgent(ctx, updateAgentRequest)
-		if status.HasCode(err, codes.Aborted) && attempt < updateLabelsMaxAttempts {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-		updatedLabels := &agentpb.Agent{Labels: updatedAgent.GetLabels()}
-		return structuredToolResult(toolCall, updatedLabels)
+		paths = append(paths, "labels.`"+key+"`")
 	}
+	updateAgentRequest := &agentservicepb.UpdateAgentRequest{
+		Agent:      &agentpb.Agent{Name: agent.GetName(), Labels: arguments.GetSet()},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: paths},
+	}
+	updatedAgent, err := s.UpdateAgent(ctx, updateAgentRequest)
+	if err != nil {
+		return nil, err
+	}
+	updatedLabels := &agentpb.Agent{Labels: updatedAgent.GetLabels()}
+	return structuredToolResult(toolCall, updatedLabels)
+}
+
+// isPlatformLabel reports whether a label key is in a *.malonaz.com prefix, which agents may not write.
+func isPlatformLabel(key string) bool {
+	prefix, _, ok := strings.Cut(key, "/")
+	return ok && (prefix == "malonaz.com" || strings.HasSuffix(prefix, ".malonaz.com"))
 }

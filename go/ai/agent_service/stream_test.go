@@ -96,7 +96,7 @@ func TestStream_LocalTurn(t *testing.T) {
 	finalGeneration := textGeneration("all done")
 	finalGeneration.deltas = []*aipb.Block{ai.NewTextBlock("all")}
 	service.aiService.script(agent.Chat, toolCallGeneration, finalGeneration)
-	fullStream := openTestStream(t, service, &agentservicepb.StreamAgentRequest{Name: agent.Name, View: agentservicepb.AgentView_AGENT_VIEW_FULL})
+	fullStream := openTestStream(t, service, &agentservicepb.StreamAgentRequest{Name: agent.Name, IncludeTranscript: true})
 	basicStream := openTestStream(t, service, &agentservicepb.StreamAgentRequest{Name: agent.Name})
 	for _, stream := range []*testStream{fullStream, basicStream} {
 		first := stream.next(t)
@@ -165,7 +165,7 @@ func TestStream_ProxiesTheReplicaRunningTheTurn(t *testing.T) {
 	)
 
 	sendText(t, replicaA, agent.Name, "go")
-	stream := openTestStream(t, replicaB, &agentservicepb.StreamAgentRequest{Name: agent.Name, View: agentservicepb.AgentView_AGENT_VIEW_FULL})
+	stream := openTestStream(t, replicaB, &agentservicepb.StreamAgentRequest{Name: agent.Name, IncludeTranscript: true})
 	require.Equal(t, agentpb.Agent_STATE_RUNNING, stream.next(t).GetSnapshot().GetState())
 	// Replica B proxies replica A once A's hub holds its forwarded stream.
 	require.Eventually(t, func() bool {
