@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/ai/v1/message.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// The arguments of the built-in create_agents tool.
+message CreateAgentsToolArguments {
+  // A sub-agent to launch.
+  message SubAgent {
+    // A short human-readable title for the sub-agent.
+    string title = 1 [
+      (buf.validate.field).required = true,
+      (buf.validate.field).string.max_len = 512
+    ];
+
+    // The sub-agent's task, its first message. It shares none of your context: include everything it needs, and
+    // what to report back.
+    string task = 2 [(buf.validate.field).required = true];
+
+    // The definition to run, one of those you may launch. Omit for an ad-hoc sub-agent.
+    // Format: organizations/{organization}/definitions/{definition}
+    string definition = 3;
+
+    // An ad-hoc sub-agent's system prompt. Required without a definition.
+    string instructions = 4;
+
+    // An ad-hoc sub-agent's model. Defaults to yours.
+    // Format: providers/{provider}/models/{model}
+    string model = 5;
+
+    // An ad-hoc sub-agent's reasoning effort. Defaults to yours.
+    malonaz.ai.v1.ReasoningEffort reasoning_effort = 6;
+
+    // An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. The built-in agent tools are always
+    // given.
+    repeated string tools = 7;
+  }
+
+  // The sub-agents to launch.
+  repeated SubAgent agents = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// The arguments of the built-in send_input tool.
+message SendInputToolArguments {
+  // The recipient, an agent of your tree.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string agent = 1 [(buf.validate.field).required = true];
+
+  // The message to send.
+  string message = 2 [(buf.validate.field).required = true];
+}
+
+// The arguments of the built-in list_agents tool.
+message ListAgentsToolArguments {}
+
+// The arguments of the built-in update_labels tool.
+message UpdateLabelsToolArguments {
+  // Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+  map<string, string> set = 1;
+
+  // Keys of labels to remove.
+  repeated string remove = 2;
+}
