@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/malonaz/core/gengo/ai/agent/store"
@@ -39,6 +40,15 @@ var testPostgresClient *postgres.Client
 
 func TestMain(m *testing.M) {
 	testserver.RunWithPostgres(context.Background(), m, slog.Default(), &testPostgresClient, nil, "", os.ReadFile, agentMigrationsDirectory)
+}
+
+// testServiceAccountHeader carries the service's identity on its outgoing calls, as the internal service
+// authentication does.
+const testServiceAccountHeader = "x-internal-service-auth"
+
+// withTestServiceAccount stamps the service's identity on its outgoing calls.
+func withTestServiceAccount(ctx context.Context) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, testServiceAccountHeader, "agent-service/secret")
 }
 
 // newTestOpts returns opts with timings short enough for tests to watch leases expire.
@@ -91,7 +101,7 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	reflection.Register(server)
 	go server.Serve(listener)
 
-	stopService, err := service.Start(context.Background(), nil)
+	stopService, err := service.Start(context.Background(), withTestServiceAccount)
 	require.NoError(t, err)
 	stopped := false
 	replica := &testReplica{Service: service, aiService: aiService}

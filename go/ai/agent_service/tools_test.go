@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -36,6 +37,35 @@ type fakeHealthServer struct {
 	grpc_health_v1.UnimplementedHealthServer
 	mutex    sync.Mutex
 	services []string
+	// The metadata keys of every call the server received, reflection included.
+	metadataKeySet map[string]struct{}
+}
+
+// recordMetadata records the metadata keys of a call.
+func (s *fakeHealthServer) recordMetadata(ctx context.Context) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if s.metadataKeySet == nil {
+		s.metadataKeySet = map[string]struct{}{}
+	}
+	incomingMetadata, _ := metadata.FromIncomingContext(ctx)
+	for key := range incomingMetadata {
+		s.metadataKeySet[key] = struct{}{}
+	}
+}
+
+// serverOptions record the metadata of every call.
+func (s *fakeHealthServer) serverOptions() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+			s.recordMetadata(ctx)
+			return handler(ctx, request)
+		}),
+		grpc.ChainStreamInterceptor(func(server any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+			s.recordMetadata(stream.Context())
+			return handler(server, stream)
+		}),
+	}
 }
 
 func (s *fakeHealthServer) Check(ctx context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
@@ -78,7 +108,7 @@ func newTestToolTarget(t *testing.T) (*fakeHealthServer, string) {
 	listener, err := net.Listen("unix", socketPath)
 	require.NoError(t, err)
 	healthServer := &fakeHealthServer{}
-	server := grpc.NewServer()
+	server := grpc.NewServer(healthServer.serverOptions()...)
 	healthServer.register(server)
 	reflection.Register(server)
 	go server.Serve(listener)
@@ -131,6 +161,9 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetStructuredContent().GetStructValue().GetFields()["status"].GetStringValue())
 	require.Equal(t, healthCheckTool, toolCallIDToToolResult["call-1"].GetToolName())
 	require.Equal(t, int32(codes.NotFound), toolCallIDToToolResult["call-2"].GetError().GetCode())
+	// Neither the calls nor the reflection carry the service's identity.
+	require.Contains(t, healthServer.metadataKeySet, "content-type")
+	require.NotContains(t, healthServer.metadataKeySet, testServiceAccountHeader)
 
 	// Every tool, built-ins included, requires a title.
 	generateMessageRequest := service.aiService.generateMessageRequests(agent.Chat)[0]

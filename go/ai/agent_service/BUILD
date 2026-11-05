@@ -81,6 +81,7 @@ go_test(
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
+        "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
