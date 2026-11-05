@@ -98,7 +98,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	}
 
 	// Ensure the chat exists (lazily creating it), and load its valid message
-	// history: errored, superseded and excluded messages are left out.
+	// history: errored and superseded messages are left out.
 	var history []*aipb.Message
 	eg, ctxEg := errgroup.WithContext(ctx)
 	eg.Go(func() error {
