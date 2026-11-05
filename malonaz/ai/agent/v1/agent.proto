@@ -8,6 +8,7 @@ import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/ai/v1/message.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -178,5 +179,12 @@ message Agent {
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The messages sent to the agent and not yet delivered, oldest first. A turn
+  // delivers them to its chat, at its start and between its tool rounds.
+  repeated malonaz.ai.v1.Message queued_messages = 17 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
   ];
 }

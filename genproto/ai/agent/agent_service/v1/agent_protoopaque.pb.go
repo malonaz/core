@@ -1604,8 +1604,9 @@ type MessageAgentRequest_builder struct {
 	// The agent to message.
 	// Format: organizations/{organization}/users/{user}/agents/{agent}
 	Name string
-	// The message, a USER message written by the caller, who stamps itself in its
-	// agent.ai.malonaz.com/sender annotation.
+	// The message, a USER message written by the caller. The service stamps its
+	// agent.ai.malonaz.com/sender annotation: a sender the caller set must name
+	// the user owning the agent.
 	Message *v12.Message
 	// A unique identifier for this request. Must be a UUID.
 	RequestId string

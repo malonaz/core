@@ -3,25 +3,15 @@
 
 package v1
 
-type LabelPending struct {
-	GetKey func() string
-}
-
 type LabelAgent struct {
 	GetKey func() string
 }
 
 type LabelSet struct {
-	Pending LabelPending
-	Agent   LabelAgent
+	Agent LabelAgent
 }
 
 var Labels = LabelSet{
-	Pending: LabelPending{
-		GetKey: func() string {
-			return "agent.ai.malonaz.com/pending"
-		},
-	},
 	Agent: LabelAgent{
 		GetKey: func() string {
 			return "agent.ai.malonaz.com/agent"
