@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.ai.agent.agent_service.v1;
 
 import "buf/validate/validate.proto";
+import "malonaz/ai/agent/v1/definition.proto";
 import "malonaz/ai/v1/message.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -35,9 +36,9 @@ message CreateAgentsToolArguments {
     // An ad-hoc sub-agent's reasoning effort. Defaults to yours.
     malonaz.ai.v1.ReasoningEffort reasoning_effort = 6;
 
-    // An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. The built-in agent tools are always
-    // given.
-    repeated string tools = 7;
+    // An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
+    // and may only tighten it. The built-in agent tools are always given.
+    repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 7;
   }
 
   // The sub-agents to launch.

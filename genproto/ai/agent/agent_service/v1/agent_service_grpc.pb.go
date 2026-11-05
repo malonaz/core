@@ -35,6 +35,8 @@ const (
 	AgentService_SearchAgents_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/SearchAgents"
 	AgentService_CancelAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CancelAgent"
 	AgentService_StreamAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/StreamAgent"
+	AgentService_ApproveToolCall_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ApproveToolCall"
+	AgentService_ResolveToolCall_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ResolveToolCall"
 	AgentService_MessageAgent_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent"
 )
 
@@ -123,8 +125,24 @@ type AgentServiceClient interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(ctx context.Context, in *StreamAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamAgentResponse], error)
+	// Approve a tool call the agent's turn awaits approval for. The turn resumes,
+	// running it, once its last awaited call is settled. Approving again is a
+	// no-op; approving a denied call fails.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ApproveToolCall(ctx context.Context, in *ApproveToolCallRequest, opts ...grpc.CallOption) (*v1.Agent, error)
+	// Resolve a tool call the agent's turn awaits, supplying its result: an
+	// input component's answer, or an error result denying a call awaiting
+	// approval. The turn resumes, writing it, once its last awaited call is
+	// settled. Resolving again with the same result is a no-op; any other
+	// decision fails.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResolveToolCall(ctx context.Context, in *ResolveToolCallRequest, opts ...grpc.CallOption) (*v1.Agent, error)
 	// Send an agent a message, queued on the agent for its turn to deliver.
-	// Wakes an idle agent. Returns the agent, the message in its queue.
+	// Wakes an idle agent. The user's message to an awaiting agent denies the
+	// calls it awaits, the user replying instead, and resumes its turn. Returns
+	// the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
@@ -297,6 +315,26 @@ func (c *agentServiceClient) StreamAgent(ctx context.Context, in *StreamAgentReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AgentService_StreamAgentClient = grpc.ServerStreamingClient[StreamAgentResponse]
 
+func (c *agentServiceClient) ApproveToolCall(ctx context.Context, in *ApproveToolCallRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Agent)
+	err := c.cc.Invoke(ctx, AgentService_ApproveToolCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ResolveToolCall(ctx context.Context, in *ResolveToolCallRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Agent)
+	err := c.cc.Invoke(ctx, AgentService_ResolveToolCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Agent)
@@ -392,8 +430,24 @@ type AgentServiceServer interface {
 	// no replay: the agent's chat is its history, so clients open the stream,
 	// then list the chat's messages, deduping by message name.
 	StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error
+	// Approve a tool call the agent's turn awaits approval for. The turn resumes,
+	// running it, once its last awaited call is settled. Approving again is a
+	// no-op; approving a denied call fails.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ApproveToolCall(context.Context, *ApproveToolCallRequest) (*v1.Agent, error)
+	// Resolve a tool call the agent's turn awaits, supplying its result: an
+	// input component's answer, or an error result denying a call awaiting
+	// approval. The turn resumes, writing it, once its last awaited call is
+	// settled. Resolving again with the same result is a no-op; any other
+	// decision fails.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ResolveToolCall(context.Context, *ResolveToolCallRequest) (*v1.Agent, error)
 	// Send an agent a message, queued on the agent for its turn to deliver.
-	// Wakes an idle agent. Returns the agent, the message in its queue.
+	// Wakes an idle agent. The user's message to an awaiting agent denies the
+	// calls it awaits, the user replying instead, and resumes its turn. Returns
+	// the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error)
@@ -450,6 +504,12 @@ func (UnimplementedAgentServiceServer) CancelAgent(context.Context, *CancelAgent
 }
 func (UnimplementedAgentServiceServer) StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamAgent not implemented")
+}
+func (UnimplementedAgentServiceServer) ApproveToolCall(context.Context, *ApproveToolCallRequest) (*v1.Agent, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveToolCall not implemented")
+}
+func (UnimplementedAgentServiceServer) ResolveToolCall(context.Context, *ResolveToolCallRequest) (*v1.Agent, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveToolCall not implemented")
 }
 func (UnimplementedAgentServiceServer) MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error) {
 	return nil, status.Error(codes.Unimplemented, "method MessageAgent not implemented")
@@ -737,6 +797,42 @@ func _AgentService_StreamAgent_Handler(srv interface{}, stream grpc.ServerStream
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AgentService_StreamAgentServer = grpc.ServerStreamingServer[StreamAgentResponse]
 
+func _AgentService_ApproveToolCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveToolCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ApproveToolCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ApproveToolCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ApproveToolCall(ctx, req.(*ApproveToolCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ResolveToolCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveToolCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ResolveToolCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ResolveToolCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ResolveToolCall(ctx, req.(*ResolveToolCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_MessageAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MessageAgentRequest)
 	if err := dec(in); err != nil {
@@ -817,6 +913,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelAgent",
 			Handler:    _AgentService_CancelAgent_Handler,
+		},
+		{
+			MethodName: "ApproveToolCall",
+			Handler:    _AgentService_ApproveToolCall_Handler,
+		},
+		{
+			MethodName: "ResolveToolCall",
+			Handler:    _AgentService_ResolveToolCall_Handler,
 		},
 		{
 			MethodName: "MessageAgent",

@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	v11 "github.com/malonaz/core/genproto/ai/agent/v1"
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -287,7 +288,7 @@ type CreateAgentsToolArguments_SubAgent struct {
 	xxx_hidden_Instructions    string                 `protobuf:"bytes,4,opt,name=instructions,proto3"`
 	xxx_hidden_Model           string                 `protobuf:"bytes,5,opt,name=model,proto3"`
 	xxx_hidden_ReasoningEffort v1.ReasoningEffort     `protobuf:"varint,6,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort"`
-	xxx_hidden_Tools           []string               `protobuf:"bytes,7,rep,name=tools,proto3"`
+	xxx_hidden_Tools           *[]*v11.AgentSpec_Tool `protobuf:"bytes,7,rep,name=tools,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -359,9 +360,11 @@ func (x *CreateAgentsToolArguments_SubAgent) GetReasoningEffort() v1.ReasoningEf
 	return v1.ReasoningEffort(0)
 }
 
-func (x *CreateAgentsToolArguments_SubAgent) GetTools() []string {
+func (x *CreateAgentsToolArguments_SubAgent) GetTools() []*v11.AgentSpec_Tool {
 	if x != nil {
-		return x.xxx_hidden_Tools
+		if x.xxx_hidden_Tools != nil {
+			return *x.xxx_hidden_Tools
+		}
 	}
 	return nil
 }
@@ -390,8 +393,8 @@ func (x *CreateAgentsToolArguments_SubAgent) SetReasoningEffort(v v1.ReasoningEf
 	x.xxx_hidden_ReasoningEffort = v
 }
 
-func (x *CreateAgentsToolArguments_SubAgent) SetTools(v []string) {
-	x.xxx_hidden_Tools = v
+func (x *CreateAgentsToolArguments_SubAgent) SetTools(v []*v11.AgentSpec_Tool) {
+	x.xxx_hidden_Tools = &v
 }
 
 type CreateAgentsToolArguments_SubAgent_builder struct {
@@ -412,9 +415,9 @@ type CreateAgentsToolArguments_SubAgent_builder struct {
 	Model string
 	// An ad-hoc sub-agent's reasoning effort. Defaults to yours.
 	ReasoningEffort v1.ReasoningEffort
-	// An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. The built-in agent tools are always
-	// given.
-	Tools []string
+	// An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
+	// and may only tighten it. The built-in agent tools are always given.
+	Tools []*v11.AgentSpec_Tool
 }
 
 func (b0 CreateAgentsToolArguments_SubAgent_builder) Build() *CreateAgentsToolArguments_SubAgent {
@@ -427,7 +430,7 @@ func (b0 CreateAgentsToolArguments_SubAgent_builder) Build() *CreateAgentsToolAr
 	x.xxx_hidden_Instructions = b.Instructions
 	x.xxx_hidden_Model = b.Model
 	x.xxx_hidden_ReasoningEffort = b.ReasoningEffort
-	x.xxx_hidden_Tools = b.Tools
+	x.xxx_hidden_Tools = &b.Tools
 	return m0
 }
 
@@ -435,9 +438,9 @@ var File_malonaz_ai_agent_agent_service_v1_builtin_tool_proto protoreflect.FileD
 
 const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\x8b\x03\n" +
+	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xb0\x03\n" +
 	"\x19CreateAgentsToolArguments\x12g\n" +
-	"\x06agents\x18\x01 \x03(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\b\xbaH\x05\x92\x01\x02\b\x01R\x06agents\x1a\x84\x02\n" +
+	"\x06agents\x18\x01 \x03(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\b\xbaH\x05\x92\x01\x02\b\x01R\x06agents\x1a\xa9\x02\n" +
 	"\bSubAgent\x12!\n" +
 	"\x05title\x18\x01 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x04R\x05title\x12\x1a\n" +
 	"\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04task\x12\x1e\n" +
@@ -446,8 +449,8 @@ const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"definition\x12\"\n" +
 	"\finstructions\x18\x04 \x01(\tR\finstructions\x12\x14\n" +
 	"\x05model\x18\x05 \x01(\tR\x05model\x12I\n" +
-	"\x10reasoning_effort\x18\x06 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12\x14\n" +
-	"\x05tools\x18\a \x03(\tR\x05tools\"[\n" +
+	"\x10reasoning_effort\x18\x06 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x129\n" +
+	"\x05tools\x18\a \x03(\v2#.malonaz.ai.agent.v1.AgentSpec.ToolR\x05tools\"[\n" +
 	"\x19MessageAgentToolArguments\x12\x1c\n" +
 	"\x05agent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05agent\x12 \n" +
 	"\amessage\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\amessage\"\x19\n" +
@@ -466,18 +469,20 @@ var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_goTypes = []any{
 	(*ListAgentsToolArguments)(nil),            // 2: malonaz.ai.agent.agent_service.v1.ListAgentsToolArguments
 	(*UpdateLabelsToolArguments)(nil),          // 3: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments
 	(*CreateAgentsToolArguments_SubAgent)(nil), // 4: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
-	nil,                     // 5: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
-	(v1.ReasoningEffort)(0), // 6: malonaz.ai.v1.ReasoningEffort
+	nil,                        // 5: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
+	(v1.ReasoningEffort)(0),    // 6: malonaz.ai.v1.ReasoningEffort
+	(*v11.AgentSpec_Tool)(nil), // 7: malonaz.ai.agent.v1.AgentSpec.Tool
 }
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_depIdxs = []int32{
 	4, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.agents:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
 	5, // 1: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.set:type_name -> malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
 	6, // 2: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	7, // 3: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_init() }

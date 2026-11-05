@@ -27,8 +27,10 @@ var File_malonaz_ai_agent_v1_annotations_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_annotations_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xd4\x02\x9a\x95\x15\xa1\x02\n" +
-	"\x1bagent.ai.malonaz.com/sender\x12\x81\x02On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
+	"%malonaz/ai/agent/v1/annotations.proto\x12\x13malonaz.ai.agent.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\x89\x05\x9a\x95\x15\xa1\x02\n" +
+	"\x1bagent.ai.malonaz.com/sender\x12\x81\x02On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report.\x9a\x95\x15}\n" +
+	" agent.ai.malonaz.com/approved-by\x12YOn the result of a tool call that awaited approval: the resource name of who approved it.\x9a\x95\x15\xaf\x01\n" +
+	"\x1eagent.ai.malonaz.com/denied-by\x12\x8c\x01On the error result of a tool call that awaited approval: the resource name of who denied it, by an error result, a reply or a cancellation.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_annotations_proto_goTypes = []any{}
 var file_malonaz_ai_agent_v1_annotations_proto_depIdxs = []int32{

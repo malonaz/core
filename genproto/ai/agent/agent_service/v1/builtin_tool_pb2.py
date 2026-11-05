@@ -23,10 +23,11 @@ _sym_db = _symbol_database.Default()
 
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
+from malonaz.ai.agent.v1 import definition_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot_definition__pb2
 from malonaz.ai.v1 import message_pb2 as malonaz_dot_ai_dot_v1_dot_message__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xbd\x02\n\x19\x43reateAgentsToolArguments\x12_\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xbe\x01\n\x08SubAgent\x12\x1a\n\x05title\x18\x01 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x04\xc8\x01\x01\x12\x14\n\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\ndefinition\x18\x03 \x01(\t\x12\x14\n\x0cinstructions\x18\x04 \x01(\t\x12\r\n\x05model\x18\x05 \x01(\t\x12\x38\n\x10reasoning_effort\x18\x06 \x01(\x0e\x32\x1e.malonaz.ai.v1.ReasoningEffort\x12\r\n\x05tools\x18\x07 \x03(\t\"K\n\x19MessageAgentToolArguments\x12\x15\n\x05\x61gent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07message\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x19\n\x17ListAgentsToolArguments\"\xab\x01\n\x19UpdateLabelsToolArguments\x12R\n\x03set\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry\x12\x0e\n\x06remove\x18\x02 \x03(\t\x1a*\n\x08SetEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xe2\x02\n\x19\x43reateAgentsToolArguments\x12_\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xe3\x01\n\x08SubAgent\x12\x1a\n\x05title\x18\x01 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x04\xc8\x01\x01\x12\x14\n\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\ndefinition\x18\x03 \x01(\t\x12\x14\n\x0cinstructions\x18\x04 \x01(\t\x12\r\n\x05model\x18\x05 \x01(\t\x12\x38\n\x10reasoning_effort\x18\x06 \x01(\x0e\x32\x1e.malonaz.ai.v1.ReasoningEffort\x12\x32\n\x05tools\x18\x07 \x03(\x0b\x32#.malonaz.ai.agent.v1.AgentSpec.Tool\"K\n\x19MessageAgentToolArguments\x12\x15\n\x05\x61gent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07message\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x19\n\x17ListAgentsToolArguments\"\xab\x01\n\x19UpdateLabelsToolArguments\x12R\n\x03set\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry\x12\x0e\n\x06remove\x18\x02 \x03(\t\x1a*\n\x08SetEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -46,16 +47,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_MESSAGEAGENTTOOLARGUMENTS'].fields_by_name['message']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._loaded_options = None
   _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_options = b'8\001'
-  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_start=150
-  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_end=467
-  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_start=277
-  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_end=467
-  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_start=469
-  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_end=544
-  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_start=546
-  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_end=571
-  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_start=574
-  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_end=745
-  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_start=703
-  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_end=745
+  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_start=188
+  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_end=542
+  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_start=315
+  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_end=542
+  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_start=544
+  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_end=619
+  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_start=621
+  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_end=646
+  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_start=649
+  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_end=820
+  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_start=778
+  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_end=820
 # @@protoc_insertion_point(module_scope)

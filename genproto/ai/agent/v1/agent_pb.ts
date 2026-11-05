@@ -9,12 +9,14 @@ import { file_google_api_field_behavior } from "../../../../google/api/field_beh
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Status, StatusValid } from "../../../../google/rpc/status_pb";
+import type { Status } from "../../../../google/rpc/status_pb";
 import { file_google_rpc_status } from "../../../../google/rpc/status_pb";
 import type { AgentSpec, AgentSpecValid } from "./definition_pb";
 import { file_malonaz_ai_agent_v1_definition } from "./definition_pb";
 import type { Message as Message$1, MessageValid } from "../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../v1/message_pb";
+import type { ToolResult } from "../../v1/tool_pb";
+import { file_malonaz_ai_v1_tool } from "../../v1/tool_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -23,7 +25,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIukMCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI5CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCC+BBBbrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI8CgVzdGF0ZRgOIAEoDjIgLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuU3RhdGVCC+BBA7pIBYIBAhABEk4KEWxhc3RfdHVybl9vdXRjb21lGA8gASgOMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5UdXJuT3V0Y29tZUIL4EEDukgFggECEAESLwoGc3RhdHVzGBAgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXNCC+BBA7rqDwQQASABEjoKD3F1ZXVlZF9tZXNzYWdlcxgRIAMoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIJ4EEDuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIkEKBVN0YXRlEhUKEVNUQVRFX1VOU1BFQ0lGSUVEEAASDgoKU1RBVEVfSURMRRABEhEKDVNUQVRFX1JVTk5JTkcQAiJ8CgtUdXJuT3V0Y29tZRIcChhUVVJOX09VVENPTUVfVU5TUEVDSUZJRUQQABIaChZUVVJOX09VVENPTUVfU1VDQ0VFREVEEAESFwoTVFVSTl9PVVRDT01FX0ZBSUxFRBACEhoKFlRVUk5fT1VUQ09NRV9DQU5DRUxMRUQQAzquAupBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN5rzLS4KCQoFdGl0bGUQAQoKCgZsYWJlbHMQAgoVChFzcGVjLmluc3RydWN0aW9ucxADQoQBWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MepBUwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIrsLCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI5CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCC+BBBbrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI8CgVzdGF0ZRgOIAEoDjIgLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuU3RhdGVCC+BBA7pIBYIBAhABEjsKC2xhdGVzdF90dXJuGA8gASgLMhkubWFsb25hei5haS5hZ2VudC52MS5UdXJuQgvgQQO66g8EEAEgARI6Cg9xdWV1ZWRfbWVzc2FnZXMYECADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBA7rqDwIQARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJVCgVTdGF0ZRIVChFTVEFURV9VTlNQRUNJRklFRBAAEg4KClNUQVRFX0lETEUQARIRCg1TVEFURV9SVU5OSU5HEAISEgoOU1RBVEVfQVdBSVRJTkcQAzquAupBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN5rzLS4KCQoFdGl0bGUQAQoKCgZsYWJlbHMQAgoVChFzcGVjLmluc3RydWN0aW9ucxADIu0CCgRUdXJuEi4KCnN0YXJ0X3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI8CgdvdXRjb21lGAMgASgOMiEubWFsb25hei5haS5hZ2VudC52MS5UdXJuLk91dGNvbWVCCLpIBYIBAhABEiEKBWVycm9yGAQgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMSQAoSYXdhaXRlZF90b29sX2NhbGxzGAUgAygLMiQubWFsb25hei5haS5hZ2VudC52MS5Bd2FpdGVkVG9vbENhbGwiZAoHT3V0Y29tZRIXChNPVVRDT01FX1VOU1BFQ0lGSUVEEAASFQoRT1VUQ09NRV9TVUNDRUVERUQQARISCg5PVVRDT01FX0ZBSUxFRBACEhUKEU9VVENPTUVfQ0FOQ0VMTEVEEAMiggQKD0F3YWl0ZWRUb29sQ2FsbBIUCgx0b29sX2NhbGxfaWQYASABKAkSEQoJdG9vbF9uYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJEkUKBnJlYXNvbhgEIAEoDjIrLm1hbG9uYXouYWkuYWdlbnQudjEuQXdhaXRlZFRvb2xDYWxsLlJlYXNvbkIIukgFggECEAESQwoKcmVzb2x1dGlvbhgFIAEoCzIvLm1hbG9uYXouYWkuYWdlbnQudjEuQXdhaXRlZFRvb2xDYWxsLlJlc29sdXRpb24a4QEKClJlc29sdXRpb24SEAoIcmVzb2x2ZXIYASABKAkSTAoIYXBwcm92YWwYAiABKAsyOC5tYWxvbmF6LmFpLmFnZW50LnYxLkF3YWl0ZWRUb29sQ2FsbC5SZXNvbHV0aW9uLkFwcHJvdmFsSAASKwoGcmVzdWx0GAMgASgLMhkubWFsb25hei5haS52MS5Ub29sUmVzdWx0SAASLgoKc3RhcnRfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAaCgoIQXBwcm92YWxCCgoIZGVjaXNpb24iRwoGUmVhc29uEhYKElJFQVNPTl9VTlNQRUNJRklFRBAAEhMKD1JFQVNPTl9BUFBST1ZBTBABEhAKDFJFQVNPTl9JTlBVVBACQoQBWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MepBUwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * An Agent is a running instance of a spec: a conversation the AgentService
@@ -142,24 +144,18 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   state: Agent_State;
 
   /**
-   * How the agent's latest turn ended. Unset until a turn ends.
+   * The agent's latest turn: the running or awaiting one, else the last that
+   * ended. Unset until a turn starts.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 15;
+   * @generated from field: malonaz.ai.agent.v1.Turn latest_turn = 15;
    */
-  lastTurnOutcome: Agent_TurnOutcome;
-
-  /**
-   * The error the latest turn failed on. Set only when it failed.
-   *
-   * @generated from field: google.rpc.Status status = 16;
-   */
-  status?: Status;
+  latestTurn?: Turn;
 
   /**
    * The messages sent to the agent and not yet delivered, oldest first. A turn
    * delivers them to its chat, at its start and between its tool rounds.
    *
-   * @generated from field: repeated malonaz.ai.v1.Message queued_messages = 17;
+   * @generated from field: repeated malonaz.ai.v1.Message queued_messages = 16;
    */
   queuedMessages: Message$1[];
 };
@@ -281,24 +277,18 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   state: Agent_State;
 
   /**
-   * How the agent's latest turn ended. Unset until a turn ends.
+   * The agent's latest turn: the running or awaiting one, else the last that
+   * ended. Unset until a turn starts.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 15;
+   * @generated from field: malonaz.ai.agent.v1.Turn latest_turn = 15;
    */
-  lastTurnOutcome: Agent_TurnOutcome;
-
-  /**
-   * The error the latest turn failed on. Set only when it failed.
-   *
-   * @generated from field: google.rpc.Status status = 16;
-   */
-  status?: StatusValid;
+  latestTurn?: TurnValid;
 
   /**
    * The messages sent to the agent and not yet delivered, oldest first. A turn
    * delivers them to its chat, at its start and between its tool rounds.
    *
-   * @generated from field: repeated malonaz.ai.v1.Message queued_messages = 17;
+   * @generated from field: repeated malonaz.ai.v1.Message queued_messages = 16;
    */
   queuedMessages: MessageValid[];
 };
@@ -336,6 +326,15 @@ export enum Agent_State {
    * @generated from enum value: STATE_RUNNING = 2;
    */
   RUNNING = 2,
+
+  /**
+   * The agent's turn is paused on tool calls only a user can settle, listed in
+   * `latest_turn.awaited_tool_calls`: ApproveToolCall and ResolveToolCall settle
+   * them, and the turn resumes once the last is settled.
+   *
+   * @generated from enum value: STATE_AWAITING = 3;
+   */
+  AWAITING = 3,
 }
 
 /**
@@ -345,43 +344,257 @@ export const Agent_StateSchema: GenEnum<Agent_State> = /*@__PURE__*/
   enumDesc(file_malonaz_ai_agent_v1_agent, 0, 0);
 
 /**
- * TurnOutcome is how a turn ended.
+ * A Turn is one run of an agent: it delivers the agent's queued messages and
+ * generates, calling tools, until a final answer, a failure or a cancellation.
+ * It pauses on the tool calls only a user can settle.
  *
- * @generated from enum malonaz.ai.agent.v1.Agent.TurnOutcome
+ * @generated from message malonaz.ai.agent.v1.Turn
  */
-export enum Agent_TurnOutcome {
+export type Turn = Message<"malonaz.ai.agent.v1.Turn"> & {
   /**
-   * Used to detect an unset field.
+   * When the turn started.
    *
-   * @generated from enum value: TURN_OUTCOME_UNSPECIFIED = 0;
+   * @generated from field: google.protobuf.Timestamp start_time = 1;
+   */
+  startTime?: Timestamp;
+
+  /**
+   * When the turn ended. Unset while it runs or awaits.
+   *
+   * @generated from field: google.protobuf.Timestamp end_time = 2;
+   */
+  endTime?: Timestamp;
+
+  /**
+   * How the turn ended. Unset while it runs or awaits.
+   *
+   * @generated from field: malonaz.ai.agent.v1.Turn.Outcome outcome = 3;
+   */
+  outcome: Turn_Outcome;
+
+  /**
+   * The error the turn failed on. Set only when it failed.
+   *
+   * @generated from field: google.rpc.Status error = 4;
+   */
+  error?: Status;
+
+  /**
+   * The tool calls the turn awaits a user to settle, with their resolutions
+   * until the resumed turn writes their results.
+   *
+   * @generated from field: repeated malonaz.ai.agent.v1.AwaitedToolCall awaited_tool_calls = 5;
+   */
+  awaitedToolCalls: AwaitedToolCall[];
+};
+
+export type TurnValid = Turn;
+
+/**
+ * Describes the message malonaz.ai.agent.v1.Turn.
+ * Use `create(TurnSchema)` to create a new message.
+ */
+export const TurnSchema: GenMessage<Turn, {validType: TurnValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_v1_agent, 1);
+
+/**
+ * Outcome is how a turn ended.
+ *
+ * @generated from enum malonaz.ai.agent.v1.Turn.Outcome
+ */
+export enum Turn_Outcome {
+  /**
+   * Used to detect an unset field: the turn has not ended.
+   *
+   * @generated from enum value: OUTCOME_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
    * The turn ended on a final answer.
    *
-   * @generated from enum value: TURN_OUTCOME_SUCCEEDED = 1;
+   * @generated from enum value: OUTCOME_SUCCEEDED = 1;
    */
   SUCCEEDED = 1,
 
   /**
-   * The turn ended on an error, held in `status`.
+   * The turn ended on an error, held in `error`.
    *
-   * @generated from enum value: TURN_OUTCOME_FAILED = 2;
+   * @generated from enum value: OUTCOME_FAILED = 2;
    */
   FAILED = 2,
 
   /**
    * The turn was cancelled.
    *
-   * @generated from enum value: TURN_OUTCOME_CANCELLED = 3;
+   * @generated from enum value: OUTCOME_CANCELLED = 3;
    */
   CANCELLED = 3,
 }
 
 /**
- * Describes the enum malonaz.ai.agent.v1.Agent.TurnOutcome.
+ * Describes the enum malonaz.ai.agent.v1.Turn.Outcome.
  */
-export const Agent_TurnOutcomeSchema: GenEnum<Agent_TurnOutcome> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_agent_v1_agent, 0, 1);
+export const Turn_OutcomeSchema: GenEnum<Turn_Outcome> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_agent_v1_agent, 1, 0);
+
+/**
+ * An AwaitedToolCall is a tool call only a user can settle: by approving it, or
+ * by supplying its result.
+ *
+ * @generated from message malonaz.ai.agent.v1.AwaitedToolCall
+ */
+export type AwaitedToolCall = Message<"malonaz.ai.agent.v1.AwaitedToolCall"> & {
+  /**
+   * The id of the tool call.
+   *
+   * @generated from field: string tool_call_id = 1;
+   */
+  toolCallId: string;
+
+  /**
+   * The name of the tool called.
+   *
+   * @generated from field: string tool_name = 2;
+   */
+  toolName: string;
+
+  /**
+   * The title the agent gave the call.
+   *
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * Why the call awaits a user.
+   *
+   * @generated from field: malonaz.ai.agent.v1.AwaitedToolCall.Reason reason = 4;
+   */
+  reason: AwaitedToolCall_Reason;
+
+  /**
+   * How a user settled the call. Unset while it awaits.
+   *
+   * @generated from field: malonaz.ai.agent.v1.AwaitedToolCall.Resolution resolution = 5;
+   */
+  resolution?: AwaitedToolCall_Resolution;
+};
+
+export type AwaitedToolCallValid = AwaitedToolCall;
+
+/**
+ * Describes the message malonaz.ai.agent.v1.AwaitedToolCall.
+ * Use `create(AwaitedToolCallSchema)` to create a new message.
+ */
+export const AwaitedToolCallSchema: GenMessage<AwaitedToolCall, {validType: AwaitedToolCallValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_v1_agent, 2);
+
+/**
+ * Resolution is how a user settled an awaited call.
+ *
+ * @generated from message malonaz.ai.agent.v1.AwaitedToolCall.Resolution
+ */
+export type AwaitedToolCall_Resolution = Message<"malonaz.ai.agent.v1.AwaitedToolCall.Resolution"> & {
+  /**
+   * Who settled the call.
+   *
+   * @generated from field: string resolver = 1;
+   */
+  resolver: string;
+
+  /**
+   * The decision.
+   *
+   * @generated from oneof malonaz.ai.agent.v1.AwaitedToolCall.Resolution.decision
+   */
+  decision: {
+    /**
+     * The call was approved.
+     *
+     * @generated from field: malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval approval = 2;
+     */
+    value: AwaitedToolCall_Resolution_Approval;
+    case: "approval";
+  } | {
+    /**
+     * The call's result, supplied instead of running it: an answer, a
+     * denial, or the error a cancellation or a reply left it.
+     *
+     * @generated from field: malonaz.ai.v1.ToolResult result = 3;
+     */
+    value: ToolResult;
+    case: "result";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * When the resumed turn started running the approved call. A call found
+   * started without a result was interrupted.
+   *
+   * @generated from field: google.protobuf.Timestamp start_time = 4;
+   */
+  startTime?: Timestamp;
+};
+
+export type AwaitedToolCall_ResolutionValid = AwaitedToolCall_Resolution;
+
+/**
+ * Describes the message malonaz.ai.agent.v1.AwaitedToolCall.Resolution.
+ * Use `create(AwaitedToolCall_ResolutionSchema)` to create a new message.
+ */
+export const AwaitedToolCall_ResolutionSchema: GenMessage<AwaitedToolCall_Resolution, {validType: AwaitedToolCall_ResolutionValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_v1_agent, 2, 0);
+
+/**
+ * Approval approves the call: the resumed turn runs it.
+ *
+ * @generated from message malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval
+ */
+export type AwaitedToolCall_Resolution_Approval = Message<"malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval"> & {
+};
+
+export type AwaitedToolCall_Resolution_ApprovalValid = AwaitedToolCall_Resolution_Approval;
+
+/**
+ * Describes the message malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval.
+ * Use `create(AwaitedToolCall_Resolution_ApprovalSchema)` to create a new message.
+ */
+export const AwaitedToolCall_Resolution_ApprovalSchema: GenMessage<AwaitedToolCall_Resolution_Approval, {validType: AwaitedToolCall_Resolution_ApprovalValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_v1_agent, 2, 0, 0);
+
+/**
+ * Reason is why the call awaits a user.
+ *
+ * @generated from enum malonaz.ai.agent.v1.AwaitedToolCall.Reason
+ */
+export enum AwaitedToolCall_Reason {
+  /**
+   * Used to detect an unset field.
+   *
+   * @generated from enum value: REASON_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The call needs the user's approval before it runs: ApproveToolCall runs
+   * it, ResolveToolCall with an error result denies it.
+   *
+   * @generated from enum value: REASON_APPROVAL = 1;
+   */
+  APPROVAL = 1,
+
+  /**
+   * The call renders an input component the user answers: ResolveToolCall
+   * with a result carrying the InputResponse.
+   *
+   * @generated from enum value: REASON_INPUT = 2;
+   */
+  INPUT = 2,
+}
+
+/**
+ * Describes the enum malonaz.ai.agent.v1.AwaitedToolCall.Reason.
+ */
+export const AwaitedToolCall_ReasonSchema: GenEnum<AwaitedToolCall_Reason> = /*@__PURE__*/
+  enumDesc(file_malonaz_ai_agent_v1_agent, 2, 0);
 

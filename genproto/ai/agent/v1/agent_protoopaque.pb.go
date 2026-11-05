@@ -39,6 +39,10 @@ const (
 	Agent_STATE_IDLE Agent_State = 1
 	// One of the agent's turns is running.
 	Agent_STATE_RUNNING Agent_State = 2
+	// The agent's turn is paused on tool calls only a user can settle, listed in
+	// `latest_turn.awaited_tool_calls`: ApproveToolCall and ResolveToolCall settle
+	// them, and the turn resumes once the last is settled.
+	Agent_STATE_AWAITING Agent_State = 3
 )
 
 // Enum value maps for Agent_State.
@@ -47,11 +51,13 @@ var (
 		0: "STATE_UNSPECIFIED",
 		1: "STATE_IDLE",
 		2: "STATE_RUNNING",
+		3: "STATE_AWAITING",
 	}
 	Agent_State_value = map[string]int32{
 		"STATE_UNSPECIFIED": 0,
 		"STATE_IDLE":        1,
 		"STATE_RUNNING":     2,
+		"STATE_AWAITING":    3,
 	}
 )
 
@@ -77,55 +83,105 @@ func (x Agent_State) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// TurnOutcome is how a turn ended.
-type Agent_TurnOutcome int32
+// Outcome is how a turn ended.
+type Turn_Outcome int32
 
 const (
-	// Used to detect an unset field.
-	Agent_TURN_OUTCOME_UNSPECIFIED Agent_TurnOutcome = 0
+	// Used to detect an unset field: the turn has not ended.
+	Turn_OUTCOME_UNSPECIFIED Turn_Outcome = 0
 	// The turn ended on a final answer.
-	Agent_TURN_OUTCOME_SUCCEEDED Agent_TurnOutcome = 1
-	// The turn ended on an error, held in `status`.
-	Agent_TURN_OUTCOME_FAILED Agent_TurnOutcome = 2
+	Turn_OUTCOME_SUCCEEDED Turn_Outcome = 1
+	// The turn ended on an error, held in `error`.
+	Turn_OUTCOME_FAILED Turn_Outcome = 2
 	// The turn was cancelled.
-	Agent_TURN_OUTCOME_CANCELLED Agent_TurnOutcome = 3
+	Turn_OUTCOME_CANCELLED Turn_Outcome = 3
 )
 
-// Enum value maps for Agent_TurnOutcome.
+// Enum value maps for Turn_Outcome.
 var (
-	Agent_TurnOutcome_name = map[int32]string{
-		0: "TURN_OUTCOME_UNSPECIFIED",
-		1: "TURN_OUTCOME_SUCCEEDED",
-		2: "TURN_OUTCOME_FAILED",
-		3: "TURN_OUTCOME_CANCELLED",
+	Turn_Outcome_name = map[int32]string{
+		0: "OUTCOME_UNSPECIFIED",
+		1: "OUTCOME_SUCCEEDED",
+		2: "OUTCOME_FAILED",
+		3: "OUTCOME_CANCELLED",
 	}
-	Agent_TurnOutcome_value = map[string]int32{
-		"TURN_OUTCOME_UNSPECIFIED": 0,
-		"TURN_OUTCOME_SUCCEEDED":   1,
-		"TURN_OUTCOME_FAILED":      2,
-		"TURN_OUTCOME_CANCELLED":   3,
+	Turn_Outcome_value = map[string]int32{
+		"OUTCOME_UNSPECIFIED": 0,
+		"OUTCOME_SUCCEEDED":   1,
+		"OUTCOME_FAILED":      2,
+		"OUTCOME_CANCELLED":   3,
 	}
 )
 
-func (x Agent_TurnOutcome) Enum() *Agent_TurnOutcome {
-	p := new(Agent_TurnOutcome)
+func (x Turn_Outcome) Enum() *Turn_Outcome {
+	p := new(Turn_Outcome)
 	*p = x
 	return p
 }
 
-func (x Agent_TurnOutcome) String() string {
+func (x Turn_Outcome) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Agent_TurnOutcome) Descriptor() protoreflect.EnumDescriptor {
+func (Turn_Outcome) Descriptor() protoreflect.EnumDescriptor {
 	return file_malonaz_ai_agent_v1_agent_proto_enumTypes[1].Descriptor()
 }
 
-func (Agent_TurnOutcome) Type() protoreflect.EnumType {
+func (Turn_Outcome) Type() protoreflect.EnumType {
 	return &file_malonaz_ai_agent_v1_agent_proto_enumTypes[1]
 }
 
-func (x Agent_TurnOutcome) Number() protoreflect.EnumNumber {
+func (x Turn_Outcome) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Reason is why the call awaits a user.
+type AwaitedToolCall_Reason int32
+
+const (
+	// Used to detect an unset field.
+	AwaitedToolCall_REASON_UNSPECIFIED AwaitedToolCall_Reason = 0
+	// The call needs the user's approval before it runs: ApproveToolCall runs
+	// it, ResolveToolCall with an error result denies it.
+	AwaitedToolCall_REASON_APPROVAL AwaitedToolCall_Reason = 1
+	// The call renders an input component the user answers: ResolveToolCall
+	// with a result carrying the InputResponse.
+	AwaitedToolCall_REASON_INPUT AwaitedToolCall_Reason = 2
+)
+
+// Enum value maps for AwaitedToolCall_Reason.
+var (
+	AwaitedToolCall_Reason_name = map[int32]string{
+		0: "REASON_UNSPECIFIED",
+		1: "REASON_APPROVAL",
+		2: "REASON_INPUT",
+	}
+	AwaitedToolCall_Reason_value = map[string]int32{
+		"REASON_UNSPECIFIED": 0,
+		"REASON_APPROVAL":    1,
+		"REASON_INPUT":       2,
+	}
+)
+
+func (x AwaitedToolCall_Reason) Enum() *AwaitedToolCall_Reason {
+	p := new(AwaitedToolCall_Reason)
+	*p = x
+	return p
+}
+
+func (x AwaitedToolCall_Reason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AwaitedToolCall_Reason) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_agent_v1_agent_proto_enumTypes[2].Descriptor()
+}
+
+func (AwaitedToolCall_Reason) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_agent_v1_agent_proto_enumTypes[2]
+}
+
+func (x AwaitedToolCall_Reason) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
@@ -136,26 +192,25 @@ func (x Agent_TurnOutcome) Number() protoreflect.EnumNumber {
 // messages only: a parent messages its sub-agents, and each turn a sub-agent
 // ends is sent to its parent as a report, waking it.
 type Agent struct {
-	state                      protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name            string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_CreateTime      *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
-	xxx_hidden_UpdateTime      *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
-	xxx_hidden_DeleteTime      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
-	xxx_hidden_Etag            string                 `protobuf:"bytes,5,opt,name=etag,proto3"`
-	xxx_hidden_Labels          map[string]string      `protobuf:"bytes,6,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Annotations     map[string]string      `protobuf:"bytes,7,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	xxx_hidden_Title           string                 `protobuf:"bytes,8,opt,name=title,proto3"`
-	xxx_hidden_Definition      string                 `protobuf:"bytes,9,opt,name=definition,proto3"`
-	xxx_hidden_Spec            *AgentSpec             `protobuf:"bytes,10,opt,name=spec,proto3"`
-	xxx_hidden_ParentAgent     string                 `protobuf:"bytes,11,opt,name=parent_agent,json=parentAgent,proto3"`
-	xxx_hidden_RootAgent       string                 `protobuf:"bytes,12,opt,name=root_agent,json=rootAgent,proto3"`
-	xxx_hidden_Chat            string                 `protobuf:"bytes,13,opt,name=chat,proto3"`
-	xxx_hidden_State           Agent_State            `protobuf:"varint,14,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State"`
-	xxx_hidden_LastTurnOutcome Agent_TurnOutcome      `protobuf:"varint,15,opt,name=last_turn_outcome,json=lastTurnOutcome,proto3,enum=malonaz.ai.agent.v1.Agent_TurnOutcome"`
-	xxx_hidden_Status          *status.Status         `protobuf:"bytes,16,opt,name=status,proto3"`
-	xxx_hidden_QueuedMessages  *[]*v1.Message         `protobuf:"bytes,17,rep,name=queued_messages,json=queuedMessages,proto3"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name           string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_CreateTime     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3"`
+	xxx_hidden_UpdateTime     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3"`
+	xxx_hidden_DeleteTime     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3"`
+	xxx_hidden_Etag           string                 `protobuf:"bytes,5,opt,name=etag,proto3"`
+	xxx_hidden_Labels         map[string]string      `protobuf:"bytes,6,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Annotations    map[string]string      `protobuf:"bytes,7,rep,name=annotations,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Title          string                 `protobuf:"bytes,8,opt,name=title,proto3"`
+	xxx_hidden_Definition     string                 `protobuf:"bytes,9,opt,name=definition,proto3"`
+	xxx_hidden_Spec           *AgentSpec             `protobuf:"bytes,10,opt,name=spec,proto3"`
+	xxx_hidden_ParentAgent    string                 `protobuf:"bytes,11,opt,name=parent_agent,json=parentAgent,proto3"`
+	xxx_hidden_RootAgent      string                 `protobuf:"bytes,12,opt,name=root_agent,json=rootAgent,proto3"`
+	xxx_hidden_Chat           string                 `protobuf:"bytes,13,opt,name=chat,proto3"`
+	xxx_hidden_State          Agent_State            `protobuf:"varint,14,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State"`
+	xxx_hidden_LatestTurn     *Turn                  `protobuf:"bytes,15,opt,name=latest_turn,json=latestTurn,proto3"`
+	xxx_hidden_QueuedMessages *[]*v1.Message         `protobuf:"bytes,16,rep,name=queued_messages,json=queuedMessages,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *Agent) Reset() {
@@ -281,16 +336,9 @@ func (x *Agent) GetState() Agent_State {
 	return Agent_STATE_UNSPECIFIED
 }
 
-func (x *Agent) GetLastTurnOutcome() Agent_TurnOutcome {
+func (x *Agent) GetLatestTurn() *Turn {
 	if x != nil {
-		return x.xxx_hidden_LastTurnOutcome
-	}
-	return Agent_TURN_OUTCOME_UNSPECIFIED
-}
-
-func (x *Agent) GetStatus() *status.Status {
-	if x != nil {
-		return x.xxx_hidden_Status
+		return x.xxx_hidden_LatestTurn
 	}
 	return nil
 }
@@ -360,12 +408,8 @@ func (x *Agent) SetState(v Agent_State) {
 	x.xxx_hidden_State = v
 }
 
-func (x *Agent) SetLastTurnOutcome(v Agent_TurnOutcome) {
-	x.xxx_hidden_LastTurnOutcome = v
-}
-
-func (x *Agent) SetStatus(v *status.Status) {
-	x.xxx_hidden_Status = v
+func (x *Agent) SetLatestTurn(v *Turn) {
+	x.xxx_hidden_LatestTurn = v
 }
 
 func (x *Agent) SetQueuedMessages(v []*v1.Message) {
@@ -400,11 +444,11 @@ func (x *Agent) HasSpec() bool {
 	return x.xxx_hidden_Spec != nil
 }
 
-func (x *Agent) HasStatus() bool {
+func (x *Agent) HasLatestTurn() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Status != nil
+	return x.xxx_hidden_LatestTurn != nil
 }
 
 func (x *Agent) ClearCreateTime() {
@@ -423,8 +467,8 @@ func (x *Agent) ClearSpec() {
 	x.xxx_hidden_Spec = nil
 }
 
-func (x *Agent) ClearStatus() {
-	x.xxx_hidden_Status = nil
+func (x *Agent) ClearLatestTurn() {
+	x.xxx_hidden_LatestTurn = nil
 }
 
 type Agent_builder struct {
@@ -465,10 +509,9 @@ type Agent_builder struct {
 	Chat string
 	// Where the agent is in its lifecycle.
 	State Agent_State
-	// How the agent's latest turn ended. Unset until a turn ends.
-	LastTurnOutcome Agent_TurnOutcome
-	// The error the latest turn failed on. Set only when it failed.
-	Status *status.Status
+	// The agent's latest turn: the running or awaiting one, else the last that
+	// ended. Unset until a turn starts.
+	LatestTurn *Turn
 	// The messages sent to the agent and not yet delivered, oldest first. A turn
 	// delivers them to its chat, at its start and between its tool rounds.
 	QueuedMessages []*v1.Message
@@ -492,9 +535,562 @@ func (b0 Agent_builder) Build() *Agent {
 	x.xxx_hidden_RootAgent = b.RootAgent
 	x.xxx_hidden_Chat = b.Chat
 	x.xxx_hidden_State = b.State
-	x.xxx_hidden_LastTurnOutcome = b.LastTurnOutcome
-	x.xxx_hidden_Status = b.Status
+	x.xxx_hidden_LatestTurn = b.LatestTurn
 	x.xxx_hidden_QueuedMessages = &b.QueuedMessages
+	return m0
+}
+
+// A Turn is one run of an agent: it delivers the agent's queued messages and
+// generates, calling tools, until a final answer, a failure or a cancellation.
+// It pauses on the tool calls only a user can settle.
+type Turn struct {
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_StartTime        *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=start_time,json=startTime,proto3"`
+	xxx_hidden_EndTime          *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_time,json=endTime,proto3"`
+	xxx_hidden_Outcome          Turn_Outcome           `protobuf:"varint,3,opt,name=outcome,proto3,enum=malonaz.ai.agent.v1.Turn_Outcome"`
+	xxx_hidden_Error            *status.Status         `protobuf:"bytes,4,opt,name=error,proto3"`
+	xxx_hidden_AwaitedToolCalls *[]*AwaitedToolCall    `protobuf:"bytes,5,rep,name=awaited_tool_calls,json=awaitedToolCalls,proto3"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
+}
+
+func (x *Turn) Reset() {
+	*x = Turn{}
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Turn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Turn) ProtoMessage() {}
+
+func (x *Turn) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Turn) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_StartTime
+	}
+	return nil
+}
+
+func (x *Turn) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_EndTime
+	}
+	return nil
+}
+
+func (x *Turn) GetOutcome() Turn_Outcome {
+	if x != nil {
+		return x.xxx_hidden_Outcome
+	}
+	return Turn_OUTCOME_UNSPECIFIED
+}
+
+func (x *Turn) GetError() *status.Status {
+	if x != nil {
+		return x.xxx_hidden_Error
+	}
+	return nil
+}
+
+func (x *Turn) GetAwaitedToolCalls() []*AwaitedToolCall {
+	if x != nil {
+		if x.xxx_hidden_AwaitedToolCalls != nil {
+			return *x.xxx_hidden_AwaitedToolCalls
+		}
+	}
+	return nil
+}
+
+func (x *Turn) SetStartTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_StartTime = v
+}
+
+func (x *Turn) SetEndTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_EndTime = v
+}
+
+func (x *Turn) SetOutcome(v Turn_Outcome) {
+	x.xxx_hidden_Outcome = v
+}
+
+func (x *Turn) SetError(v *status.Status) {
+	x.xxx_hidden_Error = v
+}
+
+func (x *Turn) SetAwaitedToolCalls(v []*AwaitedToolCall) {
+	x.xxx_hidden_AwaitedToolCalls = &v
+}
+
+func (x *Turn) HasStartTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartTime != nil
+}
+
+func (x *Turn) HasEndTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EndTime != nil
+}
+
+func (x *Turn) HasError() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Error != nil
+}
+
+func (x *Turn) ClearStartTime() {
+	x.xxx_hidden_StartTime = nil
+}
+
+func (x *Turn) ClearEndTime() {
+	x.xxx_hidden_EndTime = nil
+}
+
+func (x *Turn) ClearError() {
+	x.xxx_hidden_Error = nil
+}
+
+type Turn_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// When the turn started.
+	StartTime *timestamppb.Timestamp
+	// When the turn ended. Unset while it runs or awaits.
+	EndTime *timestamppb.Timestamp
+	// How the turn ended. Unset while it runs or awaits.
+	Outcome Turn_Outcome
+	// The error the turn failed on. Set only when it failed.
+	Error *status.Status
+	// The tool calls the turn awaits a user to settle, with their resolutions
+	// until the resumed turn writes their results.
+	AwaitedToolCalls []*AwaitedToolCall
+}
+
+func (b0 Turn_builder) Build() *Turn {
+	m0 := &Turn{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_StartTime = b.StartTime
+	x.xxx_hidden_EndTime = b.EndTime
+	x.xxx_hidden_Outcome = b.Outcome
+	x.xxx_hidden_Error = b.Error
+	x.xxx_hidden_AwaitedToolCalls = &b.AwaitedToolCalls
+	return m0
+}
+
+// An AwaitedToolCall is a tool call only a user can settle: by approving it, or
+// by supplying its result.
+type AwaitedToolCall struct {
+	state                 protoimpl.MessageState      `protogen:"opaque.v1"`
+	xxx_hidden_ToolCallId string                      `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3"`
+	xxx_hidden_ToolName   string                      `protobuf:"bytes,2,opt,name=tool_name,json=toolName,proto3"`
+	xxx_hidden_Title      string                      `protobuf:"bytes,3,opt,name=title,proto3"`
+	xxx_hidden_Reason     AwaitedToolCall_Reason      `protobuf:"varint,4,opt,name=reason,proto3,enum=malonaz.ai.agent.v1.AwaitedToolCall_Reason"`
+	xxx_hidden_Resolution *AwaitedToolCall_Resolution `protobuf:"bytes,5,opt,name=resolution,proto3"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *AwaitedToolCall) Reset() {
+	*x = AwaitedToolCall{}
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AwaitedToolCall) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AwaitedToolCall) ProtoMessage() {}
+
+func (x *AwaitedToolCall) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *AwaitedToolCall) GetToolCallId() string {
+	if x != nil {
+		return x.xxx_hidden_ToolCallId
+	}
+	return ""
+}
+
+func (x *AwaitedToolCall) GetToolName() string {
+	if x != nil {
+		return x.xxx_hidden_ToolName
+	}
+	return ""
+}
+
+func (x *AwaitedToolCall) GetTitle() string {
+	if x != nil {
+		return x.xxx_hidden_Title
+	}
+	return ""
+}
+
+func (x *AwaitedToolCall) GetReason() AwaitedToolCall_Reason {
+	if x != nil {
+		return x.xxx_hidden_Reason
+	}
+	return AwaitedToolCall_REASON_UNSPECIFIED
+}
+
+func (x *AwaitedToolCall) GetResolution() *AwaitedToolCall_Resolution {
+	if x != nil {
+		return x.xxx_hidden_Resolution
+	}
+	return nil
+}
+
+func (x *AwaitedToolCall) SetToolCallId(v string) {
+	x.xxx_hidden_ToolCallId = v
+}
+
+func (x *AwaitedToolCall) SetToolName(v string) {
+	x.xxx_hidden_ToolName = v
+}
+
+func (x *AwaitedToolCall) SetTitle(v string) {
+	x.xxx_hidden_Title = v
+}
+
+func (x *AwaitedToolCall) SetReason(v AwaitedToolCall_Reason) {
+	x.xxx_hidden_Reason = v
+}
+
+func (x *AwaitedToolCall) SetResolution(v *AwaitedToolCall_Resolution) {
+	x.xxx_hidden_Resolution = v
+}
+
+func (x *AwaitedToolCall) HasResolution() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Resolution != nil
+}
+
+func (x *AwaitedToolCall) ClearResolution() {
+	x.xxx_hidden_Resolution = nil
+}
+
+type AwaitedToolCall_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The id of the tool call.
+	ToolCallId string
+	// The name of the tool called.
+	ToolName string
+	// The title the agent gave the call.
+	Title string
+	// Why the call awaits a user.
+	Reason AwaitedToolCall_Reason
+	// How a user settled the call. Unset while it awaits.
+	Resolution *AwaitedToolCall_Resolution
+}
+
+func (b0 AwaitedToolCall_builder) Build() *AwaitedToolCall {
+	m0 := &AwaitedToolCall{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ToolCallId = b.ToolCallId
+	x.xxx_hidden_ToolName = b.ToolName
+	x.xxx_hidden_Title = b.Title
+	x.xxx_hidden_Reason = b.Reason
+	x.xxx_hidden_Resolution = b.Resolution
+	return m0
+}
+
+// Resolution is how a user settled an awaited call.
+type AwaitedToolCall_Resolution struct {
+	state                protoimpl.MessageState                `protogen:"opaque.v1"`
+	xxx_hidden_Resolver  string                                `protobuf:"bytes,1,opt,name=resolver,proto3"`
+	xxx_hidden_Decision  isAwaitedToolCall_Resolution_Decision `protobuf_oneof:"decision"`
+	xxx_hidden_StartTime *timestamppb.Timestamp                `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *AwaitedToolCall_Resolution) Reset() {
+	*x = AwaitedToolCall_Resolution{}
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AwaitedToolCall_Resolution) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AwaitedToolCall_Resolution) ProtoMessage() {}
+
+func (x *AwaitedToolCall_Resolution) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *AwaitedToolCall_Resolution) GetResolver() string {
+	if x != nil {
+		return x.xxx_hidden_Resolver
+	}
+	return ""
+}
+
+func (x *AwaitedToolCall_Resolution) GetApproval() *AwaitedToolCall_Resolution_Approval {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Approval_); ok {
+			return x.Approval
+		}
+	}
+	return nil
+}
+
+func (x *AwaitedToolCall_Resolution) GetResult() *v1.ToolResult {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Result); ok {
+			return x.Result
+		}
+	}
+	return nil
+}
+
+func (x *AwaitedToolCall_Resolution) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_StartTime
+	}
+	return nil
+}
+
+func (x *AwaitedToolCall_Resolution) SetResolver(v string) {
+	x.xxx_hidden_Resolver = v
+}
+
+func (x *AwaitedToolCall_Resolution) SetApproval(v *AwaitedToolCall_Resolution_Approval) {
+	if v == nil {
+		x.xxx_hidden_Decision = nil
+		return
+	}
+	x.xxx_hidden_Decision = &awaitedToolCall_Resolution_Approval_{v}
+}
+
+func (x *AwaitedToolCall_Resolution) SetResult(v *v1.ToolResult) {
+	if v == nil {
+		x.xxx_hidden_Decision = nil
+		return
+	}
+	x.xxx_hidden_Decision = &awaitedToolCall_Resolution_Result{v}
+}
+
+func (x *AwaitedToolCall_Resolution) SetStartTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_StartTime = v
+}
+
+func (x *AwaitedToolCall_Resolution) HasDecision() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Decision != nil
+}
+
+func (x *AwaitedToolCall_Resolution) HasApproval() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Approval_)
+	return ok
+}
+
+func (x *AwaitedToolCall_Resolution) HasResult() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Result)
+	return ok
+}
+
+func (x *AwaitedToolCall_Resolution) HasStartTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartTime != nil
+}
+
+func (x *AwaitedToolCall_Resolution) ClearDecision() {
+	x.xxx_hidden_Decision = nil
+}
+
+func (x *AwaitedToolCall_Resolution) ClearApproval() {
+	if _, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Approval_); ok {
+		x.xxx_hidden_Decision = nil
+	}
+}
+
+func (x *AwaitedToolCall_Resolution) ClearResult() {
+	if _, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Result); ok {
+		x.xxx_hidden_Decision = nil
+	}
+}
+
+func (x *AwaitedToolCall_Resolution) ClearStartTime() {
+	x.xxx_hidden_StartTime = nil
+}
+
+const AwaitedToolCall_Resolution_Decision_not_set_case case_AwaitedToolCall_Resolution_Decision = 0
+const AwaitedToolCall_Resolution_Approval_case case_AwaitedToolCall_Resolution_Decision = 2
+const AwaitedToolCall_Resolution_Result_case case_AwaitedToolCall_Resolution_Decision = 3
+
+func (x *AwaitedToolCall_Resolution) WhichDecision() case_AwaitedToolCall_Resolution_Decision {
+	if x == nil {
+		return AwaitedToolCall_Resolution_Decision_not_set_case
+	}
+	switch x.xxx_hidden_Decision.(type) {
+	case *awaitedToolCall_Resolution_Approval_:
+		return AwaitedToolCall_Resolution_Approval_case
+	case *awaitedToolCall_Resolution_Result:
+		return AwaitedToolCall_Resolution_Result_case
+	default:
+		return AwaitedToolCall_Resolution_Decision_not_set_case
+	}
+}
+
+type AwaitedToolCall_Resolution_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Who settled the call.
+	Resolver string
+	// The decision.
+
+	// Fields of oneof xxx_hidden_Decision:
+	// The call was approved.
+	Approval *AwaitedToolCall_Resolution_Approval
+	// The call's result, supplied instead of running it: an answer, a
+	// denial, or the error a cancellation or a reply left it.
+	Result *v1.ToolResult
+	// -- end of xxx_hidden_Decision
+	// When the resumed turn started running the approved call. A call found
+	// started without a result was interrupted.
+	StartTime *timestamppb.Timestamp
+}
+
+func (b0 AwaitedToolCall_Resolution_builder) Build() *AwaitedToolCall_Resolution {
+	m0 := &AwaitedToolCall_Resolution{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Resolver = b.Resolver
+	if b.Approval != nil {
+		x.xxx_hidden_Decision = &awaitedToolCall_Resolution_Approval_{b.Approval}
+	}
+	if b.Result != nil {
+		x.xxx_hidden_Decision = &awaitedToolCall_Resolution_Result{b.Result}
+	}
+	x.xxx_hidden_StartTime = b.StartTime
+	return m0
+}
+
+type case_AwaitedToolCall_Resolution_Decision protoreflect.FieldNumber
+
+func (x case_AwaitedToolCall_Resolution_Decision) String() string {
+	md := file_malonaz_ai_agent_v1_agent_proto_msgTypes[5].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isAwaitedToolCall_Resolution_Decision interface {
+	isAwaitedToolCall_Resolution_Decision()
+}
+
+type awaitedToolCall_Resolution_Approval_ struct {
+	// The call was approved.
+	Approval *AwaitedToolCall_Resolution_Approval `protobuf:"bytes,2,opt,name=approval,proto3,oneof"`
+}
+
+type awaitedToolCall_Resolution_Result struct {
+	// The call's result, supplied instead of running it: an answer, a
+	// denial, or the error a cancellation or a reply left it.
+	Result *v1.ToolResult `protobuf:"bytes,3,opt,name=result,proto3,oneof"`
+}
+
+func (*awaitedToolCall_Resolution_Approval_) isAwaitedToolCall_Resolution_Decision() {}
+
+func (*awaitedToolCall_Resolution_Result) isAwaitedToolCall_Resolution_Decision() {}
+
+// Approval approves the call: the resumed turn runs it.
+type AwaitedToolCall_Resolution_Approval struct {
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AwaitedToolCall_Resolution_Approval) Reset() {
+	*x = AwaitedToolCall_Resolution_Approval{}
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AwaitedToolCall_Resolution_Approval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AwaitedToolCall_Resolution_Approval) ProtoMessage() {}
+
+func (x *AwaitedToolCall_Resolution_Approval) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_v1_agent_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type AwaitedToolCall_Resolution_Approval_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 AwaitedToolCall_Resolution_Approval_builder) Build() *AwaitedToolCall_Resolution_Approval {
+	m0 := &AwaitedToolCall_Resolution_Approval{}
+	b, x := &b0, m0
+	_, _ = b, x
 	return m0
 }
 
@@ -502,7 +1098,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xad\x0e\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf2\f\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -528,26 +1124,22 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x1aagent.ai.malonaz.com/AgentR\trootAgent\x12/\n" +
 	"\x04chat\x18\r \x01(\tB\x1b\xe0A\x03\xfaA\x15\n" +
 	"\x13ai.malonaz.com/ChatR\x04chat\x12C\n" +
-	"\x05state\x18\x0e \x01(\x0e2 .malonaz.ai.agent.v1.Agent.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12_\n" +
-	"\x11last_turn_outcome\x18\x0f \x01(\x0e2&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x0flastTurnOutcome\x127\n" +
-	"\x06status\x18\x10 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x12J\n" +
-	"\x0fqueued_messages\x18\x11 \x03(\v2\x16.malonaz.ai.v1.MessageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\x0equeuedMessages\x1a9\n" +
+	"\x05state\x18\x0e \x01(\x0e2 .malonaz.ai.agent.v1.Agent.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12G\n" +
+	"\vlatest_turn\x18\x0f \x01(\v2\x19.malonaz.ai.agent.v1.TurnB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\n" +
+	"latestTurn\x12J\n" +
+	"\x0fqueued_messages\x18\x10 \x03(\v2\x16.malonaz.ai.v1.MessageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\x0equeuedMessages\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"A\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"U\n" +
 	"\x05State\x12\x15\n" +
 	"\x11STATE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"STATE_IDLE\x10\x01\x12\x11\n" +
-	"\rSTATE_RUNNING\x10\x02\"|\n" +
-	"\vTurnOutcome\x12\x1c\n" +
-	"\x18TURN_OUTCOME_UNSPECIFIED\x10\x00\x12\x1a\n" +
-	"\x16TURN_OUTCOME_SUCCEEDED\x10\x01\x12\x17\n" +
-	"\x13TURN_OUTCOME_FAILED\x10\x02\x12\x1a\n" +
-	"\x16TURN_OUTCOME_CANCELLED\x10\x03:\xae\x02\xeaAe\n" +
+	"\rSTATE_RUNNING\x10\x02\x12\x12\n" +
+	"\x0eSTATE_AWAITING\x10\x03:\xae\x02\xeaAe\n" +
 	"\x1aagent.ai.malonaz.com/Agent\x128organizations/{organization}/users/{user}/agents/{agent}*\x06agents2\x05agent\xbaHe\x1ac\n" +
 	"\x18agent.spec_or_definition\x12\x1edefinition or spec must be set\x1a'this.definition != '' || has(this.spec)Ҧ\x04\x00\x82\xf6,$a8d40bb6-3f99-4d02-95ff-71b5be47b1e7\x9a\xf3-.\n" +
 	"\t\x10\x01\n" +
@@ -556,38 +1148,89 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x10\x02\n" +
 	"\x06labels\n" +
 	"\x15\x10\x03\n" +
-	"\x11spec.instructionsB\x84\x01\xeaAS\n" +
+	"\x11spec.instructions\"\xa3\x03\n" +
+	"\x04Turn\x129\n" +
+	"\n" +
+	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
+	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12E\n" +
+	"\aoutcome\x18\x03 \x01(\x0e2!.malonaz.ai.agent.v1.Turn.OutcomeB\b\xbaH\x05\x82\x01\x02\x10\x01R\aoutcome\x12(\n" +
+	"\x05error\x18\x04 \x01(\v2\x12.google.rpc.StatusR\x05error\x12R\n" +
+	"\x12awaited_tool_calls\x18\x05 \x03(\v2$.malonaz.ai.agent.v1.AwaitedToolCallR\x10awaitedToolCalls\"d\n" +
+	"\aOutcome\x12\x17\n" +
+	"\x13OUTCOME_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11OUTCOME_SUCCEEDED\x10\x01\x12\x12\n" +
+	"\x0eOUTCOME_FAILED\x10\x02\x12\x15\n" +
+	"\x11OUTCOME_CANCELLED\x10\x03\"\xda\x04\n" +
+	"\x0fAwaitedToolCall\x12 \n" +
+	"\ftool_call_id\x18\x01 \x01(\tR\n" +
+	"toolCallId\x12\x1b\n" +
+	"\ttool_name\x18\x02 \x01(\tR\btoolName\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12M\n" +
+	"\x06reason\x18\x04 \x01(\x0e2+.malonaz.ai.agent.v1.AwaitedToolCall.ReasonB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06reason\x12O\n" +
+	"\n" +
+	"resolution\x18\x05 \x01(\v2/.malonaz.ai.agent.v1.AwaitedToolCall.ResolutionR\n" +
+	"resolution\x1a\x88\x02\n" +
+	"\n" +
+	"Resolution\x12\x1a\n" +
+	"\bresolver\x18\x01 \x01(\tR\bresolver\x12V\n" +
+	"\bapproval\x18\x02 \x01(\v28.malonaz.ai.agent.v1.AwaitedToolCall.Resolution.ApprovalH\x00R\bapproval\x123\n" +
+	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultH\x00R\x06result\x129\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x1a\n" +
+	"\n" +
+	"\bApprovalB\n" +
+	"\n" +
+	"\bdecision\"G\n" +
+	"\x06Reason\x12\x16\n" +
+	"\x12REASON_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fREASON_APPROVAL\x10\x01\x12\x10\n" +
+	"\fREASON_INPUT\x10\x02B\x84\x01\xeaAS\n" +
 	"\x19agent.ai.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
-var file_malonaz_ai_agent_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_malonaz_ai_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_ai_agent_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_malonaz_ai_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_ai_agent_v1_agent_proto_goTypes = []any{
-	(Agent_State)(0),              // 0: malonaz.ai.agent.v1.Agent.State
-	(Agent_TurnOutcome)(0),        // 1: malonaz.ai.agent.v1.Agent.TurnOutcome
-	(*Agent)(nil),                 // 2: malonaz.ai.agent.v1.Agent
-	nil,                           // 3: malonaz.ai.agent.v1.Agent.LabelsEntry
-	nil,                           // 4: malonaz.ai.agent.v1.Agent.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*AgentSpec)(nil),             // 6: malonaz.ai.agent.v1.AgentSpec
-	(*status.Status)(nil),         // 7: google.rpc.Status
-	(*v1.Message)(nil),            // 8: malonaz.ai.v1.Message
+	(Agent_State)(0),                   // 0: malonaz.ai.agent.v1.Agent.State
+	(Turn_Outcome)(0),                  // 1: malonaz.ai.agent.v1.Turn.Outcome
+	(AwaitedToolCall_Reason)(0),        // 2: malonaz.ai.agent.v1.AwaitedToolCall.Reason
+	(*Agent)(nil),                      // 3: malonaz.ai.agent.v1.Agent
+	(*Turn)(nil),                       // 4: malonaz.ai.agent.v1.Turn
+	(*AwaitedToolCall)(nil),            // 5: malonaz.ai.agent.v1.AwaitedToolCall
+	nil,                                // 6: malonaz.ai.agent.v1.Agent.LabelsEntry
+	nil,                                // 7: malonaz.ai.agent.v1.Agent.AnnotationsEntry
+	(*AwaitedToolCall_Resolution)(nil), // 8: malonaz.ai.agent.v1.AwaitedToolCall.Resolution
+	(*AwaitedToolCall_Resolution_Approval)(nil), // 9: malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval
+	(*timestamppb.Timestamp)(nil),               // 10: google.protobuf.Timestamp
+	(*AgentSpec)(nil),                           // 11: malonaz.ai.agent.v1.AgentSpec
+	(*v1.Message)(nil),                          // 12: malonaz.ai.v1.Message
+	(*status.Status)(nil),                       // 13: google.rpc.Status
+	(*v1.ToolResult)(nil),                       // 14: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_agent_v1_agent_proto_depIdxs = []int32{
-	5,  // 0: malonaz.ai.agent.v1.Agent.create_time:type_name -> google.protobuf.Timestamp
-	5,  // 1: malonaz.ai.agent.v1.Agent.update_time:type_name -> google.protobuf.Timestamp
-	5,  // 2: malonaz.ai.agent.v1.Agent.delete_time:type_name -> google.protobuf.Timestamp
-	3,  // 3: malonaz.ai.agent.v1.Agent.labels:type_name -> malonaz.ai.agent.v1.Agent.LabelsEntry
-	4,  // 4: malonaz.ai.agent.v1.Agent.annotations:type_name -> malonaz.ai.agent.v1.Agent.AnnotationsEntry
-	6,  // 5: malonaz.ai.agent.v1.Agent.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
+	10, // 0: malonaz.ai.agent.v1.Agent.create_time:type_name -> google.protobuf.Timestamp
+	10, // 1: malonaz.ai.agent.v1.Agent.update_time:type_name -> google.protobuf.Timestamp
+	10, // 2: malonaz.ai.agent.v1.Agent.delete_time:type_name -> google.protobuf.Timestamp
+	6,  // 3: malonaz.ai.agent.v1.Agent.labels:type_name -> malonaz.ai.agent.v1.Agent.LabelsEntry
+	7,  // 4: malonaz.ai.agent.v1.Agent.annotations:type_name -> malonaz.ai.agent.v1.Agent.AnnotationsEntry
+	11, // 5: malonaz.ai.agent.v1.Agent.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
 	0,  // 6: malonaz.ai.agent.v1.Agent.state:type_name -> malonaz.ai.agent.v1.Agent.State
-	1,  // 7: malonaz.ai.agent.v1.Agent.last_turn_outcome:type_name -> malonaz.ai.agent.v1.Agent.TurnOutcome
-	7,  // 8: malonaz.ai.agent.v1.Agent.status:type_name -> google.rpc.Status
-	8,  // 9: malonaz.ai.agent.v1.Agent.queued_messages:type_name -> malonaz.ai.v1.Message
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	4,  // 7: malonaz.ai.agent.v1.Agent.latest_turn:type_name -> malonaz.ai.agent.v1.Turn
+	12, // 8: malonaz.ai.agent.v1.Agent.queued_messages:type_name -> malonaz.ai.v1.Message
+	10, // 9: malonaz.ai.agent.v1.Turn.start_time:type_name -> google.protobuf.Timestamp
+	10, // 10: malonaz.ai.agent.v1.Turn.end_time:type_name -> google.protobuf.Timestamp
+	1,  // 11: malonaz.ai.agent.v1.Turn.outcome:type_name -> malonaz.ai.agent.v1.Turn.Outcome
+	13, // 12: malonaz.ai.agent.v1.Turn.error:type_name -> google.rpc.Status
+	5,  // 13: malonaz.ai.agent.v1.Turn.awaited_tool_calls:type_name -> malonaz.ai.agent.v1.AwaitedToolCall
+	2,  // 14: malonaz.ai.agent.v1.AwaitedToolCall.reason:type_name -> malonaz.ai.agent.v1.AwaitedToolCall.Reason
+	8,  // 15: malonaz.ai.agent.v1.AwaitedToolCall.resolution:type_name -> malonaz.ai.agent.v1.AwaitedToolCall.Resolution
+	9,  // 16: malonaz.ai.agent.v1.AwaitedToolCall.Resolution.approval:type_name -> malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval
+	14, // 17: malonaz.ai.agent.v1.AwaitedToolCall.Resolution.result:type_name -> malonaz.ai.v1.ToolResult
+	10, // 18: malonaz.ai.agent.v1.AwaitedToolCall.Resolution.start_time:type_name -> google.protobuf.Timestamp
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_v1_agent_proto_init() }
@@ -596,13 +1239,17 @@ func file_malonaz_ai_agent_v1_agent_proto_init() {
 		return
 	}
 	file_malonaz_ai_agent_v1_definition_proto_init()
+	file_malonaz_ai_agent_v1_agent_proto_msgTypes[5].OneofWrappers = []any{
+		(*awaitedToolCall_Resolution_Approval_)(nil),
+		(*awaitedToolCall_Resolution_Result)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_v1_agent_proto_rawDesc), len(file_malonaz_ai_agent_v1_agent_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   3,
+			NumEnums:      3,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

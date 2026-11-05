@@ -28,6 +28,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Approval is when a call to the tool awaits the user's approval.
+type AgentSpec_Tool_Approval int32
+
+const (
+	// Calls to methods without side effects (idempotency_level
+	// NO_SIDE_EFFECTS) run, any other awaits approval.
+	AgentSpec_Tool_APPROVAL_UNSPECIFIED AgentSpec_Tool_Approval = 0
+	// Every call awaits approval.
+	AgentSpec_Tool_APPROVAL_REQUIRED AgentSpec_Tool_Approval = 1
+	// No call awaits approval.
+	AgentSpec_Tool_APPROVAL_NOT_REQUIRED AgentSpec_Tool_Approval = 2
+)
+
+// Enum value maps for AgentSpec_Tool_Approval.
+var (
+	AgentSpec_Tool_Approval_name = map[int32]string{
+		0: "APPROVAL_UNSPECIFIED",
+		1: "APPROVAL_REQUIRED",
+		2: "APPROVAL_NOT_REQUIRED",
+	}
+	AgentSpec_Tool_Approval_value = map[string]int32{
+		"APPROVAL_UNSPECIFIED":  0,
+		"APPROVAL_REQUIRED":     1,
+		"APPROVAL_NOT_REQUIRED": 2,
+	}
+)
+
+func (x AgentSpec_Tool_Approval) Enum() *AgentSpec_Tool_Approval {
+	p := new(AgentSpec_Tool_Approval)
+	*p = x
+	return p
+}
+
+func (x AgentSpec_Tool_Approval) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AgentSpec_Tool_Approval) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_ai_agent_v1_definition_proto_enumTypes[0].Descriptor()
+}
+
+func (AgentSpec_Tool_Approval) Type() protoreflect.EnumType {
+	return &file_malonaz_ai_agent_v1_definition_proto_enumTypes[0]
+}
+
+func (x AgentSpec_Tool_Approval) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // A Definition is a reusable agent blueprint: what an agent is told, which
 // model it runs on and which tools it holds. Agents
 // snapshot their definition's spec at creation, so editing a definition never
@@ -277,17 +326,18 @@ type AgentSpec struct {
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The reasoning effort the agent generates with.
 	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,3,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
-	// The gRPC methods the agent may call as tools, by full name
-	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-	// Built-in agent tools (launching sub-agents, messaging its tree, labelling
-	// itself) are always available.
-	Tools []string `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
+	// The tools the agent may call. Built-in agent tools (launching sub-agents,
+	// messaging its tree, labelling itself) are always available.
+	Tools []*AgentSpec_Tool `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc
 	// sub-agents only, carrying an inline spec.
 	// Format: organizations/{organization}/definitions/{definition}
 	SubAgentDefinitions []string `protobuf:"bytes,5,rep,name=sub_agent_definitions,json=subAgentDefinitions,proto3" json:"sub_agent_definitions,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// How many levels of sub-agents below it the agent may launch: 0 may not
+	// launch any. A sub-agent's is at most its parent's less one.
+	MaxSubAgentDepth int32 `protobuf:"varint,6,opt,name=max_sub_agent_depth,json=maxSubAgentDepth,proto3" json:"max_sub_agent_depth,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *AgentSpec) Reset() {
@@ -336,7 +386,7 @@ func (x *AgentSpec) GetReasoningEffort() v1.ReasoningEffort {
 	return v1.ReasoningEffort(0)
 }
 
-func (x *AgentSpec) GetTools() []string {
+func (x *AgentSpec) GetTools() []*AgentSpec_Tool {
 	if x != nil {
 		return x.Tools
 	}
@@ -348,6 +398,13 @@ func (x *AgentSpec) GetSubAgentDefinitions() []string {
 		return x.SubAgentDefinitions
 	}
 	return nil
+}
+
+func (x *AgentSpec) GetMaxSubAgentDepth() int32 {
+	if x != nil {
+		return x.MaxSubAgentDepth
+	}
+	return 0
 }
 
 func (x *AgentSpec) SetInstructions(v string) {
@@ -362,12 +419,16 @@ func (x *AgentSpec) SetReasoningEffort(v v1.ReasoningEffort) {
 	x.ReasoningEffort = v
 }
 
-func (x *AgentSpec) SetTools(v []string) {
+func (x *AgentSpec) SetTools(v []*AgentSpec_Tool) {
 	x.Tools = v
 }
 
 func (x *AgentSpec) SetSubAgentDefinitions(v []string) {
 	x.SubAgentDefinitions = v
+}
+
+func (x *AgentSpec) SetMaxSubAgentDepth(v int32) {
+	x.MaxSubAgentDepth = v
 }
 
 type AgentSpec_builder struct {
@@ -380,15 +441,16 @@ type AgentSpec_builder struct {
 	Model string
 	// The reasoning effort the agent generates with.
 	ReasoningEffort v1.ReasoningEffort
-	// The gRPC methods the agent may call as tools, by full name
-	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-	// Built-in agent tools (launching sub-agents, messaging its tree, labelling
-	// itself) are always available.
-	Tools []string
+	// The tools the agent may call. Built-in agent tools (launching sub-agents,
+	// messaging its tree, labelling itself) are always available.
+	Tools []*AgentSpec_Tool
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc
 	// sub-agents only, carrying an inline spec.
 	// Format: organizations/{organization}/definitions/{definition}
 	SubAgentDefinitions []string
+	// How many levels of sub-agents below it the agent may launch: 0 may not
+	// launch any. A sub-agent's is at most its parent's less one.
+	MaxSubAgentDepth int32
 }
 
 func (b0 AgentSpec_builder) Build() *AgentSpec {
@@ -400,6 +462,91 @@ func (b0 AgentSpec_builder) Build() *AgentSpec {
 	x.ReasoningEffort = b.ReasoningEffort
 	x.Tools = b.Tools
 	x.SubAgentDefinitions = b.SubAgentDefinitions
+	x.MaxSubAgentDepth = b.MaxSubAgentDepth
+	return m0
+}
+
+// A Tool is a tool an agent may call.
+type AgentSpec_Tool struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The tool: a gRPC method by full name ("pkg.Service.Method"), every method
+	// of a service ("pkg.Service"), or a genui component by message full name
+	// ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
+	// input components await the user's answer.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// When calls to the tool await the user's approval. Ignored for genui
+	// components.
+	Approval      AgentSpec_Tool_Approval `protobuf:"varint,2,opt,name=approval,proto3,enum=malonaz.ai.agent.v1.AgentSpec_Tool_Approval" json:"approval,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentSpec_Tool) Reset() {
+	*x = AgentSpec_Tool{}
+	mi := &file_malonaz_ai_agent_v1_definition_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentSpec_Tool) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentSpec_Tool) ProtoMessage() {}
+
+func (x *AgentSpec_Tool) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_v1_definition_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *AgentSpec_Tool) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AgentSpec_Tool) GetApproval() AgentSpec_Tool_Approval {
+	if x != nil {
+		return x.Approval
+	}
+	return AgentSpec_Tool_APPROVAL_UNSPECIFIED
+}
+
+func (x *AgentSpec_Tool) SetName(v string) {
+	x.Name = v
+}
+
+func (x *AgentSpec_Tool) SetApproval(v AgentSpec_Tool_Approval) {
+	x.Approval = v
+}
+
+type AgentSpec_Tool_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The tool: a gRPC method by full name ("pkg.Service.Method"), every method
+	// of a service ("pkg.Service"), or a genui component by message full name
+	// ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
+	// input components await the user's answer.
+	Name string
+	// When calls to the tool await the user's approval. Ignored for genui
+	// components.
+	Approval AgentSpec_Tool_Approval
+}
+
+func (b0 AgentSpec_Tool_builder) Build() *AgentSpec_Tool {
+	m0 := &AgentSpec_Tool{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	x.Approval = b.Approval
 	return m0
 }
 
@@ -426,37 +573,51 @@ const file_malonaz_ai_agent_v1_definition_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x01\xeaAq\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x125organizations/{organization}/definitions/{definition}*\vdefinitions2\n" +
-	"definitionҦ\x04\x00\x82\xf6,$52df68c3-048c-4b78-a12f-6056650a0113\"\x84\x03\n" +
+	"definitionҦ\x04\x00\x82\xf6,$52df68c3-048c-4b78-a12f-6056650a0113\"\xc3\x06\n" +
 	"\tAgentSpec\x12-\n" +
 	"\finstructions\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x10R\finstructions\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12S\n" +
-	"\x10reasoning_effort\x18\x03 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortB\b\xbaH\x05\x82\x01\x02\x10\x01R\x0freasoningEffort\x12Z\n" +
-	"\x05tools\x18\x04 \x03(\tBD\xbaHA\x92\x01>\x10\x80\x02\x18\x01\"7r523^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$R\x05tools\x12`\n" +
+	"\x10reasoning_effort\x18\x03 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortB\b\xbaH\x05\x82\x01\x02\x10\x01R\x0freasoningEffort\x12D\n" +
+	"\x05tools\x18\x04 \x03(\v2#.malonaz.ai.agent.v1.AgentSpec.ToolB\t\xbaH\x06\x92\x01\x03\x10\x80\x02R\x05tools\x12`\n" +
 	"\x15sub_agent_definitions\x18\x05 \x03(\tB,\xfaA!\n" +
-	"\x1fagent.ai.malonaz.com/Definition\xbaH\x05\x92\x01\x02\x18\x01R\x13subAgentDefinitionsB\x8f\x01\xeaA^\n" +
+	"\x1fagent.ai.malonaz.com/Definition\xbaH\x05\x92\x01\x02\x18\x01R\x13subAgentDefinitions\x128\n" +
+	"\x13max_sub_agent_depth\x18\x06 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\b(\x00R\x10maxSubAgentDepth\x1a\x82\x02\n" +
+	"\x04Tool\x12N\n" +
+	"\x04name\x18\x01 \x01(\tB:\xbaH7r523^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$R\x04name\x12R\n" +
+	"\bapproval\x18\x02 \x01(\x0e2,.malonaz.ai.agent.v1.AgentSpec.Tool.ApprovalB\b\xbaH\x05\x82\x01\x02\x10\x01R\bapproval\"V\n" +
+	"\bApproval\x12\x18\n" +
+	"\x14APPROVAL_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11APPROVAL_REQUIRED\x10\x01\x12\x19\n" +
+	"\x15APPROVAL_NOT_REQUIRED\x10\x02:\x93\x01\xbaH\x8f\x01\x1a\x8c\x01\n" +
+	"\x17agent_spec.unique_tools\x12\x1ctools must be unique by name\x1aSthis.tools.all(tool, this.tools.filter(other, other.name == tool.name).size() == 1)B\x8f\x01\xeaA^\n" +
 	"!agent.ai.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganizationZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
-var file_malonaz_ai_agent_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_ai_agent_v1_definition_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_ai_agent_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_malonaz_ai_agent_v1_definition_proto_goTypes = []any{
-	(*Definition)(nil),            // 0: malonaz.ai.agent.v1.Definition
-	(*AgentSpec)(nil),             // 1: malonaz.ai.agent.v1.AgentSpec
-	nil,                           // 2: malonaz.ai.agent.v1.Definition.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
-	(v1.ReasoningEffort)(0),       // 4: malonaz.ai.v1.ReasoningEffort
+	(AgentSpec_Tool_Approval)(0),  // 0: malonaz.ai.agent.v1.AgentSpec.Tool.Approval
+	(*Definition)(nil),            // 1: malonaz.ai.agent.v1.Definition
+	(*AgentSpec)(nil),             // 2: malonaz.ai.agent.v1.AgentSpec
+	nil,                           // 3: malonaz.ai.agent.v1.Definition.LabelsEntry
+	(*AgentSpec_Tool)(nil),        // 4: malonaz.ai.agent.v1.AgentSpec.Tool
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(v1.ReasoningEffort)(0),       // 6: malonaz.ai.v1.ReasoningEffort
 }
 var file_malonaz_ai_agent_v1_definition_proto_depIdxs = []int32{
-	3, // 0: malonaz.ai.agent.v1.Definition.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.ai.agent.v1.Definition.update_time:type_name -> google.protobuf.Timestamp
-	3, // 2: malonaz.ai.agent.v1.Definition.delete_time:type_name -> google.protobuf.Timestamp
-	2, // 3: malonaz.ai.agent.v1.Definition.labels:type_name -> malonaz.ai.agent.v1.Definition.LabelsEntry
-	1, // 4: malonaz.ai.agent.v1.Definition.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
-	4, // 5: malonaz.ai.agent.v1.AgentSpec.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	5, // 0: malonaz.ai.agent.v1.Definition.create_time:type_name -> google.protobuf.Timestamp
+	5, // 1: malonaz.ai.agent.v1.Definition.update_time:type_name -> google.protobuf.Timestamp
+	5, // 2: malonaz.ai.agent.v1.Definition.delete_time:type_name -> google.protobuf.Timestamp
+	3, // 3: malonaz.ai.agent.v1.Definition.labels:type_name -> malonaz.ai.agent.v1.Definition.LabelsEntry
+	2, // 4: malonaz.ai.agent.v1.Definition.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
+	6, // 5: malonaz.ai.agent.v1.AgentSpec.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	4, // 6: malonaz.ai.agent.v1.AgentSpec.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool
+	0, // 7: malonaz.ai.agent.v1.AgentSpec.Tool.approval:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool.Approval
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_v1_definition_proto_init() }
@@ -469,13 +630,14 @@ func file_malonaz_ai_agent_v1_definition_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_v1_definition_proto_rawDesc), len(file_malonaz_ai_agent_v1_definition_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_ai_agent_v1_definition_proto_goTypes,
 		DependencyIndexes: file_malonaz_ai_agent_v1_definition_proto_depIdxs,
+		EnumInfos:         file_malonaz_ai_agent_v1_definition_proto_enumTypes,
 		MessageInfos:      file_malonaz_ai_agent_v1_definition_proto_msgTypes,
 	}.Build()
 	File_malonaz_ai_agent_v1_definition_proto = out.File

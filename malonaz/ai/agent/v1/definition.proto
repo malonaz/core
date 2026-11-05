@@ -89,6 +89,12 @@ message Definition {
 // [Definition][malonaz.ai.agent.v1.Definition] and the snapshot carried by
 // each [Agent][malonaz.ai.agent.v1.Agent].
 message AgentSpec {
+  option (buf.validate.message).cel = {
+    id: "agent_spec.unique_tools"
+    message: "tools must be unique by name"
+    expression: "this.tools.all(tool, this.tools.filter(other, other.name == tool.name).size() == 1)"
+  };
+
   // The system prompt the agent runs under.
   string instructions = 1 [(buf.validate.field).string.max_len = 262144];
 
@@ -102,17 +108,9 @@ message AgentSpec {
   // The reasoning effort the agent generates with.
   malonaz.ai.v1.ReasoningEffort reasoning_effort = 3 [(buf.validate.field).enum.defined_only = true];
 
-  // The gRPC methods the agent may call as tools, by full name
-  // ("pkg.Service.Method"), or every method of a service ("pkg.Service").
-  // Built-in agent tools (launching sub-agents, messaging its tree, labelling
-  // itself) are always available.
-  repeated string tools = 4 [(buf.validate.field).repeated = {
-    max_items: 256
-    unique: true
-    items: {
-      string: {pattern: "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$"}
-    }
-  }];
+  // The tools the agent may call. Built-in agent tools (launching sub-agents,
+  // messaging its tree, labelling itself) are always available.
+  repeated Tool tools = 4 [(buf.validate.field).repeated.max_items = 256];
 
   // The definitions this agent may launch sub-agents from. Empty allows ad-hoc
   // sub-agents only, carrying an inline spec.
@@ -121,4 +119,35 @@ message AgentSpec {
     (buf.validate.field).repeated.unique = true,
     (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
   ];
+
+  // How many levels of sub-agents below it the agent may launch: 0 may not
+  // launch any. A sub-agent's is at most its parent's less one.
+  int32 max_sub_agent_depth = 6 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 8
+  }];
+
+  // A Tool is a tool an agent may call.
+  message Tool {
+    // Approval is when a call to the tool awaits the user's approval.
+    enum Approval {
+      // Calls to methods without side effects (idempotency_level
+      // NO_SIDE_EFFECTS) run, any other awaits approval.
+      APPROVAL_UNSPECIFIED = 0;
+      // Every call awaits approval.
+      APPROVAL_REQUIRED = 1;
+      // No call awaits approval.
+      APPROVAL_NOT_REQUIRED = 2;
+    }
+
+    // The tool: a gRPC method by full name ("pkg.Service.Method"), every method
+    // of a service ("pkg.Service"), or a genui component by message full name
+    // ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
+    // input components await the user's answer.
+    string name = 1 [(buf.validate.field).string.pattern = "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$"];
+
+    // When calls to the tool await the user's approval. Ignored for genui
+    // components.
+    Approval approval = 2 [(buf.validate.field).enum.defined_only = true];
+  }
 }
