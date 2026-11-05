@@ -691,16 +691,16 @@ const file_malonaz_ai_agent_agent_service_v1_definition_proto_rawDesc = "" +
 	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"Y\n" +
 	"\x14GetDefinitionRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fagent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01R\x04name\"\xaf\x02\n" +
+	"\x1fagent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01R\x04name\"\xa7\x02\n" +
 	"\x17UpdateDefinitionRequest\x12G\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x1f.malonaz.ai.agent.v1.DefinitionB\x06\xbaH\x03\xd8\x01\x03R\n" +
 	"definition\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:\x85\x01\xbaHT\x1aR\n" +
-	"\x18definition.name_required\x12\x1bdefinition.name must be set\x1a\x19has(this.definition.name)\xea\x9c\xc1\x03)\n" +
+	"updateMask:~\xbaHT\x1aR\n" +
+	"\x18definition.name_required\x12\x1bdefinition.name must be set\x1a\x19has(this.definition.name)\xea\x9c\xc1\x03\"\n" +
 	"\x06labels\n" +
-	"\fdisplay_name\n" +
+	"\x05title\n" +
 	"\vdescription\n" +
 	"\x04spec\"\x95\x01\n" +
 	"\x17DeleteDefinitionRequest\x12A\n" +

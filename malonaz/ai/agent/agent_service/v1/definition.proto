@@ -57,7 +57,7 @@ message UpdateDefinitionRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
       "labels",
-      "display_name",
+      "title",
       "description",
       "spec"
     ]
