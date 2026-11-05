@@ -4,8 +4,6 @@ go_library(
         "agent_model.pb.go",
         "annotations_model.pb.go",
         "definition_model.pb.go",
-        "event_model.pb.go",
-        "executor_model.pb.go",
         "input_model.pb.go",
     ],
     visibility = ["//..."],
