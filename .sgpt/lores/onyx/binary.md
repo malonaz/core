@@ -1,6 +1,6 @@
 ---
 title: Onyx — what the generated main does
-description: The runtime model of an onyx binary — one service instance per manifest, in-process gRPC dependencies dialed through the server's own opts, servers started in dependency order behind Listen(), what each health entry checks, shutdown order, and the validations (cycles, collisions) that fail generation.
+description: The runtime model of an onyx binary — one service instance per manifest, in-process gRPC dependencies dialed through the server's own opts, servers started in dependency order behind Listen(), what each health entry checks, shutdown order (processors and stop_before_servers services ahead of the servers), and the validations (cycles, collisions) that fail generation.
 labels:
     lang: go
     repo: core
@@ -83,15 +83,24 @@ the same binary cannot deadlock at `NOT_SERVING`.
 The first signal, or a server's `Serve` failing, runs the graceful chain:
 
 1. the health server shuts down;
-2. **processors stop, all together** (`lifecycle.CloseAll`), ahead of every
-   server whatever their declaration order: a server's graceful stop can wait
-   on long-lived streams, and a processor's handlers still need the servers.
-   A processor's stop is its own drain (the scheduler dispatcher stops
-   claiming, gives in-flight jobs `drain-timeout`, releases the rest);
+2. **processors and `stop_before_servers` services stop, all together**
+   (`lifecycle.CloseAll`), ahead of every server whatever their declaration
+   order: a server's graceful stop can wait on long-lived streams, and their
+   work still needs the servers. A processor's stop is its own drain (the
+   scheduler dispatcher stops claiming, gives in-flight jobs `drain-timeout`,
+   releases the rest). A served service opts in with `stop_before_servers:
+   true` when its stop releases work calling other servers or ends streams
+   that would hold their graceful stop (the AgentService: stop claiming turns,
+   grace in-flight tool calls, release leases, end `StreamAgent` streams).
+   It stays registered while the servers drain, so its handlers must answer
+   calls arriving after its stop (e.g. `UNAVAILABLE`);
 3. servers in **reverse start order**: gRPC servers, gateways, http servers,
    proxies, each bounded by its `graceful-stop-timeout`.
 
-`defer`s then close the other services, NATS, postgres and gRPC connections.
+`defer`s then close the other services (each up to every server's
+`graceful-stop-timeout` later), NATS, postgres and gRPC connections; an
+early-stopped service's stop is a `sync.OnceFunc`, deferred too for a failed
+start.
 A second signal forces the `Stop` chain.
 
 The whole chain must fit the orchestrator's stop timeout (ECS `stopTimeout`),
