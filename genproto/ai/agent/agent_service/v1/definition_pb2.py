@@ -30,7 +30,7 @@ from malonaz.ai.agent.v1 import definition_pb2 as malonaz_dot_ai_dot_agent_dot_v
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/ai/agent/agent_service/v1/definition.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xf6\x01\n\x17\x43reateDefinitionRequest\x12?\n\x06parent\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12;\n\ndefinition\x18\x02 \x01(\x0b\x32\x1f.malonaz.ai.agent.v1.DefinitionB\x06\xbaH\x03\xc8\x01\x01\x12<\n\rdefinition_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"S\n\x14GetDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\"\x97\x02\n\x17UpdateDefinitionRequest\x12;\n\ndefinition\x18\x01 \x01(\x0b\x32\x1f.malonaz.ai.agent.v1.DefinitionB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\x85\x01\xbaHT\x1aR\n\x18\x64\x65\x66inition.name_required\x12\x1b\x64\x65\x66inition.name must be set\x1a\x19has(this.definition.name)\xea\x9c\xc1\x03)\n\x06labels\n\x0c\x64isplay_name\n\x0b\x64\x65scription\n\x04spec\"{\n\x17\x44\x65leteDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"f\n\x19UndeleteDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\x82\x02\n\x16ListDefinitionsRequest\x12?\n\x06parent\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"h\n\x17ListDefinitionsResponse\x12\x34\n\x0b\x64\x65\x66initions\x18\x01 \x03(\x0b\x32\x1f.malonaz.ai.agent.v1.Definition\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\tB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2malonaz/ai/agent/agent_service/v1/definition.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xf6\x01\n\x17\x43reateDefinitionRequest\x12?\n\x06parent\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12;\n\ndefinition\x18\x02 \x01(\x0b\x32\x1f.malonaz.ai.agent.v1.DefinitionB\x06\xbaH\x03\xc8\x01\x01\x12<\n\rdefinition_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"S\n\x14GetDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\"\x8f\x02\n\x17UpdateDefinitionRequest\x12;\n\ndefinition\x18\x01 \x01(\x0b\x32\x1f.malonaz.ai.agent.v1.DefinitionB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:~\xbaHT\x1aR\n\x18\x64\x65\x66inition.name_required\x12\x1b\x64\x65\x66inition.name must be set\x1a\x19has(this.definition.name)\xea\x9c\xc1\x03\"\n\x06labels\n\x05title\n\x0b\x64\x65scription\n\x04spec\"{\n\x17\x44\x65leteDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"f\n\x19UndeleteDefinitionRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1f\x61gent.ai.malonaz.com/Definition\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\x82\x02\n\x16ListDefinitionsRequest\x12?\n\x06parent\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!agent.ai.malonaz.com/Organization\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"h\n\x17ListDefinitionsResponse\x12\x34\n\x0b\x64\x65\x66initions\x18\x01 \x03(\x0b\x32\x1f.malonaz.ai.agent.v1.Definition\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\tB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -53,7 +53,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_UPDATEDEFINITIONREQUEST'].fields_by_name['update_mask']._loaded_options = None
   _globals['_UPDATEDEFINITIONREQUEST'].fields_by_name['update_mask']._serialized_options = b'\272H\003\310\001\001'
   _globals['_UPDATEDEFINITIONREQUEST']._loaded_options = None
-  _globals['_UPDATEDEFINITIONREQUEST']._serialized_options = b'\272HT\032R\n\030definition.name_required\022\033definition.name must be set\032\031has(this.definition.name)\352\234\301\003)\n\006labels\n\014display_name\n\013description\n\004spec'
+  _globals['_UPDATEDEFINITIONREQUEST']._serialized_options = b'\272HT\032R\n\030definition.name_required\022\033definition.name must be set\032\031has(this.definition.name)\352\234\301\003\"\n\006labels\n\005title\n\013description\n\004spec'
   _globals['_DELETEDEFINITIONREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_DELETEDEFINITIONREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A!\n\037agent.ai.malonaz.com/Definition\272H\003\310\001\001'
   _globals['_UNDELETEDEFINITIONREQUEST'].fields_by_name['name']._loaded_options = None
@@ -69,13 +69,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETDEFINITIONREQUEST']._serialized_start=533
   _globals['_GETDEFINITIONREQUEST']._serialized_end=616
   _globals['_UPDATEDEFINITIONREQUEST']._serialized_start=619
-  _globals['_UPDATEDEFINITIONREQUEST']._serialized_end=898
-  _globals['_DELETEDEFINITIONREQUEST']._serialized_start=900
-  _globals['_DELETEDEFINITIONREQUEST']._serialized_end=1023
-  _globals['_UNDELETEDEFINITIONREQUEST']._serialized_start=1025
-  _globals['_UNDELETEDEFINITIONREQUEST']._serialized_end=1127
-  _globals['_LISTDEFINITIONSREQUEST']._serialized_start=1130
-  _globals['_LISTDEFINITIONSREQUEST']._serialized_end=1388
-  _globals['_LISTDEFINITIONSRESPONSE']._serialized_start=1390
-  _globals['_LISTDEFINITIONSRESPONSE']._serialized_end=1494
+  _globals['_UPDATEDEFINITIONREQUEST']._serialized_end=890
+  _globals['_DELETEDEFINITIONREQUEST']._serialized_start=892
+  _globals['_DELETEDEFINITIONREQUEST']._serialized_end=1015
+  _globals['_UNDELETEDEFINITIONREQUEST']._serialized_start=1017
+  _globals['_UNDELETEDEFINITIONREQUEST']._serialized_end=1119
+  _globals['_LISTDEFINITIONSREQUEST']._serialized_start=1122
+  _globals['_LISTDEFINITIONSREQUEST']._serialized_end=1380
+  _globals['_LISTDEFINITIONSRESPONSE']._serialized_start=1382
+  _globals['_LISTDEFINITIONSRESPONSE']._serialized_end=1486
 # @@protoc_insertion_point(module_scope)
