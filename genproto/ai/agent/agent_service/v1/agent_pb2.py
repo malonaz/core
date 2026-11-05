@@ -28,11 +28,10 @@ from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
 from malonaz.ai.agent.v1 import agent_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot_agent__pb2
 from malonaz.ai.v1 import message_pb2 as malonaz_dot_ai_dot_v1_dot_message__pb2
-from malonaz.ai.agent.v1 import input_pb2 as malonaz_dot_ai_dot_agent_dot_v1_dot_input__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1fmalonaz/ai/agent/v1/input.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xda\x01\n\x12\x43reateAgentRequest\x12\x37\n\x06parent\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x31\n\x05\x61gent\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xc8\x01\x01\x12\x37\n\x08\x61gent_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"I\n\x0fGetAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\"\xeb\x01\n\x12UpdateAgentRequest\x12\x31\n\x05\x61gent\x18\x01 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:i\xbaHE\x1a\x43\n\x13\x61gent.name_required\x12\x16\x61gent.name must be set\x1a\x14has(this.agent.name)\xea\x9c\xc1\x03\x1c\n\x06labels\n\x0b\x61nnotations\n\x05title\"\x80\x01\n\x12\x44\x65leteAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\x12\r\n\x05\x66orce\x18\x04 \x01(\x08\"\\\n\x14UndeleteAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\xf5\x01\n\x11ListAgentsRequest\x12\x37\n\x06parent\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"Y\n\x12ListAgentsResponse\x12*\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x1a.malonaz.ai.agent.v1.Agent\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"L\n\x12\x43\x61ncelAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\"\xaf\x01\n\x12StreamAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x44\n\x04view\x18\x02 \x01(\x0e\x32,.malonaz.ai.agent.agent_service.v1.AgentViewB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x1b\n\x13include_descendants\x18\x03 \x01(\x08\"\xe9\x04\n\x13StreamAgentResponse\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x12.\n\x08snapshot\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentH\x00\x12T\n\ttool_call\x18\x03 \x01(\x0b\x32?.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallH\x00\x12_\n\x0ftool_call_ended\x18\x04 \x01(\x0b\x32\x44.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEndedH\x00\x12%\n\x05\x64\x65lta\x18\x05 \x01(\x0b\x32\x14.malonaz.ai.v1.BlockH\x00\x12)\n\x07message\x18\x06 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageH\x00\x12\x62\n\x10generation_reset\x18\x07 \x01(\x0b\x32\x46.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationResetH\x00\x1a\x33\n\x08ToolCall\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x1a+\n\rToolCallEnded\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06\x66\x61iled\x18\x02 \x01(\x08\x1a\x11\n\x0fGenerationResetB\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\xa2\x01\n\x12\x43reateInputRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x31\n\x05input\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.InputB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\xd2\x01\n\x11ListInputsRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1c\n\tpage_size\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:/\x82\xf3-\x02\x08\x64\x8a\xf3-\x1e\n\x0b\x63reate_time\x12\x0f\x63reate_time asc\x92\xf3-\x03\n\x01*\"Y\n\x12ListInputsResponse\x12*\n\x06inputs\x18\x01 \x03(\x0b\x32\x1a.malonaz.ai.agent.v1.Input\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t*R\n\tAgentView\x12\x1a\n\x16\x41GENT_VIEW_UNSPECIFIED\x10\x00\x12\x14\n\x10\x41GENT_VIEW_BASIC\x10\x01\x12\x13\n\x0f\x41GENT_VIEW_FULL\x10\x02\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xda\x01\n\x12\x43reateAgentRequest\x12\x37\n\x06parent\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x31\n\x05\x61gent\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xc8\x01\x01\x12\x37\n\x08\x61gent_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"I\n\x0fGetAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\"\xeb\x01\n\x12UpdateAgentRequest\x12\x31\n\x05\x61gent\x18\x01 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:i\xbaHE\x1a\x43\n\x13\x61gent.name_required\x12\x16\x61gent.name must be set\x1a\x14has(this.agent.name)\xea\x9c\xc1\x03\x1c\n\x06labels\n\x0b\x61nnotations\n\x05title\"\x80\x01\n\x12\x44\x65leteAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\x12\r\n\x05\x66orce\x18\x04 \x01(\x08\"\\\n\x14UndeleteAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\xf5\x01\n\x11ListAgentsRequest\x12\x37\n\x06parent\x18\x01 \x01(\tB\'\xe0\x41\x02\xfa\x41\x1b\n\x19\x61gent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1c\n\tpage_size\x18\x05 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:=\x82\xf3-\x02\x08\x64\x8a\xf3-,\n\x0b\x63reate_time\n\x0bupdate_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"Y\n\x12ListAgentsResponse\x12*\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x1a.malonaz.ai.agent.v1.Agent\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"L\n\x12\x43\x61ncelAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\"\xaf\x01\n\x12StreamAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x44\n\x04view\x18\x02 \x01(\x0e\x32,.malonaz.ai.agent.agent_service.v1.AgentViewB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x1b\n\x13include_descendants\x18\x03 \x01(\x08\"\xe9\x04\n\x13StreamAgentResponse\x12.\n\x05\x61gent\x18\x01 \x01(\tB\x1f\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\x12.\n\x08snapshot\x18\x02 \x01(\x0b\x32\x1a.malonaz.ai.agent.v1.AgentH\x00\x12T\n\ttool_call\x18\x03 \x01(\x0b\x32?.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallH\x00\x12_\n\x0ftool_call_ended\x18\x04 \x01(\x0b\x32\x44.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEndedH\x00\x12%\n\x05\x64\x65lta\x18\x05 \x01(\x0b\x32\x14.malonaz.ai.v1.BlockH\x00\x12)\n\x07message\x18\x06 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageH\x00\x12\x62\n\x10generation_reset\x18\x07 \x01(\x0b\x32\x46.malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationResetH\x00\x1a\x33\n\x08ToolCall\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x1a+\n\rToolCallEnded\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06\x66\x61iled\x18\x02 \x01(\x08\x1a\x11\n\x0fGenerationResetB\x10\n\x07\x63ontent\x12\x05\xbaH\x02\x08\x01\"\xa2\x01\n\x13MessageAgentRequest\x12\x36\n\x04name\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1a\x61gent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01\x12\x32\n\x07message\x18\x02 \x01(\x0b\x32\x16.malonaz.ai.v1.MessageB\t\xe0\x41\x02\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01*R\n\tAgentView\x12\x1a\n\x16\x41GENT_VIEW_UNSPECIFIED\x10\x00\x12\x14\n\x10\x41GENT_VIEW_BASIC\x10\x01\x12\x13\n\x0f\x41GENT_VIEW_FULL\x10\x02\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -76,50 +75,40 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_STREAMAGENTRESPONSE'].oneofs_by_name['content']._serialized_options = b'\272H\002\010\001'
   _globals['_STREAMAGENTRESPONSE'].fields_by_name['agent']._loaded_options = None
   _globals['_STREAMAGENTRESPONSE'].fields_by_name['agent']._serialized_options = b'\372A\034\n\032agent.ai.malonaz.com/Agent'
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['parent']._loaded_options = None
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\034\n\032agent.ai.malonaz.com/Agent\272H\003\310\001\001'
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['input']._loaded_options = None
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['input']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['request_id']._loaded_options = None
-  _globals['_CREATEINPUTREQUEST'].fields_by_name['request_id']._serialized_options = b'\272H\010r\003\260\001\001\330\001\001'
-  _globals['_LISTINPUTSREQUEST'].fields_by_name['parent']._loaded_options = None
-  _globals['_LISTINPUTSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\034\n\032agent.ai.malonaz.com/Agent\272H\003\310\001\001'
-  _globals['_LISTINPUTSREQUEST'].fields_by_name['page_size']._loaded_options = None
-  _globals['_LISTINPUTSREQUEST'].fields_by_name['page_size']._serialized_options = b'\272H\006\032\004\030d(\000'
-  _globals['_LISTINPUTSREQUEST']._loaded_options = None
-  _globals['_LISTINPUTSREQUEST']._serialized_options = b'\202\363-\002\010d\212\363-\036\n\013create_time\022\017create_time asc\222\363-\003\n\001*'
-  _globals['_AGENTVIEW']._serialized_start=2779
-  _globals['_AGENTVIEW']._serialized_end=2861
-  _globals['_CREATEAGENTREQUEST']._serialized_start=337
-  _globals['_CREATEAGENTREQUEST']._serialized_end=555
-  _globals['_GETAGENTREQUEST']._serialized_start=557
-  _globals['_GETAGENTREQUEST']._serialized_end=630
-  _globals['_UPDATEAGENTREQUEST']._serialized_start=633
-  _globals['_UPDATEAGENTREQUEST']._serialized_end=868
-  _globals['_DELETEAGENTREQUEST']._serialized_start=871
-  _globals['_DELETEAGENTREQUEST']._serialized_end=999
-  _globals['_UNDELETEAGENTREQUEST']._serialized_start=1001
-  _globals['_UNDELETEAGENTREQUEST']._serialized_end=1093
-  _globals['_LISTAGENTSREQUEST']._serialized_start=1096
-  _globals['_LISTAGENTSREQUEST']._serialized_end=1341
-  _globals['_LISTAGENTSRESPONSE']._serialized_start=1343
-  _globals['_LISTAGENTSRESPONSE']._serialized_end=1432
-  _globals['_CANCELAGENTREQUEST']._serialized_start=1434
-  _globals['_CANCELAGENTREQUEST']._serialized_end=1510
-  _globals['_STREAMAGENTREQUEST']._serialized_start=1513
-  _globals['_STREAMAGENTREQUEST']._serialized_end=1688
-  _globals['_STREAMAGENTRESPONSE']._serialized_start=1691
-  _globals['_STREAMAGENTRESPONSE']._serialized_end=2308
-  _globals['_STREAMAGENTRESPONSE_TOOLCALL']._serialized_start=2175
-  _globals['_STREAMAGENTRESPONSE_TOOLCALL']._serialized_end=2226
-  _globals['_STREAMAGENTRESPONSE_TOOLCALLENDED']._serialized_start=2228
-  _globals['_STREAMAGENTRESPONSE_TOOLCALLENDED']._serialized_end=2271
-  _globals['_STREAMAGENTRESPONSE_GENERATIONRESET']._serialized_start=2273
-  _globals['_STREAMAGENTRESPONSE_GENERATIONRESET']._serialized_end=2290
-  _globals['_CREATEINPUTREQUEST']._serialized_start=2311
-  _globals['_CREATEINPUTREQUEST']._serialized_end=2473
-  _globals['_LISTINPUTSREQUEST']._serialized_start=2476
-  _globals['_LISTINPUTSREQUEST']._serialized_end=2686
-  _globals['_LISTINPUTSRESPONSE']._serialized_start=2688
-  _globals['_LISTINPUTSRESPONSE']._serialized_end=2777
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['name']._loaded_options = None
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\034\n\032agent.ai.malonaz.com/Agent\272H\003\310\001\001'
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['message']._loaded_options = None
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['message']._serialized_options = b'\340A\002\272H\003\310\001\001'
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['request_id']._loaded_options = None
+  _globals['_MESSAGEAGENTREQUEST'].fields_by_name['request_id']._serialized_options = b'\272H\010r\003\260\001\001\330\001\001'
+  _globals['_AGENTVIEW']._serialized_start=2442
+  _globals['_AGENTVIEW']._serialized_end=2524
+  _globals['_CREATEAGENTREQUEST']._serialized_start=304
+  _globals['_CREATEAGENTREQUEST']._serialized_end=522
+  _globals['_GETAGENTREQUEST']._serialized_start=524
+  _globals['_GETAGENTREQUEST']._serialized_end=597
+  _globals['_UPDATEAGENTREQUEST']._serialized_start=600
+  _globals['_UPDATEAGENTREQUEST']._serialized_end=835
+  _globals['_DELETEAGENTREQUEST']._serialized_start=838
+  _globals['_DELETEAGENTREQUEST']._serialized_end=966
+  _globals['_UNDELETEAGENTREQUEST']._serialized_start=968
+  _globals['_UNDELETEAGENTREQUEST']._serialized_end=1060
+  _globals['_LISTAGENTSREQUEST']._serialized_start=1063
+  _globals['_LISTAGENTSREQUEST']._serialized_end=1308
+  _globals['_LISTAGENTSRESPONSE']._serialized_start=1310
+  _globals['_LISTAGENTSRESPONSE']._serialized_end=1399
+  _globals['_CANCELAGENTREQUEST']._serialized_start=1401
+  _globals['_CANCELAGENTREQUEST']._serialized_end=1477
+  _globals['_STREAMAGENTREQUEST']._serialized_start=1480
+  _globals['_STREAMAGENTREQUEST']._serialized_end=1655
+  _globals['_STREAMAGENTRESPONSE']._serialized_start=1658
+  _globals['_STREAMAGENTRESPONSE']._serialized_end=2275
+  _globals['_STREAMAGENTRESPONSE_TOOLCALL']._serialized_start=2142
+  _globals['_STREAMAGENTRESPONSE_TOOLCALL']._serialized_end=2193
+  _globals['_STREAMAGENTRESPONSE_TOOLCALLENDED']._serialized_start=2195
+  _globals['_STREAMAGENTRESPONSE_TOOLCALLENDED']._serialized_end=2238
+  _globals['_STREAMAGENTRESPONSE_GENERATIONRESET']._serialized_start=2240
+  _globals['_STREAMAGENTRESPONSE_GENERATIONRESET']._serialized_end=2257
+  _globals['_MESSAGEAGENTREQUEST']._serialized_start=2278
+  _globals['_MESSAGEAGENTREQUEST']._serialized_end=2440
 # @@protoc_insertion_point(module_scope)

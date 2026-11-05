@@ -4,7 +4,7 @@ go_library(
         "agent_model.pb.go",
         "annotations_model.pb.go",
         "definition_model.pb.go",
-        "input_model.pb.go",
+        "labels_model.pb.go",
     ],
     visibility = ["//..."],
     deps = [

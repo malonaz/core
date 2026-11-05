@@ -15,7 +15,7 @@ import malonaz.ai.agent.agent_service.v1.agent_pb2
 import malonaz.ai.agent.agent_service.v1.definition_pb2
 import malonaz.ai.agent.v1.agent_pb2
 import malonaz.ai.agent.v1.definition_pb2
-import malonaz.ai.agent.v1.input_pb2
+import malonaz.ai.v1.message_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.ai.agent.agent_service.v1.agent_service_pb2
 
@@ -79,11 +79,7 @@ class AgentServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def CreateInput(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.CreateInputRequest, malonaz.ai.agent.v1.input_pb2.Input]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def ListInputs(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest, malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse]') -> None:
+    async def MessageAgent(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest, malonaz.ai.v1.message_pb2.Message]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -172,17 +168,11 @@ class AgentServiceBase(abc.ABC):
                 malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentRequest,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentResponse,
             ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/CreateInput': grpclib.const.Handler(
-                self.CreateInput,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent': grpclib.const.Handler(
+                self.MessageAgent,
                 grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.agent.agent_service.v1.agent_pb2.CreateInputRequest,
-                malonaz.ai.agent.v1.input_pb2.Input,
-            ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListInputs': grpclib.const.Handler(
-                self.ListInputs,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest,
-                malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest,
+                malonaz.ai.v1.message_pb2.Message,
             ),
         }
 
@@ -274,15 +264,9 @@ class AgentServiceStub:
             malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentRequest,
             malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentResponse,
         )
-        self.CreateInput = grpclib.client.UnaryUnaryMethod(
+        self.MessageAgent = grpclib.client.UnaryUnaryMethod(
             channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/CreateInput',
-            malonaz.ai.agent.agent_service.v1.agent_pb2.CreateInputRequest,
-            malonaz.ai.agent.v1.input_pb2.Input,
-        )
-        self.ListInputs = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListInputs',
-            malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest,
-            malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent',
+            malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest,
+            malonaz.ai.v1.message_pb2.Message,
         )

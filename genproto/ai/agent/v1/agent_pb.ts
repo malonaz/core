@@ -25,11 +25,11 @@ export const file_malonaz_ai_agent_v1_agent: GenFile = /*@__PURE__*/
 
 /**
  * An Agent is a running instance of a spec: a conversation the AgentService
- * drives one turn at a time, fed by the inputs it is sent. The transcript
+ * drives one turn at a time, fed by the messages it is sent. The transcript
  * lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
  * agent's durable history. Agents talk to each other asynchronously, through
- * inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
- * ends is queued as an input on its parent, waking it.
+ * messages only: a parent messages its sub-agents, and each turn a sub-agent
+ * ends is sent to its parent as a report, waking it.
  *
  * @generated from message malonaz.ai.agent.v1.Agent
  */
@@ -156,11 +156,11 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
 
 /**
  * An Agent is a running instance of a spec: a conversation the AgentService
- * drives one turn at a time, fed by the inputs it is sent. The transcript
+ * drives one turn at a time, fed by the messages it is sent. The transcript
  * lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
  * agent's durable history. Agents talk to each other asynchronously, through
- * inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
- * ends is queued as an input on its parent, waking it.
+ * messages only: a parent messages its sub-agents, and each turn a sub-agent
+ * ends is sent to its parent as a report, waking it.
  *
  * @generated from message malonaz.ai.agent.v1.Agent
  */
@@ -306,7 +306,7 @@ export enum Agent_State {
   UNSPECIFIED = 0,
 
   /**
-   * The agent waits for input.
+   * The agent waits for messages.
    *
    * @generated from enum value: STATE_IDLE = 1;
    */
