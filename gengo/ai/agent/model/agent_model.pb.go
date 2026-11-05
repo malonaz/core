@@ -22,27 +22,24 @@ var ErrAgentHasChildren = errors.New("agent has child resources")
 var ErrAgentETagChanged = errors.New("agent etag changed")
 
 type Agent struct {
-	OrganizationID    string     `db:"organization_id" schema:"public" table:"agent"`
-	UserID            string     `db:"user_id" schema:"public" table:"agent"`
-	AgentID           string     `db:"agent_id" schema:"public" table:"agent"`
-	CreateTime        time.Time  `db:"create_time" schema:"public" table:"agent"`
-	UpdateTime        time.Time  `db:"update_time" schema:"public" table:"agent"`
-	DeleteTime        *time.Time `db:"delete_time" schema:"public" table:"agent"`
-	Etag              string     `db:"etag" schema:"public" table:"agent"`
-	Labels            []byte     `db:"labels" schema:"public" table:"agent"`
-	Annotations       []byte     `db:"annotations" schema:"public" table:"agent"`
-	Title             string     `db:"title" schema:"public" table:"agent"`
-	Definition        string     `db:"definition" schema:"public" table:"agent"`
-	Spec              []byte     `db:"spec" schema:"public" table:"agent"`
-	ParentAgent       string     `db:"parent_agent" schema:"public" table:"agent"`
-	RootAgent         string     `db:"root_agent" schema:"public" table:"agent"`
-	Chat              string     `db:"chat" schema:"public" table:"agent"`
-	Executor          string     `db:"executor" schema:"public" table:"agent"`
-	LeasedExecutor    string     `db:"leased_executor" schema:"public" table:"agent"`
-	State             int16      `db:"state" schema:"public" table:"agent"`
-	LastTurnOutcome   int16      `db:"last_turn_outcome" schema:"public" table:"agent"`
-	Status            []byte     `db:"status" schema:"public" table:"agent"`
-	LastEventSequence int64      `db:"last_event_sequence" schema:"public" table:"agent"`
+	OrganizationID  string     `db:"organization_id" schema:"public" table:"agent"`
+	UserID          string     `db:"user_id" schema:"public" table:"agent"`
+	AgentID         string     `db:"agent_id" schema:"public" table:"agent"`
+	CreateTime      time.Time  `db:"create_time" schema:"public" table:"agent"`
+	UpdateTime      time.Time  `db:"update_time" schema:"public" table:"agent"`
+	DeleteTime      *time.Time `db:"delete_time" schema:"public" table:"agent"`
+	Etag            string     `db:"etag" schema:"public" table:"agent"`
+	Labels          []byte     `db:"labels" schema:"public" table:"agent"`
+	Annotations     []byte     `db:"annotations" schema:"public" table:"agent"`
+	Title           string     `db:"title" schema:"public" table:"agent"`
+	Definition      string     `db:"definition" schema:"public" table:"agent"`
+	Spec            []byte     `db:"spec" schema:"public" table:"agent"`
+	ParentAgent     string     `db:"parent_agent" schema:"public" table:"agent"`
+	RootAgent       string     `db:"root_agent" schema:"public" table:"agent"`
+	Chat            string     `db:"chat" schema:"public" table:"agent"`
+	State           int16      `db:"state" schema:"public" table:"agent"`
+	LastTurnOutcome int16      `db:"last_turn_outcome" schema:"public" table:"agent"`
+	Status          []byte     `db:"status" schema:"public" table:"agent"`
 }
 
 func AgentFromPb(m *v1.Agent) (*Agent, error) {
@@ -102,27 +99,24 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 		}
 	}
 	return &Agent{
-		OrganizationID:    OrganizationID,
-		UserID:            UserID,
-		AgentID:           AgentID,
-		CreateTime:        m.CreateTime.AsTime(),
-		UpdateTime:        m.UpdateTime.AsTime(),
-		DeleteTime:        DeleteTime,
-		Etag:              m.Etag,
-		Labels:            LabelsBytes,
-		Annotations:       AnnotationsBytes,
-		Title:             m.Title,
-		Definition:        m.Definition,
-		Spec:              SpecBytes,
-		ParentAgent:       m.ParentAgent,
-		RootAgent:         m.RootAgent,
-		Chat:              m.Chat,
-		Executor:          m.Executor,
-		LeasedExecutor:    m.LeasedExecutor,
-		State:             int16(m.State),
-		LastTurnOutcome:   int16(m.LastTurnOutcome),
-		Status:            StatusBytes,
-		LastEventSequence: m.LastEventSequence,
+		OrganizationID:  OrganizationID,
+		UserID:          UserID,
+		AgentID:         AgentID,
+		CreateTime:      m.CreateTime.AsTime(),
+		UpdateTime:      m.UpdateTime.AsTime(),
+		DeleteTime:      DeleteTime,
+		Etag:            m.Etag,
+		Labels:          LabelsBytes,
+		Annotations:     AnnotationsBytes,
+		Title:           m.Title,
+		Definition:      m.Definition,
+		Spec:            SpecBytes,
+		ParentAgent:     m.ParentAgent,
+		RootAgent:       m.RootAgent,
+		Chat:            m.Chat,
+		State:           int16(m.State),
+		LastTurnOutcome: int16(m.LastTurnOutcome),
+		Status:          StatusBytes,
 	}, nil
 }
 
@@ -177,25 +171,22 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Agent{
-		Name:              name,
-		CreateTime:        CreateTime,
-		UpdateTime:        UpdateTime,
-		DeleteTime:        DeleteTime,
-		Etag:              m.Etag,
-		Labels:            Labels,
-		Annotations:       Annotations,
-		Title:             m.Title,
-		Definition:        m.Definition,
-		Spec:              Spec,
-		ParentAgent:       m.ParentAgent,
-		RootAgent:         m.RootAgent,
-		Chat:              m.Chat,
-		Executor:          m.Executor,
-		LeasedExecutor:    m.LeasedExecutor,
-		State:             v1.Agent_State(m.State),
-		LastTurnOutcome:   v1.Agent_TurnOutcome(m.LastTurnOutcome),
-		Status:            Status,
-		LastEventSequence: m.LastEventSequence,
+		Name:            name,
+		CreateTime:      CreateTime,
+		UpdateTime:      UpdateTime,
+		DeleteTime:      DeleteTime,
+		Etag:            m.Etag,
+		Labels:          Labels,
+		Annotations:     Annotations,
+		Title:           m.Title,
+		Definition:      m.Definition,
+		Spec:            Spec,
+		ParentAgent:     m.ParentAgent,
+		RootAgent:       m.RootAgent,
+		Chat:            m.Chat,
+		State:           v1.Agent_State(m.State),
+		LastTurnOutcome: v1.Agent_TurnOutcome(m.LastTurnOutcome),
+		Status:          Status,
 	}, nil
 }
 

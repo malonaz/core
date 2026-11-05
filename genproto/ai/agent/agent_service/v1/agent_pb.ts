@@ -11,8 +11,8 @@ import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import type { Agent, AgentValid } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
-import type { Delta, DeltaValid, Event, EventValid } from "../../v1/event_pb";
-import { file_malonaz_ai_agent_v1_event } from "../../v1/event_pb";
+import type { Block, BlockValid, Message as Message$1, MessageValid } from "../../../v1/message_pb";
+import { file_malonaz_ai_v1_message } from "../../../v1/message_pb";
 import type { Input, InputValid } from "../../v1/input_pb";
 import { file_malonaz_ai_agent_v1_input } from "../../v1/input_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
@@ -22,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIvUBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6c7pIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMmCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZQoIZXhlY3V0b3IigAEKEkRlbGV0ZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCRINCgVmb3JjZRgEIAEoCCJcChRVbmRlbGV0ZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEgwKBGV0YWcYAiABKAki9QEKEUxpc3RBZ2VudHNSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEg4KBmZpbHRlchgCIAEoCRIUCgxzaG93X2RlbGV0ZWQYAyABKAgSEAoIb3JkZXJfYnkYBCABKAkSHAoJcGFnZV9zaXplGAUgASgFQgm6SAYaBBhkKAASEgoKcGFnZV90b2tlbhgGIAEoCTo9gvMtAghkivMtLAoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJZChJMaXN0QWdlbnRzUmVzcG9uc2USKgoGYWdlbnRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudBIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiTAoSQ2FuY2VsQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQEi0AEKElN0cmVhbUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEkQKBHZpZXcYAiABKA4yLC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQWdlbnRWaWV3Qgi6SAWCAQIQARIfCg5hZnRlcl9zZXF1ZW5jZRgDIAEoA0IHukgEIgIoABIbChNpbmNsdWRlX2Rlc2NlbmRhbnRzGAQgASgIIuMBChNTdHJlYW1BZ2VudFJlc3BvbnNlEisKBWV2ZW50GAEgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5FdmVudEgAEisKBWRlbHRhGAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5EZWx0YUgAElQKCWNhdWdodF91cBgDIAEoCzI/Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLkNhdWdodFVwSAAaCgoIQ2F1Z2h0VXBCEAoHY29udGVudBIFukgCCAEizQEKEUxpc3RFdmVudHNSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6KYLzLQIIZIrzLRgKCHNlcXVlbmNlEgxzZXF1ZW5jZSBhc2OS8y0DCgEqIlkKEkxpc3RFdmVudHNSZXNwb25zZRIqCgZldmVudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkV2ZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSKiAQoSQ3JlYXRlSW5wdXRSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIxCgVpbnB1dBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuSW5wdXRCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASLSAQoRTGlzdElucHV0c1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEg4KBmZpbHRlchgCIAEoCRIQCghvcmRlcl9ieRgDIAEoCRIcCglwYWdlX3NpemUYBCABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAUgASgJOi+C8y0CCGSK8y0eCgtjcmVhdGVfdGltZRIPY3JlYXRlX3RpbWUgYXNjkvMtAwoBKiJZChJMaXN0SW5wdXRzUmVzcG9uc2USKgoGaW5wdXRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5JbnB1dBIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkqUgoJQWdlbnRWaWV3EhoKFkFHRU5UX1ZJRVdfVU5TUEVDSUZJRUQQABIUChBBR0VOVF9WSUVXX0JBU0lDEAESEwoPQUdFTlRfVklFV19GVUxMEAJCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_event, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoSQ3JlYXRlSW5wdXRSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIxCgVpbnB1dBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuSW5wdXRCBrpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASLSAQoRTGlzdElucHV0c1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEg4KBmZpbHRlchgCIAEoCRIQCghvcmRlcl9ieRgDIAEoCRIcCglwYWdlX3NpemUYBCABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAUgASgJOi+C8y0CCGSK8y0eCgtjcmVhdGVfdGltZRIPY3JlYXRlX3RpbWUgYXNjkvMtAwoBKiJZChJMaXN0SW5wdXRzUmVzcG9uc2USKgoGaW5wdXRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5JbnB1dBIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkqUgoJQWdlbnRWaWV3EhoKFkFHRU5UX1ZJRVdfVU5TUEVDSUZJRUQQABIUChBBR0VOVF9WSUVXX0JBU0lDEAESEwoPQUdFTlRfVklFV19GVUxMEAJCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_agent_v1_input, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.CreateAgent.
@@ -538,18 +538,10 @@ export type StreamAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.Stre
   view: AgentView;
 
   /**
-   * Replay events after this sequence before going live. 0 replays the whole
-   * log; the agent's `last_event_sequence` streams live activity only.
-   *
-   * @generated from field: int64 after_sequence = 3;
-   */
-  afterSequence: bigint;
-
-  /**
    * If true, also stream every descendant agent, present and future: a whole
-   * tree in one stream. Replay then starts at each agent's beginning.
+   * tree in one stream.
    *
-   * @generated from field: bool include_descendants = 4;
+   * @generated from field: bool include_descendants = 3;
    */
   includeDescendants: boolean;
 };
@@ -576,18 +568,10 @@ export type StreamAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1
   view: AgentView;
 
   /**
-   * Replay events after this sequence before going live. 0 replays the whole
-   * log; the agent's `last_event_sequence` streams live activity only.
-   *
-   * @generated from field: int64 after_sequence = 3;
-   */
-  afterSequence: bigint;
-
-  /**
    * If true, also stream every descendant agent, present and future: a whole
-   * tree in one stream. Replay then starts at each agent's beginning.
+   * tree in one stream.
    *
-   * @generated from field: bool include_descendants = 4;
+   * @generated from field: bool include_descendants = 3;
    */
   includeDescendants: boolean;
 };
@@ -600,78 +584,144 @@ export const StreamAgentRequestSchema: GenMessage<StreamAgentRequest, {validType
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 8);
 
 /**
- * Response message for AgentService.StreamAgent.
+ * Response message for AgentService.StreamAgent: one piece of live activity.
  *
  * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse
  */
 export type StreamAgentResponse = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse"> & {
   /**
-   * What is streamed.
+   * The agent this activity is about: the streamed agent or a descendant.
+   * Format: organizations/{organization}/users/{user}/agents/{agent}
+   *
+   * @generated from field: string agent = 1;
+   */
+  agent: string;
+
+  /**
+   * The activity.
    *
    * @generated from oneof malonaz.ai.agent.agent_service.v1.StreamAgentResponse.content
    */
   content: {
     /**
-     * A persisted event of the agent or one of its descendants.
+     * The agent's current state. Sent first for each agent, then on every
+     * change to its state, labels or title.
      *
-     * @generated from field: malonaz.ai.agent.v1.Event event = 1;
+     * @generated from field: malonaz.ai.agent.v1.Agent snapshot = 2;
      */
-    value: Event;
-    case: "event";
+    value: Agent;
+    case: "snapshot";
   } | {
     /**
-     * A live generation delta. FULL view only.
+     * A tool call the agent started, sent as soon as its title is known.
      *
-     * @generated from field: malonaz.ai.agent.v1.Delta delta = 2;
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall tool_call = 3;
      */
-    value: Delta;
+    value: StreamAgentResponse_ToolCall;
+    case: "toolCall";
+  } | {
+    /**
+     * A tool call that returned.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded tool_call_ended = 4;
+     */
+    value: StreamAgentResponse_ToolCallEnded;
+    case: "toolCallEnded";
+  } | {
+    /**
+     * A block delta of the message being generated. FULL view only.
+     *
+     * @generated from field: malonaz.ai.v1.Block delta = 5;
+     */
+    value: Block;
     case: "delta";
   } | {
     /**
-     * Sent once replay is done and the stream is live.
+     * A message persisted to the agent's chat. FULL view only.
      *
-     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.CaughtUp caught_up = 3;
+     * @generated from field: malonaz.ai.v1.Message message = 6;
      */
-    value: StreamAgentResponse_CaughtUp;
-    case: "caughtUp";
+    value: Message$1;
+    case: "message";
+  } | {
+    /**
+     * The generation in flight was interrupted: discard its deltas. FULL view only.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset generation_reset = 7;
+     */
+    value: StreamAgentResponse_GenerationReset;
+    case: "generationReset";
   } | { case: undefined; value?: undefined };
 };
 
 /**
- * Response message for AgentService.StreamAgent.
+ * Response message for AgentService.StreamAgent: one piece of live activity.
  *
  * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse
  */
 export type StreamAgentResponseValid = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse"> & {
   /**
-   * What is streamed.
+   * The agent this activity is about: the streamed agent or a descendant.
+   * Format: organizations/{organization}/users/{user}/agents/{agent}
+   *
+   * @generated from field: string agent = 1;
+   */
+  agent: string;
+
+  /**
+   * The activity.
    *
    * @generated from oneof malonaz.ai.agent.agent_service.v1.StreamAgentResponse.content
    */
   content: {
     /**
-     * A persisted event of the agent or one of its descendants.
+     * The agent's current state. Sent first for each agent, then on every
+     * change to its state, labels or title.
      *
-     * @generated from field: malonaz.ai.agent.v1.Event event = 1;
+     * @generated from field: malonaz.ai.agent.v1.Agent snapshot = 2;
      */
-    value: EventValid;
-    case: "event";
+    value: AgentValid;
+    case: "snapshot";
   } | {
     /**
-     * A live generation delta. FULL view only.
+     * A tool call the agent started, sent as soon as its title is known.
      *
-     * @generated from field: malonaz.ai.agent.v1.Delta delta = 2;
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall tool_call = 3;
      */
-    value: DeltaValid;
+    value: StreamAgentResponse_ToolCallValid;
+    case: "toolCall";
+  } | {
+    /**
+     * A tool call that returned.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded tool_call_ended = 4;
+     */
+    value: StreamAgentResponse_ToolCallEndedValid;
+    case: "toolCallEnded";
+  } | {
+    /**
+     * A block delta of the message being generated. FULL view only.
+     *
+     * @generated from field: malonaz.ai.v1.Block delta = 5;
+     */
+    value: BlockValid;
     case: "delta";
   } | {
     /**
-     * Sent once replay is done and the stream is live.
+     * A message persisted to the agent's chat. FULL view only.
      *
-     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.CaughtUp caught_up = 3;
+     * @generated from field: malonaz.ai.v1.Message message = 6;
      */
-    value: StreamAgentResponse_CaughtUpValid;
-    case: "caughtUp";
+    value: MessageValid;
+    case: "message";
+  } | {
+    /**
+     * The generation in flight was interrupted: discard its deltas. FULL view only.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset generation_reset = 7;
+     */
+    value: StreamAgentResponse_GenerationResetValid;
+    case: "generationReset";
   } | { case: undefined; value?: undefined };
 };
 
@@ -683,163 +733,88 @@ export const StreamAgentResponseSchema: GenMessage<StreamAgentResponse, {validTy
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9);
 
 /**
- * CaughtUp marks the end of replay.
+ * ToolCall announces a tool call.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.CaughtUp
+ * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
  */
-export type StreamAgentResponse_CaughtUp = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse.CaughtUp"> & {
+export type StreamAgentResponse_ToolCall = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall"> & {
+  /**
+   * The id of the tool call.
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * The name of the tool called.
+   *
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * The title the agent gave the call.
+   *
+   * @generated from field: string title = 3;
+   */
+  title: string;
 };
 
-export type StreamAgentResponse_CaughtUpValid = StreamAgentResponse_CaughtUp;
+export type StreamAgentResponse_ToolCallValid = StreamAgentResponse_ToolCall;
 
 /**
- * Describes the message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.CaughtUp.
- * Use `create(StreamAgentResponse_CaughtUpSchema)` to create a new message.
+ * Describes the message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall.
+ * Use `create(StreamAgentResponse_ToolCallSchema)` to create a new message.
  */
-export const StreamAgentResponse_CaughtUpSchema: GenMessage<StreamAgentResponse_CaughtUp, {validType: StreamAgentResponse_CaughtUpValid}> = /*@__PURE__*/
+export const StreamAgentResponse_ToolCallSchema: GenMessage<StreamAgentResponse_ToolCall, {validType: StreamAgentResponse_ToolCallValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 0);
 
 /**
- * Request message for AgentService.ListEvents.
+ * ToolCallEnded marks a tool call's return.
  *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListEventsRequest
+ * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
  */
-export type ListEventsRequest = Message<"malonaz.ai.agent.agent_service.v1.ListEventsRequest"> & {
+export type StreamAgentResponse_ToolCallEnded = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded"> & {
   /**
-   * The agent whose events to list.
-   * Format: organizations/{organization}/users/{user}/agents/{agent}
+   * The id of the tool call.
    *
-   * @generated from field: string parent = 1;
+   * @generated from field: string id = 1;
    */
-  parent: string;
+  id: string;
 
   /**
-   * @autogen.
+   * If true, the call returned an error.
    *
-   * @generated from field: string filter = 2;
+   * @generated from field: bool failed = 2;
    */
-  filter: string;
-
-  /**
-   * @autogen
-   *
-   * @generated from field: string order_by = 3;
-   */
-  orderBy: string;
-
-  /**
-   * Maximum number of events to return (max 1000).
-   *
-   * @generated from field: int32 page_size = 4;
-   */
-  pageSize: number;
-
-  /**
-   * A page token, received from a previous `ListEvents` call.
-   *
-   * @generated from field: string page_token = 5;
-   */
-  pageToken: string;
+  failed: boolean;
 };
 
+export type StreamAgentResponse_ToolCallEndedValid = StreamAgentResponse_ToolCallEnded;
+
 /**
- * Request message for AgentService.ListEvents.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListEventsRequest
+ * Describes the message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded.
+ * Use `create(StreamAgentResponse_ToolCallEndedSchema)` to create a new message.
  */
-export type ListEventsRequestValid = Message<"malonaz.ai.agent.agent_service.v1.ListEventsRequest"> & {
-  /**
-   * The agent whose events to list.
-   * Format: organizations/{organization}/users/{user}/agents/{agent}
-   *
-   * @generated from field: string parent = 1;
-   */
-  parent: string;
+export const StreamAgentResponse_ToolCallEndedSchema: GenMessage<StreamAgentResponse_ToolCallEnded, {validType: StreamAgentResponse_ToolCallEndedValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 1);
 
-  /**
-   * @autogen.
-   *
-   * @generated from field: string filter = 2;
-   */
-  filter: string;
-
-  /**
-   * @autogen
-   *
-   * @generated from field: string order_by = 3;
-   */
-  orderBy: string;
-
-  /**
-   * Maximum number of events to return (max 1000).
-   *
-   * @generated from field: int32 page_size = 4;
-   */
-  pageSize: number;
-
-  /**
-   * A page token, received from a previous `ListEvents` call.
-   *
-   * @generated from field: string page_token = 5;
-   */
-  pageToken: string;
+/**
+ * GenerationReset discards an interrupted generation's deltas.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
+ */
+export type StreamAgentResponse_GenerationReset = Message<"malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset"> & {
 };
 
-/**
- * Describes the message malonaz.ai.agent.agent_service.v1.ListEventsRequest.
- * Use `create(ListEventsRequestSchema)` to create a new message.
- */
-export const ListEventsRequestSchema: GenMessage<ListEventsRequest, {validType: ListEventsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 10);
+export type StreamAgentResponse_GenerationResetValid = StreamAgentResponse_GenerationReset;
 
 /**
- * Response message for AgentService.ListEvents.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListEventsResponse
+ * Describes the message malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset.
+ * Use `create(StreamAgentResponse_GenerationResetSchema)` to create a new message.
  */
-export type ListEventsResponse = Message<"malonaz.ai.agent.agent_service.v1.ListEventsResponse"> & {
-  /**
-   * The events.
-   *
-   * @generated from field: repeated malonaz.ai.agent.v1.Event events = 1;
-   */
-  events: Event[];
-
-  /**
-   * A token to retrieve the next page. Omitted when there are no more pages.
-   *
-   * @generated from field: string next_page_token = 2;
-   */
-  nextPageToken: string;
-};
-
-/**
- * Response message for AgentService.ListEvents.
- *
- * @generated from message malonaz.ai.agent.agent_service.v1.ListEventsResponse
- */
-export type ListEventsResponseValid = Message<"malonaz.ai.agent.agent_service.v1.ListEventsResponse"> & {
-  /**
-   * The events.
-   *
-   * @generated from field: repeated malonaz.ai.agent.v1.Event events = 1;
-   */
-  events: EventValid[];
-
-  /**
-   * A token to retrieve the next page. Omitted when there are no more pages.
-   *
-   * @generated from field: string next_page_token = 2;
-   */
-  nextPageToken: string;
-};
-
-/**
- * Describes the message malonaz.ai.agent.agent_service.v1.ListEventsResponse.
- * Use `create(ListEventsResponseSchema)` to create a new message.
- */
-export const ListEventsResponseSchema: GenMessage<ListEventsResponse, {validType: ListEventsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11);
+export const StreamAgentResponse_GenerationResetSchema: GenMessage<StreamAgentResponse_GenerationReset, {validType: StreamAgentResponse_GenerationResetValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 2);
 
 /**
  * Request message for AgentService.CreateInput.
@@ -904,7 +879,7 @@ export type CreateInputRequestValid = Message<"malonaz.ai.agent.agent_service.v1
  * Use `create(CreateInputRequestSchema)` to create a new message.
  */
 export const CreateInputRequestSchema: GenMessage<CreateInputRequest, {validType: CreateInputRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 12);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 10);
 
 /**
  * Request message for AgentService.ListInputs.
@@ -997,7 +972,7 @@ export type ListInputsRequestValid = Message<"malonaz.ai.agent.agent_service.v1.
  * Use `create(ListInputsRequestSchema)` to create a new message.
  */
 export const ListInputsRequestSchema: GenMessage<ListInputsRequest, {validType: ListInputsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 13);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11);
 
 /**
  * Response message for AgentService.ListInputs.
@@ -1046,7 +1021,7 @@ export type ListInputsResponseValid = Message<"malonaz.ai.agent.agent_service.v1
  * Use `create(ListInputsResponseSchema)` to create a new message.
  */
 export const ListInputsResponseSchema: GenMessage<ListInputsResponse, {validType: ListInputsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 14);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 12);
 
 /**
  * The amount of an agent's activity a StreamAgent call streams.
@@ -1062,14 +1037,14 @@ export enum AgentView {
   UNSPECIFIED = 0,
 
   /**
-   * The agent's events: its log replayed from `after_sequence`, then live.
+   * Agent snapshots and the tool calls' titles and ends: enough to follow a tree.
    *
    * @generated from enum value: AGENT_VIEW_BASIC = 1;
    */
   BASIC = 1,
 
   /**
-   * BASIC plus the live deltas of in-flight generations, token by token.
+   * BASIC plus generation deltas and persisted messages: enough to render a chat live.
    *
    * @generated from enum value: AGENT_VIEW_FULL = 2;
    */

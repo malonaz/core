@@ -7,7 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/ai/agent/v1/agent.proto";
-import "malonaz/ai/agent/v1/event.proto";
+import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/agent/v1/input.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
@@ -60,8 +60,7 @@ message UpdateAgentRequest {
     paths: [
       "labels",
       "annotations",
-      "title",
-      "executor"
+      "title"
     ]
   };
   option (buf.validate.message).cel = {
@@ -178,9 +177,9 @@ message CancelAgentRequest {
 enum AgentView {
   // Used to detect an unset field. Behaves as BASIC.
   AGENT_VIEW_UNSPECIFIED = 0;
-  // The agent's events: its log replayed from `after_sequence`, then live.
+  // Agent snapshots and the tool calls' titles and ends: enough to follow a tree.
   AGENT_VIEW_BASIC = 1;
-  // BASIC plus the live deltas of in-flight generations, token by token.
+  // BASIC plus generation deltas and persisted messages: enough to render a chat live.
   AGENT_VIEW_FULL = 2;
 }
 
@@ -197,77 +196,64 @@ message StreamAgentRequest {
   // How much activity to stream.
   AgentView view = 2 [(buf.validate.field).enum.defined_only = true];
 
-  // Replay events after this sequence before going live. 0 replays the whole
-  // log; the agent's `last_event_sequence` streams live activity only.
-  int64 after_sequence = 3 [(buf.validate.field).int64.gte = 0];
-
   // If true, also stream every descendant agent, present and future: a whole
-  // tree in one stream. Replay then starts at each agent's beginning.
-  bool include_descendants = 4;
+  // tree in one stream.
+  bool include_descendants = 3;
 }
 
-// Response message for AgentService.StreamAgent.
+// Response message for AgentService.StreamAgent: one piece of live activity.
 message StreamAgentResponse {
-  // What is streamed.
+  // The agent this activity is about: the streamed agent or a descendant.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string agent = 1 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"];
+
+  // The activity.
   oneof content {
     option (buf.validate.oneof).required = true;
 
-    // A persisted event of the agent or one of its descendants.
-    malonaz.ai.agent.v1.Event event = 1;
+    // The agent's current state. Sent first for each agent, then on every
+    // change to its state, labels or title.
+    malonaz.ai.agent.v1.Agent snapshot = 2;
 
-    // A live generation delta. FULL view only.
-    malonaz.ai.agent.v1.Delta delta = 2;
+    // A tool call the agent started, sent as soon as its title is known.
+    ToolCall tool_call = 3;
 
-    // Sent once replay is done and the stream is live.
-    CaughtUp caught_up = 3;
+    // A tool call that returned.
+    ToolCallEnded tool_call_ended = 4;
+
+    // A block delta of the message being generated. FULL view only.
+    malonaz.ai.v1.Block delta = 5;
+
+    // A message persisted to the agent's chat. FULL view only.
+    malonaz.ai.v1.Message message = 6;
+
+    // The generation in flight was interrupted: discard its deltas. FULL view only.
+    GenerationReset generation_reset = 7;
   }
 
-  // CaughtUp marks the end of replay.
-  message CaughtUp {}
-}
+  // ToolCall announces a tool call.
+  message ToolCall {
+    // The id of the tool call.
+    string id = 1;
 
-// Request message for AgentService.ListEvents.
-message ListEventsRequest {
-  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
-  option (malonaz.codegen.aip.v1.ordering) = {
-    paths: ["sequence"]
-    default: "sequence asc"
-  };
-  option (malonaz.codegen.aip.v1.filtering) = {
-    paths: ["*"]
-  };
+    // The name of the tool called.
+    string name = 2;
 
-  // The agent whose events to list.
-  // Format: organizations/{organization}/users/{user}/agents/{agent}
-  string parent = 1 [
-    (buf.validate.field).required = true,
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
-  ];
+    // The title the agent gave the call.
+    string title = 3;
+  }
 
-  // @autogen.
-  string filter = 2;
+  // ToolCallEnded marks a tool call's return.
+  message ToolCallEnded {
+    // The id of the tool call.
+    string id = 1;
 
-  // @autogen
-  string order_by = 3;
+    // If true, the call returned an error.
+    bool failed = 2;
+  }
 
-  // Maximum number of events to return (max 1000).
-  int32 page_size = 4 [(buf.validate.field).int32 = {
-    gte: 0
-    lte: 1000
-  }];
-
-  // A page token, received from a previous `ListEvents` call.
-  string page_token = 5;
-}
-
-// Response message for AgentService.ListEvents.
-message ListEventsResponse {
-  // The events.
-  repeated malonaz.ai.agent.v1.Event events = 1;
-
-  // A token to retrieve the next page. Omitted when there are no more pages.
-  string next_page_token = 2;
+  // GenerationReset discards an interrupted generation's deltas.
+  message GenerationReset {}
 }
 
 // Request message for AgentService.CreateInput.

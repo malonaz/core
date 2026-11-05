@@ -21,17 +21,15 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIqYNCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI5CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCC+BBBbrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI0CghleGVjdXRvchgOIAEoCUIi+kEfCh1hZ2VudC5haS5tYWxvbmF6LmNvbS9FeGVjdXRvchI+Cg9sZWFzZWRfZXhlY3V0b3IYDyABKAlCJeBBA/pBHwodYWdlbnQuYWkubWFsb25hei5jb20vRXhlY3V0b3ISPAoFc3RhdGUYECABKA4yIC5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50LlN0YXRlQgvgQQO6SAWCAQIQARJOChFsYXN0X3R1cm5fb3V0Y29tZRgRIAEoDjImLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuVHVybk91dGNvbWVCC+BBA7pIBYIBAhABEi8KBnN0YXR1cxgSIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzQgvgQQO66g8EEAEgARIgChNsYXN0X2V2ZW50X3NlcXVlbmNlGBMgASgDQgPgQQMaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiVAoFU3RhdGUSFQoRU1RBVEVfVU5TUEVDSUZJRUQQABIRCg1TVEFURV9QRU5ESU5HEAESDgoKU1RBVEVfSURMRRACEhEKDVNUQVRFX1JVTk5JTkcQAyJ8CgtUdXJuT3V0Y29tZRIcChhUVVJOX09VVENPTUVfVU5TUEVDSUZJRUQQABIaChZUVVJOX09VVENPTUVfU1VDQ0VFREVEEAESFwoTVFVSTl9PVVRDT01FX0ZBSUxFRBACEhoKFlRVUk5fT1VUQ09NRV9DQU5DRUxMRUQQAzr8AepBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN0KEAVosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvdjHqQVMKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIvsLCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI5CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCC+BBBbrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI8CgVzdGF0ZRgOIAEoDjIgLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuU3RhdGVCC+BBA7pIBYIBAhABEk4KEWxhc3RfdHVybl9vdXRjb21lGA8gASgOMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5UdXJuT3V0Y29tZUIL4EEDukgFggECEAESLwoGc3RhdHVzGBAgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXNCC+BBA7rqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIkEKBVN0YXRlEhUKEVNUQVRFX1VOU1BFQ0lGSUVEEAASDgoKU1RBVEVfSURMRRABEhEKDVNUQVRFX1JVTk5JTkcQAiJ8CgtUdXJuT3V0Y29tZRIcChhUVVJOX09VVENPTUVfVU5TUEVDSUZJRUQQABIaChZUVVJOX09VVENPTUVfU1VDQ0VFREVEEAESFwoTVFVSTl9PVVRDT01FX0ZBSUxFRBACEhoKFlRVUk5fT1VUQ09NRV9DQU5DRUxMRUQQAzr8AepBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN0KEAVosZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvdjHqQVMKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
- * An Agent is a running instance of a spec: a conversation driven by an
- * executor, one turn at a time, fed by the inputs clients send it. The agent
- * owns its lifecycle, labels and event log; the transcript lives in its
- * [Chat][malonaz.ai.v1.Chat] on the AiService. Clients only ever talk to the
- * AgentService: executors lease agents and report back over ConnectExecutor.
- * Agents talk to each other asynchronously, through inputs only: a parent
- * sends its sub-agent inputs, and each turn a sub-agent ends is queued as an
- * input on its parent, waking it.
+ * An Agent is a running instance of a spec: a conversation the AgentService
+ * drives one turn at a time, fed by the inputs it is sent. The transcript
+ * lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
+ * agent's durable history. Agents talk to each other asynchronously, through
+ * inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
+ * ends is queued as an input on its parent, waking it.
  *
  * @generated from message malonaz.ai.agent.v1.Agent
  */
@@ -59,7 +57,7 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   updateTime?: Timestamp;
 
   /**
-   * The deletion timestamp of the agent. Set when soft-deleted, which revokes its lease.
+   * The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
    *
    * @generated from field: google.protobuf.Timestamp delete_time = 4;
    */
@@ -73,7 +71,7 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   etag: string;
 
   /**
-   * The labels on this agent. Agents label and unlabel themselves through UpdateAgent.
+   * The labels on this agent. Agents label themselves through their built-in update_labels tool.
    *
    * @generated from field: map<string, string> labels = 6;
    */
@@ -135,61 +133,34 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   chat: string;
 
   /**
-   * The executor the agent must run on, one of its user's. Empty lets
-   * placement pick one of its user's: the parent agent's executor first, then
-   * any online executor matching the spec's selector with spare capacity.
-   * Format: organizations/{organization}/users/{user}/executors/{executor}
-   *
-   * @generated from field: string executor = 14;
-   */
-  executor: string;
-
-  /**
-   * The executor currently holding the agent's lease. Empty while pending.
-   * Format: organizations/{organization}/users/{user}/executors/{executor}
-   *
-   * @generated from field: string leased_executor = 15;
-   */
-  leasedExecutor: string;
-
-  /**
    * Where the agent is in its lifecycle.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.State state = 16;
+   * @generated from field: malonaz.ai.agent.v1.Agent.State state = 14;
    */
   state: Agent_State;
 
   /**
    * How the agent's latest turn ended. Unset until a turn ends.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 17;
+   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 15;
    */
   lastTurnOutcome: Agent_TurnOutcome;
 
   /**
    * The error the latest turn failed on. Set only when it failed.
    *
-   * @generated from field: google.rpc.Status status = 18;
+   * @generated from field: google.rpc.Status status = 16;
    */
   status?: Status;
-
-  /**
-   * The sequence of the agent's latest event: resume StreamAgent from it.
-   *
-   * @generated from field: int64 last_event_sequence = 19;
-   */
-  lastEventSequence: bigint;
 };
 
 /**
- * An Agent is a running instance of a spec: a conversation driven by an
- * executor, one turn at a time, fed by the inputs clients send it. The agent
- * owns its lifecycle, labels and event log; the transcript lives in its
- * [Chat][malonaz.ai.v1.Chat] on the AiService. Clients only ever talk to the
- * AgentService: executors lease agents and report back over ConnectExecutor.
- * Agents talk to each other asynchronously, through inputs only: a parent
- * sends its sub-agent inputs, and each turn a sub-agent ends is queued as an
- * input on its parent, waking it.
+ * An Agent is a running instance of a spec: a conversation the AgentService
+ * drives one turn at a time, fed by the inputs it is sent. The transcript
+ * lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
+ * agent's durable history. Agents talk to each other asynchronously, through
+ * inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
+ * ends is queued as an input on its parent, waking it.
  *
  * @generated from message malonaz.ai.agent.v1.Agent
  */
@@ -217,7 +188,7 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   updateTime?: Timestamp;
 
   /**
-   * The deletion timestamp of the agent. Set when soft-deleted, which revokes its lease.
+   * The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
    *
    * @generated from field: google.protobuf.Timestamp delete_time = 4;
    */
@@ -231,7 +202,7 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   etag: string;
 
   /**
-   * The labels on this agent. Agents label and unlabel themselves through UpdateAgent.
+   * The labels on this agent. Agents label themselves through their built-in update_labels tool.
    *
    * @generated from field: map<string, string> labels = 6;
    */
@@ -293,50 +264,25 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   chat: string;
 
   /**
-   * The executor the agent must run on, one of its user's. Empty lets
-   * placement pick one of its user's: the parent agent's executor first, then
-   * any online executor matching the spec's selector with spare capacity.
-   * Format: organizations/{organization}/users/{user}/executors/{executor}
-   *
-   * @generated from field: string executor = 14;
-   */
-  executor: string;
-
-  /**
-   * The executor currently holding the agent's lease. Empty while pending.
-   * Format: organizations/{organization}/users/{user}/executors/{executor}
-   *
-   * @generated from field: string leased_executor = 15;
-   */
-  leasedExecutor: string;
-
-  /**
    * Where the agent is in its lifecycle.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.State state = 16;
+   * @generated from field: malonaz.ai.agent.v1.Agent.State state = 14;
    */
   state: Agent_State;
 
   /**
    * How the agent's latest turn ended. Unset until a turn ends.
    *
-   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 17;
+   * @generated from field: malonaz.ai.agent.v1.Agent.TurnOutcome last_turn_outcome = 15;
    */
   lastTurnOutcome: Agent_TurnOutcome;
 
   /**
    * The error the latest turn failed on. Set only when it failed.
    *
-   * @generated from field: google.rpc.Status status = 18;
+   * @generated from field: google.rpc.Status status = 16;
    */
   status?: StatusValid;
-
-  /**
-   * The sequence of the agent's latest event: resume StreamAgent from it.
-   *
-   * @generated from field: int64 last_event_sequence = 19;
-   */
-  lastEventSequence: bigint;
 };
 
 /**
@@ -360,25 +306,18 @@ export enum Agent_State {
   UNSPECIFIED = 0,
 
   /**
-   * No executor holds the agent: it waits for one matching its selector.
+   * The agent waits for input.
    *
-   * @generated from enum value: STATE_PENDING = 1;
+   * @generated from enum value: STATE_IDLE = 1;
    */
-  PENDING = 1,
+  IDLE = 1,
 
   /**
-   * An executor holds the agent, which waits for input.
+   * One of the agent's turns is running.
    *
-   * @generated from enum value: STATE_IDLE = 2;
+   * @generated from enum value: STATE_RUNNING = 2;
    */
-  IDLE = 2,
-
-  /**
-   * An executor is running one of the agent's turns.
-   *
-   * @generated from enum value: STATE_RUNNING = 3;
-   */
-  RUNNING = 3,
+  RUNNING = 2,
 }
 
 /**

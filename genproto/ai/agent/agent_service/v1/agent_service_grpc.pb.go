@@ -36,18 +36,15 @@ const (
 	AgentService_StreamAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/StreamAgent"
 	AgentService_CreateInput_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CreateInput"
 	AgentService_ListInputs_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/ListInputs"
-	AgentService_ListEvents_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/ListEvents"
-	AgentService_GetExecutor_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/GetExecutor"
-	AgentService_ListExecutors_FullMethodName      = "/malonaz.ai.agent.agent_service.v1.AgentService/ListExecutors"
-	AgentService_ConnectExecutor_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ConnectExecutor"
 )
 
 // AgentServiceClient is the client API for AgentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// This API stores and drives agents. It owns state only: executors, which
-// hold the tools, compute and credentials, dial in to run agents' turns.
+// This API stores agents and runs their turns. Every tool an agent holds is a
+// gRPC method, called on the service's behalf; built-in tools let agents
+// launch sub-agents, message their tree and label themselves.
 //
 // # Resource model
 //
@@ -58,10 +55,6 @@ const (
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
 //   - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
-//   - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
-//     Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
-//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
-//     Format: organizations/{organization}/users/{user}/executors/{executor}
 //
 // # Messaging
 //
@@ -94,23 +87,23 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListDefinitions(ctx context.Context, in *ListDefinitionsRequest, opts ...grpc.CallOption) (*ListDefinitionsResponse, error)
-	// Create a agent.
+	// Create an agent.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateAgent(ctx context.Context, in *CreateAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
-	// Get a agent.
+	// Get an agent.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetAgent(ctx context.Context, in *GetAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
-	// Update a agent.
+	// Update an agent.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateAgent(ctx context.Context, in *UpdateAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
-	// Delete a agent.
+	// Delete an agent.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteAgent(ctx context.Context, in *DeleteAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
-	// Undelete a agent.
+	// Undelete an agent.
 	//
 	// See: https://google.aip.dev/164 (Soft delete).
 	UndeleteAgent(ctx context.Context, in *UndeleteAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
@@ -122,8 +115,9 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelAgent(ctx context.Context, in *CancelAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
-	// Stream an agent's activity: its event log replayed from a sequence then
-	// live, with token deltas in the FULL view, optionally for its whole tree.
+	// Stream an agent's live activity, optionally for its whole tree. There is
+	// no replay: the agent's chat is its history, so clients open the stream,
+	// then list the chat's messages, deduping by message name.
 	StreamAgent(ctx context.Context, in *StreamAgentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamAgentResponse], error)
 	// Send an agent an input, queued for its next turn. Wakes an idle agent.
 	//
@@ -133,23 +127,6 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListInputs(ctx context.Context, in *ListInputsRequest, opts ...grpc.CallOption) (*ListInputsResponse, error)
-	// List an agent's events.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
-	// Get an executor.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetExecutor(ctx context.Context, in *GetExecutorRequest, opts ...grpc.CallOption) (*v1.Executor, error)
-	// List executors.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListExecutors(ctx context.Context, in *ListExecutorsRequest, opts ...grpc.CallOption) (*ListExecutorsResponse, error)
-	// Connect an executor: it registers, heartbeats and reports its agents'
-	// events and deltas up; the service leases it agents and forwards their
-	// inputs, cancellations and revocations down. Closing the stream releases
-	// every agent it holds.
-	ConnectExecutor(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ConnectExecutorRequest, ConnectExecutorResponse], error)
 }
 
 type agentServiceClient struct {
@@ -329,55 +306,13 @@ func (c *agentServiceClient) ListInputs(ctx context.Context, in *ListInputsReque
 	return out, nil
 }
 
-func (c *agentServiceClient) ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListEventsResponse)
-	err := c.cc.Invoke(ctx, AgentService_ListEvents_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) GetExecutor(ctx context.Context, in *GetExecutorRequest, opts ...grpc.CallOption) (*v1.Executor, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Executor)
-	err := c.cc.Invoke(ctx, AgentService_GetExecutor_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) ListExecutors(ctx context.Context, in *ListExecutorsRequest, opts ...grpc.CallOption) (*ListExecutorsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListExecutorsResponse)
-	err := c.cc.Invoke(ctx, AgentService_ListExecutors_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) ConnectExecutor(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ConnectExecutorRequest, ConnectExecutorResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &AgentService_ServiceDesc.Streams[1], AgentService_ConnectExecutor_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[ConnectExecutorRequest, ConnectExecutorResponse]{ClientStream: stream}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type AgentService_ConnectExecutorClient = grpc.BidiStreamingClient[ConnectExecutorRequest, ConnectExecutorResponse]
-
 // AgentServiceServer is the server API for AgentService service.
 // All implementations should embed UnimplementedAgentServiceServer
 // for forward compatibility.
 //
-// This API stores and drives agents. It owns state only: executors, which
-// hold the tools, compute and credentials, dial in to run agents' turns.
+// This API stores agents and runs their turns. Every tool an agent holds is a
+// gRPC method, called on the service's behalf; built-in tools let agents
+// launch sub-agents, message their tree and label themselves.
 //
 // # Resource model
 //
@@ -388,10 +323,6 @@ type AgentService_ConnectExecutorClient = grpc.BidiStreamingClient[ConnectExecut
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
 //   - [Input][malonaz.ai.agent.v1.Input]: a message queued in an agent's inbox.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}/inputs/{input}
-//   - [Event][malonaz.ai.agent.v1.Event]: an entry in an agent's append-only log.
-//     Format: organizations/{organization}/users/{user}/agents/{agent}/events/{event}
-//   - [Executor][malonaz.ai.agent.v1.Executor]: a process running a user's agents' turns.
-//     Format: organizations/{organization}/users/{user}/executors/{executor}
 //
 // # Messaging
 //
@@ -424,23 +355,23 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListDefinitions(context.Context, *ListDefinitionsRequest) (*ListDefinitionsResponse, error)
-	// Create a agent.
+	// Create an agent.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateAgent(context.Context, *CreateAgentRequest) (*v1.Agent, error)
-	// Get a agent.
+	// Get an agent.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetAgent(context.Context, *GetAgentRequest) (*v1.Agent, error)
-	// Update a agent.
+	// Update an agent.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateAgent(context.Context, *UpdateAgentRequest) (*v1.Agent, error)
-	// Delete a agent.
+	// Delete an agent.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteAgent(context.Context, *DeleteAgentRequest) (*v1.Agent, error)
-	// Undelete a agent.
+	// Undelete an agent.
 	//
 	// See: https://google.aip.dev/164 (Soft delete).
 	UndeleteAgent(context.Context, *UndeleteAgentRequest) (*v1.Agent, error)
@@ -452,8 +383,9 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelAgent(context.Context, *CancelAgentRequest) (*v1.Agent, error)
-	// Stream an agent's activity: its event log replayed from a sequence then
-	// live, with token deltas in the FULL view, optionally for its whole tree.
+	// Stream an agent's live activity, optionally for its whole tree. There is
+	// no replay: the agent's chat is its history, so clients open the stream,
+	// then list the chat's messages, deduping by message name.
 	StreamAgent(*StreamAgentRequest, grpc.ServerStreamingServer[StreamAgentResponse]) error
 	// Send an agent an input, queued for its next turn. Wakes an idle agent.
 	//
@@ -463,23 +395,6 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListInputs(context.Context, *ListInputsRequest) (*ListInputsResponse, error)
-	// List an agent's events.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
-	// Get an executor.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetExecutor(context.Context, *GetExecutorRequest) (*v1.Executor, error)
-	// List executors.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListExecutors(context.Context, *ListExecutorsRequest) (*ListExecutorsResponse, error)
-	// Connect an executor: it registers, heartbeats and reports its agents'
-	// events and deltas up; the service leases it agents and forwards their
-	// inputs, cancellations and revocations down. Closing the stream releases
-	// every agent it holds.
-	ConnectExecutor(grpc.BidiStreamingServer[ConnectExecutorRequest, ConnectExecutorResponse]) error
 }
 
 // UnimplementedAgentServiceServer should be embedded to have
@@ -536,18 +451,6 @@ func (UnimplementedAgentServiceServer) CreateInput(context.Context, *CreateInput
 }
 func (UnimplementedAgentServiceServer) ListInputs(context.Context, *ListInputsRequest) (*ListInputsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListInputs not implemented")
-}
-func (UnimplementedAgentServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListEvents not implemented")
-}
-func (UnimplementedAgentServiceServer) GetExecutor(context.Context, *GetExecutorRequest) (*v1.Executor, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetExecutor not implemented")
-}
-func (UnimplementedAgentServiceServer) ListExecutors(context.Context, *ListExecutorsRequest) (*ListExecutorsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListExecutors not implemented")
-}
-func (UnimplementedAgentServiceServer) ConnectExecutor(grpc.BidiStreamingServer[ConnectExecutorRequest, ConnectExecutorResponse]) error {
-	return status.Error(codes.Unimplemented, "method ConnectExecutor not implemented")
 }
 func (UnimplementedAgentServiceServer) testEmbeddedByValue() {}
 
@@ -850,67 +753,6 @@ func _AgentService_ListInputs_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_ListEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListEventsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ListEvents(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ListEvents_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ListEvents(ctx, req.(*ListEventsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_GetExecutor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetExecutorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).GetExecutor(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_GetExecutor_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetExecutor(ctx, req.(*GetExecutorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_ListExecutors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListExecutorsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ListExecutors(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ListExecutors_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ListExecutors(ctx, req.(*ListExecutorsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_ConnectExecutor_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(AgentServiceServer).ConnectExecutor(&grpc.GenericServerStream[ConnectExecutorRequest, ConnectExecutorResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type AgentService_ConnectExecutorServer = grpc.BidiStreamingServer[ConnectExecutorRequest, ConnectExecutorResponse]
-
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -978,30 +820,12 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListInputs",
 			Handler:    _AgentService_ListInputs_Handler,
 		},
-		{
-			MethodName: "ListEvents",
-			Handler:    _AgentService_ListEvents_Handler,
-		},
-		{
-			MethodName: "GetExecutor",
-			Handler:    _AgentService_GetExecutor_Handler,
-		},
-		{
-			MethodName: "ListExecutors",
-			Handler:    _AgentService_ListExecutors_Handler,
-		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StreamAgent",
 			Handler:       _AgentService_StreamAgent_Handler,
 			ServerStreams: true,
-		},
-		{
-			StreamName:    "ConnectExecutor",
-			Handler:       _AgentService_ConnectExecutor_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "malonaz/ai/agent/agent_service/v1/agent_service.proto",

@@ -13,10 +13,8 @@ import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.ai.agent.agent_service.v1.agent_pb2
 import malonaz.ai.agent.agent_service.v1.definition_pb2
-import malonaz.ai.agent.agent_service.v1.executor_pb2
 import malonaz.ai.agent.v1.agent_pb2
 import malonaz.ai.agent.v1.definition_pb2
-import malonaz.ai.agent.v1.executor_pb2
 import malonaz.ai.agent.v1.input_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.ai.agent.agent_service.v1.agent_service_pb2
@@ -86,22 +84,6 @@ class AgentServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListInputs(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest, malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def ListEvents(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsRequest, malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def GetExecutor(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.executor_pb2.GetExecutorRequest, malonaz.ai.agent.v1.executor_pb2.Executor]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def ListExecutors(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsRequest, malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def ConnectExecutor(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorRequest, malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -201,30 +183,6 @@ class AgentServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse,
-            ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListEvents': grpclib.const.Handler(
-                self.ListEvents,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsRequest,
-                malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsResponse,
-            ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/GetExecutor': grpclib.const.Handler(
-                self.GetExecutor,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.agent.agent_service.v1.executor_pb2.GetExecutorRequest,
-                malonaz.ai.agent.v1.executor_pb2.Executor,
-            ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListExecutors': grpclib.const.Handler(
-                self.ListExecutors,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsRequest,
-                malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsResponse,
-            ),
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ConnectExecutor': grpclib.const.Handler(
-                self.ConnectExecutor,
-                grpclib.const.Cardinality.STREAM_STREAM,
-                malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorRequest,
-                malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorResponse,
             ),
         }
 
@@ -327,28 +285,4 @@ class AgentServiceStub:
             '/malonaz.ai.agent.agent_service.v1.AgentService/ListInputs',
             malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsRequest,
             malonaz.ai.agent.agent_service.v1.agent_pb2.ListInputsResponse,
-        )
-        self.ListEvents = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListEvents',
-            malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsRequest,
-            malonaz.ai.agent.agent_service.v1.agent_pb2.ListEventsResponse,
-        )
-        self.GetExecutor = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/GetExecutor',
-            malonaz.ai.agent.agent_service.v1.executor_pb2.GetExecutorRequest,
-            malonaz.ai.agent.v1.executor_pb2.Executor,
-        )
-        self.ListExecutors = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ListExecutors',
-            malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsRequest,
-            malonaz.ai.agent.agent_service.v1.executor_pb2.ListExecutorsResponse,
-        )
-        self.ConnectExecutor = grpclib.client.StreamStreamMethod(
-            channel,
-            '/malonaz.ai.agent.agent_service.v1.AgentService/ConnectExecutor',
-            malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorRequest,
-            malonaz.ai.agent.agent_service.v1.executor_pb2.ConnectExecutorResponse,
         )

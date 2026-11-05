@@ -34,27 +34,23 @@ type Agent_State int32
 const (
 	// Used to detect an unset field.
 	Agent_STATE_UNSPECIFIED Agent_State = 0
-	// No executor holds the agent: it waits for one matching its selector.
-	Agent_STATE_PENDING Agent_State = 1
-	// An executor holds the agent, which waits for input.
-	Agent_STATE_IDLE Agent_State = 2
-	// An executor is running one of the agent's turns.
-	Agent_STATE_RUNNING Agent_State = 3
+	// The agent waits for input.
+	Agent_STATE_IDLE Agent_State = 1
+	// One of the agent's turns is running.
+	Agent_STATE_RUNNING Agent_State = 2
 )
 
 // Enum value maps for Agent_State.
 var (
 	Agent_State_name = map[int32]string{
 		0: "STATE_UNSPECIFIED",
-		1: "STATE_PENDING",
-		2: "STATE_IDLE",
-		3: "STATE_RUNNING",
+		1: "STATE_IDLE",
+		2: "STATE_RUNNING",
 	}
 	Agent_State_value = map[string]int32{
 		"STATE_UNSPECIFIED": 0,
-		"STATE_PENDING":     1,
-		"STATE_IDLE":        2,
-		"STATE_RUNNING":     3,
+		"STATE_IDLE":        1,
+		"STATE_RUNNING":     2,
 	}
 )
 
@@ -132,14 +128,12 @@ func (x Agent_TurnOutcome) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// An Agent is a running instance of a spec: a conversation driven by an
-// executor, one turn at a time, fed by the inputs clients send it. The agent
-// owns its lifecycle, labels and event log; the transcript lives in its
-// [Chat][malonaz.ai.v1.Chat] on the AiService. Clients only ever talk to the
-// AgentService: executors lease agents and report back over ConnectExecutor.
-// Agents talk to each other asynchronously, through inputs only: a parent
-// sends its sub-agent inputs, and each turn a sub-agent ends is queued as an
-// input on its parent, waking it.
+// An Agent is a running instance of a spec: a conversation the AgentService
+// drives one turn at a time, fed by the inputs it is sent. The transcript
+// lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
+// agent's durable history. Agents talk to each other asynchronously, through
+// inputs only: a parent sends its sub-agents inputs, and each turn a sub-agent
+// ends is queued as an input on its parent, waking it.
 type Agent struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the agent.
@@ -149,11 +143,11 @@ type Agent struct {
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// The last update timestamp of the agent.
 	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	// The deletion timestamp of the agent. Set when soft-deleted, which revokes its lease.
+	// The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
 	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
-	// The labels on this agent. Agents label and unlabel themselves through UpdateAgent.
+	// The labels on this agent. Agents label themselves through their built-in update_labels tool.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Annotations on this agent, for tooling. Values are opaque.
 	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -175,24 +169,14 @@ type Agent struct {
 	// The chat holding the agent's transcript, created with the agent.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Chat string `protobuf:"bytes,13,opt,name=chat,proto3" json:"chat,omitempty"`
-	// The executor the agent must run on, one of its user's. Empty lets
-	// placement pick one of its user's: the parent agent's executor first, then
-	// any online executor matching the spec's selector with spare capacity.
-	// Format: organizations/{organization}/users/{user}/executors/{executor}
-	Executor string `protobuf:"bytes,14,opt,name=executor,proto3" json:"executor,omitempty"`
-	// The executor currently holding the agent's lease. Empty while pending.
-	// Format: organizations/{organization}/users/{user}/executors/{executor}
-	LeasedExecutor string `protobuf:"bytes,15,opt,name=leased_executor,json=leasedExecutor,proto3" json:"leased_executor,omitempty"`
 	// Where the agent is in its lifecycle.
-	State Agent_State `protobuf:"varint,16,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State" json:"state,omitempty"`
+	State Agent_State `protobuf:"varint,14,opt,name=state,proto3,enum=malonaz.ai.agent.v1.Agent_State" json:"state,omitempty"`
 	// How the agent's latest turn ended. Unset until a turn ends.
-	LastTurnOutcome Agent_TurnOutcome `protobuf:"varint,17,opt,name=last_turn_outcome,json=lastTurnOutcome,proto3,enum=malonaz.ai.agent.v1.Agent_TurnOutcome" json:"last_turn_outcome,omitempty"`
+	LastTurnOutcome Agent_TurnOutcome `protobuf:"varint,15,opt,name=last_turn_outcome,json=lastTurnOutcome,proto3,enum=malonaz.ai.agent.v1.Agent_TurnOutcome" json:"last_turn_outcome,omitempty"`
 	// The error the latest turn failed on. Set only when it failed.
-	Status *status.Status `protobuf:"bytes,18,opt,name=status,proto3" json:"status,omitempty"`
-	// The sequence of the agent's latest event: resume StreamAgent from it.
-	LastEventSequence int64 `protobuf:"varint,19,opt,name=last_event_sequence,json=lastEventSequence,proto3" json:"last_event_sequence,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	Status        *status.Status `protobuf:"bytes,16,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Agent) Reset() {
@@ -311,20 +295,6 @@ func (x *Agent) GetChat() string {
 	return ""
 }
 
-func (x *Agent) GetExecutor() string {
-	if x != nil {
-		return x.Executor
-	}
-	return ""
-}
-
-func (x *Agent) GetLeasedExecutor() string {
-	if x != nil {
-		return x.LeasedExecutor
-	}
-	return ""
-}
-
 func (x *Agent) GetState() Agent_State {
 	if x != nil {
 		return x.State
@@ -344,13 +314,6 @@ func (x *Agent) GetStatus() *status.Status {
 		return x.Status
 	}
 	return nil
-}
-
-func (x *Agent) GetLastEventSequence() int64 {
-	if x != nil {
-		return x.LastEventSequence
-	}
-	return 0
 }
 
 func (x *Agent) SetName(v string) {
@@ -405,14 +368,6 @@ func (x *Agent) SetChat(v string) {
 	x.Chat = v
 }
 
-func (x *Agent) SetExecutor(v string) {
-	x.Executor = v
-}
-
-func (x *Agent) SetLeasedExecutor(v string) {
-	x.LeasedExecutor = v
-}
-
 func (x *Agent) SetState(v Agent_State) {
 	x.State = v
 }
@@ -423,10 +378,6 @@ func (x *Agent) SetLastTurnOutcome(v Agent_TurnOutcome) {
 
 func (x *Agent) SetStatus(v *status.Status) {
 	x.Status = v
-}
-
-func (x *Agent) SetLastEventSequence(v int64) {
-	x.LastEventSequence = v
 }
 
 func (x *Agent) HasCreateTime() bool {
@@ -494,11 +445,11 @@ type Agent_builder struct {
 	CreateTime *timestamppb.Timestamp
 	// The last update timestamp of the agent.
 	UpdateTime *timestamppb.Timestamp
-	// The deletion timestamp of the agent. Set when soft-deleted, which revokes its lease.
+	// The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
 	DeleteTime *timestamppb.Timestamp
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string
-	// The labels on this agent. Agents label and unlabel themselves through UpdateAgent.
+	// The labels on this agent. Agents label themselves through their built-in update_labels tool.
 	Labels map[string]string
 	// Annotations on this agent, for tooling. Values are opaque.
 	Annotations map[string]string
@@ -520,22 +471,12 @@ type Agent_builder struct {
 	// The chat holding the agent's transcript, created with the agent.
 	// Format: organizations/{organization}/users/{user}/chats/{chat}
 	Chat string
-	// The executor the agent must run on, one of its user's. Empty lets
-	// placement pick one of its user's: the parent agent's executor first, then
-	// any online executor matching the spec's selector with spare capacity.
-	// Format: organizations/{organization}/users/{user}/executors/{executor}
-	Executor string
-	// The executor currently holding the agent's lease. Empty while pending.
-	// Format: organizations/{organization}/users/{user}/executors/{executor}
-	LeasedExecutor string
 	// Where the agent is in its lifecycle.
 	State Agent_State
 	// How the agent's latest turn ended. Unset until a turn ends.
 	LastTurnOutcome Agent_TurnOutcome
 	// The error the latest turn failed on. Set only when it failed.
 	Status *status.Status
-	// The sequence of the agent's latest event: resume StreamAgent from it.
-	LastEventSequence int64
 }
 
 func (b0 Agent_builder) Build() *Agent {
@@ -555,12 +496,9 @@ func (b0 Agent_builder) Build() *Agent {
 	x.ParentAgent = b.ParentAgent
 	x.RootAgent = b.RootAgent
 	x.Chat = b.Chat
-	x.Executor = b.Executor
-	x.LeasedExecutor = b.LeasedExecutor
 	x.State = b.State
 	x.LastTurnOutcome = b.LastTurnOutcome
 	x.Status = b.Status
-	x.LastEventSequence = b.LastEventSequence
 	return m0
 }
 
@@ -568,7 +506,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x87\x0f\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xaf\r\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -593,27 +531,21 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"root_agent\x18\f \x01(\tB\"\xe0A\x03\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/AgentR\trootAgent\x12/\n" +
 	"\x04chat\x18\r \x01(\tB\x1b\xe0A\x03\xfaA\x15\n" +
-	"\x13ai.malonaz.com/ChatR\x04chat\x12>\n" +
-	"\bexecutor\x18\x0e \x01(\tB\"\xfaA\x1f\n" +
-	"\x1dagent.ai.malonaz.com/ExecutorR\bexecutor\x12N\n" +
-	"\x0fleased_executor\x18\x0f \x01(\tB%\xe0A\x03\xfaA\x1f\n" +
-	"\x1dagent.ai.malonaz.com/ExecutorR\x0eleasedExecutor\x12C\n" +
-	"\x05state\x18\x10 \x01(\x0e2 .malonaz.ai.agent.v1.Agent.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12_\n" +
-	"\x11last_turn_outcome\x18\x11 \x01(\x0e2&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x0flastTurnOutcome\x127\n" +
-	"\x06status\x18\x12 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x123\n" +
-	"\x13last_event_sequence\x18\x13 \x01(\x03B\x03\xe0A\x03R\x11lastEventSequence\x1a9\n" +
+	"\x13ai.malonaz.com/ChatR\x04chat\x12C\n" +
+	"\x05state\x18\x0e \x01(\x0e2 .malonaz.ai.agent.v1.Agent.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12_\n" +
+	"\x11last_turn_outcome\x18\x0f \x01(\x0e2&.malonaz.ai.agent.v1.Agent.TurnOutcomeB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x0flastTurnOutcome\x127\n" +
+	"\x06status\x18\x10 \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06status\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"T\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"A\n" +
 	"\x05State\x12\x15\n" +
-	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
-	"\rSTATE_PENDING\x10\x01\x12\x0e\n" +
+	"\x11STATE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
-	"STATE_IDLE\x10\x02\x12\x11\n" +
-	"\rSTATE_RUNNING\x10\x03\"|\n" +
+	"STATE_IDLE\x10\x01\x12\x11\n" +
+	"\rSTATE_RUNNING\x10\x02\"|\n" +
 	"\vTurnOutcome\x12\x1c\n" +
 	"\x18TURN_OUTCOME_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TURN_OUTCOME_SUCCEEDED\x10\x01\x12\x17\n" +

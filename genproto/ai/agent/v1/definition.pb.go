@@ -29,7 +29,7 @@ const (
 )
 
 // A Definition is a reusable agent blueprint: what an agent is told, which
-// model it runs on, which tools it holds and where it may run. Agents
+// model it runs on and which tools it holds. Agents
 // snapshot their definition's spec at creation, so editing a definition never
 // changes a running agent.
 type Definition struct {
@@ -47,8 +47,8 @@ type Definition struct {
 	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
 	// The labels on this definition.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// A human-readable name for this definition.
-	DisplayName string `protobuf:"bytes,7,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// A human-readable title for this definition.
+	Title string `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
 	// What this definition is for, shown when picking one.
 	Description string `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
 	// The spec every agent created from this definition snapshots.
@@ -124,9 +124,9 @@ func (x *Definition) GetLabels() map[string]string {
 	return nil
 }
 
-func (x *Definition) GetDisplayName() string {
+func (x *Definition) GetTitle() string {
 	if x != nil {
-		return x.DisplayName
+		return x.Title
 	}
 	return ""
 }
@@ -169,8 +169,8 @@ func (x *Definition) SetLabels(v map[string]string) {
 	x.Labels = v
 }
 
-func (x *Definition) SetDisplayName(v string) {
-	x.DisplayName = v
+func (x *Definition) SetTitle(v string) {
+	x.Title = v
 }
 
 func (x *Definition) SetDescription(v string) {
@@ -241,8 +241,8 @@ type Definition_builder struct {
 	Etag string
 	// The labels on this definition.
 	Labels map[string]string
-	// A human-readable name for this definition.
-	DisplayName string
+	// A human-readable title for this definition.
+	Title string
 	// What this definition is for, shown when picking one.
 	Description string
 	// The spec every agent created from this definition snapshots.
@@ -259,7 +259,7 @@ func (b0 Definition_builder) Build() *Definition {
 	x.DeleteTime = b.DeleteTime
 	x.Etag = b.Etag
 	x.Labels = b.Labels
-	x.DisplayName = b.DisplayName
+	x.Title = b.Title
 	x.Description = b.Description
 	x.Spec = b.Spec
 	return m0
@@ -277,17 +277,17 @@ type AgentSpec struct {
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The reasoning effort the agent generates with.
 	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,3,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
-	// The names of the tools the agent may call. The executor running the agent
-	// provides them; one it does not provide fails the lease.
+	// The gRPC methods the agent may call as tools, by full name
+	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
+	// Built-in agent tools (launching sub-agents, sending inputs, labelling
+	// itself) are always available.
 	Tools []string `protobuf:"bytes,4,rep,name=tools,proto3" json:"tools,omitempty"`
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc
 	// sub-agents only, carrying an inline spec.
 	// Format: organizations/{organization}/definitions/{definition}
 	SubAgentDefinitions []string `protobuf:"bytes,5,rep,name=sub_agent_definitions,json=subAgentDefinitions,proto3" json:"sub_agent_definitions,omitempty"`
-	// Labels an executor must carry to run the agent. Empty matches any.
-	ExecutorSelector map[string]string `protobuf:"bytes,6,rep,name=executor_selector,json=executorSelector,proto3" json:"executor_selector,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *AgentSpec) Reset() {
@@ -350,13 +350,6 @@ func (x *AgentSpec) GetSubAgentDefinitions() []string {
 	return nil
 }
 
-func (x *AgentSpec) GetExecutorSelector() map[string]string {
-	if x != nil {
-		return x.ExecutorSelector
-	}
-	return nil
-}
-
 func (x *AgentSpec) SetInstructions(v string) {
 	x.Instructions = v
 }
@@ -377,10 +370,6 @@ func (x *AgentSpec) SetSubAgentDefinitions(v []string) {
 	x.SubAgentDefinitions = v
 }
 
-func (x *AgentSpec) SetExecutorSelector(v map[string]string) {
-	x.ExecutorSelector = v
-}
-
 type AgentSpec_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -391,15 +380,15 @@ type AgentSpec_builder struct {
 	Model string
 	// The reasoning effort the agent generates with.
 	ReasoningEffort v1.ReasoningEffort
-	// The names of the tools the agent may call. The executor running the agent
-	// provides them; one it does not provide fails the lease.
+	// The gRPC methods the agent may call as tools, by full name
+	// ("pkg.Service.Method"), or every method of a service ("pkg.Service").
+	// Built-in agent tools (launching sub-agents, sending inputs, labelling
+	// itself) are always available.
 	Tools []string
 	// The definitions this agent may launch sub-agents from. Empty allows ad-hoc
 	// sub-agents only, carrying an inline spec.
 	// Format: organizations/{organization}/definitions/{definition}
 	SubAgentDefinitions []string
-	// Labels an executor must carry to run the agent. Empty matches any.
-	ExecutorSelector map[string]string
 }
 
 func (b0 AgentSpec_builder) Build() *AgentSpec {
@@ -411,7 +400,6 @@ func (b0 AgentSpec_builder) Build() *AgentSpec {
 	x.ReasoningEffort = b.ReasoningEffort
 	x.Tools = b.Tools
 	x.SubAgentDefinitions = b.SubAgentDefinitions
-	x.ExecutorSelector = b.ExecutorSelector
 	return m0
 }
 
@@ -419,7 +407,7 @@ var File_malonaz_ai_agent_v1_definition_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_definition_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/ai/agent/v1/definition.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xdd\x06\n" +
+	"$malonaz/ai/agent/v1/definition.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd0\x06\n" +
 	"\n" +
 	"Definition\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
@@ -430,51 +418,45 @@ const file_malonaz_ai_agent_v1_definition_proto_rawDesc = "" +
 	"\vdelete_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\n" +
 	"deleteTime\x12\x12\n" +
 	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xd9\x01\n" +
-	"\x06labels\x18\x06 \x03(\v2+.malonaz.ai.agent.v1.Definition.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12.\n" +
-	"\fdisplay_name\x18\a \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x01R\vdisplayName\x12*\n" +
+	"\x06labels\x18\x06 \x03(\v2+.malonaz.ai.agent.v1.Definition.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12!\n" +
+	"\x05title\x18\a \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x01R\x05title\x12*\n" +
 	"\vdescription\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\x80\x10R\vdescription\x12@\n" +
 	"\x04spec\x18\t \x01(\v2\x1e.malonaz.ai.agent.v1.AgentSpecB\f\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01R\x04spec\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xa0\x01\xeaAq\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x125organizations/{organization}/definitions/{definition}*\vdefinitions2\n" +
-	"definitionҦ\x04\x00\x82\xf6,$52df68c3-048c-4b78-a12f-6056650a0113\"\xf3\x03\n" +
+	"definitionҦ\x04\x00\x82\xf6,$52df68c3-048c-4b78-a12f-6056650a0113\"\x84\x03\n" +
 	"\tAgentSpec\x12-\n" +
 	"\finstructions\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x10R\finstructions\x125\n" +
 	"\x05model\x18\x02 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12S\n" +
-	"\x10reasoning_effort\x18\x03 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortB\b\xbaH\x05\x82\x01\x02\x10\x01R\x0freasoningEffort\x12!\n" +
-	"\x05tools\x18\x04 \x03(\tB\v\xbaH\b\x92\x01\x05\x10\x80\x02\x18\x01R\x05tools\x12`\n" +
+	"\x10reasoning_effort\x18\x03 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortB\b\xbaH\x05\x82\x01\x02\x10\x01R\x0freasoningEffort\x12Z\n" +
+	"\x05tools\x18\x04 \x03(\tBD\xbaHA\x92\x01>\x10\x80\x02\x18\x01\"7r523^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$R\x05tools\x12`\n" +
 	"\x15sub_agent_definitions\x18\x05 \x03(\tB,\xfaA!\n" +
-	"\x1fagent.ai.malonaz.com/Definition\xbaH\x05\x92\x01\x02\x18\x01R\x13subAgentDefinitions\x12a\n" +
-	"\x11executor_selector\x18\x06 \x03(\v24.malonaz.ai.agent.v1.AgentSpec.ExecutorSelectorEntryR\x10executorSelector\x1aC\n" +
-	"\x15ExecutorSelectorEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x8f\x01\xeaA^\n" +
+	"\x1fagent.ai.malonaz.com/Definition\xbaH\x05\x92\x01\x02\x18\x01R\x13subAgentDefinitionsB\x8f\x01\xeaA^\n" +
 	"!agent.ai.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganizationZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
-var file_malonaz_ai_agent_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_malonaz_ai_agent_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_agent_v1_definition_proto_goTypes = []any{
 	(*Definition)(nil),            // 0: malonaz.ai.agent.v1.Definition
 	(*AgentSpec)(nil),             // 1: malonaz.ai.agent.v1.AgentSpec
 	nil,                           // 2: malonaz.ai.agent.v1.Definition.LabelsEntry
-	nil,                           // 3: malonaz.ai.agent.v1.AgentSpec.ExecutorSelectorEntry
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(v1.ReasoningEffort)(0),       // 5: malonaz.ai.v1.ReasoningEffort
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(v1.ReasoningEffort)(0),       // 4: malonaz.ai.v1.ReasoningEffort
 }
 var file_malonaz_ai_agent_v1_definition_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.agent.v1.Definition.create_time:type_name -> google.protobuf.Timestamp
-	4, // 1: malonaz.ai.agent.v1.Definition.update_time:type_name -> google.protobuf.Timestamp
-	4, // 2: malonaz.ai.agent.v1.Definition.delete_time:type_name -> google.protobuf.Timestamp
+	3, // 0: malonaz.ai.agent.v1.Definition.create_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.ai.agent.v1.Definition.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.ai.agent.v1.Definition.delete_time:type_name -> google.protobuf.Timestamp
 	2, // 3: malonaz.ai.agent.v1.Definition.labels:type_name -> malonaz.ai.agent.v1.Definition.LabelsEntry
 	1, // 4: malonaz.ai.agent.v1.Definition.spec:type_name -> malonaz.ai.agent.v1.AgentSpec
-	5, // 5: malonaz.ai.agent.v1.AgentSpec.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	3, // 6: malonaz.ai.agent.v1.AgentSpec.executor_selector:type_name -> malonaz.ai.agent.v1.AgentSpec.ExecutorSelectorEntry
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	4, // 5: malonaz.ai.agent.v1.AgentSpec.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_v1_definition_proto_init() }
@@ -488,7 +470,7 @@ func file_malonaz_ai_agent_v1_definition_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_v1_definition_proto_rawDesc), len(file_malonaz_ai_agent_v1_definition_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

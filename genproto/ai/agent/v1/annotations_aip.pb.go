@@ -8,7 +8,7 @@ import (
 )
 
 type AnnotationSet struct {
-	// On an input's message: the resource name of who sent it, a user or an agent. Callers stamp it, as the service cannot tell which agent an executor calls for; the service stamps a sub-agent's turn report with the sub-agent's name.
+	// On an input's message: the resource name of who sent it, a user or an agent. Clients stamp their own; the service stamps the inputs agents send through their built-in tools, and each sub-agent's turn report with the sub-agent's name.
 	Sender aip.StringAnnotation
 }
 
