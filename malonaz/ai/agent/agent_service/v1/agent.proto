@@ -8,6 +8,7 @@ import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/tool.proto";
 import "malonaz/aip/v1/aip.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
@@ -333,5 +334,47 @@ message MessageAgentRequest {
   string request_id = 3 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for AgentService.ApproveToolCall.
+message ApproveToolCallRequest {
+  // The agent awaiting the call.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The id of the awaited tool call to approve.
+  string tool_call_id = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Request message for AgentService.ResolveToolCall.
+message ResolveToolCallRequest {
+  // The agent awaiting the call.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The id of the awaited tool call to resolve.
+  string tool_call_id = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The call's result. For an input component, a result carrying the
+  // genui.malonaz.com/input-response annotation answering it; for a call
+  // awaiting approval, an error result denying it.
+  malonaz.ai.v1.ToolResult result = 3 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
   ];
 }

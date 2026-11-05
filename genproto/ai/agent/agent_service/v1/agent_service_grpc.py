@@ -82,6 +82,14 @@ class AgentServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def ApproveToolCall(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.ApproveToolCallRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ResolveToolCall(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.ResolveToolCallRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def MessageAgent(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
         pass
 
@@ -176,6 +184,18 @@ class AgentServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_STREAM,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentRequest,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentResponse,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ApproveToolCall': grpclib.const.Handler(
+                self.ApproveToolCall,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.ApproveToolCallRequest,
+                malonaz.ai.agent.v1.agent_pb2.Agent,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ResolveToolCall': grpclib.const.Handler(
+                self.ResolveToolCall,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.ResolveToolCallRequest,
+                malonaz.ai.agent.v1.agent_pb2.Agent,
             ),
             '/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent': grpclib.const.Handler(
                 self.MessageAgent,
@@ -278,6 +298,18 @@ class AgentServiceStub:
             '/malonaz.ai.agent.agent_service.v1.AgentService/StreamAgent',
             malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentRequest,
             malonaz.ai.agent.agent_service.v1.agent_pb2.StreamAgentResponse,
+        )
+        self.ApproveToolCall = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ApproveToolCall',
+            malonaz.ai.agent.agent_service.v1.agent_pb2.ApproveToolCallRequest,
+            malonaz.ai.agent.v1.agent_pb2.Agent,
+        )
+        self.ResolveToolCall = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ResolveToolCall',
+            malonaz.ai.agent.agent_service.v1.agent_pb2.ResolveToolCallRequest,
+            malonaz.ai.agent.v1.agent_pb2.Agent,
         )
         self.MessageAgent = grpclib.client.UnaryUnaryMethod(
             channel,

@@ -10,8 +10,14 @@ import (
 type AnnotationSet struct {
 	// On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report.
 	Sender aip.StringAnnotation
+	// On the result of a tool call that awaited approval: the resource name of who approved it.
+	ApprovedBy aip.StringAnnotation
+	// On the error result of a tool call that awaited approval: the resource name of who denied it, by an error result, a reply or a cancellation.
+	DeniedBy aip.StringAnnotation
 }
 
 var Annotations = AnnotationSet{
-	Sender: aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
+	Sender:     aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
+	ApprovedBy: aip.StringAnnotation{Key: "agent.ai.malonaz.com/approved-by"},
+	DeniedBy:   aip.StringAnnotation{Key: "agent.ai.malonaz.com/denied-by"},
 }

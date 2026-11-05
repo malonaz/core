@@ -199,10 +199,42 @@ service AgentService {
     option (google.api.method_signature) = "name";
   }
 
+  // ===================== Awaited tool calls =====================
+
+  // Approve a tool call the agent's turn awaits approval for. The turn resumes,
+  // running it, once its last awaited call is settled. Approving again is a
+  // no-op; approving a denied call fails.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ApproveToolCall(ApproveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:approveToolCall"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,tool_call_id";
+  }
+
+  // Resolve a tool call the agent's turn awaits, supplying its result: an
+  // input component's answer, or an error result denying a call awaiting
+  // approval. The turn resumes, writing it, once its last awaited call is
+  // settled. Resolving again with the same result is a no-op; any other
+  // decision fails.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ResolveToolCall(ResolveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:resolveToolCall"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,tool_call_id,result";
+  }
+
   // ===================== Messaging =====================
 
   // Send an agent a message, queued on the agent for its turn to deliver.
-  // Wakes an idle agent. Returns the agent, the message in its queue.
+  // Wakes an idle agent. The user's message to an awaiting agent denies the
+  // calls it awaits, the user replying instead, and resumes its turn. Returns
+  // the agent, the message in its queue.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc MessageAgent(MessageAgentRequest) returns (malonaz.ai.agent.v1.Agent) {

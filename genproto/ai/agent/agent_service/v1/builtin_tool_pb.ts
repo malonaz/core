@@ -5,6 +5,8 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../../buf/validate/validate_pb";
+import type { AgentSpec_Tool, AgentSpec_ToolValid } from "../../v1/definition_pb";
+import { file_malonaz_ai_agent_v1_definition } from "../../v1/definition_pb";
 import type { ReasoningEffort } from "../../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../../v1/message_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -13,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/builtin_tool.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_builtin_tool: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEivQIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGr4BCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBINCgV0b29scxgHIAMoCSJLChlNZXNzYWdlQWdlbnRUb29sQXJndW1lbnRzEhUKBWFnZW50GAEgASgJQga6SAPIAQESFwoHbWVzc2FnZRgCIAEoCUIGukgDyAEBIhkKF0xpc3RBZ2VudHNUb29sQXJndW1lbnRzIqsBChlVcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzElIKA3NldBgBIAMoCzJFLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5VcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzLlNldEVudHJ5Eg4KBnJlbW92ZRgCIAMoCRoqCghTZXRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_malonaz_ai_v1_message]);
+  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEi4gIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGuMBCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBIyCgV0b29scxgHIAMoCzIjLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2wiSwoZTWVzc2FnZUFnZW50VG9vbEFyZ3VtZW50cxIVCgVhZ2VudBgBIAEoCUIGukgDyAEBEhcKB21lc3NhZ2UYAiABKAlCBrpIA8gBASIZChdMaXN0QWdlbnRzVG9vbEFyZ3VtZW50cyKrAQoZVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cxJSCgNzZXQYASADKAsyRS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cy5TZXRFbnRyeRIOCgZyZW1vdmUYAiADKAkaKgoIU2V0RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message]);
 
 /**
  * The arguments of the built-in create_agents tool.
@@ -102,12 +104,12 @@ export type CreateAgentsToolArguments_SubAgent = Message<"malonaz.ai.agent.agent
   reasoningEffort: ReasoningEffort;
 
   /**
-   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. The built-in agent tools are always
-   * given.
+   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
+   * and may only tighten it. The built-in agent tools are always given.
    *
-   * @generated from field: repeated string tools = 7;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 7;
    */
-  tools: string[];
+  tools: AgentSpec_Tool[];
 };
 
 /**
@@ -162,12 +164,12 @@ export type CreateAgentsToolArguments_SubAgentValid = Message<"malonaz.ai.agent.
   reasoningEffort: ReasoningEffort;
 
   /**
-   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. The built-in agent tools are always
-   * given.
+   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
+   * and may only tighten it. The built-in agent tools are always given.
    *
-   * @generated from field: repeated string tools = 7;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 7;
    */
-  tools: string[];
+  tools: AgentSpec_ToolValid[];
 };
 
 /**
