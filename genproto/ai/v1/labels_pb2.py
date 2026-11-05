@@ -25,12 +25,12 @@ _sym_db = _symbol_database.Default()
 from malonaz.codegen.aip.v1 import label_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_label__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xe2\x01Z&github.com/malonaz/core/genproto/ai/v1\x92\x95\x15\xb5\x01\n\x19\x61i.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xa4\x03Z&github.com/malonaz/core/genproto/ai/v1\x92\x95\x15\xb5\x01\n\x19\x61i.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\x92\x95\x15\xbd\x01\n\x17\x61i.malonaz.com/excluded\x1a\xa1\x01Set on messages kept in a chat but out of the conversation history the model sees, e.g. messages queued for a later delivery. Generations skip excluded messages.b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.ai.v1.labels_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z&github.com/malonaz/core/genproto/ai/v1\222\225\025\265\001\n\031ai.malonaz.com/superseded\032\227\001Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.'
+  _globals['DESCRIPTOR']._serialized_options = b'Z&github.com/malonaz/core/genproto/ai/v1\222\225\025\265\001\n\031ai.malonaz.com/superseded\032\227\001Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\222\225\025\275\001\n\027ai.malonaz.com/excluded\032\241\001Set on messages kept in a chat but out of the conversation history the model sees, e.g. messages queued for a later delivery. Generations skip excluded messages.'
 # @@protoc_insertion_point(module_scope)

@@ -98,7 +98,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	}
 
 	// Ensure the chat exists (lazily creating it), and load its valid message
-	// history: errored and superseded messages are excluded.
+	// history: errored, superseded and excluded messages are left out.
 	var history []*aipb.Message
 	eg, ctxEg := errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -120,7 +120,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 	eg.Go(func() error {
 		listMessagesRequest := &pb.ListMessagesRequest{
 			Parent: chatRn.String(),
-			Filter: fmt.Sprintf("-status:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey()),
+			Filter: ai.HistoryFilter,
 			// create_time asc keeps the conversation in order and stable while paginating.
 			OrderBy: "create_time asc",
 		}

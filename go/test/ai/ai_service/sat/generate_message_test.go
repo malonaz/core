@@ -186,3 +186,26 @@ func TestGenerateMessageDirectCallToDiscoveredTool(t *testing.T) {
 	require.Equal(t, aitool.ToolTypeGenerateMessage, toolCall.GetAnnotations()[aipb.Annotations.ToolType.Key])
 	require.Equal(t, toolSetName, toolCall.GetAnnotations()[aipb.Annotations.ToolSetName.Key])
 }
+
+func TestGenerateMessageSkipsExcludedMessages(t *testing.T) {
+	t.Parallel()
+	parent := newChatParent()
+	userMessage := newScriptedUserMessage(t, newAssistantText("first"), newAssistantText("second"))
+	generateMessageResponse, err := generate(t, parent, newToolSet(), userMessage)
+	require.NoError(t, err)
+	require.Equal(t, "first", generateMessageResponse.GetGeneratedMessage().GetBlocks()[0].GetText())
+
+	// Seen, the excluded assistant message would advance the script past its end.
+	excludedMessage := newAssistantText("excluded")
+	excludedMessage.Labels = map[string]string{aipb.Labels.Excluded.GetKey(): aip.LabelValueTrue}
+	createMessageRequest := &aiservicepb.CreateMessageRequest{Parent: parent, Message: excludedMessage}
+	_, err = aiServiceClient.CreateMessage(ctx, createMessageRequest)
+	require.NoError(t, err)
+
+	generateMessageResponse, err = generate(t, parent, newToolSet(), &aipb.Message{
+		Role:   aipb.Role_ROLE_USER,
+		Blocks: []*aipb.Block{{Content: &aipb.Block_Text{Text: "go on"}}},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "second", generateMessageResponse.GetGeneratedMessage().GetBlocks()[0].GetText())
+}

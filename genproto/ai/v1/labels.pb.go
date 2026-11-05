@@ -27,8 +27,9 @@ var File_malonaz_ai_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xe2\x01\x92\x95\x15\xb5\x01\n" +
-	"\x19ai.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xa4\x03\x92\x95\x15\xb5\x01\n" +
+	"\x19ai.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\x92\x95\x15\xbd\x01\n" +
+	"\x17ai.malonaz.com/excluded\x1a\xa1\x01Set on messages kept in a chat but out of the conversation history the model sees, e.g. messages queued for a later delivery. Generations skip excluded messages.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_labels_proto_goTypes = []any{}
 var file_malonaz_ai_v1_labels_proto_depIdxs = []int32{

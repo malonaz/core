@@ -9,3 +9,7 @@ option (malonaz.codegen.aip.v1.label) = {
   key: "ai.malonaz.com/superseded"
   description: "Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history."
 };
+option (malonaz.codegen.aip.v1.label) = {
+  key: "ai.malonaz.com/excluded"
+  description: "Set on messages kept in a chat but out of the conversation history the model sees, e.g. messages queued for a later delivery. Generations skip excluded messages."
+};
