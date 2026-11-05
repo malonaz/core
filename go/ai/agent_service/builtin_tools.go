@@ -143,11 +143,9 @@ func builtinRequestID(agent *agentpb.Agent, toolCall *aipb.ToolCall, parts ...st
 	return uuid.NewV5(builtinToolNamespace, strings.Join(append([]string{agent.GetName(), toolCall.GetId()}, parts...), "/")).String()
 }
 
-// sendAgentInput queues a text message from an agent on another, opening with who sent it: the recipient's model
-// sees only the blocks of the inputs it is delivered.
+// sendAgentInput queues a text message from an agent on another, stamped with its sender.
 func (s *Service) sendAgentInput(ctx context.Context, sender *agentpb.Agent, recipient, text, requestID string) error {
-	header := fmt.Sprintf("[Message from agent %s (%q)]", sender.GetName(), sender.GetTitle())
-	message := ai.NewUserMessage(ai.NewTextBlock(header), ai.NewTextBlock(text))
+	message := ai.NewUserMessage(ai.NewTextBlock(text))
 	agentpb.Annotations.Sender.Set(message, sender.GetName())
 	createInputRequest := &agentservicepb.CreateInputRequest{
 		Parent:    recipient,

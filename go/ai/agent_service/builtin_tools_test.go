@@ -2,6 +2,8 @@ package agent_service
 
 import (
 	"context"
+	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -29,6 +31,24 @@ func listInputs(t *testing.T, service *testReplica, agent string) []*agentpb.Inp
 	listInputsResponse, err := service.ListInputs(context.Background(), listInputsRequest)
 	require.NoError(t, err)
 	return listInputsResponse.Inputs
+}
+
+// deliveredTexts returns the texts of the chat message delivering an input.
+func deliveredTexts(t *testing.T, service *testReplica, chat, input string) []string {
+	t.Helper()
+	for _, message := range service.aiService.messages(chat) {
+		deliveredInputs, _ := agentpb.Annotations.Inputs.Get(message)
+		if !slices.Contains(strings.Split(deliveredInputs, ","), input) {
+			continue
+		}
+		var texts []string
+		for _, block := range message.GetBlocks() {
+			texts = append(texts, block.GetText())
+		}
+		return texts
+	}
+	require.FailNow(t, "input never delivered", input)
+	return nil
 }
 
 // listChildAgents lists the sub-agents of an agent.
@@ -95,14 +115,20 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 	taskInput := listInputs(t, service, subAgent.Name)[0]
 	sender, _ := agentpb.Annotations.Sender.Get(taskInput.Message)
 	require.Equal(t, agent.Name, sender)
-	require.Equal(t, "research things", taskInput.Message.Blocks[1].GetText())
+	require.Len(t, taskInput.Message.Blocks, 1)
+	require.Equal(t, "research things", taskInput.Message.Blocks[0].GetText())
 
 	// The parent got the sub-agent's report.
 	reportInput := listInputs(t, service, agent.Name)[1]
 	sender, _ = agentpb.Annotations.Sender.Get(reportInput.Message)
 	require.Equal(t, subAgent.Name, sender)
-	require.Equal(t, "sub-agent report", reportInput.Message.Blocks[1].GetText())
+	require.Len(t, reportInput.Message.Blocks, 1)
+	require.Equal(t, "sub-agent report", reportInput.Message.Blocks[0].GetText())
 	waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_SUCCEEDED)
+
+	// The delivered messages name the sender agents: the parent to its sub-agent, the sub-agent to its parent.
+	require.Equal(t, []string{fmt.Sprintf("[Message from agent %s (%q)]", agent.Name, agent.Title), "research things"}, deliveredTexts(t, service, subAgent.Chat, taskInput.Name))
+	require.Equal(t, []string{fmt.Sprintf("[Report from sub-agent %s (%q)]", subAgent.Name, subAgent.Title), "sub-agent report"}, deliveredTexts(t, service, agent.Chat, reportInput.Name))
 }
 
 func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
@@ -203,8 +229,8 @@ func TestBuiltinTools_SendInputStaysInTheTree(t *testing.T) {
 	require.Len(t, inputs, 1)
 	sender, _ := agentpb.Annotations.Sender.Get(inputs[0].Message)
 	require.Equal(t, agent.Name, sender)
-	require.Equal(t, "carry on", inputs[0].Message.Blocks[1].GetText())
-	require.Contains(t, inputs[0].Message.Blocks[0].GetText(), agent.Name)
+	require.Len(t, inputs[0].Message.Blocks, 1)
+	require.Equal(t, "carry on", inputs[0].Message.Blocks[0].GetText())
 }
 
 func TestBuiltinTools_ListAgents(t *testing.T) {
