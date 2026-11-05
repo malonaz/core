@@ -15,8 +15,11 @@ onyx_service_src(
 go_library(
     name = "agent_service",
     srcs = [
+        "agent.go",
         "broker.go",
+        "event.go",
         "executor.go",
+        "input.go",
         "lease.go",
         "placement.go",
         "report.go",
@@ -28,6 +31,7 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        ":agent_service",
         "//go/ai",
         "//go/ai/agent/agent_service/rpc",
         "//go/ai/agent/model",
@@ -52,13 +56,14 @@ go_test(
     name = "test",
     srcs = [
         "broker_test.go",
+        "executor_test.go",
         "service_test.go",
         "store_test.go",
         "stream_test.go",
     ],
     data = ["//go/ai/agent/migrations"],
     deps = [
-        ":agent_service",
+        "//go/ai",
         "//go/ai/agent/model",
         "//go/ai/agent/store",
         "//go/aip",
@@ -75,6 +80,7 @@ go_test(
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
