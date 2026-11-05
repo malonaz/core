@@ -15,7 +15,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
@@ -60,6 +62,11 @@ func (s *fakeHealthServer) checkedServices() []string {
 
 func (s *fakeHealthServer) register(server *grpc.Server) {
 	grpc_health_v1.RegisterHealthServer(server, s)
+}
+
+// targetSelf points the health tool service at the replica's own server, where the test co-hosts it.
+func targetSelf(opts *Opts) {
+	opts.ToolTargets = map[string]string{healthService: opts.AdvertisedAddress}
 }
 
 // newTestToolTarget serves a fake health service with reflection on its own unix socket and returns its endpoint.
@@ -134,9 +141,9 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 	}
 }
 
-func TestTools_ServiceOnDefaultTarget(t *testing.T) {
+func TestTools_ServiceCoHostedOnTheReplica(t *testing.T) {
 	healthServer := &fakeHealthServer{}
-	service := newTestReplica(t, newFakeAiService(), nil, healthServer.register)
+	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
 	agent := createTestAgent(t, service, healthService)
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"tool_call_title": "Check the health", "service": "co-hosted"})),
@@ -176,14 +183,53 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 	require.Equal(t, "discovered", toolResults(service.aiService.messages(agent.Chat))["call-1"].GetContent())
 }
 
-func TestTools_UnknownToolsFailTheTurn(t *testing.T) {
+func TestTools_UntargetedServicesAreRefused(t *testing.T) {
 	service := newTestService(t)
-	agent := createTestAgent(t, service, "no.such.Service")
+	const refusal = "no tool target configured for service no.such.Service"
+	user := newTestUser(t)
+	userRn, err := agentpb.ParseUserRn(user)
+	require.NoError(t, err)
+	spec := &agentpb.AgentSpec{Model: testModel, Tools: []string{"no.such.Service.Method"}}
 
-	sendText(t, service, agent.Name, "hello")
+	createAgentRequest := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: spec}}
+	_, err = service.CreateAgent(context.Background(), createAgentRequest)
+	require.True(t, status.HasCode(err, codes.InvalidArgument))
+	require.ErrorContains(t, err, refusal)
+
+	createDefinitionRequest := &agentservicepb.CreateDefinitionRequest{
+		Parent:     userRn.OrganizationRn().String(),
+		Definition: &agentpb.Definition{Title: "untargeted", Spec: spec},
+	}
+	_, err = service.CreateDefinition(context.Background(), createDefinitionRequest)
+	require.ErrorContains(t, err, refusal)
+
+	createDefinitionRequest.Definition.Spec = &agentpb.AgentSpec{Model: testModel}
+	definition, err := service.CreateDefinition(context.Background(), createDefinitionRequest)
+	require.NoError(t, err)
+	updateDefinitionRequest := &agentservicepb.UpdateDefinitionRequest{
+		Definition: &agentpb.Definition{Name: definition.Name, Spec: spec},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"spec"}},
+	}
+	_, err = service.UpdateDefinition(context.Background(), updateDefinitionRequest)
+	require.ErrorContains(t, err, refusal)
+}
+
+func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
+	aiService := newFakeAiService()
+	_, endpoint := newTestToolTarget(t)
+	targetedReplica := newTestReplica(t, aiService, func(opts *Opts) {
+		opts.MaxConcurrentTurns = 0
+		opts.ToolTargets = map[string]string{healthService: endpoint}
+	})
+	agent := createTestAgent(t, targetedReplica, healthCheckMethod)
+	sendText(t, targetedReplica, agent.Name, "check")
+
+	// A replica configured without the target takes the turn.
+	service := newTestReplica(t, aiService, nil)
 
 	agent = waitForIdle(t, service, agent.Name, agentpb.Agent_TURN_OUTCOME_FAILED)
-	require.Contains(t, agent.Status.GetMessage(), "no.such.Service")
+	require.Equal(t, int32(codes.InvalidArgument), agent.Status.GetCode())
+	require.Contains(t, agent.Status.GetMessage(), "no tool target configured for service grpc.health.v1.Health")
 }
 
 func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
