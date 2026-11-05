@@ -9,6 +9,7 @@ import (
 	model "github.com/malonaz/core/gengo/ai/agent/model"
 	v1 "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	v11 "github.com/malonaz/core/genproto/ai/agent/v1"
+	v12 "github.com/malonaz/core/genproto/aip/v1"
 	aip "github.com/malonaz/core/go/aip"
 	status "github.com/malonaz/core/go/grpc/status"
 	uuid "github.com/malonaz/core/go/uuid"
@@ -418,6 +419,7 @@ type agentService_AgentStore interface {
 	GetAgent(ctx context.Context, organizationId, userId, agentId string) (*model.Agent, error)
 	BatchGetAgents(ctx context.Context, organizationIds []string, userIds []string, agentIds []string) ([]*model.Agent, error)
 	ListAgents(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Agent, error)
+	SearchAgents(ctx context.Context, organizationId, userId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Agent, []map[string]string, error)
 }
 
 type agentService_AgentServer struct {
@@ -775,6 +777,74 @@ func (s *agentService_AgentServer) ListAgents(ctx context.Context, request *v1.L
 	// Create and return response.
 	return &v1.ListAgentsResponse{
 		Agents:        agents,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+var searchAgentsRequestParser = aip.MustNewSearchRequestParser[*v1.SearchAgentsRequest, *v11.Agent](aip.WithFQN())
+
+func (s *agentService_AgentServer) SearchAgents(ctx context.Context, request *v1.SearchAgentsRequest) (*v1.SearchAgentsResponse, error) {
+	// Parse parent names
+	var organizationId, userId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchAgentsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbAgents, dbSnippets, err := s.store.SearchAgents(ctx, organizationId, userId, request.ShowDeleted, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching agents").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbAgents))
+	if nextPageToken != "" {
+		dbAgents = dbAgents[:len(dbAgents)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
+	}
+
+	var snippets []*v12.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v12.SearchSnippet, len(dbAgents))
+		for i := range snippets {
+			snippet := &v12.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["title"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "title", Match: match})
+				}
+				if match, ok := dbSnippets[i]["labels"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "labels", Match: match})
+				}
+				if match, ok := dbSnippets[i]["spec.instructions"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "spec.instructions", Match: match})
+				}
+			}
+			snippets[i] = snippet
+		}
+	}
+
+	// Convert back to proto.
+	agents := make([]*v11.Agent, 0, len(dbAgents))
+	for _, dbAgent := range dbAgents {
+		agent, err := dbAgent.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Agent to Agent: %v", err).Err()
+		}
+		agents = append(agents, agent)
+	}
+
+	// Create and return response.
+	return &v1.SearchAgentsResponse{
+		Agents:        agents,
+		Snippets:      snippets,
 		NextPageToken: nextPageToken,
 	}, nil
 }

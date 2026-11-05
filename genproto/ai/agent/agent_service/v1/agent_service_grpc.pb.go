@@ -33,6 +33,7 @@ const (
 	AgentService_DeleteAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/DeleteAgent"
 	AgentService_UndeleteAgent_FullMethodName      = "/malonaz.ai.agent.agent_service.v1.AgentService/UndeleteAgent"
 	AgentService_ListAgents_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/ListAgents"
+	AgentService_SearchAgents_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/SearchAgents"
 	AgentService_CancelAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CancelAgent"
 	AgentService_StreamAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/StreamAgent"
 	AgentService_MessageAgent_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent"
@@ -112,6 +113,10 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListAgents(ctx context.Context, in *ListAgentsRequest, opts ...grpc.CallOption) (*ListAgentsResponse, error)
+	// Search agents.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchAgents(ctx context.Context, in *SearchAgentsRequest, opts ...grpc.CallOption) (*SearchAgentsResponse, error)
 	// Cancel an agent's running turn. Its pending messages stay queued.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -255,6 +260,16 @@ func (c *agentServiceClient) ListAgents(ctx context.Context, in *ListAgentsReque
 	return out, nil
 }
 
+func (c *agentServiceClient) SearchAgents(ctx context.Context, in *SearchAgentsRequest, opts ...grpc.CallOption) (*SearchAgentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchAgentsResponse)
+	err := c.cc.Invoke(ctx, AgentService_SearchAgents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) CancelAgent(ctx context.Context, in *CancelAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Agent)
@@ -368,6 +383,10 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
+	// Search agents.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchAgents(context.Context, *SearchAgentsRequest) (*SearchAgentsResponse, error)
 	// Cancel an agent's running turn. Its pending messages stay queued.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -425,6 +444,9 @@ func (UnimplementedAgentServiceServer) UndeleteAgent(context.Context, *UndeleteA
 }
 func (UnimplementedAgentServiceServer) ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAgents not implemented")
+}
+func (UnimplementedAgentServiceServer) SearchAgents(context.Context, *SearchAgentsRequest) (*SearchAgentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchAgents not implemented")
 }
 func (UnimplementedAgentServiceServer) CancelAgent(context.Context, *CancelAgentRequest) (*v1.Agent, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelAgent not implemented")
@@ -671,6 +693,24 @@ func _AgentService_ListAgents_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_SearchAgents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAgentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SearchAgents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_SearchAgents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SearchAgents(ctx, req.(*SearchAgentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_CancelAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CancelAgentRequest)
 	if err := dec(in); err != nil {
@@ -772,6 +812,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAgents",
 			Handler:    _AgentService_ListAgents_Handler,
+		},
+		{
+			MethodName: "SearchAgents",
+			Handler:    _AgentService_SearchAgents_Handler,
 		},
 		{
 			MethodName: "CancelAgent",

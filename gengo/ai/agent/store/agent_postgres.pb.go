@@ -313,3 +313,84 @@ func (s *Store) ListAgents(ctx context.Context, organizationId, userId string, s
 	}
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Agent])
 }
+
+// AgentSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const AgentSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(title, '')), 'A') || setweight(to_tsvector('simple', coalesce(labels #>> '{}', '')), 'B') || setweight(to_tsvector('simple', coalesce(spec #>> '{instructions}', '')), 'C')`
+
+type agentSearchRow struct {
+	model.Agent
+	SnippetTitle            *string `db:"__snippet_title"`
+	SnippetLabels           *string `db:"__snippet_labels"`
+	SnippetSpecInstructions *string `db:"__snippet_spec_instructions"`
+}
+
+func (s *Store) SearchAgents(ctx context.Context, organizationId, userId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Agent, []map[string]string, error) {
+	if columns == nil {
+		columns = AgentPostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("agent.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+	if userId != "-" && userId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("agent.user_id = $%d", len(params)+1))
+		params = append(params, userId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "agent.delete_time IS NULL")
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY agent.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("agent.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(agent.search_document, to_tsquery('simple', $%d)) DESC, agent.create_time DESC", len(params)+1)
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(agent.labels, 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_labels`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.spec #>> '{instructions}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_spec_instructions`, len(params)+1))
+		}
+		params = append(params, tsQuery)
+	}
+
+	selectColumns := postgres.QualifyColumns(columns, "agent")
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query := "SELECT " + selectColumns + " FROM agent" + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting agents: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[agentSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	agents := make([]*model.Agent, 0, len(searchRows))
+	var snippets []map[string]string
+	for _, searchRow := range searchRows {
+		row := searchRow.Agent
+		agents = append(agents, &row)
+		if !includeSnippets {
+			continue
+		}
+		snippet := map[string]string{}
+		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
+			snippet["title"] = *searchRow.SnippetTitle
+		}
+		if searchRow.SnippetLabels != nil && strings.Contains(*searchRow.SnippetLabels, "**") {
+			snippet["labels"] = *searchRow.SnippetLabels
+		}
+		if searchRow.SnippetSpecInstructions != nil && strings.Contains(*searchRow.SnippetSpecInstructions, "**") {
+			snippet["spec.instructions"] = *searchRow.SnippetSpecInstructions
+		}
+		snippets = append(snippets, snippet)
+	}
+	return agents, snippets, nil
+}

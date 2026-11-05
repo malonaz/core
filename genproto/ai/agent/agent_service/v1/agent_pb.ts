@@ -13,6 +13,8 @@ import type { Agent, AgentValid } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
 import type { Block, BlockValid, Message as Message$1, MessageValid } from "../../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../../v1/message_pb";
+import type { SearchSnippet, SearchSnippetValid } from "../../../../aip/v1/aip_pb";
+import { file_malonaz_aip_v1_aip } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -20,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoTTWVzc2FnZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEjIKB21lc3NhZ2UYAiABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBArpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASpSCglBZ2VudFZpZXcSGgoWQUdFTlRfVklFV19VTlNQRUNJRklFRBAAEhQKEEFHRU5UX1ZJRVdfQkFTSUMQARITCg9BR0VOVF9WSUVXX0ZVTEwQAkI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSLaAQoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIkkKD0dldEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIusBChJVcGRhdGVBZ2VudFJlcXVlc3QSMQoFYWdlbnQYASABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Qga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIRRpDChNhZ2VudC5uYW1lX3JlcXVpcmVkEhZhZ2VudC5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5hZ2VudC5uYW1lKeqcwQMcCgZsYWJlbHMKC2Fubm90YXRpb25zCgV0aXRsZSKAAQoSRGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEg0KBWZvcmNlGAQgASgIIlwKFFVuZGVsZXRlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESDAoEZXRhZxgCIAEoCSL1AQoRTGlzdEFnZW50c1JlcXVlc3QSNwoGcGFyZW50GAEgASgJQifgQQL6QRsKGWFnZW50LmFpLm1hbG9uYXouY29tL1VzZXK6SAPIAQESDgoGZmlsdGVyGAIgASgJEhQKDHNob3dfZGVsZXRlZBgDIAEoCBIQCghvcmRlcl9ieRgEIAEoCRIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqIlkKEkxpc3RBZ2VudHNSZXNwb25zZRIqCgZhZ2VudHMYASADKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSLrAQoTU2VhcmNoQWdlbnRzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ+BBAvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEhQKDHNob3dfZGVsZXRlZBgEIAEoCBIcCglwYWdlX3NpemUYBSABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAYgASgJEhgKEGluY2x1ZGVfc25pcHBldHMYByABKAg6DYLzLQIIZJLzLQMKASoijAEKFFNlYXJjaEFnZW50c1Jlc3BvbnNlEioKBmFnZW50cxgBIAMoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQSLwoIc25pcHBldHMYAiADKAsyHS5tYWxvbmF6LmFpcC52MS5TZWFyY2hTbmlwcGV0EhcKD25leHRfcGFnZV90b2tlbhgDIAEoCSJMChJDYW5jZWxBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBASKvAQoSU3RyZWFtQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESRAoEdmlldxgCIAEoDjIsLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5BZ2VudFZpZXdCCLpIBYIBAhABEhsKE2luY2x1ZGVfZGVzY2VuZGFudHMYAyABKAgi6QQKE1N0cmVhbUFnZW50UmVzcG9uc2USLgoFYWdlbnQYASABKAlCH/pBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSLgoIc25hcHNob3QYAiABKAsyGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50SAASVAoJdG9vbF9jYWxsGAMgASgLMj8ubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVzcG9uc2UuVG9vbENhbGxIABJfCg90b29sX2NhbGxfZW5kZWQYBCABKAsyRC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEVuZGVkSAASJQoFZGVsdGEYBSABKAsyFC5tYWxvbmF6LmFpLnYxLkJsb2NrSAASKQoHbWVzc2FnZRgGIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUgAEmIKEGdlbmVyYXRpb25fcmVzZXQYByABKAsyRi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5HZW5lcmF0aW9uUmVzZXRIABozCghUb29sQ2FsbBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJGisKDVRvb2xDYWxsRW5kZWQSCgoCaWQYASABKAkSDgoGZmFpbGVkGAIgASgIGhEKD0dlbmVyYXRpb25SZXNldEIQCgdjb250ZW50EgW6SAIIASKiAQoTTWVzc2FnZUFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEjIKB21lc3NhZ2UYAiABKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBArpIA8gBARIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASpSCglBZ2VudFZpZXcSGgoWQUdFTlRfVklFV19VTlNQRUNJRklFRBAAEhQKEEFHRU5UX1ZJRVdfQkFTSUMQARITCg9BR0VOVF9WSUVXX0ZVTEwQAkI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.CreateAgent.
@@ -478,6 +480,196 @@ export const ListAgentsResponseSchema: GenMessage<ListAgentsResponse, {validType
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 6);
 
 /**
+ * Request message for AgentService.SearchAgents.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.SearchAgentsRequest
+ */
+export type SearchAgentsRequest = Message<"malonaz.ai.agent.agent_service.v1.SearchAgentsRequest"> & {
+  /**
+   * The user owning the agents. Use "organizations/{organization}/users/-" to
+   * search across users.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query, over the agents' titles, labels and
+   * instructions. Results are ranked by relevance. Must contain at least one
+   * searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * @autogen. ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted agents.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of agents to return (max 100).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchAgents` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Request message for AgentService.SearchAgents.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.SearchAgentsRequest
+ */
+export type SearchAgentsRequestValid = Message<"malonaz.ai.agent.agent_service.v1.SearchAgentsRequest"> & {
+  /**
+   * The user owning the agents. Use "organizations/{organization}/users/-" to
+   * search across users.
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query, over the agents' titles, labels and
+   * instructions. Results are ranked by relevance. Must contain at least one
+   * searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * @autogen. ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * If true, include soft-deleted agents.
+   *
+   * @generated from field: bool show_deleted = 4;
+   */
+  showDeleted: boolean;
+
+  /**
+   * Maximum number of agents to return (max 100).
+   *
+   * @generated from field: int32 page_size = 5;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchAgents` call.
+   *
+   * @generated from field: string page_token = 6;
+   */
+  pageToken: string;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.SearchAgentsRequest.
+ * Use `create(SearchAgentsRequestSchema)` to create a new message.
+ */
+export const SearchAgentsRequestSchema: GenMessage<SearchAgentsRequest, {validType: SearchAgentsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 7);
+
+/**
+ * Response message for AgentService.SearchAgents.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
+ */
+export type SearchAgentsResponse = Message<"malonaz.ai.agent.agent_service.v1.SearchAgentsResponse"> & {
+  /**
+   * The agents matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.ai.agent.v1.Agent agents = 1;
+   */
+  agents: Agent[];
+
+  /**
+   * Highlighted snippets, index-aligned with `agents`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippet[];
+
+  /**
+   * A token to retrieve the next page. Omitted when there are no more pages.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Response message for AgentService.SearchAgents.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.SearchAgentsResponse
+ */
+export type SearchAgentsResponseValid = Message<"malonaz.ai.agent.agent_service.v1.SearchAgentsResponse"> & {
+  /**
+   * The agents matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.ai.agent.v1.Agent agents = 1;
+   */
+  agents: AgentValid[];
+
+  /**
+   * Highlighted snippets, index-aligned with `agents`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippetValid[];
+
+  /**
+   * A token to retrieve the next page. Omitted when there are no more pages.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.
+ * Use `create(SearchAgentsResponseSchema)` to create a new message.
+ */
+export const SearchAgentsResponseSchema: GenMessage<SearchAgentsResponse, {validType: SearchAgentsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 8);
+
+/**
  * Request message for AgentService.CancelAgent.
  *
  * @generated from message malonaz.ai.agent.agent_service.v1.CancelAgentRequest
@@ -512,7 +704,7 @@ export type CancelAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1
  * Use `create(CancelAgentRequestSchema)` to create a new message.
  */
 export const CancelAgentRequestSchema: GenMessage<CancelAgentRequest, {validType: CancelAgentRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 7);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9);
 
 /**
  * Request message for AgentService.StreamAgent.
@@ -579,7 +771,7 @@ export type StreamAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1
  * Use `create(StreamAgentRequestSchema)` to create a new message.
  */
 export const StreamAgentRequestSchema: GenMessage<StreamAgentRequest, {validType: StreamAgentRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 8);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 10);
 
 /**
  * Response message for AgentService.StreamAgent: one piece of live activity.
@@ -728,7 +920,7 @@ export type StreamAgentResponseValid = Message<"malonaz.ai.agent.agent_service.v
  * Use `create(StreamAgentResponseSchema)` to create a new message.
  */
 export const StreamAgentResponseSchema: GenMessage<StreamAgentResponse, {validType: StreamAgentResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11);
 
 /**
  * ToolCall announces a tool call.
@@ -765,7 +957,7 @@ export type StreamAgentResponse_ToolCallValid = StreamAgentResponse_ToolCall;
  * Use `create(StreamAgentResponse_ToolCallSchema)` to create a new message.
  */
 export const StreamAgentResponse_ToolCallSchema: GenMessage<StreamAgentResponse_ToolCall, {validType: StreamAgentResponse_ToolCallValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 0);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11, 0);
 
 /**
  * ToolCallEnded marks a tool call's return.
@@ -795,7 +987,7 @@ export type StreamAgentResponse_ToolCallEndedValid = StreamAgentResponse_ToolCal
  * Use `create(StreamAgentResponse_ToolCallEndedSchema)` to create a new message.
  */
 export const StreamAgentResponse_ToolCallEndedSchema: GenMessage<StreamAgentResponse_ToolCallEnded, {validType: StreamAgentResponse_ToolCallEndedValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 1);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11, 1);
 
 /**
  * GenerationReset discards an interrupted generation's deltas.
@@ -812,7 +1004,7 @@ export type StreamAgentResponse_GenerationResetValid = StreamAgentResponse_Gener
  * Use `create(StreamAgentResponse_GenerationResetSchema)` to create a new message.
  */
 export const StreamAgentResponse_GenerationResetSchema: GenMessage<StreamAgentResponse_GenerationReset, {validType: StreamAgentResponse_GenerationResetValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 9, 2);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 11, 2);
 
 /**
  * Request message for AgentService.MessageAgent.
@@ -879,7 +1071,7 @@ export type MessageAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v
  * Use `create(MessageAgentRequestSchema)` to create a new message.
  */
 export const MessageAgentRequestSchema: GenMessage<MessageAgentRequest, {validType: MessageAgentRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 10);
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 12);
 
 /**
  * The amount of an agent's activity a StreamAgent call streams.

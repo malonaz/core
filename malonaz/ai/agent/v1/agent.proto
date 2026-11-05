@@ -39,6 +39,22 @@ message Agent {
   };
   option (malonaz.codegen.model.v1.model_opts) = {};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "a8d40bb6-3f99-4d02-95ff-71b5be47b1e7";
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "title"
+        weight: WEIGHT_A
+      },
+      {
+        path: "labels"
+        weight: WEIGHT_B
+      },
+      {
+        path: "spec.instructions"
+        weight: WEIGHT_C
+      }
+    ]
+  };
 
   // State is where the agent is in its lifecycle.
   enum State {
