@@ -18,7 +18,6 @@ filegroup(
     srcs = [
         "agent.go",
         "lease.go",
-        "mailbox.go",
         "transaction.go",
     ],
     labels = [
@@ -32,7 +31,6 @@ go_library(
     srcs = [
         "agent.go",
         "lease.go",
-        "mailbox.go",
         "transaction.go",
         ":codegen",
     ],
