@@ -23,10 +23,8 @@ go_library(
     visibility = ["//..."],
     deps = [
         "//go/ai/tool",
-        "//go/aip",
         "//go/grpc/status",
         "//go/pbutil",
-        "//go/pbutil/pbfieldmask",
         "//go/pbutil/pbjson",
         "//go/pbutil/pbreflection",
         "//malonaz/ai/ai_engine/v1",
@@ -36,8 +34,6 @@ go_library(
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protodesc",
-        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
-        "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
     ],
 )

@@ -2,6 +2,7 @@ go_library(
     name = "tool",
     srcs = [
         "annotations.go",
+        "builder.go",
         "create.go",
         "discovery.go",
         "execute.go",
@@ -9,16 +10,20 @@ go_library(
     ],
     visibility = ["//..."],
     deps = [
+        "//go/aip",
         "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
         "//go/pbutil/pbjson",
+        "//go/pbutil/pbreflection",
         "//malonaz/ai/ai_engine/v1",
         "//malonaz/ai/v1",
         "//malonaz/json/v1",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__types__descriptorpb",
+        "//third_party/go:google.golang.org__protobuf__types__dynamicpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
