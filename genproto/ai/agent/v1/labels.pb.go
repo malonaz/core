@@ -27,8 +27,9 @@ var File_malonaz_ai_agent_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	" malonaz/ai/agent/v1/labels.proto\x12\x13malonaz.ai.agent.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xcc\x02\x92\x95\x15\x99\x02\n" +
-	"\x1aagent.ai.malonaz.com/agent\x1a\xfa\x01On an AiService chat: the id of the agent owning it, the last segment of the agent's resource name. Set by the AgentService when it creates the agent's chat, never by clients: it marks the chat as an agent's transcript, which the AgentService writes.Z,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
+	" malonaz/ai/agent/v1/labels.proto\x12\x13malonaz.ai.agent.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xf6\a\x92\x95\x15\x8d\x05\n" +
+	"\x1aagent.ai.malonaz.com/agent\x1a\xee\x04The id of an agent, the last segment of its resource name; the resource's parent, the agent's user, holds the rest. Set by the AgentService, never by clients. On an AiService chat: the agent owning it, which marks the chat as an agent's transcript, which the AgentService writes. On a scheduler Schedule or Job: the agent it wakes, which created it through its schedule tool; a Schedule's tick jobs inherit it. List an agent's recurring schedules with ListSchedules and its pending one-offs with ListJobs, under its user, filtered on `labels.\"agent.ai.malonaz.com/agent\" = \"{agent}\"`, adding `NOT schedule:*` for the jobs.\x92\x95\x15\xb1\x02\n" +
+	"\x19agent.ai.malonaz.com/wake\x1a\x82\x02On a scheduler Schedule or Job waking an agent: how each run wakes it. `self` queues the run's message on the agent; `sub-agent` launches a sub-agent of it with the run's task, whose report wakes it. Set by the AgentService beside agent.ai.malonaz.com/agent.\"\x04self\"\tsub-agentZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_labels_proto_goTypes = []any{}
 var file_malonaz_ai_agent_v1_labels_proto_depIdxs = []int32{

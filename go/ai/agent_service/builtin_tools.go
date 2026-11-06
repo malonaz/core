@@ -37,6 +37,10 @@ const (
 	listAgentsToolName   = "list_agents"
 	updateLabelsToolName = "update_labels"
 
+	scheduleToolName       = "schedule"
+	listSchedulesToolName  = "list_schedules"
+	cancelScheduleToolName = "cancel_schedule"
+
 	// builtinToolFile declares the built-in tools' arguments.
 	builtinToolFile = "malonaz/ai/agent/agent_service/v1/builtin_tool.proto"
 
@@ -103,8 +107,22 @@ func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
 	if err != nil {
 		return nil, err
 	}
+	scheduleTool, err := newBuiltinTool(builder, scheduleToolName, scheduleToolDescription, createSchedule)
+	if err != nil {
+		return nil, err
+	}
+	listSchedulesTool, err := newBuiltinTool(builder, listSchedulesToolName, listSchedulesToolDescription, listSchedules)
+	if err != nil {
+		return nil, err
+	}
+	cancelScheduleTool, err := newBuiltinTool(builder, cancelScheduleToolName, cancelScheduleToolDescription, cancelSchedule)
+	if err != nil {
+		return nil, err
+	}
 	builtinTools := &builtinTools{nameToBuiltinTool: map[string]*builtinTool{}}
-	for _, builtinTool := range []*builtinTool{createAgentsTool, messageAgentTool, listAgentsTool, updateLabelsTool} {
+	for _, builtinTool := range []*builtinTool{
+		createAgentsTool, messageAgentTool, listAgentsTool, updateLabelsTool, scheduleTool, listSchedulesTool, cancelScheduleTool,
+	} {
 		builtinTools.tools = append(builtinTools.tools, builtinTool.tool)
 		builtinTools.nameToBuiltinTool[builtinTool.tool.GetName()] = builtinTool
 	}
@@ -176,8 +194,8 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
-	if agent.GetSpec().GetMaxSubAgentDepth() == 0 {
-		return nil, status.Errorf(codes.PermissionDenied, "you may not launch sub-agents").Err()
+	if err := mayLaunchSubAgents(agent); err != nil {
+		return nil, err
 	}
 	// Validate every launch first, so an invalid one launches none.
 	subAgents := make([]*agentpb.Agent, 0, len(arguments.GetAgents()))
@@ -223,6 +241,14 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	_ = eg.Wait()
 	content := strings.Join(lines, "\n") + "\n" + endTurnHint
 	return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), content), nil
+}
+
+// mayLaunchSubAgents checks that an agent's depth leaves it room for sub-agents.
+func mayLaunchSubAgents(agent *agentpb.Agent) error {
+	if agent.GetSpec().GetMaxSubAgentDepth() == 0 {
+		return status.Errorf(codes.PermissionDenied, "you may not launch sub-agents").Err()
+	}
+	return nil
 }
 
 // newSubAgent validates a launch against what the caller may delegate: only its own definitions and tools. Ad-hoc

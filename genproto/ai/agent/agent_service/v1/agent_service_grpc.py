@@ -17,6 +17,7 @@ import malonaz.ai.agent.v1.agent_pb2
 import malonaz.ai.agent.v1.definition_pb2
 import malonaz.authentication.v1.authentication_pb2
 import malonaz.codegen.aip.v1.aip_pb2
+import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.ai.agent.agent_service.v1.agent_service_pb2
 
 
@@ -92,6 +93,10 @@ class AgentServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def MessageAgent(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def WakeAgent(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.agent_pb2.WakeAgentRequest, malonaz.ai.agent.v1.agent_pb2.Agent]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -202,6 +207,12 @@ class AgentServiceBase(abc.ABC):
                 self.MessageAgent,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest,
+                malonaz.ai.agent.v1.agent_pb2.Agent,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/WakeAgent': grpclib.const.Handler(
+                self.WakeAgent,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.agent_pb2.WakeAgentRequest,
                 malonaz.ai.agent.v1.agent_pb2.Agent,
             ),
         }
@@ -316,5 +327,11 @@ class AgentServiceStub:
             channel,
             '/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent',
             malonaz.ai.agent.agent_service.v1.agent_pb2.MessageAgentRequest,
+            malonaz.ai.agent.v1.agent_pb2.Agent,
+        )
+        self.WakeAgent = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/WakeAgent',
+            malonaz.ai.agent.agent_service.v1.agent_pb2.WakeAgentRequest,
             malonaz.ai.agent.v1.agent_pb2.Agent,
         )

@@ -14,6 +14,8 @@ import (
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -283,6 +285,511 @@ func (b0 UpdateLabelsToolArguments_builder) Build() *UpdateLabelsToolArguments {
 	return m0
 }
 
+// The arguments of the built-in schedule tool.
+type ScheduleToolArguments struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// When you are woken: every tick of a cron, or once.
+	//
+	// Types that are valid to be assigned to When:
+	//
+	//	*ScheduleToolArguments_Cron
+	//	*ScheduleToolArguments_Time
+	//	*ScheduleToolArguments_Delay
+	When isScheduleToolArguments_When `protobuf_oneof:"when"`
+	// The IANA time zone the cron is evaluated in, e.g. `Europe/Paris`: the user's, so their 9am is 9am for them.
+	// Required with a cron.
+	TimeZone string `protobuf:"bytes,4,opt,name=time_zone,json=timeZone,proto3" json:"time_zone,omitempty"`
+	// What each run does.
+	//
+	// Types that are valid to be assigned to Wake:
+	//
+	//	*ScheduleToolArguments_Message
+	//	*ScheduleToolArguments_SubAgent
+	Wake          isScheduleToolArguments_Wake `protobuf_oneof:"wake"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScheduleToolArguments) Reset() {
+	*x = ScheduleToolArguments{}
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduleToolArguments) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduleToolArguments) ProtoMessage() {}
+
+func (x *ScheduleToolArguments) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ScheduleToolArguments) GetWhen() isScheduleToolArguments_When {
+	if x != nil {
+		return x.When
+	}
+	return nil
+}
+
+func (x *ScheduleToolArguments) GetCron() string {
+	if x != nil {
+		if x, ok := x.When.(*ScheduleToolArguments_Cron); ok {
+			return x.Cron
+		}
+	}
+	return ""
+}
+
+func (x *ScheduleToolArguments) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		if x, ok := x.When.(*ScheduleToolArguments_Time); ok {
+			return x.Time
+		}
+	}
+	return nil
+}
+
+func (x *ScheduleToolArguments) GetDelay() *durationpb.Duration {
+	if x != nil {
+		if x, ok := x.When.(*ScheduleToolArguments_Delay); ok {
+			return x.Delay
+		}
+	}
+	return nil
+}
+
+func (x *ScheduleToolArguments) GetTimeZone() string {
+	if x != nil {
+		return x.TimeZone
+	}
+	return ""
+}
+
+func (x *ScheduleToolArguments) GetWake() isScheduleToolArguments_Wake {
+	if x != nil {
+		return x.Wake
+	}
+	return nil
+}
+
+func (x *ScheduleToolArguments) GetMessage() string {
+	if x != nil {
+		if x, ok := x.Wake.(*ScheduleToolArguments_Message); ok {
+			return x.Message
+		}
+	}
+	return ""
+}
+
+func (x *ScheduleToolArguments) GetSubAgent() *CreateAgentsToolArguments_SubAgent {
+	if x != nil {
+		if x, ok := x.Wake.(*ScheduleToolArguments_SubAgent); ok {
+			return x.SubAgent
+		}
+	}
+	return nil
+}
+
+func (x *ScheduleToolArguments) SetCron(v string) {
+	x.When = &ScheduleToolArguments_Cron{v}
+}
+
+func (x *ScheduleToolArguments) SetTime(v *timestamppb.Timestamp) {
+	if v == nil {
+		x.When = nil
+		return
+	}
+	x.When = &ScheduleToolArguments_Time{v}
+}
+
+func (x *ScheduleToolArguments) SetDelay(v *durationpb.Duration) {
+	if v == nil {
+		x.When = nil
+		return
+	}
+	x.When = &ScheduleToolArguments_Delay{v}
+}
+
+func (x *ScheduleToolArguments) SetTimeZone(v string) {
+	x.TimeZone = v
+}
+
+func (x *ScheduleToolArguments) SetMessage(v string) {
+	x.Wake = &ScheduleToolArguments_Message{v}
+}
+
+func (x *ScheduleToolArguments) SetSubAgent(v *CreateAgentsToolArguments_SubAgent) {
+	if v == nil {
+		x.Wake = nil
+		return
+	}
+	x.Wake = &ScheduleToolArguments_SubAgent{v}
+}
+
+func (x *ScheduleToolArguments) HasWhen() bool {
+	if x == nil {
+		return false
+	}
+	return x.When != nil
+}
+
+func (x *ScheduleToolArguments) HasCron() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.When.(*ScheduleToolArguments_Cron)
+	return ok
+}
+
+func (x *ScheduleToolArguments) HasTime() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.When.(*ScheduleToolArguments_Time)
+	return ok
+}
+
+func (x *ScheduleToolArguments) HasDelay() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.When.(*ScheduleToolArguments_Delay)
+	return ok
+}
+
+func (x *ScheduleToolArguments) HasWake() bool {
+	if x == nil {
+		return false
+	}
+	return x.Wake != nil
+}
+
+func (x *ScheduleToolArguments) HasMessage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Wake.(*ScheduleToolArguments_Message)
+	return ok
+}
+
+func (x *ScheduleToolArguments) HasSubAgent() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Wake.(*ScheduleToolArguments_SubAgent)
+	return ok
+}
+
+func (x *ScheduleToolArguments) ClearWhen() {
+	x.When = nil
+}
+
+func (x *ScheduleToolArguments) ClearCron() {
+	if _, ok := x.When.(*ScheduleToolArguments_Cron); ok {
+		x.When = nil
+	}
+}
+
+func (x *ScheduleToolArguments) ClearTime() {
+	if _, ok := x.When.(*ScheduleToolArguments_Time); ok {
+		x.When = nil
+	}
+}
+
+func (x *ScheduleToolArguments) ClearDelay() {
+	if _, ok := x.When.(*ScheduleToolArguments_Delay); ok {
+		x.When = nil
+	}
+}
+
+func (x *ScheduleToolArguments) ClearWake() {
+	x.Wake = nil
+}
+
+func (x *ScheduleToolArguments) ClearMessage() {
+	if _, ok := x.Wake.(*ScheduleToolArguments_Message); ok {
+		x.Wake = nil
+	}
+}
+
+func (x *ScheduleToolArguments) ClearSubAgent() {
+	if _, ok := x.Wake.(*ScheduleToolArguments_SubAgent); ok {
+		x.Wake = nil
+	}
+}
+
+const ScheduleToolArguments_When_not_set_case case_ScheduleToolArguments_When = 0
+const ScheduleToolArguments_Cron_case case_ScheduleToolArguments_When = 1
+const ScheduleToolArguments_Time_case case_ScheduleToolArguments_When = 2
+const ScheduleToolArguments_Delay_case case_ScheduleToolArguments_When = 3
+
+func (x *ScheduleToolArguments) WhichWhen() case_ScheduleToolArguments_When {
+	if x == nil {
+		return ScheduleToolArguments_When_not_set_case
+	}
+	switch x.When.(type) {
+	case *ScheduleToolArguments_Cron:
+		return ScheduleToolArguments_Cron_case
+	case *ScheduleToolArguments_Time:
+		return ScheduleToolArguments_Time_case
+	case *ScheduleToolArguments_Delay:
+		return ScheduleToolArguments_Delay_case
+	default:
+		return ScheduleToolArguments_When_not_set_case
+	}
+}
+
+const ScheduleToolArguments_Wake_not_set_case case_ScheduleToolArguments_Wake = 0
+const ScheduleToolArguments_Message_case case_ScheduleToolArguments_Wake = 5
+const ScheduleToolArguments_SubAgent_case case_ScheduleToolArguments_Wake = 6
+
+func (x *ScheduleToolArguments) WhichWake() case_ScheduleToolArguments_Wake {
+	if x == nil {
+		return ScheduleToolArguments_Wake_not_set_case
+	}
+	switch x.Wake.(type) {
+	case *ScheduleToolArguments_Message:
+		return ScheduleToolArguments_Message_case
+	case *ScheduleToolArguments_SubAgent:
+		return ScheduleToolArguments_SubAgent_case
+	default:
+		return ScheduleToolArguments_Wake_not_set_case
+	}
+}
+
+type ScheduleToolArguments_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// When you are woken: every tick of a cron, or once.
+
+	// Fields of oneof When:
+	// Recurring: a five-field cron expression (minute hour day-of-month month day-of-week), e.g. `0 9 * * MON-FRI`
+	// for 9am on weekdays.
+	Cron *string
+	// Once, at this time: RFC 3339 with an offset, e.g. `2026-11-07T09:00:00+01:00`.
+	Time *timestamppb.Timestamp
+	// Once, this long from now, e.g. `7200s` for two hours.
+	Delay *durationpb.Duration
+	// -- end of When
+	// The IANA time zone the cron is evaluated in, e.g. `Europe/Paris`: the user's, so their 9am is 9am for them.
+	// Required with a cron.
+	TimeZone string
+	// What each run does.
+
+	// Fields of oneof Wake:
+	// Wake yourself with this message, continuing this conversation with everything you know.
+	Message *string
+	// Launch this sub-agent, its task its first message: it starts from a fresh context, and its report wakes you.
+	SubAgent *CreateAgentsToolArguments_SubAgent
+	// -- end of Wake
+}
+
+func (b0 ScheduleToolArguments_builder) Build() *ScheduleToolArguments {
+	m0 := &ScheduleToolArguments{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Cron != nil {
+		x.When = &ScheduleToolArguments_Cron{*b.Cron}
+	}
+	if b.Time != nil {
+		x.When = &ScheduleToolArguments_Time{b.Time}
+	}
+	if b.Delay != nil {
+		x.When = &ScheduleToolArguments_Delay{b.Delay}
+	}
+	x.TimeZone = b.TimeZone
+	if b.Message != nil {
+		x.Wake = &ScheduleToolArguments_Message{*b.Message}
+	}
+	if b.SubAgent != nil {
+		x.Wake = &ScheduleToolArguments_SubAgent{b.SubAgent}
+	}
+	return m0
+}
+
+type case_ScheduleToolArguments_When protoreflect.FieldNumber
+
+func (x case_ScheduleToolArguments_When) String() string {
+	md := file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type case_ScheduleToolArguments_Wake protoreflect.FieldNumber
+
+func (x case_ScheduleToolArguments_Wake) String() string {
+	md := file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isScheduleToolArguments_When interface {
+	isScheduleToolArguments_When()
+}
+
+type ScheduleToolArguments_Cron struct {
+	// Recurring: a five-field cron expression (minute hour day-of-month month day-of-week), e.g. `0 9 * * MON-FRI`
+	// for 9am on weekdays.
+	Cron string `protobuf:"bytes,1,opt,name=cron,proto3,oneof"`
+}
+
+type ScheduleToolArguments_Time struct {
+	// Once, at this time: RFC 3339 with an offset, e.g. `2026-11-07T09:00:00+01:00`.
+	Time *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time,proto3,oneof"`
+}
+
+type ScheduleToolArguments_Delay struct {
+	// Once, this long from now, e.g. `7200s` for two hours.
+	Delay *durationpb.Duration `protobuf:"bytes,3,opt,name=delay,proto3,oneof"`
+}
+
+func (*ScheduleToolArguments_Cron) isScheduleToolArguments_When() {}
+
+func (*ScheduleToolArguments_Time) isScheduleToolArguments_When() {}
+
+func (*ScheduleToolArguments_Delay) isScheduleToolArguments_When() {}
+
+type isScheduleToolArguments_Wake interface {
+	isScheduleToolArguments_Wake()
+}
+
+type ScheduleToolArguments_Message struct {
+	// Wake yourself with this message, continuing this conversation with everything you know.
+	Message string `protobuf:"bytes,5,opt,name=message,proto3,oneof"`
+}
+
+type ScheduleToolArguments_SubAgent struct {
+	// Launch this sub-agent, its task its first message: it starts from a fresh context, and its report wakes you.
+	SubAgent *CreateAgentsToolArguments_SubAgent `protobuf:"bytes,6,opt,name=sub_agent,json=subAgent,proto3,oneof"`
+}
+
+func (*ScheduleToolArguments_Message) isScheduleToolArguments_Wake() {}
+
+func (*ScheduleToolArguments_SubAgent) isScheduleToolArguments_Wake() {}
+
+// The arguments of the built-in list_schedules tool.
+type ListSchedulesToolArguments struct {
+	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSchedulesToolArguments) Reset() {
+	*x = ListSchedulesToolArguments{}
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSchedulesToolArguments) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSchedulesToolArguments) ProtoMessage() {}
+
+func (x *ListSchedulesToolArguments) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type ListSchedulesToolArguments_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 ListSchedulesToolArguments_builder) Build() *ListSchedulesToolArguments {
+	m0 := &ListSchedulesToolArguments{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
+// The arguments of the built-in cancel_schedule tool.
+type CancelScheduleToolArguments struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The schedule to cancel, as list_schedules names it: a recurring schedule or a one-off run.
+	// Format: organizations/{organization}/users/{user}/schedules/{schedule}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelScheduleToolArguments) Reset() {
+	*x = CancelScheduleToolArguments{}
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelScheduleToolArguments) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelScheduleToolArguments) ProtoMessage() {}
+
+func (x *CancelScheduleToolArguments) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CancelScheduleToolArguments) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CancelScheduleToolArguments) SetName(v string) {
+	x.Name = v
+}
+
+type CancelScheduleToolArguments_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The schedule to cancel, as list_schedules names it: a recurring schedule or a one-off run.
+	// Format: organizations/{organization}/users/{user}/schedules/{schedule}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	Name string
+}
+
+func (b0 CancelScheduleToolArguments_builder) Build() *CancelScheduleToolArguments {
+	m0 := &CancelScheduleToolArguments{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Name = b.Name
+	return m0
+}
+
 // A sub-agent to launch.
 type CreateAgentsToolArguments_SubAgent struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -310,7 +817,7 @@ type CreateAgentsToolArguments_SubAgent struct {
 
 func (x *CreateAgentsToolArguments_SubAgent) Reset() {
 	*x = CreateAgentsToolArguments_SubAgent{}
-	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4]
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -322,7 +829,7 @@ func (x *CreateAgentsToolArguments_SubAgent) String() string {
 func (*CreateAgentsToolArguments_SubAgent) ProtoMessage() {}
 
 func (x *CreateAgentsToolArguments_SubAgent) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4]
+	mi := &file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,7 +958,7 @@ var File_malonaz_ai_agent_agent_service_v1_builtin_tool_proto protoreflect.FileD
 
 const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xb0\x03\n" +
+	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xb0\x03\n" +
 	"\x19CreateAgentsToolArguments\x12g\n" +
 	"\x06agents\x18\x01 \x03(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\b\xbaH\x05\x92\x01\x02\b\x01R\x06agents\x1a\xa9\x02\n" +
 	"\bSubAgent\x12!\n" +
@@ -473,29 +980,51 @@ const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"\x06remove\x18\x02 \x03(\tR\x06remove\x1a6\n" +
 	"\bSetEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdc\x03\n" +
+	"\x15ScheduleToolArguments\x12 \n" +
+	"\x04cron\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x02H\x00R\x04cron\x120\n" +
+	"\x04time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x04time\x12;\n" +
+	"\x05delay\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x02*\x00H\x00R\x05delay\x12$\n" +
+	"\ttime_zone\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\btimeZone\x12#\n" +
+	"\amessage\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x01R\amessage\x12d\n" +
+	"\tsub_agent\x18\x06 \x01(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentH\x01R\bsubAgent:c\xbaH`\x1a^\n" +
+	"\x17schedule.cron_time_zone\x12\x1aa cron needs its time_zone\x1a'!has(this.cron) || this.time_zone != ''B\r\n" +
+	"\x04when\x12\x05\xbaH\x02\b\x01B\r\n" +
+	"\x04wake\x12\x05\xbaH\x02\b\x01\"\x1c\n" +
+	"\x1aListSchedulesToolArguments\"9\n" +
+	"\x1bCancelScheduleToolArguments\x12\x1a\n" +
+	"\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04nameB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
 
-var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_goTypes = []any{
 	(*CreateAgentsToolArguments)(nil),          // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments
 	(*MessageAgentToolArguments)(nil),          // 1: malonaz.ai.agent.agent_service.v1.MessageAgentToolArguments
 	(*ListAgentsToolArguments)(nil),            // 2: malonaz.ai.agent.agent_service.v1.ListAgentsToolArguments
 	(*UpdateLabelsToolArguments)(nil),          // 3: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments
-	(*CreateAgentsToolArguments_SubAgent)(nil), // 4: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
-	nil,                        // 5: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
-	(v1.ReasoningEffort)(0),    // 6: malonaz.ai.v1.ReasoningEffort
-	(*v11.AgentSpec_Tool)(nil), // 7: malonaz.ai.agent.v1.AgentSpec.Tool
+	(*ScheduleToolArguments)(nil),              // 4: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments
+	(*ListSchedulesToolArguments)(nil),         // 5: malonaz.ai.agent.agent_service.v1.ListSchedulesToolArguments
+	(*CancelScheduleToolArguments)(nil),        // 6: malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments
+	(*CreateAgentsToolArguments_SubAgent)(nil), // 7: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
+	nil,                           // 8: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 10: google.protobuf.Duration
+	(v1.ReasoningEffort)(0),       // 11: malonaz.ai.v1.ReasoningEffort
+	(*v11.AgentSpec_Tool)(nil),    // 12: malonaz.ai.agent.v1.AgentSpec.Tool
 }
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.agents:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
-	5, // 1: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.set:type_name -> malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
-	6, // 2: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	7, // 3: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	7,  // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.agents:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
+	8,  // 1: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.set:type_name -> malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
+	9,  // 2: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.time:type_name -> google.protobuf.Timestamp
+	10, // 3: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.delay:type_name -> google.protobuf.Duration
+	7,  // 4: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.sub_agent:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
+	11, // 5: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
+	12, // 6: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_init() }
@@ -503,13 +1032,20 @@ func file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_init() {
 	if File_malonaz_ai_agent_agent_service_v1_builtin_tool_proto != nil {
 		return
 	}
+	file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_msgTypes[4].OneofWrappers = []any{
+		(*ScheduleToolArguments_Cron)(nil),
+		(*ScheduleToolArguments_Time)(nil),
+		(*ScheduleToolArguments_Delay)(nil),
+		(*ScheduleToolArguments_Message)(nil),
+		(*ScheduleToolArguments_SubAgent)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc), len(file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
