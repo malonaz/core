@@ -15,6 +15,7 @@ import malonaz.ai.agent.agent_service.v1.agent_pb2
 import malonaz.ai.agent.agent_service.v1.definition_pb2
 import malonaz.ai.agent.v1.agent_pb2
 import malonaz.ai.agent.v1.definition_pb2
+import malonaz.authentication.v1.authentication_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.ai.agent.agent_service.v1.agent_service_pb2
 

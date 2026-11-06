@@ -25,6 +25,7 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/ai/v1",
+        "//malonaz/authentication/v1",
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/model/v1",
         "//third_party/proto:google__api__annotations",
