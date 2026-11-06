@@ -32,9 +32,12 @@ var (
 	fakeListJobsRequestParser      = aip.MustNewListRequestParser[*schedulerservicepb.ListJobsRequest, *schedulerpb.Job](aip.WithFilteringOpts(aip.WithFQN()))
 )
 
+// signedSessionHeader carries a caller's signed session on outgoing calls.
+const signedSessionHeader = "x-signed-session-bin"
+
 // fakeSchedulerService is an in-memory SchedulerService client of schedules and jobs. It interprets no filter: it
-// matches the AgentService's own builders, recomputed per item for the agent it is labeled with. Methods not
-// implemented panic.
+// matches the AgentService's own builders, recomputed per item for the agent it is labeled with. It admits the
+// service's identity alone, as the real one's interceptors do. Methods not implemented panic.
 type fakeSchedulerService struct {
 	schedulerservicepb.SchedulerServiceClient
 
@@ -44,6 +47,8 @@ type fakeSchedulerService struct {
 	requestIDToSchedule map[string]*schedulerpb.Schedule
 	requestIDToJob      map[string]*schedulerpb.Job
 	etagCounter         int
+	// cancelJobErr, if set, fails every CancelJob.
+	cancelJobErr error
 }
 
 func newFakeSchedulerService() *fakeSchedulerService {
@@ -51,6 +56,31 @@ func newFakeSchedulerService() *fakeSchedulerService {
 		requestIDToSchedule: map[string]*schedulerpb.Schedule{},
 		requestIDToJob:      map[string]*schedulerpb.Job{},
 	}
+}
+
+// authenticate refuses a call not made as the service, or carrying a caller's signed session besides: the real
+// scheduler's interceptors would find two sessions.
+func authenticate(ctx context.Context) error {
+	outgoingMetadata, _ := metadata.FromOutgoingContext(ctx)
+	if len(outgoingMetadata.Get(testServiceAccountHeader)) != 1 {
+		return status.Errorf(codes.Unauthenticated, "not called as the service").Err()
+	}
+	if len(outgoingMetadata.Get(signedSessionHeader)) > 0 {
+		return status.Errorf(codes.Internal, "unexpected signed session in local context").Err()
+	}
+	return nil
+}
+
+// asTestService returns a context calling the fake scheduler as the service.
+func asTestService() context.Context {
+	return withTestServiceAccount(context.Background())
+}
+
+// failCancelJobs makes every CancelJob fail with err, or succeed again with nil.
+func (c *fakeSchedulerService) failCancelJobs(err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.cancelJobErr = err
 }
 
 // nextEtag returns a fresh etag.
@@ -61,6 +91,9 @@ func (c *fakeSchedulerService) nextEtag() string {
 
 // CreateSchedule creates an enabled schedule, its next run a minute away: a replayed request id returns it.
 func (c *fakeSchedulerService) CreateSchedule(ctx context.Context, request *schedulerservicepb.CreateScheduleRequest, _ ...grpc.CallOption) (*schedulerpb.Schedule, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if schedule, ok := c.requestIDToSchedule[request.RequestId]; ok && request.RequestId != "" {
@@ -84,6 +117,9 @@ func (c *fakeSchedulerService) CreateSchedule(ctx context.Context, request *sche
 }
 
 func (c *fakeSchedulerService) GetSchedule(ctx context.Context, request *schedulerservicepb.GetScheduleRequest, _ ...grpc.CallOption) (*schedulerpb.Schedule, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	index := slices.IndexFunc(c.schedules, func(schedule *schedulerpb.Schedule) bool { return schedule.Name == request.Name })
@@ -95,6 +131,9 @@ func (c *fakeSchedulerService) GetSchedule(ctx context.Context, request *schedul
 
 // ListSchedules lists a parent's schedules in creation order, in one page.
 func (c *fakeSchedulerService) ListSchedules(ctx context.Context, request *schedulerservicepb.ListSchedulesRequest, _ ...grpc.CallOption) (*schedulerservicepb.ListSchedulesResponse, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	if _, err := fakeListSchedulesRequestParser.Parse(request); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "%v", err).Err()
 	}
@@ -114,6 +153,9 @@ func (c *fakeSchedulerService) ListSchedules(ctx context.Context, request *sched
 
 // DeleteSchedule deletes a schedule, checking its etag if set.
 func (c *fakeSchedulerService) DeleteSchedule(ctx context.Context, request *schedulerservicepb.DeleteScheduleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	index := slices.IndexFunc(c.schedules, func(schedule *schedulerpb.Schedule) bool { return schedule.Name == request.Name })
@@ -131,6 +173,9 @@ func (c *fakeSchedulerService) DeleteSchedule(ctx context.Context, request *sche
 
 // CreateJob creates a pending job: a replayed request id returns it.
 func (c *fakeSchedulerService) CreateJob(ctx context.Context, request *schedulerservicepb.CreateJobRequest, _ ...grpc.CallOption) (*schedulerpb.Job, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if job, ok := c.requestIDToJob[request.RequestId]; ok && request.RequestId != "" {
@@ -164,6 +209,9 @@ func (c *fakeSchedulerService) addJob(parent string, job *schedulerpb.Job) error
 }
 
 func (c *fakeSchedulerService) GetJob(ctx context.Context, request *schedulerservicepb.GetJobRequest, _ ...grpc.CallOption) (*schedulerpb.Job, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	job := c.findJob(request.Name)
@@ -183,6 +231,9 @@ func (c *fakeSchedulerService) findJob(name string) *schedulerpb.Job {
 
 // ListJobs lists a parent's jobs by schedule time, in one page.
 func (c *fakeSchedulerService) ListJobs(ctx context.Context, request *schedulerservicepb.ListJobsRequest, _ ...grpc.CallOption) (*schedulerservicepb.ListJobsResponse, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	if _, err := fakeListJobsRequestParser.Parse(request); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "%v", err).Err()
 	}
@@ -205,8 +256,14 @@ func (c *fakeSchedulerService) ListJobs(ctx context.Context, request *schedulers
 
 // CancelJob cancels a pending job.
 func (c *fakeSchedulerService) CancelJob(ctx context.Context, request *schedulerservicepb.CancelJobRequest, _ ...grpc.CallOption) (*schedulerpb.Job, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if c.cancelJobErr != nil {
+		return nil, c.cancelJobErr
+	}
 	job := c.findJob(request.Name)
 	if job == nil {
 		return nil, status.Errorf(codes.NotFound, "job %s does not exist", request.Name).Err()
@@ -282,7 +339,7 @@ func (c *fakeSchedulerService) schedulesOf(t *testing.T, agent string) []*schedu
 	agentRn, err := agentpb.ParseAgentRn(agent)
 	require.NoError(t, err)
 	listSchedulesRequest := &schedulerservicepb.ListSchedulesRequest{Parent: agentRn.UserRn().String(), Filter: agentScheduleFilter(agentRn)}
-	listSchedulesResponse, err := c.ListSchedules(context.Background(), listSchedulesRequest)
+	listSchedulesResponse, err := c.ListSchedules(asTestService(), listSchedulesRequest)
 	require.NoError(t, err)
 	return listSchedulesResponse.Schedules
 }
@@ -293,7 +350,7 @@ func (c *fakeSchedulerService) jobsOf(t *testing.T, agent string) []*schedulerpb
 	agentRn, err := agentpb.ParseAgentRn(agent)
 	require.NoError(t, err)
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{Parent: agentRn.UserRn().String(), Filter: agentScheduleFilter(agentRn)}
-	listJobsResponse, err := c.ListJobs(context.Background(), listJobsRequest)
+	listJobsResponse, err := c.ListJobs(asTestService(), listJobsRequest)
 	require.NoError(t, err)
 	return listJobsResponse.Jobs
 }
@@ -303,7 +360,7 @@ func (c *fakeSchedulerService) jobsOf(t *testing.T, agent string) []*schedulerpb
 func (c *fakeSchedulerService) tick(t *testing.T, scheduleName string) *schedulerpb.Job {
 	t.Helper()
 	getScheduleRequest := &schedulerservicepb.GetScheduleRequest{Name: scheduleName}
-	schedule, err := c.GetSchedule(context.Background(), getScheduleRequest)
+	schedule, err := c.GetSchedule(asTestService(), getScheduleRequest)
 	require.NoError(t, err)
 	parent, err := scheduleParent(scheduleName)
 	require.NoError(t, err)

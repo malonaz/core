@@ -74,8 +74,10 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}, nil
 }
 
-// asService runs a call with the service's own identity.
+// asService runs a call with the service's own identity alone: a caller's session riding along would reach the callee
+// as a second one, which it refuses.
 func (s *Service) asService(ctx context.Context) context.Context {
+	ctx = withoutIdentity(ctx)
 	if s.withServiceAccount == nil {
 		return ctx
 	}

@@ -70,7 +70,7 @@ func userOf(t *testing.T, agent *agentpb.Agent) string {
 func requireJobState(t *testing.T, service *testReplica, name string, state schedulerpb.JobState) {
 	t.Helper()
 	getJobRequest := &schedulerservicepb.GetJobRequest{Name: name}
-	job, err := service.scheduler.GetJob(context.Background(), getJobRequest)
+	job, err := service.scheduler.GetJob(asTestService(), getJobRequest)
 	require.NoError(t, err)
 	require.Equal(t, state, job.State, name)
 }
@@ -407,18 +407,88 @@ func TestDeleteAgent_CancelsSchedules(t *testing.T) {
 	requireJobState(t, service, siblingJobs[0].Name, schedulerpb.JobState_JOB_STATE_PENDING)
 }
 
-func TestDeleteAgent_ForceCancelsSubAgentSchedules(t *testing.T) {
+// scheduleBoth gives an agent a recurring schedule and a one-off run, returning the run.
+func scheduleBoth(t *testing.T, service *testReplica, agent *agentpb.Agent) *schedulerpb.Job {
+	t.Helper()
+	mustSchedule(t, service, agent, "call-1", map[string]any{"cron": "0 9 * * *", "time_zone": "Europe/Paris", "message": "standup"})
+	mustSchedule(t, service, agent, "call-2", map[string]any{"delay": "3600s", "message": "later"})
+	return service.scheduler.jobsOf(t, agent.Name)[0]
+}
+
+// requireScheduled checks whether an agent's schedule and one-off run are still pending.
+func requireScheduled(t *testing.T, service *testReplica, agent *agentpb.Agent, job *schedulerpb.Job, scheduled bool) {
+	t.Helper()
+	jobState := schedulerpb.JobState_JOB_STATE_CANCELLED
+	if scheduled {
+		jobState = schedulerpb.JobState_JOB_STATE_PENDING
+	}
+	require.Equal(t, scheduled, len(service.scheduler.schedulesOf(t, agent.Name)) == 1, agent.Name)
+	requireJobState(t, service, job.Name, jobState)
+}
+
+func TestDeleteAgent_CancelsSchedulesUnderTheCallersSession(t *testing.T) {
+	service := newAuthenticatedTestService(t)
+	alice := newTestUser(t)
+	aliceCtx := service.as(t, alice, false)
+	agent, err := service.createAgent(aliceCtx, alice, nil)
+	require.NoError(t, err)
+	job := scheduleBoth(t, service.testReplica, agent)
+
+	// Through the server, whose interceptors put alice's signed session on the service's outgoing calls.
+	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
+	_, err = service.client.DeleteAgent(aliceCtx, deleteAgentRequest)
+
+	require.NoError(t, err)
+	require.NotNil(t, getAgent(t, service.testReplica, agent.Name).DeleteTime)
+	requireScheduled(t, service.testReplica, agent, job, false)
+}
+
+func TestDeleteAgent_ForceCancelsTheSubtreesSchedules(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgent(t, service)
 	subAgent := createTestSubAgent(t, service, agent)
-	mustSchedule(t, service, subAgent, "call-1", map[string]any{"cron": "0 9 * * *", "time_zone": "Europe/Paris", "message": "standup"})
-	mustSchedule(t, service, subAgent, "call-2", map[string]any{"delay": "3600s", "message": "later"})
-	job := service.scheduler.jobsOf(t, subAgent.Name)[0]
+	subSubAgent := createTestSubAgent(t, service, subAgent)
+	siblingAgent := createTestSubAgent(t, service, agent)
+	agents := []*agentpb.Agent{agent, subAgent, subSubAgent, siblingAgent}
+	jobs := make([]*schedulerpb.Job, len(agents))
+	for i, scheduledAgent := range agents {
+		jobs[i] = scheduleBoth(t, service, scheduledAgent)
+	}
+
+	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
+	deletedAgent, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	require.NoError(t, err)
+
+	for i, deletedAgent := range agents {
+		requireScheduled(t, service, deletedAgent, jobs[i], false)
+	}
+	// One delete: the whole subtree at the same time.
+	for _, descendant := range agents[1:] {
+		require.True(t, deletedAgent.DeleteTime.AsTime().Equal(getAgent(t, service, descendant.Name).DeleteTime.AsTime()), descendant.Name)
+	}
+}
+
+func TestDeleteAgent_CancellationFailureDeletesNothing(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	subAgent := createTestSubAgent(t, service, agent)
+	jobs := []*schedulerpb.Job{scheduleBoth(t, service, agent), scheduleBoth(t, service, subAgent)}
+	service.scheduler.failCancelJobs(status.Errorf(codes.Unavailable, "scheduler down").Err())
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
 	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
-	require.NoError(t, err)
 
-	require.Empty(t, service.scheduler.schedulesOf(t, subAgent.Name))
-	requireJobState(t, service, job.Name, schedulerpb.JobState_JOB_STATE_CANCELLED)
+	require.True(t, status.HasCode(err, codes.Unavailable), err)
+	for _, liveAgent := range []*agentpb.Agent{agent, subAgent} {
+		require.Nil(t, getAgent(t, service, liveAgent.Name).DeleteTime, liveAgent.Name)
+	}
+
+	// A retry repeats the cleanup.
+	service.scheduler.failCancelJobs(nil)
+	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
+	require.NoError(t, err)
+	for i, deletedAgent := range []*agentpb.Agent{agent, subAgent} {
+		require.NotNil(t, getAgent(t, service, deletedAgent.Name).DeleteTime, deletedAgent.Name)
+		requireScheduled(t, service, deletedAgent, jobs[i], false)
+	}
 }

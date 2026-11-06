@@ -193,118 +193,162 @@ func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.Updat
 	return redactAgent(agent), nil
 }
 
-// DeleteAgent soft-deletes an agent, cancelling its running turn. With force, its descendants go first, deepest
-// first. Its chat is kept.
+// DeleteAgent soft-deletes an agent, cancelling its schedules and its running turn. With force, its live descendants
+// go with it, in one transaction at one delete time, which UndeleteAgent restores as a unit. Its chat is kept.
 func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.DeleteAgentRequest) (*agentpb.Agent, error) {
+	agent, err := s.getAgent(ctx, request.Name)
+	if err != nil {
+		return nil, err
+	}
+	if agent.DeleteTime != nil {
+		if request.AllowMissing {
+			return redactAgent(agent), nil
+		}
+		return nil, status.Errorf(codes.NotFound, "agent %s already deleted", request.Name).Err()
+	}
+	if request.Etag != "" && request.Etag != agent.Etag {
+		return nil, status.Errorf(codes.Aborted, "etag changed").Err()
+	}
+	// Deepest first, the agent last.
+	names := []string{request.Name}
 	if request.Force {
-		// Checked before the cascade, so a stale etag or a missing agent never costs the descendants.
-		getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
-		agent, err := s.GetAgent(ctx, getAgentRequest)
+		treeAgents, err := s.agentPostgresStore.ListTreeAgents(ctx, agent.RootAgent)
 		if err != nil {
-			return nil, err
+			return nil, status.FromError(err, "listing tree agents").Err()
 		}
-		if agent.DeleteTime == nil && request.Etag != "" && request.Etag != agent.Etag {
-			return nil, status.Errorf(codes.Aborted, "etag changed").Err()
-		}
-		if agent.DeleteTime == nil {
-			if err := s.deleteDescendantAgents(ctx, request.Name); err != nil {
-				return nil, err
-			}
+		isLive := func(treeAgent *model.Agent) bool { return treeAgent.DeleteTime == nil }
+		names = append(descendantAgents(treeAgents, request.Name, isLive), request.Name)
+	}
+	// Before the delete commits, so a failure deletes nothing: a retry cancels them again.
+	for _, name := range names {
+		if err := s.cancelSchedules(ctx, name); err != nil {
+			return nil, status.FromError(err, "cancelling the schedules of agent %s", name).Err()
 		}
 	}
-	return redacted(s.deleteAgent(ctx, request.Name, request.AllowMissing, request.Etag))
-}
 
-// deleteDescendantAgents deletes every live descendant of an agent, deepest first, each in its own transaction.
-func (s *Service) deleteDescendantAgents(ctx context.Context, name string) error {
-	childAgents, err := s.agentPostgresStore.ListChildAgents(ctx, name)
-	if err != nil {
-		return status.FromError(err, "listing child agents").Err()
-	}
-	for _, childAgent := range childAgents {
-		childAgentName := (&agentpb.AgentRn{Organization: childAgent.OrganizationID, User: childAgent.UserID, Agent: childAgent.AgentID}).String()
-		if err := s.deleteDescendantAgents(ctx, childAgentName); err != nil {
-			return err
-		}
-		if _, err := s.deleteAgent(ctx, childAgentName, true, ""); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// deleteAgent soft-deletes an agent, which must have no live children, ending its running turn CANCELLED and
-// dropping its lease, then cancels its schedules, and the turn wherever it runs.
-func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string) (*agentpb.Agent, error) {
-	agentRn, err := agentpb.ParseAgentRn(name)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
-	}
-	var agent *agentpb.Agent
-	var cancelTurn bool
-	// The address of another live replica running the turn, if any.
-	var holderAddress string
+	var deletedAgent *agentpb.Agent
+	var cancelledTurns []*cancelledTurn
 	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
-		var err error
-		if agent, err = t.getAgent(ctx, name); err != nil {
-			return err
-		}
-		if agent.DeleteTime != nil {
-			if allowMissing {
-				return nil
+		cancelledTurns = nil
+		for _, name := range names {
+			// A descendant deleted since is skipped.
+			allowMissing, etag := true, ""
+			if name == request.Name {
+				allowMissing, etag = request.AllowMissing, request.Etag
 			}
-			return status.Errorf(codes.NotFound, "agent %s already deleted", name).Err()
-		}
-		if etag != "" && etag != agent.Etag {
-			return status.Errorf(codes.Aborted, "etag changed").Err()
-		}
-		// Read under the agent's lock, which CreateAgent takes on a parent: no child can appear before we commit.
-		childAgents, err := s.agentPostgresStore.ListChildAgents(ctx, name)
-		if err != nil {
-			return fmt.Errorf("listing child agents: %w", err)
-		}
-		if len(childAgents) > 0 {
-			return status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
-		}
-		cancelTurn = agent.State != agentpb.Agent_STATE_IDLE
-		if cancelTurn {
-			lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
-			if err != nil {
-				return fmt.Errorf("getting lease: %w", err)
-			}
-			if lease != nil && !lease.Expired && lease.Replica != s.replica {
-				holderAddress = lease.Address
-			}
-			if err := t.cancelTurn(ctx, agent); err != nil {
+			var turn *cancelledTurn
+			var err error
+			if deletedAgent, turn, err = t.deleteAgent(ctx, name, allowMissing, etag, names); err != nil {
 				return err
 			}
+			if turn != nil {
+				cancelledTurns = append(cancelledTurns, turn)
+			}
 		}
-		agent.DeleteTime = timestamppb.New(t.now)
-		return t.saveAgent(ctx, agent)
+		return nil
 	}); err != nil {
 		return nil, err
 	}
-	// After the commit, so a failed delete keeps them; repeated by a retry with allow_missing.
-	if err := s.cancelSchedules(s.asService(ctx), agentRn); err != nil {
-		return nil, status.FromError(err, "cancelling the schedules of agent %s", name).Err()
+	for _, turn := range cancelledTurns {
+		s.stopTurn(ctx, turn)
 	}
-	if !cancelTurn {
-		return agent, nil
+	return redactAgent(deletedAgent), nil
+}
+
+// descendantAgents returns, deepest first, the descendants of an agent among its tree's agents that match, reached
+// through matching agents only.
+func descendantAgents(treeAgents []*model.Agent, name string, match func(*model.Agent) bool) []string {
+	parentToChildren := map[string][]string{}
+	for _, treeAgent := range treeAgents {
+		if match(treeAgent) {
+			treeAgentName := (&agentpb.AgentRn{Organization: treeAgent.OrganizationID, User: treeAgent.UserID, Agent: treeAgent.AgentID}).String()
+			parentToChildren[treeAgent.ParentAgent] = append(parentToChildren[treeAgent.ParentAgent], treeAgentName)
+		}
 	}
-	// The turn's lease is gone, so it stops without ending again: cancelling it only stops it sooner than its
-	// replica's next heartbeat would.
-	if _, ok := s.turns.cancel(name, errTurnCancelled); ok || holderAddress == "" {
-		return agent, nil
+	var names []string
+	var visit func(parent string)
+	visit = func(parent string) {
+		for _, child := range parentToChildren[parent] {
+			visit(child)
+			names = append(names, child)
+		}
 	}
-	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: name}
-	peerClient, err := s.peerClient(ctx, holderAddress)
+	visit(name)
+	return names
+}
+
+// cancelledTurn is the turn of a deleted agent, which another live replica may still run.
+type cancelledTurn struct {
+	agent         string
+	holderAddress string
+}
+
+// deleteAgent soft-deletes an agent, whose live children must all be deleted with it, ending its running turn
+// CANCELLED and dropping its lease. It returns the agent, and its cancelled turn if any.
+func (t *txn) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string, deletedWith []string) (*agentpb.Agent, *cancelledTurn, error) {
+	agentRn, err := agentpb.ParseAgentRn(name)
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
+	}
+	agent, err := t.getAgent(ctx, name)
+	if err != nil {
+		return nil, nil, err
+	}
+	if agent.DeleteTime != nil {
+		if allowMissing {
+			return agent, nil, nil
+		}
+		return nil, nil, status.Errorf(codes.NotFound, "agent %s already deleted", name).Err()
+	}
+	if etag != "" && etag != agent.Etag {
+		return nil, nil, status.Errorf(codes.Aborted, "etag changed").Err()
+	}
+	// Read under the agent's lock, which CreateAgent takes on a parent: no child can appear before we commit.
+	childAgents, err := t.service.agentPostgresStore.ListChildAgents(ctx, name)
+	if err != nil {
+		return nil, nil, fmt.Errorf("listing child agents: %w", err)
+	}
+	for _, childAgent := range childAgents {
+		childAgentName := (&agentpb.AgentRn{Organization: childAgent.OrganizationID, User: childAgent.UserID, Agent: childAgent.AgentID}).String()
+		if !slices.Contains(deletedWith, childAgentName) {
+			return nil, nil, status.Errorf(codes.FailedPrecondition, "agent %s has sub-agents: delete them first or set force", name).Err()
+		}
+	}
+	var turn *cancelledTurn
+	if agent.State != agentpb.Agent_STATE_IDLE {
+		turn = &cancelledTurn{agent: name}
+		lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
+		if err != nil {
+			return nil, nil, fmt.Errorf("getting lease: %w", err)
+		}
+		if lease != nil && !lease.Expired && lease.Replica != t.service.replica {
+			turn.holderAddress = lease.Address
+		}
+		if err := t.cancelTurn(ctx, agent); err != nil {
+			return nil, nil, err
+		}
+	}
+	agent.DeleteTime = timestamppb.New(t.now)
+	if err := t.saveAgent(ctx, agent); err != nil {
+		return nil, nil, err
+	}
+	return agent, turn, nil
+}
+
+// stopTurn stops a deleted agent's cancelled turn wherever it runs. Its lease is gone, so it stops without ending
+// again: this only stops it sooner than its replica's next heartbeat would.
+func (s *Service) stopTurn(ctx context.Context, turn *cancelledTurn) {
+	if _, ok := s.turns.cancel(turn.agent, errTurnCancelled); ok || turn.holderAddress == "" {
+		return
+	}
+	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: turn.agent}
+	peerClient, err := s.peerClient(ctx, turn.holderAddress)
 	if err == nil {
 		_, err = peerClient.CancelAgent(forwardedContext(ctx), cancelAgentRequest)
 	}
 	if err != nil {
-		s.log.WarnContext(ctx, "cancelling a deleted agent's turn on the replica running it", "agent", name, "address", holderAddress, "error", err)
+		s.log.WarnContext(ctx, "cancelling a deleted agent's turn on the replica running it", "agent", turn.agent, "address", turn.holderAddress, "error", err)
 	}
-	return agent, nil
 }
 
 // cancelTurn ends the running or awaiting turn of an agent locked by getAgent CANCELLED and drops its lease, whoever
@@ -329,26 +373,66 @@ func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
 	return nil
 }
 
-// UndeleteAgent restores a deleted agent, whose parent must be live.
+// UndeleteAgent restores a deleted agent, whose parent must be live, with the descendants its forced delete removed:
+// those sharing its delete time. Sub-agents deleted apart stay deleted, and cancelled schedules stay cancelled.
 func (s *Service) UndeleteAgent(ctx context.Context, request *agentservicepb.UndeleteAgentRequest) (*agentpb.Agent, error) {
-	getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
-	agent, err := s.GetAgent(ctx, getAgentRequest)
+	agent, err := s.getAgent(ctx, request.Name)
 	if err != nil {
 		return nil, err
 	}
-	if agent.ParentAgent != "" {
-		getParentAgentRequest := &agentservicepb.GetAgentRequest{Name: agent.ParentAgent}
-		parentAgent, err := s.GetAgent(ctx, getParentAgentRequest)
-		if err != nil {
-			return nil, status.FromError(err, "getting parent agent").Err()
-		}
-		if parentAgent.DeleteTime != nil {
-			return nil, status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted: undelete it first", agent.ParentAgent).Err()
-		}
+	if agent.DeleteTime == nil {
+		return nil, status.Errorf(codes.AlreadyExists, "agent %s is not deleted", request.Name).Err()
 	}
-	if agent, err = s.AgentServiceServer.UndeleteAgent(ctx, request); err != nil {
+	treeAgents, err := s.agentPostgresStore.ListTreeAgents(ctx, agent.RootAgent)
+	if err != nil {
+		return nil, status.FromError(err, "listing tree agents").Err()
+	}
+	deleteTime := agent.DeleteTime.AsTime()
+	deletedWith := func(treeAgent *model.Agent) bool {
+		return treeAgent.DeleteTime != nil && treeAgent.DeleteTime.Equal(deleteTime)
+	}
+	descendants := descendantAgents(treeAgents, request.Name, deletedWith)
+
+	var undeletedAgent *agentpb.Agent
+	if err := s.transact(ctx, func(ctx context.Context, t *txn) error {
+		// Children before their parents, as every transaction locks them.
+		for _, name := range descendants {
+			descendant, err := t.getAgent(ctx, name)
+			if err != nil {
+				return err
+			}
+			if !proto.Equal(descendant.DeleteTime, agent.DeleteTime) {
+				continue
+			}
+			descendant.DeleteTime = nil
+			if err := t.saveAgent(ctx, descendant); err != nil {
+				return err
+			}
+		}
+		lockedAgent, err := t.getAgent(ctx, request.Name)
+		if err != nil {
+			return err
+		}
+		if lockedAgent.DeleteTime == nil {
+			return status.Errorf(codes.AlreadyExists, "agent %s is not deleted", request.Name).Err()
+		}
+		if !proto.Equal(lockedAgent.DeleteTime, agent.DeleteTime) || request.Etag != "" && request.Etag != lockedAgent.Etag {
+			return status.Errorf(codes.Aborted, "etag changed").Err()
+		}
+		if lockedAgent.ParentAgent != "" {
+			parentAgent, err := t.getAgent(ctx, lockedAgent.ParentAgent)
+			if err != nil {
+				return err
+			}
+			if parentAgent.DeleteTime != nil {
+				return status.Errorf(codes.FailedPrecondition, "parent agent %s is deleted: undelete it first", lockedAgent.ParentAgent).Err()
+			}
+		}
+		lockedAgent.DeleteTime = nil
+		undeletedAgent = lockedAgent
+		return t.saveAgent(ctx, lockedAgent)
+	}); err != nil {
 		return nil, err
 	}
-	s.publishSnapshot(agent)
-	return redactAgent(agent), nil
+	return redactAgent(undeletedAgent), nil
 }

@@ -94,8 +94,14 @@ func pendingOneOffFilter(agentRn *agentpb.AgentRn) string {
 	return pendingRunFilter(agentRn) + " AND NOT schedule:*"
 }
 
-// cancelSchedules deletes an agent's schedules and cancels its pending runs, one-offs and ticks alike.
-func (s *Service) cancelSchedules(ctx context.Context, agentRn *agentpb.AgentRn) error {
+// cancelSchedules deletes an agent's schedules and cancels its pending runs, one-offs and ticks alike, as the service.
+// Idempotent.
+func (s *Service) cancelSchedules(ctx context.Context, name string) error {
+	agentRn, err := agentpb.ParseAgentRn(name)
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
+	}
+	ctx = s.asService(ctx)
 	parent := agentRn.UserRn().String()
 	listSchedulesRequest := &schedulerservicepb.ListSchedulesRequest{Parent: parent, Filter: agentScheduleFilter(agentRn)}
 	schedules, err := aip.Paginate[*schedulerpb.Schedule](ctx, listSchedulesRequest, s.schedulerServiceClient.ListSchedules)
@@ -134,6 +140,8 @@ const scheduleToolDescription = "Schedule yourself to be woken later: recurring 
 	"The runs arrive by themselves: end your turn after scheduling."
 
 func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.ScheduleToolArguments) (*aipb.ToolResult, error) {
+	// The service owns every agent's schedules, labeling each with its agent.
+	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
@@ -212,6 +220,7 @@ const listSchedulesToolDescription = "List your schedules: the recurring ones an
 	"each with its name, when it runs and what it does."
 
 func listSchedules(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, _ *agentservicepb.ListSchedulesToolArguments) (*aipb.ToolResult, error) {
+	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
@@ -263,6 +272,7 @@ const cancelScheduleToolDescription = "Cancel one of your schedules by the name 
 	"a recurring schedule stops for good, a one-off run never happens."
 
 func cancelSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.CancelScheduleToolArguments) (*aipb.ToolResult, error) {
+	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
