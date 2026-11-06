@@ -6,12 +6,10 @@ import (
 	"strings"
 
 	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/ext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 )
@@ -72,9 +70,8 @@ func newJwtAuthorizer(jwtIssuer *authenticationpb.JwtIssuer) (*jwtAuthorizer, er
 		cel.Variable("claims", cel.MapType(cel.StringType, cel.DynType)),
 		// subject is claims.sub, injected at eval time for ergonomic resource name checks.
 		cel.Variable("subject", cel.StringType),
-		ext.Protos(),
-		ext.Strings(),
 	}
+	environmentOptions = append(environmentOptions, sessionCelOptions...)
 	environmentOptions = append(environmentOptions, resourceNameCelOptions...)
 	for _, requestType := range requestTypes {
 		environmentOptions = append(environmentOptions, cel.Types(requestType))
@@ -111,28 +108,24 @@ func newJwtAuthorizer(jwtIssuer *authenticationpb.JwtIssuer) (*jwtAuthorizer, er
 	return &jwtAuthorizer{methodToProgram: methodToProgram}, nil
 }
 
-// authorize evaluates the method's CEL expression against the claims and request.
+// authorize evaluates the method's CEL expression against the session's JWT identity and the request.
 // Returns ErrMethodNotConfigured if no rule exists for the method.
-func (a *jwtAuthorizer) authorize(method string, claims *structpb.Struct, request any) (bool, error) {
+func (a *jwtAuthorizer) authorize(method string, session *authenticationpb.Session, request any) (bool, error) {
 	program, ok := a.methodToProgram[method]
 	if !ok {
 		return false, ErrMethodNotConfigured
 	}
 
-	claimsMap := claims.AsMap()
+	claimsMap := session.GetJwtIdentity().GetClaims().AsMap()
 	// Missing/non-string sub yields "", which fails all rn.* checks (fail closed).
 	subject, _ := claimsMap["sub"].(string)
-	output, _, err := program.Eval(map[string]any{
-		"claims":  claimsMap,
-		"subject": subject,
-		"request": request,
-	})
+	variables := sessionCelVariables(session)
+	variables["claims"] = claimsMap
+	variables["subject"] = subject
+	variables["request"] = request
+	allowed, err := evalBool(program, variables)
 	if err != nil {
 		return false, fmt.Errorf("evaluating CEL for method %q: %w", method, err)
-	}
-	allowed, ok := output.Value().(bool)
-	if !ok {
-		return false, fmt.Errorf("CEL for method %q did not return bool", method)
 	}
 	return allowed, nil
 }

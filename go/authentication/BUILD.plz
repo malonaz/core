@@ -1,13 +1,16 @@
 go_library(
     name = "authentication",
     srcs = [
+        "act_as.go",
         "cel_resourcename.go",
         "external_api_key_authentication.go",
+        "identity.go",
         "internal_service_authentication.go",
         "jwt_authentication.go",
         "jwt_authorizer.go",
         "jwt_minter.go",
         "permission_interceptor.go",
+        "session_cel.go",
         "session_manager.go",
         "utils.go",
     ],
@@ -18,6 +21,7 @@ go_library(
         "//go/grpc/status",
         "//go/jsonnet",
         "//go/pbutil",
+        "//go/uuid",
         "//malonaz/authentication/v1",
         "//third_party/go:buf.build__go__protovalidate",
         "//third_party/go:github.com__google__cel-go__cel",
@@ -48,6 +52,7 @@ go_library(
 go_test(
     name = "test",
     srcs = [
+        "delegation_test.go",
         "jwt_authentication_test.go",
         "jwt_authorizer_test.go",
         "permission_interceptor_test.go",
@@ -55,6 +60,8 @@ go_test(
     deps = [
         ":authentication",
         "//go/grpc/status",
+        "//malonaz/ai/agent/agent_service/v1",
+        "//malonaz/ai/agent/v1",
         "//go/pbutil",
         "//malonaz/authentication/v1",
         "//malonaz/test/library/library_service/v1",
@@ -64,5 +71,6 @@ go_test(
         "//third_party/go:google.golang.org__grpc__metadata",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
