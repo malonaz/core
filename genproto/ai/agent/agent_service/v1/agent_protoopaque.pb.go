@@ -1754,6 +1754,201 @@ func (b0 ResolveToolCallRequest_builder) Build() *ResolveToolCallRequest {
 	return m0
 }
 
+// Request message for AgentService.WakeAgent: the payload of an agent's
+// schedules, one per Schedule or one-off Job.
+type WakeAgentRequest struct {
+	state           protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Name string                  `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Wake isWakeAgentRequest_Wake `protobuf_oneof:"wake"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *WakeAgentRequest) Reset() {
+	*x = WakeAgentRequest{}
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WakeAgentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WakeAgentRequest) ProtoMessage() {}
+
+func (x *WakeAgentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *WakeAgentRequest) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *WakeAgentRequest) GetMessage() string {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_Message); ok {
+			return x.Message
+		}
+	}
+	return ""
+}
+
+func (x *WakeAgentRequest) GetSubAgent() *CreateAgentsToolArguments_SubAgent {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_SubAgent); ok {
+			return x.SubAgent
+		}
+	}
+	return nil
+}
+
+func (x *WakeAgentRequest) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *WakeAgentRequest) SetMessage(v string) {
+	x.xxx_hidden_Wake = &wakeAgentRequest_Message{v}
+}
+
+func (x *WakeAgentRequest) SetSubAgent(v *CreateAgentsToolArguments_SubAgent) {
+	if v == nil {
+		x.xxx_hidden_Wake = nil
+		return
+	}
+	x.xxx_hidden_Wake = &wakeAgentRequest_SubAgent{v}
+}
+
+func (x *WakeAgentRequest) HasWake() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Wake != nil
+}
+
+func (x *WakeAgentRequest) HasMessage() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_Message)
+	return ok
+}
+
+func (x *WakeAgentRequest) HasSubAgent() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_SubAgent)
+	return ok
+}
+
+func (x *WakeAgentRequest) ClearWake() {
+	x.xxx_hidden_Wake = nil
+}
+
+func (x *WakeAgentRequest) ClearMessage() {
+	if _, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_Message); ok {
+		x.xxx_hidden_Wake = nil
+	}
+}
+
+func (x *WakeAgentRequest) ClearSubAgent() {
+	if _, ok := x.xxx_hidden_Wake.(*wakeAgentRequest_SubAgent); ok {
+		x.xxx_hidden_Wake = nil
+	}
+}
+
+const WakeAgentRequest_Wake_not_set_case case_WakeAgentRequest_Wake = 0
+const WakeAgentRequest_Message_case case_WakeAgentRequest_Wake = 2
+const WakeAgentRequest_SubAgent_case case_WakeAgentRequest_Wake = 3
+
+func (x *WakeAgentRequest) WhichWake() case_WakeAgentRequest_Wake {
+	if x == nil {
+		return WakeAgentRequest_Wake_not_set_case
+	}
+	switch x.xxx_hidden_Wake.(type) {
+	case *wakeAgentRequest_Message:
+		return WakeAgentRequest_Message_case
+	case *wakeAgentRequest_SubAgent:
+		return WakeAgentRequest_SubAgent_case
+	default:
+		return WakeAgentRequest_Wake_not_set_case
+	}
+}
+
+type WakeAgentRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The agent to wake.
+	// Format: organizations/{organization}/users/{user}/agents/{agent}
+	Name string
+	// How a run wakes the agent.
+
+	// Fields of oneof xxx_hidden_Wake:
+	// A message queued on the agent itself, from the agent: the run continues
+	// its conversation.
+	Message *string
+	// A sub-agent of the agent, launched with its task as its first message:
+	// each run starts from a fresh context, and its report wakes the agent.
+	SubAgent *CreateAgentsToolArguments_SubAgent
+	// -- end of xxx_hidden_Wake
+}
+
+func (b0 WakeAgentRequest_builder) Build() *WakeAgentRequest {
+	m0 := &WakeAgentRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	if b.Message != nil {
+		x.xxx_hidden_Wake = &wakeAgentRequest_Message{*b.Message}
+	}
+	if b.SubAgent != nil {
+		x.xxx_hidden_Wake = &wakeAgentRequest_SubAgent{b.SubAgent}
+	}
+	return m0
+}
+
+type case_WakeAgentRequest_Wake protoreflect.FieldNumber
+
+func (x case_WakeAgentRequest_Wake) String() string {
+	md := file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isWakeAgentRequest_Wake interface {
+	isWakeAgentRequest_Wake()
+}
+
+type wakeAgentRequest_Message struct {
+	// A message queued on the agent itself, from the agent: the run continues
+	// its conversation.
+	Message string `protobuf:"bytes,2,opt,name=message,proto3,oneof"`
+}
+
+type wakeAgentRequest_SubAgent struct {
+	// A sub-agent of the agent, launched with its task as its first message:
+	// each run starts from a fresh context, and its report wakes the agent.
+	SubAgent *CreateAgentsToolArguments_SubAgent `protobuf:"bytes,3,opt,name=sub_agent,json=subAgent,proto3,oneof"`
+}
+
+func (*wakeAgentRequest_Message) isWakeAgentRequest_Wake() {}
+
+func (*wakeAgentRequest_SubAgent) isWakeAgentRequest_Wake() {}
+
 // ToolCall announces a tool call.
 type StreamAgentResponse_ToolCall struct {
 	state            protoimpl.MessageState `protogen:"opaque.v1"`
@@ -1766,7 +1961,7 @@ type StreamAgentResponse_ToolCall struct {
 
 func (x *StreamAgentResponse_ToolCall) Reset() {
 	*x = StreamAgentResponse_ToolCall{}
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1778,7 +1973,7 @@ func (x *StreamAgentResponse_ToolCall) String() string {
 func (*StreamAgentResponse_ToolCall) ProtoMessage() {}
 
 func (x *StreamAgentResponse_ToolCall) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1854,7 +2049,7 @@ type StreamAgentResponse_ToolCallEnded struct {
 
 func (x *StreamAgentResponse_ToolCallEnded) Reset() {
 	*x = StreamAgentResponse_ToolCallEnded{}
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[16]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1866,7 +2061,7 @@ func (x *StreamAgentResponse_ToolCallEnded) String() string {
 func (*StreamAgentResponse_ToolCallEnded) ProtoMessage() {}
 
 func (x *StreamAgentResponse_ToolCallEnded) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[16]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1926,7 +2121,7 @@ type StreamAgentResponse_GenerationReset struct {
 
 func (x *StreamAgentResponse_GenerationReset) Reset() {
 	*x = StreamAgentResponse_GenerationReset{}
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[17]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1938,7 +2133,7 @@ func (x *StreamAgentResponse_GenerationReset) String() string {
 func (*StreamAgentResponse_GenerationReset) ProtoMessage() {}
 
 func (x *StreamAgentResponse_GenerationReset) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[17]
+	mi := &file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1965,7 +2160,7 @@ var File_malonaz_ai_agent_agent_service_v1_agent_proto protoreflect.FileDescript
 
 const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\x9b\x03\n" +
+	"-malonaz/ai/agent/agent_service/v1/agent.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\x9b\x03\n" +
 	"\x12CreateAgentRequest\x12?\n" +
 	"\x06parent\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19agent.ai.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x128\n" +
@@ -2067,9 +2262,15 @@ const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12+\n" +
 	"\ftool_call_id\x18\x02 \x01(\tB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\n" +
 	"toolCallId\x12<\n" +
-	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x06resultB<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
+	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x06result\"\xea\x01\n" +
+	"\x10WakeAgentRequest\x12<\n" +
+	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
+	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
+	"\amessage\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\amessage\x12d\n" +
+	"\tsub_agent\x18\x03 \x01(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentH\x00R\bsubAgentB\r\n" +
+	"\x04wake\x12\x05\xbaH\x02\b\x01B<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3"
 
-var file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_malonaz_ai_agent_agent_service_v1_agent_proto_goTypes = []any{
 	(*CreateAgentRequest)(nil),                  // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest
 	(*GetAgentRequest)(nil),                     // 1: malonaz.ai.agent.agent_service.v1.GetAgentRequest
@@ -2086,36 +2287,39 @@ var file_malonaz_ai_agent_agent_service_v1_agent_proto_goTypes = []any{
 	(*MessageAgentRequest)(nil),                 // 12: malonaz.ai.agent.agent_service.v1.MessageAgentRequest
 	(*ApproveToolCallRequest)(nil),              // 13: malonaz.ai.agent.agent_service.v1.ApproveToolCallRequest
 	(*ResolveToolCallRequest)(nil),              // 14: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest
-	(*StreamAgentResponse_ToolCall)(nil),        // 15: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
-	(*StreamAgentResponse_ToolCallEnded)(nil),   // 16: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
-	(*StreamAgentResponse_GenerationReset)(nil), // 17: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
-	(*v1.Agent)(nil),                            // 18: malonaz.ai.agent.v1.Agent
-	(*fieldmaskpb.FieldMask)(nil),               // 19: google.protobuf.FieldMask
-	(*v11.SearchSnippet)(nil),                   // 20: malonaz.aip.v1.SearchSnippet
-	(*v12.Block)(nil),                           // 21: malonaz.ai.v1.Block
-	(*v12.Message)(nil),                         // 22: malonaz.ai.v1.Message
-	(*v12.ToolResult)(nil),                      // 23: malonaz.ai.v1.ToolResult
+	(*WakeAgentRequest)(nil),                    // 15: malonaz.ai.agent.agent_service.v1.WakeAgentRequest
+	(*StreamAgentResponse_ToolCall)(nil),        // 16: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
+	(*StreamAgentResponse_ToolCallEnded)(nil),   // 17: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
+	(*StreamAgentResponse_GenerationReset)(nil), // 18: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
+	(*v1.Agent)(nil),                            // 19: malonaz.ai.agent.v1.Agent
+	(*fieldmaskpb.FieldMask)(nil),               // 20: google.protobuf.FieldMask
+	(*v11.SearchSnippet)(nil),                   // 21: malonaz.aip.v1.SearchSnippet
+	(*v12.Block)(nil),                           // 22: malonaz.ai.v1.Block
+	(*v12.Message)(nil),                         // 23: malonaz.ai.v1.Message
+	(*v12.ToolResult)(nil),                      // 24: malonaz.ai.v1.ToolResult
+	(*CreateAgentsToolArguments_SubAgent)(nil),  // 25: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
 }
 var file_malonaz_ai_agent_agent_service_v1_agent_proto_depIdxs = []int32{
-	18, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
-	18, // 1: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
-	19, // 2: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.update_mask:type_name -> google.protobuf.FieldMask
-	18, // 3: malonaz.ai.agent.agent_service.v1.ListAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
-	18, // 4: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
-	20, // 5: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
-	18, // 6: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.snapshot:type_name -> malonaz.ai.agent.v1.Agent
-	15, // 7: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
-	16, // 8: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call_ended:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
-	21, // 9: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.delta:type_name -> malonaz.ai.v1.Block
-	22, // 10: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.message:type_name -> malonaz.ai.v1.Message
-	17, // 11: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.generation_reset:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
-	22, // 12: malonaz.ai.agent.agent_service.v1.MessageAgentRequest.message:type_name -> malonaz.ai.v1.Message
-	23, // 13: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest.result:type_name -> malonaz.ai.v1.ToolResult
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	19, // 0: malonaz.ai.agent.agent_service.v1.CreateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
+	19, // 1: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.agent:type_name -> malonaz.ai.agent.v1.Agent
+	20, // 2: malonaz.ai.agent.agent_service.v1.UpdateAgentRequest.update_mask:type_name -> google.protobuf.FieldMask
+	19, // 3: malonaz.ai.agent.agent_service.v1.ListAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
+	19, // 4: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.agents:type_name -> malonaz.ai.agent.v1.Agent
+	21, // 5: malonaz.ai.agent.agent_service.v1.SearchAgentsResponse.snippets:type_name -> malonaz.aip.v1.SearchSnippet
+	19, // 6: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.snapshot:type_name -> malonaz.ai.agent.v1.Agent
+	16, // 7: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCall
+	17, // 8: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.tool_call_ended:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.ToolCallEnded
+	22, // 9: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.delta:type_name -> malonaz.ai.v1.Block
+	23, // 10: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.message:type_name -> malonaz.ai.v1.Message
+	18, // 11: malonaz.ai.agent.agent_service.v1.StreamAgentResponse.generation_reset:type_name -> malonaz.ai.agent.agent_service.v1.StreamAgentResponse.GenerationReset
+	23, // 12: malonaz.ai.agent.agent_service.v1.MessageAgentRequest.message:type_name -> malonaz.ai.v1.Message
+	24, // 13: malonaz.ai.agent.agent_service.v1.ResolveToolCallRequest.result:type_name -> malonaz.ai.v1.ToolResult
+	25, // 14: malonaz.ai.agent.agent_service.v1.WakeAgentRequest.sub_agent:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_agent_agent_service_v1_agent_proto_init() }
@@ -2123,6 +2327,7 @@ func file_malonaz_ai_agent_agent_service_v1_agent_proto_init() {
 	if File_malonaz_ai_agent_agent_service_v1_agent_proto != nil {
 		return
 	}
+	file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_init()
 	file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[11].OneofWrappers = []any{
 		(*streamAgentResponse_Snapshot)(nil),
 		(*streamAgentResponse_ToolCall_)(nil),
@@ -2131,13 +2336,17 @@ func file_malonaz_ai_agent_agent_service_v1_agent_proto_init() {
 		(*streamAgentResponse_Message)(nil),
 		(*streamAgentResponse_GenerationReset_)(nil),
 	}
+	file_malonaz_ai_agent_agent_service_v1_agent_proto_msgTypes[15].OneofWrappers = []any{
+		(*wakeAgentRequest_Message)(nil),
+		(*wakeAgentRequest_SubAgent)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc), len(file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -5,6 +5,8 @@
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../../buf/validate/validate_pb";
+import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { AgentSpec_Tool, AgentSpec_ToolValid } from "../../v1/definition_pb";
 import { file_malonaz_ai_agent_v1_definition } from "../../v1/definition_pb";
 import type { ReasoningEffort } from "../../../v1/message_pb";
@@ -15,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/builtin_tool.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_builtin_tool: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEi4gIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGuMBCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBIyCgV0b29scxgHIAMoCzIjLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2wiSwoZTWVzc2FnZUFnZW50VG9vbEFyZ3VtZW50cxIVCgVhZ2VudBgBIAEoCUIGukgDyAEBEhcKB21lc3NhZ2UYAiABKAlCBrpIA8gBASIZChdMaXN0QWdlbnRzVG9vbEFyZ3VtZW50cyKrAQoZVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cxJSCgNzZXQYASADKAsyRS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cy5TZXRFbnRyeRIOCgZyZW1vdmUYAiADKAkaKgoIU2V0RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message]);
+  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEi4gIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGuMBCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBIyCgV0b29scxgHIAMoCzIjLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2wiSwoZTWVzc2FnZUFnZW50VG9vbEFyZ3VtZW50cxIVCgVhZ2VudBgBIAEoCUIGukgDyAEBEhcKB21lc3NhZ2UYAiABKAlCBrpIA8gBASIZChdMaXN0QWdlbnRzVG9vbEFyZ3VtZW50cyKrAQoZVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cxJSCgNzZXQYASADKAsyRS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cy5TZXRFbnRyeRIOCgZyZW1vdmUYAiADKAkaKgoIU2V0RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKsAwoVU2NoZWR1bGVUb29sQXJndW1lbnRzEhoKBGNyb24YASABKAlCCrpIB3IFEAEYgAJIABIqCgR0aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAEjQKBWRlbGF5GAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgi6SAWqAQIqAEgAEhoKCXRpbWVfem9uZRgEIAEoCUIHukgEcgIYQBIaCgdtZXNzYWdlGAUgASgJQge6SARyAhABSAESWgoJc3ViX2FnZW50GAYgASgLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRIATpjukhgGl4KF3NjaGVkdWxlLmNyb25fdGltZV96b25lEhphIGNyb24gbmVlZHMgaXRzIHRpbWVfem9uZRonIWhhcyh0aGlzLmNyb24pIHx8IHRoaXMudGltZV96b25lICE9ICcnQg0KBHdoZW4SBbpIAggBQg0KBHdha2USBbpIAggBIhwKGkxpc3RTY2hlZHVsZXNUb29sQXJndW1lbnRzIjMKG0NhbmNlbFNjaGVkdWxlVG9vbEFyZ3VtZW50cxIUCgRuYW1lGAEgASgJQga6SAPIAQFCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message]);
 
 /**
  * The arguments of the built-in create_agents tool.
@@ -276,4 +278,207 @@ export type UpdateLabelsToolArgumentsValid = UpdateLabelsToolArguments;
  */
 export const UpdateLabelsToolArgumentsSchema: GenMessage<UpdateLabelsToolArguments, {validType: UpdateLabelsToolArgumentsValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 3);
+
+/**
+ * The arguments of the built-in schedule tool.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.ScheduleToolArguments
+ */
+export type ScheduleToolArguments = Message<"malonaz.ai.agent.agent_service.v1.ScheduleToolArguments"> & {
+  /**
+   * When you are woken: every tick of a cron, or once.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.when
+   */
+  when: {
+    /**
+     * Recurring: a five-field cron expression (minute hour day-of-month month day-of-week), e.g. `0 9 * * MON-FRI`
+     * for 9am on weekdays.
+     *
+     * @generated from field: string cron = 1;
+     */
+    value: string;
+    case: "cron";
+  } | {
+    /**
+     * Once, at this time: RFC 3339 with an offset, e.g. `2026-11-07T09:00:00+01:00`.
+     *
+     * @generated from field: google.protobuf.Timestamp time = 2;
+     */
+    value: Timestamp;
+    case: "time";
+  } | {
+    /**
+     * Once, this long from now, e.g. `7200s` for two hours.
+     *
+     * @generated from field: google.protobuf.Duration delay = 3;
+     */
+    value: Duration;
+    case: "delay";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * The IANA time zone the cron is evaluated in, e.g. `Europe/Paris`: the user's, so their 9am is 9am for them.
+   * Required with a cron.
+   *
+   * @generated from field: string time_zone = 4;
+   */
+  timeZone: string;
+
+  /**
+   * What each run does.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.wake
+   */
+  wake: {
+    /**
+     * Wake yourself with this message, continuing this conversation with everything you know.
+     *
+     * @generated from field: string message = 5;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * Launch this sub-agent, its task its first message: it starts from a fresh context, and its report wakes you.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent sub_agent = 6;
+     */
+    value: CreateAgentsToolArguments_SubAgent;
+    case: "subAgent";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * The arguments of the built-in schedule tool.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.ScheduleToolArguments
+ */
+export type ScheduleToolArgumentsValid = Message<"malonaz.ai.agent.agent_service.v1.ScheduleToolArguments"> & {
+  /**
+   * When you are woken: every tick of a cron, or once.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.when
+   */
+  when: {
+    /**
+     * Recurring: a five-field cron expression (minute hour day-of-month month day-of-week), e.g. `0 9 * * MON-FRI`
+     * for 9am on weekdays.
+     *
+     * @generated from field: string cron = 1;
+     */
+    value: string;
+    case: "cron";
+  } | {
+    /**
+     * Once, at this time: RFC 3339 with an offset, e.g. `2026-11-07T09:00:00+01:00`.
+     *
+     * @generated from field: google.protobuf.Timestamp time = 2;
+     */
+    value: Timestamp;
+    case: "time";
+  } | {
+    /**
+     * Once, this long from now, e.g. `7200s` for two hours.
+     *
+     * @generated from field: google.protobuf.Duration delay = 3;
+     */
+    value: Duration;
+    case: "delay";
+  } | { case: undefined; value?: undefined };
+
+  /**
+   * The IANA time zone the cron is evaluated in, e.g. `Europe/Paris`: the user's, so their 9am is 9am for them.
+   * Required with a cron.
+   *
+   * @generated from field: string time_zone = 4;
+   */
+  timeZone: string;
+
+  /**
+   * What each run does.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.wake
+   */
+  wake: {
+    /**
+     * Wake yourself with this message, continuing this conversation with everything you know.
+     *
+     * @generated from field: string message = 5;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * Launch this sub-agent, its task its first message: it starts from a fresh context, and its report wakes you.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent sub_agent = 6;
+     */
+    value: CreateAgentsToolArguments_SubAgentValid;
+    case: "subAgent";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.
+ * Use `create(ScheduleToolArgumentsSchema)` to create a new message.
+ */
+export const ScheduleToolArgumentsSchema: GenMessage<ScheduleToolArguments, {validType: ScheduleToolArgumentsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 4);
+
+/**
+ * The arguments of the built-in list_schedules tool.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.ListSchedulesToolArguments
+ */
+export type ListSchedulesToolArguments = Message<"malonaz.ai.agent.agent_service.v1.ListSchedulesToolArguments"> & {
+};
+
+export type ListSchedulesToolArgumentsValid = ListSchedulesToolArguments;
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.ListSchedulesToolArguments.
+ * Use `create(ListSchedulesToolArgumentsSchema)` to create a new message.
+ */
+export const ListSchedulesToolArgumentsSchema: GenMessage<ListSchedulesToolArguments, {validType: ListSchedulesToolArgumentsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 5);
+
+/**
+ * The arguments of the built-in cancel_schedule tool.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments
+ */
+export type CancelScheduleToolArguments = Message<"malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments"> & {
+  /**
+   * The schedule to cancel, as list_schedules names it: a recurring schedule or a one-off run.
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+};
+
+/**
+ * The arguments of the built-in cancel_schedule tool.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments
+ */
+export type CancelScheduleToolArgumentsValid = Message<"malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments"> & {
+  /**
+   * The schedule to cancel, as list_schedules names it: a recurring schedule or a one-off run.
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments.
+ * Use `create(CancelScheduleToolArgumentsSchema)` to create a new message.
+ */
+export const CancelScheduleToolArgumentsSchema: GenMessage<CancelScheduleToolArguments, {validType: CancelScheduleToolArgumentsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_builtin_tool, 6);
 

@@ -10,6 +10,7 @@ import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
 import "malonaz/authentication/v1/authentication.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
 
@@ -33,6 +34,28 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // queued message to its chat, at its start and between its tool rounds. Each
 // turn a sub-agent ends is sent to its parent as a report, so a parent never
 // waits: it ends its turn and wakes on the report.
+//
+// # Schedules
+//
+// Agents schedule their own wake-ups through their built-in schedule tool, on
+// the SchedulerService: a recurring Schedule, or a one-off Job, under the
+// agent's user, labeled `agent.ai.malonaz.com/agent` with the agent's id and
+// `agent.ai.malonaz.com/wake` with how it wakes the agent (`self` or
+// `sub-agent`). Each run is a Job calling WakeAgent, its payload a
+// WakeAgentRequest; a Schedule's tick jobs carry its labels and name it in
+// `schedule`. Clients manage them on the SchedulerService, under the agent's
+// user `organizations/{o}/users/{u}`, with `{agent}` the agent's id:
+//
+// - recurring: ListSchedules, filter
+//   `labels."agent.ai.malonaz.com/agent" = "{agent}"`; PauseSchedule,
+//   ResumeSchedule, DeleteSchedule to cancel.
+// - upcoming one-offs: ListJobs, filter
+//   `labels."agent.ai.malonaz.com/agent" = "{agent}" AND NOT schedule:* AND state = JOB_STATE_PENDING`,
+//   order_by `schedule_time`; CancelJob to cancel.
+// - a schedule's runs: ListJobs, filter `schedule = "{schedule name}"`.
+//
+// Deleting an agent deletes its schedules and cancels its pending runs;
+// undeleting it restores neither.
 service AgentService {
   option (google.api.default_host) = "agent.ai.malonaz.com";
 
@@ -245,5 +268,20 @@ service AgentService {
       body: "*"
     };
     option (google.api.method_signature) = "name,message";
+  }
+
+  // ===================== Schedules =====================
+
+  // Wake an agent on a run of one of its schedules: queue the run's message on
+  // it, or launch its sub-agent with the run's task. Run only by the scheduler,
+  // as the job of a Schedule's tick or of a one-off: the job derives every
+  // request id, so a replayed or retried run delivers once.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc WakeAgent(WakeAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 30}
+      max_attempts: 5
+    };
   }
 }

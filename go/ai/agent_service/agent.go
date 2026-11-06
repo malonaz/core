@@ -234,7 +234,7 @@ func (s *Service) deleteDescendantAgents(ctx context.Context, name string) error
 }
 
 // deleteAgent soft-deletes an agent, which must have no live children, ending its running turn CANCELLED and
-// dropping its lease, then cancels the turn wherever it runs.
+// dropping its lease, then cancels its schedules, and the turn wherever it runs.
 func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string) (*agentpb.Agent, error) {
 	agentRn, err := agentpb.ParseAgentRn(name)
 	if err != nil {
@@ -283,6 +283,10 @@ func (s *Service) deleteAgent(ctx context.Context, name string, allowMissing boo
 		return t.saveAgent(ctx, agent)
 	}); err != nil {
 		return nil, err
+	}
+	// After the commit, so a failed delete keeps them; repeated by a retry with allow_missing.
+	if err := s.cancelSchedules(s.asService(ctx), agentRn); err != nil {
+		return nil, status.FromError(err, "cancelling the schedules of agent %s", name).Err()
 	}
 	if !cancelTurn {
 		return agent, nil

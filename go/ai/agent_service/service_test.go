@@ -74,6 +74,7 @@ func newTestStore() *store.Store {
 type testReplica struct {
 	*Service
 	aiService *fakeAiService
+	scheduler *fakeSchedulerService
 	// stop shuts the replica down, as on SIGTERM, then stops its server. Idempotent.
 	stop func()
 }
@@ -103,7 +104,8 @@ func newAuthenticatedTestReplica(
 	if configure != nil {
 		configure(opts)
 	}
-	service, err := New(opts, newTestStore(), aiService, sessionManager)
+	schedulerService := newFakeSchedulerService()
+	service, err := New(opts, newTestStore(), aiService, schedulerService, sessionManager)
 	require.NoError(t, err)
 	server := grpc.NewServer(serverOptions...)
 	agentservicepb.RegisterAgentServiceServer(server, service)
@@ -116,7 +118,7 @@ func newAuthenticatedTestReplica(
 	stopService, err := service.Start(context.Background(), withTestServiceAccount)
 	require.NoError(t, err)
 	stopped := false
-	replica := &testReplica{Service: service, aiService: aiService}
+	replica := &testReplica{Service: service, aiService: aiService, scheduler: schedulerService}
 	replica.stop = func() {
 		if stopped {
 			return

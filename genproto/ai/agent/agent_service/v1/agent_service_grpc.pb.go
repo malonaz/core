@@ -38,6 +38,7 @@ const (
 	AgentService_ApproveToolCall_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ApproveToolCall"
 	AgentService_ResolveToolCall_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ResolveToolCall"
 	AgentService_MessageAgent_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/MessageAgent"
+	AgentService_WakeAgent_FullMethodName          = "/malonaz.ai.agent.agent_service.v1.AgentService/WakeAgent"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -64,6 +65,28 @@ const (
 // queued message to its chat, at its start and between its tool rounds. Each
 // turn a sub-agent ends is sent to its parent as a report, so a parent never
 // waits: it ends its turn and wakes on the report.
+//
+// # Schedules
+//
+// Agents schedule their own wake-ups through their built-in schedule tool, on
+// the SchedulerService: a recurring Schedule, or a one-off Job, under the
+// agent's user, labeled `agent.ai.malonaz.com/agent` with the agent's id and
+// `agent.ai.malonaz.com/wake` with how it wakes the agent (`self` or
+// `sub-agent`). Each run is a Job calling WakeAgent, its payload a
+// WakeAgentRequest; a Schedule's tick jobs carry its labels and name it in
+// `schedule`. Clients manage them on the SchedulerService, under the agent's
+// user `organizations/{o}/users/{u}`, with `{agent}` the agent's id:
+//
+//   - recurring: ListSchedules, filter
+//     `labels."agent.ai.malonaz.com/agent" = "{agent}"`; PauseSchedule,
+//     ResumeSchedule, DeleteSchedule to cancel.
+//   - upcoming one-offs: ListJobs, filter
+//     `labels."agent.ai.malonaz.com/agent" = "{agent}" AND NOT schedule:* AND state = JOB_STATE_PENDING`,
+//     order_by `schedule_time`; CancelJob to cancel.
+//   - a schedule's runs: ListJobs, filter `schedule = "{schedule name}"`.
+//
+// Deleting an agent deletes its schedules and cancels its pending runs;
+// undeleting it restores neither.
 type AgentServiceClient interface {
 	// Create a definition.
 	//
@@ -146,6 +169,13 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
+	// Wake an agent on a run of one of its schedules: queue the run's message on
+	// it, or launch its sub-agent with the run's task. Run only by the scheduler,
+	// as the job of a Schedule's tick or of a one-off: the job derives every
+	// request id, so a replayed or retried run delivers once.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	WakeAgent(ctx context.Context, in *WakeAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
 }
 
 type agentServiceClient struct {
@@ -345,6 +375,16 @@ func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentR
 	return out, nil
 }
 
+func (c *agentServiceClient) WakeAgent(ctx context.Context, in *WakeAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Agent)
+	err := c.cc.Invoke(ctx, AgentService_WakeAgent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServiceServer is the server API for AgentService service.
 // All implementations should embed UnimplementedAgentServiceServer
 // for forward compatibility.
@@ -369,6 +409,28 @@ func (c *agentServiceClient) MessageAgent(ctx context.Context, in *MessageAgentR
 // queued message to its chat, at its start and between its tool rounds. Each
 // turn a sub-agent ends is sent to its parent as a report, so a parent never
 // waits: it ends its turn and wakes on the report.
+//
+// # Schedules
+//
+// Agents schedule their own wake-ups through their built-in schedule tool, on
+// the SchedulerService: a recurring Schedule, or a one-off Job, under the
+// agent's user, labeled `agent.ai.malonaz.com/agent` with the agent's id and
+// `agent.ai.malonaz.com/wake` with how it wakes the agent (`self` or
+// `sub-agent`). Each run is a Job calling WakeAgent, its payload a
+// WakeAgentRequest; a Schedule's tick jobs carry its labels and name it in
+// `schedule`. Clients manage them on the SchedulerService, under the agent's
+// user `organizations/{o}/users/{u}`, with `{agent}` the agent's id:
+//
+//   - recurring: ListSchedules, filter
+//     `labels."agent.ai.malonaz.com/agent" = "{agent}"`; PauseSchedule,
+//     ResumeSchedule, DeleteSchedule to cancel.
+//   - upcoming one-offs: ListJobs, filter
+//     `labels."agent.ai.malonaz.com/agent" = "{agent}" AND NOT schedule:* AND state = JOB_STATE_PENDING`,
+//     order_by `schedule_time`; CancelJob to cancel.
+//   - a schedule's runs: ListJobs, filter `schedule = "{schedule name}"`.
+//
+// Deleting an agent deletes its schedules and cancels its pending runs;
+// undeleting it restores neither.
 type AgentServiceServer interface {
 	// Create a definition.
 	//
@@ -451,6 +513,13 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error)
+	// Wake an agent on a run of one of its schedules: queue the run's message on
+	// it, or launch its sub-agent with the run's task. Run only by the scheduler,
+	// as the job of a Schedule's tick or of a one-off: the job derives every
+	// request id, so a replayed or retried run delivers once.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	WakeAgent(context.Context, *WakeAgentRequest) (*v1.Agent, error)
 }
 
 // UnimplementedAgentServiceServer should be embedded to have
@@ -513,6 +582,9 @@ func (UnimplementedAgentServiceServer) ResolveToolCall(context.Context, *Resolve
 }
 func (UnimplementedAgentServiceServer) MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error) {
 	return nil, status.Error(codes.Unimplemented, "method MessageAgent not implemented")
+}
+func (UnimplementedAgentServiceServer) WakeAgent(context.Context, *WakeAgentRequest) (*v1.Agent, error) {
+	return nil, status.Error(codes.Unimplemented, "method WakeAgent not implemented")
 }
 func (UnimplementedAgentServiceServer) testEmbeddedByValue() {}
 
@@ -851,6 +923,24 @@ func _AgentService_MessageAgent_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_WakeAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WakeAgentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).WakeAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_WakeAgent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).WakeAgent(ctx, req.(*WakeAgentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -925,6 +1015,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MessageAgent",
 			Handler:    _AgentService_MessageAgent_Handler,
+		},
+		{
+			MethodName: "WakeAgent",
+			Handler:    _AgentService_WakeAgent_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -7,8 +7,15 @@ type LabelAgent struct {
 	GetKey func() string
 }
 
+type LabelWake struct {
+	GetKey   func() string
+	Self     string
+	SubAgent string
+}
+
 type LabelSet struct {
 	Agent LabelAgent
+	Wake  LabelWake
 }
 
 var Labels = LabelSet{
@@ -16,5 +23,12 @@ var Labels = LabelSet{
 		GetKey: func() string {
 			return "agent.ai.malonaz.com/agent"
 		},
+	},
+	Wake: LabelWake{
+		GetKey: func() string {
+			return "agent.ai.malonaz.com/wake"
+		},
+		Self:     "self",
+		SubAgent: "sub-agent",
 	},
 }
