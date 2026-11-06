@@ -66,14 +66,15 @@ func (r *toolRouter) validate(spec *agentpb.AgentSpec, genuiComponents *genuiCom
 	return nil
 }
 
-// schema returns the schema an endpoint serves, resolved through its gRPC server reflection.
+// schema returns the schema an endpoint serves, resolved through its gRPC server reflection with the credentials of
+// ctx alone.
 func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection.Schema, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
 		return nil, err
 	}
 	reflectionClient := grpc_reflection_v1.NewServerReflectionClient(connection.Get())
-	schema, err := pbreflection.ResolveSchema(withoutIdentity(ctx), reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
+	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
 	if err != nil {
 		return nil, fmt.Errorf("resolving the schema served at %s: %w", endpoint, err)
 	}
@@ -94,4 +95,14 @@ func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protore
 // trusted with it. Cancellation and deadlines are kept.
 func withoutIdentity(ctx context.Context) context.Context {
 	return metadata.NewOutgoingContext(ctx, metadata.MD{})
+}
+
+// toolSchema returns the schema a tool target serves, resolved as the service itself.
+func (s *Service) toolSchema(ctx context.Context, endpoint string) (*pbreflection.Schema, error) {
+	ctx, cancel, err := s.asSelf(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	return s.toolRouter.schema(ctx, endpoint)
 }

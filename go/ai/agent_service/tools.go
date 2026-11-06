@@ -125,7 +125,7 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		if err != nil {
 			return nil, err
 		}
-		schema, err := s.toolRouter.schema(ctx, endpoint)
+		schema, err := s.toolSchema(ctx, endpoint)
 		if err != nil {
 			return nil, status.Errorf(codes.Unavailable, "resolving tool %s: %v", name, err).Err()
 		}

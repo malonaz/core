@@ -38,6 +38,9 @@ func principal(ctx context.Context, request *agentservicepb.CreateAgentRequest, 
 	return identity, nil
 }
 
+// serviceAccountID is the service's own account, which onyx names after the service.
+const serviceAccountID = "agent-service"
+
 // delegate returns the context a tool call of an agent runs on: acting as its principal on its behalf, with a
 // deadline at the delegated session's expiry, so a call never outlives its session. An agent without a principal
 // calls anonymously.
@@ -48,11 +51,32 @@ func (s *Service) delegate(ctx context.Context, agent *agentpb.Agent) (context.C
 	if s.sessionManager == nil {
 		return nil, nil, status.Errorf(codes.FailedPrecondition, "agent %s has a principal but the service has no session manager to act as it", agent.GetName()).Err()
 	}
+	return s.delegateTo(ctx, agent.GetPrincipal(), agent.GetName())
+}
+
+// asSelf returns the context the service resolves a tool target's schema on: a session it delegates to its own account.
+// Never its internal credential, a secret every service shares: tool targets are untrusted. Without a session manager,
+// it calls anonymously.
+func (s *Service) asSelf(ctx context.Context) (context.Context, context.CancelFunc, error) {
+	if s.sessionManager == nil {
+		return withoutIdentity(ctx), func() {}, nil
+	}
+	identity := &authenticationpb.Identity{Identity: &authenticationpb.Identity_ServiceAccountIdentity{
+		ServiceAccountIdentity: &authenticationpb.ServiceAccountIdentity{
+			ServiceAccountId:   serviceAccountID,
+			ServiceAccountType: authenticationpb.ServiceAccountType_SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE,
+		},
+	}}
+	return s.delegateTo(ctx, identity, serviceAccountID)
+}
+
+// delegateTo returns ctx acting as a principal on behalf of an actor, its deadline at the session's expiry.
+func (s *Service) delegateTo(ctx context.Context, principal *authenticationpb.Identity, actor string) (context.Context, context.CancelFunc, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.opts.ToolSessionLifetime)
-	ctx, err := s.sessionManager.Delegate(ctx, agent.GetPrincipal(), agent.GetName(), s.opts.ToolSessionLifetime)
+	ctx, err := s.sessionManager.Delegate(ctx, principal, actor, s.opts.ToolSessionLifetime)
 	if err != nil {
 		cancel()
-		return nil, nil, status.Errorf(codes.Internal, "delegating to agent %s: %v", agent.GetName(), err).Err()
+		return nil, nil, status.Errorf(codes.Internal, "delegating to %s: %v", actor, err).Err()
 	}
 	return ctx, cancel, nil
 }
