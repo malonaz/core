@@ -20,6 +20,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
+	"github.com/malonaz/core/go/authentication"
 	"github.com/malonaz/core/go/postgres"
 	testserver "github.com/malonaz/core/go/postgres/test_server"
 )
@@ -54,13 +55,14 @@ func withTestServiceAccount(ctx context.Context) context.Context {
 // newTestOpts returns opts with timings short enough for tests to watch leases expire.
 func newTestOpts(address string) *Opts {
 	return &Opts{
-		AdvertisedAddress:  address,
-		LeaseDuration:      time.Second,
-		HeartbeatInterval:  200 * time.Millisecond,
-		ClaimInterval:      100 * time.Millisecond,
-		MaxConcurrentTurns: 100,
-		ShutdownGrace:      time.Second,
-		StreamPollInterval: 100 * time.Millisecond,
+		AdvertisedAddress:   address,
+		LeaseDuration:       time.Second,
+		HeartbeatInterval:   200 * time.Millisecond,
+		ClaimInterval:       100 * time.Millisecond,
+		MaxConcurrentTurns:  100,
+		ShutdownGrace:       time.Second,
+		StreamPollInterval:  100 * time.Millisecond,
+		ToolSessionLifetime: 10 * time.Minute,
 	}
 }
 
@@ -80,6 +82,16 @@ type testReplica struct {
 // configure, if set, adjusts its opts; register adds services to its server, co-hosted with the AgentService.
 func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts), register ...func(*grpc.Server)) *testReplica {
 	t.Helper()
+	return newAuthenticatedTestReplica(t, aiService, nil, nil, configure, register...)
+}
+
+// newAuthenticatedTestReplica starts a replica as newTestReplica does, signing sessions with a session manager and
+// serving with server options, its authentication interceptors.
+func newAuthenticatedTestReplica(
+	t *testing.T, aiService *fakeAiService, sessionManager *authentication.SessionManager, serverOptions []grpc.ServerOption,
+	configure func(*Opts), register ...func(*grpc.Server),
+) *testReplica {
+	t.Helper()
 	// Unix socket paths are capped at 108 bytes: test temp dirs may be too deep.
 	socketDirectory, err := os.MkdirTemp("", "agent")
 	require.NoError(t, err)
@@ -91,9 +103,9 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	if configure != nil {
 		configure(opts)
 	}
-	service, err := New(opts, newTestStore(), aiService, nil)
+	service, err := New(opts, newTestStore(), aiService, sessionManager)
 	require.NoError(t, err)
-	server := grpc.NewServer()
+	server := grpc.NewServer(serverOptions...)
 	agentservicepb.RegisterAgentServiceServer(server, service)
 	for _, registerService := range register {
 		registerService(server)

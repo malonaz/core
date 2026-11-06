@@ -95,7 +95,7 @@ func (s *Service) settleToolCall(
 	}); err != nil {
 		return nil, err
 	}
-	return agent, nil
+	return redactAgent(agent), nil
 }
 
 // sameDecision reports whether two resolutions decide the same.

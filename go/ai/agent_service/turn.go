@@ -66,8 +66,8 @@ func (s *Service) runTurns(turn *turn) {
 // lost or the replica is shutting down, and another replica takes it over.
 func (s *Service) runTurn(turn *turn) *turnEnd {
 	ctx := turn.ctx
-	getAgentRequest := &agentservicepb.GetAgentRequest{Name: turn.agent}
-	agent, err := s.GetAgent(ctx, getAgentRequest)
+	// Whole, as its tool calls act as its principal.
+	agent, err := s.getAgent(ctx, turn.agent)
 	runner := &turnRunner{service: s, agent: agent}
 	var finalMessage *aipb.Message
 	if err == nil {

@@ -276,6 +276,11 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 		requestID := uuid.NewV5(toolRequestIDNamespace, b.agent.GetName()+"/"+toolCall.GetId()).String()
 		request.ProtoReflect().Set(field, protoreflect.ValueOfString(requestID))
 	}
+	ctx, cancel, err := b.service.delegate(ctx, b.agent)
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
 	response, err := b.service.toolRouter.invoke(ctx, methodTool.endpoint, methodTool.method, request)
 	if err != nil {
 		return nil, err

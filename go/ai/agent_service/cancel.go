@@ -19,6 +19,10 @@ const cancelRetryInterval = 50 * time.Millisecond
 // CancelAgent cancels the agent's running turn wherever it runs: here, on the replica holding its lease, or, if no
 // replica holds it any more, by ending the turn CANCELLED directly. The turn has ended when it returns.
 func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.CancelAgentRequest) (*agentpb.Agent, error) {
+	return redacted(s.cancelAgent(ctx, request))
+}
+
+func (s *Service) cancelAgent(ctx context.Context, request *agentservicepb.CancelAgentRequest) (*agentpb.Agent, error) {
 	agentRn, err := agentpb.ParseAgentRn(request.Name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()

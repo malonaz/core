@@ -47,7 +47,7 @@ func (s *Service) MessageAgent(ctx context.Context, request *agentservicepb.Mess
 	if requestID == "" {
 		requestID = uuid.MustNewV7().String()
 	}
-	return s.messageAgent(ctx, request.Name, request.Message, user, requestID)
+	return redacted(s.messageAgent(ctx, request.Name, request.Message, user, requestID))
 }
 
 // messageAgent queues a message from a sender on an agent, claiming its turn if idle. A replayed request id finds the
