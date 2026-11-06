@@ -91,7 +91,7 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	if configure != nil {
 		configure(opts)
 	}
-	service, err := New(opts, newTestStore(), aiService)
+	service, err := New(opts, newTestStore(), aiService, nil)
 	require.NoError(t, err)
 	server := grpc.NewServer()
 	agentservicepb.RegisterAgentServiceServer(server, service)
