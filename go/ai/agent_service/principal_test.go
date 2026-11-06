@@ -31,6 +31,7 @@ const (
 	getAgentTool        = "AgentService_GetAgent"
 	deleteAgentTool     = "AgentService_DeleteAgent"
 	harperAccount       = "harper"
+	reflectionMethod    = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
 	internalServiceType = authenticationpb.ServiceAccountType_SERVICE_ACCOUNT_TYPE_INTERNAL_SERVICE
 )
 
@@ -48,17 +49,20 @@ var testIssuer = &authenticationpb.JwtIssuer{
 	},
 }
 
-// testPermissionConfiguration lets admins make agents act as harper, which reads agents, and denies actors deletions.
+// testPermissionConfiguration lets admins make agents act as harper, which reads agents, lets the service alone
+// reflect, and denies actors deletions.
 var testPermissionConfiguration = &authenticationpb.PermissionConfiguration{
-	ServiceAccounts: []*authenticationpb.ServiceAccount{{
-		Id:          harperAccount,
-		Type:        internalServiceType,
-		Permissions: []string{getAgentMethod},
-		Labels:      map[string]string{"team": "harper"},
-		ActAsCel:    `session.jwt_identity.claims["admin"] == true`,
-	}},
+	ServiceAccounts: []*authenticationpb.ServiceAccount{
+		{
+			Id:          harperAccount,
+			Type:        internalServiceType,
+			Permissions: []string{getAgentMethod},
+			Labels:      map[string]string{"team": "harper"},
+			ActAsCel:    `session.jwt_identity.claims["admin"] == true`,
+		},
+		{Id: serviceAccountID, Type: internalServiceType, Permissions: []string{reflectionMethod}},
+	},
 	Roles:                      []*authenticationpb.Role{{Id: "unused"}},
-	PublicMethods:              []string{"/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"},
 	JwtIssuers:                 []*authenticationpb.JwtIssuer{testIssuer},
 	DelegationAuthorizationCel: `!method.endsWith("/DeleteAgent")`,
 }
@@ -71,18 +75,33 @@ type sessionRecorder struct {
 }
 
 func (r *sessionRecorder) unary(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	if err := r.record(ctx, info.FullMethod); err != nil {
+		return nil, err
+	}
+	return handler(ctx, request)
+}
+
+func (r *sessionRecorder) stream(server any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if err := r.record(stream.Context(), info.FullMethod); err != nil {
+		return err
+	}
+	return handler(server, stream)
+}
+
+// record records the session and metadata keys a call to a method arrived with.
+func (r *sessionRecorder) record(ctx context.Context, method string) error {
 	session, err := authentication.GetSession(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	incomingMetadata, _ := metadata.FromIncomingContext(ctx)
 	r.mutex.Lock()
-	r.methodToSessions[info.FullMethod] = append(r.methodToSessions[info.FullMethod], proto.CloneOf(session))
+	defer r.mutex.Unlock()
+	r.methodToSessions[method] = append(r.methodToSessions[method], proto.CloneOf(session))
 	for key := range incomingMetadata {
-		r.methodToMetadataKey[info.FullMethod] = append(r.methodToMetadataKey[info.FullMethod], key)
+		r.methodToMetadataKey[method] = append(r.methodToMetadataKey[method], key)
 	}
-	r.mutex.Unlock()
-	return handler(ctx, request)
+	return nil
 }
 
 // delegatedSessions returns the delegated sessions a method was called with.
@@ -134,6 +153,7 @@ func newAuthenticatedTestService(t *testing.T) *authenticatedTestService {
 			sessionManager.StreamServerLocalContextInjectorInterceptor(),
 			jwtInterceptor.Stream(),
 			permissionInterceptor.Stream(),
+			recorder.stream,
 		),
 	}
 	replica := newAuthenticatedTestReplica(t, newFakeAiService(), sessionManager, serverOptions, func(opts *Opts) {
@@ -284,4 +304,23 @@ func onlyClaims(claims map[string]any, names ...string) map[string]any {
 		}
 	}
 	return kept
+}
+
+func TestPrincipal_SchemasResolvedAsTheService(t *testing.T) {
+	service := newAuthenticatedTestService(t)
+
+	_, err := service.toolSchema(context.Background(), service.opts.AdvertisedAddress)
+	require.NoError(t, err)
+
+	// On a signed, expiring session of its own account, never the internal credential every service shares.
+	sessions := service.recorder.delegatedSessions(reflectionMethod)
+	require.NotEmpty(t, sessions)
+	session := sessions[0]
+	require.Equal(t, serviceAccountID, session.GetServiceAccountIdentity().GetServiceAccountId())
+	require.Equal(t, serviceAccountID, session.GetDelegation().GetActor())
+	require.Equal(t, service.opts.ToolSessionLifetime, session.GetExpireTime().AsTime().Sub(session.GetCreateTime().AsTime()))
+	service.recorder.mutex.Lock()
+	defer service.recorder.mutex.Unlock()
+	require.Contains(t, service.recorder.methodToMetadataKey[reflectionMethod], "x-signed-session-bin")
+	require.NotContains(t, service.recorder.methodToMetadataKey[reflectionMethod], testServiceAccountHeader)
 }
