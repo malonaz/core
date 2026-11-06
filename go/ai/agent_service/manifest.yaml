@@ -13,3 +13,6 @@ dependencies:
   - grpc_client:
       service: ai-service
       proto: //malonaz/ai/ai_service/v1
+  - grpc_client:
+      service: scheduler-service
+      proto: //malonaz/scheduler/scheduler_service/v1

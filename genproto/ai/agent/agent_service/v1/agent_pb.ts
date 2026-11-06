@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../../google/api/field_
 import { file_google_api_resource } from "../../../../../google/api/resource_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
+import type { CreateAgentsToolArguments_SubAgent, CreateAgentsToolArguments_SubAgentValid } from "./builtin_tool_pb";
+import { file_malonaz_ai_agent_agent_service_v1_builtin_tool } from "./builtin_tool_pb";
 import type { Agent, AgentValid } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
 import type { Block, BlockValid, Message as Message$1, MessageValid } from "../../../v1/message_pb";
@@ -24,7 +26,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSL4AgoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBOpsBukiXARqUAQofY3JlYXRlX2FnZW50LmRlZmluaXRpb25fb3Jfc3BlYxI6ZXhhY3RseSBvbmUgb2YgYWdlbnQuZGVmaW5pdGlvbiBhbmQgYWdlbnQuc3BlYyBtdXN0IGJlIHNldBo1KHRoaXMuYWdlbnQuZGVmaW5pdGlvbiAhPSAnJykgIT0gaGFzKHRoaXMuYWdlbnQuc3BlYykiSQoPR2V0QWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQEi6wEKElVwZGF0ZUFnZW50UmVxdWVzdBIxCgVhZ2VudBgBIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhFGkMKE2FnZW50Lm5hbWVfcmVxdWlyZWQSFmFnZW50Lm5hbWUgbXVzdCBiZSBzZXQaFGhhcyh0aGlzLmFnZW50Lm5hbWUp6pzBAxwKBmxhYmVscwoLYW5ub3RhdGlvbnMKBXRpdGxlIoABChJEZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkSDQoFZm9yY2UYBCABKAgiXAoUVW5kZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIMCgRldGFnGAIgASgJIvUBChFMaXN0QWdlbnRzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ+BBAvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAk6PYLzLQIIZIrzLSwKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWQoSTGlzdEFnZW50c1Jlc3BvbnNlEioKBmFnZW50cxgBIAMoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIusBChNTZWFyY2hBZ2VudHNSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEhoKBXF1ZXJ5GAIgASgJQgu6SAhyAxiAAsgBARIOCgZmaWx0ZXIYAyABKAkSFAoMc2hvd19kZWxldGVkGAQgASgIEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAkSGAoQaW5jbHVkZV9zbmlwcGV0cxgHIAEoCDoNgvMtAghkkvMtAwoBKiKMAQoUU2VhcmNoQWdlbnRzUmVzcG9uc2USKgoGYWdlbnRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudBIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIkwKEkNhbmNlbEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIoUBChJTdHJlYW1BZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIaChJpbmNsdWRlX3RyYW5zY3JpcHQYAiABKAgSGwoTaW5jbHVkZV9kZXNjZW5kYW50cxgDIAEoCCLpBAoTU3RyZWFtQWdlbnRSZXNwb25zZRIuCgVhZ2VudBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBIuCghzbmFwc2hvdBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRIABJUCgl0b29sX2NhbGwYAyABKAsyPy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEgAEl8KD3Rvb2xfY2FsbF9lbmRlZBgEIAEoCzJELm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLlRvb2xDYWxsRW5kZWRIABIlCgVkZWx0YRgFIAEoCzIULm1hbG9uYXouYWkudjEuQmxvY2tIABIpCgdtZXNzYWdlGAYgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlSAASYgoQZ2VuZXJhdGlvbl9yZXNldBgHIAEoCzJGLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLkdlbmVyYXRpb25SZXNldEgAGjMKCFRvb2xDYWxsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDQoFdGl0bGUYAyABKAkaKwoNVG9vbENhbGxFbmRlZBIKCgJpZBgBIAEoCRIOCgZmYWlsZWQYAiABKAgaEQoPR2VuZXJhdGlvblJlc2V0QhAKB2NvbnRlbnQSBbpIAggBIqIBChNNZXNzYWdlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESMgoHbWVzc2FnZRgCIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIJ4EECukgDyAEBEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBInEKFkFwcHJvdmVUb29sQ2FsbFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIfCgx0b29sX2NhbGxfaWQYAiABKAlCCeBBArpIA8gBASKnAQoWUmVzb2x2ZVRvb2xDYWxsUmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEh8KDHRvb2xfY2FsbF9pZBgCIAEoCUIJ4EECukgDyAEBEjQKBnJlc3VsdBgDIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdEIJ4EECukgDyAEBQjxaOmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnQucHJvdG8SIW1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MSL4AgoSQ3JlYXRlQWdlbnRSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjEKBWFnZW50GAIgASgLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudEIGukgDyAEBEjcKCGFnZW50X2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBOpsBukiXARqUAQofY3JlYXRlX2FnZW50LmRlZmluaXRpb25fb3Jfc3BlYxI6ZXhhY3RseSBvbmUgb2YgYWdlbnQuZGVmaW5pdGlvbiBhbmQgYWdlbnQuc3BlYyBtdXN0IGJlIHNldBo1KHRoaXMuYWdlbnQuZGVmaW5pdGlvbiAhPSAnJykgIT0gaGFzKHRoaXMuYWdlbnQuc3BlYykiSQoPR2V0QWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQEi6wEKElVwZGF0ZUFnZW50UmVxdWVzdBIxCgVhZ2VudBgBIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhFGkMKE2FnZW50Lm5hbWVfcmVxdWlyZWQSFmFnZW50Lm5hbWUgbXVzdCBiZSBzZXQaFGhhcyh0aGlzLmFnZW50Lm5hbWUp6pzBAxwKBmxhYmVscwoLYW5ub3RhdGlvbnMKBXRpdGxlIoABChJEZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkSDQoFZm9yY2UYBCABKAgiXAoUVW5kZWxldGVBZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIMCgRldGFnGAIgASgJIvUBChFMaXN0QWdlbnRzUmVxdWVzdBI3CgZwYXJlbnQYASABKAlCJ+BBAvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlcrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAk6PYLzLQIIZIrzLSwKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZRIQY3JlYXRlX3RpbWUgZGVzY5LzLQMKASoiWQoSTGlzdEFnZW50c1Jlc3BvbnNlEioKBmFnZW50cxgBIAMoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIusBChNTZWFyY2hBZ2VudHNSZXF1ZXN0EjcKBnBhcmVudBgBIAEoCUIn4EEC+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEhoKBXF1ZXJ5GAIgASgJQgu6SAhyAxiAAsgBARIOCgZmaWx0ZXIYAyABKAkSFAoMc2hvd19kZWxldGVkGAQgASgIEhwKCXBhZ2Vfc2l6ZRgFIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBiABKAkSGAoQaW5jbHVkZV9zbmlwcGV0cxgHIAEoCDoNgvMtAghkkvMtAwoBKiKMAQoUU2VhcmNoQWdlbnRzUmVzcG9uc2USKgoGYWdlbnRzGAEgAygLMhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudBIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIkwKEkNhbmNlbEFnZW50UmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBIoUBChJTdHJlYW1BZ2VudFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIaChJpbmNsdWRlX3RyYW5zY3JpcHQYAiABKAgSGwoTaW5jbHVkZV9kZXNjZW5kYW50cxgDIAEoCCLpBAoTU3RyZWFtQWdlbnRSZXNwb25zZRIuCgVhZ2VudBgBIAEoCUIf+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBIuCghzbmFwc2hvdBgCIAEoCzIaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRIABJUCgl0b29sX2NhbGwYAyABKAsyPy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU3RyZWFtQWdlbnRSZXNwb25zZS5Ub29sQ2FsbEgAEl8KD3Rvb2xfY2FsbF9lbmRlZBgEIAEoCzJELm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLlRvb2xDYWxsRW5kZWRIABIlCgVkZWx0YRgFIAEoCzIULm1hbG9uYXouYWkudjEuQmxvY2tIABIpCgdtZXNzYWdlGAYgASgLMhYubWFsb25hei5haS52MS5NZXNzYWdlSAASYgoQZ2VuZXJhdGlvbl9yZXNldBgHIAEoCzJGLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlLkdlbmVyYXRpb25SZXNldEgAGjMKCFRvb2xDYWxsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDQoFdGl0bGUYAyABKAkaKwoNVG9vbENhbGxFbmRlZBIKCgJpZBgBIAEoCRIOCgZmYWlsZWQYAiABKAgaEQoPR2VuZXJhdGlvblJlc2V0QhAKB2NvbnRlbnQSBbpIAggBIqIBChNNZXNzYWdlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESMgoHbWVzc2FnZRgCIAEoCzIWLm1hbG9uYXouYWkudjEuTWVzc2FnZUIJ4EECukgDyAEBEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBInEKFkFwcHJvdmVUb29sQ2FsbFJlcXVlc3QSNgoEbmFtZRgBIAEoCUIo4EEC+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudLpIA8gBARIfCgx0b29sX2NhbGxfaWQYAiABKAlCCeBBArpIA8gBASKnAQoWUmVzb2x2ZVRvb2xDYWxsUmVxdWVzdBI2CgRuYW1lGAEgASgJQijgQQL6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50ukgDyAEBEh8KDHRvb2xfY2FsbF9pZBgCIAEoCUIJ4EECukgDyAEBEjQKBnJlc3VsdBgDIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdEIJ4EECukgDyAEBItEBChBXYWtlQWdlbnRSZXF1ZXN0EjYKBG5hbWUYASABKAlCKOBBAvpBHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnS6SAPIAQESGgoHbWVzc2FnZRgCIAEoCUIHukgEcgIQAUgAEloKCXN1Yl9hZ2VudBgDIAEoCzJFLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5DcmVhdGVBZ2VudHNUb29sQXJndW1lbnRzLlN1YkFnZW50SABCDQoEd2FrZRIFukgCCAFCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_ai_agent_agent_service_v1_builtin_tool, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip]);
 
 /**
  * Request message for AgentService.CreateAgent.
@@ -1200,4 +1202,93 @@ export type ResolveToolCallRequestValid = Message<"malonaz.ai.agent.agent_servic
  */
 export const ResolveToolCallRequestSchema: GenMessage<ResolveToolCallRequest, {validType: ResolveToolCallRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 14);
+
+/**
+ * Request message for AgentService.WakeAgent: the payload of an agent's
+ * schedules, one per Schedule or one-off Job.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.WakeAgentRequest
+ */
+export type WakeAgentRequest = Message<"malonaz.ai.agent.agent_service.v1.WakeAgentRequest"> & {
+  /**
+   * The agent to wake.
+   * Format: organizations/{organization}/users/{user}/agents/{agent}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * How a run wakes the agent.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.WakeAgentRequest.wake
+   */
+  wake: {
+    /**
+     * A message queued on the agent itself, from the agent: the run continues
+     * its conversation.
+     *
+     * @generated from field: string message = 2;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * A sub-agent of the agent, launched with its task as its first message:
+     * each run starts from a fresh context, and its report wakes the agent.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent sub_agent = 3;
+     */
+    value: CreateAgentsToolArguments_SubAgent;
+    case: "subAgent";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Request message for AgentService.WakeAgent: the payload of an agent's
+ * schedules, one per Schedule or one-off Job.
+ *
+ * @generated from message malonaz.ai.agent.agent_service.v1.WakeAgentRequest
+ */
+export type WakeAgentRequestValid = Message<"malonaz.ai.agent.agent_service.v1.WakeAgentRequest"> & {
+  /**
+   * The agent to wake.
+   * Format: organizations/{organization}/users/{user}/agents/{agent}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * How a run wakes the agent.
+   *
+   * @generated from oneof malonaz.ai.agent.agent_service.v1.WakeAgentRequest.wake
+   */
+  wake: {
+    /**
+     * A message queued on the agent itself, from the agent: the run continues
+     * its conversation.
+     *
+     * @generated from field: string message = 2;
+     */
+    value: string;
+    case: "message";
+  } | {
+    /**
+     * A sub-agent of the agent, launched with its task as its first message:
+     * each run starts from a fresh context, and its report wakes the agent.
+     *
+     * @generated from field: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent sub_agent = 3;
+     */
+    value: CreateAgentsToolArguments_SubAgentValid;
+    case: "subAgent";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message malonaz.ai.agent.agent_service.v1.WakeAgentRequest.
+ * Use `create(WakeAgentRequestSchema)` to create a new message.
+ */
+export const WakeAgentRequestSchema: GenMessage<WakeAgentRequest, {validType: WakeAgentRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_agent_agent_service_v1_agent, 15);
 

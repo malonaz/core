@@ -3,6 +3,8 @@ syntax = "proto3";
 package malonaz.ai.agent.agent_service.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 import "malonaz/ai/agent/v1/definition.proto";
 import "malonaz/ai/v1/message.proto";
 
@@ -65,4 +67,57 @@ message UpdateLabelsToolArguments {
 
   // Keys of labels to remove.
   repeated string remove = 2;
+}
+
+// The arguments of the built-in schedule tool.
+message ScheduleToolArguments {
+  option (buf.validate.message).cel = {
+    id: "schedule.cron_time_zone"
+    message: "a cron needs its time_zone"
+    expression: "!has(this.cron) || this.time_zone != ''"
+  };
+
+  // When you are woken: every tick of a cron, or once.
+  oneof when {
+    option (buf.validate.oneof).required = true;
+
+    // Recurring: a five-field cron expression (minute hour day-of-month month day-of-week), e.g. `0 9 * * MON-FRI`
+    // for 9am on weekdays.
+    string cron = 1 [(buf.validate.field).string = {
+      min_len: 1
+      max_len: 256
+    }];
+
+    // Once, at this time: RFC 3339 with an offset, e.g. `2026-11-07T09:00:00+01:00`.
+    google.protobuf.Timestamp time = 2;
+
+    // Once, this long from now, e.g. `7200s` for two hours.
+    google.protobuf.Duration delay = 3 [(buf.validate.field).duration.gt = {}];
+  }
+
+  // The IANA time zone the cron is evaluated in, e.g. `Europe/Paris`: the user's, so their 9am is 9am for them.
+  // Required with a cron.
+  string time_zone = 4 [(buf.validate.field).string.max_len = 64];
+
+  // What each run does.
+  oneof wake {
+    option (buf.validate.oneof).required = true;
+
+    // Wake yourself with this message, continuing this conversation with everything you know.
+    string message = 5 [(buf.validate.field).string.min_len = 1];
+
+    // Launch this sub-agent, its task its first message: it starts from a fresh context, and its report wakes you.
+    CreateAgentsToolArguments.SubAgent sub_agent = 6;
+  }
+}
+
+// The arguments of the built-in list_schedules tool.
+message ListSchedulesToolArguments {}
+
+// The arguments of the built-in cancel_schedule tool.
+message CancelScheduleToolArguments {
+  // The schedule to cancel, as list_schedules names it: a recurring schedule or a one-off run.
+  // Format: organizations/{organization}/users/{user}/schedules/{schedule}
+  // Format: organizations/{organization}/users/{user}/jobs/{job}
+  string name = 1 [(buf.validate.field).required = true];
 }

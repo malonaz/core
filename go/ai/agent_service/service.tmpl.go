@@ -9,16 +9,18 @@ import (
 	"github.com/malonaz/core/gengo/ai/agent/agent_service/rpc"
 	"github.com/malonaz/core/gengo/ai/agent/store"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 )
 
 type Service struct {
 	*runtime
 	*rpc.AgentServiceServer
-	log                *slog.Logger
-	opts               *Opts
-	withServiceAccount func(context.Context) context.Context
-	agentPostgresStore *store.Store
-	aiServiceClient    aiservicepb.AiServiceClient
+	log                    *slog.Logger
+	opts                   *Opts
+	withServiceAccount     func(context.Context) context.Context
+	agentPostgresStore     *store.Store
+	aiServiceClient        aiservicepb.AiServiceClient
+	schedulerServiceClient schedulerservicepb.SchedulerServiceClient
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -30,17 +32,19 @@ func New(
 	opts *Opts,
 	agentPostgresStore *store.Store,
 	aiServiceClient aiservicepb.AiServiceClient,
+	schedulerServiceClient schedulerservicepb.SchedulerServiceClient,
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating runtime: %w", err)
 	}
 	service := &Service{
-		runtime:            runtime,
-		log:                slog.Default(),
-		opts:               opts,
-		agentPostgresStore: agentPostgresStore,
-		aiServiceClient:    aiServiceClient,
+		runtime:                runtime,
+		log:                    slog.Default(),
+		opts:                   opts,
+		agentPostgresStore:     agentPostgresStore,
+		aiServiceClient:        aiServiceClient,
+		schedulerServiceClient: schedulerServiceClient,
 	}
 	service.AgentServiceServer = rpc.NewAgentServiceServer(agentPostgresStore)
 	return service, nil

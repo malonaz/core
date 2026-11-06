@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
+import "malonaz/ai/agent/agent_service/v1/builtin_tool.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/tool.proto";
@@ -375,4 +376,29 @@ message ResolveToolCallRequest {
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED
   ];
+}
+
+// Request message for AgentService.WakeAgent: the payload of an agent's
+// schedules, one per Schedule or one-off Job.
+message WakeAgentRequest {
+  // The agent to wake.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // How a run wakes the agent.
+  oneof wake {
+    option (buf.validate.oneof).required = true;
+
+    // A message queued on the agent itself, from the agent: the run continues
+    // its conversation.
+    string message = 2 [(buf.validate.field).string.min_len = 1];
+
+    // A sub-agent of the agent, launched with its task as its first message:
+    // each run starts from a fresh context, and its report wakes the agent.
+    CreateAgentsToolArguments.SubAgent sub_agent = 3;
+  }
 }

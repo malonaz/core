@@ -482,6 +482,10 @@ func (r *turnRunner) senderHeader(ctx context.Context, message *aipb.Message, se
 	if !ok || !agentpb.MatchAgentRn(sender) {
 		return "", nil
 	}
+	// Only the agent's schedules send it messages from itself.
+	if sender == r.agent.GetName() {
+		return "[Your scheduled message]", nil
+	}
 	if header, ok := senderToHeader[sender]; ok {
 		return header, nil
 	}
