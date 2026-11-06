@@ -18,6 +18,7 @@ CREATE TABLE agent (
     state SMALLINT NOT NULL,
     latest_turn JSONB,
     queued_messages JSONB NOT NULL,
+    principal JSONB,
     -- Must match AgentSearchDocumentExpression, emitted by the postgres codegen.
     search_document tsvector GENERATED ALWAYS AS (
         setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||

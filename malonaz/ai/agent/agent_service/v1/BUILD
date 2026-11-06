@@ -26,6 +26,7 @@ grpc_library(
         "//malonaz/ai/agent/v1",
         "//malonaz/ai/v1",
         "//malonaz/aip/v1",
+        "//malonaz/authentication/v1",
         "//malonaz/codegen/aip/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",

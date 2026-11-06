@@ -8,6 +8,7 @@ import "malonaz/ai/agent/agent_service/v1/agent.proto";
 import "malonaz/ai/agent/agent_service/v1/definition.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/authentication/v1/authentication.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
@@ -114,6 +115,7 @@ service AgentService {
     };
     option (google.api.method_signature) = "parent,agent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+    option (malonaz.authentication.v1.principal_field) = "agent.principal";
   }
 
   // Get an agent.

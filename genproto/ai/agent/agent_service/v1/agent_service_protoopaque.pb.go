@@ -10,6 +10,7 @@ package v1
 
 import (
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
+	_ "github.com/malonaz/core/genproto/authentication/v1"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -29,7 +30,7 @@ var File_malonaz_ai_agent_agent_service_v1_agent_service_proto protoreflect.File
 
 const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\n" +
-	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xec\x1d\n" +
+	"5malonaz/ai/agent/agent_service/v1/agent_service.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a-malonaz/ai/agent/agent_service/v1/agent.proto\x1a2malonaz/ai/agent/agent_service/v1/definition.proto\x1a\x1fmalonaz/ai/agent/v1/agent.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a.malonaz/authentication/v1/authentication.proto\x1a malonaz/codegen/aip/v1/aip.proto2\xff\x1d\n" +
 	"\fAgentService\x12\xe6\x01\n" +
 	"\x10CreateDefinition\x12:.malonaz.ai.agent.agent_service.v1.CreateDefinitionRequest\x1a\x1f.malonaz.ai.agent.v1.Definition\"u\xdaA\x11parent,definition´-!\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x026:\n" +
@@ -44,9 +45,9 @@ const file_malonaz_ai_agent_agent_service_v1_agent_service_proto_rawDesc = "" +
 	"\x12UndeleteDefinition\x12<.malonaz.ai.agent.agent_service.v1.UndeleteDefinitionRequest\x1a\x1f.malonaz.ai.agent.v1.Definition\"h\xdaA\x04name´-!\n" +
 	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x026:\x01*\"1/v1/{name=organizations/*/definitions/*}:undelete\x12\xeb\x01\n" +
 	"\x0fListDefinitions\x129.malonaz.ai.agent.agent_service.v1.ListDefinitionsRequest\x1a:.malonaz.ai.agent.agent_service.v1.ListDefinitionsResponse\"a\xdaA\x06parent´-!\n" +
-	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x02*\x12(/v1/{parent=organizations/*}/definitions\x90\x02\x01\x12\xcb\x01\n" +
-	"\vCreateAgent\x125.malonaz.ai.agent.agent_service.v1.CreateAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"i\xdaA\fparent,agent´-\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Agent\x82\xd3\xe4\x93\x024:\x05agent\"+/v1/{parent=organizations/*/users/*}/agents\x12\xb9\x01\n" +
+	"\x1fagent.ai.malonaz.com/Definition\x82\xd3\xe4\x93\x02*\x12(/v1/{parent=organizations/*}/definitions\x90\x02\x01\x12\xde\x01\n" +
+	"\vCreateAgent\x125.malonaz.ai.agent.agent_service.v1.CreateAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"|\xdaA\fparent,agent´-\x1c\n" +
+	"\x1aagent.ai.malonaz.com/Agent\x82\xf0.\x0fagent.principal\x82\xd3\xe4\x93\x024:\x05agent\"+/v1/{parent=organizations/*/users/*}/agents\x12\xb9\x01\n" +
 	"\bGetAgent\x122.malonaz.ai.agent.agent_service.v1.GetAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"]\xdaA\x04name´-\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\x82\xd3\xe4\x93\x02-\x12+/v1/{name=organizations/*/users/*/agents/*}\x90\x02\x01\x12\xd6\x01\n" +
 	"\vUpdateAgent\x125.malonaz.ai.agent.agent_service.v1.UpdateAgentRequest\x1a\x1a.malonaz.ai.agent.v1.Agent\"t\xdaA\x11agent,update_mask´-\x1c\n" +

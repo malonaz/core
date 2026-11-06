@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	v1 "github.com/malonaz/core/genproto/ai/agent/v1"
 	v11 "github.com/malonaz/core/genproto/ai/v1"
+	v12 "github.com/malonaz/core/genproto/authentication/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -40,6 +41,7 @@ type Agent struct {
 	State          int16      `db:"state" schema:"public" table:"agent"`
 	LatestTurn     []byte     `db:"latest_turn" schema:"public" table:"agent"`
 	QueuedMessages []byte     `db:"queued_messages" schema:"public" table:"agent"`
+	Principal      []byte     `db:"principal" schema:"public" table:"agent"`
 }
 
 func AgentFromPb(m *v1.Agent) (*Agent, error) {
@@ -102,6 +104,14 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling QueuedMessages: %w", err)
 	}
+	var PrincipalBytes []byte
+	if m.Principal != nil {
+		var err error
+		PrincipalBytes, err = pbutil.JSONMarshal(m.Principal)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling Principal: %w", err)
+		}
+	}
 	return &Agent{
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
@@ -121,6 +131,7 @@ func AgentFromPb(m *v1.Agent) (*Agent, error) {
 		State:          int16(m.State),
 		LatestTurn:     LatestTurnBytes,
 		QueuedMessages: QueuedMessagesBytes,
+		Principal:      PrincipalBytes,
 	}, nil
 }
 
@@ -174,6 +185,13 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling QueuedMessages: %w", err)
 	}
+	var Principal *v12.Identity
+	if m.Principal != nil {
+		Principal = &v12.Identity{}
+		if err := pbutil.JSONUnmarshal(m.Principal, Principal); err != nil {
+			return nil, fmt.Errorf("unmarshaling Principal: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/agents/{agent}", m.OrganizationID, m.UserID, m.AgentID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -195,6 +213,7 @@ func (m *Agent) ToPb() (*v1.Agent, error) {
 		State:          v1.Agent_State(m.State),
 		LatestTurn:     LatestTurn,
 		QueuedMessages: QueuedMessages,
+		Principal:      Principal,
 	}, nil
 }
 

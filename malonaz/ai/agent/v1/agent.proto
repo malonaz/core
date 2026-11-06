@@ -10,6 +10,7 @@ import "google/rpc/status.proto";
 import "malonaz/ai/agent/v1/definition.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/tool.proto";
+import "malonaz/authentication/v1/authentication.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
@@ -174,6 +175,15 @@ message Agent {
   repeated malonaz.ai.v1.Message queued_messages = 16 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
+
+  // The identity the agent's tool calls act as. Defaults to its creator's, which a sub-agent inherits from
+  // its parent; another identity needs the creator to be allowed to act as it. Reads return only its JWT
+  // issuer and `sub` claim, or its service account.
+  malonaz.authentication.v1.Identity principal = 17 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 }
 

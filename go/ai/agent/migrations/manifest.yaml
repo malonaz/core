@@ -4,6 +4,6 @@ migrations:
   - path: definition/001_init.sql
     hash: 76c7531ae76e9a534484a26286eef5c2
   - path: agent/001_init.sql
-    hash: 3997a2672b398a48fefd879f913aa4a4
+    hash: a708581db4b05962cb850536b93d4e47
   - path: agent_lease/001_init.sql
     hash: d290846f3fda2ef98863739cf917605e
