@@ -29,6 +29,7 @@ go_library(
         "//go/ai/agent/model",
         "//go/ai/agent/store",
         "//go/aip",
+        "//go/authentication",
         "//go/grpc",
         "//go/grpc/status",
         "//go/pbutil",

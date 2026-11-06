@@ -9,6 +9,7 @@ import (
 	"github.com/malonaz/core/gengo/ai/agent/agent_service/rpc"
 	"github.com/malonaz/core/gengo/ai/agent/store"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	"github.com/malonaz/core/go/authentication"
 )
 
 type Service struct {
@@ -19,6 +20,7 @@ type Service struct {
 	withServiceAccount func(context.Context) context.Context
 	agentPostgresStore *store.Store
 	aiServiceClient    aiservicepb.AiServiceClient
+	sessionManager     *authentication.SessionManager
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -30,6 +32,7 @@ func New(
 	opts *Opts,
 	agentPostgresStore *store.Store,
 	aiServiceClient aiservicepb.AiServiceClient,
+	sessionManager *authentication.SessionManager,
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
@@ -41,6 +44,7 @@ func New(
 		opts:               opts,
 		agentPostgresStore: agentPostgresStore,
 		aiServiceClient:    aiServiceClient,
+		sessionManager:     sessionManager,
 	}
 	service.AgentServiceServer = rpc.NewAgentServiceServer(agentPostgresStore)
 	return service, nil
