@@ -1,6 +1,6 @@
 ---
 title: 'authentication: delegated sessions'
-description: 'Delegated sessions in go/authentication: a service acting as a principal on behalf of an actor (agents), SessionManager.Delegate, the never-authorized invariant, expire_time, actor in CEL, delegation_authorization_cel, act_as_cel + principal_field, the JWT act claim, and how the agent service adopts it.'
+description: 'Delegated sessions in go/authentication: a service acting as a principal on behalf of an actor (agents), SessionManager.Delegate, the never-authorized invariant, expire_time, actor in CEL, delegation_authorization_cel, act_as_cel + principal_field, the JWT act claim, how the agent service adopts it, and calling as the service from inside a request.'
 labels:
     repo: core
     topic: authentication
@@ -31,5 +31,11 @@ labels:
   (`x-internal-service-auth` carries the secret every service shares, and targets are untrusted). A host grants its
   `agent-service` account `/grpc.reflection.v1.ServerReflection/ServerReflectionInfo`; without a session manager it
   reflects anonymously.
+- **Calling as the service from a request**: a server's `OutgoingContextInjector` interceptor puts the caller's
+  signed session on the handler's outgoing context, so *appending* `x-internal-service-auth` to it sends two
+  identities and the callee refuses with `Internal: unexpected signed session in local context`. Strip the outgoing
+  metadata first: the agent service's `asService` does (`withoutIdentity`, then `withServiceAccount`); every
+  scheduler call (delete cleanup, `schedule`/`list_schedules`/`cancel_schedule`, `WakeAgent`) goes through it.
+  Unit tests calling handlers on `context.Background()` miss this: the agent service's fake scheduler refuses both.
 - JWT principals reach only methods their issuer's CEL lists (hosts like onikisu list gateway methods only), so
   agents of users get gateway tools; internal methods need a service-account principal.
