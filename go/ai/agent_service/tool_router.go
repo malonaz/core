@@ -80,13 +80,14 @@ func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection
 	return schema, nil
 }
 
-// invoke calls a method at an endpoint.
+// invoke calls a method at an endpoint, with the credentials of ctx alone: the service's own never reach a tool
+// target.
 func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
 	}
-	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(withoutIdentity(ctx), method, request)
+	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(ctx, method, request)
 }
 
 // withoutIdentity strips a call's outgoing metadata, the service's own identity included: tool targets are never

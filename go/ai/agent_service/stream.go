@@ -328,6 +328,11 @@ func (a *agentStream) send(streamedAgent *streamedAgent, response *agentservicep
 		}
 		streamedAgent.etag = content.Snapshot.GetEtag()
 		streamedAgent.updateTime = updateTime
+		// The published response is shared by every subscriber: redacted on a copy.
+		response = &agentservicepb.StreamAgentResponse{
+			Agent:   response.Agent,
+			Content: &agentservicepb.StreamAgentResponse_Snapshot{Snapshot: redactAgent(content.Snapshot)},
+		}
 	case *agentservicepb.StreamAgentResponse_Delta:
 		streamedAgent.generating = true
 	case *agentservicepb.StreamAgentResponse_Message, *agentservicepb.StreamAgentResponse_GenerationReset_:

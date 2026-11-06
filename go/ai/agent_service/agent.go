@@ -24,6 +24,10 @@ var agentNamespace = aip.MustGetUUIDNamespace(&agentpb.Agent{})
 
 // CreateAgent creates an idle agent, from a definition or ad-hoc, with the chat holding its transcript.
 func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.CreateAgentRequest) (*agentpb.Agent, error) {
+	return redacted(s.createAgent(ctx, request))
+}
+
+func (s *Service) createAgent(ctx context.Context, request *agentservicepb.CreateAgentRequest) (*agentpb.Agent, error) {
 	userRn, err := agentpb.ParseUserRn(request.Parent)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
@@ -54,6 +58,9 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 		if parentAgent, err = s.getLiveParentAgent(ctx, agentRn, agent.ParentAgent); err != nil {
 			return nil, err
 		}
+	}
+	if agent.Principal, err = principal(ctx, request, parentAgent); err != nil {
+		return nil, err
 	}
 	if agent.Definition != "" {
 		if agent.Spec, err = s.snapshotDefinitionSpec(ctx, agentRn, agent.Definition, parentAgent); err != nil {
@@ -142,8 +149,8 @@ func (s *Service) getLiveParentAgent(ctx context.Context, agentRn *agentpb.Agent
 	if parentAgentRn.Organization != agentRn.Organization || parentAgentRn.User != agentRn.User {
 		return nil, status.Errorf(codes.InvalidArgument, "parent_agent %s belongs to another user", name).Err()
 	}
-	getAgentRequest := &agentservicepb.GetAgentRequest{Name: name}
-	parentAgent, err := s.GetAgent(ctx, getAgentRequest)
+	// Whole, as its principal passes on to the new agent.
+	parentAgent, err := s.getAgent(ctx, name)
 	if err != nil {
 		return nil, status.FromError(err, "getting parent agent").Err()
 	}
@@ -183,7 +190,7 @@ func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.Updat
 		return nil, err
 	}
 	s.publishSnapshot(agent)
-	return agent, nil
+	return redactAgent(agent), nil
 }
 
 // DeleteAgent soft-deletes an agent, cancelling its running turn. With force, its descendants go first, deepest
@@ -205,7 +212,7 @@ func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.Delet
 			}
 		}
 	}
-	return s.deleteAgent(ctx, request.Name, request.AllowMissing, request.Etag)
+	return redacted(s.deleteAgent(ctx, request.Name, request.AllowMissing, request.Etag))
 }
 
 // deleteDescendantAgents deletes every live descendant of an agent, deepest first, each in its own transaction.
@@ -339,5 +346,5 @@ func (s *Service) UndeleteAgent(ctx context.Context, request *agentservicepb.Und
 		return nil, err
 	}
 	s.publishSnapshot(agent)
-	return agent, nil
+	return redactAgent(agent), nil
 }
