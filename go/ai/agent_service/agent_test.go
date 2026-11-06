@@ -138,6 +138,7 @@ func TestAgent_DeleteNeedsForceForSubAgents(t *testing.T) {
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
 	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
+	require.Nil(t, getAgent(t, service, agent.Name).DeleteTime)
 
 	deleteAgentRequest.Force = true
 	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
@@ -148,10 +149,42 @@ func TestAgent_DeleteNeedsForceForSubAgents(t *testing.T) {
 	undeleteAgentRequest := &agentservicepb.UndeleteAgentRequest{Name: subAgent.Name}
 	_, err = service.UndeleteAgent(context.Background(), undeleteAgentRequest)
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
-	undeleteAgentRequest.Name = agent.Name
+}
+
+func TestAgent_UndeleteRestoresTheForcedDelete(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	subAgent := createTestSubAgent(t, service, agent)
+	subSubAgent := createTestSubAgent(t, service, subAgent)
+	// Deleted on its own beforehand, with its own sub-agent.
+	deletedAgent := createTestSubAgent(t, service, agent)
+	deletedSubAgent := createTestSubAgent(t, service, deletedAgent)
+	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: deletedAgent.Name, Force: true}
+	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	require.NoError(t, err)
+	deleteAgentRequest = &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
+	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
+	require.NoError(t, err)
+
+	undeleteAgentRequest := &agentservicepb.UndeleteAgentRequest{Name: agent.Name}
 	undeletedAgent, err := service.UndeleteAgent(context.Background(), undeleteAgentRequest)
+
 	require.NoError(t, err)
 	require.Nil(t, undeletedAgent.DeleteTime)
+	for _, restoredAgent := range []*agentpb.Agent{subAgent, subSubAgent} {
+		require.Nil(t, getAgent(t, service, restoredAgent.Name).DeleteTime, restoredAgent.Name)
+	}
+	for _, keptAgent := range []*agentpb.Agent{deletedAgent, deletedSubAgent} {
+		require.NotNil(t, getAgent(t, service, keptAgent.Name).DeleteTime, keptAgent.Name)
+	}
+	_, err = service.UndeleteAgent(context.Background(), undeleteAgentRequest)
+	require.True(t, status.HasCode(err, codes.AlreadyExists), err)
+
+	// The earlier delete comes back as its own unit.
+	undeleteAgentRequest.Name = deletedAgent.Name
+	_, err = service.UndeleteAgent(context.Background(), undeleteAgentRequest)
+	require.NoError(t, err)
+	require.Nil(t, getAgent(t, service, deletedSubAgent.Name).DeleteTime)
 }
 
 func TestAgent_UpdateTitleAndLabels(t *testing.T) {
