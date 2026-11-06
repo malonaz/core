@@ -20,7 +20,7 @@ func TestEditFile(t *testing.T) {
 	editFileRequest := &pb.EditFileRequest{Path: "file.go", OldString: "c := 2", NewString: "c := 3"}
 	editFileResponse, err := service.EditFile(context.Background(), editFileRequest)
 	require.NoError(t, err)
-	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 1}, editFileResponse)
+	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 1, StartLines: []int32{3}}, editFileResponse)
 	require.Equal(t, "a := 1\nb := 1\nc := 3\n", readTestFile(t, path))
 
 	editFileRequest = &pb.EditFileRequest{Path: "file.go", OldString: ":= 1", NewString: ":= 0"}
@@ -32,7 +32,7 @@ func TestEditFile(t *testing.T) {
 	editFileRequest = &pb.EditFileRequest{Path: path, OldString: ":= 1", NewString: ":= 0", ReplaceAll: true}
 	editFileResponse, err = service.EditFile(context.Background(), editFileRequest)
 	require.NoError(t, err)
-	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 2}, editFileResponse)
+	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 2, StartLines: []int32{1, 2}}, editFileResponse)
 	require.Equal(t, "a := 0\nb := 0\nc := 3\n", readTestFile(t, path))
 
 	for name, testCase := range map[string]struct {
@@ -50,4 +50,23 @@ func TestEditFile(t *testing.T) {
 		})
 	}
 	require.Equal(t, "a := 0\nb := 0\nc := 3\n", readTestFile(t, path))
+}
+
+func TestEditFileStartLines(t *testing.T) {
+	service, directory := newTestService(t)
+	path := filepath.Join(directory, "file.txt")
+	// Multi-line occurrences: the second starts after the first's own newlines.
+	writeTestFile(t, path, "x\ny\nz\nx\ny\n")
+
+	editFileRequest := &pb.EditFileRequest{Path: "file.txt", OldString: "x\ny\n", NewString: "w\n", ReplaceAll: true}
+	editFileResponse, err := service.EditFile(context.Background(), editFileRequest)
+	require.NoError(t, err)
+	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 2, StartLines: []int32{1, 4}}, editFileResponse)
+	require.Equal(t, "w\nz\nw\n", readTestFile(t, path))
+
+	// Mid-line occurrences report the line they begin on.
+	editFileRequest = &pb.EditFileRequest{Path: "file.txt", OldString: "\nw", NewString: "\nv"}
+	editFileResponse, err = service.EditFile(context.Background(), editFileRequest)
+	require.NoError(t, err)
+	grpcrequire.Equal(t, &pb.EditFileResponse{Replacements: 1, StartLines: []int32{2}}, editFileResponse)
 }

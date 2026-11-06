@@ -131,7 +131,13 @@ message WriteFileRequest {
 }
 
 // Response message for WorkspaceService.WriteFile.
-message WriteFileResponse {}
+message WriteFileResponse {
+  // If true, the file did not exist before this write.
+  bool created = 1;
+
+  // The number of lines written.
+  int32 line_count = 2;
+}
 
 // Request message for WorkspaceService.EditFile.
 message EditFileRequest {
@@ -152,4 +158,7 @@ message EditFileRequest {
 message EditFileResponse {
   // The number of occurrences replaced.
   int32 replacements = 1;
+
+  // The 1-based line in the original file where each replaced occurrence began, in file order.
+  repeated int32 start_lines = 2;
 }
