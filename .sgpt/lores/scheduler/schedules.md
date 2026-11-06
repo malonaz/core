@@ -84,6 +84,20 @@ update on a paused schedule leaves `next_schedule_time` unset until the resume.
 ListJobs{parent: <schedule parent>, filter: schedule = "<schedule name>"}
 ```
 
+## Finding a producer's schedules and one-offs
+
+A producer that schedules on behalf of a resource (e.g. the AgentService's
+`schedule` tool) parents the Schedule or one-off Job under the resource's
+user/organization and labels it with the resource's id (label values cap at 63
+characters and allow no `/`, so the id, not the name). Tick jobs inherit the
+schedule's labels, so the same label filter on `ListJobs` returns ticks and
+one-offs alike; add `NOT schedule:*` for one-offs only:
+
+```
+ListSchedules{parent: <user>, filter: labels."<key>" = "<id>"}
+ListJobs{parent: <user>, filter: labels."<key>" = "<id>" AND NOT schedule:* AND state = JOB_STATE_PENDING}
+```
+
 ## Traps
 
 - **Update is not the generated one.** `UpdateSchedule` patches under the row
