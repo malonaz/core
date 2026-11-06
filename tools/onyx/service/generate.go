@@ -80,6 +80,8 @@ func (g *generator) dependencies() ([]dependency, error) {
 			deps = append(deps, dependency{g.field(param), "*" + g.Qual(g.goPath(kind.Service.GetTarget()), "Service"), param})
 		case *onyxpb.Dependency_Nats_:
 			deps = append(deps, dependency{g.field("natsClient"), "*" + g.Qual(core+"/nats", "Client"), "natsClient"})
+		case *onyxpb.Dependency_SessionManager_:
+			deps = append(deps, dependency{g.field("sessionManager"), "*" + g.Qual(core+"/authentication", "SessionManager"), "sessionManager"})
 		default:
 			return nil, fmt.Errorf("unknown dependency kind %T", kind)
 		}

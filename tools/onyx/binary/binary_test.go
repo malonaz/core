@@ -55,6 +55,8 @@ func TestLoad(t *testing.T) {
 	// h-service asks to stop before the servers: with the processor, ahead of the servers' graceful stops.
 	require.Contains(t, string(source), "hServiceStop := sync.OnceFunc(hServiceCleanup)")
 	require.Contains(t, string(source), "lifecycle.CloseAll(dProcessorStop, hServiceStop)")
+	// h-service depends on the session manager the b-service interceptors need.
+	require.Contains(t, string(source), "hservice.New(opts.HService, bServiceClient, sessionManager)")
 	golden := "tools/onyx/binary/testdata/main.golden"
 	if os.Getenv("UPDATE_GOLDEN") != "" {
 		require.NoError(t, os.WriteFile(golden, source, 0o644))
@@ -137,4 +139,9 @@ func TestLoadLongrunningGateway(t *testing.T) {
 func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {
 	_, err := load(t, "lro_unscheduled.yaml")
 	require.ErrorContains(t, err, "no service of the binary has a grpc_client on malonaz.scheduler.scheduler_service.v1.SchedulerService")
+}
+
+func TestLoadRejectsSessionManagerWithoutInterceptors(t *testing.T) {
+	_, err := load(t, "session_manager_unconfigured.yaml")
+	require.ErrorContains(t, err, "session_manager: the binary configures no interceptors")
 }

@@ -85,6 +85,9 @@ message Dependency {
 
     // A plain Go component.
     Service service = 5;
+
+    // The binary's session manager.
+    SessionManager session_manager = 6;
   }
 
   // A gRPC client. Dialed through the hosting server's own opts when the binary serves the service,
@@ -139,6 +142,10 @@ message Dependency {
 
   // The NATS client.
   message Nats {}
+
+  // The binary's session manager, signing and verifying sessions with its shared secret. The
+  // binary must configure interceptors.
+  message SessionManager {}
 
   // A plain Go component built from its own Opts and shared by every service in the binary.
   message Service {
