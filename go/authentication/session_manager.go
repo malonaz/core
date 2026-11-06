@@ -201,6 +201,8 @@ func (s *SessionManager) injectSignedSessionFromIncomingContextToLocalContext(ct
 	if err := pbutil.Unmarshal([]byte(value), signedSession); err != nil {
 		return nil, status.Errorf(codes.Internal, "unmarshaling session: %v", err)
 	}
+	// The local context now owns the session: a handler forwarding its incoming metadata must not resend it.
+	ctx = removeFromIncomingContext(ctx, metadataKeySignedSession)
 	isUpdate := false
 	return s.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
 }
@@ -250,7 +252,11 @@ func (s *SessionManager) injectSignedSessionFromLocalContextToOutgoingContext(ct
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "marshaling signed session: %v", err)
 	}
-	return metadata.AppendToOutgoingContext(ctx, metadataKeySignedSession, string(bytes)), nil
+	// Set, not append: a call carries exactly one session.
+	outgoingMetadata, _ := metadata.FromOutgoingContext(ctx)
+	outgoingMetadata = outgoingMetadata.Copy()
+	outgoingMetadata.Set(metadataKeySignedSession, string(bytes))
+	return metadata.NewOutgoingContext(ctx, outgoingMetadata), nil
 }
 
 // ///////////////////////////////////////////////// INJECT SESSION TO LOG SESSION INTERCEPTOR ////////////////////////////////

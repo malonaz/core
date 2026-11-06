@@ -290,3 +290,24 @@ func TestMintDelegatedJwt(t *testing.T) {
 	_, err = jwtMinter.MintDelegatedJwt("users/alice", "", time.Minute)
 	require.Error(t, err)
 }
+
+func TestSessionPropagation_CarriesOneSession(t *testing.T) {
+	sessionManager := NewSessionManager(&SessionManagerOpts{Secret: testSecret})
+	principal := jwtIdentity(t, map[string]any{"sub": "users/alice"})
+	delegatedCtx, err := sessionManager.Delegate(context.Background(), principal, "organizations/acme/users/u/agents/a", time.Minute)
+	require.NoError(t, err)
+	outgoingMetadata, _ := metadata.FromOutgoingContext(delegatedCtx)
+	ctx := metadata.NewIncomingContext(context.Background(), outgoingMetadata)
+
+	ctx, err = sessionManager.injectSignedSessionFromIncomingContextToLocalContext(ctx)
+	require.NoError(t, err)
+	incomingMetadata, _ := metadata.FromIncomingContext(ctx)
+	require.Empty(t, incomingMetadata.Get(metadataKeySignedSession))
+
+	// A proxy forwarding the original header still sends a single session.
+	ctx = metadata.NewOutgoingContext(ctx, outgoingMetadata)
+	ctx, err = sessionManager.injectSignedSessionFromLocalContextToOutgoingContext(ctx)
+	require.NoError(t, err)
+	outgoingMetadata, _ = metadata.FromOutgoingContext(ctx)
+	require.Len(t, outgoingMetadata.Get(metadataKeySignedSession), 1)
+}

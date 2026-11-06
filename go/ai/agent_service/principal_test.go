@@ -323,6 +323,5 @@ func TestPrincipal_SchemasResolvedAsTheService(t *testing.T) {
 	require.Equal(t, service.opts.ToolSessionLifetime, session.GetExpireTime().AsTime().Sub(session.GetCreateTime().AsTime()))
 	service.recorder.mutex.Lock()
 	defer service.recorder.mutex.Unlock()
-	require.Contains(t, service.recorder.methodToMetadataKey[reflectionMethod], signedSessionHeader)
 	require.NotContains(t, service.recorder.methodToMetadataKey[reflectionMethod], testServiceAccountHeader)
 }
