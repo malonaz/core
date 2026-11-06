@@ -26,5 +26,10 @@ labels:
   tool calls run on `Service.delegate`. Internal code needing the principal reads with `s.getAgent` (unredacted);
   every RPC returning an Agent redacts it to issuer + `sub` (or the service account) via `redacted`/`redactAgent`,
   and StreamAgent redacts snapshots in `send`.
+- **Tool schemas**: the agent service reflects a tool target's schema on a session it delegates to its own account
+  (`asSelf`: principal and actor `agent-service`, the tool-session lifetime), never with its internal credential
+  (`x-internal-service-auth` carries the secret every service shares, and targets are untrusted). A host grants its
+  `agent-service` account `/grpc.reflection.v1.ServerReflection/ServerReflectionInfo`; without a session manager it
+  reflects anonymously.
 - JWT principals reach only methods their issuer's CEL lists (hosts like onikisu list gateway methods only), so
   agents of users get gateway tools; internal methods need a service-account principal.
