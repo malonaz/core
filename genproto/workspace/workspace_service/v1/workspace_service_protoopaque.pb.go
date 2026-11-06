@@ -428,9 +428,11 @@ func (b0 WriteFileRequest_builder) Build() *WriteFileRequest {
 
 // Response message for WorkspaceService.WriteFile.
 type WriteFileResponse struct {
-	state         protoimpl.MessageState `protogen:"opaque.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Created   bool                   `protobuf:"varint,1,opt,name=created,proto3"`
+	xxx_hidden_LineCount int32                  `protobuf:"varint,2,opt,name=line_count,json=lineCount,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *WriteFileResponse) Reset() {
@@ -458,15 +460,43 @@ func (x *WriteFileResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *WriteFileResponse) GetCreated() bool {
+	if x != nil {
+		return x.xxx_hidden_Created
+	}
+	return false
+}
+
+func (x *WriteFileResponse) GetLineCount() int32 {
+	if x != nil {
+		return x.xxx_hidden_LineCount
+	}
+	return 0
+}
+
+func (x *WriteFileResponse) SetCreated(v bool) {
+	x.xxx_hidden_Created = v
+}
+
+func (x *WriteFileResponse) SetLineCount(v int32) {
+	x.xxx_hidden_LineCount = v
+}
+
 type WriteFileResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// If true, the file did not exist before this write.
+	Created bool
+	// The number of lines written.
+	LineCount int32
 }
 
 func (b0 WriteFileResponse_builder) Build() *WriteFileResponse {
 	m0 := &WriteFileResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Created = b.Created
+	x.xxx_hidden_LineCount = b.LineCount
 	return m0
 }
 
@@ -578,6 +608,7 @@ func (b0 EditFileRequest_builder) Build() *EditFileRequest {
 type EditFileResponse struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Replacements int32                  `protobuf:"varint,1,opt,name=replacements,proto3"`
+	xxx_hidden_StartLines   []int32                `protobuf:"varint,2,rep,packed,name=start_lines,json=startLines,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -614,8 +645,19 @@ func (x *EditFileResponse) GetReplacements() int32 {
 	return 0
 }
 
+func (x *EditFileResponse) GetStartLines() []int32 {
+	if x != nil {
+		return x.xxx_hidden_StartLines
+	}
+	return nil
+}
+
 func (x *EditFileResponse) SetReplacements(v int32) {
 	x.xxx_hidden_Replacements = v
+}
+
+func (x *EditFileResponse) SetStartLines(v []int32) {
+	x.xxx_hidden_StartLines = v
 }
 
 type EditFileResponse_builder struct {
@@ -623,6 +665,8 @@ type EditFileResponse_builder struct {
 
 	// The number of occurrences replaced.
 	Replacements int32
+	// The 1-based line in the original file where each replaced occurrence began, in file order.
+	StartLines []int32
 }
 
 func (b0 EditFileResponse_builder) Build() *EditFileResponse {
@@ -630,6 +674,7 @@ func (b0 EditFileResponse_builder) Build() *EditFileResponse {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Replacements = b.Replacements
+	x.xxx_hidden_StartLines = b.StartLines
 	return m0
 }
 
@@ -767,8 +812,11 @@ const file_malonaz_workspace_workspace_service_v1_workspace_service_proto_rawDes
 	"\x05error\x18\x04 \x01(\tR\x05error\"H\n" +
 	"\x10WriteFileRequest\x12\x1a\n" +
 	"\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04path\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\x13\n" +
-	"\x11WriteFileResponse\"\x94\x01\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"L\n" +
+	"\x11WriteFileResponse\x12\x18\n" +
+	"\acreated\x18\x01 \x01(\bR\acreated\x12\x1d\n" +
+	"\n" +
+	"line_count\x18\x02 \x01(\x05R\tlineCount\"\x94\x01\n" +
 	"\x0fEditFileRequest\x12\x1a\n" +
 	"\x04path\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04path\x12%\n" +
 	"\n" +
@@ -776,9 +824,11 @@ const file_malonaz_workspace_workspace_service_v1_workspace_service_proto_rawDes
 	"\n" +
 	"new_string\x18\x03 \x01(\tR\tnewString\x12\x1f\n" +
 	"\vreplace_all\x18\x04 \x01(\bR\n" +
-	"replaceAll\"6\n" +
+	"replaceAll\"W\n" +
 	"\x10EditFileResponse\x12\"\n" +
-	"\freplacements\x18\x01 \x01(\x05R\freplacements2\xb3\x05\n" +
+	"\freplacements\x18\x01 \x01(\x05R\freplacements\x12\x1f\n" +
+	"\vstart_lines\x18\x02 \x03(\x05R\n" +
+	"startLines2\xb3\x05\n" +
 	"\x10WorkspaceService\x12\x90\x01\n" +
 	"\x04Exec\x123.malonaz.workspace.workspace_service.v1.ExecRequest\x1a4.malonaz.workspace.workspace_service.v1.ExecResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/workspace:exec\x12\xa7\x01\n" +
 	"\tReadFiles\x128.malonaz.workspace.workspace_service.v1.ReadFilesRequest\x1a9.malonaz.workspace.workspace_service.v1.ReadFilesResponse\"%\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/workspace:readFiles\x90\x02\x01\x12\xa4\x01\n" +
