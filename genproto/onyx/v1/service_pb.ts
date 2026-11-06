@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/onyx/v1/service.proto.
  */
 export const file_malonaz_onyx_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Ch1tYWxvbmF6L29ueXgvdjEvc2VydmljZS5wcm90bxIPbWFsb25hei5vbnl4LnYxIo0CCg9TZXJ2aWNlTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAESFwoPaW5jbHVkZV9ydW50aW1lGAMgASgIEh0KFWV4cG9ydF9zZXJ2aWNlX2ZpZWxkcxgEIAEoCBIqCghjb2RlZ2VucxgFIAMoCzIYLm1hbG9uYXoub255eC52MS5Db2RlZ2VuEjEKDGRlcGVuZGVuY2llcxgGIAMoCzIbLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5EhsKE3N0b3BfYmVmb3JlX3NlcnZlcnMYByABKAgi4AEKB0NvZGVnZW4SKwoDcnBjGAEgASgLMhwubWFsb25hei5vbnl4LnYxLkNvZGVnZW4uUnBjSAAamAEKA1JwYxItCgRuYW1lGAEgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEiYKBXN0b3JlGAIgASgJQhe6SBRyDzINXlthLXowLTlfLV0rJNgBARIXCgZ0YXJnZXQYAyABKAlCB7pIBHICEAESDAoEbmF0cxgEIAEoCBITCgtsb25ncnVubmluZxgFIAEoCEINCgRraW5kEgW6SAIIASKuBgoKRGVwZW5kZW5jeRI9CgtncnBjX2NsaWVudBgBIAEoCzImLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5LkdycGNDbGllbnRIABJKChJwb3N0Z3Jlc19kYl9jbGllbnQYAiABKAsyLC5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5Qb3N0Z3Jlc0RiQ2xpZW50SAASRQoPcG9zdGdyZXNfY2xpZW50GAMgASgLMioubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuUG9zdGdyZXNDbGllbnRIABIwCgRuYXRzGAQgASgLMiAubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuTmF0c0gAEjYKB3NlcnZpY2UYBSABKAsyIy5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5TZXJ2aWNlSAAanAEKCkdycGNDbGllbnQSFgoFcHJvdG8YASABKAlCB7pIBHICEAESMAoHc2VydmljZRgCIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIwCgRuYW1lGAMgASgJQiK6SB9yGjIYXlthLXowLTldKygtW2EtejAtOV0rKSok2AEBEhIKCm9wZXJhdGlvbnMYBCABKAgaegoQUG9zdGdyZXNEYkNsaWVudBIiCgRuYW1lGAEgASgJQhS6SBFyDzINXlthLXowLTlfLV0rJBIpCghkYXRhYmFzZRgCIAEoCUIXukgUcg8yDV5bYS16MC05Xy1dKyTYAQESFwoGdGFyZ2V0GAMgASgJQge6SARyAhABGl8KDlBvc3RncmVzQ2xpZW50EiIKBG5hbWUYASABKAlCFLpIEXIPMg1eW2EtejAtOV8tXSskEikKCGRhdGFiYXNlGAIgASgJQhe6SBRyDzINXlthLXowLTlfLV0rJNgBARoGCgROYXRzGlEKB1NlcnZpY2USLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAFCDQoEa2luZBIFukgCCAFCKlooZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vb255eC92MWIGcHJvdG8z", [file_buf_validate_validate]);
+  fileDesc("Ch1tYWxvbmF6L29ueXgvdjEvc2VydmljZS5wcm90bxIPbWFsb25hei5vbnl4LnYxIo0CCg9TZXJ2aWNlTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAESFwoPaW5jbHVkZV9ydW50aW1lGAMgASgIEh0KFWV4cG9ydF9zZXJ2aWNlX2ZpZWxkcxgEIAEoCBIqCghjb2RlZ2VucxgFIAMoCzIYLm1hbG9uYXoub255eC52MS5Db2RlZ2VuEjEKDGRlcGVuZGVuY2llcxgGIAMoCzIbLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5EhsKE3N0b3BfYmVmb3JlX3NlcnZlcnMYByABKAgi4AEKB0NvZGVnZW4SKwoDcnBjGAEgASgLMhwubWFsb25hei5vbnl4LnYxLkNvZGVnZW4uUnBjSAAamAEKA1JwYxItCgRuYW1lGAEgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEiYKBXN0b3JlGAIgASgJQhe6SBRyDzINXlthLXowLTlfLV0rJNgBARIXCgZ0YXJnZXQYAyABKAlCB7pIBHICEAESDAoEbmF0cxgEIAEoCBITCgtsb25ncnVubmluZxgFIAEoCEINCgRraW5kEgW6SAIIASKHBwoKRGVwZW5kZW5jeRI9CgtncnBjX2NsaWVudBgBIAEoCzImLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5LkdycGNDbGllbnRIABJKChJwb3N0Z3Jlc19kYl9jbGllbnQYAiABKAsyLC5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5Qb3N0Z3Jlc0RiQ2xpZW50SAASRQoPcG9zdGdyZXNfY2xpZW50GAMgASgLMioubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuUG9zdGdyZXNDbGllbnRIABIwCgRuYXRzGAQgASgLMiAubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuTmF0c0gAEjYKB3NlcnZpY2UYBSABKAsyIy5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5TZXJ2aWNlSAASRQoPc2Vzc2lvbl9tYW5hZ2VyGAYgASgLMioubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuU2Vzc2lvbk1hbmFnZXJIABqcAQoKR3JwY0NsaWVudBIWCgVwcm90bxgBIAEoCUIHukgEcgIQARIwCgdzZXJ2aWNlGAIgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEjAKBG5hbWUYAyABKAlCIrpIH3IaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiTYAQESEgoKb3BlcmF0aW9ucxgEIAEoCBp6ChBQb3N0Z3Jlc0RiQ2xpZW50EiIKBG5hbWUYASABKAlCFLpIEXIPMg1eW2EtejAtOV8tXSskEikKCGRhdGFiYXNlGAIgASgJQhe6SBRyDzINXlthLXowLTlfLV0rJNgBARIXCgZ0YXJnZXQYAyABKAlCB7pIBHICEAEaXwoOUG9zdGdyZXNDbGllbnQSIgoEbmFtZRgBIAEoCUIUukgRcg8yDV5bYS16MC05Xy1dKyQSKQoIZGF0YWJhc2UYAiABKAlCF7pIFHIPMg1eW2EtejAtOV8tXSsk2AEBGgYKBE5hdHMaEAoOU2Vzc2lvbk1hbmFnZXIaUQoHU2VydmljZRItCgRuYW1lGAEgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEhcKBnRhcmdldBgCIAEoCUIHukgEcgIQAUINCgRraW5kEgW6SAIIAUIqWihnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9vbnl4L3YxYgZwcm90bzM", [file_buf_validate_validate]);
 
 /**
  * A Go service: the library onyx wires from its dependencies and generated servers.
@@ -214,6 +214,14 @@ export type Dependency = Message<"malonaz.onyx.v1.Dependency"> & {
      */
     value: Dependency_Service;
     case: "service";
+  } | {
+    /**
+     * The binary's session manager.
+     *
+     * @generated from field: malonaz.onyx.v1.Dependency.SessionManager session_manager = 6;
+     */
+    value: Dependency_SessionManager;
+    case: "sessionManager";
   } | { case: undefined; value?: undefined };
 };
 
@@ -360,6 +368,24 @@ export const Dependency_NatsSchema: GenMessage<Dependency_Nats, {validType: Depe
   messageDesc(file_malonaz_onyx_v1_service, 2, 3);
 
 /**
+ * The binary's session manager, signing and verifying sessions with its shared secret. The
+ * binary must configure interceptors.
+ *
+ * @generated from message malonaz.onyx.v1.Dependency.SessionManager
+ */
+export type Dependency_SessionManager = Message<"malonaz.onyx.v1.Dependency.SessionManager"> & {
+};
+
+export type Dependency_SessionManagerValid = Dependency_SessionManager;
+
+/**
+ * Describes the message malonaz.onyx.v1.Dependency.SessionManager.
+ * Use `create(Dependency_SessionManagerSchema)` to create a new message.
+ */
+export const Dependency_SessionManagerSchema: GenMessage<Dependency_SessionManager, {validType: Dependency_SessionManagerValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_onyx_v1_service, 2, 4);
+
+/**
  * A plain Go component built from its own Opts and shared by every service in the binary.
  *
  * @generated from message malonaz.onyx.v1.Dependency.Service
@@ -387,5 +413,5 @@ export type Dependency_ServiceValid = Dependency_Service;
  * Use `create(Dependency_ServiceSchema)` to create a new message.
  */
 export const Dependency_ServiceSchema: GenMessage<Dependency_Service, {validType: Dependency_ServiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_service, 2, 4);
+  messageDesc(file_malonaz_onyx_v1_service, 2, 5);
 

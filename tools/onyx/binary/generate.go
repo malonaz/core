@@ -466,6 +466,8 @@ func (g *generator) service(s *Service) {
 			args = append(args, componentVar(dep.Component))
 		case dep.Nats:
 			args = append(args, "natsClient")
+		case dep.SessionManager:
+			args = append(args, "sessionManager")
 		}
 	}
 	g.P(v, ", err := ", g.Qual(s.Target.GoImportPath(g.b.GoImportPath), "New"), "(", strings.Join(args, ", "), ")")
