@@ -56,6 +56,7 @@ Dependency kinds (`Dependency.kind`, a `oneof` — one key per list entry):
 | `postgres_db_client {name, database?, target}` | `{name}PostgresStore *store.Store` | `target.New(psqlClient)` over `{database}` |
 | `postgres_client {name, database?}` | `{name}PostgresClient *postgres.Client` | the raw client of `{database}` |
 | `nats {}` | `natsClient *nats.Client` | the one NATS client |
+| `session_manager {}` | `sessionManager *authentication.SessionManager` | the binary's session manager (signing delegated sessions); loading fails if the binary configures no interceptors |
 | `service {name, target}` | `{name}Service *target.Service` | a plain component built from `opts.{Name}Service`, shared by the binary |
 
 The package must define `Opts`, `runtime`, `newRuntime(*Opts)` and
