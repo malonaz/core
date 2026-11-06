@@ -1,0 +1,275 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
+import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/tool.proto";
+import "malonaz/authentication/v1/authentication.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
+option (google.api.resource_definition) = {
+  type: "agent.ai.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
+
+// An Agent is a running instance of a spec: a conversation the AgentService
+// drives one turn at a time, fed by the messages it is sent. The transcript
+// lives in its [Chat][malonaz.ai.v1.Chat] on the AiService, which is the
+// agent's durable history. Agents talk to each other asynchronously, through
+// messages only: a parent messages its sub-agents, and each turn a sub-agent
+// ends is sent to its parent as a report, waking it.
+message Agent {
+  option (google.api.resource) = {
+    type: "agent.ai.malonaz.com/Agent"
+    pattern: "organizations/{organization}/users/{user}/agents/{agent}"
+    singular: "agent"
+    plural: "agents"
+  };
+  option (buf.validate.message).cel = {
+    id: "agent.spec_or_definition"
+    message: "definition or spec must be set"
+    expression: "this.definition != '' || has(this.spec)"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "a8d40bb6-3f99-4d02-95ff-71b5be47b1e7";
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "title"
+        weight: WEIGHT_A
+      },
+      {
+        path: "labels"
+        weight: WEIGHT_B
+      },
+      {
+        path: "spec.instructions"
+        weight: WEIGHT_C
+      }
+    ]
+  };
+
+  // State is where the agent is in its lifecycle.
+  enum State {
+    // Used to detect an unset field.
+    STATE_UNSPECIFIED = 0;
+    // The agent waits for messages.
+    STATE_IDLE = 1;
+    // One of the agent's turns is running.
+    STATE_RUNNING = 2;
+    // The agent's turn is paused on tool calls only a user can settle, listed in
+    // `latest_turn.awaited_tool_calls`: ApproveToolCall and ResolveToolCall settle
+    // them, and the turn resumes once the last is settled.
+    STATE_AWAITING = 3;
+  }
+
+  // The resource name of the agent.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the agent.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the agent.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the agent. Set when soft-deleted, which cancels its running turn.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 5;
+
+  // The labels on this agent. Agents label themselves through their built-in update_labels tool.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Annotations on this agent, for tooling. Values are opaque.
+  map<string, string> annotations = 7 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // A human-readable title for this agent.
+  string title = 8 [(buf.validate.field).string.max_len = 512];
+
+  // The definition this agent was created from. Empty for an ad-hoc agent.
+  // Format: organizations/{organization}/definitions/{definition}
+  string definition = 9 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
+  ];
+
+  // The spec this agent runs: its definition's, snapshotted at creation, or
+  // the inline spec of an ad-hoc agent.
+  AgentSpec spec = 10 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The agent that launched this one. Empty for a root agent.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string parent_agent = 11 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The root of this agent's tree: itself for a root agent. Filter on it to
+  // list a whole tree.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string root_agent = 12 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The chat holding the agent's transcript, created with the agent.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string chat = 13 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // Where the agent is in its lifecycle.
+  State state = 14 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (buf.validate.field).enum.defined_only = true
+  ];
+
+  // The agent's latest turn: the running or awaiting one, else the last that
+  // ended. Unset until a turn starts.
+  Turn latest_turn = 15 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The messages sent to the agent and not yet delivered, oldest first. A turn
+  // delivers them to its chat, at its start and between its tool rounds.
+  repeated malonaz.ai.v1.Message queued_messages = 16 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
+
+  // The identity the agent's tool calls act as. Defaults to its creator's, which a sub-agent inherits from
+  // its parent; another identity needs the creator to be allowed to act as it. Reads return only its JWT
+  // issuer and `sub` claim, or its service account.
+  malonaz.authentication.v1.Identity principal = 17 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+}
+
+// A Turn is one run of an agent: it delivers the agent's queued messages and
+// generates, calling tools, until a final answer, a failure or a cancellation.
+// It pauses on the tool calls only a user can settle.
+message Turn {
+  // Outcome is how a turn ended.
+  enum Outcome {
+    // Used to detect an unset field: the turn has not ended.
+    OUTCOME_UNSPECIFIED = 0;
+    // The turn ended on a final answer.
+    OUTCOME_SUCCEEDED = 1;
+    // The turn ended on an error, held in `error`.
+    OUTCOME_FAILED = 2;
+    // The turn was cancelled.
+    OUTCOME_CANCELLED = 3;
+  }
+
+  // When the turn started.
+  google.protobuf.Timestamp start_time = 1;
+
+  // When the turn ended. Unset while it runs or awaits.
+  google.protobuf.Timestamp end_time = 2;
+
+  // How the turn ended. Unset while it runs or awaits.
+  Outcome outcome = 3 [(buf.validate.field).enum.defined_only = true];
+
+  // The error the turn failed on. Set only when it failed.
+  google.rpc.Status error = 4;
+
+  // The tool calls the turn awaits a user to settle, with their resolutions
+  // until the resumed turn writes their results.
+  repeated AwaitedToolCall awaited_tool_calls = 5;
+}
+
+// An AwaitedToolCall is a tool call only a user can settle: by approving it, or
+// by supplying its result.
+message AwaitedToolCall {
+  // Reason is why the call awaits a user.
+  enum Reason {
+    // Used to detect an unset field.
+    REASON_UNSPECIFIED = 0;
+    // The call needs the user's approval before it runs: ApproveToolCall runs
+    // it, ResolveToolCall with an error result denies it.
+    REASON_APPROVAL = 1;
+    // The call renders an input component the user answers: ResolveToolCall
+    // with a result carrying the InputResponse.
+    REASON_INPUT = 2;
+  }
+
+  // Resolution is how a user settled an awaited call.
+  message Resolution {
+    // Approval approves the call: the resumed turn runs it.
+    message Approval {}
+
+    // Who settled the call.
+    string resolver = 1;
+
+    // The decision.
+    oneof decision {
+      // The call was approved.
+      Approval approval = 2;
+
+      // The call's result, supplied instead of running it: an answer, a
+      // denial, or the error a cancellation or a reply left it.
+      malonaz.ai.v1.ToolResult result = 3;
+    }
+
+    // When the resumed turn started running the approved call. A call found
+    // started without a result was interrupted.
+    google.protobuf.Timestamp start_time = 4;
+  }
+
+  // The id of the tool call.
+  string tool_call_id = 1;
+
+  // The name of the tool called.
+  string tool_name = 2;
+
+  // The title the agent gave the call.
+  string title = 3;
+
+  // Why the call awaits a user.
+  Reason reason = 4 [(buf.validate.field).enum.defined_only = true];
+
+  // How a user settled the call. Unset while it awaits.
+  Resolution resolution = 5;
+}

@@ -1,0 +1,404 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/agent/agent_service/v1/builtin_tool.proto";
+import "malonaz/ai/agent/v1/agent.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/tool.proto";
+import "malonaz/aip/v1/aip.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// Request message for AgentService.CreateAgent.
+message CreateAgentRequest {
+  option (buf.validate.message).cel = {
+    id: "create_agent.definition_or_spec"
+    message: "exactly one of agent.definition and agent.spec must be set"
+    expression: "(this.agent.definition != '') != has(this.agent.spec)"
+  };
+
+  // The user owning the agent.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
+  ];
+
+  // The agent to create: from a definition, or ad-hoc with an inline spec.
+  malonaz.ai.agent.v1.Agent agent = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the agent, which becomes the final component of its name.
+  string agent_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for AgentService.GetAgent.
+message GetAgentRequest {
+  // The agent to retrieve.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+}
+
+// Request message for AgentService.UpdateAgent.
+message UpdateAgentRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "annotations",
+      "title"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "agent.name_required"
+    message: "agent.name must be set"
+    expression: "has(this.agent.name)"
+  };
+
+  // The agent to update.
+  malonaz.ai.agent.v1.Agent agent = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AgentService.DeleteAgent.
+message DeleteAgentRequest {
+  // The agent to delete.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // If true, and the agent is not found, the request succeeds without action.
+  bool allow_missing = 2;
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 3;
+
+  // If true, the agent's sub-agents are deleted too. Otherwise the request
+  // fails if it has any.
+  bool force = 4;
+}
+
+// Request message for AgentService.UndeleteAgent.
+message UndeleteAgentRequest {
+  // The deleted agent to restore.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for AgentService.ListAgents.
+message ListAgentsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The user owning the agents. Use "organizations/{organization}/users/-" to
+  // list across users.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted agents.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of agents to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListAgents` call.
+  string page_token = 6;
+}
+
+// Response message for AgentService.ListAgents.
+message ListAgentsResponse {
+  // The agents.
+  repeated malonaz.ai.agent.v1.Agent agents = 1;
+
+  // A token to retrieve the next page. Omitted when there are no more pages.
+  string next_page_token = 2;
+}
+
+// Request message for AgentService.SearchAgents.
+message SearchAgentsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The user owning the agents. Use "organizations/{organization}/users/-" to
+  // search across users.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/User"
+  ];
+
+  // The free-text search query, over the agents' titles, labels and
+  // instructions. Results are ranked by relevance. Must contain at least one
+  // searchable term.
+  string query = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 256
+  ];
+
+  // @autogen. ANDed with the query.
+  string filter = 3;
+
+  // If true, include soft-deleted agents.
+  bool show_deleted = 4;
+
+  // Maximum number of agents to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `SearchAgents` call.
+  string page_token = 6;
+
+  // If true, highlighted snippets are computed and returned for each result.
+  bool include_snippets = 7;
+}
+
+// Response message for AgentService.SearchAgents.
+message SearchAgentsResponse {
+  // The agents matching the query, ranked by relevance.
+  repeated malonaz.ai.agent.v1.Agent agents = 1;
+
+  // Highlighted snippets, index-aligned with `agents`.
+  repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+
+  // A token to retrieve the next page. Omitted when there are no more pages.
+  string next_page_token = 3;
+}
+
+// Request message for AgentService.CancelAgent.
+message CancelAgentRequest {
+  // The agent whose running turn to cancel. Its pending messages stay queued.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+}
+
+// Request message for AgentService.StreamAgent.
+message StreamAgentRequest {
+  // The agent to stream.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // If true, also stream generation deltas and persisted messages: enough to
+  // render a chat live. Otherwise, snapshots and the tool calls' titles and
+  // ends: enough to follow a tree.
+  bool include_transcript = 2;
+
+  // If true, also stream every descendant agent, present and future: a whole
+  // tree in one stream.
+  bool include_descendants = 3;
+}
+
+// Response message for AgentService.StreamAgent: one piece of live activity.
+message StreamAgentResponse {
+  // The agent this activity is about: the streamed agent or a descendant.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string agent = 1 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"];
+
+  // The activity.
+  oneof content {
+    option (buf.validate.oneof).required = true;
+
+    // The agent's current state. Sent first for each agent, then on every
+    // change to its state, labels or title.
+    malonaz.ai.agent.v1.Agent snapshot = 2;
+
+    // A tool call the agent started, sent as soon as its title is known.
+    ToolCall tool_call = 3;
+
+    // A tool call that returned.
+    ToolCallEnded tool_call_ended = 4;
+
+    // A block delta of the message being generated. Streamed with include_transcript.
+    malonaz.ai.v1.Block delta = 5;
+
+    // A message persisted to the agent's chat. Streamed with include_transcript.
+    malonaz.ai.v1.Message message = 6;
+
+    // The generation in flight was interrupted: discard its deltas. Streamed with include_transcript.
+    GenerationReset generation_reset = 7;
+  }
+
+  // ToolCall announces a tool call.
+  message ToolCall {
+    // The id of the tool call.
+    string id = 1;
+
+    // The name of the tool called.
+    string name = 2;
+
+    // The title the agent gave the call.
+    string title = 3;
+  }
+
+  // ToolCallEnded marks a tool call's return.
+  message ToolCallEnded {
+    // The id of the tool call.
+    string id = 1;
+
+    // If true, the call returned an error.
+    bool failed = 2;
+  }
+
+  // GenerationReset discards an interrupted generation's deltas.
+  message GenerationReset {}
+}
+
+// Request message for AgentService.MessageAgent.
+message MessageAgentRequest {
+  // The agent to message.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The message, a USER message written by the caller. The service stamps its
+  // agent.ai.malonaz.com/sender annotation: a sender the caller set must name
+  // the user owning the agent.
+  malonaz.ai.v1.Message message = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for AgentService.ApproveToolCall.
+message ApproveToolCallRequest {
+  // The agent awaiting the call.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The id of the awaited tool call to approve.
+  string tool_call_id = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Request message for AgentService.ResolveToolCall.
+message ResolveToolCallRequest {
+  // The agent awaiting the call.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // The id of the awaited tool call to resolve.
+  string tool_call_id = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The call's result. For an input component, a result carrying the
+  // genui.malonaz.com/input-response annotation answering it; for a call
+  // awaiting approval, an error result denying it.
+  malonaz.ai.v1.ToolResult result = 3 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Request message for AgentService.WakeAgent: the payload of an agent's
+// schedules, one per Schedule or one-off Job.
+message WakeAgentRequest {
+  // The agent to wake.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Agent"
+  ];
+
+  // How a run wakes the agent.
+  oneof wake {
+    option (buf.validate.oneof).required = true;
+
+    // A message queued on the agent itself, from the agent: the run continues
+    // its conversation.
+    string message = 2 [(buf.validate.field).string.min_len = 1];
+
+    // A sub-agent of the agent, launched with its task as its first message:
+    // each run starts from a fresh context, and its report wakes the agent.
+    CreateAgentsToolArguments.SubAgent sub_agent = 3;
+  }
+}

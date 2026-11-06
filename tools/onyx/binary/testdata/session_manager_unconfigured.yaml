@@ -1,0 +1,6 @@
+name: test
+servers:
+  - name: d-http
+    http:
+      services:
+        - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)

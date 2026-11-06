@@ -252,7 +252,7 @@ func run(ctx context.Context) error {
 	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
 
 	// d-http
-	hService, err := hservice.New(opts.HService, bServiceClient)
+	hService, err := hservice.New(opts.HService, bServiceClient, sessionManager)
 	if err != nil {
 		return fmt.Errorf("instantiating h-service server: %w", err)
 	}
@@ -260,7 +260,8 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("starting h-service: %w", err)
 	}
-	defer hServiceCleanup()
+	hServiceStop := sync.OnceFunc(hServiceCleanup)
+	defer hServiceStop()
 	dHttpHTTPServer := http.NewServer(opts.DHttpHTTP, "d-http", func(server *http.Server) {
 		hService.RegisterRoutes(server)
 	})
@@ -288,7 +289,7 @@ func run(ctx context.Context) error {
 	go healthServer.Serve(ctx)
 	defer healthServer.Shutdown()
 	gracefulStopFns = append(gracefulStopFns, func() error {
-		lifecycle.CloseAll(dProcessorStop)
+		lifecycle.CloseAll(dProcessorStop, hServiceStop)
 		return nil
 	})
 	gracefulStopFns = append(gracefulStopFns, func() error {

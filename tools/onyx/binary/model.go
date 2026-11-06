@@ -80,15 +80,22 @@ func (s *Service) IsProcessor() bool {
 	return true
 }
 
+// StopsBeforeServers reports whether the service stops in the graceful chain ahead of every
+// server: a processor, or a service whose manifest asks to.
+func (s *Service) StopsBeforeServers() bool {
+	return s.GetStopBeforeServers() || s.IsProcessor()
+}
+
 // Dependency is one resolved constructor argument.
 type Dependency struct {
 	GRPCClient *GRPCClient
 	// The client's Operations client is passed too, right after it.
-	Operations bool
-	Store      *Store
-	Database   *Database
-	Component  *Component
-	Nats       bool
+	Operations     bool
+	Store          *Store
+	Database       *Database
+	Component      *Component
+	Nats           bool
+	SessionManager bool
 }
 
 // GRPCClient is a distinct gRPC dependency of the binary.
@@ -399,6 +406,13 @@ func (l *loader) dependency(m *onyxpb.ServiceManifest, dep *onyxpb.Dependency, s
 	case *onyxpb.Dependency_Nats_:
 		l.binary.Nats = true
 		return &Dependency{Nats: true}, nil
+
+	case *onyxpb.Dependency_SessionManager_:
+		// Interceptors are collected before any service is loaded.
+		if len(l.binary.Interceptors) == 0 {
+			return nil, fmt.Errorf("session_manager: the binary configures no interceptors, so it builds no session manager")
+		}
+		return &Dependency{SessionManager: true}, nil
 
 	case *onyxpb.Dependency_Service_:
 		target, err := manifest.ParseLabel(kind.Service.GetTarget())

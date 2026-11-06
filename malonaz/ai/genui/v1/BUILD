@@ -5,6 +5,7 @@ proto_library(
         "component.proto",
         "content.proto",
         "input.proto",
+        "options.proto",
         "resource.proto",
     ],
     additional_context = {

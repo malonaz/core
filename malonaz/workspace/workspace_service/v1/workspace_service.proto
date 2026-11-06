@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package malonaz.workspace.workspace_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/workspace_service/v1";
+
+// This API runs commands and edits files in one workspace: the directory its
+// server serves. Its methods are meant to be called as agent tools.
+service WorkspaceService {
+  option (google.api.default_host) = "workspace.malonaz.com";
+
+  // Run a bash command in the workspace and return its exit code and combined
+  // stdout and stderr. Stdin is empty: never run interactive commands. Long
+  // output keeps its head and tail only. On timeout, the command and every
+  // process it started are killed.
+  rpc Exec(ExecRequest) returns (ExecResponse) {
+    option (google.api.http) = {
+      post: "/v1/workspace:exec"
+      body: "*"
+    };
+  }
+
+  // Read one or more text files. Each file returns a bounded window of lines;
+  // a file read only in part gives the offset to read on from. A file that
+  // cannot be read reports its error in place of its content.
+  rpc ReadFiles(ReadFilesRequest) returns (ReadFilesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      post: "/v1/workspace:readFiles"
+      body: "*"
+    };
+  }
+
+  // Create a file, or overwrite it whole, creating missing parent directories.
+  // Prefer EditFile to change part of an existing file.
+  rpc WriteFile(WriteFileRequest) returns (WriteFileResponse) {
+    option (google.api.http) = {
+      post: "/v1/workspace:writeFile"
+      body: "*"
+    };
+  }
+
+  // Replace exact text in a file. old_string must match the file's content
+  // exactly, whitespace included, and occur exactly once unless replace_all is
+  // set: include enough surrounding lines to make it unique.
+  rpc EditFile(EditFileRequest) returns (EditFileResponse) {
+    option (google.api.http) = {
+      post: "/v1/workspace:editFile"
+      body: "*"
+    };
+  }
+}
+
+// Request message for WorkspaceService.Exec.
+message ExecRequest {
+  // The bash command to run.
+  string command = 1 [(buf.validate.field).required = true];
+
+  // The directory to run in, absolute or relative to the workspace. Defaults to the workspace.
+  string working_directory = 2;
+
+  // Seconds before the command is killed. Defaults to 120, at most 600.
+  int32 timeout_seconds = 3 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 600
+  }];
+}
+
+// Response message for WorkspaceService.Exec.
+message ExecResponse {
+  // The command's exit code. -1 when it was killed.
+  int32 exit_code = 1;
+
+  // The command's combined stdout and stderr, keeping its head and tail when long.
+  string output = 2;
+
+  // If true, the command timed out and was killed.
+  bool timed_out = 3;
+}
+
+// Request message for WorkspaceService.ReadFiles.
+message ReadFilesRequest {
+  // The files to read, absolute or relative to the workspace.
+  repeated string paths = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 64
+  }];
+
+  // The 1-based line to start reading at, in every file. Defaults to 1.
+  int32 offset = 2 [(buf.validate.field).int32.gte = 0];
+
+  // The most lines to read per file. Defaults to and at most 2000.
+  int32 limit = 3 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 2000
+  }];
+}
+
+// Response message for WorkspaceService.ReadFiles.
+message ReadFilesResponse {
+  // The files, in the order requested.
+  repeated File files = 1;
+
+  // File is one file's read.
+  message File {
+    // The path, as requested.
+    string path = 1;
+
+    // The lines read.
+    string content = 2;
+
+    // The line to read on from when the file was read in part. 0 once the end was reached.
+    int32 next_offset = 3;
+
+    // Why the file could not be read. Empty on success.
+    string error = 4;
+  }
+}
+
+// Request message for WorkspaceService.WriteFile.
+message WriteFileRequest {
+  // The file to write, absolute or relative to the workspace.
+  string path = 1 [(buf.validate.field).required = true];
+
+  // The file's full content.
+  string content = 2;
+}
+
+// Response message for WorkspaceService.WriteFile.
+message WriteFileResponse {}
+
+// Request message for WorkspaceService.EditFile.
+message EditFileRequest {
+  // The file to edit, absolute or relative to the workspace.
+  string path = 1 [(buf.validate.field).required = true];
+
+  // The exact text to replace.
+  string old_string = 2 [(buf.validate.field).required = true];
+
+  // The text to replace it with.
+  string new_string = 3;
+
+  // If true, replace every occurrence of old_string instead of exactly one.
+  bool replace_all = 4;
+}
+
+// Response message for WorkspaceService.EditFile.
+message EditFileResponse {
+  // The number of occurrences replaced.
+  int32 replacements = 1;
+}

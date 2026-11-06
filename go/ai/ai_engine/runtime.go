@@ -14,22 +14,16 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"google.golang.org/protobuf/types/dynamicpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	aitool "github.com/malonaz/core/go/ai/tool"
-	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
-	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 )
-
-var defaultMaxDepth = 5
 
 type Opts struct {
 	DefaultModel             string   `long:"default-model" env:"DEFAULT_MODEL" description:"The default model to use" required:"true"`
@@ -146,92 +140,9 @@ func (s *Service) CreateTool(ctx context.Context, request *pb.CreateToolRequest)
 	if err != nil {
 		return nil, err
 	}
-	schemaBuilder := pbjson.NewSchemaBuilder(schema)
-
-	var descriptorFullName protoreflect.FullName
-	var messageDescriptor protoreflect.MessageDescriptor
-	var toolName, toolDescription string
-	var annotations = map[string]string{}
-	var schemaOptions []pbjson.SchemaOption
-
-	var maxDepth = defaultMaxDepth
-	if request.GetSchemaConfiguration().GetWithMaxDepth() > 0 {
-		maxDepth = int(request.GetSchemaConfiguration().GetWithMaxDepth())
-	}
-	schemaOptions = append(schemaOptions, pbjson.WithMaxDepth(maxDepth))
-
-	switch target := request.GetDescriptorReference().GetFullName().(type) {
-	case *pb.DescriptorReference_Method:
-		descriptorFullName = protoreflect.FullName(target.Method)
-		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "finding method descriptor (%s): %v", target.Method, err).Err()
-		}
-		methodDescriptor, ok := descriptor.(protoreflect.MethodDescriptor)
-		if !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "%s is not a method", target.Method).Err()
-		}
-		messageDescriptor = methodDescriptor.Input()
-		toolName = string(methodDescriptor.Parent().Name()) + "_" + string(methodDescriptor.Name())
-		toolDescription = schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-		annotations[aipb.Annotations.ToolType.Key] = aitool.ToolTypeGenerateRPCRequest
-		annotations[aipb.Annotations.GrpcService.Key] = string(methodDescriptor.Parent().FullName())
-		annotations[aipb.Annotations.GrpcMethod.Key] = string(methodDescriptor.FullName())
-		if methodDescriptor.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS {
-			annotations[aipb.Annotations.NoSideEffect.Key] = "true"
-		}
-		if request.GetSchemaConfiguration().GetWithResponseReadMask() {
-			schemaOptions = append(schemaOptions, pbjson.WithResponseReadMask())
-		}
-		if responseSchemaMaxDepth := request.GetSchemaConfiguration().GetWithResponseSchemaMaxDepth(); responseSchemaMaxDepth > 0 {
-			schemaOptions = append(schemaOptions, pbjson.WithResponseSchemaMaxDepth(int(responseSchemaMaxDepth)))
-		}
-
-	case *pb.DescriptorReference_Message:
-		descriptorFullName = protoreflect.FullName(target.Message)
-		descriptor, err := schema.FindDescriptorByName(descriptorFullName)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "finding message descriptor (%s): %v", target.Message, err).Err()
-		}
-		var ok bool
-		messageDescriptor, ok = descriptor.(protoreflect.MessageDescriptor)
-		if !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "%s is not a message", target.Message).Err()
-		}
-		toolName = fmt.Sprintf("Generate_%s", messageDescriptor.Name())
-		toolDescription = fmt.Sprintf("Generate a %s message ", messageDescriptor.Name())
-		annotations[aipb.Annotations.ToolType.Key] = aitool.ToolTypeGenerateMessage
-
-	default:
-		return nil, status.Errorf(codes.InvalidArgument, "descriptor reference required").Err()
-	}
-
-	annotations[aipb.Annotations.ProtoMessage.Key] = string(messageDescriptor.FullName())
-
-	// Title applies to both message and method tools.
-	if titleDescription := request.GetSchemaConfiguration().GetWithTitle(); titleDescription != "" {
-		schemaOptions = append(schemaOptions, pbjson.WithTitle(titleDescription))
-	}
-
-	if len(request.GetSchemaConfiguration().GetFieldMask().GetPaths()) > 0 {
-		fieldMask := pbfieldmask.New(request.GetSchemaConfiguration().GetFieldMask())
-		message := dynamicpb.NewMessage(messageDescriptor)
-		if err := fieldMask.Validate(message); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "validating field_mask: %v", err).Err()
-		}
-		annotations[aipb.Annotations.GenerationFieldMask.Key] = fieldMask.String()
-		schemaOptions = append(schemaOptions, pbjson.WithFieldMaskPaths(fieldMask.GetPaths()...))
-	}
-	jsonSchema, err := schemaBuilder.BuildSchema(descriptorFullName, schemaOptions...)
+	tool, err := aitool.NewBuilder(schema).CreateTool(request)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "building schema: %v", err).Err()
-	}
-
-	tool := &aipb.Tool{
-		Name:        toolName,
-		Description: toolDescription,
-		JsonSchema:  jsonSchema,
-		Annotations: annotations,
+		return nil, err
 	}
 	s.toolCacheMutex.Lock()
 	s.hashToTool[hash] = tool
@@ -286,93 +197,5 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	if err != nil {
 		return nil, err
 	}
-
-	descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(request.ServiceFullName))
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "finding service descriptor (%s): %v", request.ServiceFullName, err).Err()
-	}
-	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "%s is not a service", request.ServiceFullName).Err()
-	}
-
-	// Get all service methods.
-	var serviceMethodNames []string
-	serviceMethodNameSet := make(map[string]struct{}, len(request.MethodNames))
-	{
-		methods := serviceDescriptor.Methods()
-		for i := 0; i < methods.Len(); i++ {
-			serviceMethodName := string(methods.Get(i).Name())
-			serviceMethodNames = append(serviceMethodNames, serviceMethodName)
-			serviceMethodNameSet[serviceMethodName] = struct{}{}
-		}
-	}
-
-	// If no methods are specified, use all methods.
-	if len(request.MethodNames) == 0 {
-		request.MethodNames = serviceMethodNames
-	}
-
-	// Validate arguments.
-	for methodName := range request.MethodNameToSchemaConfiguration {
-		if _, ok := serviceMethodNameSet[methodName]; !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in method_name_to_schema_configuration", methodName).Err()
-		}
-	}
-	discoveredMethodNameSet := make(map[string]struct{}, len(request.GetDiscoveredMethodNames()))
-	for _, methodName := range request.GetDiscoveredMethodNames() {
-		if _, ok := serviceMethodNameSet[methodName]; !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in discovered_method_names", methodName).Err()
-		}
-		discoveredMethodNameSet[methodName] = struct{}{}
-	}
-
-	if len(request.MethodNameToSchemaConfiguration) == 0 {
-		request.MethodNameToSchemaConfiguration = map[string]*pb.SchemaConfiguration{}
-	}
-	toolSetName := string(serviceDescriptor.FullName())
-	var tools []*aipb.Tool
-	var discoverableTools []*aipb.Tool
-	for _, methodName := range request.MethodNames {
-		schemaConfiguration := request.MethodNameToSchemaConfiguration[methodName]
-		if schemaConfiguration == nil {
-			schemaConfiguration = request.SchemaConfiguration
-		}
-		createToolRequest := &pb.CreateToolRequest{
-			DescriptorReference: &pb.DescriptorReference{
-				FullName: &pb.DescriptorReference_Method{Method: request.ServiceFullName + "." + methodName},
-			},
-			SchemaConfiguration: schemaConfiguration,
-		}
-		tool, err := s.CreateTool(ctx, createToolRequest)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "creating tool for method %s.%s: %v", request.ServiceFullName, methodName, err).Err()
-		}
-		tools = append(tools, tool)
-		aipb.Annotations.ToolSetName.Set(tool, toolSetName)
-		if _, ok := discoveredMethodNameSet[methodName]; ok {
-			// Tool is pre-discovered.
-			aipb.Annotations.DiscoverableTool.Set(tool, aip.LabelValueFalse)
-			aipb.Annotations.PreDiscoveredTool.Set(tool, aip.LabelValueTrue)
-		} else {
-			// Tool is discoverable.
-			aipb.Annotations.DiscoverableTool.Set(tool, aip.LabelValueTrue)
-			discoverableTools = append(discoverableTools, tool)
-		}
-	}
-
-	serviceComment := schema.GetComment(serviceDescriptor.FullName(), pbreflection.CommentStyleMultiline)
-	createDiscoveryToolRequest := &aitool.CreateDiscoveryToolRequest{
-		Name:        string(serviceDescriptor.Name()) + "_Discover",
-		Description: serviceComment,
-		Tools:       discoverableTools,
-	}
-	discoveryTool := aitool.CreateDiscoveryTool(createDiscoveryToolRequest)
-	aipb.Annotations.ToolSetName.Set(discoveryTool, toolSetName)
-
-	return &aipb.ToolSet{
-		Name:          toolSetName,
-		DiscoveryTool: discoveryTool,
-		Tools:         tools,
-	}, nil
+	return aitool.NewBuilder(schema).CreateServiceToolSet(request)
 }

@@ -3105,7 +3105,7 @@ var File_malonaz_ai_genui_v1_input_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd5\x04\n" +
+	"\x1fmalonaz/ai/genui/v1/input.proto\x12\x13malonaz.ai.genui.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a!malonaz/ai/genui/v1/options.proto\"\xd5\x04\n" +
 	"\rInputResponse\x12)\n" +
 	"\fcomponent_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vcomponentId\x12=\n" +
 	"\x06choice\x18\x02 \x01(\v2#.malonaz.ai.genui.v1.ChoiceResponseH\x00R\x06choice\x12M\n" +
@@ -3115,36 +3115,36 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\x0fresource_picker\x18\x06 \x01(\v2+.malonaz.ai.genui.v1.ResourcePickerResponseH\x00R\x0eresourcePicker\x12=\n" +
 	"\x06slider\x18\a \x01(\v2#.malonaz.ai.genui.v1.SliderResponseH\x00R\x06slider\x12W\n" +
 	"\x10date_time_picker\x18\b \x01(\v2+.malonaz.ai.genui.v1.DateTimePickerResponseH\x00R\x0edateTimePickerB\x11\n" +
-	"\bresponse\x12\x05\xbaH\x02\b\x01\"u\n" +
+	"\bresponse\x12\x05\xbaH\x02\b\x01\"{\n" +
 	"\x06Choice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12G\n" +
 	"\aoptions\x18\x02 \x03(\v2!.malonaz.ai.genui.v1.ChoiceOptionB\n" +
-	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions\"N\n" +
+	"\xbaH\a\x92\x01\x04\b\x02\x10\bR\aoptions:\x04\x80\x8e%\x01\"N\n" +
 	"\fChoiceOption\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"0\n" +
 	"\x0eChoiceResponse\x12\x1e\n" +
-	"\x06option\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06option\"\xb7\x01\n" +
+	"\x06option\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06option\"\xbd\x01\n" +
 	"\vMultiChoice\x12\"\n" +
 	"\bquestion\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\bquestion\x12$\n" +
 	"\aoptions\x18\x02 \x03(\tB\n" +
 	"\xbaH\a\x92\x01\x04\b\x02\x10\fR\aoptions\x12.\n" +
 	"\x0emin_selections\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\rminSelections\x12.\n" +
-	"\x0emax_selections\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\rmaxSelections\"9\n" +
+	"\x0emax_selections\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\rmaxSelections:\x04\x80\x8e%\x01\"9\n" +
 	"\x13MultiChoiceResponse\x12\"\n" +
-	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\aoptions\"\xb8\x01\n" +
+	"\aoptions\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\b\x01R\aoptions\"\xbe\x01\n" +
 	"\fConfirmation\x12\x1c\n" +
 	"\x05title\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12#\n" +
 	"\rconfirm_label\x18\x03 \x01(\tR\fconfirmLabel\x12!\n" +
 	"\fcancel_label\x18\x04 \x01(\tR\vcancelLabel\x12 \n" +
-	"\vdestructive\x18\x05 \x01(\bR\vdestructive\"4\n" +
+	"\vdestructive\x18\x05 \x01(\bR\vdestructive:\x04\x80\x8e%\x01\"4\n" +
 	"\x14ConfirmationResponse\x12\x1c\n" +
-	"\tconfirmed\x18\x01 \x01(\bR\tconfirmed\"\x81\x01\n" +
+	"\tconfirmed\x18\x01 \x01(\bR\tconfirmed\"\x87\x01\n" +
 	"\x04Form\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12!\n" +
 	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12@\n" +
-	"\x06fields\x18\x03 \x03(\v2\x1e.malonaz.ai.genui.v1.FormFieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\"U\n" +
+	"\x06fields\x18\x03 \x03(\v2\x1e.malonaz.ai.genui.v1.FormFieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields:\x04\x80\x8e%\x01\"U\n" +
 	"\fFormResponse\x12E\n" +
 	"\x06values\x18\x01 \x03(\v2#.malonaz.ai.genui.v1.FormFieldValueB\b\xbaH\x05\x92\x01\x02\b\x01R\x06values\"\xc3\x03\n" +
 	"\tFormField\x12\x16\n" +
@@ -3186,7 +3186,7 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\rFormDateInput\x12!\n" +
 	"\finclude_time\x18\x01 \x01(\bR\vincludeTime\"6\n" +
 	"\x0fFormToggleInput\x12#\n" +
-	"\rdefault_value\x18\x01 \x01(\bR\fdefaultValue\"\xc4\x01\n" +
+	"\rdefault_value\x18\x01 \x01(\bR\fdefaultValue\"\xca\x01\n" +
 	"\x0eResourcePicker\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12;\n" +
 	"\x0eresource_names\x18\x02 \x03(\tB\x14\xfaA\x03\n" +
@@ -3195,24 +3195,24 @@ const file_malonaz_ai_genui_v1_input_proto_rawDesc = "" +
 	"\n" +
 	"allow_none\x18\x04 \x01(\bR\tallowNone\x12\x1d\n" +
 	"\n" +
-	"none_label\x18\x05 \x01(\tR\tnoneLabel\"g\n" +
+	"none_label\x18\x05 \x01(\tR\tnoneLabel:\x04\x80\x8e%\x01\"g\n" +
 	"\x16ResourcePickerResponse\x129\n" +
 	"\x0eresource_names\x18\x01 \x03(\tB\x12\xfaA\x03\n" +
 	"\x01*\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01R\rresourceNames\x12\x12\n" +
-	"\x04none\x18\x02 \x01(\bR\x04none\"n\n" +
+	"\x04none\x18\x02 \x01(\bR\x04none\"t\n" +
 	"\x06Slider\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12\x10\n" +
 	"\x03min\x18\x02 \x01(\x01R\x03min\x12\x10\n" +
 	"\x03max\x18\x03 \x01(\x01R\x03max\x12\"\n" +
-	"\x04step\x18\x04 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00R\x04step\"&\n" +
+	"\x04step\x18\x04 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00R\x04step:\x04\x80\x8e%\x01\"&\n" +
 	"\x0eSliderResponse\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\x01R\x05value\"\xd5\x01\n" +
+	"\x05value\x18\x01 \x01(\x01R\x05value\"\xdb\x01\n" +
 	"\x0eDateTimePicker\x12\x1c\n" +
 	"\x05label\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05label\x12!\n" +
 	"\finclude_time\x18\x02 \x01(\bR\vincludeTime\x125\n" +
 	"\bmin_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aminTime\x125\n" +
 	"\bmax_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\amaxTime\x12\x14\n" +
-	"\x05range\x18\x05 \x01(\bR\x05range\"\x87\x01\n" +
+	"\x05range\x18\x05 \x01(\bR\x05range:\x04\x80\x8e%\x01\"\x87\x01\n" +
 	"\x16DateTimePickerResponse\x126\n" +
 	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampB\x06\xbaH\x03\xc8\x01\x01R\x04time\x125\n" +
 	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTimeB.Z,github.com/malonaz/core/genproto/ai/genui/v1b\x06proto3"
@@ -3279,6 +3279,7 @@ func file_malonaz_ai_genui_v1_input_proto_init() {
 	if File_malonaz_ai_genui_v1_input_proto != nil {
 		return
 	}
+	file_malonaz_ai_genui_v1_options_proto_init()
 	file_malonaz_ai_genui_v1_input_proto_msgTypes[0].OneofWrappers = []any{
 		(*InputResponse_Choice)(nil),
 		(*InputResponse_MultiChoice)(nil),

@@ -159,16 +159,24 @@ func SearchFieldExpression(message *protogen.Message, path, columnPrefix string)
 	}
 	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
 	if len(segments) == 1 {
+		fieldOpts, err := pbutil.GetExtension[*modelpb.FieldOpts](terminal.Desc.Options(), modelpb.E_FieldOpts)
+		if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
+			return "", fmt.Errorf("getting field opts for %s: %w", path, err)
+		}
+		if isJSONColumn(terminal, fieldOpts) {
+			return jsonStringLeaves(column), nil
+		}
 		return searchFieldBase(message, path, columnPrefix)
 	}
 	if terminal.Message != nil || terminal.Desc.IsList() {
-		// String leaves of the JSON subtree, space-joined.
-		return fmt.Sprintf(
-			`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s #> '{%s}', 'strict $.** ? (@.type() == "string")') AS j), '')`,
-			column, strings.Join(segments[1:], ","),
-		), nil
+		return jsonStringLeaves(fmt.Sprintf("%s #> '{%s}'", column, strings.Join(segments[1:], ","))), nil
 	}
 	return searchFieldBase(message, path, columnPrefix)
+}
+
+// jsonStringLeaves returns the string leaves of a JSONB value, space-joined.
+func jsonStringLeaves(value string) string {
+	return fmt.Sprintf(`coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(%s, 'strict $.** ? (@.type() == "string")') AS j), '')`, value)
 }
 
 // resolveSearchField walks a search field path and returns its terminal
@@ -217,8 +225,12 @@ func searchFieldBase(message *protogen.Message, path, columnPrefix string) (stri
 
 	column := columnPrefix + xstrings.ToSnakeCase(segments[0])
 	if len(segments) == 1 {
+		if isJSONColumn(field, fieldOpts) {
+			// A map or message stored as JSONB: its whole JSON text, keys included, as a message terminal below.
+			return fmt.Sprintf("coalesce(%s #>> '{}', '')", column), nil
+		}
 		if field.Desc.Kind() != protoreflect.StringKind || field.Desc.IsMap() {
-			return "", fmt.Errorf("search field %q on %s must be a string or repeated string", path, message.GoIdent.GoName)
+			return "", fmt.Errorf("search field %q on %s must be a string, repeated string, or map or message with as_json_bytes = true", path, message.GoIdent.GoName)
 		}
 		// Base text: the raw column, arrays joined on spaces, nulls coalesced away.
 		if field.Desc.IsList() {
@@ -259,6 +271,11 @@ func searchFieldBase(message *protogen.Message, path, columnPrefix string) (stri
 		}
 	}
 	return fmt.Sprintf("coalesce(%s #>> '{%s}', '')", column, strings.Join(segments[1:], ",")), nil
+}
+
+// isJSONColumn reports whether a field is a map or message stored as JSONB.
+func isJSONColumn(field *protogen.Field, fieldOpts *modelpb.FieldOpts) bool {
+	return fieldOpts.GetAsJsonBytes() && (field.Desc.IsMap() || field.Message != nil)
 }
 
 // resourceIDColumn resolves the column holding the resource ID, the last

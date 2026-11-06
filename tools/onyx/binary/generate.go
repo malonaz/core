@@ -161,7 +161,7 @@ func (g *generator) generate() {
 	g.P("var stopFns []func() error")
 
 	started := map[*Service]bool{}
-	var processors []*Service
+	var earlyStops []*Service
 	for _, server := range g.b.Servers {
 		g.P()
 		g.P("// ", server.GetName())
@@ -169,8 +169,8 @@ func (g *generator) generate() {
 			if !started[service] {
 				started[service] = true
 				g.service(service)
-				if service.IsProcessor() {
-					processors = append(processors, service)
+				if service.StopsBeforeServers() {
+					earlyStops = append(earlyStops, service)
 				}
 			}
 		}
@@ -189,12 +189,12 @@ func (g *generator) generate() {
 	g.P()
 	g.P("go healthServer.Serve(ctx)")
 	g.P("defer healthServer.Shutdown()")
-	// Processors pull work, so they stop ahead of every server, whatever their declaration order:
-	// a server's graceful stop can wait on long-lived streams while a processor keeps pulling.
-	// Together, as each stop waits on its own drain.
-	if len(processors) > 0 {
-		stops := make([]string, len(processors))
-		for i, s := range processors {
+	// Processors and stop_before_servers services stop ahead of every server, whatever their
+	// declaration order: a server's graceful stop can wait on long-lived streams while they still
+	// need the servers. Together, as each stop waits on its own drain.
+	if len(earlyStops) > 0 {
+		stops := make([]string, len(earlyStops))
+		for i, s := range earlyStops {
 			stops[i] = serviceVar(s) + "Stop"
 		}
 		g.P("gracefulStopFns = append(gracefulStopFns, func() error {")
@@ -466,6 +466,8 @@ func (g *generator) service(s *Service) {
 			args = append(args, componentVar(dep.Component))
 		case dep.Nats:
 			args = append(args, "natsClient")
+		case dep.SessionManager:
+			args = append(args, "sessionManager")
 		}
 	}
 	g.P(v, ", err := ", g.Qual(s.Target.GoImportPath(g.b.GoImportPath), "New"), "(", strings.Join(args, ", "), ")")
@@ -476,7 +478,7 @@ func (g *generator) service(s *Service) {
 	g.P("if err != nil {")
 	g.P("return ", fmt_, `.Errorf("starting `, s.GetName(), `: %w", err)`)
 	g.P("}")
-	if !s.IsProcessor() {
+	if !s.StopsBeforeServers() {
 		g.P("defer ", v, "Cleanup()")
 		return
 	}

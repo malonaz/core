@@ -1,0 +1,28 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "agent.pb.go",
+        "agent_aip.pb.go",
+        "annotations.pb.go",
+        "annotations_aip.pb.go",
+        "definition.pb.go",
+        "definition_aip.pb.go",
+        "labels.pb.go",
+        "labels_aip.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/aip",
+        "//malonaz/ai/v1",
+        "//malonaz/authentication/v1",
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/model/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__rpc__status",
+        "//third_party/proto:validate",
+    ],
+)

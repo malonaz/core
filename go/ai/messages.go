@@ -10,6 +10,10 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 )
 
+// HistoryFilter is the AIP-160 filter of the messages of a chat making up its conversation history: those neither
+// failed nor superseded.
+var HistoryFilter = fmt.Sprintf("-status:* AND -labels.%q:*", aipb.Labels.Superseded.GetKey())
+
 type BlockType int
 
 const (

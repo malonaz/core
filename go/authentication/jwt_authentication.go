@@ -165,6 +165,12 @@ func (i *JwtAuthenticationInterceptor) verifyJwt(ctx context.Context, rawToken s
 		return nil, status.Errorf(codes.Internal, "unmarshaling JWT claims into struct: %v", err).Err()
 	}
 
+	// Read off the raw claims: a rewrite never hides who acts.
+	var delegation *authenticationpb.Delegation
+	if actor := claims.GetFields()[actorClaim].GetStructValue().GetFields()["sub"].GetStringValue(); actor != "" {
+		delegation = &authenticationpb.Delegation{Actor: actor}
+	}
+
 	if jwtIssuer.claimsRewriteProgram != nil {
 		output, _, err := jwtIssuer.claimsRewriteProgram.Eval(map[string]any{"claims": claims.AsMap()})
 		if err != nil {
@@ -197,7 +203,8 @@ func (i *JwtAuthenticationInterceptor) verifyJwt(ctx context.Context, rawToken s
 				IssuerId: jwtIssuer.config.Id,
 			},
 		},
-		Metadata: sessionMetadata,
+		Metadata:   sessionMetadata,
+		Delegation: delegation,
 	}
 
 	signedSession, err := i.sessionManager.sign(session)

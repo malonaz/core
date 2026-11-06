@@ -37,9 +37,13 @@ type ServiceManifest struct {
 	// Generated servers the Service embeds.
 	Codegens []*Codegen `protobuf:"bytes,5,rep,name=codegens,proto3" json:"codegens,omitempty"`
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
-	Dependencies  []*Dependency `protobuf:"bytes,6,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Dependencies []*Dependency `protobuf:"bytes,6,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
+	// Stop the service in the binary's graceful chain ahead of every server, with the processors,
+	// rather than after the servers' graceful stops: for a service whose stop releases work that
+	// still needs the servers, or ends streams that would hold their graceful stop.
+	StopBeforeServers bool `protobuf:"varint,7,opt,name=stop_before_servers,json=stopBeforeServers,proto3" json:"stop_before_servers,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ServiceManifest) Reset() {
@@ -109,6 +113,13 @@ func (x *ServiceManifest) GetDependencies() []*Dependency {
 	return nil
 }
 
+func (x *ServiceManifest) GetStopBeforeServers() bool {
+	if x != nil {
+		return x.StopBeforeServers
+	}
+	return false
+}
+
 func (x *ServiceManifest) SetName(v string) {
 	x.Name = v
 }
@@ -133,6 +144,10 @@ func (x *ServiceManifest) SetDependencies(v []*Dependency) {
 	x.Dependencies = v
 }
 
+func (x *ServiceManifest) SetStopBeforeServers(v bool) {
+	x.StopBeforeServers = v
+}
+
 type ServiceManifest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -148,6 +163,10 @@ type ServiceManifest_builder struct {
 	Codegens []*Codegen
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
+	// Stop the service in the binary's graceful chain ahead of every server, with the processors,
+	// rather than after the servers' graceful stops: for a service whose stop releases work that
+	// still needs the servers, or ends streams that would hold their graceful stop.
+	StopBeforeServers bool
 }
 
 func (b0 ServiceManifest_builder) Build() *ServiceManifest {
@@ -160,6 +179,7 @@ func (b0 ServiceManifest_builder) Build() *ServiceManifest {
 	x.ExportServiceFields = b.ExportServiceFields
 	x.Codegens = b.Codegens
 	x.Dependencies = b.Dependencies
+	x.StopBeforeServers = b.StopBeforeServers
 	return m0
 }
 
@@ -319,6 +339,7 @@ type Dependency struct {
 	//	*Dependency_PostgresClient_
 	//	*Dependency_Nats_
 	//	*Dependency_Service_
+	//	*Dependency_SessionManager_
 	Kind          isDependency_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -401,6 +422,15 @@ func (x *Dependency) GetService() *Dependency_Service {
 	return nil
 }
 
+func (x *Dependency) GetSessionManager() *Dependency_SessionManager {
+	if x != nil {
+		if x, ok := x.Kind.(*Dependency_SessionManager_); ok {
+			return x.SessionManager
+		}
+	}
+	return nil
+}
+
 func (x *Dependency) SetGrpcClient(v *Dependency_GrpcClient) {
 	if v == nil {
 		x.Kind = nil
@@ -439,6 +469,14 @@ func (x *Dependency) SetService(v *Dependency_Service) {
 		return
 	}
 	x.Kind = &Dependency_Service_{v}
+}
+
+func (x *Dependency) SetSessionManager(v *Dependency_SessionManager) {
+	if v == nil {
+		x.Kind = nil
+		return
+	}
+	x.Kind = &Dependency_SessionManager_{v}
 }
 
 func (x *Dependency) HasKind() bool {
@@ -488,6 +526,14 @@ func (x *Dependency) HasService() bool {
 	return ok
 }
 
+func (x *Dependency) HasSessionManager() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Kind.(*Dependency_SessionManager_)
+	return ok
+}
+
 func (x *Dependency) ClearKind() {
 	x.Kind = nil
 }
@@ -522,12 +568,19 @@ func (x *Dependency) ClearService() {
 	}
 }
 
+func (x *Dependency) ClearSessionManager() {
+	if _, ok := x.Kind.(*Dependency_SessionManager_); ok {
+		x.Kind = nil
+	}
+}
+
 const Dependency_Kind_not_set_case case_Dependency_Kind = 0
 const Dependency_GrpcClient_case case_Dependency_Kind = 1
 const Dependency_PostgresDbClient_case case_Dependency_Kind = 2
 const Dependency_PostgresClient_case case_Dependency_Kind = 3
 const Dependency_Nats_case case_Dependency_Kind = 4
 const Dependency_Service_case case_Dependency_Kind = 5
+const Dependency_SessionManager_case case_Dependency_Kind = 6
 
 func (x *Dependency) WhichKind() case_Dependency_Kind {
 	if x == nil {
@@ -544,6 +597,8 @@ func (x *Dependency) WhichKind() case_Dependency_Kind {
 		return Dependency_Nats_case
 	case *Dependency_Service_:
 		return Dependency_Service_case
+	case *Dependency_SessionManager_:
+		return Dependency_SessionManager_case
 	default:
 		return Dependency_Kind_not_set_case
 	}
@@ -565,6 +620,8 @@ type Dependency_builder struct {
 	Nats *Dependency_Nats
 	// A plain Go component.
 	Service *Dependency_Service
+	// The binary's session manager.
+	SessionManager *Dependency_SessionManager
 	// -- end of Kind
 }
 
@@ -586,6 +643,9 @@ func (b0 Dependency_builder) Build() *Dependency {
 	}
 	if b.Service != nil {
 		x.Kind = &Dependency_Service_{b.Service}
+	}
+	if b.SessionManager != nil {
+		x.Kind = &Dependency_SessionManager_{b.SessionManager}
 	}
 	return m0
 }
@@ -629,6 +689,11 @@ type Dependency_Service_ struct {
 	Service *Dependency_Service `protobuf:"bytes,5,opt,name=service,proto3,oneof"`
 }
 
+type Dependency_SessionManager_ struct {
+	// The binary's session manager.
+	SessionManager *Dependency_SessionManager `protobuf:"bytes,6,opt,name=session_manager,json=sessionManager,proto3,oneof"`
+}
+
 func (*Dependency_GrpcClient_) isDependency_Kind() {}
 
 func (*Dependency_PostgresDbClient_) isDependency_Kind() {}
@@ -638,6 +703,8 @@ func (*Dependency_PostgresClient_) isDependency_Kind() {}
 func (*Dependency_Nats_) isDependency_Kind() {}
 
 func (*Dependency_Service_) isDependency_Kind() {}
+
+func (*Dependency_SessionManager_) isDependency_Kind() {}
 
 // A gRPC server generated by protoc-gen-core's rpc plugin over a store.
 type Codegen_Rpc struct {
@@ -1094,6 +1161,51 @@ func (b0 Dependency_Nats_builder) Build() *Dependency_Nats {
 	return m0
 }
 
+// The binary's session manager, signing and verifying sessions with its shared secret. The
+// binary must configure interceptors.
+type Dependency_SessionManager struct {
+	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Dependency_SessionManager) Reset() {
+	*x = Dependency_SessionManager{}
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Dependency_SessionManager) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Dependency_SessionManager) ProtoMessage() {}
+
+func (x *Dependency_SessionManager) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+type Dependency_SessionManager_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 Dependency_SessionManager_builder) Build() *Dependency_SessionManager {
+	m0 := &Dependency_SessionManager{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
+}
+
 // A plain Go component built from its own Opts and shared by every service in the binary.
 type Dependency_Service struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -1107,7 +1219,7 @@ type Dependency_Service struct {
 
 func (x *Dependency_Service) Reset() {
 	*x = Dependency_Service{}
-	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[8]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1119,7 +1231,7 @@ func (x *Dependency_Service) String() string {
 func (*Dependency_Service) ProtoMessage() {}
 
 func (x *Dependency_Service) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[8]
+	mi := &file_malonaz_onyx_v1_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1174,14 +1286,15 @@ var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xbb\x02\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xeb\x02\n" +
 	"\x0fServiceManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12'\n" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8d\x02\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12.\n" +
+	"\x13stop_before_servers\x18\a \x01(\bR\x11stopBeforeServers\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
 	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
 	"\x03Rpc\x123\n" +
@@ -1190,7 +1303,7 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x06target\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12\x12\n" +
 	"\x04nats\x18\x04 \x01(\bR\x04nats\x12 \n" +
 	"\vlongrunning\x18\x05 \x01(\bR\vlongrunningB\r\n" +
-	"\x04kind\x12\x05\xbaH\x02\b\x01\"\xc4\a\n" +
+	"\x04kind\x12\x05\xbaH\x02\b\x01\"\xad\b\n" +
 	"\n" +
 	"Dependency\x12I\n" +
 	"\vgrpc_client\x18\x01 \x01(\v2&.malonaz.onyx.v1.Dependency.GrpcClientH\x00R\n" +
@@ -1198,7 +1311,8 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x12postgres_db_client\x18\x02 \x01(\v2,.malonaz.onyx.v1.Dependency.PostgresDbClientH\x00R\x10postgresDbClient\x12U\n" +
 	"\x0fpostgres_client\x18\x03 \x01(\v2*.malonaz.onyx.v1.Dependency.PostgresClientH\x00R\x0epostgresClient\x126\n" +
 	"\x04nats\x18\x04 \x01(\v2 .malonaz.onyx.v1.Dependency.NatsH\x00R\x04nats\x12?\n" +
-	"\aservice\x18\x05 \x01(\v2#.malonaz.onyx.v1.Dependency.ServiceH\x00R\aservice\x1a\xbe\x01\n" +
+	"\aservice\x18\x05 \x01(\v2#.malonaz.onyx.v1.Dependency.ServiceH\x00R\aservice\x12U\n" +
+	"\x0fsession_manager\x18\x06 \x01(\v2*.malonaz.onyx.v1.Dependency.SessionManagerH\x00R\x0esessionManager\x1a\xbe\x01\n" +
 	"\n" +
 	"GrpcClient\x12\x1d\n" +
 	"\x05proto\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05proto\x129\n" +
@@ -1214,13 +1328,14 @@ const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\x0ePostgresClient\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xbaH\x11r\x0f2\r^[a-z0-9_-]+$R\x04name\x123\n" +
 	"\bdatabase\x18\x02 \x01(\tB\x17\xbaH\x14\xd8\x01\x01r\x0f2\r^[a-z0-9_-]+$R\bdatabase\x1a\x06\n" +
-	"\x04Nats\x1a_\n" +
+	"\x04Nats\x1a\x10\n" +
+	"\x0eSessionManager\x1a_\n" +
 	"\aService\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06targetB\r\n" +
 	"\x04kind\x12\x05\xbaH\x02\b\x01B*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
 
-var file_malonaz_onyx_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_malonaz_onyx_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_onyx_v1_service_proto_goTypes = []any{
 	(*ServiceManifest)(nil),             // 0: malonaz.onyx.v1.ServiceManifest
 	(*Codegen)(nil),                     // 1: malonaz.onyx.v1.Codegen
@@ -1230,7 +1345,8 @@ var file_malonaz_onyx_v1_service_proto_goTypes = []any{
 	(*Dependency_PostgresDbClient)(nil), // 5: malonaz.onyx.v1.Dependency.PostgresDbClient
 	(*Dependency_PostgresClient)(nil),   // 6: malonaz.onyx.v1.Dependency.PostgresClient
 	(*Dependency_Nats)(nil),             // 7: malonaz.onyx.v1.Dependency.Nats
-	(*Dependency_Service)(nil),          // 8: malonaz.onyx.v1.Dependency.Service
+	(*Dependency_SessionManager)(nil),   // 8: malonaz.onyx.v1.Dependency.SessionManager
+	(*Dependency_Service)(nil),          // 9: malonaz.onyx.v1.Dependency.Service
 }
 var file_malonaz_onyx_v1_service_proto_depIdxs = []int32{
 	1, // 0: malonaz.onyx.v1.ServiceManifest.codegens:type_name -> malonaz.onyx.v1.Codegen
@@ -1240,12 +1356,13 @@ var file_malonaz_onyx_v1_service_proto_depIdxs = []int32{
 	5, // 4: malonaz.onyx.v1.Dependency.postgres_db_client:type_name -> malonaz.onyx.v1.Dependency.PostgresDbClient
 	6, // 5: malonaz.onyx.v1.Dependency.postgres_client:type_name -> malonaz.onyx.v1.Dependency.PostgresClient
 	7, // 6: malonaz.onyx.v1.Dependency.nats:type_name -> malonaz.onyx.v1.Dependency.Nats
-	8, // 7: malonaz.onyx.v1.Dependency.service:type_name -> malonaz.onyx.v1.Dependency.Service
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	9, // 7: malonaz.onyx.v1.Dependency.service:type_name -> malonaz.onyx.v1.Dependency.Service
+	8, // 8: malonaz.onyx.v1.Dependency.session_manager:type_name -> malonaz.onyx.v1.Dependency.SessionManager
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_onyx_v1_service_proto_init() }
@@ -1262,6 +1379,7 @@ func file_malonaz_onyx_v1_service_proto_init() {
 		(*Dependency_PostgresClient_)(nil),
 		(*Dependency_Nats_)(nil),
 		(*Dependency_Service_)(nil),
+		(*Dependency_SessionManager_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1269,7 +1387,7 @@ func file_malonaz_onyx_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_service_proto_rawDesc), len(file_malonaz_onyx_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

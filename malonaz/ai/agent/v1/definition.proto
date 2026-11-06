@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
+option (google.api.resource_definition) = {
+  type: "agent.ai.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+
+// A Definition is a reusable agent blueprint: what an agent is told, which
+// model it runs on and which tools it holds. Agents
+// snapshot their definition's spec at creation, so editing a definition never
+// changes a running agent.
+message Definition {
+  option (google.api.resource) = {
+    type: "agent.ai.malonaz.com/Definition"
+    pattern: "organizations/{organization}/definitions/{definition}"
+    singular: "definition"
+    plural: "definitions"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "52df68c3-048c-4b78-a12f-6056650a0113";
+
+  // The resource name of the definition.
+  // Format: organizations/{organization}/definitions/{definition}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the definition.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the definition.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the definition. Set when soft-deleted.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 5;
+
+  // The labels on this definition.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A human-readable title for this definition.
+  string title = 7 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 128
+  ];
+
+  // What this definition is for, shown when picking one.
+  string description = 8 [(buf.validate.field).string.max_len = 2048];
+
+  // The spec every agent created from this definition snapshots.
+  AgentSpec spec = 9 [
+    (buf.validate.field).required = true,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
+}
+
+// An AgentSpec is how an agent behaves: shared by a
+// [Definition][malonaz.ai.agent.v1.Definition] and the snapshot carried by
+// each [Agent][malonaz.ai.agent.v1.Agent].
+message AgentSpec {
+  option (buf.validate.message).cel = {
+    id: "agent_spec.unique_tools"
+    message: "tools must be unique by name"
+    expression: "this.tools.all(tool, this.tools.filter(other, other.name == tool.name).size() == 1)"
+  };
+
+  // The system prompt the agent runs under.
+  string instructions = 1 [(buf.validate.field).string.max_len = 262144];
+
+  // The model the agent generates with.
+  // Format: providers/{provider}/models/{model}
+  string model = 2 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // The reasoning effort the agent generates with.
+  malonaz.ai.v1.ReasoningEffort reasoning_effort = 3 [(buf.validate.field).enum.defined_only = true];
+
+  // The tools the agent may call. Built-in agent tools (launching sub-agents,
+  // messaging its tree, labelling itself) are always available.
+  repeated Tool tools = 4 [(buf.validate.field).repeated.max_items = 256];
+
+  // The definitions this agent may launch sub-agents from. Empty allows ad-hoc
+  // sub-agents only, carrying an inline spec.
+  // Format: organizations/{organization}/definitions/{definition}
+  repeated string sub_agent_definitions = 5 [
+    (buf.validate.field).repeated.unique = true,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Definition"
+  ];
+
+  // How many levels of sub-agents below it the agent may launch: 0 may not
+  // launch any. A sub-agent's is at most its parent's less one.
+  int32 max_sub_agent_depth = 6 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 8
+  }];
+
+  // A Tool is a tool an agent may call.
+  message Tool {
+    // Approval is when a call to the tool awaits the user's approval.
+    enum Approval {
+      // Calls to methods without side effects (idempotency_level
+      // NO_SIDE_EFFECTS) run, any other awaits approval.
+      APPROVAL_UNSPECIFIED = 0;
+      // Every call awaits approval.
+      APPROVAL_REQUIRED = 1;
+      // No call awaits approval.
+      APPROVAL_NOT_REQUIRED = 2;
+    }
+
+    // The tool: a gRPC method by full name ("pkg.Service.Method"), every method
+    // of a service ("pkg.Service"), or a genui component by message full name
+    // ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
+    // input components await the user's answer.
+    string name = 1 [(buf.validate.field).string.pattern = "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$"];
+
+    // When calls to the tool await the user's approval. Ignored for genui
+    // components.
+    Approval approval = 2 [(buf.validate.field).enum.defined_only = true];
+  }
+}
