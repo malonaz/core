@@ -61,3 +61,18 @@ func (m *JwtMinter) MintJwt(opts MintJwtOpts) (string, error) {
 	}
 	return string(signed), nil
 }
+
+// actorClaim names the actor of a delegated token, as RFC 8693 (section 4.1) defines it: {"act": {"sub": actor}}.
+const actorClaim = "act"
+
+// MintDelegatedJwt mints a token for an actor acting on behalf of a subject, the principal, for a lifetime.
+func (m *JwtMinter) MintDelegatedJwt(subject, actor string, lifetime time.Duration) (string, error) {
+	if subject == "" || actor == "" {
+		return "", fmt.Errorf("a delegated JWT requires a subject and an actor")
+	}
+	return m.MintJwt(MintJwtOpts{
+		Subject:  subject,
+		Lifetime: lifetime,
+		Claims:   map[string]any{actorClaim: map[string]any{"sub": actor}},
+	})
+}

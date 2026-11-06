@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -13,10 +14,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v1"
 	"github.com/malonaz/core/go/grpc/middleware"
 	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/uuid"
 )
 
 const (
@@ -52,21 +55,22 @@ func GetSession(ctx context.Context) (*authenticationpb.Session, error) {
 	return signedSession.Session, nil
 }
 
-// verifySession checks if a session has a valid signature.
-func (s *SessionManager) verify(signedSession *authenticationpb.SignedSession) (bool, error) {
-	// Marshal the session copy
+// verify checks that a signed session is authentic and not expired.
+func (s *SessionManager) verify(signedSession *authenticationpb.SignedSession) error {
 	data, err := pbutil.MarshalDeterministic(signedSession.Session)
 	if err != nil {
-		return false, fmt.Errorf("marshaling session: %w", err)
+		return status.Errorf(codes.Internal, "marshaling session: %v", err)
 	}
-
-	// Compute expected HMAC
 	h := hmac.New(sha256.New, s.secretBytes)
 	h.Write(data)
-	expectedSig := h.Sum(nil)
-
-	// Constant-time comparison
-	return hmac.Equal(signedSession.Signature, expectedSig), nil
+	// Constant-time comparison.
+	if !hmac.Equal(signedSession.Signature, h.Sum(nil)) {
+		return status.Errorf(codes.Unauthenticated, "invalid session signature")
+	}
+	if expireTime := signedSession.Session.GetExpireTime(); expireTime != nil && !time.Now().Before(expireTime.AsTime()) {
+		return status.Errorf(codes.Unauthenticated, "session expired at %s", expireTime.AsTime().Format(time.RFC3339))
+	}
+	return nil
 }
 
 // signSession signs a session with HMAC-SHA256
@@ -86,6 +90,40 @@ func (s *SessionManager) sign(session *authenticationpb.Session) (*authenticatio
 		Session:   session,
 		Signature: h.Sum(nil),
 	}, nil
+}
+
+// Delegate returns a context whose outgoing calls act as a principal on behalf of an actor, for a lifetime. Its
+// outgoing metadata is replaced by the signed delegated session alone, so no other credential rides along. The
+// session is never authorized: the service it reaches checks the principal's permissions and the restrictions on
+// actors.
+func (s *SessionManager) Delegate(
+	ctx context.Context, principal *authenticationpb.Identity, actor string, lifetime time.Duration,
+) (context.Context, error) {
+	if actor == "" {
+		return nil, fmt.Errorf("delegating requires an actor")
+	}
+	if lifetime <= 0 {
+		return nil, fmt.Errorf("delegating requires a positive lifetime, got %s", lifetime)
+	}
+	now := time.Now()
+	session := &authenticationpb.Session{
+		Id:         uuid.MustNewV7().String(),
+		CreateTime: timestamppb.New(now),
+		Delegation: &authenticationpb.Delegation{Actor: actor},
+		ExpireTime: timestamppb.New(now.Add(lifetime)),
+	}
+	if err := setIdentity(session, principal); err != nil {
+		return nil, fmt.Errorf("delegating: %w", err)
+	}
+	signedSession, err := s.sign(session)
+	if err != nil {
+		return nil, fmt.Errorf("signing delegated session: %w", err)
+	}
+	bytes, err := pbutil.MarshalDeterministic(signedSession)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling delegated session: %w", err)
+	}
+	return metadata.NewOutgoingContext(ctx, metadata.Pairs(metadataKeySignedSession, string(bytes))), nil
 }
 
 // injectSession into local context.
@@ -237,6 +275,9 @@ func (s *SessionManager) injectSessionFieldsIntoLogContext(ctx context.Context) 
 	// Add basic session fields (only non-zero values)
 	if session.Authorized {
 		fields = append(fields, "authorized", session.Authorized)
+	}
+	if actor := session.GetDelegation().GetActor(); actor != "" {
+		fields = append(fields, "actor", actor)
 	}
 	if ipAddr := session.GetMetadata().GetIpAddress(); ipAddr != "" {
 		fields = append(fields, "ip_address", ipAddr)
