@@ -2,18 +2,18 @@
 // @generated from file malonaz/authentication/v1/authentication.proto (package malonaz.authentication.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenExtension, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, extDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { MethodOptions, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/authentication/v1/authentication.proto.
  */
 export const file_malonaz_authentication_v1_authentication: GenFile = /*@__PURE__*/
-  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIqYDChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBEjkKC2p3dF9pc3N1ZXJzGAQgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIiUQoQSnd0Q29uZmlndXJhdGlvbhI9Cgdpc3N1ZXJzGAEgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXJCBrpIA8gBASLZAgoJSnd0SXNzdWVyEhIKAmlkGAEgASgJQga6SAPIAQESFgoGaXNzdWVyGAIgASgJQga6SAPIAQESGAoIYXVkaWVuY2UYAyABKAlCBrpIA8gBARISCghqd2tzX3VyaRgEIAEoCUgAEhcKDXN5bW1ldHJpY19rZXkYBSABKAlIABIaChJjbGFpbXNfcmV3cml0ZV9jZWwYBiABKAkSZwobbWV0aG9kX3RvX2F1dGhvcml6YXRpb25fY2VsGAcgAygLMkIubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXIuTWV0aG9kVG9BdXRob3JpemF0aW9uQ2VsRW50cnkaPwodTWV0aG9kVG9BdXRob3JpemF0aW9uQ2VsRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUITCgprZXlfc291cmNlEgW6SAIIASJqChtTZXJ2aWNlQWNjb3VudENvbmZpZ3VyYXRpb24SSwoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCBrpIA8gBASKtAwoOU2VydmljZUFjY291bnQSEgoCaWQYASABKAlCBrpIA8gBARJHCgR0eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAASGgoIcm9sZV9pZHMYAyADKAlCCLpIBZIBAhgBEh0KC3Blcm1pc3Npb25zGAQgAygJQgi6SAWSAQIYARLTAQoGbGFiZWxzGAUgAygLMjUubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudC5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJmCgRSb2xlEgoKAmlkGAEgASgJEh0KC3Blcm1pc3Npb25zGAIgAygJQgi6SAWSAQIYARIkChJpbmhlcml0ZWRfcm9sZV9pZHMYAyADKAlCCLpIBZIBAhgBEg0KBXNjb3BlGAQgASgJIlcKDVNpZ25lZFNlc3Npb24SMwoHc2Vzc2lvbhgBIAEoCzIiLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbhIRCglzaWduYXR1cmUYAiABKAwihQUKB1Nlc3Npb24SCgoCaWQYASABKAkSLwoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEj4KDGp3dF9pZGVudGl0eRgDIAEoCzImLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SWRlbnRpdHlIABJVChhzZXJ2aWNlX2FjY291bnRfaWRlbnRpdHkYBCABKAsyMS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50SWRlbnRpdHlIABJKChJhbm9ueW1vdXNfaWRlbnRpdHkYCCABKAsyLC5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkFub255bW91c0lkZW50aXR5SAASEgoKYXV0aG9yaXplZBgFIAEoCBLMAQoGbGFiZWxzGAYgAygLMi4ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXNzaW9uLkxhYmVsc0VudHJ5QosBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJBI8CghtZXRhZGF0YRgHIAEoCzIqLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbk1ldGFkYXRhGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFCCgoIaWRlbnRpdHkiEwoRQW5vbnltb3VzSWRlbnRpdHkiSQoLSnd0SWRlbnRpdHkSEQoJaXNzdWVyX2lkGAEgASgJEicKBmNsYWltcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QijQEKFlNlcnZpY2VBY2NvdW50SWRlbnRpdHkSGgoSc2VydmljZV9hY2NvdW50X2lkGAEgASgJElcKFHNlcnZpY2VfYWNjb3VudF90eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAAirQEKD1Nlc3Npb25NZXRhZGF0YRISCgppcF9hZGRyZXNzGAEgASgJEhIKCnVzZXJfYWdlbnQYAiABKAkSFwoPY2xpZW50X3BsYXRmb3JtGAMgASgJEkAKDmNsaWVudF92ZXJzaW9uGAQgASgLMigubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5DbGllbnRWZXJzaW9uEhcKD2NsaWVudF90aW1lem9uZRgFIAEoCSI8Cg1DbGllbnRWZXJzaW9uEg0KBW1ham9yGAEgASgFEg0KBW1pbm9yGAIgASgFEg0KBXBhdGNoGAMgASgFKocBChJTZXJ2aWNlQWNjb3VudFR5cGUSJAogU0VSVklDRV9BQ0NPVU5UX1RZUEVfVU5TUEVDSUZJRUQQABIgChxTRVJWSUNFX0FDQ09VTlRfVFlQRV9BUElfS0VZEAESKQolU0VSVklDRV9BQ0NPVU5UX1RZUEVfSU5URVJOQUxfU0VSVklDRRACQjRaMmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1dGhlbnRpY2F0aW9uL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ci5tYWxvbmF6L2F1dGhlbnRpY2F0aW9uL3YxL2F1dGhlbnRpY2F0aW9uLnByb3RvEhltYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxIswDChdQZXJtaXNzaW9uQ29uZmlndXJhdGlvbhKsAQoQc2VydmljZV9hY2NvdW50cxgBIAMoCzIpLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2VydmljZUFjY291bnRCZ7pIZLoBXgoadW5pcXVlX3NlcnZpY2VfYWNjb3VudF9pZHMSInNlcnZpY2UgYWNjb3VudCBpZHMgbXVzdCBiZSB1bmlxdWUaHHRoaXMubWFwKHNhLCBzYS5pZCkudW5pcXVlKCnIAQESfwoFcm9sZXMYAiADKAsyHy5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlJvbGVCT7pITLoBRgoPdW5pcXVlX3JvbGVfaWRzEhdyb2xlIGlkcyBtdXN0IGJlIHVuaXF1ZRoadGhpcy5tYXAociwgci5pZCkudW5pcXVlKCnIAQESIAoOcHVibGljX21ldGhvZHMYAyADKAlCCLpIBZIBAhgBEjkKC2p3dF9pc3N1ZXJzGAQgAygLMiQubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Kd3RJc3N1ZXISJAocZGVsZWdhdGlvbl9hdXRob3JpemF0aW9uX2NlbBgFIAEoCSJRChBKd3RDb25maWd1cmF0aW9uEj0KB2lzc3VlcnMYASADKAsyJC5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElzc3VlckIGukgDyAEBItkCCglKd3RJc3N1ZXISEgoCaWQYASABKAlCBrpIA8gBARIWCgZpc3N1ZXIYAiABKAlCBrpIA8gBARIYCghhdWRpZW5jZRgDIAEoCUIGukgDyAEBEhIKCGp3a3NfdXJpGAQgASgJSAASFwoNc3ltbWV0cmljX2tleRgFIAEoCUgAEhoKEmNsYWltc19yZXdyaXRlX2NlbBgGIAEoCRJnChttZXRob2RfdG9fYXV0aG9yaXphdGlvbl9jZWwYByADKAsyQi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElzc3Vlci5NZXRob2RUb0F1dGhvcml6YXRpb25DZWxFbnRyeRo/Ch1NZXRob2RUb0F1dGhvcml6YXRpb25DZWxFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQhMKCmtleV9zb3VyY2USBbpIAggBImoKG1NlcnZpY2VBY2NvdW50Q29uZmlndXJhdGlvbhJLChBzZXJ2aWNlX2FjY291bnRzGAEgAygLMikubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudEIGukgDyAEBIsEDCg5TZXJ2aWNlQWNjb3VudBISCgJpZBgBIAEoCUIGukgDyAEBEkcKBHR5cGUYAiABKA4yLS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50VHlwZUIKukgHggEEEAEgABIaCghyb2xlX2lkcxgDIAMoCUIIukgFkgECGAESHQoLcGVybWlzc2lvbnMYBCADKAlCCLpIBZIBAhgBEtMBCgZsYWJlbHMYBSADKAsyNS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50LkxhYmVsc0VudHJ5QosBukiHAZoBgwEQQCJkcmIyYF4oW2EtekEtWjAtOV0oW2EtekEtWjAtOS4tXXswLDI1MX1bYS16QS1aMC05XSk/Lyk/W2EtekEtWjAtOV0oW2EtekEtWjAtOV8uLV17MCw2MX1bYS16QS1aMC05XSk/JCoZchcYPzITXlthLXowLTlfXC1ccHtMfV0qJBISCgphY3RfYXNfY2VsGAYgASgJGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiZgoEUm9sZRIKCgJpZBgBIAEoCRIdCgtwZXJtaXNzaW9ucxgCIAMoCUIIukgFkgECGAESJAoSaW5oZXJpdGVkX3JvbGVfaWRzGAMgAygJQgi6SAWSAQIYARINCgVzY29wZRgEIAEoCSJXCg1TaWduZWRTZXNzaW9uEjMKB3Nlc3Npb24YASABKAsyIi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb24SEQoJc2lnbmF0dXJlGAIgASgMIvEFCgdTZXNzaW9uEgoKAmlkGAEgASgJEi8KC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI+Cgxqd3RfaWRlbnRpdHkYAyABKAsyJi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLkp3dElkZW50aXR5SAASVQoYc2VydmljZV9hY2NvdW50X2lkZW50aXR5GAQgASgLMjEubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudElkZW50aXR5SAASSgoSYW5vbnltb3VzX2lkZW50aXR5GAggASgLMiwubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5Bbm9ueW1vdXNJZGVudGl0eUgAEhIKCmF1dGhvcml6ZWQYBSABKAgSzAEKBmxhYmVscxgGIAMoCzIuLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuU2Vzc2lvbi5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSPAoIbWV0YWRhdGEYByABKAsyKi5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlc3Npb25NZXRhZGF0YRI5CgpkZWxlZ2F0aW9uGAkgASgLMiUubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5EZWxlZ2F0aW9uEi8KC2V4cGlyZV90aW1lGAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQgoKCGlkZW50aXR5IiQKCkRlbGVnYXRpb24SFgoFYWN0b3IYASABKAlCB7pIBHICEAEitAEKCElkZW50aXR5Ej4KDGp3dF9pZGVudGl0eRgBIAEoCzImLm1hbG9uYXouYXV0aGVudGljYXRpb24udjEuSnd0SWRlbnRpdHlIABJVChhzZXJ2aWNlX2FjY291bnRfaWRlbnRpdHkYAiABKAsyMS5tYWxvbmF6LmF1dGhlbnRpY2F0aW9uLnYxLlNlcnZpY2VBY2NvdW50SWRlbnRpdHlIAEIRCghpZGVudGl0eRIFukgCCAEiEwoRQW5vbnltb3VzSWRlbnRpdHkiSQoLSnd0SWRlbnRpdHkSEQoJaXNzdWVyX2lkGAEgASgJEicKBmNsYWltcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QijQEKFlNlcnZpY2VBY2NvdW50SWRlbnRpdHkSGgoSc2VydmljZV9hY2NvdW50X2lkGAEgASgJElcKFHNlcnZpY2VfYWNjb3VudF90eXBlGAIgASgOMi0ubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5TZXJ2aWNlQWNjb3VudFR5cGVCCrpIB4IBBBABIAAirQEKD1Nlc3Npb25NZXRhZGF0YRISCgppcF9hZGRyZXNzGAEgASgJEhIKCnVzZXJfYWdlbnQYAiABKAkSFwoPY2xpZW50X3BsYXRmb3JtGAMgASgJEkAKDmNsaWVudF92ZXJzaW9uGAQgASgLMigubWFsb25hei5hdXRoZW50aWNhdGlvbi52MS5DbGllbnRWZXJzaW9uEhcKD2NsaWVudF90aW1lem9uZRgFIAEoCSI8Cg1DbGllbnRWZXJzaW9uEg0KBW1ham9yGAEgASgFEg0KBW1pbm9yGAIgASgFEg0KBXBhdGNoGAMgASgFKocBChJTZXJ2aWNlQWNjb3VudFR5cGUSJAogU0VSVklDRV9BQ0NPVU5UX1RZUEVfVU5TUEVDSUZJRUQQABIgChxTRVJWSUNFX0FDQ09VTlRfVFlQRV9BUElfS0VZEAESKQolU0VSVklDRV9BQ0NPVU5UX1RZUEVfSU5URVJOQUxfU0VSVklDRRACOkkKD3ByaW5jaXBhbF9maWVsZBIeLmdvb2dsZS5wcm90b2J1Zi5NZXRob2RPcHRpb25zGIDuBSABKAlSDnByaW5jaXBhbEZpZWxkQjRaMmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1dGhlbnRpY2F0aW9uL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * Configuration for roles.
@@ -51,6 +51,16 @@ export type PermissionConfiguration = Message<"malonaz.authentication.v1.Permiss
    * @generated from field: repeated malonaz.authentication.v1.JwtIssuer jwt_issuers = 4;
    */
   jwtIssuers: JwtIssuer[];
+
+  /**
+   * CEL expression every delegated session must also satisfy on non-public methods, whatever its identity.
+   * Has access to `actor` (the delegation's actor), `method` (the full RPC method name) and `session`.
+   * Must evaluate to a bool. Unset: delegated sessions are checked as their principal alone.
+   * E.g., "!(method in ['/api.v1.AgentService/ApproveToolCall'])".
+   *
+   * @generated from field: string delegation_authorization_cel = 5;
+   */
+  delegationAuthorizationCel: string;
 };
 
 /**
@@ -89,6 +99,16 @@ export type PermissionConfigurationValid = Message<"malonaz.authentication.v1.Pe
    * @generated from field: repeated malonaz.authentication.v1.JwtIssuer jwt_issuers = 4;
    */
   jwtIssuers: JwtIssuerValid[];
+
+  /**
+   * CEL expression every delegated session must also satisfy on non-public methods, whatever its identity.
+   * Has access to `actor` (the delegation's actor), `method` (the full RPC method name) and `session`.
+   * Must evaluate to a bool. Unset: delegated sessions are checked as their principal alone.
+   * E.g., "!(method in ['/api.v1.AgentService/ApproveToolCall'])".
+   *
+   * @generated from field: string delegation_authorization_cel = 5;
+   */
+  delegationAuthorizationCel: string;
 };
 
 /**
@@ -196,8 +216,9 @@ export type JwtIssuer = Message<"malonaz.authentication.v1.JwtIssuer"> & {
 
   /**
    * Maps a full RPC method name to a CEL expression authorizing access.
-   * The expression has access to `claims` (the JWT claims) and `request`
-   * (the RPC request message). Must evaluate to a bool.
+   * The expression has access to `claims` (the JWT claims), `subject` (claims.sub), `request`
+   * (the RPC request message), `actor` (the delegation's actor, empty unless delegated) and
+   * `session`. Must evaluate to a bool.
    * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
    * @generated from field: map<string, string> method_to_authorization_cel = 7;
@@ -268,8 +289,9 @@ export type JwtIssuerValid = Message<"malonaz.authentication.v1.JwtIssuer"> & {
 
   /**
    * Maps a full RPC method name to a CEL expression authorizing access.
-   * The expression has access to `claims` (the JWT claims) and `request`
-   * (the RPC request message). Must evaluate to a bool.
+   * The expression has access to `claims` (the JWT claims), `subject` (claims.sub), `request`
+   * (the RPC request message), `actor` (the delegation's actor, empty unless delegated) and
+   * `session`. Must evaluate to a bool.
    * E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
    *
    * @generated from field: map<string, string> method_to_authorization_cel = 7;
@@ -363,6 +385,15 @@ export type ServiceAccount = Message<"malonaz.authentication.v1.ServiceAccount">
    * @generated from field: map<string, string> labels = 5;
    */
   labels: { [key: string]: string };
+
+  /**
+   * CEL expression deciding which callers may act as this service account: make it the principal of an
+   * actor they create, e.g. an agent. Has access to `session` (the caller's session). Must evaluate to a
+   * bool. Unset: only the service account itself may.
+   *
+   * @generated from field: string act_as_cel = 6;
+   */
+  actAsCel: string;
 };
 
 /**
@@ -407,6 +438,15 @@ export type ServiceAccountValid = Message<"malonaz.authentication.v1.ServiceAcco
    * @generated from field: map<string, string> labels = 5;
    */
   labels: { [key: string]: string };
+
+  /**
+   * CEL expression deciding which callers may act as this service account: make it the principal of an
+   * actor they create, e.g. an agent. Has access to `session` (the caller's session). Must evaluate to a
+   * bool. Unset: only the service account itself may.
+   *
+   * @generated from field: string act_as_cel = 6;
+   */
+  actAsCel: string;
 };
 
 /**
@@ -572,6 +612,22 @@ export type Session = Message<"malonaz.authentication.v1.Session"> & {
    * @generated from field: malonaz.authentication.v1.SessionMetadata metadata = 7;
    */
   metadata?: SessionMetadata;
+
+  /**
+   * Set on a delegated session: one acting for its identity, the principal, at an actor's initiative.
+   * Its delegator never forwards it authorized: the first service it reaches checks both the principal's
+   * permissions and the restrictions on actors.
+   *
+   * @generated from field: malonaz.authentication.v1.Delegation delegation = 9;
+   */
+  delegation?: Delegation;
+
+  /**
+   * When the session stops being accepted. Unset: it never expires.
+   *
+   * @generated from field: google.protobuf.Timestamp expire_time = 10;
+   */
+  expireTime?: Timestamp;
 };
 
 export type SessionValid = Session;
@@ -582,6 +638,68 @@ export type SessionValid = Session;
  */
 export const SessionSchema: GenMessage<Session, {validType: SessionValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_authentication_v1_authentication, 7);
+
+/**
+ * Delegation records the actor a delegated session acts for its principal on behalf of.
+ *
+ * @generated from message malonaz.authentication.v1.Delegation
+ */
+export type Delegation = Message<"malonaz.authentication.v1.Delegation"> & {
+  /**
+   * The resource name of the actor, e.g. "organizations/o/users/u/agents/a".
+   *
+   * @generated from field: string actor = 1;
+   */
+  actor: string;
+};
+
+export type DelegationValid = Delegation;
+
+/**
+ * Describes the message malonaz.authentication.v1.Delegation.
+ * Use `create(DelegationSchema)` to create a new message.
+ */
+export const DelegationSchema: GenMessage<Delegation, {validType: DelegationValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_authentication_v1_authentication, 8);
+
+/**
+ * Identity is a principal a session or an actor acts as: never anonymous.
+ *
+ * @generated from message malonaz.authentication.v1.Identity
+ */
+export type Identity = Message<"malonaz.authentication.v1.Identity"> & {
+  /**
+   * The identity.
+   *
+   * @generated from oneof malonaz.authentication.v1.Identity.identity
+   */
+  identity: {
+    /**
+     * Identity derived from a verified JWT token.
+     *
+     * @generated from field: malonaz.authentication.v1.JwtIdentity jwt_identity = 1;
+     */
+    value: JwtIdentity;
+    case: "jwtIdentity";
+  } | {
+    /**
+     * Service account identity.
+     *
+     * @generated from field: malonaz.authentication.v1.ServiceAccountIdentity service_account_identity = 2;
+     */
+    value: ServiceAccountIdentity;
+    case: "serviceAccountIdentity";
+  } | { case: undefined; value?: undefined };
+};
+
+export type IdentityValid = Identity;
+
+/**
+ * Describes the message malonaz.authentication.v1.Identity.
+ * Use `create(IdentitySchema)` to create a new message.
+ */
+export const IdentitySchema: GenMessage<Identity, {validType: IdentityValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_authentication_v1_authentication, 9);
 
 /**
  * Identity for unauthenticated callers accessing public methods.
@@ -598,7 +716,7 @@ export type AnonymousIdentityValid = AnonymousIdentity;
  * Use `create(AnonymousIdentitySchema)` to create a new message.
  */
 export const AnonymousIdentitySchema: GenMessage<AnonymousIdentity, {validType: AnonymousIdentityValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_authentication_v1_authentication, 8);
+  messageDesc(file_malonaz_authentication_v1_authentication, 10);
 
 /**
  * Identity derived from a verified JWT token.
@@ -628,7 +746,7 @@ export type JwtIdentityValid = JwtIdentity;
  * Use `create(JwtIdentitySchema)` to create a new message.
  */
 export const JwtIdentitySchema: GenMessage<JwtIdentity, {validType: JwtIdentityValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_authentication_v1_authentication, 9);
+  messageDesc(file_malonaz_authentication_v1_authentication, 11);
 
 /**
  * Identity of a service account
@@ -658,7 +776,7 @@ export type ServiceAccountIdentityValid = ServiceAccountIdentity;
  * Use `create(ServiceAccountIdentitySchema)` to create a new message.
  */
 export const ServiceAccountIdentitySchema: GenMessage<ServiceAccountIdentity, {validType: ServiceAccountIdentityValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_authentication_v1_authentication, 10);
+  messageDesc(file_malonaz_authentication_v1_authentication, 12);
 
 /**
  * SessionMetadata contains contextual information about a session, useful for
@@ -713,7 +831,7 @@ export type SessionMetadataValid = SessionMetadata;
  * Use `create(SessionMetadataSchema)` to create a new message.
  */
 export const SessionMetadataSchema: GenMessage<SessionMetadata, {validType: SessionMetadataValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_authentication_v1_authentication, 11);
+  messageDesc(file_malonaz_authentication_v1_authentication, 13);
 
 /**
  * ClientVersion represents a semantic version (semver) of the client application,
@@ -751,7 +869,7 @@ export type ClientVersionValid = ClientVersion;
  * Use `create(ClientVersionSchema)` to create a new message.
  */
 export const ClientVersionSchema: GenMessage<ClientVersion, {validType: ClientVersionValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_authentication_v1_authentication, 12);
+  messageDesc(file_malonaz_authentication_v1_authentication, 14);
 
 /**
  * Type of the service account.
@@ -786,4 +904,13 @@ export enum ServiceAccountType {
  */
 export const ServiceAccountTypeSchema: GenEnum<ServiceAccountType> = /*@__PURE__*/
   enumDesc(file_malonaz_authentication_v1_authentication, 0);
+
+/**
+ * Path of the request field holding the Identity a resource created by this method acts as, e.g.
+ * "agent.principal". When the field is set, the permission interceptor checks that the caller may act as it.
+ *
+ * @generated from extension: string principal_field = 96000;
+ */
+export const principal_field: GenExtension<MethodOptions, string> = /*@__PURE__*/
+  extDesc(file_malonaz_authentication_v1_authentication, 0);
 

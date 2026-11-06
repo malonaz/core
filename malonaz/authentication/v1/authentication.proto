@@ -3,10 +3,17 @@ syntax = "proto3";
 package malonaz.authentication.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/descriptor.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/malonaz/core/genproto/authentication/v1";
+
+extend google.protobuf.MethodOptions {
+  // Path of the request field holding the Identity a resource created by this method acts as, e.g.
+  // "agent.principal". When the field is set, the permission interceptor checks that the caller may act as it.
+  string principal_field = 96000;
+}
 
 // Configuration for roles.
 message PermissionConfiguration {
@@ -38,6 +45,12 @@ message PermissionConfiguration {
 
   // List of trusted JWT issuers.
   repeated JwtIssuer jwt_issuers = 4;
+
+  // CEL expression every delegated session must also satisfy on non-public methods, whatever its identity.
+  // Has access to `actor` (the delegation's actor), `method` (the full RPC method name) and `session`.
+  // Must evaluate to a bool. Unset: delegated sessions are checked as their principal alone.
+  // E.g., "!(method in ['/api.v1.AgentService/ApproveToolCall'])".
+  string delegation_authorization_cel = 5;
 }
 
 // Configuration for JWT authentication.
@@ -71,8 +84,9 @@ message JwtIssuer {
   // E.g., "{'user': 'organizations/' + claims['...organization_id'] + '/users/' + claims['...contractor_id'], 'admin': claims['...is_cs_user']}".
   string claims_rewrite_cel = 6;
   // Maps a full RPC method name to a CEL expression authorizing access.
-  // The expression has access to `claims` (the JWT claims) and `request`
-  // (the RPC request message). Must evaluate to a bool.
+  // The expression has access to `claims` (the JWT claims), `subject` (claims.sub), `request`
+  // (the RPC request message), `actor` (the delegation's actor, empty unless delegated) and
+  // `session`. Must evaluate to a bool.
   // E.g., {"/library.v1.LibraryService/GetBook": "request.name.startsWith(claims.sub)"}.
   map<string, string> method_to_authorization_cel = 7;
 }
@@ -116,6 +130,11 @@ message ServiceAccount {
       }
     }
   }];
+
+  // CEL expression deciding which callers may act as this service account: make it the principal of an
+  // actor they create, e.g. an agent. Has access to `session` (the caller's session). Must evaluate to a
+  // bool. Unset: only the service account itself may.
+  string act_as_cel = 6;
 }
 
 // Type of the service account.
@@ -201,6 +220,32 @@ message Session {
   // Additional metadata about the session, including client information
   // and context for logging and auditing purposes.
   SessionMetadata metadata = 7;
+
+  // Set on a delegated session: one acting for its identity, the principal, at an actor's initiative.
+  // Its delegator never forwards it authorized: the first service it reaches checks both the principal's
+  // permissions and the restrictions on actors.
+  Delegation delegation = 9;
+
+  // When the session stops being accepted. Unset: it never expires.
+  google.protobuf.Timestamp expire_time = 10;
+}
+
+// Delegation records the actor a delegated session acts for its principal on behalf of.
+message Delegation {
+  // The resource name of the actor, e.g. "organizations/o/users/u/agents/a".
+  string actor = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// Identity is a principal a session or an actor acts as: never anonymous.
+message Identity {
+  // The identity.
+  oneof identity {
+    option (buf.validate.oneof).required = true;
+    // Identity derived from a verified JWT token.
+    JwtIdentity jwt_identity = 1;
+    // Service account identity.
+    ServiceAccountIdentity service_account_identity = 2;
+  }
 }
 
 // Identity for unauthenticated callers accessing public methods.
