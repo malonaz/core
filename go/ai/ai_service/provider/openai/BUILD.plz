@@ -12,7 +12,6 @@ go_library(
         "//go/ai/ai_service/provider",
         "//go/audio",
         "//go/grpc/status",
-        "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//malonaz/audio/v1",

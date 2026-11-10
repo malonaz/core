@@ -63,6 +63,9 @@ updated whenever a lore is added, renamed, or removed.
   wake-by-append model, Postgres SKIP LOCKED queue.
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI
   tools, streamed as tool calls, rendered by client surfaces.
+- `lores/ai/replay-determinism` — chat replay must be byte-stable: Anthropic
+  thinking-block binding, protojson output changing per binary (deploys break replay),
+  `ai.JSONMarshal` for model input, prefix-stability rules.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 
