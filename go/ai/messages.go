@@ -3,7 +3,6 @@ package ai
 import (
 	"fmt"
 
-	"github.com/malonaz/core/go/pbutil"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -124,13 +123,13 @@ func ParseToolResult(toolResult *aipb.ToolResult) (string, error) {
 	case *aipb.ToolResult_Content:
 		return r.Content, nil
 	case *aipb.ToolResult_StructuredContent:
-		bytes, err := pbutil.JSONMarshal(r.StructuredContent)
+		bytes, err := JSONMarshal(r.StructuredContent)
 		if err != nil {
 			return "", fmt.Errorf("marshaling tool result structured content: %v", err)
 		}
 		return string(bytes), nil
 	case *aipb.ToolResult_Error:
-		bytes, err := pbutil.JSONMarshal(r.Error)
+		bytes, err := JSONMarshal(r.Error)
 		if err != nil {
 			return "", fmt.Errorf("marshaling tool result error content: %v", err)
 		}

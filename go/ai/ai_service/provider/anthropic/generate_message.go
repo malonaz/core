@@ -18,7 +18,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 func (c *Client) StreamGenerateMessage(
@@ -95,7 +94,7 @@ func (c *Client) StreamGenerateMessage(
 					contentBlocks = append(contentBlocks, anthropic.NewThinkingBlock(block.Signature, content.Thought))
 				case *aipb.Block_ToolCall:
 					tc := content.ToolCall
-					bytes, err := pbutil.JSONMarshal(tc.Arguments)
+					bytes, err := ai.JSONMarshal(tc.Arguments)
 					if err != nil {
 						return status.Errorf(codes.InvalidArgument, "message [%d] block [%d]: marshaling tool call arguments: %v", i, j, err).Err()
 					}

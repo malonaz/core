@@ -20,7 +20,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/pbutil"
 )
 
 const (
@@ -343,7 +342,7 @@ func pbMessageToOpenAI(ctx context.Context, msg *aipb.Message) ([]openai.ChatCom
 				// OpenAI doesn't support thought blocks in input
 			case *aipb.Block_ToolCall:
 				tc := content.ToolCall
-				argsBytes, err := pbutil.JSONMarshal(tc.Arguments)
+				argsBytes, err := ai.JSONMarshal(tc.Arguments)
 				if err != nil {
 					return nil, fmt.Errorf("block [%d]: marshaling tool call arguments: %w", i, err)
 				}
@@ -425,7 +424,7 @@ func buildFilePart(ctx context.Context, doc *aipb.Document) (openai.ChatCompleti
 }
 
 func pbToolToOpenAI(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, error) {
-	bytes, err := pbutil.JSONMarshal(tool.JsonSchema)
+	bytes, err := ai.JSONMarshal(tool.JsonSchema)
 	if err != nil {
 		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("marshaling json schema: %w", err)
 	}

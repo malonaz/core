@@ -85,7 +85,7 @@ for errorInfo := range status.ErrorDetails[*errdetails.ErrorInfo](err) {}
 Never use `protojson` directly.
 
 - **`pbutil.Marshal(m)` / `pbutil.MarshalDeterministic(m)` / `pbutil.Unmarshal(b, m)`**: binary wire format.
-- **`pbutil.JSONMarshal(m)`**: JSON, snake_case field names.
+- **`pbutil.JSONMarshal(m)`**: JSON, snake_case field names. Its whitespace changes per binary: for model input use `ai.JSONMarshal` (see `lores/ai/replay-determinism`).
 - **`pbutil.JSONCamelCaseMarshal(m)`**: JSON, lowerCamelCase field names.
 - **`pbutil.JSONMarshalPretty(m)`**: indented JSON.
 - **`pbutil.JSONUnmarshal(b, m)`**: lenient — discards unknown fields.

@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "accumulator.go",
         "errors.go",
+        "json.go",
         "messages.go",
         "metrics.go",
         "utils.go",
@@ -20,10 +21,14 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["metrics_test.go"],
+    srcs = [
+        "json_test.go",
+        "metrics_test.go",
+    ],
     deps = [
         ":ai",
         "//malonaz/ai/v1",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
