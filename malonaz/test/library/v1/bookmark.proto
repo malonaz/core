@@ -7,6 +7,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "google/type/date.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/test/library/v1";
@@ -20,6 +21,19 @@ message Bookmark {
     plural: "bookmarks"
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "display_name"
+        weight: WEIGHT_A
+      },
+      {
+        path: "note"
+        weight: WEIGHT_B
+      }
+    ]
+    ancestor: "library.test.malonaz.com/Book"
+  };
 
   // The resource name of the bookmark.
   // Format: organizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}

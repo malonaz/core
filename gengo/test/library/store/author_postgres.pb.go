@@ -380,14 +380,14 @@ const AuthorSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce
 
 type authorSearchRow struct {
 	model.Author
-	SnippetDisplayName            *string `db:"__snippet_display_name"`
-	SnippetEmailAddress           *string `db:"__snippet_email_address"`
-	SnippetPhoneNumber            *string `db:"__snippet_phone_number"`
-	SnippetMetadataCountry        *string `db:"__snippet_metadata_country"`
-	SnippetEmailAddresses         *string `db:"__snippet_email_addresses"`
-	SnippetPhoneNumbers           *string `db:"__snippet_phone_numbers"`
-	SnippetMetadataEmailAddresses *string `db:"__snippet_metadata_email_addresses"`
-	SnippetBiography              *string `db:"__snippet_biography"`
+	Snippet0 *string `db:"__snippet_0"`
+	Snippet1 *string `db:"__snippet_1"`
+	Snippet2 *string `db:"__snippet_2"`
+	Snippet3 *string `db:"__snippet_3"`
+	Snippet4 *string `db:"__snippet_4"`
+	Snippet5 *string `db:"__snippet_5"`
+	Snippet6 *string `db:"__snippet_6"`
+	Snippet7 *string `db:"__snippet_7"`
 }
 
 func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Author, []map[string]string, error) {
@@ -410,14 +410,14 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("author.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(author.search_document, to_tsquery('simple', $%d)) DESC, author.create_time DESC", len(params)+1)
 		if includeSnippets {
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_display_name`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.email_address, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_address`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.phone_number, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_number`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_country`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(author.email_addresses, ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_email_addresses`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(coalesce(author.phone_numbers, ARRAY[]::text[]), ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_phone_numbers`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(author.metadata #> '{email_addresses}', 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_email_addresses`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_biography`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_0`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.email_address, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_1`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.phone_number, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_2`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.metadata #>> '{country}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_3`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(author.email_addresses, ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_4`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', core_array_to_string(coalesce(author.phone_numbers, ARRAY[]::text[]), ' '), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_5`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(author.metadata #> '{email_addresses}', 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_6`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(author.biography, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_7`, len(params)+1))
 		}
 		params = append(params, tsQuery)
 	}
@@ -445,29 +445,29 @@ func (s *Store) SearchAuthors(ctx context.Context, organizationId string, showDe
 			continue
 		}
 		snippet := map[string]string{}
-		if searchRow.SnippetDisplayName != nil && strings.Contains(*searchRow.SnippetDisplayName, "**") {
-			snippet["display_name"] = *searchRow.SnippetDisplayName
+		if searchRow.Snippet0 != nil && strings.Contains(*searchRow.Snippet0, "**") {
+			snippet["display_name"] = *searchRow.Snippet0
 		}
-		if searchRow.SnippetEmailAddress != nil && strings.Contains(*searchRow.SnippetEmailAddress, "**") {
-			snippet["email_address"] = *searchRow.SnippetEmailAddress
+		if searchRow.Snippet1 != nil && strings.Contains(*searchRow.Snippet1, "**") {
+			snippet["email_address"] = *searchRow.Snippet1
 		}
-		if searchRow.SnippetPhoneNumber != nil && strings.Contains(*searchRow.SnippetPhoneNumber, "**") {
-			snippet["phone_number"] = *searchRow.SnippetPhoneNumber
+		if searchRow.Snippet2 != nil && strings.Contains(*searchRow.Snippet2, "**") {
+			snippet["phone_number"] = *searchRow.Snippet2
 		}
-		if searchRow.SnippetMetadataCountry != nil && strings.Contains(*searchRow.SnippetMetadataCountry, "**") {
-			snippet["metadata.country"] = *searchRow.SnippetMetadataCountry
+		if searchRow.Snippet3 != nil && strings.Contains(*searchRow.Snippet3, "**") {
+			snippet["metadata.country"] = *searchRow.Snippet3
 		}
-		if searchRow.SnippetEmailAddresses != nil && strings.Contains(*searchRow.SnippetEmailAddresses, "**") {
-			snippet["email_addresses"] = *searchRow.SnippetEmailAddresses
+		if searchRow.Snippet4 != nil && strings.Contains(*searchRow.Snippet4, "**") {
+			snippet["email_addresses"] = *searchRow.Snippet4
 		}
-		if searchRow.SnippetPhoneNumbers != nil && strings.Contains(*searchRow.SnippetPhoneNumbers, "**") {
-			snippet["phone_numbers"] = *searchRow.SnippetPhoneNumbers
+		if searchRow.Snippet5 != nil && strings.Contains(*searchRow.Snippet5, "**") {
+			snippet["phone_numbers"] = *searchRow.Snippet5
 		}
-		if searchRow.SnippetMetadataEmailAddresses != nil && strings.Contains(*searchRow.SnippetMetadataEmailAddresses, "**") {
-			snippet["metadata.email_addresses"] = *searchRow.SnippetMetadataEmailAddresses
+		if searchRow.Snippet6 != nil && strings.Contains(*searchRow.Snippet6, "**") {
+			snippet["metadata.email_addresses"] = *searchRow.Snippet6
 		}
-		if searchRow.SnippetBiography != nil && strings.Contains(*searchRow.SnippetBiography, "**") {
-			snippet["biography"] = *searchRow.SnippetBiography
+		if searchRow.Snippet7 != nil && strings.Contains(*searchRow.Snippet7, "**") {
+			snippet["biography"] = *searchRow.Snippet7
 		}
 		snippets = append(snippets, snippet)
 	}

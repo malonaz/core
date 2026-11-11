@@ -318,3 +318,70 @@ func (s *Store) ListShelves(ctx context.Context, organizationId string, showDele
 	}
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Shelf])
 }
+
+// ShelfSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const ShelfSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(display_name, '')), 'A')`
+
+type shelfSearchRow struct {
+	model.Shelf
+	Snippet0 *string `db:"__snippet_0"`
+}
+
+func (s *Store) SearchShelves(ctx context.Context, organizationId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Shelf, []map[string]string, error) {
+	if columns == nil {
+		columns = ShelfWritePostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "shelf.delete_time IS NULL")
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY shelf.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("shelf.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank(shelf.search_document, to_tsquery('simple', $%d)) DESC, shelf.create_time DESC", len(params)+1)
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(shelf.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_0`, len(params)+1))
+		}
+		params = append(params, tsQuery)
+	}
+
+	selectColumns := postgres.QualifyColumns(columns, "shelf") + shelfJoinSelectExprs
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query := "SELECT " + selectColumns + " FROM library.shelf " + shelfJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting shelves: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[shelfSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	shelves := make([]*model.Shelf, 0, len(searchRows))
+	var snippets []map[string]string
+	for _, searchRow := range searchRows {
+		row := searchRow.Shelf
+		shelves = append(shelves, &row)
+		if !includeSnippets {
+			continue
+		}
+		snippet := map[string]string{}
+		if searchRow.Snippet0 != nil && strings.Contains(*searchRow.Snippet0, "**") {
+			snippet["display_name"] = *searchRow.Snippet0
+		}
+		snippets = append(snippets, snippet)
+	}
+	return shelves, snippets, nil
+}

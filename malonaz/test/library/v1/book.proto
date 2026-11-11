@@ -52,6 +52,7 @@ message Book {
         weight: WEIGHT_A
       }
     ]
+    ancestor: "library.test.malonaz.com/Shelf"
   };
 
   // The resource name of the book.

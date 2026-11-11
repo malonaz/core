@@ -255,10 +255,11 @@ func (b0 FilteringOptions_builder) Build() *FilteringOptions {
 // The postgres codegen derives the search document SQL expression from these
 // fields, and the rpc codegen wires Search{Plural} methods against it.
 type SearchOptions struct {
-	state             protoimpl.MessageState  `protogen:"opaque.v1"`
-	xxx_hidden_Fields *[]*SearchOptions_Field `protobuf:"bytes,1,rep,name=fields,proto3"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state               protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Fields   *[]*SearchOptions_Field `protobuf:"bytes,1,rep,name=fields,proto3"`
+	xxx_hidden_Ancestor string                  `protobuf:"bytes,2,opt,name=ancestor,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SearchOptions) Reset() {
@@ -295,8 +296,19 @@ func (x *SearchOptions) GetFields() []*SearchOptions_Field {
 	return nil
 }
 
+func (x *SearchOptions) GetAncestor() string {
+	if x != nil {
+		return x.xxx_hidden_Ancestor
+	}
+	return ""
+}
+
 func (x *SearchOptions) SetFields(v []*SearchOptions_Field) {
 	x.xxx_hidden_Fields = &v
+}
+
+func (x *SearchOptions) SetAncestor(v string) {
+	x.xxx_hidden_Ancestor = v
 }
 
 type SearchOptions_builder struct {
@@ -304,6 +316,17 @@ type SearchOptions_builder struct {
 
 	// The fields composing the search document.
 	Fields []*SearchOptions_Field
+	// The resource type of an ancestor this resource is also searched by, e.g.
+	// a book by its shelf. The ancestor's own search document (it must declare
+	// search options; an ancestor it names in turn is not included) is joined
+	// and matched alongside this resource's at query time, so a query's terms
+	// may match across the two: "dune fiction" finds the book titled Dune on
+	// the shelf named Fiction. Snippet matches on the ancestor's fields are
+	// reported under its singular, e.g. "shelf.display_name".
+	//
+	// Nothing is copied onto this resource, at the price of its search index:
+	// every row under the searched parent is matched.
+	Ancestor string
 }
 
 func (b0 SearchOptions_builder) Build() *SearchOptions {
@@ -311,6 +334,7 @@ func (b0 SearchOptions_builder) Build() *SearchOptions {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Fields = &b.Fields
+	x.xxx_hidden_Ancestor = b.Ancestor
 	return m0
 }
 
@@ -907,9 +931,10 @@ const file_malonaz_codegen_aip_v1_aip_proto_rawDesc = "" +
 	"\x12ExportFieldOptions\x12\x18\n" +
 	"\aexclude\x18\x01 \x01(\bR\aexclude\"(\n" +
 	"\x10FilteringOptions\x12\x14\n" +
-	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x81\x04\n" +
+	"\x05paths\x18\x01 \x03(\tR\x05paths\"\x9d\x04\n" +
 	"\rSearchOptions\x12M\n" +
-	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x1a\xf5\x01\n" +
+	"\x06fields\x18\x01 \x03(\v2+.malonaz.codegen.aip.v1.SearchOptions.FieldB\b\xbaH\x05\x92\x01\x02\b\x01R\x06fields\x12\x1a\n" +
+	"\bancestor\x18\x02 \x01(\tR\bancestor\x1a\xf5\x01\n" +
 	"\x05Field\x12\x1d\n" +
 	"\x04path\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01H\x00R\x04path\x12\x19\n" +
 	"\x02id\x18\x05 \x01(\bB\a\xbaH\x04j\x02\b\x01H\x00R\x02id\x12N\n" +

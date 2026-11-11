@@ -323,3 +323,98 @@ func (s *Store) ListBookmarks(ctx context.Context, organizationId, shelfId, book
 	}
 	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Bookmark])
 }
+
+// BookmarkSearchDocumentExpression is the SQL expression composing the resource's
+// tsvector search document. The "search_document" column must be declared in migrations as:
+//
+//	search_document tsvector GENERATED ALWAYS AS (<expression>) STORED
+const BookmarkSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(display_name, '')), 'A') || setweight(to_tsvector('simple', coalesce(note, '')), 'B')`
+
+type bookmarkSearchRow struct {
+	model.Bookmark
+	Snippet0 *string `db:"__snippet_0"`
+	Snippet1 *string `db:"__snippet_1"`
+	Snippet2 *string `db:"__snippet_2"`
+	Snippet3 *string `db:"__snippet_3"`
+	Snippet4 *string `db:"__snippet_4"`
+}
+
+func (s *Store) SearchBookmarks(ctx context.Context, organizationId, shelfId, bookId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Bookmark, []map[string]string, error) {
+	if columns == nil {
+		columns = BookmarkPostgresColumns
+	}
+
+	if organizationId != "-" && organizationId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.organization_id = $%d", len(params)+1))
+		params = append(params, organizationId)
+	}
+	if shelfId != "-" && shelfId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.shelf_id = $%d", len(params)+1))
+		params = append(params, shelfId)
+	}
+	if bookId != "-" && bookId != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("bookmark.book_id = $%d", len(params)+1))
+		params = append(params, bookId)
+	}
+
+	if !showDeleted {
+		whereClause = postgres.AddToWhereClause(whereClause, "bookmark.delete_time IS NULL")
+	}
+
+	var snippetColumns []string
+	orderByClause := "ORDER BY bookmark.create_time DESC"
+	if tsQuery != "" {
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(bookmark.search_document || book.search_document) @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank((bookmark.search_document || book.search_document), to_tsquery('simple', $%d)) DESC, bookmark.create_time DESC", len(params)+1)
+		if includeSnippets {
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(bookmark.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_0`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_1`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', book.book_id, to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_2`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(bookmark.note, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_3`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_4`, len(params)+1))
+		}
+		params = append(params, tsQuery)
+	}
+
+	selectColumns := postgres.QualifyColumns(columns, "bookmark")
+	for _, snippetColumn := range snippetColumns {
+		selectColumns += "," + snippetColumn
+	}
+	query := "SELECT " + selectColumns + " FROM library.bookmark" + " INNER JOIN library.book AS book ON book.organization_id = bookmark.organization_id AND book.shelf_id = bookmark.shelf_id AND book.book_id = bookmark.book_id" + " " + whereClause + " " + orderByClause + " " + paginationClause
+
+	rows, err := s.client.Query(ctx, query, params...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("selecting bookmarks: %w", err)
+	}
+	searchRows, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[bookmarkSearchRow])
+	if err != nil {
+		return nil, nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	bookmarks := make([]*model.Bookmark, 0, len(searchRows))
+	var snippets []map[string]string
+	for _, searchRow := range searchRows {
+		row := searchRow.Bookmark
+		bookmarks = append(bookmarks, &row)
+		if !includeSnippets {
+			continue
+		}
+		snippet := map[string]string{}
+		if searchRow.Snippet0 != nil && strings.Contains(*searchRow.Snippet0, "**") {
+			snippet["display_name"] = *searchRow.Snippet0
+		}
+		if searchRow.Snippet1 != nil && strings.Contains(*searchRow.Snippet1, "**") {
+			snippet["book.title"] = *searchRow.Snippet1
+		}
+		if searchRow.Snippet2 != nil && strings.Contains(*searchRow.Snippet2, "**") {
+			snippet["book.id"] = *searchRow.Snippet2
+		}
+		if searchRow.Snippet3 != nil && strings.Contains(*searchRow.Snippet3, "**") {
+			snippet["note"] = *searchRow.Snippet3
+		}
+		if searchRow.Snippet4 != nil && strings.Contains(*searchRow.Snippet4, "**") {
+			snippet["book.metadata.summary"] = *searchRow.Snippet4
+		}
+		snippets = append(snippets, snippet)
+	}
+	return bookmarks, snippets, nil
+}

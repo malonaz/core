@@ -26,11 +26,12 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
+from malonaz.aip.v1 import aip_pb2 as malonaz_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.test.library.v1 import bookmark_pb2 as malonaz_dot_test_dot_library_dot_v1_dot_bookmark__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n6malonaz/test/library/library_service/v1/bookmark.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a&malonaz/test/library/v1/bookmark.proto\"\x85\x02\n\x15\x43reateBookmarkRequest\x12;\n\x06parent\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12:\n\x0b\x62ookmark_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12;\n\x08\x62ookmark\x18\x03 \x01(\x0b\x32!.malonaz.test.library.v1.BookmarkB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"S\n\x12GetBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\"\x9c\x02\n\x15UpdateBookmarkRequest\x12;\n\x08\x62ookmark\x18\x01 \x01(\x0b\x32!.malonaz.test.library.v1.BookmarkB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\x8c\x01\xbaHN\x1aL\n\x16\x62ookmark.name_required\x12\x19\x62ookmark.name must be set\x1a\x17has(this.bookmark.name)\xea\x9c\xc1\x03\x36\n\x0bpage_number\n\x0c\x64isplay_name\n\x04note\n\x06labels\n\x0bplaced_date\"{\n\x15\x44\x65leteBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"f\n\x17UndeleteBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\xa5\x02\n\x14ListBookmarksRequest\x12;\n\x06parent\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:e\x82\xf3-\x02\x08\x64\x8a\xf3-T\n\x0b\x63reate_time\n\x0bupdate_time\n\x0bpage_number\n\x0c\x64isplay_name\n\x0bplaced_date\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"f\n\x15ListBookmarksResponse\x12\x34\n\tbookmarks\x18\x01 \x03(\x0b\x32!.malonaz.test.library.v1.Bookmark\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\x98\x01\n\x18\x42\x61tchGetBookmarksRequest\x12\x32\n\x06parent\x18\x01 \x01(\tB\"\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\x12H\n\x05names\x18\x02 \x03(\tB9\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"Q\n\x19\x42\x61tchGetBookmarksResponse\x12\x34\n\tbookmarks\x18\x01 \x03(\x0b\x32!.malonaz.test.library.v1.BookmarkBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n6malonaz/test/library/library_service/v1/bookmark.proto\x12\'malonaz.test.library.library_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/aip/v1/aip.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a&malonaz/test/library/v1/bookmark.proto\"\x85\x02\n\x15\x43reateBookmarkRequest\x12;\n\x06parent\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12:\n\x0b\x62ookmark_id\x18\x02 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12;\n\x08\x62ookmark\x18\x03 \x01(\x0b\x32!.malonaz.test.library.v1.BookmarkB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\x12\x15\n\rvalidate_only\x18\x05 \x01(\x08\"S\n\x12GetBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\"\x9c\x02\n\x15UpdateBookmarkRequest\x12;\n\x08\x62ookmark\x18\x01 \x01(\x0b\x32!.malonaz.test.library.v1.BookmarkB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:\x8c\x01\xbaHN\x1aL\n\x16\x62ookmark.name_required\x12\x19\x62ookmark.name must be set\x1a\x17has(this.bookmark.name)\xea\x9c\xc1\x03\x36\n\x0bpage_number\n\x0c\x64isplay_name\n\x04note\n\x06labels\n\x0bplaced_date\"{\n\x15\x44\x65leteBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"f\n\x17UndeleteBookmarkRequest\x12=\n\x04name\x18\x01 \x01(\tB/\xe0\x41\x02\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\"\xa5\x02\n\x14ListBookmarksRequest\x12;\n\x06parent\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x03 \x01(\x08\x12\x10\n\x08order_by\x18\x04 \x01(\t\x12\x1d\n\tpage_size\x18\x05 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x06 \x01(\t:e\x82\xf3-\x02\x08\x64\x8a\xf3-T\n\x0b\x63reate_time\n\x0bupdate_time\n\x0bpage_number\n\x0c\x64isplay_name\n\x0bplaced_date\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"f\n\x15ListBookmarksResponse\x12\x34\n\tbookmarks\x18\x01 \x03(\x0b\x32!.malonaz.test.library.v1.Bookmark\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xf3\x01\n\x16SearchBookmarksRequest\x12;\n\x06parent\x18\x01 \x01(\tB+\xe0\x41\x02\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\xbaH\x03\xc8\x01\x01\x12\x1a\n\x05query\x18\x02 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x02\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x03 \x01(\t\x12\x1d\n\tpage_size\x18\x04 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t\x12\x14\n\x0cshow_deleted\x18\x06 \x01(\x08\x12\x18\n\x10include_snippets\x18\x07 \x01(\x08:\r\x82\xf3-\x02\x08\x64\x92\xf3-\x03\n\x01*\"\x99\x01\n\x17SearchBookmarksResponse\x12\x34\n\tbookmarks\x18\x01 \x03(\x0b\x32!.malonaz.test.library.v1.Bookmark\x12/\n\x08snippets\x18\x02 \x03(\x0b\x32\x1d.malonaz.aip.v1.SearchSnippet\x12\x17\n\x0fnext_page_token\x18\x03 \x01(\t\"\x98\x01\n\x18\x42\x61tchGetBookmarksRequest\x12\x32\n\x06parent\x18\x01 \x01(\tB\"\xfa\x41\x1f\n\x1dlibrary.test.malonaz.com/Book\x12H\n\x05names\x18\x02 \x03(\tB9\xfa\x41#\n!library.test.malonaz.com/Bookmark\xbaH\x10\x92\x01\r\x08\x01\x10\xe8\x07\x18\x01\"\x04r\x02\x10\x01\"Q\n\x19\x42\x61tchGetBookmarksResponse\x12\x34\n\tbookmarks\x18\x01 \x03(\x0b\x32!.malonaz.test.library.v1.BookmarkBBZ@github.com/malonaz/core/genproto/test/library/library_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -64,26 +65,38 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LISTBOOKMARKSREQUEST'].fields_by_name['page_size']._serialized_options = b'\272H\007\032\005\030\350\007(\000'
   _globals['_LISTBOOKMARKSREQUEST']._loaded_options = None
   _globals['_LISTBOOKMARKSREQUEST']._serialized_options = b'\202\363-\002\010d\212\363-T\n\013create_time\n\013update_time\n\013page_number\n\014display_name\n\013placed_date\022\020create_time desc\222\363-\003\n\001*'
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['parent']._loaded_options = None
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\037\n\035library.test.malonaz.com/Book\272H\003\310\001\001'
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['query']._loaded_options = None
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['query']._serialized_options = b'\272H\010r\003\030\200\002\310\001\001'
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['page_size']._loaded_options = None
+  _globals['_SEARCHBOOKMARKSREQUEST'].fields_by_name['page_size']._serialized_options = b'\272H\007\032\005\030\350\007(\000'
+  _globals['_SEARCHBOOKMARKSREQUEST']._loaded_options = None
+  _globals['_SEARCHBOOKMARKSREQUEST']._serialized_options = b'\202\363-\002\010d\222\363-\003\n\001*'
   _globals['_BATCHGETBOOKMARKSREQUEST'].fields_by_name['parent']._loaded_options = None
   _globals['_BATCHGETBOOKMARKSREQUEST'].fields_by_name['parent']._serialized_options = b'\372A\037\n\035library.test.malonaz.com/Book'
   _globals['_BATCHGETBOOKMARKSREQUEST'].fields_by_name['names']._loaded_options = None
   _globals['_BATCHGETBOOKMARKSREQUEST'].fields_by_name['names']._serialized_options = b'\372A#\n!library.test.malonaz.com/Bookmark\272H\020\222\001\r\010\001\020\350\007\030\001\"\004r\002\020\001'
-  _globals['_CREATEBOOKMARKREQUEST']._serialized_start=297
-  _globals['_CREATEBOOKMARKREQUEST']._serialized_end=558
-  _globals['_GETBOOKMARKREQUEST']._serialized_start=560
-  _globals['_GETBOOKMARKREQUEST']._serialized_end=643
-  _globals['_UPDATEBOOKMARKREQUEST']._serialized_start=646
-  _globals['_UPDATEBOOKMARKREQUEST']._serialized_end=930
-  _globals['_DELETEBOOKMARKREQUEST']._serialized_start=932
-  _globals['_DELETEBOOKMARKREQUEST']._serialized_end=1055
-  _globals['_UNDELETEBOOKMARKREQUEST']._serialized_start=1057
-  _globals['_UNDELETEBOOKMARKREQUEST']._serialized_end=1159
-  _globals['_LISTBOOKMARKSREQUEST']._serialized_start=1162
-  _globals['_LISTBOOKMARKSREQUEST']._serialized_end=1455
-  _globals['_LISTBOOKMARKSRESPONSE']._serialized_start=1457
-  _globals['_LISTBOOKMARKSRESPONSE']._serialized_end=1559
-  _globals['_BATCHGETBOOKMARKSREQUEST']._serialized_start=1562
-  _globals['_BATCHGETBOOKMARKSREQUEST']._serialized_end=1714
-  _globals['_BATCHGETBOOKMARKSRESPONSE']._serialized_start=1716
-  _globals['_BATCHGETBOOKMARKSRESPONSE']._serialized_end=1797
+  _globals['_CREATEBOOKMARKREQUEST']._serialized_start=323
+  _globals['_CREATEBOOKMARKREQUEST']._serialized_end=584
+  _globals['_GETBOOKMARKREQUEST']._serialized_start=586
+  _globals['_GETBOOKMARKREQUEST']._serialized_end=669
+  _globals['_UPDATEBOOKMARKREQUEST']._serialized_start=672
+  _globals['_UPDATEBOOKMARKREQUEST']._serialized_end=956
+  _globals['_DELETEBOOKMARKREQUEST']._serialized_start=958
+  _globals['_DELETEBOOKMARKREQUEST']._serialized_end=1081
+  _globals['_UNDELETEBOOKMARKREQUEST']._serialized_start=1083
+  _globals['_UNDELETEBOOKMARKREQUEST']._serialized_end=1185
+  _globals['_LISTBOOKMARKSREQUEST']._serialized_start=1188
+  _globals['_LISTBOOKMARKSREQUEST']._serialized_end=1481
+  _globals['_LISTBOOKMARKSRESPONSE']._serialized_start=1483
+  _globals['_LISTBOOKMARKSRESPONSE']._serialized_end=1585
+  _globals['_SEARCHBOOKMARKSREQUEST']._serialized_start=1588
+  _globals['_SEARCHBOOKMARKSREQUEST']._serialized_end=1831
+  _globals['_SEARCHBOOKMARKSRESPONSE']._serialized_start=1834
+  _globals['_SEARCHBOOKMARKSRESPONSE']._serialized_end=1987
+  _globals['_BATCHGETBOOKMARKSREQUEST']._serialized_start=1990
+  _globals['_BATCHGETBOOKMARKSREQUEST']._serialized_end=2142
+  _globals['_BATCHGETBOOKMARKSRESPONSE']._serialized_start=2144
+  _globals['_BATCHGETBOOKMARKSRESPONSE']._serialized_end=2225
 # @@protoc_insertion_point(module_scope)

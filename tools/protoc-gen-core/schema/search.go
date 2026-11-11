@@ -49,10 +49,54 @@ const SearchPhoneNumberTokensFunction = "core_phone_number_tokens"
 // the same key on every resource.
 const SearchIDSnippetPath = "id"
 
-// SearchDocument resolves a resource message's search options into the SQL
-// expression composing its tsvector search document. Returns nil when the
+// SearchDocument resolves a resource message's search options: the SQL
+// expression composing its tsvector search document, the ancestor it is also
+// searched by and the fields headlined into snippets. Returns nil when the
 // message declares no search option.
 func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
+	searchOptions, err := searchOptionsOf(message)
+	if err != nil || searchOptions == nil {
+		return nil, err
+	}
+	parsedResource, err := resource.ParseFromMessage(message)
+	if err != nil {
+		return nil, fmt.Errorf("search options on %s: %w", message.GoIdent.GoName, err)
+	}
+	source, err := resolveJoinSource(parsedResource.Desc.GetType())
+	if err != nil {
+		return nil, err
+	}
+	expression, snippetFields, err := searchFields(source, searchOptions, "")
+	if err != nil {
+		return nil, err
+	}
+	searchDoc := &SearchDoc{Expression: expression, SnippetFields: snippetFields}
+
+	if searchOptions.GetAncestor() != "" {
+		if searchDoc.Ancestor, snippetFields, err = searchAncestor(parsedResource, searchOptions.GetAncestor()); err != nil {
+			return nil, fmt.Errorf("search ancestor of %s: %w", message.GoIdent.GoName, err)
+		}
+		searchDoc.SnippetFields = append(searchDoc.SnippetFields, snippetFields...)
+	}
+
+	// Snippet paths key the response: a resource field named "id" would clash with the id selector.
+	snippetPaths := map[string]bool{}
+	for _, snippetField := range searchDoc.SnippetFields {
+		if snippetPaths[snippetField.Path] {
+			return nil, fmt.Errorf("search field %q on %s is declared twice", snippetField.Path, message.GoIdent.GoName)
+		}
+		snippetPaths[snippetField.Path] = true
+	}
+	// Snippet matches surface in field-weight order (A first), declaration
+	// order breaking ties: the resource's own fields before its ancestor's.
+	sort.SliceStable(searchDoc.SnippetFields, func(i, j int) bool {
+		return searchDoc.SnippetFields[i].Weight < searchDoc.SnippetFields[j].Weight
+	})
+	return searchDoc, nil
+}
+
+// searchOptionsOf returns a message's search options, nil when it declares none.
+func searchOptionsOf(message *protogen.Message) (*aippb.SearchOptions, error) {
 	searchOptions, err := pbutil.GetExtension[*aippb.SearchOptions](message.Desc.Options(), aippb.E_Search)
 	if err != nil {
 		if errors.Is(err, pbutil.ErrExtensionNotFound) {
@@ -60,26 +104,30 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		}
 		return nil, fmt.Errorf("getting search options for %s: %w", message.GoIdent.GoName, err)
 	}
+	return searchOptions, nil
+}
+
+// searchFields resolves a resource's search fields into the expression
+// composing its search document and the fields headlined into snippets, their
+// paths under pathPrefix.
+func searchFields(source *joinSource, searchOptions *aippb.SearchOptions, pathPrefix string) (string, []SnippetField, error) {
+	message := source.message
+	// Queries reach the resource's row under its bare table name, ancestor joins included.
+	columnPrefix := TableOf(source.resource, source.modelOpts).Name + "."
 
 	expressions := make([]string, 0, len(searchOptions.GetFields()))
-	var snippetFields []SnippetField
-	snippetPaths := map[string]bool{}
+	snippetFields := make([]SnippetField, 0, len(searchOptions.GetFields()))
 	for _, searchField := range searchOptions.GetFields() {
 		snippetField := SnippetField{Path: searchField.GetPath(), ID: searchField.GetId(), Weight: weightLetter(searchField.GetWeight())}
 		if snippetField.ID {
 			if searchField.GetSplit() != aippb.SearchOptions_SPLIT_UNSPECIFIED {
-				return nil, fmt.Errorf("search field id on %s takes no split", message.GoIdent.GoName)
+				return "", nil, fmt.Errorf("search field id on %s takes no split", message.GoIdent.GoName)
 			}
 			snippetField.Path = SearchIDSnippetPath
 		}
-		// Snippet paths key the response: a resource field named "id" would clash with the id selector.
-		if snippetPaths[snippetField.Path] {
-			return nil, fmt.Errorf("search field %q on %s is declared twice", snippetField.Path, message.GoIdent.GoName)
-		}
-		snippetPaths[snippetField.Path] = true
 
-		// The document's base text, distinct from SearchFieldExpression's
-		// snippet text, which is unusable in a generated column.
+		// The document's base text, distinct from the snippet's, which is
+		// unusable in a generated column.
 		var base string
 		var err error
 		if snippetField.ID {
@@ -88,13 +136,11 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 			base, err = searchFieldBase(message, snippetField.Path, "")
 		}
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
-		snippetField.Expression = base
-
 		expression, err := applySplit(base, searchField.GetSplit())
 		if err != nil {
-			return nil, fmt.Errorf("search field %q on %s: %w", snippetField.Path, message.GoIdent.GoName, err)
+			return "", nil, fmt.Errorf("search field %q on %s: %w", snippetField.Path, message.GoIdent.GoName, err)
 		}
 		expressions = append(expressions, fmt.Sprintf(
 			"setweight(to_tsvector('simple', %s), '%s')", expression, weightLetter(searchField.GetWeight()),
@@ -103,39 +149,82 @@ func SearchDocument(message *protogen.Message) (*SearchDoc, error) {
 		// Every search field is snippet-eligible; the client opts in per
 		// request. Snippets headline the raw text (no split variant), or
 		// fragments would surface mangled tokenized text.
+		if snippetField.Expression, err = snippetExpression(message, snippetField, columnPrefix); err != nil {
+			return "", nil, err
+		}
+		snippetField.Path = pathPrefix + snippetField.Path
 		snippetFields = append(snippetFields, snippetField)
 	}
-	// Snippet matches surface in field-weight order (A first), declaration
-	// order breaking ties.
-	sort.SliceStable(snippetFields, func(i, j int) bool { return snippetFields[i].Weight < snippetFields[j].Weight })
-	return &SearchDoc{Expression: strings.Join(expressions, " || "), SnippetFields: snippetFields}, nil
+	return strings.Join(expressions, " || "), snippetFields, nil
+}
+
+// searchAncestor resolves the ancestor a resource is also searched by: the
+// join reaching its row, and its snippet fields under its singular, e.g.
+// "shelf.display_name".
+func searchAncestor(parsedResource *resource.ParsedResource, ancestorType string) (*Join, []SnippetField, error) {
+	pattern, err := parsedResource.SinglePattern()
+	if err != nil {
+		return nil, nil, err
+	}
+	ancestor := pattern.Parent
+	for ancestor != nil && ancestor.Resource.Desc.GetType() != ancestorType {
+		ancestor = ancestor.Parent
+	}
+	if ancestor == nil {
+		return nil, nil, fmt.Errorf("%q is not an ancestor", ancestorType)
+	}
+	source, err := resolveJoinSource(ancestorType)
+	if err != nil {
+		return nil, nil, err
+	}
+	searchOptions, err := searchOptionsOf(source.message)
+	if err != nil {
+		return nil, nil, err
+	}
+	if searchOptions == nil {
+		return nil, nil, fmt.Errorf("%q declares no search options", ancestorType)
+	}
+	conditions, err := ancestorJoinConditions(ancestorType)
+	if err != nil {
+		return nil, nil, err
+	}
+	table := TableOf(source.resource, source.modelOpts)
+	join := &Join{Key: ancestorJoinKey(ancestorType), Table: table, Alias: table.Name, Conditions: conditions}
+	_, snippetFields, err := searchFields(source, searchOptions, source.resource.SingularSnakeCase()+".")
+	return join, snippetFields, err
 }
 
 // SearchDoc holds the resolved search document of a resource.
 type SearchDoc struct {
 	// Expression is the SQL expression composing the tsvector document.
 	Expression string
-	// SnippetFields are the fields producing highlighted snippets in Search responses.
+	// Ancestor joins the ancestor whose stored search document is matched
+	// alongside the resource's own; nil when it is searched by its fields alone.
+	Ancestor *Join
+	// SnippetFields are the fields producing highlighted snippets in Search
+	// responses: the resource's and its ancestor's.
 	SnippetFields []SnippetField
 }
 
 // SnippetField is one field headlined into a search-result snippet.
 type SnippetField struct {
-	// Path is the resource field path, e.g. "biography", or
-	// SearchIDSnippetPath for the resource ID.
+	// Path keys the field's matches in the response: the resource field path,
+	// e.g. "biography", SearchIDSnippetPath for the resource ID, or either
+	// under the ancestor's singular, e.g. "shelf.display_name".
 	Path string
 	// ID is true when the field indexes the resource ID rather than a path.
 	ID bool
-	// Expression is the raw text SQL expression to headline.
+	// Expression is the raw text SQL expression to headline, its columns
+	// qualified by the table of the resource declaring the field.
 	Expression string
 	// Weight is the field's tsvector weight letter (A-D).
 	Weight string
 }
 
-// SnippetExpression resolves a snippet field to its raw text SQL expression,
+// snippetExpression resolves a snippet field to its raw text SQL expression,
 // with column references qualified by the given prefix (see
 // SearchFieldExpression).
-func SnippetExpression(message *protogen.Message, snippetField SnippetField, columnPrefix string) (string, error) {
+func snippetExpression(message *protogen.Message, snippetField SnippetField, columnPrefix string) (string, error) {
 	if snippetField.ID {
 		return resourceIDColumn(message, columnPrefix)
 	}

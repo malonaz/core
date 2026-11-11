@@ -634,7 +634,12 @@ func joinKey(field *protogen.Field, join *modelpb.Join) string {
 	case join.GetAggregate() != nil:
 		return "aggregate:" + field.Desc.TextName()
 	}
-	return "ancestor:" + join.GetResourceType()
+	return ancestorJoinKey(join.GetResourceType())
+}
+
+// ancestorJoinKey identifies the join of an ancestor's containing row.
+func ancestorJoinKey(ancestorType string) string {
+	return "ancestor:" + ancestorType
 }
 
 // descendantJoinConditions equates each of this resource's identifier columns

@@ -2014,6 +2014,9 @@ func (s *libraryService_BookServer) SearchBooks(ctx context.Context, request *v1
 				if match, ok := dbSnippets[i]["id"]; ok {
 					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "id", Match: match})
 				}
+				if match, ok := dbSnippets[i]["shelf.display_name"]; ok {
+					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "shelf.display_name", Match: match})
+				}
 				if match, ok := dbSnippets[i]["metadata.summary"]; ok {
 					snippet.Matches = append(snippet.Matches, &v15.SearchSnippetMatch{Path: "metadata.summary", Match: match})
 				}

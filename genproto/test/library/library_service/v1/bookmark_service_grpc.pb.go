@@ -26,6 +26,7 @@ const (
 	BookmarkService_DeleteBookmark_FullMethodName    = "/malonaz.test.library.library_service.v1.BookmarkService/DeleteBookmark"
 	BookmarkService_UndeleteBookmark_FullMethodName  = "/malonaz.test.library.library_service.v1.BookmarkService/UndeleteBookmark"
 	BookmarkService_ListBookmarks_FullMethodName     = "/malonaz.test.library.library_service.v1.BookmarkService/ListBookmarks"
+	BookmarkService_SearchBookmarks_FullMethodName   = "/malonaz.test.library.library_service.v1.BookmarkService/SearchBookmarks"
 	BookmarkService_BatchGetBookmarks_FullMethodName = "/malonaz.test.library.library_service.v1.BookmarkService/BatchGetBookmarks"
 )
 
@@ -49,6 +50,10 @@ type BookmarkServiceClient interface {
 	UndeleteBookmark(ctx context.Context, in *UndeleteBookmarkRequest, opts ...grpc.CallOption) (*v1.Bookmark, error)
 	// Lists bookmarks.
 	ListBookmarks(ctx context.Context, in *ListBookmarksRequest, opts ...grpc.CallOption) (*ListBookmarksResponse, error)
+	// Search bookmarks.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchBookmarks(ctx context.Context, in *SearchBookmarksRequest, opts ...grpc.CallOption) (*SearchBookmarksResponse, error)
 	// Gets multiple bookmarks in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -123,6 +128,16 @@ func (c *bookmarkServiceClient) ListBookmarks(ctx context.Context, in *ListBookm
 	return out, nil
 }
 
+func (c *bookmarkServiceClient) SearchBookmarks(ctx context.Context, in *SearchBookmarksRequest, opts ...grpc.CallOption) (*SearchBookmarksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchBookmarksResponse)
+	err := c.cc.Invoke(ctx, BookmarkService_SearchBookmarks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bookmarkServiceClient) BatchGetBookmarks(ctx context.Context, in *BatchGetBookmarksRequest, opts ...grpc.CallOption) (*BatchGetBookmarksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchGetBookmarksResponse)
@@ -153,6 +168,10 @@ type BookmarkServiceServer interface {
 	UndeleteBookmark(context.Context, *UndeleteBookmarkRequest) (*v1.Bookmark, error)
 	// Lists bookmarks.
 	ListBookmarks(context.Context, *ListBookmarksRequest) (*ListBookmarksResponse, error)
+	// Search bookmarks.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	SearchBookmarks(context.Context, *SearchBookmarksRequest) (*SearchBookmarksResponse, error)
 	// Gets multiple bookmarks in a single request.
 	//
 	// See: https://google.aip.dev/231 (Batch methods: Get).
@@ -183,6 +202,9 @@ func (UnimplementedBookmarkServiceServer) UndeleteBookmark(context.Context, *Und
 }
 func (UnimplementedBookmarkServiceServer) ListBookmarks(context.Context, *ListBookmarksRequest) (*ListBookmarksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBookmarks not implemented")
+}
+func (UnimplementedBookmarkServiceServer) SearchBookmarks(context.Context, *SearchBookmarksRequest) (*SearchBookmarksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchBookmarks not implemented")
 }
 func (UnimplementedBookmarkServiceServer) BatchGetBookmarks(context.Context, *BatchGetBookmarksRequest) (*BatchGetBookmarksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchGetBookmarks not implemented")
@@ -315,6 +337,24 @@ func _BookmarkService_ListBookmarks_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BookmarkService_SearchBookmarks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchBookmarksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookmarkServiceServer).SearchBookmarks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BookmarkService_SearchBookmarks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookmarkServiceServer).SearchBookmarks(ctx, req.(*SearchBookmarksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BookmarkService_BatchGetBookmarks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BatchGetBookmarksRequest)
 	if err := dec(in); err != nil {
@@ -363,6 +403,10 @@ var BookmarkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBookmarks",
 			Handler:    _BookmarkService_ListBookmarks_Handler,
+		},
+		{
+			MethodName: "SearchBookmarks",
+			Handler:    _BookmarkService_SearchBookmarks_Handler,
 		},
 		{
 			MethodName: "BatchGetBookmarks",

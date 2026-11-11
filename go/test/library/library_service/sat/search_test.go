@@ -648,3 +648,105 @@ func TestSearch_ID(t *testing.T) {
 		require.Equal(t, "**10425**", response.Snippets[0].Matches[0].Match)
 	})
 }
+
+// A resource naming a search ancestor is found by that ancestor's search
+// document too, read through a join at query time: nothing is copied.
+func TestSearch_Ancestor(t *testing.T) {
+	t.Parallel()
+	organizationParent := getOrganizationParent()
+	author := createTestAuthor(t, organizationParent, "Ancestor Search Author")
+	maritime := createTestShelf(t, organizationParent, "Maritime Classics", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	poetry := createTestShelf(t, organizationParent, "Poetry", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	mobyDick := createTestBook(t, maritime.Name, author.Name, "Moby Dick")
+	maritimeHistory := createTestBook(t, maritime.Name, author.Name, "Maritime History")
+	createTestBook(t, poetry.Name, author.Name, "Leaves of Grass")
+
+	// Another organization's shelf never matches.
+	otherOrganizationParent := getOrganizationParent()
+	otherAuthor := createTestAuthor(t, otherOrganizationParent, "Ancestor Search Author")
+	otherShelf := createTestShelf(t, otherOrganizationParent, "Maritime Atlases", librarypb.ShelfGenre_SHELF_GENRE_FICTION)
+	createTestBook(t, otherShelf.Name, otherAuthor.Name, "Charts")
+
+	allShelves := organizationParent + "/shelves/-"
+	searchBooks := func(t *testing.T, query string) *libraryservicepb.SearchBooksResponse {
+		t.Helper()
+		response, err := libraryServiceClient.SearchBooks(ctx, &libraryservicepb.SearchBooksRequest{Parent: allShelves, Query: query, IncludeSnippets: true})
+		require.NoError(t, err)
+		return response
+	}
+	bookNames := func(response *libraryservicepb.SearchBooksResponse) []string {
+		names := make([]string, 0, len(response.Books))
+		for _, book := range response.Books {
+			names = append(names, book.Name)
+		}
+		return names
+	}
+	matches := func(snippet *aippb.SearchSnippet) map[string]string {
+		pathToMatch := map[string]string{}
+		for _, match := range snippet.Matches {
+			pathToMatch[match.Path] = match.Match
+		}
+		return pathToMatch
+	}
+
+	// Book already joins its shelf for its joined fields: the search reuses that join.
+	t.Run("FoundByAncestorField", func(t *testing.T) {
+		response := searchBooks(t, "maritime")
+		// Matching on its own title as well as its shelf's name ranks first.
+		require.Equal(t, []string{maritimeHistory.Name, mobyDick.Name}, bookNames(response))
+		require.Equal(t, map[string]string{"title": "**Maritime** History", "shelf.display_name": "**Maritime** Classics"}, matches(response.Snippets[0]))
+		require.Equal(t, map[string]string{"shelf.display_name": "**Maritime** Classics"}, matches(response.Snippets[1]))
+	})
+
+	t.Run("TermsMatchAcrossBoth", func(t *testing.T) {
+		response := searchBooks(t, "moby classics")
+		require.Equal(t, []string{mobyDick.Name}, bookNames(response))
+		// Equal weights: the book's own field before its shelf's.
+		require.Equal(t, []*aippb.SearchSnippetMatch{
+			{Path: "title", Match: "**Moby** Dick"},
+			{Path: "shelf.display_name", Match: "Maritime **Classics**"},
+		}, response.Snippets[0].Matches)
+		require.Empty(t, searchBooks(t, "moby poetry").Books)
+	})
+
+	// Bookmark joins nothing: the search brings the join to its book.
+	t.Run("JoinsUnjoinedAncestor", func(t *testing.T) {
+		bookmark, err := bookmarkServiceClient.CreateBookmark(ctx, &libraryservicepb.CreateBookmarkRequest{
+			Parent:   mobyDick.Name,
+			Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: "Opening", Note: "Call me Ishmael", PlacedDate: testDate},
+		})
+		require.NoError(t, err)
+		_, err = bookmarkServiceClient.CreateBookmark(ctx, &libraryservicepb.CreateBookmarkRequest{
+			Parent:   maritimeHistory.Name,
+			Bookmark: &librarypb.Bookmark{PageNumber: 1, DisplayName: "Opening", PlacedDate: testDate},
+		})
+		require.NoError(t, err)
+
+		searchBookmarks := func(query string) *libraryservicepb.SearchBookmarksResponse {
+			response, err := bookmarkServiceClient.SearchBookmarks(ctx, &libraryservicepb.SearchBookmarksRequest{
+				Parent: allShelves + "/books/-", Query: query, IncludeSnippets: true,
+			})
+			require.NoError(t, err)
+			return response
+		}
+		response := searchBookmarks("ishmael moby")
+		require.Len(t, response.Bookmarks, 1)
+		require.Equal(t, bookmark.Name, response.Bookmarks[0].Name)
+		require.Equal(t, map[string]string{"note": "Call me **Ishmael**", "book.title": "**Moby** Dick"}, matches(response.Snippets[0]))
+
+		require.Len(t, searchBookmarks("opening").Bookmarks, 2)
+		// Only the ancestor's own fields: its book's shelf is not searched.
+		require.Empty(t, searchBookmarks("classics").Bookmarks)
+	})
+
+	// Runs last: the rename is visible to the very next search.
+	t.Run("FollowsAncestorUpdate", func(t *testing.T) {
+		_, err := libraryServiceClient.UpdateShelf(ctx, &libraryservicepb.UpdateShelfRequest{
+			Shelf:      &librarypb.Shelf{Name: maritime.Name, DisplayName: "Nautical Classics"},
+			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"display_name"}},
+		})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{maritimeHistory.Name, mobyDick.Name}, bookNames(searchBooks(t, "nautical")))
+		require.Equal(t, []string{maritimeHistory.Name}, bookNames(searchBooks(t, "maritime")))
+	})
+}

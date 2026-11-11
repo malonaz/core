@@ -115,6 +115,18 @@ message SearchOptions {
 
   // The fields composing the search document.
   repeated Field fields = 1 [(buf.validate.field).repeated.min_items = 1];
+
+  // The resource type of an ancestor this resource is also searched by, e.g.
+  // a book by its shelf. The ancestor's own search document (it must declare
+  // search options; an ancestor it names in turn is not included) is joined
+  // and matched alongside this resource's at query time, so a query's terms
+  // may match across the two: "dune fiction" finds the book titled Dune on
+  // the shelf named Fiction. Snippet matches on the ancestor's fields are
+  // reported under its singular, e.g. "shelf.display_name".
+  //
+  // Nothing is copied onto this resource, at the price of its search index:
+  // every row under the searched parent is matched.
+  string ancestor = 2;
 }
 
 // Options for pagination.

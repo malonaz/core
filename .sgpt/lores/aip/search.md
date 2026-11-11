@@ -1,6 +1,6 @@
 ---
 title: Full-text search (SearchX RPCs)
-description: How to add an AIP-136 Search{Plural} RPC to a resource — the search codegen option (field paths, the `id` resource-ID selector), the migration contract (generated tsvector column, changing it), and query semantics.
+description: How to add an AIP-136 Search{Plural} RPC to a resource — the search codegen option (field paths, the `id` resource-ID selector), the migration contract (generated tsvector column, changing it), searching a resource by an ancestor's document, and query semantics.
 labels:
     lang: go, protobuf
     repo: core
@@ -69,6 +69,32 @@ match is the highlighted ID, e.g. `**1042**`); hence a resource field named
 Snippets are opt-in per request: when `include_snippets` is false the query is
 byte-identical to a snippet-less search (no `ts_headline` cost) and the
 response carries no snippets.
+
+## Searching by an ancestor
+
+`ancestor: "{resource type}"` on the search option makes a resource found by
+an ancestor's search document too (a book by its shelf's name), with nothing
+copied onto it. The ancestor must declare search options itself; only its own
+fields count, never those of an ancestor it names in turn. Multi-pattern
+resources cannot name one.
+
+- Query: the ancestor row is joined on its identifier columns (reusing the
+  ancestor join a joined field already declares, else adding one to the
+  Search query only) and the match and rank run over
+  `(child.search_document || ancestor.search_document)`, so AND-ed terms may
+  match across the two (`"moby classics"`). A change to the ancestor is
+  searchable at once.
+- Snippets: the ancestor's fields are headlined too, under its singular
+  (`shelf.display_name`, `book.id`); on equal weights the resource's own
+  fields come first.
+- Cost: a concatenated document cannot use the child's GIN index, so every
+  row under the searched parent is matched (measured ~2 µs per row: fine for a
+  tenant-scoped parent, a full scan for a `-` tenant). Do not index the
+  child's `search_document`; the ancestor keeps its own index for its own
+  Search. Prefer it over denormalizing while tenants stay in the tens of
+  thousands of rows.
+- Reference: `Book` (by its `Shelf`, already joined) and `Bookmark` (by its
+  `Book`, joined by the search) + `sat/search_test.go: TestSearch_Ancestor`.
 
 ## Changing a deployed search document
 
