@@ -50,5 +50,12 @@ func (s *Service) Start(ctx context.Context, withServiceAccount func(context.Con
 	if err := s.AiServiceServer.Start(ctx); err != nil {
 		return nil, fmt.Errorf("starting ai-service server: %w", err)
 	}
-	return s.start(ctx)
+	cleanup, err := s.start(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		cleanup()
+		s.AiServiceServer.Close()
+	}, nil
 }

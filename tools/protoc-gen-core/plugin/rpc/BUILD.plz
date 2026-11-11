@@ -10,6 +10,7 @@ go_library(
         "import.go",
         "list.go",
         "longrunning.go",
+        "outbox.go",
         "rpc.go",
         "search.go",
         "undelete.go",

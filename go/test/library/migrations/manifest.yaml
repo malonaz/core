@@ -27,3 +27,5 @@ migrations:
     hash: a6d002e5e7d385c6eb3b53d00f6ff146
   - path: library/013_ancestor_search.sql
     hash: 83348f68428fa6c4b9f2e035a6c64259
+  - path: library/014_outbox_journal.sql
+    hash: 2af08a373959e162abaf3ddb893c429f
