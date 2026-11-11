@@ -44,6 +44,10 @@ class BookmarkServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def SearchBookmarks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksRequest, malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def BatchGetBookmarks(self, stream: 'grpclib.server.Stream[malonaz.test.library.library_service.v1.bookmark_pb2.BatchGetBookmarksRequest, malonaz.test.library.library_service.v1.bookmark_pb2.BatchGetBookmarksResponse]') -> None:
         pass
 
@@ -84,6 +88,12 @@ class BookmarkServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksRequest,
                 malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksResponse,
+            ),
+            '/malonaz.test.library.library_service.v1.BookmarkService/SearchBookmarks': grpclib.const.Handler(
+                self.SearchBookmarks,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksRequest,
+                malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksResponse,
             ),
             '/malonaz.test.library.library_service.v1.BookmarkService/BatchGetBookmarks': grpclib.const.Handler(
                 self.BatchGetBookmarks,
@@ -132,6 +142,12 @@ class BookmarkServiceStub:
             '/malonaz.test.library.library_service.v1.BookmarkService/ListBookmarks',
             malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksRequest,
             malonaz.test.library.library_service.v1.bookmark_pb2.ListBookmarksResponse,
+        )
+        self.SearchBookmarks = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.test.library.library_service.v1.BookmarkService/SearchBookmarks',
+            malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksRequest,
+            malonaz.test.library.library_service.v1.bookmark_pb2.SearchBookmarksResponse,
         )
         self.BatchGetBookmarks = grpclib.client.UnaryUnaryMethod(
             channel,

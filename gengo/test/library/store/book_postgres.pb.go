@@ -315,9 +315,10 @@ const BookSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(t
 
 type bookSearchRow struct {
 	model.Book
-	SnippetTitle           *string `db:"__snippet_title"`
-	SnippetId              *string `db:"__snippet_id"`
-	SnippetMetadataSummary *string `db:"__snippet_metadata_summary"`
+	Snippet0 *string `db:"__snippet_0"`
+	Snippet1 *string `db:"__snippet_1"`
+	Snippet2 *string `db:"__snippet_2"`
+	Snippet3 *string `db:"__snippet_3"`
 }
 
 func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Book, []map[string]string, error) {
@@ -337,12 +338,13 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 	var snippetColumns []string
 	orderByClause := "ORDER BY book.create_time DESC"
 	if tsQuery != "" {
-		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("book.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
-		orderByClause = fmt.Sprintf("ORDER BY ts_rank(book.search_document, to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
+		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("(book.search_document || shelf.search_document) @@ to_tsquery('simple', $%d)", len(params)+1))
+		orderByClause = fmt.Sprintf("ORDER BY ts_rank((book.search_document || shelf.search_document), to_tsquery('simple', $%d)) DESC, book.create_time DESC", len(params)+1)
 		if includeSnippets {
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', book.book_id, to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_id`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_metadata_summary`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_0`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', book.book_id, to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_1`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(shelf.display_name, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_2`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(book.metadata #>> '{summary}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_3`, len(params)+1))
 		}
 		params = append(params, tsQuery)
 	}
@@ -370,14 +372,17 @@ func (s *Store) SearchBooks(ctx context.Context, organizationId, shelfId string,
 			continue
 		}
 		snippet := map[string]string{}
-		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
-			snippet["title"] = *searchRow.SnippetTitle
+		if searchRow.Snippet0 != nil && strings.Contains(*searchRow.Snippet0, "**") {
+			snippet["title"] = *searchRow.Snippet0
 		}
-		if searchRow.SnippetId != nil && strings.Contains(*searchRow.SnippetId, "**") {
-			snippet["id"] = *searchRow.SnippetId
+		if searchRow.Snippet1 != nil && strings.Contains(*searchRow.Snippet1, "**") {
+			snippet["id"] = *searchRow.Snippet1
 		}
-		if searchRow.SnippetMetadataSummary != nil && strings.Contains(*searchRow.SnippetMetadataSummary, "**") {
-			snippet["metadata.summary"] = *searchRow.SnippetMetadataSummary
+		if searchRow.Snippet2 != nil && strings.Contains(*searchRow.Snippet2, "**") {
+			snippet["shelf.display_name"] = *searchRow.Snippet2
+		}
+		if searchRow.Snippet3 != nil && strings.Contains(*searchRow.Snippet3, "**") {
+			snippet["metadata.summary"] = *searchRow.Snippet3
 		}
 		snippets = append(snippets, snippet)
 	}

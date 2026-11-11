@@ -10,6 +10,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	date "google.golang.org/genproto/googleapis/type/date"
@@ -333,7 +334,7 @@ var File_malonaz_test_library_v1_bookmark_proto protoreflect.FileDescriptor
 
 const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"\n" +
-	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa9\a\n" +
+	"&malonaz/test/library/v1/bookmark.proto\x12\x17malonaz.test.library.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe8\a\n" +
 	"\bBookmark\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -355,9 +356,13 @@ const file_malonaz_test_library_v1_bookmark_proto_rawDesc = "" +
 	"placedDate\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x99\x01\xeaA\x88\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xd8\x01\xeaA\x88\x01\n" +
 	"!library.test.malonaz.com/Bookmark\x12Norganizations/{organization}/shelves/{shelf}/books/{book}/bookmarks/{bookmark}*\tbookmarks2\bbookmarkҦ\x04\t\n" +
-	"\alibrary*`\n" +
+	"\alibrary\x9a\xf3-;\n" +
+	"\x10\x10\x01\n" +
+	"\fdisplay_name\n" +
+	"\b\x10\x02\n" +
+	"\x04note\x12\x1dlibrary.test.malonaz.com/Book*`\n" +
 	"\rBookmarkColor\x12\x1e\n" +
 	"\x1aBOOKMARK_COLOR_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12BOOKMARK_COLOR_RED\x10\x01\x12\x17\n" +

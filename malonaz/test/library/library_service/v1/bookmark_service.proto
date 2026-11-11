@@ -67,6 +67,15 @@ service BookmarkService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
   }
 
+  // Search bookmarks.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchBookmarks(SearchBookmarksRequest) returns (SearchBookmarksResponse) {
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/shelves/*/books/*}/bookmarks:search"};
+    option (google.api.method_signature) = "parent,query";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "library.test.malonaz.com/Bookmark";
+  }
+
   // Gets multiple bookmarks in a single request.
   //
   // See: https://google.aip.dev/231 (Batch methods: Get).

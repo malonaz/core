@@ -19,7 +19,8 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/aip/querying` — querying AIP-compliant APIs: AIP-160 filters,
   update/read masks, Get/Batch over List.
 - `lores/aip/search` — adding an AIP-136 Search{Plural} RPC: search codegen
-  option, tsvector migration contract, query semantics.
+  option, tsvector migration contract, searching a resource by an ancestor's
+  document (`ancestor`), query semantics.
 - `lores/aip/codegen/overview` — protoc-gen-core: the three plugins and their
   annotations, resource-tree semantics (singletons, lazy singletons under
   silent parents, multi-pattern, silent resources), contracts shared by every generated RPC (concatenated SQL, the

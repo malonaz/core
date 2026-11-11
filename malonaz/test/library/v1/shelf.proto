@@ -61,6 +61,14 @@ message Shelf {
     }
   };
   option (malonaz.codegen.model.v1.model_opts) = {schema_name: "library"};
+  option (malonaz.codegen.aip.v1.search) = {
+    fields: [
+      {
+        path: "display_name"
+        weight: WEIGHT_A
+      }
+    ]
+  };
 
   // The resource name of the shelf.
   // Format: organizations/{organization}/shelves/{shelf}

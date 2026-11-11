@@ -7,6 +7,7 @@ import (
 	context "context"
 	errors "errors"
 	model "github.com/malonaz/core/gengo/test/library/model"
+	v12 "github.com/malonaz/core/genproto/aip/v1"
 	v1 "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	v11 "github.com/malonaz/core/genproto/test/library/v1"
 	aip "github.com/malonaz/core/go/aip"
@@ -46,6 +47,7 @@ type bookmarkService_BookmarkStore interface {
 	GetBookmark(ctx context.Context, organizationId, shelfId, bookId, bookmarkId string) (*model.Bookmark, error)
 	BatchGetBookmarks(ctx context.Context, organizationIds []string, shelfIds []string, bookIds []string, bookmarkIds []string) ([]*model.Bookmark, error)
 	ListBookmarks(ctx context.Context, organizationId, shelfId, bookId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Bookmark, error)
+	SearchBookmarks(ctx context.Context, organizationId, shelfId, bookId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Bookmark, []map[string]string, error)
 }
 
 type bookmarkService_BookmarkServer struct {
@@ -407,6 +409,80 @@ func (s *bookmarkService_BookmarkServer) ListBookmarks(ctx context.Context, requ
 	// Create and return response.
 	return &v1.ListBookmarksResponse{
 		Bookmarks:     bookmarks,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+var searchBookmarksRequestParser = aip.MustNewSearchRequestParser[*v1.SearchBookmarksRequest, *v11.Bookmark](aip.WithFQN())
+
+func (s *bookmarkService_BookmarkServer) SearchBookmarks(ctx context.Context, request *v1.SearchBookmarksRequest) (*v1.SearchBookmarksResponse, error) {
+	// Parse parent names
+	var organizationId, shelfId, bookId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/shelves/{shelf}/books/{book}", &organizationId, &shelfId, &bookId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := searchBookmarksRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbBookmarks, dbSnippets, err := s.store.SearchBookmarks(ctx, organizationId, shelfId, bookId, request.ShowDeleted, request.IncludeSnippets, parsedRequest.GetTSQuery(), whereClause, parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "searching bookmarks").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbBookmarks))
+	if nextPageToken != "" {
+		dbBookmarks = dbBookmarks[:len(dbBookmarks)-1]
+		if len(dbSnippets) > 0 {
+			dbSnippets = dbSnippets[:len(dbSnippets)-1]
+		}
+	}
+
+	var snippets []*v12.SearchSnippet
+	if request.IncludeSnippets {
+		snippets = make([]*v12.SearchSnippet, len(dbBookmarks))
+		for i := range snippets {
+			snippet := &v12.SearchSnippet{}
+			if dbSnippets != nil {
+				if match, ok := dbSnippets[i]["display_name"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "display_name", Match: match})
+				}
+				if match, ok := dbSnippets[i]["book.title"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "book.title", Match: match})
+				}
+				if match, ok := dbSnippets[i]["book.id"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "book.id", Match: match})
+				}
+				if match, ok := dbSnippets[i]["note"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "note", Match: match})
+				}
+				if match, ok := dbSnippets[i]["book.metadata.summary"]; ok {
+					snippet.Matches = append(snippet.Matches, &v12.SearchSnippetMatch{Path: "book.metadata.summary", Match: match})
+				}
+			}
+			snippets[i] = snippet
+		}
+	}
+
+	// Convert back to proto.
+	bookmarks := make([]*v11.Bookmark, 0, len(dbBookmarks))
+	for _, dbBookmark := range dbBookmarks {
+		bookmark, err := dbBookmark.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Bookmark to Bookmark: %v", err).Err()
+		}
+		bookmarks = append(bookmarks, bookmark)
+	}
+
+	// Create and return response.
+	return &v1.SearchBookmarksResponse{
+		Bookmarks:     bookmarks,
+		Snippets:      snippets,
 		NextPageToken: nextPageToken,
 	}, nil
 }

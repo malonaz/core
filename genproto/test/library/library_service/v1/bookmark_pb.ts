@@ -9,6 +9,8 @@ import { file_google_api_field_behavior } from "../../../../../google/api/field_
 import { file_google_api_resource } from "../../../../../google/api/resource_pb";
 import type { FieldMask } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
+import type { SearchSnippet, SearchSnippetValid } from "../../../../aip/v1/aip_pb";
+import { file_malonaz_aip_v1_aip } from "../../../../aip/v1/aip_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import type { Bookmark, BookmarkValid } from "../../v1/bookmark_pb";
 import { file_malonaz_test_library_v1_bookmark } from "../../v1/bookmark_pb";
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/test/library/library_service/v1/bookmark.proto.
  */
 export const file_malonaz_test_library_library_service_v1_bookmark: GenFile = /*@__PURE__*/
-  fileDesc("CjZtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9va21hcmsucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKFAgoVQ3JlYXRlQm9va21hcmtSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIA8gBARI6Cgtib29rbWFya19pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARI7Cghib29rbWFyaxgDIAEoCzIhLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJTChJHZXRCb29rbWFya1JlcXVlc3QSPQoEbmFtZRgBIAEoCUIv4EEC+kEjCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmu6SAPIAQEinAIKFVVwZGF0ZUJvb2ttYXJrUmVxdWVzdBI7Cghib29rbWFyaxgBIAEoCzIhLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6jAG6SE4aTAoWYm9va21hcmsubmFtZV9yZXF1aXJlZBIZYm9va21hcmsubmFtZSBtdXN0IGJlIHNldBoXaGFzKHRoaXMuYm9va21hcmsubmFtZSnqnMEDNgoLcGFnZV9udW1iZXIKDGRpc3BsYXlfbmFtZQoEbm90ZQoGbGFiZWxzCgtwbGFjZWRfZGF0ZSJ7ChVEZWxldGVCb29rbWFya1JlcXVlc3QSPQoEbmFtZRgBIAEoCUIv4EEC+kEjCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmu6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJImYKF1VuZGVsZXRlQm9va21hcmtSZXF1ZXN0Ej0KBG5hbWUYASABKAlCL+BBAvpBIwohbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2ttYXJrukgDyAEBEgwKBGV0YWcYAiABKAkipQIKFExpc3RCb29rbWFya3NSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOmWC8y0CCGSK8y1UCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKC3BhZ2VfbnVtYmVyCgxkaXNwbGF5X25hbWUKC3BsYWNlZF9kYXRlEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJmChVMaXN0Qm9va21hcmtzUmVzcG9uc2USNAoJYm9va21hcmtzGAEgAygLMiEubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9va21hcmsSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIpgBChhCYXRjaEdldEJvb2ttYXJrc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEkgKBW5hbWVzGAIgAygJQjn6QSMKIWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rbWFya7pIEJIBDQgBEOgHGAEiBHICEAEiUQoZQmF0Y2hHZXRCb29rbWFya3NSZXNwb25zZRI0Cglib29rbWFya3MYASADKAsyIS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFya0JCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_bookmark]);
+  fileDesc("CjZtYWxvbmF6L3Rlc3QvbGlicmFyeS9saWJyYXJ5X3NlcnZpY2UvdjEvYm9va21hcmsucHJvdG8SJ21hbG9uYXoudGVzdC5saWJyYXJ5LmxpYnJhcnlfc2VydmljZS52MSKFAgoVQ3JlYXRlQm9va21hcmtSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIA8gBARI6Cgtib29rbWFya19pZBgCIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARI7Cghib29rbWFyaxgDIAEoCzIhLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrQga6SAPIAQESHwoKcmVxdWVzdF9pZBgEIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgFIAEoCCJTChJHZXRCb29rbWFya1JlcXVlc3QSPQoEbmFtZRgBIAEoCUIv4EEC+kEjCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmu6SAPIAQEinAIKFVVwZGF0ZUJvb2ttYXJrUmVxdWVzdBI7Cghib29rbWFyaxgBIAEoCzIhLm1hbG9uYXoudGVzdC5saWJyYXJ5LnYxLkJvb2ttYXJrQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6jAG6SE4aTAoWYm9va21hcmsubmFtZV9yZXF1aXJlZBIZYm9va21hcmsubmFtZSBtdXN0IGJlIHNldBoXaGFzKHRoaXMuYm9va21hcmsubmFtZSnqnMEDNgoLcGFnZV9udW1iZXIKDGRpc3BsYXlfbmFtZQoEbm90ZQoGbGFiZWxzCgtwbGFjZWRfZGF0ZSJ7ChVEZWxldGVCb29rbWFya1JlcXVlc3QSPQoEbmFtZRgBIAEoCUIv4EEC+kEjCiFsaWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va21hcmu6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJImYKF1VuZGVsZXRlQm9va21hcmtSZXF1ZXN0Ej0KBG5hbWUYASABKAlCL+BBAvpBIwohbGlicmFyeS50ZXN0Lm1hbG9uYXouY29tL0Jvb2ttYXJrukgDyAEBEgwKBGV0YWcYAiABKAkipQIKFExpc3RCb29rbWFya3NSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIA8gBARIOCgZmaWx0ZXIYAiABKAkSFAoMc2hvd19kZWxldGVkGAMgASgIEhAKCG9yZGVyX2J5GAQgASgJEh0KCXBhZ2Vfc2l6ZRgFIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAYgASgJOmWC8y0CCGSK8y1UCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKC3BhZ2VfbnVtYmVyCgxkaXNwbGF5X25hbWUKC3BsYWNlZF9kYXRlEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJmChVMaXN0Qm9va21hcmtzUmVzcG9uc2USNAoJYm9va21hcmtzGAEgAygLMiEubWFsb25hei50ZXN0LmxpYnJhcnkudjEuQm9va21hcmsSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIvMBChZTZWFyY2hCb29rbWFya3NSZXF1ZXN0EjsKBnBhcmVudBgBIAEoCUIr4EEC+kEfCh1saWJyYXJ5LnRlc3QubWFsb25hei5jb20vQm9va7pIA8gBARIaCgVxdWVyeRgCIAEoCUILukgIcgMYgALIAQESDgoGZmlsdGVyGAMgASgJEh0KCXBhZ2Vfc2l6ZRgEIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAUgASgJEhQKDHNob3dfZGVsZXRlZBgGIAEoCBIYChBpbmNsdWRlX3NuaXBwZXRzGAcgASgIOg2C8y0CCGSS8y0DCgEqIpkBChdTZWFyY2hCb29rbWFya3NSZXNwb25zZRI0Cglib29rbWFya3MYASADKAsyIS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFyaxIvCghzbmlwcGV0cxgCIAMoCzIdLm1hbG9uYXouYWlwLnYxLlNlYXJjaFNuaXBwZXQSFwoPbmV4dF9wYWdlX3Rva2VuGAMgASgJIpgBChhCYXRjaEdldEJvb2ttYXJrc1JlcXVlc3QSMgoGcGFyZW50GAEgASgJQiL6QR8KHWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rEkgKBW5hbWVzGAIgAygJQjn6QSMKIWxpYnJhcnkudGVzdC5tYWxvbmF6LmNvbS9Cb29rbWFya7pIEJIBDQgBEOgHGAEiBHICEAEiUQoZQmF0Y2hHZXRCb29rbWFya3NSZXNwb25zZRI0Cglib29rbWFya3MYASADKAsyIS5tYWxvbmF6LnRlc3QubGlicmFyeS52MS5Cb29rbWFya0JCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by90ZXN0L2xpYnJhcnkvbGlicmFyeV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_aip_v1_aip, file_malonaz_codegen_aip_v1_aip, file_malonaz_test_library_v1_bookmark]);
 
 /**
  * Request message for BookmarkService.CreateBookmark.
@@ -474,6 +476,192 @@ export const ListBookmarksResponseSchema: GenMessage<ListBookmarksResponse, {val
   messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 6);
 
 /**
+ * Request message for BookmarkService.SearchBookmarks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBookmarksRequest
+ */
+export type SearchBookmarksRequest = Message<"malonaz.test.library.library_service.v1.SearchBookmarksRequest"> & {
+  /**
+   * The parent book to search bookmarks in.
+   * Format: organizations/{organization}/shelves/{shelf}/books/{book}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query. Results are ranked by relevance.
+   * Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * Requested page size.
+   *
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchBookmarks` call.
+   *
+   * @generated from field: string page_token = 5;
+   */
+  pageToken: string;
+
+  /**
+   * If true, soft-deleted bookmarks are included in the results.
+   *
+   * @generated from field: bool show_deleted = 6;
+   */
+  showDeleted: boolean;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Request message for BookmarkService.SearchBookmarks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBookmarksRequest
+ */
+export type SearchBookmarksRequestValid = Message<"malonaz.test.library.library_service.v1.SearchBookmarksRequest"> & {
+  /**
+   * The parent book to search bookmarks in.
+   * Format: organizations/{organization}/shelves/{shelf}/books/{book}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The free-text search query. Results are ranked by relevance.
+   * Must contain at least one searchable term.
+   *
+   * @generated from field: string query = 2;
+   */
+  query: string;
+
+  /**
+   * An optional filter, ANDed with the query.
+   *
+   * @generated from field: string filter = 3;
+   */
+  filter: string;
+
+  /**
+   * Requested page size.
+   *
+   * @generated from field: int32 page_size = 4;
+   */
+  pageSize: number;
+
+  /**
+   * A page token, received from a previous `SearchBookmarks` call.
+   *
+   * @generated from field: string page_token = 5;
+   */
+  pageToken: string;
+
+  /**
+   * If true, soft-deleted bookmarks are included in the results.
+   *
+   * @generated from field: bool show_deleted = 6;
+   */
+  showDeleted: boolean;
+
+  /**
+   * If true, highlighted snippets are computed and returned for each result.
+   *
+   * @generated from field: bool include_snippets = 7;
+   */
+  includeSnippets: boolean;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.SearchBookmarksRequest.
+ * Use `create(SearchBookmarksRequestSchema)` to create a new message.
+ */
+export const SearchBookmarksRequestSchema: GenMessage<SearchBookmarksRequest, {validType: SearchBookmarksRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 7);
+
+/**
+ * Response message for BookmarkService.SearchBookmarks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBookmarksResponse
+ */
+export type SearchBookmarksResponse = Message<"malonaz.test.library.library_service.v1.SearchBookmarksResponse"> & {
+  /**
+   * The bookmarks matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Bookmark bookmarks = 1;
+   */
+  bookmarks: Bookmark[];
+
+  /**
+   * Highlighted snippets, index-aligned with `bookmarks`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippet[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Response message for BookmarkService.SearchBookmarks.
+ *
+ * @generated from message malonaz.test.library.library_service.v1.SearchBookmarksResponse
+ */
+export type SearchBookmarksResponseValid = Message<"malonaz.test.library.library_service.v1.SearchBookmarksResponse"> & {
+  /**
+   * The bookmarks matching the query, ranked by relevance.
+   *
+   * @generated from field: repeated malonaz.test.library.v1.Bookmark bookmarks = 1;
+   */
+  bookmarks: BookmarkValid[];
+
+  /**
+   * Highlighted snippets, index-aligned with `bookmarks`.
+   *
+   * @generated from field: repeated malonaz.aip.v1.SearchSnippet snippets = 2;
+   */
+  snippets: SearchSnippetValid[];
+
+  /**
+   * A token to retrieve the next page.
+   *
+   * @generated from field: string next_page_token = 3;
+   */
+  nextPageToken: string;
+};
+
+/**
+ * Describes the message malonaz.test.library.library_service.v1.SearchBookmarksResponse.
+ * Use `create(SearchBookmarksResponseSchema)` to create a new message.
+ */
+export const SearchBookmarksResponseSchema: GenMessage<SearchBookmarksResponse, {validType: SearchBookmarksResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 8);
+
+/**
  * Request message for BookmarkService.BatchGetBookmarks.
  *
  * @generated from message malonaz.test.library.library_service.v1.BatchGetBookmarksRequest
@@ -504,7 +692,7 @@ export type BatchGetBookmarksRequestValid = BatchGetBookmarksRequest;
  * Use `create(BatchGetBookmarksRequestSchema)` to create a new message.
  */
 export const BatchGetBookmarksRequestSchema: GenMessage<BatchGetBookmarksRequest, {validType: BatchGetBookmarksRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 7);
+  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 9);
 
 /**
  * Response message for BookmarkService.BatchGetBookmarks.
@@ -539,5 +727,5 @@ export type BatchGetBookmarksResponseValid = Message<"malonaz.test.library.libra
  * Use `create(BatchGetBookmarksResponseSchema)` to create a new message.
  */
 export const BatchGetBookmarksResponseSchema: GenMessage<BatchGetBookmarksResponse, {validType: BatchGetBookmarksResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 8);
+  messageDesc(file_malonaz_test_library_library_service_v1_bookmark, 10);
 

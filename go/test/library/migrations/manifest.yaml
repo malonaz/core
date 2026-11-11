@@ -25,3 +25,5 @@ migrations:
     hash: f390bb5bfe7dfc9a02217632268016d3
   - path: library/012_book_search_id.sql
     hash: a6d002e5e7d385c6eb3b53d00f6ff146
+  - path: library/013_ancestor_search.sql
+    hash: 83348f68428fa6c4b9f2e035a6c64259

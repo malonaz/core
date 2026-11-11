@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/huandu/xstrings"
@@ -13,12 +14,11 @@ import (
 // markers, at most two short fragments per field.
 const headlineOptions = "StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4"
 
-// snippetIdent flattens a snippet field path into an identifier-safe form for
-// the Go struct field, the db tag and the SQL column alias. Dotted JSONB
-// paths (e.g. "metadata.body") would otherwise emit invalid Go and require
-// quoted SQL aliases; the response map keeps the raw dotted path as its key.
-func snippetIdent(path string) string {
-	return strings.ReplaceAll(path, ".", "_")
+// snippetColumn is the SQL alias of the i-th snippet field's headline.
+// Positional: Postgres silently truncates identifiers to 63 bytes, which an
+// alias spelling out a long field path overflows.
+func snippetColumn(i int) string {
+	return fmt.Sprintf("__snippet_%d", i)
 }
 
 // generateSearch emits the full-text search store method and the search
@@ -30,6 +30,19 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	pluralUntitled := untitle(pluralGoName)
 
 	colPrefix := mc.bareTableName + "."
+
+	// The matched document and the rows it reads. A stored generated column
+	// only reads its own row, so an ancestor's document is joined and
+	// concatenated at query time: a query's terms match across the two.
+	document := colPrefix + schema.SearchDocumentColumn
+	from := mc.fromExpr()
+	if ancestor := searchDoc.Ancestor; ancestor != nil {
+		document = fmt.Sprintf("(%s || %s.%s)", document, ancestor.Alias, schema.SearchDocumentColumn)
+		// A field joined from the ancestor already brings its row.
+		if !slices.ContainsFunc(mc.joins, func(join schema.Join) bool { return join.Key == ancestor.Key }) {
+			from += fmt.Sprintf(" + %q", " "+buildJoinClause([]schema.Join{*ancestor}, mc.bareTableName))
+		}
+	}
 
 	// The search document expression, for migrations to declare the generated column.
 	g.P(fmt.Sprintf("// %sSearchDocumentExpression is the SQL expression composing the resource's", mc.goType))
@@ -44,8 +57,8 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		// Scan target: the model plus one nullable column per snippet field.
 		g.P(fmt.Sprintf("type %s struct {", rowType))
 		g.P(fmt.Sprintf("  %s", mc.goTypeFqi))
-		for _, snippetField := range searchDoc.SnippetFields {
-			g.P(fmt.Sprintf("  Snippet%s *string `db:\"__snippet_%s\"`", xstrings.ToPascalCase(snippetIdent(snippetField.Path)), snippetIdent(snippetField.Path)))
+		for i := range searchDoc.SnippetFields {
+			g.P(fmt.Sprintf("  Snippet%d *string `db:%q`", i, snippetColumn(i)))
 		}
 		g.P("}")
 		g.P()
@@ -124,20 +137,15 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 	// semantics otherwise.
 	g.P(fmt.Sprintf("  orderByClause := \"ORDER BY %screate_time DESC\"", colPrefix))
 	g.P("  if tsQuery != \"\" {")
-	g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s%s @@ to_tsquery('simple', $%%d)\", len(params) + 1))",
-		mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), colPrefix, schema.SearchDocumentColumn))
-	g.P(fmt.Sprintf("    orderByClause = %s(\"ORDER BY ts_rank(%s%s, to_tsquery('simple', $%%d)) DESC, %screate_time DESC\", len(params) + 1)",
-		mc.fmtI("Sprintf"), colPrefix, schema.SearchDocumentColumn, colPrefix))
+	g.P(fmt.Sprintf("    whereClause = %s(whereClause, %s(\"%s @@ to_tsquery('simple', $%%d)\", len(params) + 1))",
+		mc.postgres("AddToWhereClause"), mc.fmtI("Sprintf"), document))
+	g.P(fmt.Sprintf("    orderByClause = %s(\"ORDER BY ts_rank(%s, to_tsquery('simple', $%%d)) DESC, %screate_time DESC\", len(params) + 1)",
+		mc.fmtI("Sprintf"), document, colPrefix))
 	if hasSnippets {
 		g.P("    if includeSnippets {")
-		for _, snippetField := range searchDoc.SnippetFields {
-			// Qualify column references: joined queries make bare names ambiguous.
-			expression, err := schema.SnippetExpression(mc.message, snippetField, colPrefix)
-			if err != nil {
-				panic(err) // Already resolved once by schema.SearchDocument.
-			}
-			g.P(fmt.Sprintf("    snippetColumns = append(snippetColumns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS __snippet_%s`, len(params) + 1))",
-				mc.fmtI("Sprintf"), expression, headlineOptions, snippetIdent(snippetField.Path)))
+		for i, snippetField := range searchDoc.SnippetFields {
+			g.P(fmt.Sprintf("    snippetColumns = append(snippetColumns, %s(`ts_headline('simple', %s, to_tsquery('simple', $%%d), '%s') AS %s`, len(params) + 1))",
+				mc.fmtI("Sprintf"), snippetField.Expression, headlineOptions, snippetColumn(i)))
 		}
 		g.P("    }")
 	}
@@ -152,7 +160,7 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P("    selectColumns += \",\" + snippetColumn")
 		g.P("  }")
 	}
-	g.P(fmt.Sprintf("  query := \"SELECT \" + selectColumns + %s + \" \" + whereClause + \" \" + orderByClause + \" \" + paginationClause", mc.fromExpr()))
+	g.P(fmt.Sprintf("  query := \"SELECT \" + selectColumns + %s + \" \" + whereClause + \" \" + orderByClause + \" \" + paginationClause", from))
 	g.P()
 
 	if hasSnippets {
@@ -173,12 +181,11 @@ func (mc *msgCtx) generateSearch(searchDoc *schema.SearchDoc) {
 		g.P("      continue")
 		g.P("    }")
 		g.P("    snippet := map[string]string{}")
-		for _, snippetField := range searchDoc.SnippetFields {
-			goName := xstrings.ToPascalCase(snippetIdent(snippetField.Path))
+		for i, snippetField := range searchDoc.SnippetFields {
 			// Only surface fragments that actually contain a highlighted match.
-			g.P(fmt.Sprintf("    if searchRow.Snippet%s != nil && %s(*searchRow.Snippet%s, \"**\") {",
-				goName, mc.stringsI("Contains"), goName))
-			g.P(fmt.Sprintf("      snippet[%q] = *searchRow.Snippet%s", snippetField.Path, goName))
+			g.P(fmt.Sprintf("    if searchRow.Snippet%d != nil && %s(*searchRow.Snippet%d, \"**\") {",
+				i, mc.stringsI("Contains"), i))
+			g.P(fmt.Sprintf("      snippet[%q] = *searchRow.Snippet%d", snippetField.Path, i))
 			g.P("    }")
 		}
 		g.P("    snippets = append(snippets, snippet)")
