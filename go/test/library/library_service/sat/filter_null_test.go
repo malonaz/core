@@ -252,12 +252,17 @@ func TestFilterNull_Timestamp(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, response.Shelves, 1)
 	deleteTime := response.Shelves[0].DeleteTime.AsTime().UTC().Format(time.RFC3339Nano)
+	// The same instant six hours behind UTC: the offset must survive to the `timestamp` column.
+	deleteTimeOffset := response.Shelves[0].DeleteTime.AsTime().In(time.FixedZone("", -6*60*60)).Format(time.RFC3339Nano)
 
 	runNullCases(t, shelfNames(parent, true), []nullCase{
 		{"Equals", `delete_time = timestamp("` + deleteTime + `")`, []string{"gone-a"}},
 		{"NotEquals", `delete_time != timestamp("` + deleteTime + `")`, []string{"gone-b", "live"}},
 		{"LessThan", `delete_time < timestamp("2100-01-01T00:00:00Z")`, []string{"gone-a", "gone-b"}},
 		{"LessThanString", `delete_time < "2100-01-01T00:00:00Z"`, []string{"gone-a", "gone-b"}},
+		{"EqualsOffset", `delete_time = timestamp("` + deleteTimeOffset + `")`, []string{"gone-a"}},
+		{"EqualsOffsetString", `delete_time = "` + deleteTimeOffset + `"`, []string{"gone-a"}},
+		{"NotEqualsOffsetString", `delete_time != "` + deleteTimeOffset + `"`, []string{"gone-b", "live"}},
 		{"GreaterThan", `delete_time > timestamp("2000-01-01T00:00:00Z")`, []string{"gone-a", "gone-b"}},
 		{"Presence", `delete_time:*`, []string{"gone-a", "gone-b"}},
 		{"NotPresence", `NOT delete_time:*`, []string{"live"}},
