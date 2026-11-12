@@ -245,7 +245,7 @@ func pbDocumentToInputFile(document *aipb.Document) (*responses.ResponseInputFil
 }
 
 func pbToolToResponseTool(tool *aipb.Tool) (responses.ToolUnionParam, error) {
-	bytes, err := ai.JSONMarshal(tool.JsonSchema)
+	bytes, err := ai.JSONSchemaMarshal(tool.JsonSchema)
 	if err != nil {
 		return responses.ToolUnionParam{}, fmt.Errorf("marshaling json schema: %w", err)
 	}
