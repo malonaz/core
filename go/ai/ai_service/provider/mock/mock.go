@@ -1,6 +1,7 @@
 // Package mock implements a scriptable in-process AI provider for system
 // acceptance tests. Tests attach a script to a message annotation; each
-// generation turn replays the next scripted assistant message.
+// generation turn replays the next scripted assistant message. A decision
+// carries its own script: the answers to replay.
 package mock
 
 import (
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -23,8 +25,9 @@ const (
 	ToolsPlaceholder = "${TOOLS}"
 )
 
-// Script marshals scripted assistant messages into the annotation value.
-func Script(messages ...*aipb.Message) (string, error) {
+// Script marshals scripted assistant messages, or the scripted answers of a
+// decision, into the annotation value.
+func Script[M proto.Message](messages ...M) (string, error) {
 	parts := make([]string, 0, len(messages))
 	for _, message := range messages {
 		bytes, err := pbutil.JSONMarshal(message)
@@ -36,7 +39,7 @@ func Script(messages ...*aipb.Message) (string, error) {
 	return "[" + strings.Join(parts, ",") + "]", nil
 }
 
-// Client is a scriptable GenerateMessageClient.
+// Client is a scriptable GenerateMessageClient and CreateDecisionClient.
 type Client struct{}
 
 // NewClient returns a new mock provider client.
@@ -83,6 +86,20 @@ func (c *Client) StreamGenerateMessage(
 	return nil
 }
 
+// CreateDecision implements the provider.CreateDecisionClient interface by
+// replaying the answers scripted on the decision.
+func (c *Client) CreateDecision(ctx context.Context, model *aipb.Model, decision *aipb.Decision) ([]*aipb.Answer, *aipb.ModelUsage, error) {
+	script, ok := aipb.Annotations.Script.Get(decision)
+	if !ok {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "mock provider: the decision does not carry the %q annotation", aipb.Annotations.Script.Key).Err()
+	}
+	answers, err := pbutil.JSONUnmarshalSlice[aipb.Answer](pbutil.JsonUnmarshalStrictOptions, []byte(script))
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "mock provider: parsing script: %v", err).Err()
+	}
+	return answers, &aipb.ModelUsage{InputToken: &aipb.ResourceConsumption{Quantity: 100}}, nil
+}
+
 // nextScriptedMessage locates the most recent scripted message in the
 // conversation and returns the scripted turn indexed by the number of
 // assistant messages generated since.
@@ -124,4 +141,7 @@ func joinToolNames(tools []*aipb.Tool) string {
 }
 
 // Verify interface compliance at compile time.
-var _ provider.GenerateMessageClient = (*Client)(nil)
+var (
+	_ provider.GenerateMessageClient = (*Client)(nil)
+	_ provider.CreateDecisionClient  = (*Client)(nil)
+)

@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package malonaz.ai.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/ai/v1/metrics.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/v1";
+
+// A Decision is one call to a decision model: typed questions asked about a
+// shared input, and the answers the model gave. A decision model generates no
+// text: each answer is a calibrated probability distribution over the outcomes
+// the question declares, for code to branch on.
+// The caller owns the model, input and questions, fixed at creation; the
+// service sets the answers, usage and price once the model has answered.
+message Decision {
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Decision"
+    pattern: "organizations/{organization}/users/{user}/decisions/{decision}"
+    singular: "decision"
+    plural: "decisions"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "783c5119-f7f3-4d03-b505-fc042910c39a";
+
+  // The resource name of the decision.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the decision.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the decision.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the decision. Set when soft-deleted.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 5;
+
+  // The labels on this decision.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Annotations on this decision (not transmitted to the ai provider).
+  // This should be used by tooling.
+  map<string, string> annotations = 7 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The resource name of the decision model that answers the questions.
+  // Format: providers/{provider}/models/{model}
+  string model = 8 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // The evidence every question is asked about: text, image or document
+  // blocks, in order. Models differ in the media they accept, see
+  // [DecisionModelConfig][malonaz.ai.v1.DecisionModelConfig]. Structured data
+  // is sent as JSON text.
+  repeated Block input = 9 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).repeated = {
+      min_items: 1
+      items: {
+        cel: {
+          id: "decision_input_block_content"
+          message: "input blocks must be text, image or document"
+          expression: "has(this.text) || has(this.image) || has(this.document)"
+        }
+      }
+    }
+  ];
+
+  // The questions to answer about the input.
+  repeated Question questions = 10 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 400
+    },
+    (buf.validate.field).cel = {
+      id: "decision_unique_question_ids"
+      message: "question ids must be unique"
+      expression: "this.map(question, question.id).unique()"
+    }
+  ];
+
+  // The model's answers: one per question, in the order of `questions`.
+  repeated Answer answers = 11 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
+  ];
+
+  // Model usage incurred answering the questions.
+  ModelUsage model_usage = 12 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // Price in dollars of this decision, summed over `model_usage`.
+  double price = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// A typed question about a decision's input. Questions are independent: the
+// model answers each one against the input alone and never sees the others.
+message Question {
+  // Identifies the question within its decision; its answer carries the same
+  // id. The model never sees it.
+  string id = 1 [(buf.validate.field).string.pattern = "^[A-Za-z0-9_-]{1,64}$"];
+
+  // What to decide, written out in full.
+  string instructions = 2 [(buf.validate.field).string.min_len = 1];
+
+  // The kind of question, which fixes the kind of its answer.
+  oneof kind {
+    option (buf.validate.oneof).required = true;
+
+    // Is a condition true?
+    BooleanQuestion boolean = 3;
+    // Which one of a fixed set of options applies?
+    ChoiceQuestion choice = 4;
+    // Where does the input sit on an ordered scale?
+    ScoreQuestion score = 5;
+  }
+}
+
+// Asks for the probability that a condition is true.
+message BooleanQuestion {
+  // What counts as true, when the instructions alone leave it open.
+  string true_description = 1;
+  // What counts as false, when the instructions alone leave it open.
+  string false_description = 2;
+}
+
+// Asks for one option out of a fixed set. The model always spreads its
+// probability over the options given, even when none fits: add a catch-all
+// option, or pair the question with a boolean one, when that can happen.
+message ChoiceQuestion {
+  // The options to choose from, keyed by option id, each with a description of
+  // when it applies (empty when the id says it all).
+  map<string, string> options = 1 [(buf.validate.field).map = {
+    min_pairs: 2
+    max_pairs: 255
+    keys: {
+      string: {pattern: "^[A-Za-z0-9_-]{1,64}$"}
+    }
+  }];
+}
+
+// Asks where the input sits on an ordered scale.
+message ScoreQuestion {
+  // What each level of the scale means, from lowest to highest. A level's
+  // score is its index, starting at 0.
+  repeated string levels = 1 [(buf.validate.field).repeated = {
+    min_items: 2
+    max_items: 10
+    items: {
+      string: {min_len: 1}
+    }
+  }];
+}
+
+// The answer to a [Question][malonaz.ai.v1.Question].
+message Answer {
+  // The id of the question this answers.
+  string question_id = 1;
+
+  // The kind of answer: that of its question, or a refusal.
+  oneof kind {
+    // Answer to a boolean question.
+    BooleanAnswer boolean = 2;
+    // Answer to a choice question.
+    ChoiceAnswer choice = 3;
+    // Answer to a score question.
+    ScoreAnswer score = 4;
+    // The model declined to answer this question.
+    Refusal refusal = 5;
+  }
+}
+
+// The answer to a [BooleanQuestion][malonaz.ai.v1.BooleanQuestion].
+message BooleanAnswer {
+  // Probability that the condition is true, from 0 to 1. Some models never
+  // report the extremes: keep thresholds within 0.01 and 0.99.
+  double probability = 1;
+}
+
+// The answer to a [ChoiceQuestion][malonaz.ai.v1.ChoiceQuestion].
+message ChoiceAnswer {
+  // The id of the most probable option.
+  string option = 1;
+  // Probability of each option, keyed by option id, summing to 1.
+  map<string, double> probabilities = 2;
+}
+
+// The answer to a [ScoreQuestion][malonaz.ai.v1.ScoreQuestion].
+message ScoreAnswer {
+  // The expected level: the probability-weighted mean of the level indices,
+  // so it can fall between two levels.
+  double score = 1;
+  // Probability of each level, in the order of the question's levels, summing to 1.
+  repeated double probabilities = 2;
+}
+
+// Marks a question the model declined to answer.
+message Refusal {}

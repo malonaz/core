@@ -47,6 +47,13 @@ const (
 	AiService_BatchGetMessages_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/BatchGetMessages"
 	AiService_GenerateMessage_FullMethodName       = "/malonaz.ai.ai_service.v1.AiService/GenerateMessage"
 	AiService_StreamGenerateMessage_FullMethodName = "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage"
+	AiService_CreateDecision_FullMethodName        = "/malonaz.ai.ai_service.v1.AiService/CreateDecision"
+	AiService_GetDecision_FullMethodName           = "/malonaz.ai.ai_service.v1.AiService/GetDecision"
+	AiService_UpdateDecision_FullMethodName        = "/malonaz.ai.ai_service.v1.AiService/UpdateDecision"
+	AiService_DeleteDecision_FullMethodName        = "/malonaz.ai.ai_service.v1.AiService/DeleteDecision"
+	AiService_UndeleteDecision_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/UndeleteDecision"
+	AiService_ListDecisions_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/ListDecisions"
+	AiService_BatchGetDecisions_FullMethodName     = "/malonaz.ai.ai_service.v1.AiService/BatchGetDecisions"
 	AiService_ComputeStats_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ComputeStats"
 	AiService_TextToText_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/TextToText"
 	AiService_TextToTextStream_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/TextToTextStream"
@@ -72,6 +79,9 @@ const (
 //     [Chat][malonaz.ai.v1.Chat] resources with child
 //     [Message][malonaz.ai.v1.Message] resources, plus generation methods
 //     that produce assistant messages from a chat's history.
+//   - Decisions: typed questions (yes/no, one of a set, a score on a scale)
+//     answered about an input with calibrated probabilities by a decision
+//     model, persisted as [Decision][malonaz.ai.v1.Decision] resources.
 //
 // # Resource model
 //
@@ -85,6 +95,9 @@ const (
 //     resources holding the conversation content. The chat itself is a
 //     lightweight container: it aggregates price but holds no blocks.
 //     Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+//   - Each User has a collection of [Decision][malonaz.ai.v1.Decision]
+//     resources.
+//     Format: organizations/{organization}/users/{user}/decisions/{decision}
 //
 // # Generation
 //
@@ -222,6 +235,43 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(ctx context.Context, in *GenerateMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamGenerateMessageResponse], error)
+	// Create a decision: ask the model the decision's questions about its
+	// input, and persist the answered decision.
+	//
+	// The call is synchronous and nothing is persisted when the model fails. A
+	// `request_id` makes it idempotent: a retry returns the decision the first
+	// request created, without asking the model again. Only a retry racing the
+	// request it repeats may ask the model twice; both still return the same
+	// decision.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateDecision(ctx context.Context, in *CreateDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error)
+	// Get a decision.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetDecision(ctx context.Context, in *GetDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error)
+	// Update a decision's labels and annotations. Its model, input, questions
+	// and answers never change.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateDecision(ctx context.Context, in *UpdateDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error)
+	// Delete a decision.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteDecision(ctx context.Context, in *DeleteDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error)
+	// Undelete a decision.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteDecision(ctx context.Context, in *UndeleteDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error)
+	// List decisions for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListDecisions(ctx context.Context, in *ListDecisionsRequest, opts ...grpc.CallOption) (*ListDecisionsResponse, error)
+	// Get multiple decisions in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetDecisions(ctx context.Context, in *BatchGetDecisionsRequest, opts ...grpc.CallOption) (*BatchGetDecisionsResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -542,6 +592,76 @@ func (c *aiServiceClient) StreamGenerateMessage(ctx context.Context, in *Generat
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageClient = grpc.ServerStreamingClient[StreamGenerateMessageResponse]
 
+func (c *aiServiceClient) CreateDecision(ctx context.Context, in *CreateDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Decision)
+	err := c.cc.Invoke(ctx, AiService_CreateDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetDecision(ctx context.Context, in *GetDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Decision)
+	err := c.cc.Invoke(ctx, AiService_GetDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateDecision(ctx context.Context, in *UpdateDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Decision)
+	err := c.cc.Invoke(ctx, AiService_UpdateDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) DeleteDecision(ctx context.Context, in *DeleteDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Decision)
+	err := c.cc.Invoke(ctx, AiService_DeleteDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UndeleteDecision(ctx context.Context, in *UndeleteDecisionRequest, opts ...grpc.CallOption) (*v1.Decision, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Decision)
+	err := c.cc.Invoke(ctx, AiService_UndeleteDecision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListDecisions(ctx context.Context, in *ListDecisionsRequest, opts ...grpc.CallOption) (*ListDecisionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDecisionsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListDecisions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) BatchGetDecisions(ctx context.Context, in *BatchGetDecisionsRequest, opts ...grpc.CallOption) (*BatchGetDecisionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetDecisionsResponse)
+	err := c.cc.Invoke(ctx, AiService_BatchGetDecisions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiServiceClient) ComputeStats(ctx context.Context, in *ComputeStatsRequest, opts ...grpc.CallOption) (*ComputeStatsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ComputeStatsResponse)
@@ -603,6 +723,9 @@ type AiService_TextToTextStreamClient = grpc.ServerStreamingClient[TextToTextStr
 //     [Chat][malonaz.ai.v1.Chat] resources with child
 //     [Message][malonaz.ai.v1.Message] resources, plus generation methods
 //     that produce assistant messages from a chat's history.
+//   - Decisions: typed questions (yes/no, one of a set, a score on a scale)
+//     answered about an input with calibrated probabilities by a decision
+//     model, persisted as [Decision][malonaz.ai.v1.Decision] resources.
 //
 // # Resource model
 //
@@ -616,6 +739,9 @@ type AiService_TextToTextStreamClient = grpc.ServerStreamingClient[TextToTextStr
 //     resources holding the conversation content. The chat itself is a
 //     lightweight container: it aggregates price but holds no blocks.
 //     Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+//   - Each User has a collection of [Decision][malonaz.ai.v1.Decision]
+//     resources.
+//     Format: organizations/{organization}/users/{user}/decisions/{decision}
 //
 // # Generation
 //
@@ -753,6 +879,43 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error
+	// Create a decision: ask the model the decision's questions about its
+	// input, and persist the answered decision.
+	//
+	// The call is synchronous and nothing is persisted when the model fails. A
+	// `request_id` makes it idempotent: a retry returns the decision the first
+	// request created, without asking the model again. Only a retry racing the
+	// request it repeats may ask the model twice; both still return the same
+	// decision.
+	//
+	// See: https://google.aip.dev/133 (Standard methods: Create).
+	CreateDecision(context.Context, *CreateDecisionRequest) (*v1.Decision, error)
+	// Get a decision.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetDecision(context.Context, *GetDecisionRequest) (*v1.Decision, error)
+	// Update a decision's labels and annotations. Its model, input, questions
+	// and answers never change.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateDecision(context.Context, *UpdateDecisionRequest) (*v1.Decision, error)
+	// Delete a decision.
+	//
+	// See: https://google.aip.dev/135 (Standard methods: Delete).
+	// See: https://google.aip.dev/164 (Soft delete).
+	DeleteDecision(context.Context, *DeleteDecisionRequest) (*v1.Decision, error)
+	// Undelete a decision.
+	//
+	// See: https://google.aip.dev/164 (Soft delete).
+	UndeleteDecision(context.Context, *UndeleteDecisionRequest) (*v1.Decision, error)
+	// List decisions for a user.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListDecisions(context.Context, *ListDecisionsRequest) (*ListDecisionsResponse, error)
+	// Get multiple decisions in a single request.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetDecisions(context.Context, *BatchGetDecisionsRequest) (*BatchGetDecisionsResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -858,6 +1021,27 @@ func (UnimplementedAiServiceServer) GenerateMessage(context.Context, *GenerateMe
 }
 func (UnimplementedAiServiceServer) StreamGenerateMessage(*GenerateMessageRequest, grpc.ServerStreamingServer[StreamGenerateMessageResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamGenerateMessage not implemented")
+}
+func (UnimplementedAiServiceServer) CreateDecision(context.Context, *CreateDecisionRequest) (*v1.Decision, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDecision not implemented")
+}
+func (UnimplementedAiServiceServer) GetDecision(context.Context, *GetDecisionRequest) (*v1.Decision, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDecision not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateDecision(context.Context, *UpdateDecisionRequest) (*v1.Decision, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateDecision not implemented")
+}
+func (UnimplementedAiServiceServer) DeleteDecision(context.Context, *DeleteDecisionRequest) (*v1.Decision, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteDecision not implemented")
+}
+func (UnimplementedAiServiceServer) UndeleteDecision(context.Context, *UndeleteDecisionRequest) (*v1.Decision, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeleteDecision not implemented")
+}
+func (UnimplementedAiServiceServer) ListDecisions(context.Context, *ListDecisionsRequest) (*ListDecisionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDecisions not implemented")
+}
+func (UnimplementedAiServiceServer) BatchGetDecisions(context.Context, *BatchGetDecisionsRequest) (*BatchGetDecisionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetDecisions not implemented")
 }
 func (UnimplementedAiServiceServer) ComputeStats(context.Context, *ComputeStatsRequest) (*ComputeStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ComputeStats not implemented")
@@ -1338,6 +1522,132 @@ func _AiService_StreamGenerateMessage_Handler(srv interface{}, stream grpc.Serve
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AiService_StreamGenerateMessageServer = grpc.ServerStreamingServer[StreamGenerateMessageResponse]
 
+func _AiService_CreateDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).CreateDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_CreateDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).CreateDecision(ctx, req.(*CreateDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetDecision(ctx, req.(*GetDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UpdateDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateDecision(ctx, req.(*UpdateDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_DeleteDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).DeleteDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_DeleteDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).DeleteDecision(ctx, req.(*DeleteDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UndeleteDecision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeleteDecisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UndeleteDecision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UndeleteDecision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UndeleteDecision(ctx, req.(*UndeleteDecisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListDecisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDecisionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListDecisions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListDecisions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListDecisions(ctx, req.(*ListDecisionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_BatchGetDecisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetDecisionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).BatchGetDecisions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_BatchGetDecisions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).BatchGetDecisions(ctx, req.(*BatchGetDecisionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_ComputeStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ComputeStatsRequest)
 	if err := dec(in); err != nil {
@@ -1483,6 +1793,34 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateMessage",
 			Handler:    _AiService_GenerateMessage_Handler,
+		},
+		{
+			MethodName: "CreateDecision",
+			Handler:    _AiService_CreateDecision_Handler,
+		},
+		{
+			MethodName: "GetDecision",
+			Handler:    _AiService_GetDecision_Handler,
+		},
+		{
+			MethodName: "UpdateDecision",
+			Handler:    _AiService_UpdateDecision_Handler,
+		},
+		{
+			MethodName: "DeleteDecision",
+			Handler:    _AiService_DeleteDecision_Handler,
+		},
+		{
+			MethodName: "UndeleteDecision",
+			Handler:    _AiService_UndeleteDecision_Handler,
+		},
+		{
+			MethodName: "ListDecisions",
+			Handler:    _AiService_ListDecisions_Handler,
+		},
+		{
+			MethodName: "BatchGetDecisions",
+			Handler:    _AiService_BatchGetDecisions_Handler,
 		},
 		{
 			MethodName: "ComputeStats",

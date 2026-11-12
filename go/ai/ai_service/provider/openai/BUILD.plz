@@ -1,6 +1,7 @@
 go_library(
     name = "openai",
     srcs = [
+        "decision.go",
         "generate_message.go",
         "openai.go",
         "speech_to_text.go",
@@ -23,5 +24,16 @@ go_library(
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["decision_test.go"],
+    deps = [
+        ":openai",
+        "//go/grpc/require",
+        "//malonaz/ai/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

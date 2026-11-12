@@ -4,6 +4,20 @@ local p = "providers/google/models/";
   "provider_id": "google",
   "models": [
     {
+      "name": p + "gemini-decision-1",
+      "provider_model_id": "gemini-decision-1",
+      "description": "Gemini Decision answers typed questions about text, images and PDFs with calibrated probabilities, in a single pass and with no output tokens.",
+      "decision": {
+        "context_token_limit": 262144,
+        "image": true,
+        "document": true,
+        "pricing": {
+          "input_token_price_per_million": 0.1,
+          "input_image_token_price_per_million": 0.1
+        }
+      }
+    },
+    {
       "name": p + "gemini-4-argon",
       "provider_model_id": "gemini-4-argon",
       "description": "Our flagship reasoning model, built for complex software engineering, deep mathematical and scientific problem solving, autonomous multi-step agents, and long decode up to 1M tokens. Natively multimodal: supports text, image, video, audio and PDF input, code execution, computer use, file search, search and maps grounding, and structured outputs.",

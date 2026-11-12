@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "annotations_model.pb.go",
         "chat_model.pb.go",
+        "decision_model.pb.go",
         "labels_model.pb.go",
         "message_model.pb.go",
         "metrics_model.pb.go",

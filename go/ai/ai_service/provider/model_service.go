@@ -31,6 +31,7 @@ const (
 	Moonshot     = "moonshot"
 	Baseten      = "baseten"
 	Deepgram     = "deepgram"
+	Typesafe     = "typesafe"
 	Mock         = "mock"
 )
 
@@ -235,6 +236,30 @@ func (s *ModelService) GetGenerateMessageProvider(ctx context.Context, modelName
 		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support message generation", provider.ProviderId()).Err()
 	}
 	return generateMessageClient, model, nil
+}
+
+func (s *ModelService) GetCreateDecisionProvider(ctx context.Context, modelName string) (CreateDecisionClient, *aipb.Model, error) {
+	getModelRequest := &aiservicepb.GetModelRequest{Name: modelName}
+	model, err := s.GetModel(ctx, getModelRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	if model.Decision == nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "model %s is not a decision model", modelName).Err()
+	}
+	modelRn, err := aipb.ParseModelRn(modelName)
+	if err != nil {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "unmarshaling model name: %v", err).Err()
+	}
+	provider, ok := s.providerIdToProvider[modelRn.Provider]
+	if !ok {
+		return nil, nil, status.Errorf(codes.FailedPrecondition, "provider %s is not registered", modelRn.Provider).Err()
+	}
+	createDecisionClient, ok := provider.(CreateDecisionClient)
+	if !ok {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "provider %s does not support decisions", provider.ProviderId()).Err()
+	}
+	return createDecisionClient, model, nil
 }
 
 func (s *ModelService) GetSpeechToTextProvider(ctx context.Context, modelName string) (SpeechToTextClient, *aipb.Model, error) {

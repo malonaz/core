@@ -1,0 +1,20 @@
+CREATE TABLE decision (
+    request_id UUID NOT NULL,
+    organization_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    decision_id TEXT NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+    delete_time TIMESTAMP,
+    etag TEXT NOT NULL,
+    labels JSONB,
+    annotations JSONB,
+    model TEXT NOT NULL,
+    input JSONB NOT NULL,
+    questions JSONB NOT NULL,
+    answers JSONB NOT NULL,
+    model_usage JSONB,
+    price DOUBLE PRECISION NOT NULL DEFAULT 0,
+    PRIMARY KEY (organization_id, user_id, decision_id),
+    CONSTRAINT decision_request_id_unique UNIQUE (request_id)
+);

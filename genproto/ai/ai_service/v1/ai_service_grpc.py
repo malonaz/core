@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.ai.ai_service.v1.chat_pb2
+import malonaz.ai.ai_service.v1.decision_pb2
 import malonaz.ai.ai_service.v1.message_pb2
 import malonaz.ai.ai_service.v1.model_pb2
 import malonaz.ai.ai_service.v1.speech_to_text_pb2
@@ -20,6 +21,7 @@ import malonaz.ai.ai_service.v1.text_to_speech_pb2
 import malonaz.ai.ai_service.v1.text_to_text_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
+import malonaz.ai.v1.decision_pb2
 import malonaz.ai.v1.message_pb2
 import malonaz.ai.v1.model_pb2
 import malonaz.ai.v1.voice_pb2
@@ -135,6 +137,34 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def StreamGenerateMessage(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest, malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.CreateDecisionRequest, malonaz.ai.v1.decision_pb2.Decision]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.GetDecisionRequest, malonaz.ai.v1.decision_pb2.Decision]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.UpdateDecisionRequest, malonaz.ai.v1.decision_pb2.Decision]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.DeleteDecisionRequest, malonaz.ai.v1.decision_pb2.Decision]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UndeleteDecision(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.UndeleteDecisionRequest, malonaz.ai.v1.decision_pb2.Decision]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListDecisions(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsRequest, malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetDecisions(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest, malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -312,6 +342,48 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_STREAM,
                 malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
                 malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/CreateDecision': grpclib.const.Handler(
+                self.CreateDecision,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.CreateDecisionRequest,
+                malonaz.ai.v1.decision_pb2.Decision,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/GetDecision': grpclib.const.Handler(
+                self.GetDecision,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.GetDecisionRequest,
+                malonaz.ai.v1.decision_pb2.Decision,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/UpdateDecision': grpclib.const.Handler(
+                self.UpdateDecision,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.UpdateDecisionRequest,
+                malonaz.ai.v1.decision_pb2.Decision,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/DeleteDecision': grpclib.const.Handler(
+                self.DeleteDecision,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.DeleteDecisionRequest,
+                malonaz.ai.v1.decision_pb2.Decision,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteDecision': grpclib.const.Handler(
+                self.UndeleteDecision,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.UndeleteDecisionRequest,
+                malonaz.ai.v1.decision_pb2.Decision,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/ListDecisions': grpclib.const.Handler(
+                self.ListDecisions,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsRequest,
+                malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetDecisions': grpclib.const.Handler(
+                self.BatchGetDecisions,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest,
+                malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse,
             ),
             '/malonaz.ai.ai_service.v1.AiService/ComputeStats': grpclib.const.Handler(
                 self.ComputeStats,
@@ -498,6 +570,48 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage',
             malonaz.ai.ai_service.v1.message_pb2.GenerateMessageRequest,
             malonaz.ai.ai_service.v1.message_pb2.StreamGenerateMessageResponse,
+        )
+        self.CreateDecision = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/CreateDecision',
+            malonaz.ai.ai_service.v1.decision_pb2.CreateDecisionRequest,
+            malonaz.ai.v1.decision_pb2.Decision,
+        )
+        self.GetDecision = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/GetDecision',
+            malonaz.ai.ai_service.v1.decision_pb2.GetDecisionRequest,
+            malonaz.ai.v1.decision_pb2.Decision,
+        )
+        self.UpdateDecision = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UpdateDecision',
+            malonaz.ai.ai_service.v1.decision_pb2.UpdateDecisionRequest,
+            malonaz.ai.v1.decision_pb2.Decision,
+        )
+        self.DeleteDecision = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/DeleteDecision',
+            malonaz.ai.ai_service.v1.decision_pb2.DeleteDecisionRequest,
+            malonaz.ai.v1.decision_pb2.Decision,
+        )
+        self.UndeleteDecision = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UndeleteDecision',
+            malonaz.ai.ai_service.v1.decision_pb2.UndeleteDecisionRequest,
+            malonaz.ai.v1.decision_pb2.Decision,
+        )
+        self.ListDecisions = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/ListDecisions',
+            malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsRequest,
+            malonaz.ai.ai_service.v1.decision_pb2.ListDecisionsResponse,
+        )
+        self.BatchGetDecisions = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetDecisions',
+            malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest,
+            malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse,
         )
         self.ComputeStats = grpclib.client.UnaryUnaryMethod(
             channel,

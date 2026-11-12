@@ -63,6 +63,7 @@ func (c *config) clientConfig(apiKey string) openai.ClientConfig {
 // Client implements all AI interfaces using OpenAI's API.
 type Client struct {
 	config       *config
+	apiKey       string
 	client       *openai.Client
 	client2      openai2.Client
 	modelService *provider.ModelService
@@ -71,6 +72,7 @@ type Client struct {
 func newClient(apiKey string, modelService *provider.ModelService, config *config) *Client {
 	return &Client{
 		config:       config,
+		apiKey:       apiKey,
 		client:       openai.NewClientWithConfig(config.clientConfig(apiKey)),
 		client2:      openai2.NewClient(option.WithAPIKey(apiKey), option.WithBaseURL(config.BaseUrl)),
 		modelService: modelService,
@@ -119,4 +121,5 @@ var (
 	_ provider.SpeechToTextClient    = (*Client)(nil)
 	_ provider.TextToSpeechClient    = (*Client)(nil)
 	_ provider.GenerateMessageClient = (*Client)(nil)
+	_ provider.CreateDecisionClient  = (*Client)(nil)
 )

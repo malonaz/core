@@ -13,8 +13,8 @@ import (
 
 // buildStatsClauses assembles the shared bucket column, where clause and
 // params for stats aggregation queries. Columns are qualified with alias
-// (the chat or message table). Empty organizationID/userID are treated as
-// wildcards.
+// (the chat, message or decision table). Empty organizationID/userID are
+// treated as wildcards.
 func buildStatsClauses(alias, organizationID, userID string, startTime, endTime *time.Time, dateTruncField string) (string, string, []any) {
 	params := []any{}
 	whereClauses := []string{fmt.Sprintf("%s.delete_time IS NULL", alias)}
@@ -92,9 +92,9 @@ var resourceConsumptionCategories = []string{
 }
 
 // resourceConsumptionColumns builds the SUM columns for every consumption
-// category, reading quantity and price out of the message's model_usage JSON —
+// category, reading quantity and price out of the row's model_usage JSON —
 // the same numbers the providers reported, so usage and pricing never drift
-// apart. Column aliases match the db tags of model.MessageStatsRow.
+// apart. Column aliases match the db tags of model.ModelStatsRow.
 func resourceConsumptionColumns() string {
 	columns := make([]string, 0, 2*len(resourceConsumptionCategories))
 	for _, category := range resourceConsumptionCategories {
@@ -118,7 +118,30 @@ func (s *Store) ComputeMessageStats(
 	organizationID, userID string,
 	startTime, endTime *time.Time,
 	dateTruncField string,
-) ([]*model.MessageStatsRow, error) {
+) ([]*model.ModelStatsRow, error) {
+	return s.computeModelStats(ctx, "message", organizationID, userID, startTime, endTime, dateTruncField)
+}
+
+// ComputeDecisionStats aggregates decision counts, price and per-category
+// resource consumption, grouped by (bucket, model).
+func (s *Store) ComputeDecisionStats(
+	ctx context.Context,
+	organizationID, userID string,
+	startTime, endTime *time.Time,
+	dateTruncField string,
+) ([]*model.ModelStatsRow, error) {
+	return s.computeModelStats(ctx, "decision", organizationID, userID, startTime, endTime, dateTruncField)
+}
+
+// computeModelStats aggregates the rows of a table carrying a model, a price
+// and a model_usage: messages or decisions.
+func (s *Store) computeModelStats(
+	ctx context.Context,
+	table string,
+	organizationID, userID string,
+	startTime, endTime *time.Time,
+	dateTruncField string,
+) ([]*model.ModelStatsRow, error) {
 	bucketColumn, whereClause, params := buildStatsClauses("m", organizationID, userID, startTime, endTime, dateTruncField)
 	query := fmt.Sprintf(`
     SELECT
@@ -127,15 +150,15 @@ func (s *Store) ComputeMessageStats(
       COUNT(*)::int AS count,
       COALESCE(SUM(m.price), 0) AS price,
       %s
-    FROM message m
+    FROM %s m
     WHERE %s
     GROUP BY 1, 2`,
-		bucketColumn, resourceConsumptionColumns(), whereClause,
+		bucketColumn, resourceConsumptionColumns(), table, whereClause,
 	)
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
-		return nil, fmt.Errorf("computing message stats: %w", err)
+		return nil, fmt.Errorf("computing %s stats: %w", table, err)
 	}
-	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.MessageStatsRow])
+	return v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.ModelStatsRow])
 }

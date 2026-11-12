@@ -50,5 +50,5 @@ option (malonaz.codegen.aip.v1.annotation) = {
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "mock.malonaz.com/script"
-  description: "Mock provider script on a message: a JSON array of Messages replayed one per generation."
+  description: "Mock provider script. On a message: a JSON array of Messages replayed one per generation. On a decision: a JSON array of its Answers, in question order."
 };
