@@ -79,6 +79,9 @@ updated whenever a lore is added, renamed, or removed.
   the chunk sequence, calls aborted with MALFORMED_FUNCTION_CALL (failed, never
   emitted), unquoted dotted map keys resolved against the tool schema, the abort
   rate, and `ai.JSONSchemaMarshal` for every schema sent to a provider.
+- `lores/ai/file-store` — image and document content outside messages: the opaque
+  `file` source, the host's `FileStore` set by a package variable (why not an onyx
+  dependency), where content is moved and files resolved, stable URLs and authorization.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 
