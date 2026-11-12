@@ -251,9 +251,20 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		}
 	}
 
+	// A file that cannot be resolved fails the generation as a provider
+	// refusing it would: its message is flagged and never replayed.
+	for _, message := range history {
+		if err := resolveFiles(ctx, s.fileStore, chatRn.Parent(), message.GetBlocks()...); err != nil {
+			s.markGenerationFailure(ctx, chatRn, inputMessages, accumulator, err)
+			return err
+		}
+	}
+
 	wrapper := &generateMessageWrapper{
 		AiService_StreamGenerateMessageServer: srv,
 		messageAccumulator:                    accumulator,
+		fileStore:                             s.fileStore,
+		fileParent:                            chatRn.Parent(),
 		model:                                 model,
 		modelUsage:                            &aipb.ModelUsage{Model: request.Model},
 		toolNameToTool:                        toolNameToTool,
@@ -455,6 +466,8 @@ func (s *Service) markGenerationFailure(
 type generateMessageWrapper struct {
 	pb.AiService_StreamGenerateMessageServer
 	messageAccumulator          *ai.MessageAccumulator
+	fileStore                   FileStore
+	fileParent                  string
 	model                       *aipb.Model
 	modelUsage                  *aipb.ModelUsage
 	toolNameToTool              map[string]*aipb.Tool
@@ -466,6 +479,11 @@ type generateMessageWrapper struct {
 func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse) error {
 	switch c := response.GetContent().(type) {
 	case *pb.StreamGenerateMessageResponse_Block:
+		// Generated content reaches the file store before the stream or the accumulator.
+		if err := storeFiles(w.Context(), w.fileStore, w.fileParent, c.Block); err != nil {
+			return err
+		}
+
 		var toolCall *aipb.ToolCall
 		if c.Block.GetToolCall() != nil {
 			toolCall = c.Block.GetToolCall()
