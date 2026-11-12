@@ -55,9 +55,9 @@ the provider again on every retry. `CreateDecision` therefore looks the decision
 ## Providers
 
 All three are one JSON `POST` through `provider.PostJSON`, with wire structs next to the mapping,
-rather than SDK calls: core pins openai-go v3.10.0 (Decisions need v3.73+), no go-genai release
-has Decisions yet, and TypeSafe has no Go SDK. Move OpenAI and Gemini to their SDKs when those
-pins move, if it removes code.
+rather than SDK calls: no go-genai release has Decisions yet, TypeSafe has no Go SDK, and OpenAI's
+stays on the same path as the other two by choice (openai-go has `client.Decisions` since v3.73.0,
+and core pins v3.98.0). Move Gemini to its SDK when a release has it, if it removes code.
 
 - No retries in a provider. `PostJSON` codes the failure (429 → `ResourceExhausted`, 5xx and
   TypeSafe's 529 → `Unavailable`, other unmapped 4xx → `InvalidArgument`) and the caller retries
@@ -150,9 +150,9 @@ None of the three stores anything: no decision id, no retrieve/list, no streamin
 
 - OpenAI: `client.Decisions.New(ctx, openai.DecisionNewParams{...})` in
   `github.com/openai/openai-go/v3`, since v3.73.0 (2026-10-06); question `Instructions` became a
-  typed union in a later minor (breaking). core pins v3.10.0.
+  typed union in a later minor (breaking). core pins v3.98.0 and does not use it.
 - Gemini: `client.Decisions.Create` (`google.golang.org/genai/interactions`), committed to
-  go-genai main on 2026-11-11 (4e1c734a) and in no release yet (latest tag v1.77.0). core pins v1.53.0.
+  go-genai main on 2026-11-11 (4e1c734a) and in no release yet (latest tag v1.77.0, which core pins).
 - TypeSafe: no Go SDK (Python and JavaScript only). OpenAPI at `https://api.typesafe.ai/openapi.json`.
   Bearer key. Retry 429 and 529 with backoff, honouring `retry-after`. Body ≤ 32 MiB.
 

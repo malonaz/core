@@ -220,7 +220,7 @@ func (c *Client) StreamGenerateMessage(
 	}
 
 	if err := chatStream.Err(); err != nil {
-		return status.FromError(err, "reading stream").Err()
+		return apiError(err, "reading stream")
 	}
 
 	if lastUsage.PromptTokens > 0 || lastUsage.PromptTokensDetails.CachedTokens > 0 || lastUsage.CompletionTokens > 0 || lastUsage.CompletionTokensDetails.ReasoningTokens > 0 {

@@ -2,12 +2,14 @@ package openai
 
 import (
 	"context"
+	"errors"
 
 	openai2 "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 	openai "github.com/sashabaranov/go-openai"
 
 	"github.com/malonaz/core/go/ai/ai_service/provider"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 type config struct {
@@ -105,6 +107,16 @@ func NewMoonshotClient(apiKey string, modelService *provider.ModelService) *Clie
 
 func NewBasetenClient(apiKey string, modelService *provider.ModelService) *Client {
 	return newClient(apiKey, modelService, configBaseten)
+}
+
+// apiError codes a failed call as provider.PostJSON does. The SDK's error text
+// stops at the status line, so the provider's answer is put back.
+func apiError(err error, action string) error {
+	var apiError *openai2.Error
+	if !errors.As(err, &apiError) {
+		return status.FromError(err, "%s", action).Err()
+	}
+	return status.Errorf(provider.CodeFromHTTPStatus(apiError.StatusCode), "%s: HTTP status %d: %s", action, apiError.StatusCode, apiError.RawJSON()).Err()
 }
 
 // Implements the provider.Provider interface.
