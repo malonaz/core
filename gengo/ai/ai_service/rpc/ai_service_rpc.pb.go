@@ -44,10 +44,6 @@ func (s *AiServiceServer) Start(ctx context.Context) error {
 	return nil
 }
 
-// Close stops the AiService's background work.
-func (s *AiServiceServer) Close() {
-}
-
 type aiService_ChatStore interface {
 	BatchInsertChats(ctx context.Context, requestIDs []string, chats []*model.Chat) ([]*model.Chat, error)
 	UpdateChat(ctx context.Context, chat *model.Chat, updateClause string, columns []string, etag string) (*model.Chat, error)

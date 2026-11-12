@@ -24,7 +24,7 @@ func (mc *methodCtx) generateUndelete() error {
 		return fmt.Errorf("%s has an etag: %s must declare `string etag` (AIP-154)", pr.Desc.Type, method.Input.Desc.FullName())
 	}
 
-	hasUndeletedEvents := mc.publishesInline("Undeleted")
+	hasUndeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetUndeleted()) > 0
 	if hasUndeletedEvents {
 		mc.generateUndeletedEventPublisher()
 	}
@@ -66,7 +66,6 @@ func (mc *methodCtx) generateUndelete() error {
 		g.P()
 		undeleteArgs += ", request.GetEtag(), newEtag"
 	}
-	undeleteArgs += mc.journalArg("s", "Undeleted")
 
 	g.P("  // STEP 2: Undelete the resource.")
 	g.P(fmt.Sprintf("  db%s, err := s.store.Undelete%s(%s)", mc.modelGoName, resourceGoName, undeleteArgs))

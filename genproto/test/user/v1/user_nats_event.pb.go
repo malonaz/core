@@ -45,7 +45,7 @@ func (s *UserCreatedSubject) evaluate(resource *User) (bool, error) {
 	return true, nil
 }
 
-func (s *UserCreatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *User) error {
+func (s *UserCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *User) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (s *UserCreatedSubject) Publish(ctx context.Context, publisher nats.Publish
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserCreatedSubject) set(resource *User) error {
@@ -98,7 +98,7 @@ func (s *UserUpdatedSubject) evaluate(resource *User, previousResource *User, up
 	return true, nil
 }
 
-func (s *UserUpdatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *User, previousResource *User, updateMask *fieldmaskpb.FieldMask) error {
+func (s *UserUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *User, previousResource *User, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (s *UserUpdatedSubject) Publish(ctx context.Context, publisher nats.Publish
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserUpdatedSubject) set(resource *User) error {
@@ -151,7 +151,7 @@ func (s *UserDeletedSubject) evaluate(resource *User) (bool, error) {
 	return true, nil
 }
 
-func (s *UserDeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *User) error {
+func (s *UserDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *User) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -170,7 +170,7 @@ func (s *UserDeletedSubject) Publish(ctx context.Context, publisher nats.Publish
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *UserDeletedSubject) set(resource *User) error {

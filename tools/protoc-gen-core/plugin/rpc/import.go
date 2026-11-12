@@ -345,8 +345,8 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 		sliceParams[i] = fmt.Sprintf("%s []*%s", modelSlices[i], modelTypes[i])
 		singleSlices[i] = modelSlices[i] + "[i:i+1]"
 	}
-	storeInsert := "s.server." + strings.TrimPrefix(mc.batchInsertCall("requestIDs", modelSlices, mc.journalArg("s.server", "Imported")), "s.")
-	storeInsertOne := "s.server." + strings.TrimPrefix(mc.batchInsertCall("requestIDs[i:i+1]", singleSlices, mc.journalArg("s.server", "Imported")), "s.")
+	storeInsert := "s.server." + strings.TrimPrefix(mc.batchInsertCall("requestIDs", modelSlices), "s.")
+	storeInsertOne := "s.server." + strings.TrimPrefix(mc.batchInsertCall("requestIDs[i:i+1]", singleSlices), "s.")
 	g.P("// insert inserts the batch atomically or, when that fails, one row at a time so that")
 	g.P("// only the rows at fault are recorded as failures.")
 	g.P(fmt.Sprintf("func (s *%s) insert(ctx %s, requestIDs []string, %s) ([]*%s, error) {", sink, mc.gen.ident(contextPkg, "Context"), strings.Join(sliceParams, ", "), mc.goTypeQgi))
@@ -409,7 +409,7 @@ func (mc *methodCtx) generateImportSink(imp *importMethod, createRequest *protog
 	g.P(fmt.Sprintf("    imported = append(imported, %s)", resourceVar))
 	g.P(fmt.Sprintf("    s.names = append(s.names, %s.GetName())", resourceVar))
 	g.P("  }")
-	if eventOpts := mc.mi.natsEventOpts.GetImported(); mc.publishesInline("Imported") {
+	if eventOpts := mc.mi.natsEventOpts.GetImported(); len(eventOpts) > 0 {
 		g.P(fmt.Sprintf("  for _, %s := range imported {", resourceVar))
 		mc.publishEvents(eventOpts, resourceVar, "s.server.natsClient")
 		g.P("  }")

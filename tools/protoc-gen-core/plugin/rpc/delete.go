@@ -7,7 +7,6 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 
 	"github.com/malonaz/core/tools/protoc-gen-core/goident"
-	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
 func (mc *methodCtx) generateDelete() error {
@@ -20,7 +19,7 @@ func (mc *methodCtx) generateDelete() error {
 	}
 
 	// Publish helper for deleted events.
-	if mc.publishesInline("Deleted") {
+	if mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0 {
 		mc.generateDeletedEventPublisher()
 	}
 
@@ -57,7 +56,7 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g := mc.g
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	hasDeletedEvents := mc.publishesInline("Deleted")
+	hasDeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
 
 	g.P(fmt.Sprintf("  deleteTime := %s().UTC()", mc.gen.ident(timePkg, "Now")))
 
@@ -89,7 +88,6 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	}
 	deleteArgs += mc.forceArg()
 	deleteArgs += ", deleteTime"
-	deleteArgs += mc.journalArg("s", "Deleted")
 	g.P(fmt.Sprintf("  db%s, err := s.store.SoftDelete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))
 	g.P("  if err != nil {")
 	g.P(fmt.Sprintf("    if %s(err, %s) {", mc.errorsIs(), mc.errNotExist))
@@ -114,12 +112,6 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 	g.P("        }")
 	if hasDeletedEvents {
 		g.P(fmt.Sprintf("        if err := s.publishResourceDeletedEvent(ctx, %s); err != nil {", goident.Var(resourceGoName)))
-		g.P("          return nil, err")
-		g.P("        }")
-	} else if mc.outbox && mc.declares("Deleted") {
-		// Already a tombstone: no write of its own for the event to ride on.
-		g.P(fmt.Sprintf("        if err := s.%s(ctx, s.store.%s(), %s); err != nil {",
-			mc.outboxPublisherFN("Deleted"), schema.JournalFN(mc.schemaName), goident.Var(resourceGoName)))
 		g.P("          return nil, err")
 		g.P("        }")
 	}
@@ -157,7 +149,7 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 	g := mc.g
 	pr := mc.pr
 	resourceGoName := mc.resourceGoName
-	hasDeletedEvents := mc.publishesInline("Deleted")
+	hasDeletedEvents := mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetDeleted()) > 0
 
 	// STEP 2: Hard delete.
 	g.P("  // STEP 2: Hard delete the resource.")
@@ -169,7 +161,6 @@ func (mc *methodCtx) generateHardDeleteBody(method *protogen.Method) {
 		deleteArgs += ", request.GetEtag()"
 	}
 	deleteArgs += mc.forceArg()
-	deleteArgs += mc.journalArg("s", "Deleted")
 
 	if hasDeletedEvents {
 		g.P(fmt.Sprintf("  db%s, err := s.store.Delete%s(%s)", mc.modelGoName, resourceGoName, deleteArgs))
