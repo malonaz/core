@@ -11,7 +11,11 @@ CREATE TABLE outbox.journal (
     create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
     stream TEXT NOT NULL,
     subject TEXT NOT NULL,
-    payload BYTEA NOT NULL
+    payload BYTEA NOT NULL,
+    -- Times NATS rejected the entry: claims skip it, as dead, at the limit.
+    attempts INT NOT NULL DEFAULT 0,
+    -- The latest failure to publish it.
+    last_error TEXT
 ) WITH (
     -- Every row is inserted then deleted: vacuum on a fixed count of dead rows,
     -- not a fraction of a backlog, and unthrottled since the live table is tiny.

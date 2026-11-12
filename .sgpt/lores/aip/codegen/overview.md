@@ -158,7 +158,13 @@ registry is per package — cross-package parent/child links do not exist):
   the duplicate if a delete rolls back) and its `sequence` as the
   `Outbox-Sequence` header, and deletes the published ones in the same
   transaction. A failing entry holds back nothing else: alert on
-  `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. Events
+  `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. A write
+  whose event exceeds `outbox.MaxPayload` fails (`ErrPayloadTooLarge`)
+  rather than journal what NATS never accepts. A failed publish records
+  `last_error`; only a rejection (`nats.IsRejected`: NATS refused the message
+  itself, not an outage) counts in `attempts`, and at 5 the entry is dead:
+  claims skip it, `outbox_journal_dead_entries_total` counts it, and a human
+  fixes the cause then resets `attempts` or deletes the row. Events
   reach the stream in no guaranteed order and `nats.Processor` consumes
   concurrently and redelivers, so order is the consumer's: `sequence` is
   assigned under the write's row lock, so it grows with a resource's writes.

@@ -30,6 +30,7 @@ go_test(
         "//go/postgres",
         "//go/postgres/test_server",
         "//malonaz/nats/v1",
+        "//third_party/go:github.com__jackc__pgx__v5",
         "//third_party/go:github.com__nats-io__nats-server__v2__test",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__wrapperspb",

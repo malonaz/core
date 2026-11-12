@@ -2,7 +2,6 @@ package outbox
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -116,17 +115,18 @@ func (p *Poller) drain(ctx context.Context) error {
 
 // publish publishes every entry it can, so a failing one holds back no other.
 // Order is the consumer's to restore, by each entry's SequenceHeader.
-func (p *Poller) publish(ctx context.Context, entries []*Entry) ([]*Entry, error) {
+func (p *Poller) publish(ctx context.Context, entries []*Entry) []*Failure {
 	p.lagSeconds.Set(time.Since(entries[0].CreateTime).Seconds())
-	published := make([]*Entry, 0, len(entries))
-	var errs []error
+	var failures []*Failure
 	for _, entry := range entries {
 		headers := map[string][]string{SequenceHeader: {strconv.FormatInt(entry.Sequence, 10)}}
 		if err := p.natsClient.PublishEncoded(ctx, entry.Stream, entry.Subject, entry.Payload, headers, entry.ID); err != nil {
-			errs = append(errs, fmt.Errorf("publishing journal entry %s on %s: %w", entry.ID, entry.Subject, err))
-			continue
+			failures = append(failures, &Failure{
+				Entry:    entry,
+				Err:      fmt.Errorf("publishing journal entry %s on %s: %w", entry.ID, entry.Subject, err),
+				Rejected: nats.IsRejected(err),
+			})
 		}
-		published = append(published, entry)
 	}
-	return published, errors.Join(errs...)
+	return failures
 }

@@ -2,6 +2,7 @@ package outbox
 
 import (
 	"context"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -41,19 +42,21 @@ type fakeJournal struct {
 
 func (j *fakeJournal) claim(ctx context.Context, limit int, publish PublishFn) (int, error) {
 	claimed := j.entries[:min(limit, len(j.entries))]
-	published, err := publish(ctx, claimed)
-	isPublished := make(map[*Entry]bool, len(published))
-	for _, entry := range published {
-		isPublished[entry] = true
+	failures := publish(ctx, claimed)
+	failed := make(map[*Entry]bool, len(failures))
+	errs := make([]error, 0, len(failures))
+	for _, failure := range failures {
+		failed[failure.Entry] = true
+		errs = append(errs, failure.Err)
 	}
-	remaining := make([]*Entry, 0, len(j.entries))
-	for _, entry := range j.entries {
-		if !isPublished[entry] {
+	remaining := append([]*Entry{}, j.entries[len(claimed):]...)
+	for _, entry := range claimed {
+		if failed[entry] {
 			remaining = append(remaining, entry)
 		}
 	}
 	j.entries = remaining
-	return len(claimed), err
+	return len(claimed), errors.Join(errs...)
 }
 
 // streamPayloads returns the payloads the stream holds, in order.
@@ -118,6 +121,11 @@ func TestPollerPublishesPastAFailure(t *testing.T) {
 	require.Error(t, poller.drain(context.Background()))
 	require.Equal(t, []string{"b"}, []string{journal.entries[0].ID})
 	require.Equal(t, []string{"a", "c"}, streamPayloads(t, client, stream))
+
+	// JetStream refused "b" itself, so the failure counts towards leaving it dead.
+	failures := poller.publish(context.Background(), journal.entries)
+	require.Len(t, failures, 1)
+	require.True(t, failures[0].Rejected)
 }
 
 func TestPollerPublishesSequence(t *testing.T) {

@@ -17,12 +17,15 @@ package outbox
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/malonaz/core/go/nats"
@@ -31,6 +34,25 @@ import (
 
 // table is the journal of the database a write or a claim runs against.
 const table = "outbox.journal"
+
+const (
+	// MaxPayload is the largest payload a journal takes: NATS's default
+	// max_payload, less room for the headers it is published with.
+	MaxPayload = 1<<20 - 1<<10
+	// maxAttempts is how many times NATS rejects an entry before claims leave
+	// it in the journal as dead.
+	maxAttempts = 5
+)
+
+// ErrPayloadTooLarge fails the write of an event NATS would never accept.
+var ErrPayloadTooLarge = errors.New("payload exceeds the outbox's max payload")
+
+// deadEntriesTotal is what to alert on: an entry dead in its journal waits on
+// a human, who fixes its cause and resets its attempts or deletes it.
+var deadEntriesTotal = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "outbox_journal_dead_entries_total",
+	Help: "Journal entries left unpublished after NATS rejected them too many times",
+})
 
 // Entry is one journaled message awaiting publication.
 type Entry struct {
@@ -78,6 +100,9 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 	if err != nil {
 		return err
 	}
+	if len(bytes) > MaxPayload {
+		return fmt.Errorf("journaling message on %s: %w: %d bytes", subject.Name(), ErrPayloadTooLarge, len(bytes))
+	}
 	if _, err := j.execer.Exec(ctx, insertQuery, subject.Stream().Name(), subject.Name(), bytes); err != nil {
 		return fmt.Errorf("journaling message on %s: %w", subject.Name(), err)
 	}
@@ -86,24 +111,39 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 
 const (
 	insertQuery = "INSERT INTO " + table + " (stream, subject, payload) VALUES ($1, $2, $3)"
-	// Concurrent claims take disjoint entries.
-	selectQuery = "SELECT sequence, id, create_time, stream, subject, payload FROM " + table + " ORDER BY sequence LIMIT $1 FOR UPDATE SKIP LOCKED"
+	// Concurrent claims take disjoint entries, and none takes a dead one.
+	selectQuery = "SELECT sequence, id, create_time, stream, subject, payload FROM " + table +
+		" WHERE attempts < $2 ORDER BY sequence LIMIT $1 FOR UPDATE SKIP LOCKED"
 	deleteQuery = "DELETE FROM " + table + " WHERE sequence = ANY($1)"
+	// failQuery records failures, counting only rejections as attempts.
+	failQuery = "UPDATE " + table + " AS journal SET attempts = journal.attempts + failure.rejected::int, last_error = failure.error" +
+		" FROM unnest($1::bigint[], $2::text[], $3::bool[]) AS failure(sequence, error, rejected)" +
+		" WHERE journal.sequence = failure.sequence RETURNING journal.id, journal.subject, journal.attempts, failure.rejected"
 )
 
-// PublishFn publishes claimed entries and returns the ones it published, with
-// the error of those it did not.
-type PublishFn func(ctx context.Context, entries []*Entry) ([]*Entry, error)
+// Failure is an entry publish did not publish.
+type Failure struct {
+	Entry *Entry
+	Err   error
+	// Rejected is true when NATS refused the entry itself, which no retry
+	// fixes, rather than failing to receive it. Only rejections count as
+	// attempts, so an outage leaves no entry dead.
+	Rejected bool
+}
 
-// Claim locks the oldest entries of the journal, up to limit, skipping those
-// another claim holds, hands them to publish and deletes the ones it
-// published. It returns how many it claimed.
+// PublishFn publishes claimed entries and returns those it did not.
+type PublishFn func(ctx context.Context, entries []*Entry) []*Failure
+
+// Claim locks the oldest live entries of the journal, up to limit, skipping
+// those another claim holds, hands them to publish, deletes the ones it
+// published and records the failures of the others. It returns how many it
+// claimed, with the failures' errors.
 func Claim(ctx context.Context, client *postgres.Client, limit int, publish PublishFn) (int, error) {
 	var claimed int
 	var publishErr error
 	transactionFN := func(tx postgres.Tx) error {
 		claimed, publishErr = 0, nil
-		rows, err := tx.Query(ctx, selectQuery, limit)
+		rows, err := tx.Query(ctx, selectQuery, limit, maxAttempts)
 		if err != nil {
 			return fmt.Errorf("claiming journal entries: %w", err)
 		}
@@ -115,18 +155,29 @@ func Claim(ctx context.Context, client *postgres.Client, limit int, publish Publ
 		if claimed == 0 {
 			return nil
 		}
-		// A publish failure still commits the deletion of what was published.
-		published, err := publish(ctx, entries)
-		publishErr = err
-		if len(published) == 0 {
-			return nil
+		failures := publish(ctx, entries)
+		failed := make(map[int64]bool, len(failures))
+		errs := make([]error, 0, len(failures))
+		for _, failure := range failures {
+			failed[failure.Entry.Sequence] = true
+			errs = append(errs, failure.Err)
 		}
-		sequences := make([]int64, 0, len(published))
-		for _, entry := range published {
-			sequences = append(sequences, entry.Sequence)
+		publishErr = errors.Join(errs...)
+		sequences := make([]int64, 0, len(entries)-len(failures))
+		for _, entry := range entries {
+			if !failed[entry.Sequence] {
+				sequences = append(sequences, entry.Sequence)
+			}
 		}
-		if _, err := tx.Exec(ctx, deleteQuery, sequences); err != nil {
-			return fmt.Errorf("deleting %d journal entries: %w", len(sequences), err)
+		if len(sequences) > 0 {
+			if _, err := tx.Exec(ctx, deleteQuery, sequences); err != nil {
+				return fmt.Errorf("deleting %d journal entries: %w", len(sequences), err)
+			}
+		}
+		if len(failures) > 0 {
+			if err := recordFailures(ctx, tx, failures); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
@@ -134,6 +185,37 @@ func Claim(ctx context.Context, client *postgres.Client, limit int, publish Publ
 		return 0, err
 	}
 	return claimed, publishErr
+}
+
+// recordFailures records the failures on their entries and reports those it left dead.
+func recordFailures(ctx context.Context, tx postgres.Tx, failures []*Failure) error {
+	sequences := make([]int64, 0, len(failures))
+	errs := make([]string, 0, len(failures))
+	rejected := make([]bool, 0, len(failures))
+	for _, failure := range failures {
+		sequences = append(sequences, failure.Entry.Sequence)
+		errs = append(errs, failure.Err.Error())
+		rejected = append(rejected, failure.Rejected)
+	}
+	rows, err := tx.Query(ctx, failQuery, sequences, errs, rejected)
+	if err != nil {
+		return fmt.Errorf("recording %d journal failures: %w", len(failures), err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id, subject string
+		var attempts int
+		var wasRejected bool
+		if err := rows.Scan(&id, &subject, &attempts, &wasRejected); err != nil {
+			return fmt.Errorf("scanning journal failure: %w", err)
+		}
+		// Claims skip dead entries, so only this rejection can have reached the limit.
+		if wasRejected && attempts >= maxAttempts {
+			deadEntriesTotal.Inc()
+			log.Error("journal entry dead after repeated rejections", "id", id, "subject", subject, "attempts", attempts)
+		}
+	}
+	return rows.Err()
 }
 
 // SequenceHeader is the header a journaled message is published with, holding

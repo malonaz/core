@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -77,15 +79,42 @@ func payloads(t *testing.T, messages ...string) [][]byte {
 
 // publishUpTo returns a PublishFn recording the payloads it is handed and publishing only the first n of them.
 func publishUpTo(n int, claimed *[][]byte) PublishFn {
-	return func(_ context.Context, entries []*Entry) ([]*Entry, error) {
-		for _, entry := range entries {
+	return func(_ context.Context, entries []*Entry) []*Failure {
+		var failures []*Failure
+		for i, entry := range entries {
 			*claimed = append(*claimed, entry.Payload)
+			if i >= n {
+				failures = append(failures, &Failure{Entry: entry, Err: errors.New("publish failed")})
+			}
 		}
-		if len(entries) > n {
-			return entries[:n], errors.New("publish failed")
-		}
-		return entries, nil
+		return failures
 	}
+}
+
+// failAll returns a PublishFn failing every entry, as rejected or not.
+func failAll(rejected bool) PublishFn {
+	return func(_ context.Context, entries []*Entry) []*Failure {
+		failures := make([]*Failure, 0, len(entries))
+		for _, entry := range entries {
+			failures = append(failures, &Failure{Entry: entry, Err: errors.New("publish failed"), Rejected: rejected})
+		}
+		return failures
+	}
+}
+
+// journalState is what the journal records of an entry's failures.
+type journalState struct {
+	Attempts  int     `db:"attempts"`
+	LastError *string `db:"last_error"`
+}
+
+func readJournal(t *testing.T) []journalState {
+	t.Helper()
+	rows, err := postgresClient.Query(context.Background(), "SELECT attempts, last_error FROM "+table+" ORDER BY sequence")
+	require.NoError(t, err)
+	states, err := pgx.CollectRows(rows, pgx.RowToStructByName[journalState])
+	require.NoError(t, err)
+	return states
 }
 
 func TestClaimKeepsWhatWasNotPublished(t *testing.T) {
@@ -117,15 +146,55 @@ func TestClaimSkipsLockedEntries(t *testing.T) {
 
 	// While one claim holds "a", another takes "b" rather than waiting.
 	var concurrent [][]byte
-	count, err := Claim(ctx, postgresClient, 1, func(ctx context.Context, entries []*Entry) ([]*Entry, error) {
+	count, err := Claim(ctx, postgresClient, 1, func(ctx context.Context, entries []*Entry) []*Failure {
 		count, err := Claim(ctx, postgresClient, 10, publishUpTo(10, &concurrent))
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
-		return entries, nil
+		return nil
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
 	require.Equal(t, payloads(t, "b"), concurrent)
+}
+
+func TestClaimLeavesRejectedEntryDead(t *testing.T) {
+	ctx := context.Background()
+	journalMessages(t, "a")
+
+	for range maxAttempts {
+		count, err := Claim(ctx, postgresClient, 10, failAll(true))
+		require.Error(t, err)
+		require.Equal(t, 1, count)
+	}
+	// Dead: no longer claimed, but kept with its failure.
+	count, err := Claim(ctx, postgresClient, 10, failAll(true))
+	require.NoError(t, err)
+	require.Zero(t, count)
+	lastError := "publish failed"
+	require.Equal(t, []journalState{{Attempts: maxAttempts, LastError: &lastError}}, readJournal(t))
+}
+
+func TestClaimRetriesUnreceivedEntry(t *testing.T) {
+	ctx := context.Background()
+	journalMessages(t, "a")
+
+	// An outage is not the entry's fault: it never runs out of attempts.
+	for range maxAttempts + 1 {
+		count, err := Claim(ctx, postgresClient, 10, failAll(false))
+		require.Error(t, err)
+		require.Equal(t, 1, count)
+	}
+	lastError := "publish failed"
+	require.Equal(t, []journalState{{Attempts: 0, LastError: &lastError}}, readJournal(t))
+}
+
+func TestJournalRejectsOversizedPayload(t *testing.T) {
+	ctx := context.Background()
+	journalMessages(t)
+	subject := nats.NewStream(&natspb.StreamOptions{Name: "test.outbox"}).Subject("created")
+	err := NewJournal(postgresClient).Publish(ctx, subject, wrapperspb.String(strings.Repeat("a", MaxPayload)))
+	require.ErrorIs(t, err, ErrPayloadTooLarge)
+	require.Empty(t, readJournal(t))
 }
 
 func TestSequence(t *testing.T) {

@@ -1,6 +1,12 @@
 package nats
 
-import "time"
+import (
+	"errors"
+	"time"
+
+	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
+)
 
 type Action int
 
@@ -29,4 +35,11 @@ func NakError(err error) *ProcessingError {
 
 func NakWithDelayError(err error, delay time.Duration) *ProcessingError {
 	return &ProcessingError{err: err, action: ActionNakWithDelay, delay: delay}
+}
+
+// IsRejected reports whether NATS refused a published message itself, which
+// no retry fixes, rather than failing to receive it.
+func IsRejected(err error) bool {
+	var apiErr *jetstream.APIError
+	return errors.Is(err, nats.ErrMaxPayload) || errors.As(err, &apiErr)
 }
