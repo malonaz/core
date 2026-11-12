@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -99,7 +100,12 @@ func (c *Client) StreamGenerateMessage(
 	startTime := time.Now()
 	generateContentStream := c.client.Models.GenerateContentStream(ctx, model.ProviderModelId, contents, config)
 
-	tca := provider.NewToolCallAccumulator()
+	// A discovered tool is called without being declared: its schema is its tool set's.
+	tools := slices.Clone(request.GetTools())
+	for _, toolSet := range request.GetToolSets() {
+		tools = append(tools, toolSet.GetTools()...)
+	}
+	tca := provider.NewToolCallAccumulator(tools...)
 
 	var sentTtfb bool
 	var stopReason aiservicepb.StopReason

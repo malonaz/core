@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	. "github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
@@ -173,5 +174,79 @@ func TestDanglingQuoteJSONPathKey(t *testing.T) {
 	rows, ok := args["rows"].([]any)
 	if !ok || rows[0].(map[string]any)["id"] != "r1" {
 		t.Fatalf("rows = %v, want [{id: r1}]", args["rows"])
+	}
+}
+
+// Vertex writes a map key unquoted, dots and all: the paths below are a real
+// CreateReport's. Read as nesting, the labels arrive as objects where the
+// request wants strings, and the call is refused.
+func TestDottedMapKey(t *testing.T) {
+	tool := &aipb.Tool{
+		Name: "CreateReport",
+		JsonSchema: &jsonpb.Schema{
+			Type: "object",
+			Properties: map[string]*jsonpb.Schema{
+				"report": {
+					Type: "object",
+					Properties: map[string]*jsonpb.Schema{
+						"title":  {Type: "string"},
+						"labels": {Type: "object", AdditionalProperties: &jsonpb.Schema{Type: "string"}},
+					},
+				},
+				"revision": {
+					Type: "object",
+					Properties: map[string]*jsonpb.Schema{
+						"queries": {
+							Type: "object",
+							AdditionalProperties: &jsonpb.Schema{
+								Type:       "object",
+								Properties: map[string]*jsonpb.Schema{"sql": {Type: "string"}},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	a := NewToolCallAccumulator(tool)
+	a.Start(0, "id", "CreateReport")
+	a.AppendArg(0, "$.report.labels.analytics.onikisu.com/folder", "payments")
+	a.AppendArg(0, "$.report.labels.analytics.onikisu.com/folder", "")
+	a.AppendArg(0, "$.report.labels.analytics.onikisu.com/tag.sample", "")
+	a.AppendArg(0, "$.report.labels{}", "")
+	a.AppendArg(0, "$.report.title", "Payments Overview Sample")
+	a.AppendArg(0, "$.report{}", "")
+	// A map of messages nests as before.
+	a.AppendArg(0, "$.revision.queries.totals.sql", "SELECT 1")
+
+	arguments := buildToolCall(t, a, 0).GetArguments().AsMap()
+	report := arguments["report"].(map[string]any)
+	wantLabels := map[string]any{
+		"analytics.onikisu.com/folder":     "payments",
+		"analytics.onikisu.com/tag.sample": "",
+	}
+	if labels, ok := report["labels"].(map[string]any); !ok || len(labels) != 2 ||
+		labels["analytics.onikisu.com/folder"] != wantLabels["analytics.onikisu.com/folder"] ||
+		labels["analytics.onikisu.com/tag.sample"] != wantLabels["analytics.onikisu.com/tag.sample"] {
+		t.Fatalf("labels = %v, want %v", report["labels"], wantLabels)
+	}
+	if report["title"] != "Payments Overview Sample" {
+		t.Fatalf("title = %v", report["title"])
+	}
+	queries := arguments["revision"].(map[string]any)["queries"].(map[string]any)
+	if queries["totals"].(map[string]any)["sql"] != "SELECT 1" {
+		t.Fatalf("queries = %v, want totals.sql", queries)
+	}
+}
+
+// A call to a tool the accumulator has no schema for keeps the path as written.
+func TestDottedMapKeyWithoutSchema(t *testing.T) {
+	a := NewToolCallAccumulator()
+	a.Start(0, "id", "CreateReport")
+	a.AppendArg(0, "$.report.labels.analytics.onikisu.com/folder", "payments")
+
+	labels := buildToolCall(t, a, 0).GetArguments().AsMap()["report"].(map[string]any)["labels"].(map[string]any)
+	if _, ok := labels["analytics"].(map[string]any); !ok {
+		t.Fatalf("labels = %v, want the path nested as written", labels)
 	}
 }

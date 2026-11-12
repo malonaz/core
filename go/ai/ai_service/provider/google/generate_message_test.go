@@ -119,3 +119,75 @@ func TestToolSchemaKeywords(t *testing.T) {
 		"additionalProperties": map[string]any{"type": "string", "maxLength": float64(63)},
 	}, properties["labels"])
 }
+
+// functionCallChunk is one stream chunk carrying a function call part.
+func functionCallChunk(functionCall string) string {
+	return `{"candidates":[{"content":{"role":"model","parts":[{"functionCall":` + functionCall + `}]}}]}`
+}
+
+// partialArgChunk is one stream chunk of a call's streamed arguments.
+func partialArgChunk(partialArg string) string {
+	return functionCallChunk(`{"partialArgs":[` + partialArg + `],"willContinue":true}`)
+}
+
+const stopChunk = `{"candidates":[{"content":{"role":"model","parts":[{"text":""}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":10,"candidatesTokenCount":5}}`
+
+// toolCalls returns the complete tool calls among the streamed responses.
+func toolCalls(responses []*aiservicepb.StreamGenerateMessageResponse) []*aipb.ToolCall {
+	var toolCalls []*aipb.ToolCall
+	for _, response := range responses {
+		if toolCall := response.GetBlock().GetToolCall(); toolCall != nil {
+			toolCalls = append(toolCalls, toolCall)
+		}
+	}
+	return toolCalls
+}
+
+// The chunks of a real CreateReport: Vertex writes the label keys unquoted, dots and all.
+func TestStreamedToolCallDottedMapKey(t *testing.T) {
+	tool := &aipb.Tool{
+		Name: "CreateReport",
+		JsonSchema: &jsonpb.Schema{
+			Type: "object",
+			Properties: map[string]*jsonpb.Schema{
+				"parent": {Type: "string"},
+				"report": {
+					Type: "object",
+					Properties: map[string]*jsonpb.Schema{
+						"title":  {Type: "string"},
+						"labels": {Type: "object", AdditionalProperties: &jsonpb.Schema{Type: "string"}},
+					},
+				},
+			},
+		},
+	}
+	vertex := &fakeVertex{chunks: []string{
+		functionCallChunk(`{"name":"CreateReport","id":"q2myMac0","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.parent","stringValue":"organizations/hearth","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.parent","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report.labels.analytics.onikisu.com/folder","stringValue":"payments","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.report.labels.analytics.onikisu.com/folder","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report.labels.analytics.onikisu.com/tag.sample","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report.labels{}"}`),
+		partialArgChunk(`{"jsonPath":"$.report.title","stringValue":"Payments Overview Sample","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.report.title","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report{}"}`),
+		functionCallChunk(`{}`),
+		stopChunk,
+	}}
+	responses, err := generate(t, vertex, tool)
+	require.NoError(t, err)
+
+	toolCalls := toolCalls(responses)
+	require.Len(t, toolCalls, 1)
+	require.Equal(t, map[string]any{
+		"parent": "organizations/hearth",
+		"report": map[string]any{
+			"title": "Payments Overview Sample",
+			"labels": map[string]any{
+				"analytics.onikisu.com/folder":     "payments",
+				"analytics.onikisu.com/tag.sample": "",
+			},
+		},
+	}, toolCalls[0].GetArguments().AsMap())
+}
