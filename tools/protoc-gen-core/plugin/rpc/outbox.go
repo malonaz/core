@@ -1,19 +1,13 @@
 package rpc
 
 import (
-	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
-	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
 	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
-	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/goident"
-	"github.com/malonaz/core/tools/protoc-gen-core/resource"
-	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
 var (
@@ -21,64 +15,32 @@ var (
 	fieldmaskpbPkg = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
 )
 
-// schemaOf returns the database schema a resource's table, and so its journal, lives in.
-func schemaOf(message *protogen.Message, pr *resource.ParsedResource) (string, error) {
-	modelOpts, err := pbutil.GetExtension[*modelpb.ModelOpts](message.Desc.Options(), modelpb.E_ModelOpts)
-	if err != nil && !errors.Is(err, pbutil.ErrExtensionNotFound) {
-		return "", fmt.Errorf("getting model_opts for %s: %w", message.GoIdent.GoName, err)
-	}
-	return schema.TableOf(pr, modelOpts).SchemaOrPublic(), nil
-}
-
-// pollerName names a schema's poller routine, for its logs and metrics.
-func pollerName(si *serviceInfo, schemaName string) string {
-	return xstrings.ToKebabCase(si.service.GoName) + "-" + schemaName + "-outbox"
-}
-
-// sortedSchemas returns the distinct schemas of a service's outbox resources.
-func sortedSchemas(schemaSet map[string]bool) []string {
-	names := make([]string, 0, len(schemaSet))
-	for name := range schemaSet {
-		names = append(names, name)
-	}
-	slices.Sort(names)
-	return names
-}
-
-// generateOutboxStoreInterface emits the claims the service's pollers drain its journals with.
+// generateOutboxStoreInterface emits the claim the service's poller drains its journal with.
 func (gen *generator) generateOutboxStoreInterface(si *serviceInfo) {
-	for _, schemaName := range si.outboxSchemas {
-		gen.g.P(fmt.Sprintf("  %s(ctx %s, limit int, publish %s) (int, error)",
-			schema.JournalClaimFN(schemaName), gen.ident(contextPkg, "Context"), gen.ident(outboxPkg, "PublishFn")))
-	}
-}
-
-// generateOutboxPollers emits, inside the server's Start, one poller per journal the service writes to.
-func (gen *generator) generateOutboxPollers(si *serviceInfo) {
-	if !si.outbox() {
+	if !si.outbox {
 		return
 	}
-	g := gen.g
-	g.P(fmt.Sprintf("  s.outboxPollers = []*%s{", gen.ident(outboxPkg, "Poller")))
-	for _, schemaName := range si.outboxSchemas {
-		g.P(fmt.Sprintf("    %s(%s{", gen.ident(outboxPkg, "NewPoller"), gen.ident(outboxPkg, "PollerOpts")))
-		g.P(fmt.Sprintf("      Name: \"%s\",", pollerName(si, schemaName)))
-		g.P(fmt.Sprintf("      Claim: s.store.%s,", schema.JournalClaimFN(schemaName)))
-		g.P("    }, s.natsClient).Start(ctx),")
-	}
-	g.P("  }")
+	gen.g.P(fmt.Sprintf("  ClaimJournal(ctx %s, limit int, publish %s) (int, error)",
+		gen.ident(contextPkg, "Context"), gen.ident(outboxPkg, "PublishFn")))
 }
 
-// generateClose emits Close, which stops the server's pollers. It is emitted
-// whether or not the service has any, so the hosting service can always call it.
+// generateOutboxPoller emits the poller draining the journal of the service's database.
+func (gen *generator) generateOutboxPoller(si *serviceInfo) {
+	g := gen.g
+	g.P(fmt.Sprintf("    outboxPoller: %s(%s{", gen.ident(outboxPkg, "NewPoller"), gen.ident(outboxPkg, "PollerOpts")))
+	g.P(fmt.Sprintf("      Name: \"%s-outbox\",", xstrings.ToKebabCase(si.service.GoName)))
+	g.P("      Claim: store.ClaimJournal,")
+	g.P("    }, natsClient),")
+}
+
+// generateClose emits Close, which stops the server's poller. It is emitted
+// whether or not the service has one, so the hosting service can always call it.
 func (gen *generator) generateClose(si *serviceInfo) {
 	g := gen.g
 	g.P(fmt.Sprintf("// Close stops the %s's background work.", si.service.GoName))
 	g.P(fmt.Sprintf("func (s *%sServer) Close() {", si.service.GoName))
-	if si.outbox() {
-		g.P("  for _, poller := range s.outboxPollers {")
-		g.P("    poller.Close()")
-		g.P("  }")
+	if si.outbox {
+		g.P("  s.outboxPoller.Close()")
 	}
 	g.P("}")
 	g.P()

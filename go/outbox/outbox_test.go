@@ -16,6 +16,9 @@ import (
 	testserver "github.com/malonaz/core/go/postgres/test_server"
 )
 
+// migrationPath is the journal's migration, which the tests run against.
+const migrationPath = "go/outbox/migrations/outbox/001_journal.sql"
+
 var postgresClient *postgres.Client
 
 func TestMain(m *testing.M) {
@@ -30,31 +33,30 @@ func TestMain(m *testing.M) {
 		if err := postgresClient.Start(ctx); err != nil {
 			panic(fmt.Errorf("connecting to postgres: %w", err))
 		}
+		migration, err := os.ReadFile(migrationPath)
+		if err != nil {
+			panic(fmt.Errorf("reading journal migration: %w", err))
+		}
+		if _, err := postgresClient.Exec(ctx, string(migration)); err != nil {
+			panic(fmt.Errorf("creating journal: %w", err))
+		}
 		return m.Run()
 	}
 	os.Exit(run())
 }
 
-// newJournalTable creates an empty journal table holding the given messages, journaled in order.
-func newJournalTable(t *testing.T, name string, messages ...string) string {
+// journalMessages empties the journal, then journals the messages in order.
+func journalMessages(t *testing.T, messages ...string) {
 	t.Helper()
 	ctx := context.Background()
-	_, err := postgresClient.Exec(ctx, fmt.Sprintf(`CREATE TABLE %s (
-		sequence BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		id UUID NOT NULL DEFAULT gen_random_uuid(),
-		create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
-		stream TEXT NOT NULL,
-		subject TEXT NOT NULL,
-		payload BYTEA NOT NULL
-	)`, name))
+	_, err := postgresClient.Exec(ctx, "TRUNCATE "+table)
 	require.NoError(t, err)
 
 	subject := nats.NewStream(&natspb.StreamOptions{Name: "test.outbox"}).Subject("created")
-	journal := NewJournal(postgresClient, name)
+	journal := NewJournal(postgresClient)
 	for _, message := range messages {
 		require.NoError(t, journal.Publish(ctx, subject, wrapperspb.String(message)))
 	}
-	return name
 }
 
 // payloads returns what the messages are journaled as.
@@ -84,35 +86,35 @@ func publishUpTo(n int, claimed *[][]byte) PublishFn {
 
 func TestClaimKeepsWhatWasNotPublished(t *testing.T) {
 	ctx := context.Background()
-	table := newJournalTable(t, "journal_partial", "a", "b", "c")
+	journalMessages(t, "a", "b", "c")
 
 	// The first claim publishes "a" and fails on "b".
 	var claimed [][]byte
-	count, err := Claim(ctx, postgresClient, table, 2, publishUpTo(1, &claimed))
+	count, err := Claim(ctx, postgresClient, 2, publishUpTo(1, &claimed))
 	require.Error(t, err)
 	require.Equal(t, 2, count)
 	require.Equal(t, payloads(t, "a", "b"), claimed)
 
 	// The next one resumes from "b", in the order the messages were journaled.
 	claimed = nil
-	count, err = Claim(ctx, postgresClient, table, 10, publishUpTo(10, &claimed))
+	count, err = Claim(ctx, postgresClient, 10, publishUpTo(10, &claimed))
 	require.NoError(t, err)
 	require.Equal(t, 2, count)
 	require.Equal(t, payloads(t, "b", "c"), claimed)
 
-	count, err = Claim(ctx, postgresClient, table, 10, publishUpTo(10, &claimed))
+	count, err = Claim(ctx, postgresClient, 10, publishUpTo(10, &claimed))
 	require.NoError(t, err)
 	require.Zero(t, count)
 }
 
 func TestClaimHoldsTheJournal(t *testing.T) {
 	ctx := context.Background()
-	table := newJournalTable(t, "journal_exclusive", "a", "b")
+	journalMessages(t, "a", "b")
 
 	// While one claim publishes, another finds nothing to overtake it with.
 	var concurrent [][]byte
-	count, err := Claim(ctx, postgresClient, table, 1, func(ctx context.Context, entries []*Entry) (int, error) {
-		count, err := Claim(ctx, postgresClient, table, 10, publishUpTo(10, &concurrent))
+	count, err := Claim(ctx, postgresClient, 1, func(ctx context.Context, entries []*Entry) (int, error) {
+		count, err := Claim(ctx, postgresClient, 10, publishUpTo(10, &concurrent))
 		require.NoError(t, err)
 		require.Zero(t, count)
 		return len(entries), nil

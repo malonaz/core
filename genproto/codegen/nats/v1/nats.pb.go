@@ -54,12 +54,12 @@ type EventOptions struct {
 	// If unset, no imported event is generated.
 	Imported []*EventMethodOptions `protobuf:"bytes,7,rep,name=imported,proto3" json:"imported,omitempty"`
 	// If true, this resource's events are not published inline by the RPC that
-	// caused them. They are written to its schema's outbox journal in the same
+	// caused them. They are written to its database's outbox journal in the same
 	// database transaction as the write, and the service's outbox poller
 	// publishes them to NATS and deletes them. A committed write and its events
 	// therefore cannot diverge.
 	//
-	// Requires a `journal` table in the resource's schema; see go/outbox.
+	// Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
 	Outbox        bool `protobuf:"varint,8,opt,name=outbox,proto3" json:"outbox,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -205,12 +205,12 @@ type EventOptions_builder struct {
 	// If unset, no imported event is generated.
 	Imported []*EventMethodOptions
 	// If true, this resource's events are not published inline by the RPC that
-	// caused them. They are written to its schema's outbox journal in the same
+	// caused them. They are written to its database's outbox journal in the same
 	// database transaction as the write, and the service's outbox poller
 	// publishes them to NATS and deletes them. A committed write and its events
 	// therefore cannot diverge.
 	//
-	// Requires a `journal` table in the resource's schema; see go/outbox.
+	// Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
 	Outbox bool
 }
 

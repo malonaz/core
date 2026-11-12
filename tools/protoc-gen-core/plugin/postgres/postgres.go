@@ -26,14 +26,13 @@ var (
 	contextPkg  = protogen.GoImportPath("context")
 
 	storeGenerated bool
-	// journalsGenerated names the schemas whose journal has been emitted: one
-	// journal serves every outbox resource of a schema.
-	journalsGenerated map[string]bool
+	// journalGenerated: one journal serves every outbox resource of the store's database.
+	journalGenerated bool
 )
 
 func ResetState() {
 	storeGenerated = false
-	journalsGenerated = map[string]bool{}
+	journalGenerated = false
 }
 
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
@@ -114,13 +113,11 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	g.P(")")
 	g.P()
 
-	// One journal per schema, whatever outbox resources of it this file holds.
 	for _, mc := range msgCtxs {
-		if !mc.outbox || journalsGenerated[mc.schemaName] {
-			continue
+		if mc.outbox && !journalGenerated {
+			journalGenerated = true
+			gen.generateJournal()
 		}
-		journalsGenerated[mc.schemaName] = true
-		gen.generateJournal(schema.TableOf(mc.pr, mc.modelOpts))
 	}
 
 	for _, mc := range msgCtxs {
@@ -251,8 +248,6 @@ type msgCtx struct {
 	// outbox is true when the resource's events are journaled in the
 	// transaction of the write that caused them, rather than published inline.
 	outbox bool
-	// schemaName is the schema the resource's table, and so its journal, lives in.
-	schemaName string
 
 	singletonChildren []*childCtx
 	// descendants are deleted alongside the resource, deepest first.
@@ -395,8 +390,7 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
 		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
 
-		outbox:     outbox,
-		schemaName: table.SchemaOrPublic(),
+		outbox: outbox,
 
 		singletonChildren: singletonChildren,
 		descendants:       descendants,

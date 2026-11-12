@@ -1,6 +1,8 @@
--- The outbox journal of the library schema: one row per NATS message a write
--- published in its own transaction, deleted once the poller has published it.
-CREATE TABLE library.journal (
+-- The outbox journal of a database: one row per NATS message a write published
+-- in its own transaction, deleted once the poller has published it.
+CREATE SCHEMA outbox;
+
+CREATE TABLE outbox.journal (
     -- Orders the poll. Assigned as the row is written, under the lock the write
     -- holds on its resource, where a transaction's start time is not.
     sequence BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

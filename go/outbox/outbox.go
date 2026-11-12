@@ -2,8 +2,10 @@
 // journal table a write publishes its NATS events into, in its own transaction,
 // and a poller that publishes them to NATS and deletes them.
 //
-// There is one journal per database schema. A committed write and its events
-// therefore cannot diverge, and an event carries the resource as of the write.
+// There is one journal per database, created by the migrations of
+// //go/outbox/migrations, which a database's own migrations include. A
+// committed write and its events therefore cannot diverge, and an event
+// carries the resource as of the write.
 package outbox
 
 import (
@@ -18,6 +20,9 @@ import (
 	"github.com/malonaz/core/go/nats"
 	"github.com/malonaz/core/go/postgres"
 )
+
+// table is the journal of the database a write or a claim runs against.
+const table = "outbox.journal"
 
 // Entry is one journaled message awaiting publication.
 type Entry struct {
@@ -47,17 +52,15 @@ type Execer interface {
 // inside the write's transaction.
 type JournalFn[M any] func(ctx context.Context, publisher nats.Publisher, rows []M) error
 
-// Journal is a [nats.Publisher] that writes messages to a journal table
-// rather than to NATS.
+// Journal is a [nats.Publisher] that writes messages to the journal rather
+// than to NATS.
 type Journal struct {
 	execer Execer
-	table  string
 }
 
-// NewJournal returns a journal writing to the table through the execer. The
-// table is a generated constant, never user input.
-func NewJournal(execer Execer, table string) *Journal {
-	return &Journal{execer: execer, table: table}
+// NewJournal returns a journal written through the execer.
+func NewJournal(execer Execer) *Journal {
+	return &Journal{execer: execer}
 }
 
 // Publish journals the message for the subject.
@@ -66,12 +69,19 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 	if err != nil {
 		return err
 	}
-	query := fmt.Sprintf("INSERT INTO %s (stream, subject, payload) VALUES ($1, $2, $3)", j.table)
-	if _, err := j.execer.Exec(ctx, query, subject.Stream().Name(), subject.Name(), bytes); err != nil {
+	if _, err := j.execer.Exec(ctx, insertQuery, subject.Stream().Name(), subject.Name(), bytes); err != nil {
 		return fmt.Errorf("journaling message on %s: %w", subject.Name(), err)
 	}
 	return nil
 }
+
+const (
+	insertQuery = "INSERT INTO " + table + " (stream, subject, payload) VALUES ($1, $2, $3)"
+	selectQuery = "SELECT sequence, id, create_time, stream, subject, payload FROM " + table + " ORDER BY sequence LIMIT $1"
+	deleteQuery = "DELETE FROM " + table + " WHERE sequence = ANY($1)"
+	// Advisory locks are scoped to the database, as the journal is.
+	lockQuery = "SELECT pg_try_advisory_xact_lock(hashtextextended('" + table + "', 0))"
+)
 
 // PublishFn publishes claimed entries in order and returns how many it
 // published before failing, if it did.
@@ -80,9 +90,7 @@ type PublishFn func(ctx context.Context, entries []*Entry) (int, error)
 // Claim hands the oldest entries of the journal, up to limit, to publish and
 // deletes the ones it published. It returns how many it claimed: none while
 // another claim holds the journal.
-func Claim(ctx context.Context, client *postgres.Client, table string, limit int, publish PublishFn) (int, error) {
-	selectQuery := fmt.Sprintf("SELECT sequence, id, create_time, stream, subject, payload FROM %s ORDER BY sequence LIMIT $1", table)
-	deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE sequence = ANY($1)", table)
+func Claim(ctx context.Context, client *postgres.Client, limit int, publish PublishFn) (int, error) {
 	var claimed int
 	var publishErr error
 	transactionFN := func(tx postgres.Tx) error {
@@ -90,7 +98,7 @@ func Claim(ctx context.Context, client *postgres.Client, table string, limit int
 		// One claim at a time, across replicas: a second would publish later entries
 		// while the first still held, or had failed on, earlier ones.
 		var locked bool
-		if err := tx.QueryRow(ctx, "SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0))", table).Scan(&locked); err != nil {
+		if err := tx.QueryRow(ctx, lockQuery).Scan(&locked); err != nil {
 			return fmt.Errorf("locking journal: %w", err)
 		}
 		if !locked {

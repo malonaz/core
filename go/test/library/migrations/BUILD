@@ -5,5 +5,6 @@ postgres_migrations(
     dirs = [
         "library",
     ],
+    includes = ["//go/outbox/migrations"],
     visibility = ["PUBLIC"],
 )

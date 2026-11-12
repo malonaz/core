@@ -85,12 +85,12 @@ export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
 
   /**
    * If true, this resource's events are not published inline by the RPC that
-   * caused them. They are written to its schema's outbox journal in the same
+   * caused them. They are written to its database's outbox journal in the same
    * database transaction as the write, and the service's outbox poller
    * publishes them to NATS and deletes them. A committed write and its events
    * therefore cannot diverge.
    *
-   * Requires a `journal` table in the resource's schema; see go/outbox.
+   * Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
    *
    * @generated from field: bool outbox = 8;
    */
@@ -165,12 +165,12 @@ export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> 
 
   /**
    * If true, this resource's events are not published inline by the RPC that
-   * caused them. They are written to its schema's outbox journal in the same
+   * caused them. They are written to its database's outbox journal in the same
    * database transaction as the write, and the service's outbox poller
    * publishes them to NATS and deletes them. A committed write and its events
    * therefore cannot diverge.
    *
-   * Requires a `journal` table in the resource's schema; see go/outbox.
+   * Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
    *
    * @generated from field: bool outbox = 8;
    */

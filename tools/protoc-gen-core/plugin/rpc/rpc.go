@@ -50,13 +50,10 @@ type serviceInfo struct {
 	natsResources map[string]bool // resource types that require nats client
 	// Methods returning google.longrunning.Operation, in declaration order.
 	lroMethods []*longrunningMethod
-	// outboxSchemas are the distinct schemas the service journals events into:
-	// one journal, and so one poller, per schema.
-	outboxSchemas []string
+	// outbox is true when the service journals any of its events, and so runs
+	// the poller of its database's journal.
+	outbox bool
 }
-
-// outbox reports whether the service journals any of its events.
-func (si *serviceInfo) outbox() bool { return len(si.outboxSchemas) > 0 }
 
 // longrunning reports whether the service has long-running methods, which give
 // its server a scheduler client and a runner.
@@ -96,7 +93,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		si.natsStream = len(streamOptionsList) > 0
 
 		resourceSet := map[string]bool{}
-		outboxSchemaSet := map[string]bool{}
 		for _, method := range svc.Methods {
 			lro, err := parseLongrunningMethod(method)
 			if err != nil {
@@ -123,13 +119,7 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 					return fmt.Errorf("resource %s has nats event annotation but service %s defines no such stream", pr.Desc.Type, svc.GoName)
 				}
 				si.natsResources[pr.Desc.Type] = true
-			}
-			if natsEventOpts.GetOutbox() {
-				schemaName, err := schemaOf(rpc.Message, pr)
-				if err != nil {
-					return err
-				}
-				outboxSchemaSet[schemaName] = true
+				si.outbox = si.outbox || natsEventOpts.GetOutbox()
 			}
 
 			if !resourceSet[pr.Desc.Singular] {
@@ -156,7 +146,6 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 		if err := requireUndelete(si); err != nil {
 			return err
 		}
-		si.outboxSchemas = sortedSchemas(outboxSchemaSet)
 		if len(si.resources) > 0 || si.longrunning() {
 			services = append(services, si)
 		}
@@ -292,9 +281,8 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		g.P(fmt.Sprintf("  schedulerServiceClient %s", gen.ident(schedulerGenPkg, "SchedulerServiceClient")))
 		g.P(fmt.Sprintf("  runner %s", runnerGoName(si)))
 	}
-	if si.outbox() {
-		g.P(fmt.Sprintf("  store %sStore", svcNameUntitled))
-		g.P(fmt.Sprintf("  outboxPollers []*%s", gen.ident(outboxPkg, "Poller")))
+	if si.outbox {
+		g.P(fmt.Sprintf("  outboxPoller *%s", gen.ident(outboxPkg, "Poller")))
 	}
 	for _, pr := range si.resources {
 		g.P(fmt.Sprintf("  *%s_%sServer", svcNameUntitled, pr.SingularGoName()))
@@ -319,8 +307,8 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		g.P("    schedulerServiceClient: schedulerServiceClient,")
 		g.P("    runner: runner,")
 	}
-	if si.outbox() {
-		g.P("    store: store,")
+	if si.outbox {
+		gen.generateOutboxPoller(si)
 	}
 	for _, pr := range si.resources {
 		natsArg := ""
@@ -354,7 +342,9 @@ func (gen *generator) generateServiceLevel(si *serviceInfo) {
 		g.P("    }")
 		g.P("  }")
 	}
-	gen.generateOutboxPollers(si)
+	if si.outbox {
+		g.P("  s.outboxPoller.Start(ctx)")
+	}
 	g.P("  return nil")
 	g.P("}")
 	g.P()
@@ -458,7 +448,7 @@ func (gen *generator) generateResourceLevel(si *serviceInfo, mi *methodInfo) err
 
 	// Journal, for events about rows that are already committed.
 	if mc.outbox {
-		g.P(fmt.Sprintf("  %s() *%s", schema.JournalFN(mc.schemaName), gen.ident(outboxPkg, "Journal")))
+		g.P(fmt.Sprintf("  Journal() *%s", gen.ident(outboxPkg, "Journal")))
 	}
 
 	// BatchGet.
@@ -715,8 +705,6 @@ type methodCtx struct {
 	// outbox is true when the store journals the resource's events in the
 	// write's own transaction, rather than the RPC publishing them.
 	outbox bool
-	// schemaName is the schema the resource's journal lives in; set with outbox.
-	schemaName string
 }
 
 func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx, error) {
@@ -755,14 +743,8 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 	}
 
 	outbox := mi.natsEventOpts.GetOutbox()
-	var schemaName string
-	if outbox {
-		if lazy {
-			return nil, fmt.Errorf("lazy singleton %s cannot use the outbox: its upsert does not journal", pr.Desc.Type)
-		}
-		if schemaName, err = schemaOf(mi.rpc.Message, pr); err != nil {
-			return nil, err
-		}
+	if outbox && lazy {
+		return nil, fmt.Errorf("lazy singleton %s cannot use the outbox: its upsert does not journal", pr.Desc.Type)
 	}
 
 	if multiPattern {
@@ -814,7 +796,6 @@ func (gen *generator) newMethodCtx(si *serviceInfo, mi *methodInfo) (*methodCtx,
 
 		singletonChildren: singletonChildren,
 		outbox:            outbox,
-		schemaName:        schemaName,
 		natsStreamGoName:  natsStreamGoName,
 	}, nil
 }
