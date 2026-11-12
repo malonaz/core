@@ -67,6 +67,10 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/ai/replay-determinism` — chat replay must be byte-stable: Anthropic
   thinking-block binding, protojson output changing per binary (deploys break replay),
   `ai.JSONMarshal` for model input, prefix-stability rules.
+- `lores/ai/decisions` — the Decision resource and CreateDecision: the contract
+  (immutable input and questions, answers in question order, no confidence field),
+  request_id idempotency (lookup before the model call), the OpenAI, Gemini and TypeSafe
+  Jev providers behind `provider.PostJSON` and their quirks, the provider APIs compared.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 
