@@ -630,9 +630,15 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 
 	for _, tool := range tools {
 		fd := &genai.FunctionDeclaration{
-			Name:                 tool.Name,
-			Description:          tool.Description,
-			ParametersJsonSchema: tool.JsonSchema,
+			Name:        tool.Name,
+			Description: tool.Description,
+		}
+		if tool.GetJsonSchema() != nil {
+			jsonSchema, err := ai.JSONSchemaMarshal(tool.GetJsonSchema())
+			if err != nil {
+				return nil, fmt.Errorf("tool %s: marshaling json schema: %w", tool.Name, err)
+			}
+			fd.ParametersJsonSchema = json.RawMessage(jsonSchema)
 		}
 		functionDeclarations = append(functionDeclarations, fd)
 	}

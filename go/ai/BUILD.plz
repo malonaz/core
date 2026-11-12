@@ -13,6 +13,7 @@ go_library(
         "//go/pbutil",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
@@ -28,6 +29,7 @@ go_test(
     deps = [
         ":ai",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
