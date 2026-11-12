@@ -147,13 +147,18 @@ registry is per package — cross-package parent/child links do not exist):
   generated `Subject.Publish` through an `outbox.Journal`, which inserts
   `(id, stream, subject, payload)` into `{schema}.journal` rather than
   publishing. The `{Service}Server`'s `Start` runs one `outbox.Poller` per
-  schema: it claims rows `ORDER BY create_time, id … FOR UPDATE SKIP LOCKED`,
-  publishes each with the row id as `Nats-Msg-Id` (JetStream drops the
-  duplicate if a delete rolls back), and deletes them in the same transaction.
-  There is no inline publish, so an event lands up to ~250ms after commit.
-  `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals
-  buffer while a cluster is drained. The schema needs the `journal` table
-  (reference: `go/test/library/migrations/library/014_outbox_journal.sql`),
+  schema: it claims the oldest rows `ORDER BY sequence`, publishes each with
+  the row id as `Nats-Msg-Id` (JetStream drops the duplicate if a delete rolls
+  back), and deletes them in the same transaction. A claim holds the journal's
+  advisory lock, so one poller drains it at a time whatever the replicas or
+  services sharing the schema; with `sequence` assigned at insert, under the
+  write's row lock, a resource's events are published in the order of its
+  writes. The first entry that fails to publish holds the journal (nothing
+  overtakes it): alert on `outbox_journal_lag_seconds{poller}`, the age of the
+  oldest entry. There is no inline publish, so an event lands up to ~250ms
+  after commit. `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every
+  poller so journals buffer while a cluster is drained. The schema needs the
+  `journal` table (reference: `go/test/library/migrations/library/014_outbox_journal.sql`),
   copied with its autovacuum settings: every row is inserted then deleted, so
   vacuum triggers on a fixed dead-row count rather than a fraction of a
   drained backlog. Lazy singletons are rejected. Reference: `Shelf`.

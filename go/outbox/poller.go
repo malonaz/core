@@ -6,13 +6,24 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/nats-io/nats.go/jetstream"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/malonaz/core/go/nats"
 	"github.com/malonaz/core/go/routine"
 )
 
 var log = slog.Default().With("package", "outbox")
+
+// journalLagSeconds is what to alert on: it grows for as long as an entry
+// that cannot be published holds its journal.
+var journalLagSeconds = promauto.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "outbox_journal_lag_seconds",
+		Help: "Age of the oldest entry a poller last found in its journal, 0 when it found none",
+	},
+	[]string{"poller"},
+)
 
 const (
 	// defaultBatchSize is how many entries one claim takes.
@@ -42,6 +53,7 @@ type PollerOpts struct {
 type Poller struct {
 	opts       PollerOpts
 	natsClient *nats.Client
+	lagSeconds prometheus.Gauge
 	routine    *routine.Routine
 }
 
@@ -53,7 +65,7 @@ func NewPoller(opts PollerOpts, natsClient *nats.Client) *Poller {
 	if opts.Interval == 0 {
 		opts.Interval = defaultInterval
 	}
-	return &Poller{opts: opts, natsClient: natsClient}
+	return &Poller{opts: opts, natsClient: natsClient, lagSeconds: journalLagSeconds.WithLabelValues(opts.Name)}
 }
 
 // Start runs the poller until Close, or until ctx is done.
@@ -77,14 +89,6 @@ func (p *Poller) Close() {
 	}
 }
 
-// HealthCheck reports whether the poller's routine is still running.
-func (p *Poller) HealthCheck(ctx context.Context) error {
-	if p.routine == nil {
-		return fmt.Errorf("poller %q not started", p.opts.Name)
-	}
-	return p.routine.HealthCheck(ctx)
-}
-
 // drain claims batches until one comes up short, so a backlog is not paced by
 // the interval.
 func (p *Poller) drain(ctx context.Context) error {
@@ -95,6 +99,9 @@ func (p *Poller) drain(ctx context.Context) error {
 		claimed, err := p.opts.Claim(ctx, p.opts.BatchSize, p.publish)
 		if err != nil {
 			return err
+		}
+		if claimed == 0 {
+			p.lagSeconds.Set(0)
 		}
 		if claimed < p.opts.BatchSize {
 			return nil
@@ -108,9 +115,9 @@ func (p *Poller) drain(ctx context.Context) error {
 // publish publishes entries in order and stops at the first failure, so a
 // failing entry holds the journal rather than letting later events overtake it.
 func (p *Poller) publish(ctx context.Context, entries []*Entry) (int, error) {
+	p.lagSeconds.Set(time.Since(entries[0].CreateTime).Seconds())
 	for i, entry := range entries {
-		if _, err := p.natsClient.JetStream.Publish(ctx, entry.Subject, entry.Payload,
-			jetstream.WithExpectStream(entry.Stream), jetstream.WithMsgID(entry.ID)); err != nil {
+		if err := p.natsClient.PublishEncoded(ctx, entry.Stream, entry.Subject, entry.Payload, entry.ID); err != nil {
 			return i, fmt.Errorf("publishing journal entry %s on %s: %w", entry.ID, entry.Subject, err)
 		}
 	}
