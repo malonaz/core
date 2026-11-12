@@ -33,6 +33,8 @@ message Shelf {
   };
   option (malonaz.codegen.nats.v1.event) = {
     stream: "malonaz.test.library.v1.shelf"
+    // Journaled in the write's own transaction and published by the outbox poller.
+    outbox: true
     resource_segments: ["organization"]
     created: {
       subject: "created"

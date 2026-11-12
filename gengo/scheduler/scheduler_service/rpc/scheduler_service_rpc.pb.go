@@ -44,6 +44,10 @@ func (s *SchedulerServiceServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// Close stops the SchedulerService's background work.
+func (s *SchedulerServiceServer) Close() {
+}
+
 type schedulerService_QueueStore interface {
 	BatchInsertQueues(ctx context.Context, requestIDs []string, queues []*model.Queue) ([]*model.Queue, error)
 	UpdateQueue(ctx context.Context, queue *model.Queue, updateClause string, columns []string, etag string) (*model.Queue, error)

@@ -59,7 +59,7 @@ func (s *BookUpdatedSubject) evaluate(resource *Book, previousResource *Book, up
 	return result, nil
 }
 
-func (s *BookUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Book, previousResource *Book, updateMask *fieldmaskpb.FieldMask) error {
+func (s *BookUpdatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Book, previousResource *Book, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (s *BookUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *BookUpdatedSubject) set(resource *Book) error {
@@ -112,7 +112,7 @@ func (s *BookDeletedSubject) evaluate(resource *Book) (bool, error) {
 	return true, nil
 }
 
-func (s *BookDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Book) error {
+func (s *BookDeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Book) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (s *BookDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *BookDeletedSubject) set(resource *Book) error {
@@ -165,7 +165,7 @@ func (s *BookImportedSubject) evaluate(resource *Book) (bool, error) {
 	return true, nil
 }
 
-func (s *BookImportedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Book) error {
+func (s *BookImportedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Book) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func (s *BookImportedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *BookImportedSubject) set(resource *Book) error {

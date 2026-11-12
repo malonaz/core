@@ -48,8 +48,8 @@ func (mc *msgCtx) generateSoftDelete() {
 	g.P(fmt.Sprintf("  %s", mc.returningExpr(mc.writeColumns())))
 	g.P()
 
-	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s%s, deleteTime %s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.forceParam(), mc.gen.ident(timePkg, "Time"), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s%s, deleteTime %s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.forceParam(), mc.gen.ident(timePkg, "Time"), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  query := softDelete%sPostgresQuery", mc.goType))
 
 	if mc.hasEtag {
@@ -60,7 +60,7 @@ func (mc *msgCtx) generateSoftDelete() {
 
 	mc.emitEtagFilter()
 
-	if len(mc.descendants) > 0 {
+	if len(mc.descendants) > 0 || mc.outbox {
 		mc.generateSoftDeleteWithTransaction()
 	} else {
 		mc.generateSoftDeleteDirect()
@@ -76,8 +76,8 @@ func (mc *msgCtx) generateMultiPatternSoftDelete() {
 	g := mc.g
 	returningExpr := mc.returningExpr(mc.writeColumns())
 
-	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s, deleteTime %s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.gen.ident(timePkg, "Time"), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) SoftDelete%s(ctx context.Context, %s string%s, deleteTime %s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagWriteParams(), mc.gen.ident(timePkg, "Time"), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+3))
 	mc.emitIDConditionAppends("  ", idParamName)
@@ -91,7 +91,11 @@ func (mc *msgCtx) generateMultiPatternSoftDelete() {
 		mc.tableName, mc.stringsI("Join"), returningExpr))
 	mc.emitEtagFilter()
 
-	mc.generateSoftDeleteDirect()
+	if mc.outbox {
+		mc.generateSoftDeleteWithTransaction()
+	} else {
+		mc.generateSoftDeleteDirect()
+	}
 
 	g.P("}")
 	g.P()
@@ -140,6 +144,7 @@ func (mc *msgCtx) generateSoftDeleteWithTransaction() {
 	g.P("    }")
 	g.P()
 	mc.generateCascade()
+	mc.emitJournalWrite("    ", fmt.Sprintf("[]*%s{result}", mc.goTypeFqi))
 	g.P("    return nil")
 	g.P("  }")
 	g.P()
@@ -163,14 +168,14 @@ func (mc *msgCtx) generateHardDelete() {
 	g.P(returningExpr)
 	g.P()
 
-	g.P(fmt.Sprintf("func (s *Store) Delete%s(ctx context.Context, %s string%s%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam(), mc.forceParam(), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) Delete%s(ctx context.Context, %s string%s%s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam(), mc.forceParam(), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  query := delete%sPostgresQuery", mc.goType))
 	g.P(fmt.Sprintf("  params := []any{ %s }", mc.patternVarIDsGoTrue()))
 
 	mc.emitEtagFilter()
 
-	if len(mc.descendants) > 0 {
+	if len(mc.descendants) > 0 || mc.outbox {
 		mc.generateHardDeleteWithTransaction()
 	} else {
 		mc.generateHardDeleteDirect()
@@ -186,8 +191,8 @@ func (mc *msgCtx) generateMultiPatternHardDelete() {
 	g := mc.g
 	returningExpr := mc.returningExpr(mc.writeColumns())
 
-	g.P(fmt.Sprintf("func (s *Store) Delete%s(ctx context.Context, %s string%s) (*%s, error) {",
-		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam(), mc.goTypeFqi))
+	g.P(fmt.Sprintf("func (s *Store) Delete%s(ctx context.Context, %s string%s%s) (*%s, error) {",
+		mc.goType, mc.patternVarIDsGoTrue(), mc.etagMatchParam(), mc.journalParam(), mc.goTypeFqi))
 	g.P(fmt.Sprintf("  conditions := make([]string, 0, %d)", len(mc.columnBindings)))
 	g.P(fmt.Sprintf("  params := make([]any, 0, %d)", len(mc.columnBindings)+1))
 	mc.emitIDConditionAppends("  ", idParamName)
@@ -195,7 +200,11 @@ func (mc *msgCtx) generateMultiPatternHardDelete() {
 		mc.fmtI("Sprintf"), mc.tableName, mc.stringsI("Join"), returningExpr))
 	mc.emitEtagFilter()
 
-	mc.generateHardDeleteDirect()
+	if mc.outbox {
+		mc.generateHardDeleteWithTransaction()
+	} else {
+		mc.generateHardDeleteDirect()
+	}
 
 	g.P("}")
 	g.P()
@@ -237,6 +246,7 @@ func (mc *msgCtx) generateHardDeleteWithTransaction() {
 	g.P("      }")
 	g.P("      return err")
 	g.P("    }")
+	mc.emitJournalWrite("    ", fmt.Sprintf("[]*%s{deleted}", mc.goTypeFqi))
 	g.P("    return nil")
 	g.P("  }")
 	g.P()

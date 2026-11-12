@@ -52,7 +52,7 @@ func (s *CaseCreatedSubject) evaluate(resource *Case) (bool, error) {
 	return true, nil
 }
 
-func (s *CaseCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Case) error {
+func (s *CaseCreatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Case) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (s *CaseCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *CaseCreatedSubject) set(resource *Case) error {
@@ -125,7 +125,7 @@ func (s *CaseUpdatedSubject) evaluate(resource *Case, previousResource *Case, up
 	return true, nil
 }
 
-func (s *CaseUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Case, previousResource *Case, updateMask *fieldmaskpb.FieldMask) error {
+func (s *CaseUpdatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Case, previousResource *Case, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func (s *CaseUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *CaseUpdatedSubject) set(resource *Case) error {
@@ -198,7 +198,7 @@ func (s *CaseDeletedSubject) evaluate(resource *Case) (bool, error) {
 	return true, nil
 }
 
-func (s *CaseDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Case) error {
+func (s *CaseDeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Case) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func (s *CaseDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clien
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *CaseDeletedSubject) set(resource *Case) error {
@@ -271,7 +271,7 @@ func (s *CaseUndeletedSubject) evaluate(resource *Case) (bool, error) {
 	return true, nil
 }
 
-func (s *CaseUndeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Case) error {
+func (s *CaseUndeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Case) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -290,7 +290,7 @@ func (s *CaseUndeletedSubject) Publish(ctx context.Context, natsClient *nats.Cli
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *CaseUndeletedSubject) set(resource *Case) error {
