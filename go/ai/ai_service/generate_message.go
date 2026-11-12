@@ -174,6 +174,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		inputMessages = append(inputMessages, inputMessage)
 	}
 	history = append(history, inputMessages...)
+	history = withoutForeignThoughts(history, providerClient.ProviderId())
 	// A model may legitimately end its turn with no content; providers reject
 	// such turns on replay, so they are persisted but never sent back.
 	history = slices.DeleteFunc(history, func(message *aipb.Message) bool {
@@ -319,6 +320,30 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		Content: &pb.StreamGenerateMessageResponse_GeneratedMessage{GeneratedMessage: persistedMessage},
 	}
 	return srv.Send(finalResponse)
+}
+
+// withoutForeignThoughts drops the thoughts and block signatures of messages
+// another provider generated: they are bound to the provider that issued them,
+// and any other rejects them. Only the provider-bound history is rewritten.
+func withoutForeignThoughts(history []*aipb.Message, providerID string) []*aipb.Message {
+	ownHistory := make([]*aipb.Message, 0, len(history))
+	for _, message := range history {
+		if aipb.MatchModelRn(message.GetModel()) {
+			modelRn, _ := aipb.ParseModelRn(message.GetModel())
+			if modelRn.Provider != providerID {
+				message = proto.Clone(message).(*aipb.Message)
+				message.Blocks = slices.DeleteFunc(message.Blocks, func(block *aipb.Block) bool {
+					_, isThought := block.Content.(*aipb.Block_Thought)
+					return isThought
+				})
+				for _, block := range message.Blocks {
+					block.Signature = ""
+				}
+			}
+		}
+		ownHistory = append(ownHistory, message)
+	}
+	return ownHistory
 }
 
 // errToolResultMissing answers a tool call left without a result. Worded

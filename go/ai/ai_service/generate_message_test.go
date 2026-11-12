@@ -206,6 +206,32 @@ func newTestToolResultMessage(toolResults ...*aipb.ToolResult) *aipb.Message {
 	return ai.NewToolMessage(blocks...)
 }
 
+func TestWithoutForeignThoughts(t *testing.T) {
+	newGeneratedMessage := func(model string) *aipb.Message {
+		message := ai.NewAssistantMessage(
+			&aipb.Block{Signature: "thought-signature", Content: &aipb.Block_Thought{Thought: "thinking"}},
+			&aipb.Block{Signature: "text-signature", Content: &aipb.Block_Text{Text: "answer"}},
+		)
+		message.Model = model
+		return message
+	}
+	userMessage := ai.NewUserMessage(ai.NewTextBlock("question"))
+	ownMessage := newGeneratedMessage("providers/openai/models/gpt-6-sol")
+	foreignMessage := newGeneratedMessage("providers/anthropic/models/claude-sonnet-5")
+	history := []*aipb.Message{userMessage, ownMessage, foreignMessage}
+
+	// The other provider's message loses its thought and its signatures: its text stays.
+	strippedMessage := ai.NewAssistantMessage(ai.NewTextBlock("answer"))
+	strippedMessage.Model = foreignMessage.Model
+	expected := []*aipb.Message{userMessage, ownMessage, strippedMessage}
+	actual := withoutForeignThoughts(history, "openai")
+	require.Empty(t, cmp.Diff(expected, actual, protocmp.Transform()))
+
+	// The stored message is left as it was.
+	require.Len(t, foreignMessage.Blocks, 2)
+	require.Equal(t, "text-signature", foreignMessage.Blocks[1].Signature)
+}
+
 func TestPairToolCalls(t *testing.T) {
 	userMessage := ai.NewUserMessage(ai.NewTextBlock("hi"))
 	assistantMessage := ai.NewAssistantMessage(ai.NewTextBlock("hello"))
