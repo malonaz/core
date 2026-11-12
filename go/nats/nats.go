@@ -108,10 +108,11 @@ func Encode(message proto.Message) ([]byte, error) {
 	return bytes, nil
 }
 
-// PublishEncoded publishes an encoded message on the wire names of a subject and its stream,
-// under an id JetStream drops the duplicates of.
-func (c *Client) PublishEncoded(ctx context.Context, stream, subject string, payload []byte, messageID string) error {
-	if _, err := c.JetStream.Publish(ctx, subject, payload, jetstream.WithExpectStream(stream), jetstream.WithMsgID(messageID)); err != nil {
+// PublishEncoded publishes an encoded message with its headers on the wire names of a subject
+// and its stream, under an id JetStream drops the duplicates of.
+func (c *Client) PublishEncoded(ctx context.Context, stream, subject string, payload []byte, headers map[string][]string, messageID string) error {
+	message := &nats.Msg{Subject: subject, Data: payload, Header: headers}
+	if _, err := c.JetStream.PublishMsg(ctx, message, jetstream.WithExpectStream(stream), jetstream.WithMsgID(messageID)); err != nil {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil

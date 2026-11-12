@@ -29,3 +29,5 @@ migrations:
     hash: 83348f68428fa6c4b9f2e035a6c64259
   - path: outbox/001_journal.sql
     hash: 888a098d58a659ca0ed53b9b0ba5ba53
+  - path: outbox/002_cursor.sql
+    hash: cc98219db083cc51b8153af9c09f8413

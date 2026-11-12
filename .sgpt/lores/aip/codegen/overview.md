@@ -149,21 +149,27 @@ registry is per package — cross-package parent/child links do not exist):
   There is one journal per **database**, owned by core: the database's
   `postgres_migrations` takes `includes = ["//go/outbox/migrations"]`
   (`///core//…` from a consumer) and lists `outbox/001_journal.sql` in its
-  manifest like its own (`migration_hash_test` fails on any `.sql` file the
-  manifest does not list, so a later journal migration cannot be missed);
-  never copy the table. The `{Service}Server` runs one
-  `outbox.Poller` (`Start`/`Close`): it claims the oldest rows
-  `ORDER BY sequence`, publishes each with the row id as `Nats-Msg-Id`
-  (JetStream drops the duplicate if a delete rolls back), and deletes them in
-  the same transaction. A claim holds the journal's advisory lock, so one
-  poller drains it at a time whatever the replicas or services on the
-  database; with `sequence` assigned at insert, under the write's row lock, a
-  resource's events reach the stream in the order of its writes (stream order
-  only: `nats.Processor` consumes concurrently and redelivers, so a consumer
-  that overwrites state from a payload still compares versions). The first entry
-  that fails to publish holds the journal (nothing overtakes it): alert on
-  `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. There is
-  no inline publish, so an event lands up to ~250ms after commit.
+  manifest like its own, with `outbox/002_cursor.sql` (`migration_hash_test`
+  fails on any `.sql` file the manifest does not list, so a later journal
+  migration cannot be missed); never copy the table. The `{Service}Server`
+  runs one `outbox.Poller` (`Start`/`Close`): it claims the oldest rows
+  `ORDER BY sequence ... FOR UPDATE SKIP LOCKED`, so replicas drain disjoint
+  batches, publishes each with the row id as `Nats-Msg-Id` (JetStream drops
+  the duplicate if a delete rolls back) and its `sequence` as the
+  `Outbox-Sequence` header, and deletes the published ones in the same
+  transaction. A failing entry holds back nothing else: alert on
+  `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. Events
+  reach the stream in no guaranteed order and `nats.Processor` consumes
+  concurrently and redelivers, so order is the consumer's: `sequence` is
+  assigned under the write's row lock, so it grows with a resource's writes.
+  A consumer applying events to its own state calls
+  `outbox.Advance(ctx, tx, consumer, event.name, sequence)` (sequence from
+  `outbox.Sequence(message.Headers)`) in the transaction that applies the
+  event, against `outbox.cursor` in its own database, and skips the event
+  when it returns false (stale or redelivered). Sequences have gaps per
+  resource (CEL-gated and unsubscribed events), so compare, never expect the
+  next one. There is no inline publish, so an event lands up to ~250ms after
+  commit.
   `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals
   buffer while a cluster is drained. Lazy singletons are rejected. Reference: `Shelf`.
 

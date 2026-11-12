@@ -7,14 +7,18 @@
 // committed write and its events therefore cannot diverge, and an event
 // carries the resource as of the write.
 //
-// A resource's events reach their stream in the order of its writes. That is
-// all the order there is: a consumer processing concurrently, or redelivered
-// to, must still compare versions before overwriting newer state.
+// Pollers drain the journal concurrently, so events reach their stream in no
+// particular order, and a consumer is redelivered to anyway. What orders a
+// resource's events is the sequence each is published with (SequenceHeader):
+// assigned under the write's row lock, it grows with the resource's writes. A
+// consumer applying events to its own state advances its cursor on the
+// resource (Advance) and skips the events it reports stale.
 package outbox
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -31,7 +35,8 @@ const table = "outbox.journal"
 // Entry is one journaled message awaiting publication.
 type Entry struct {
 	// Sequence orders the journal. It is assigned as the entry is written, so
-	// the events of one row are ordered as its writes were.
+	// the events of one row are ordered as its writes were. It is published as
+	// the message's SequenceHeader.
 	Sequence int64 `db:"sequence"`
 	// ID is published as the message's Nats-Msg-Id so that JetStream drops the
 	// duplicate of an entry published twice.
@@ -81,33 +86,23 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 
 const (
 	insertQuery = "INSERT INTO " + table + " (stream, subject, payload) VALUES ($1, $2, $3)"
-	selectQuery = "SELECT sequence, id, create_time, stream, subject, payload FROM " + table + " ORDER BY sequence LIMIT $1"
+	// Concurrent claims take disjoint entries.
+	selectQuery = "SELECT sequence, id, create_time, stream, subject, payload FROM " + table + " ORDER BY sequence LIMIT $1 FOR UPDATE SKIP LOCKED"
 	deleteQuery = "DELETE FROM " + table + " WHERE sequence = ANY($1)"
-	// Advisory locks are scoped to the database, as the journal is.
-	lockQuery = "SELECT pg_try_advisory_xact_lock(hashtextextended('" + table + "', 0))"
 )
 
-// PublishFn publishes claimed entries in order and returns how many it
-// published before failing, if it did.
-type PublishFn func(ctx context.Context, entries []*Entry) (int, error)
+// PublishFn publishes claimed entries and returns the ones it published, with
+// the error of those it did not.
+type PublishFn func(ctx context.Context, entries []*Entry) ([]*Entry, error)
 
-// Claim hands the oldest entries of the journal, up to limit, to publish and
-// deletes the ones it published. It returns how many it claimed: none while
-// another claim holds the journal.
+// Claim locks the oldest entries of the journal, up to limit, skipping those
+// another claim holds, hands them to publish and deletes the ones it
+// published. It returns how many it claimed.
 func Claim(ctx context.Context, client *postgres.Client, limit int, publish PublishFn) (int, error) {
 	var claimed int
 	var publishErr error
 	transactionFN := func(tx postgres.Tx) error {
 		claimed, publishErr = 0, nil
-		// One claim at a time, across replicas: a second would publish later entries
-		// while the first still held, or had failed on, earlier ones.
-		var locked bool
-		if err := tx.QueryRow(ctx, lockQuery).Scan(&locked); err != nil {
-			return fmt.Errorf("locking journal: %w", err)
-		}
-		if !locked {
-			return nil
-		}
 		rows, err := tx.Query(ctx, selectQuery, limit)
 		if err != nil {
 			return fmt.Errorf("claiming journal entries: %w", err)
@@ -120,19 +115,18 @@ func Claim(ctx context.Context, client *postgres.Client, limit int, publish Publ
 		if claimed == 0 {
 			return nil
 		}
-		// A publish failure still commits the deletion of what was published before it.
+		// A publish failure still commits the deletion of what was published.
 		published, err := publish(ctx, entries)
 		publishErr = err
-		if published == 0 {
+		if len(published) == 0 {
 			return nil
 		}
-		// By sequence rather than up to the last one: a lower sequence may have committed since the claim.
-		sequences := make([]int64, 0, published)
-		for _, entry := range entries[:published] {
+		sequences := make([]int64, 0, len(published))
+		for _, entry := range published {
 			sequences = append(sequences, entry.Sequence)
 		}
 		if _, err := tx.Exec(ctx, deleteQuery, sequences); err != nil {
-			return fmt.Errorf("deleting %d journal entries: %w", published, err)
+			return fmt.Errorf("deleting %d journal entries: %w", len(sequences), err)
 		}
 		return nil
 	}
@@ -140,4 +134,39 @@ func Claim(ctx context.Context, client *postgres.Client, limit int, publish Publ
 		return 0, err
 	}
 	return claimed, publishErr
+}
+
+// SequenceHeader is the header a journaled message is published with, holding
+// its entry's sequence.
+const SequenceHeader = "Outbox-Sequence"
+
+// Sequence returns the journal sequence of a message's headers.
+func Sequence(headers map[string][]string) (int64, error) {
+	values := headers[SequenceHeader]
+	if len(values) == 0 {
+		return 0, fmt.Errorf("missing %s header", SequenceHeader)
+	}
+	sequence, err := strconv.ParseInt(values[0], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parsing %s header %q: %w", SequenceHeader, values[0], err)
+	}
+	return sequence, nil
+}
+
+// advanceQuery moves a cursor forward only: no row is affected when the
+// sequence is not past it.
+const advanceQuery = `INSERT INTO outbox.cursor (consumer, resource_name, sequence) VALUES ($1, $2, $3)
+ON CONFLICT (consumer, resource_name) DO UPDATE SET sequence = EXCLUDED.sequence
+WHERE outbox.cursor.sequence < EXCLUDED.sequence`
+
+// Advance moves the consumer's cursor on the resource to sequence and reports
+// whether it moved: false means the consumer has applied a later event of the
+// resource, or this one, and must skip it. Run it in the transaction that
+// applies the event, so that the two commit together.
+func Advance(ctx context.Context, execer Execer, consumer, resourceName string, sequence int64) (bool, error) {
+	tag, err := execer.Exec(ctx, advanceQuery, consumer, resourceName, sequence)
+	if err != nil {
+		return false, fmt.Errorf("advancing cursor of %s on %s: %w", consumer, resourceName, err)
+	}
+	return tag.RowsAffected() == 1, nil
 }

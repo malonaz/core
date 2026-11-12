@@ -42,7 +42,17 @@ type fakeJournal struct {
 func (j *fakeJournal) claim(ctx context.Context, limit int, publish PublishFn) (int, error) {
 	claimed := j.entries[:min(limit, len(j.entries))]
 	published, err := publish(ctx, claimed)
-	j.entries = j.entries[published:]
+	isPublished := make(map[*Entry]bool, len(published))
+	for _, entry := range published {
+		isPublished[entry] = true
+	}
+	remaining := make([]*Entry, 0, len(j.entries))
+	for _, entry := range j.entries {
+		if !isPublished[entry] {
+			remaining = append(remaining, entry)
+		}
+	}
+	j.entries = remaining
 	return len(claimed), err
 }
 
@@ -96,7 +106,7 @@ func TestPollerDeduplicatesRepublishedEntry(t *testing.T) {
 	require.Equal(t, []string{"a"}, streamPayloads(t, client, stream))
 }
 
-func TestPollerStopsAtFirstFailure(t *testing.T) {
+func TestPollerPublishesPastAFailure(t *testing.T) {
 	client, stream, subject := setup(t, nats.Opts{})
 	journal := &fakeJournal{entries: []*Entry{
 		{ID: "a", Stream: stream.Name(), Subject: subject, Payload: []byte("a")},
@@ -106,8 +116,24 @@ func TestPollerStopsAtFirstFailure(t *testing.T) {
 	poller := NewPoller(PollerOpts{Name: "test", Claim: journal.claim}, client)
 
 	require.Error(t, poller.drain(context.Background()))
-	require.Equal(t, []string{"b", "c"}, []string{journal.entries[0].ID, journal.entries[1].ID})
-	require.Equal(t, []string{"a"}, streamPayloads(t, client, stream))
+	require.Equal(t, []string{"b"}, []string{journal.entries[0].ID})
+	require.Equal(t, []string{"a", "c"}, streamPayloads(t, client, stream))
+}
+
+func TestPollerPublishesSequence(t *testing.T) {
+	client, stream, subject := setup(t, nats.Opts{})
+	journal := &fakeJournal{entries: []*Entry{{Sequence: 42, ID: "a", Stream: stream.Name(), Subject: subject, Payload: []byte("a")}}}
+	poller := NewPoller(PollerOpts{Name: "test", Claim: journal.claim}, client)
+	require.NoError(t, poller.drain(context.Background()))
+
+	ctx := context.Background()
+	jetStream, err := client.JetStream.Stream(ctx, stream.Name())
+	require.NoError(t, err)
+	message, err := jetStream.GetMsg(ctx, 1)
+	require.NoError(t, err)
+	sequence, err := Sequence(message.Header)
+	require.NoError(t, err)
+	require.Equal(t, int64(42), sequence)
 }
 
 func TestPollerPausedHoldsJournal(t *testing.T) {

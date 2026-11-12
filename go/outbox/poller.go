@@ -2,8 +2,10 @@ package outbox
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -16,7 +18,7 @@ import (
 var log = slog.Default().With("package", "outbox")
 
 // journalLagSeconds is what to alert on: it grows for as long as an entry
-// that cannot be published holds its journal.
+// cannot be published.
 var journalLagSeconds = promauto.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Name: "outbox_journal_lag_seconds",
@@ -112,14 +114,19 @@ func (p *Poller) drain(ctx context.Context) error {
 	}
 }
 
-// publish publishes entries in order and stops at the first failure, so a
-// failing entry holds the journal rather than letting later events overtake it.
-func (p *Poller) publish(ctx context.Context, entries []*Entry) (int, error) {
+// publish publishes every entry it can, so a failing one holds back no other.
+// Order is the consumer's to restore, by each entry's SequenceHeader.
+func (p *Poller) publish(ctx context.Context, entries []*Entry) ([]*Entry, error) {
 	p.lagSeconds.Set(time.Since(entries[0].CreateTime).Seconds())
-	for i, entry := range entries {
-		if err := p.natsClient.PublishEncoded(ctx, entry.Stream, entry.Subject, entry.Payload, entry.ID); err != nil {
-			return i, fmt.Errorf("publishing journal entry %s on %s: %w", entry.ID, entry.Subject, err)
+	published := make([]*Entry, 0, len(entries))
+	var errs []error
+	for _, entry := range entries {
+		headers := map[string][]string{SequenceHeader: {strconv.FormatInt(entry.Sequence, 10)}}
+		if err := p.natsClient.PublishEncoded(ctx, entry.Stream, entry.Subject, entry.Payload, headers, entry.ID); err != nil {
+			errs = append(errs, fmt.Errorf("publishing journal entry %s on %s: %w", entry.ID, entry.Subject, err))
+			continue
 		}
+		published = append(published, entry)
 	}
-	return len(entries), nil
+	return published, errors.Join(errs...)
 }

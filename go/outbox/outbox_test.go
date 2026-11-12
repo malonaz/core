@@ -16,8 +16,11 @@ import (
 	testserver "github.com/malonaz/core/go/postgres/test_server"
 )
 
-// migrationPath is the journal's migration, which the tests run against.
-const migrationPath = "go/outbox/migrations/outbox/001_journal.sql"
+// migrationPaths are the outbox's migrations, which the tests run against.
+var migrationPaths = []string{
+	"go/outbox/migrations/outbox/001_journal.sql",
+	"go/outbox/migrations/outbox/002_cursor.sql",
+}
 
 var postgresClient *postgres.Client
 
@@ -33,12 +36,14 @@ func TestMain(m *testing.M) {
 		if err := postgresClient.Start(ctx); err != nil {
 			panic(fmt.Errorf("connecting to postgres: %w", err))
 		}
-		migration, err := os.ReadFile(migrationPath)
-		if err != nil {
-			panic(fmt.Errorf("reading journal migration: %w", err))
-		}
-		if _, err := postgresClient.Exec(ctx, string(migration)); err != nil {
-			panic(fmt.Errorf("creating journal: %w", err))
+		for _, migrationPath := range migrationPaths {
+			migration, err := os.ReadFile(migrationPath)
+			if err != nil {
+				panic(fmt.Errorf("reading migration %s: %w", migrationPath, err))
+			}
+			if _, err := postgresClient.Exec(ctx, string(migration)); err != nil {
+				panic(fmt.Errorf("running migration %s: %w", migrationPath, err))
+			}
 		}
 		return m.Run()
 	}
@@ -73,14 +78,14 @@ func payloads(t *testing.T, messages ...string) [][]byte {
 
 // publishUpTo returns a PublishFn recording the payloads it is handed and publishing only the first n of them.
 func publishUpTo(n int, claimed *[][]byte) PublishFn {
-	return func(_ context.Context, entries []*Entry) (int, error) {
+	return func(_ context.Context, entries []*Entry) ([]*Entry, error) {
 		for _, entry := range entries {
 			*claimed = append(*claimed, entry.Payload)
 		}
 		if len(entries) > n {
-			return n, errors.New("publish failed")
+			return entries[:n], errors.New("publish failed")
 		}
-		return len(entries), nil
+		return entries, nil
 	}
 }
 
@@ -107,19 +112,58 @@ func TestClaimKeepsWhatWasNotPublished(t *testing.T) {
 	require.Zero(t, count)
 }
 
-func TestClaimHoldsTheJournal(t *testing.T) {
+func TestClaimSkipsLockedEntries(t *testing.T) {
 	ctx := context.Background()
 	journalMessages(t, "a", "b")
 
-	// While one claim publishes, another finds nothing to overtake it with.
+	// While one claim holds "a", another takes "b" rather than waiting.
 	var concurrent [][]byte
-	count, err := Claim(ctx, postgresClient, 1, func(ctx context.Context, entries []*Entry) (int, error) {
+	count, err := Claim(ctx, postgresClient, 1, func(ctx context.Context, entries []*Entry) ([]*Entry, error) {
 		count, err := Claim(ctx, postgresClient, 10, publishUpTo(10, &concurrent))
 		require.NoError(t, err)
-		require.Zero(t, count)
-		return len(entries), nil
+		require.Equal(t, 1, count)
+		return entries, nil
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
-	require.Empty(t, concurrent)
+	require.Equal(t, payloads(t, "b"), concurrent)
+}
+
+func TestAdvance(t *testing.T) {
+	ctx := context.Background()
+	_, err := postgresClient.Exec(ctx, "TRUNCATE outbox.cursor")
+	require.NoError(t, err)
+
+	advance := func(consumer, resourceName string, sequence int64) bool {
+		advanced, err := Advance(ctx, postgresClient, consumer, resourceName, sequence)
+		require.NoError(t, err)
+		return advanced
+	}
+	type step struct {
+		consumer     string
+		resourceName string
+		sequence     int64
+	}
+	steps := []step{
+		{"sync", "shelves/a", 10},
+		{"sync", "shelves/a", 20},
+		{"sync", "shelves/a", 20},  // Redelivered.
+		{"sync", "shelves/a", 15},  // Overtaken.
+		{"sync", "shelves/b", 15},  // Another resource has its own cursor.
+		{"index", "shelves/a", 15}, // And another consumer.
+	}
+	advanced := make([]bool, 0, len(steps))
+	for _, step := range steps {
+		advanced = append(advanced, advance(step.consumer, step.resourceName, step.sequence))
+	}
+	require.Equal(t, []bool{true, true, false, false, true, true}, advanced)
+}
+
+func TestSequence(t *testing.T) {
+	sequence, err := Sequence(map[string][]string{SequenceHeader: {"42"}})
+	require.NoError(t, err)
+	require.Equal(t, int64(42), sequence)
+
+	_, err = Sequence(map[string][]string{})
+	require.Error(t, err)
 }
