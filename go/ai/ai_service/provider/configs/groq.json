@@ -130,21 +130,6 @@ local p = "providers/groq/models/";
           "output_token_price_per_million":  0.75
         }
       }
-    },
-    {
-      "name":  p + "playai-tts",
-      "provider_model_id":  "playai-tts",
-      "description":  "PlayAI Dialog v1.0 is a generative AI model designed to assist with creative content generation, interactive storytelling, and narrative development. Built on a transformer-based architecture, the model generates human-like audio to support writers, game developers, and content creators in vocalizing text to speech, crafting voice agentic experiences, or exploring interactive dialogue options.",
-      "tts":  {
-        "audio_format":  {
-          "sample_rate":  48000,
-          "channels":  1,
-          "bits_per_sample":  16
-        },
-        "supported_sample_rates":  [
-          48000
-        ]
-      }
     }
   ]
 }

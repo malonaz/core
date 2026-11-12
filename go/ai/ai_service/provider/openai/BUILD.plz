@@ -1,11 +1,12 @@
 go_library(
     name = "openai",
     srcs = [
+        "chat_completions.go",
+        "content.go",
         "decision.go",
-        "generate_message.go",
         "openai.go",
+        "responses.go",
         "speech_to_text.go",
-        "text_to_speech.go",
     ],
     visibility = ["//..."],
     deps = [
@@ -15,15 +16,15 @@ go_library(
         "//go/grpc/status",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
-        "//malonaz/audio/v1",
         "//third_party/go:github.com__openai__openai-go__v3",
         "//third_party/go:github.com__openai__openai-go__v3__option",
         "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",
+        "//third_party/go:github.com__openai__openai-go__v3__responses",
         "//third_party/go:github.com__openai__openai-go__v3__shared",
         "//third_party/go:github.com__sashabaranov__go-openai",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
-        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
 
@@ -32,13 +33,20 @@ go_test(
     srcs = [
         "decision_test.go",
         "openai_test.go",
+        "responses_test.go",
     ],
     deps = [
         ":openai",
+        "//go/ai",
+        "//go/ai/ai_service/provider",
         "//go/grpc/require",
+        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
         "//third_party/go:github.com__openai__openai-go__v3",
+        "//third_party/go:github.com__openai__openai-go__v3__responses",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )

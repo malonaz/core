@@ -1,184 +1,126 @@
 local p = "providers/openai/models/";
 
+// The reasoning effort each ReasoningEffort level runs at, by what a model generation accepts.
+// A level a model lacks runs at the nearest one it has. Unspecified is the least a model can
+// reason: reasoning is only paid for when asked for.
+local effortsUpToXhigh = {
+  "REASONING_EFFORT_UNSPECIFIED": "none",
+  "REASONING_EFFORT_DEFAULT": "medium",
+  "REASONING_EFFORT_LOW": "low",
+  "REASONING_EFFORT_MEDIUM": "medium",
+  "REASONING_EFFORT_HIGH": "high",
+  "REASONING_EFFORT_XHIGH": "xhigh",
+  "REASONING_EFFORT_MAX": "xhigh",
+};
+local effortsUpToMax = effortsUpToXhigh {
+  "REASONING_EFFORT_MAX": "max",
+};
+// Models that cannot turn reasoning off.
+local effortsAlwaysOn = effortsUpToMax {
+  "REASONING_EFFORT_UNSPECIFIED": "low",
+};
+local effortsPro = effortsUpToXhigh {
+  "REASONING_EFFORT_UNSPECIFIED": "medium",
+  "REASONING_EFFORT_LOW": "medium",
+};
+
 {
-  "provider_id":  "openai",
-  "models":  [
+  "provider_id": "openai",
+  "models": [
+    // GPT-6.
     {
-      "name": p + "gpt-5.2",
-      "provider_model_id": "gpt-5.2",
-      "description": "GPT-5.2 is our flagship model for coding and agentic tasks across industries. Reasoning effort supports: none (default), low, medium, high and xhigh.",
+      "name": p + "gpt-6-astra",
+      "provider_model_id": "gpt-6-astra",
+      "description": "GPT-6 Astra is OpenAI's most capable model, for the hardest reasoning, coding and agentic work. It always reasons: effort low, medium, high, xhigh or max.",
       "ttt": {
         "reasoning": true,
         "tool_call": true,
-        "context_token_limit": 400000,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
         "output_token_limit": 128000,
         "pricing": {
-          "input_token_price_per_million": 1.75,
-          "output_token_price_per_million": 14,
-          "input_token_cache_read_price_per_million": 0.175
+          "input_token_price_per_million": 10,
+          "output_token_price_per_million": 50,
+          "input_token_cache_read_price_per_million": 1,
+          "input_token_cache_write_price_per_million": 12.5
         }
-      }
+      },
+      "provider_settings": effortsAlwaysOn
     },
     {
-      "name":  p + "gpt-5.1",
-      "provider_model_id":  "gpt-5.1",
-      "description":  "GPT-5.1 is our flagship model for coding and agentic tasks with configurable reasoning and non-reasoning effort.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  1.25,
-          "output_token_price_per_million":  10,
-          "input_token_cache_read_price_per_million":  0.125
+      "name": p + "gpt-6.1-sol",
+      "provider_model_id": "gpt-6.1-sol",
+      "description": "GPT-6.1 Sol is the flagship GPT-6.1 model for coding and agentic tasks. It always reasons: effort low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 2,
+          "output_token_price_per_million": 10,
+          "input_token_cache_read_price_per_million": 0.1,
+          "input_token_cache_write_price_per_million": 2.5
         }
-      }
+      },
+      "provider_settings": effortsAlwaysOn
     },
     {
-      "name":  p + "gpt-5-pro",
-      "provider_model_id":  "gpt-5-pro",
-      "description":  "GPT-5 pro uses more compute to think harder and provide consistently better answers. GPT-5 pro is available in the Responses API only to enable support for multi-turn model interactions before responding to API requests, and other advanced API features in the future. Since GPT-5 pro is designed to tackle tough problems, some requests may take several minutes to finish. To avoid timeouts, try using background mode. As our most advanced reasoning model, GPT-5 pro defaults to (and only supports) reasoning.effort: high. GPT-5 pro does not support code interpreter.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  272000,
-        "pricing":  {
-          "input_token_price_per_million":  15,
-          "output_token_price_per_million":  120
+      "name": p + "gpt-6.1-terra",
+      "provider_model_id": "gpt-6.1-terra",
+      "description": "GPT-6.1 Terra balances intelligence, speed and cost. Reasoning effort: none, low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 1,
+          "output_token_price_per_million": 5,
+          "input_token_cache_read_price_per_million": 0.05,
+          "input_token_cache_write_price_per_million": 1.25
         }
-      }
+      },
+      "provider_settings": effortsUpToMax
     },
     {
-      "name":  p + "gpt-5-mini",
-      "provider_model_id":  "gpt-5-mini",
-      "description":  "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  0.25,
-          "output_token_price_per_million":  2,
-          "input_token_cache_read_price_per_million":  0.024999999999999998
+      "name": p + "gpt-6-sol",
+      "provider_model_id": "gpt-6-sol",
+      "description": "GPT-6 Sol is the GPT-6 workhorse for coding and agentic tasks. Reasoning effort: none, low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 2,
+          "output_token_price_per_million": 10,
+          "input_token_cache_read_price_per_million": 0.2,
+          "input_token_cache_write_price_per_million": 2.5
         }
-      }
-    },
-    {
-      "name":  p + "gpt-5-nano",
-      "provider_model_id":  "gpt-5-nano",
-      "description":  "GPT-5 Nano is our fastest, cheapest version of GPT-5. It's great for summarization and classification tasks.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  0.049999999999999996,
-          "output_token_price_per_million":  0.39999999999999997,
-          "input_token_cache_read_price_per_million":  0.005
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-4.1",
-      "provider_model_id":  "gpt-4.1",
-      "description":  "GPT-4.1 excels at instruction following and tool calling, with broad knowledge across domains. It features a 1M token context window, and low latency without a reasoning step. Note that we recommend starting with GPT-5 for complex tasks.",
-      "ttt":  {
-        "tool_call":  true,
-        "context_token_limit":  1047576,
-        "output_token_limit":  32768,
-        "pricing":  {
-          "input_token_price_per_million":  2,
-          "output_token_price_per_million":  8,
-          "input_token_cache_read_price_per_million":  0.5
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-5.1-2025-11-13",
-      "provider_model_id":  "gpt-5.1-2025-11-13",
-      "description":  "GPT-5.1 is our flagship model for coding and agentic tasks with configurable reasoning and non-reasoning effort.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  1.25,
-          "output_token_price_per_million":  10,
-          "input_token_cache_read_price_per_million":  0.125
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-5-mini-2025-08-07",
-      "provider_model_id":  "gpt-5-mini-2025-08-07",
-      "description":  "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  0.25,
-          "output_token_price_per_million":  2,
-          "input_token_cache_read_price_per_million":  0.024999999999999998
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-5-nano-2025-08-07",
-      "provider_model_id":  "gpt-5-nano-2025-08-07",
-      "description":  "GPT-5 Nano is our fastest, cheapest version of GPT-5. It's great for summarization and classification tasks.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  128000,
-        "pricing":  {
-          "input_token_price_per_million":  0.049999999999999996,
-          "output_token_price_per_million":  0.39999999999999997,
-          "input_token_cache_read_price_per_million":  0.005
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-4.1-2025-04-14",
-      "provider_model_id":  "gpt-4.1-2025-04-14",
-      "description":  "GPT-4.1 excels at instruction following and tool calling, with broad knowledge across domains. It features a 1M token context window, and low latency without a reasoning step. Note that we recommend starting with GPT-5 for complex tasks.",
-      "ttt":  {
-        "tool_call":  true,
-        "context_token_limit":  1047576,
-        "output_token_limit":  32768,
-        "pricing":  {
-          "input_token_price_per_million":  2,
-          "output_token_price_per_million":  8,
-          "input_token_cache_read_price_per_million":  0.5
-        }
-      }
-    },
-    {
-      "name":  p + "gpt-5-pro-2025-10-06",
-      "provider_model_id":  "gpt-5-pro-2025-10-06",
-      "description":  "GPT-5 pro uses more compute to think harder and provide consistently better answers. GPT-5 pro is available in the Responses API only to enable support for multi-turn model interactions before responding to API requests, and other advanced API features in the future. Since GPT-5 pro is designed to tackle tough problems, some requests may take several minutes to finish. To avoid timeouts, try using background mode. As our most advanced reasoning model, GPT-5 pro defaults to (and only supports) reasoning.effort: high. GPT-5 pro does not support code interpreter.",
-      "ttt":  {
-        "reasoning":  true,
-        "tool_call":  true,
-        "context_token_limit":  400000,
-        "output_token_limit":  272000,
-        "pricing":  {
-          "input_token_price_per_million":  15,
-          "output_token_price_per_million":  120
-        }
-      }
+      },
+      "provider_settings": effortsUpToMax
     },
     {
       "name": p + "gpt-6-luna",
       "provider_model_id": "gpt-6-luna",
-      "description": "GPT-6 Luna on the Decisions API: answers typed questions about text and images with calibrated probabilities, about 10x faster than generating text.",
+      "description": "GPT-6 Luna is the fastest, cheapest GPT-6 model. Reasoning effort: none, low, medium (default), high, xhigh or max. On the Decisions API it answers typed questions about text and images with calibrated probabilities, about 10x faster than generating text.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 0.1,
+          "output_token_price_per_million": 0.5,
+          "input_token_cache_read_price_per_million": 0.01,
+          "input_token_cache_write_price_per_million": 0.125
+        }
+      },
       "decision": {
         "context_token_limit": 1050000,
         "image": true,
@@ -187,43 +129,202 @@ local p = "providers/openai/models/";
           "input_token_cache_read_price_per_million": 0.01,
           "input_token_cache_write_price_per_million": 0.125
         }
-      }
+      },
+      "provider_settings": effortsUpToMax
+    },
+
+    // GPT-5.6.
+    // Promotional pricing until 2026-11-30; the price after it is not published yet.
+    {
+      "name": p + "gpt-5.6-sol",
+      "provider_model_id": "gpt-5.6-sol",
+      "description": "GPT-5.6 Sol is the flagship GPT-5.6 model for coding and agentic tasks. Reasoning effort: none, low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 4,
+          "output_token_price_per_million": 20,
+          "input_token_cache_read_price_per_million": 0.4,
+          "input_token_cache_write_price_per_million": 5
+        }
+      },
+      "provider_settings": effortsUpToMax
     },
     {
-      "name":  p + "whisper-1",
-      "provider_model_id":  "whisper-1",
-      "description":  "Whisper is a general-purpose speech recognition model, trained on a large dataset of diverse audio. You can also use it as a multitask model to perform multilingual speech recognition as well as speech translation and language identification.",
-      "stt":  {}
+      "name": p + "gpt-5.6-terra",
+      "provider_model_id": "gpt-5.6-terra",
+      "description": "GPT-5.6 Terra balances intelligence, speed and cost. Reasoning effort: none, low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 2,
+          "output_token_price_per_million": 12,
+          "input_token_cache_read_price_per_million": 0.2,
+          "input_token_cache_write_price_per_million": 2.5
+        }
+      },
+      "provider_settings": effortsUpToMax
     },
     {
-      "name":  p + "tts-1",
-      "provider_model_id":  "tts-1",
-      "description":  "TTS is a model that converts text to natural sounding spoken text. The tts-1 model is optimized for realtime text-to-speech use cases. Use it with the Speech endpoint in the Audio API.",
-      "tts":  {
-        "audio_format":  {
-          "sample_rate":  24000,
-          "channels":  1,
-          "bits_per_sample":  16
-        },
-        "supported_sample_rates":  [
-          24000
-        ]
-      }
+      "name": p + "gpt-5.6-luna",
+      "provider_model_id": "gpt-5.6-luna",
+      "description": "GPT-5.6 Luna is the fastest, cheapest GPT-5.6 model. Reasoning effort: none, low, medium (default), high, xhigh or max.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 0.2,
+          "output_token_price_per_million": 1.2,
+          "input_token_cache_read_price_per_million": 0.02,
+          "input_token_cache_write_price_per_million": 0.25
+        }
+      },
+      "provider_settings": effortsUpToMax
+    },
+
+    // GPT-5.5 and earlier: cache writes are not billed.
+    {
+      "name": p + "gpt-5.5",
+      "provider_model_id": "gpt-5.5",
+      "description": "GPT-5.5 is a frontier model for complex professional work. Reasoning effort: none, low, medium (default), high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 5,
+          "output_token_price_per_million": 30,
+          "input_token_cache_read_price_per_million": 0.5
+        }
+      },
+      "provider_settings": effortsUpToXhigh
     },
     {
-      "name":  p + "gpt-4o-mini-tts",
-      "provider_model_id":  "gpt-4o-mini-tts",
-      "description":  "GPT-4o mini TTS is a text-to-speech model built on GPT-4o mini, a fast and powerful language model. Use it to convert text to natural sounding spoken text. The maximum number of input tokens is 2000.",
-      "tts":  {
-        "audio_format":  {
-          "sample_rate":  24000,
-          "channels":  1,
-          "bits_per_sample":  16
-        },
-        "supported_sample_rates":  [
-          24000
-        ]
-      }
+      "name": p + "gpt-5.5-pro",
+      "provider_model_id": "gpt-5.5-pro",
+      "description": "GPT-5.5 pro uses more compute to think harder. Responses API only; requests may take several minutes. Reasoning effort: medium, high (default) or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 30,
+          "output_token_price_per_million": 180
+        }
+      },
+      "provider_settings": effortsPro
+    },
+    {
+      "name": p + "gpt-5.4",
+      "provider_model_id": "gpt-5.4",
+      "description": "GPT-5.4 is a frontier model for complex professional work. Reasoning effort: none (default), low, medium, high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 2.5,
+          "output_token_price_per_million": 15,
+          "input_token_cache_read_price_per_million": 0.25
+        }
+      },
+      "provider_settings": effortsUpToXhigh
+    },
+    {
+      "name": p + "gpt-5.4-mini",
+      "provider_model_id": "gpt-5.4-mini",
+      "description": "GPT-5.4 mini is a faster, more cost-efficient GPT-5.4 for coding, computer use and subagents. Reasoning effort: none (default), low, medium, high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 400000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 0.75,
+          "output_token_price_per_million": 4.5,
+          "input_token_cache_read_price_per_million": 0.075
+        }
+      },
+      "provider_settings": effortsUpToXhigh
+    },
+    {
+      "name": p + "gpt-5.4-pro",
+      "provider_model_id": "gpt-5.4-pro",
+      "description": "GPT-5.4 pro uses more compute to think harder. Responses API only; requests may take several minutes. Reasoning effort: medium (default), high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 1050000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 30,
+          "output_token_price_per_million": 180
+        }
+      },
+      "provider_settings": effortsPro
+    },
+    {
+      "name": p + "gpt-5.2",
+      "provider_model_id": "gpt-5.2",
+      "description": "GPT-5.2 is the previous flagship model for coding and agentic tasks. Reasoning effort: none (default), low, medium, high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 400000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 1.75,
+          "output_token_price_per_million": 14,
+          "input_token_cache_read_price_per_million": 0.175
+        }
+      },
+      "provider_settings": effortsUpToXhigh
+    },
+    {
+      "name": p + "gpt-5.2-pro",
+      "provider_model_id": "gpt-5.2-pro",
+      "description": "GPT-5.2 pro uses more compute to think harder. Responses API only; requests may take several minutes. Reasoning effort: medium, high or xhigh.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "strict_tool_names": true,
+        "context_token_limit": 400000,
+        "output_token_limit": 128000,
+        "pricing": {
+          "input_token_price_per_million": 21,
+          "output_token_price_per_million": 168
+        }
+      },
+      "provider_settings": effortsPro
+    },
+
+    // Speech. OpenAI's text-to-speech models shut down on 2027-01-06 with no successor on
+    // /v1/audio/speech (it moved to the Realtime API), so none is configured.
+    {
+      "name": p + "gpt-transcribe",
+      "provider_model_id": "gpt-transcribe",
+      "description": "GPT Transcribe is OpenAI's speech-to-text model for recorded audio, billed by audio duration.",
+      "stt": {}
     }
   ]
 }

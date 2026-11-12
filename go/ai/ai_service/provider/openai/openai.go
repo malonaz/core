@@ -8,21 +8,24 @@ import (
 	"github.com/openai/openai-go/v3/option"
 	openai "github.com/sashabaranov/go-openai"
 
+	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
 type config struct {
-	ID         string
-	BaseUrl    string
-	PcmSupport bool
+	ID      string
+	BaseUrl string
+	// Generates messages through the Responses API rather than Chat Completions.
+	ResponsesAPI bool
 }
 
 var (
 	configOpenAI = &config{
-		ID:         provider.Openai,
-		BaseUrl:    "https://api.openai.com/v1",
-		PcmSupport: true,
+		ID:           provider.Openai,
+		BaseUrl:      "https://api.openai.com/v1",
+		ResponsesAPI: true,
 	}
 
 	configCerebras = &config{
@@ -62,7 +65,8 @@ func (c *config) clientConfig(apiKey string) openai.ClientConfig {
 	return clientConfig
 }
 
-// Client implements all AI interfaces using OpenAI's API.
+// Client generates messages, transcribes speech and answers decisions through
+// OpenAI's API and the APIs compatible with it.
 type Client struct {
 	config       *config
 	apiKey       string
@@ -128,10 +132,22 @@ func (c *Client) Start(context.Context) error { return nil }
 // Implements the provider.Provider interface.
 func (c *Client) Stop() {}
 
+// Implements the provider.GenerateMessageClient interface.
+func (c *Client) StreamGenerateMessage(
+	ctx context.Context,
+	request *aiservicepb.GenerateMessageRequest,
+	messages []*aipb.Message,
+	sender *provider.AsyncMessageContentSender,
+) error {
+	if c.config.ResponsesAPI {
+		return c.streamResponse(ctx, request, messages, sender)
+	}
+	return c.streamChatCompletion(ctx, request, messages, sender)
+}
+
 // Verify interface compliance at compile time.
 var (
 	_ provider.SpeechToTextClient    = (*Client)(nil)
-	_ provider.TextToSpeechClient    = (*Client)(nil)
 	_ provider.GenerateMessageClient = (*Client)(nil)
 	_ provider.CreateDecisionClient  = (*Client)(nil)
 )

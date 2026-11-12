@@ -2,7 +2,6 @@ package openai
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -27,7 +26,9 @@ const (
 	blockTypeThought = "thought"
 )
 
-func (c *Client) StreamGenerateMessage(
+// streamChatCompletion generates a message through Chat Completions, the API
+// every OpenAI-compatible provider serves.
+func (c *Client) streamChatCompletion(
 	ctx context.Context,
 	request *aiservicepb.GenerateMessageRequest,
 	requestMessages []*aipb.Message,
@@ -57,11 +58,7 @@ func (c *Client) StreamGenerateMessage(
 	}
 
 	if request.GetConfiguration().GetMaxTokens() > 0 {
-		if c.ProviderId() == provider.Openai {
-			params.MaxCompletionTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
-		} else {
-			params.MaxTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
-		}
+		params.MaxTokens = openai.Int(int64(request.GetConfiguration().GetMaxTokens()))
 	}
 
 	if request.GetConfiguration().GetTemperature() > 0 {
@@ -301,19 +298,9 @@ func pbMessageToOpenAI(ctx context.Context, msg *aipb.Message) ([]openai.ChatCom
 			case *aipb.Block_Text:
 				contentParts = append(contentParts, openai.TextContentPart(content.Text))
 			case *aipb.Block_Image:
-				img := content.Image
-				var url string
-				switch s := img.Source.(type) {
-				case *aipb.Image_Url:
-					url = s.Url
-				case *aipb.Image_Data:
-					url = fmt.Sprintf("data:%s;base64,%s", img.MediaType, base64.StdEncoding.EncodeToString(s.Data))
-				default:
-					return nil, fmt.Errorf("block [%d]: unknown image source type %T", i, s)
-				}
-				detail, ok := imageQualityToOpenAI[img.Quality]
-				if !ok {
-					return nil, fmt.Errorf("block [%d]: unknown image quality: %s", i, img.Quality)
+				url, detail, err := imageURL(content.Image)
+				if err != nil {
+					return nil, fmt.Errorf("block [%d]: %w", i, err)
 				}
 				contentParts = append(contentParts, openai.ImageContentPart(openai.ChatCompletionContentPartImageImageURLParam{
 					URL:    url,
@@ -418,7 +405,7 @@ func buildFilePart(ctx context.Context, doc *aipb.Document) (openai.ChatCompleti
 		filename = "document"
 	}
 	return openai.FileContentPart(openai.ChatCompletionContentPartFileFileParam{
-		FileData: openai.String(fmt.Sprintf("data:%s;base64,%s", doc.MediaType, base64.StdEncoding.EncodeToString(data))),
+		FileData: openai.String(dataURL(doc.MediaType, data)),
 		Filename: openai.String(filename),
 	}), nil
 }
@@ -490,12 +477,6 @@ func pbReasoningEffortToOpenAI(providerId string, effort aipb.ReasoningEffort) (
 }
 
 var providerToReasoningEffortMap = map[string]map[aipb.ReasoningEffort]shared.ReasoningEffort{
-	provider.Openai: {
-		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: shared.ReasoningEffortMedium,
-		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     shared.ReasoningEffortLow,
-		aipb.ReasoningEffort_REASONING_EFFORT_MEDIUM:  shared.ReasoningEffortMedium,
-		aipb.ReasoningEffort_REASONING_EFFORT_HIGH:    shared.ReasoningEffortHigh,
-	},
 	provider.Groq: {
 		aipb.ReasoningEffort_REASONING_EFFORT_DEFAULT: "default",
 		aipb.ReasoningEffort_REASONING_EFFORT_LOW:     "default",
@@ -542,11 +523,4 @@ var openAIFinishReasonToPb = map[string]aiservicepb.StopReason{
 	string(openai.CompletionChoiceFinishReasonContentFilter): aiservicepb.StopReason_STOP_REASON_REFUSAL,
 	"tool_calls":    aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
 	"function_call": aiservicepb.StopReason_STOP_REASON_TOOL_CALL,
-}
-
-var imageQualityToOpenAI = map[aipb.ImageQuality]string{
-	aipb.ImageQuality_IMAGE_QUALITY_UNSPECIFIED: "auto",
-	aipb.ImageQuality_IMAGE_QUALITY_AUTO:        "auto",
-	aipb.ImageQuality_IMAGE_QUALITY_LOW:         "low",
-	aipb.ImageQuality_IMAGE_QUALITY_HIGH:        "high",
 }
