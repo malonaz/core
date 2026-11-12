@@ -36,3 +36,13 @@ go_test(
         "//malonaz/ai/v1",
     ],
 )
+
+go_test(
+    name = "internal_test",
+    srcs = ["model_service_test.go"],
+    resources = glob(["configs/*.json"]),
+    deps = [
+        ":provider",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)
