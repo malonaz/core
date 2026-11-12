@@ -6,6 +6,10 @@
 // //go/outbox/migrations, which a database's own migrations include. A
 // committed write and its events therefore cannot diverge, and an event
 // carries the resource as of the write.
+//
+// A resource's events reach their stream in the order of its writes. That is
+// all the order there is: a consumer processing concurrently, or redelivered
+// to, must still compare versions before overwriting newer state.
 package outbox
 
 import (
