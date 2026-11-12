@@ -561,7 +561,7 @@ go_mod_download(
     name = "github.com__anthropics__anthropic-sdk-go",
     _tag = "download",
     module = "github.com/anthropics/anthropic-sdk-go",
-    version = "v1.63.0",
+    version = "v1.84.0",
     visibility = ["PUBLIC"],
 )
 
@@ -581,7 +581,10 @@ go_module(
         ":github.com__anthropics__anthropic-sdk-go__internal__encoding__json",
         ":github.com__anthropics__anthropic-sdk-go__internal__paramutil",
         ":github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
+        ":github.com__anthropics__anthropic-sdk-go__internal__sendwindow",
         ":github.com__anthropics__anthropic-sdk-go__internal__stainlessheader",
+        ":github.com__anthropics__anthropic-sdk-go__internal__telemetry",
+        ":github.com__anthropics__anthropic-sdk-go__internal__tracing",
         ":github.com__anthropics__anthropic-sdk-go__option",
         ":github.com__anthropics__anthropic-sdk-go__packages__jsonl",
         ":github.com__anthropics__anthropic-sdk-go__packages__pagination",
@@ -595,6 +598,9 @@ go_module(
         ":github.com__standard-webhooks__standard-webhooks__libraries__go",
         ":github.com__tidwall__gjson",
         ":github.com__tidwall__sjson",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__trace",
         ":golang.org__x__sync__errgroup",
     ],
 )
@@ -725,11 +731,24 @@ go_module(
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__anthropics__anthropic-sdk-go__internal__telemetry",
+        ":github.com__anthropics__anthropic-sdk-go__internal__tracing",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__trace",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apierror",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apiform",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apiquery",
     ],
+)
+
+go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__internal__sendwindow",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["internal/sendwindow"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_module(
@@ -742,6 +761,42 @@ go_module(
 )
 
 go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__internal__telemetry",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["internal/telemetry"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__anthropics__anthropic-sdk-go__internal__tracing",
+        ":github.com__anthropics__anthropic-sdk-go__packages__param",
+        ":github.com__anthropics__anthropic-sdk-go__packages__ssestream",
+        ":github.com__tidwall__gjson",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__trace",
+    ],
+)
+
+go_module(
+    name = "github.com__anthropics__anthropic-sdk-go__internal__tracing",
+    download = ":_github.com__anthropics__anthropic-sdk-go#download",
+    install = ["internal/tracing"],
+    module = "github.com/anthropics/anthropic-sdk-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__anthropics__anthropic-sdk-go__packages__ssestream",
+        ":github.com__tidwall__gjson",
+        ":go.opentelemetry.io__otel",
+        ":go.opentelemetry.io__otel__attribute",
+        ":go.opentelemetry.io__otel__codes",
+        ":go.opentelemetry.io__otel__propagation",
+        ":go.opentelemetry.io__otel__trace",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apierror",
+    ],
+)
+
+go_module(
     name = "github.com__anthropics__anthropic-sdk-go__option",
     download = ":_github.com__anthropics__anthropic-sdk-go#download",
     install = ["option"],
@@ -749,7 +804,9 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":github.com__tidwall__sjson",
+        ":go.opentelemetry.io__otel__trace",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__config",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__apierror",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__auth",
         "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__requestconfig",
     ],
@@ -830,7 +887,10 @@ go_module(
     install = ["shared/constant"],
     module = "github.com/anthropics/anthropic-sdk-go",
     visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__encoding__json"],
+    deps = [
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__encoding__json",
+        "//third_party/go:github.com__anthropics__anthropic-sdk-go__internal__paramutil",
+    ],
 )
 
 go_mod_download(
@@ -1069,7 +1129,7 @@ go_mod_download(
     name = "github.com__coder__websocket",
     _tag = "download",
     module = "github.com/coder/websocket",
-    version = "v1.8.14",
+    version = "v1.8.15",
     visibility = ["PUBLIC"],
 )
 
@@ -1080,9 +1140,19 @@ go_module(
     module = "github.com/coder/websocket",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__coder__websocket__internal__bpool",
         ":github.com__coder__websocket__internal__errd",
         ":github.com__coder__websocket__internal__util",
     ],
+)
+
+go_module(
+    name = "github.com__coder__websocket__internal__bpool",
+    download = ":_github.com__coder__websocket#download",
+    install = ["internal/bpool"],
+    module = "github.com/coder/websocket",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_module(
@@ -5521,7 +5591,7 @@ go_mod_download(
     name = "github.com__openai__openai-go__v3",
     _tag = "download",
     module = "github.com/openai/openai-go/v3",
-    version = "v3.10.0",
+    version = "v3.98.0",
     visibility = ["PUBLIC"],
 )
 
@@ -5538,16 +5608,32 @@ go_module(
         ":github.com__openai__openai-go__v3__internal__apijson",
         ":github.com__openai__openai-go__v3__internal__apiquery",
         ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__live",
         ":github.com__openai__openai-go__v3__option",
         ":github.com__openai__openai-go__v3__packages__pagination",
         ":github.com__openai__openai-go__v3__packages__param",
         ":github.com__openai__openai-go__v3__packages__respjson",
         ":github.com__openai__openai-go__v3__packages__ssestream",
+        ":github.com__openai__openai-go__v3__packages__websocket",
         ":github.com__openai__openai-go__v3__realtime",
         ":github.com__openai__openai-go__v3__responses",
         ":github.com__openai__openai-go__v3__shared",
         ":github.com__openai__openai-go__v3__shared__constant",
         ":github.com__openai__openai-go__v3__webhooks",
+        ":github.com__tidwall__gjson",
+        ":github.com__tidwall__sjson",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__auth",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["auth"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__internal__requestconfig",
+        ":github.com__openai__openai-go__v3__shared",
     ],
 )
 
@@ -5609,6 +5695,8 @@ go_module(
     module = "github.com/openai/openai-go/v3",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__openai__openai-go__v3__internal__encoding__json",
+        ":github.com__openai__openai-go__v3__internal__encoding__json__sentinel",
         ":github.com__openai__openai-go__v3__packages__param",
         ":github.com__openai__openai-go__v3__packages__respjson",
         ":github.com__tidwall__gjson",
@@ -5656,29 +5744,49 @@ go_module(
 )
 
 go_module(
-    name = "github.com__openai__openai-go__v3__internal__paramutil",
-    download = ":_github.com__openai__openai-go__v3#download",
-    install = ["internal/paramutil"],
-    module = "github.com/openai/openai-go/v3",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__openai__openai-go__v3__packages__param",
-        ":github.com__openai__openai-go__v3__packages__respjson",
-    ],
-)
-
-go_module(
     name = "github.com__openai__openai-go__v3__internal__requestconfig",
     download = ":_github.com__openai__openai-go__v3#download",
     install = ["internal/requestconfig"],
     module = "github.com/openai/openai-go/v3",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__openai__openai-go__v3__internal__websockettransport",
+        ":github.com__openai__openai-go__v3__packages__websocket",
         ":github.com__tidwall__gjson",
         "//third_party/go:github.com__openai__openai-go__v3__internal",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apierror",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apiform",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apiquery",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__internal__websockettransport",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["internal/websockettransport"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__live",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["live"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__openai__openai-go__v3__option",
+        ":github.com__openai__openai-go__v3__packages__param",
+        ":github.com__openai__openai-go__v3__packages__respjson",
+        ":github.com__openai__openai-go__v3__packages__websocket",
+        ":github.com__openai__openai-go__v3__responses",
+        ":github.com__openai__openai-go__v3__shared",
+        ":github.com__openai__openai-go__v3__shared__constant",
+        ":github.com__tidwall__gjson",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__apierror",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__apijson",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__requestconfig",
     ],
 )
 
@@ -5689,7 +5797,9 @@ go_module(
     module = "github.com/openai/openai-go/v3",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__openai__openai-go__v3__packages__websocket",
         ":github.com__tidwall__sjson",
+        "//third_party/go:github.com__openai__openai-go__v3__auth",
         "//third_party/go:github.com__openai__openai-go__v3__internal__requestconfig",
     ],
 )
@@ -5716,6 +5826,7 @@ go_module(
     module = "github.com/openai/openai-go/v3",
     visibility = ["PUBLIC"],
     deps = [
+        ":github.com__tidwall__gjson",
         ":github.com__tidwall__sjson",
         "//third_party/go:github.com__openai__openai-go__v3__internal__encoding__json",
         "//third_party/go:github.com__openai__openai-go__v3__internal__encoding__json__sentinel",
@@ -5737,7 +5848,22 @@ go_module(
     install = ["packages/ssestream"],
     module = "github.com/openai/openai-go/v3",
     visibility = ["PUBLIC"],
-    deps = [":github.com__tidwall__gjson"],
+    deps = [
+        ":github.com__tidwall__gjson",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__encoding__json",
+    ],
+)
+
+go_module(
+    name = "github.com__openai__openai-go__v3__packages__websocket",
+    download = ":_github.com__openai__openai-go__v3#download",
+    install = ["packages/websocket"],
+    module = "github.com/openai/openai-go/v3",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__coder__websocket",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__websockettransport",
+    ],
 )
 
 go_module(
@@ -5750,13 +5876,15 @@ go_module(
         ":github.com__openai__openai-go__v3__responses",
         ":github.com__openai__openai-go__v3__shared",
         ":github.com__openai__openai-go__v3__shared__constant",
+        ":github.com__tidwall__gjson",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apierror",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__apiform",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apijson",
-        "//third_party/go:github.com__openai__openai-go__v3__internal__encoding__json",
         "//third_party/go:github.com__openai__openai-go__v3__internal__requestconfig",
         "//third_party/go:github.com__openai__openai-go__v3__option",
         "//third_party/go:github.com__openai__openai-go__v3__packages__param",
         "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",
+        "//third_party/go:github.com__openai__openai-go__v3__packages__websocket",
     ],
 )
 
@@ -5769,16 +5897,17 @@ go_module(
     deps = [
         ":github.com__openai__openai-go__v3__shared",
         ":github.com__openai__openai-go__v3__shared__constant",
+        ":github.com__tidwall__gjson",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apierror",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apijson",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apiquery",
-        "//third_party/go:github.com__openai__openai-go__v3__internal__paramutil",
         "//third_party/go:github.com__openai__openai-go__v3__internal__requestconfig",
         "//third_party/go:github.com__openai__openai-go__v3__option",
         "//third_party/go:github.com__openai__openai-go__v3__packages__pagination",
         "//third_party/go:github.com__openai__openai-go__v3__packages__param",
         "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",
         "//third_party/go:github.com__openai__openai-go__v3__packages__ssestream",
+        "//third_party/go:github.com__openai__openai-go__v3__packages__websocket",
     ],
 )
 
@@ -5814,8 +5943,10 @@ go_module(
     deps = [
         "//third_party/go:github.com__openai__openai-go__v3__internal__apierror",
         "//third_party/go:github.com__openai__openai-go__v3__internal__apijson",
+        "//third_party/go:github.com__openai__openai-go__v3__internal__apiquery",
         "//third_party/go:github.com__openai__openai-go__v3__internal__requestconfig",
         "//third_party/go:github.com__openai__openai-go__v3__option",
+        "//third_party/go:github.com__openai__openai-go__v3__packages__pagination",
         "//third_party/go:github.com__openai__openai-go__v3__packages__param",
         "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",
         "//third_party/go:github.com__openai__openai-go__v3__shared",
@@ -6356,7 +6487,7 @@ go_mod_download(
     _tag = "download",
     module = "github.com/sashabaranov/go-openai",
     patch = ["//third_party/go/patches:go-openai.patch"],
-    version = "v1.41.2",
+    version = "v1.43.0",
     visibility = ["PUBLIC"],
 )
 
@@ -6366,25 +6497,13 @@ go_module(
     install = ["."],
     module = "github.com/sashabaranov/go-openai",
     visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__sashabaranov__go-openai__internal",
-        ":github.com__sashabaranov__go-openai__jsonschema",
-    ],
+    deps = [":github.com__sashabaranov__go-openai__internal"],
 )
 
 go_module(
     name = "github.com__sashabaranov__go-openai__internal",
     download = ":_github.com__sashabaranov__go-openai#download",
     install = ["internal"],
-    module = "github.com/sashabaranov/go-openai",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "github.com__sashabaranov__go-openai__jsonschema",
-    download = ":_github.com__sashabaranov__go-openai#download",
-    install = ["jsonschema"],
     module = "github.com/sashabaranov/go-openai",
     visibility = ["PUBLIC"],
     deps = [],
@@ -6810,7 +6929,7 @@ go_mod_download(
     name = "github.com__tidwall__gjson",
     _tag = "download",
     module = "github.com/tidwall/gjson",
-    version = "v1.18.0",
+    version = "v1.20.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7446,7 +7565,7 @@ go_mod_download(
     name = "golang.org__x__crypto",
     _tag = "download",
     module = "golang.org/x/crypto",
-    version = "v0.47.0",
+    version = "v0.57.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7693,7 +7812,7 @@ go_mod_download(
     name = "golang.org__x__mod",
     _tag = "download",
     module = "golang.org/x/mod",
-    version = "v0.31.0",
+    version = "v0.41.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7744,7 +7863,7 @@ go_mod_download(
     name = "golang.org__x__net",
     _tag = "download",
     module = "golang.org/x/net",
-    version = "v0.48.0",
+    version = "v0.60.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7776,6 +7895,7 @@ go_module(
         ":golang.org__x__net__http2__hpack",
         ":golang.org__x__net__idna",
         ":golang.org__x__net__internal__httpcommon",
+        ":golang.org__x__net__internal__httpsfv",
         "//third_party/go:golang.org__x__net__http__httpguts",
     ],
 )
@@ -7815,6 +7935,15 @@ go_module(
 )
 
 go_module(
+    name = "golang.org__x__net__internal__httpsfv",
+    download = ":_golang.org__x__net#download",
+    install = ["internal/httpsfv"],
+    module = "golang.org/x/net",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "golang.org__x__net__internal__timeseries",
     download = ":_golang.org__x__net#download",
     install = ["internal/timeseries"],
@@ -7836,7 +7965,7 @@ go_mod_download(
     name = "golang.org__x__sync",
     _tag = "download",
     module = "golang.org/x/sync",
-    version = "v0.19.0",
+    version = "v0.23.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7862,7 +7991,7 @@ go_mod_download(
     name = "golang.org__x__sys",
     _tag = "download",
     module = "golang.org/x/sys",
-    version = "v0.40.0",
+    version = "v0.48.0",
     visibility = ["PUBLIC"],
 )
 
@@ -7888,7 +8017,7 @@ go_mod_download(
     name = "golang.org__x__text",
     _tag = "download",
     module = "golang.org/x/text",
-    version = "v0.33.0",
+    version = "v0.42.0",
     visibility = ["PUBLIC"],
 )
 
@@ -8144,7 +8273,7 @@ go_mod_download(
     name = "google.golang.org__genai",
     _tag = "download",
     module = "google.golang.org/genai",
-    version = "v1.53.0",
+    version = "v1.77.0",
     visibility = ["PUBLIC"],
 )
 
@@ -8155,6 +8284,8 @@ go_module(
     module = "google.golang.org/genai",
     visibility = ["PUBLIC"],
     deps = [
+        ":google.golang.org__genai__interactions",
+        ":google.golang.org__genai__interactions__models__components",
         "//third_party/go:cloud.google.com__go__auth",
         "//third_party/go:cloud.google.com__go__auth__credentials",
         "//third_party/go:cloud.google.com__go__auth__httptransport",
@@ -8162,6 +8293,242 @@ go_module(
         "//third_party/go:github.com__google__go-cmp__cmp",
         "//third_party/go:github.com__gorilla__websocket",
     ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__internal__config",
+        ":google.golang.org__genai__interactions__internal__globals",
+        ":google.golang.org__genai__interactions__internal__hooks",
+        ":google.golang.org__genai__interactions__internal__utils",
+        ":google.golang.org__genai__interactions__models__agents",
+        ":google.golang.org__genai__interactions__models__apierrors",
+        ":google.golang.org__genai__interactions__models__components",
+        ":google.golang.org__genai__interactions__models__credentials",
+        ":google.golang.org__genai__interactions__models__environments",
+        ":google.golang.org__genai__interactions__models__interactions",
+        ":google.golang.org__genai__interactions__models__operations",
+        ":google.golang.org__genai__interactions__models__triggers",
+        ":google.golang.org__genai__interactions__models__voices",
+        ":google.golang.org__genai__interactions__models__webhooks",
+        ":google.golang.org__genai__interactions__retry",
+        ":google.golang.org__genai__interactions__types__stream",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__internal__config",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/internal/config"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__internal__globals",
+        ":google.golang.org__genai__interactions__retry",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__internal__globals",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/internal/globals"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__internal__hooks",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/internal/hooks"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__models__components",
+        "//third_party/go:google.golang.org__genai__interactions__internal__config",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__internal__utils",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/internal/utils"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__optionalnullable",
+        ":google.golang.org__genai__interactions__redact",
+        ":google.golang.org__genai__interactions__retry",
+        ":google.golang.org__genai__interactions__types",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__agents",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/agents"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__models__interactions",
+        "//third_party/go:google.golang.org__genai__interactions__internal__utils",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__apierrors",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/apierrors"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__models__components",
+        ":google.golang.org__genai__interactions__models__interactions",
+        ":google.golang.org__genai__interactions__redact",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__components",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/components"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:google.golang.org__genai__interactions__internal__utils"],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__credentials",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/credentials"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:google.golang.org__genai__interactions__internal__utils"],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__environments",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/environments"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__models__interactions",
+        "//third_party/go:google.golang.org__genai__interactions__internal__utils",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__interactions",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/interactions"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:google.golang.org__genai__interactions__internal__utils"],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__operations",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/operations"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__genai__interactions__models__triggers",
+        ":google.golang.org__genai__interactions__models__voices",
+        ":google.golang.org__genai__interactions__models__webhooks",
+        ":google.golang.org__genai__interactions__retry",
+        ":google.golang.org__genai__interactions__types__stream",
+        "//third_party/go:google.golang.org__genai__interactions__internal__utils",
+        "//third_party/go:google.golang.org__genai__interactions__models__agents",
+        "//third_party/go:google.golang.org__genai__interactions__models__components",
+        "//third_party/go:google.golang.org__genai__interactions__models__credentials",
+        "//third_party/go:google.golang.org__genai__interactions__models__environments",
+        "//third_party/go:google.golang.org__genai__interactions__models__interactions",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__triggers",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/triggers"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:google.golang.org__genai__interactions__internal__utils",
+        "//third_party/go:google.golang.org__genai__interactions__models__interactions",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__voices",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/voices"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:google.golang.org__genai__interactions__internal__utils",
+        "//third_party/go:google.golang.org__genai__interactions__models__interactions",
+    ],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__models__webhooks",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/models/webhooks"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:google.golang.org__genai__interactions__internal__utils"],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__optionalnullable",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/optionalnullable"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__redact",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/redact"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__retry",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/retry"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__types",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/types"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "google.golang.org__genai__interactions__types__stream",
+    download = ":_google.golang.org__genai#download",
+    install = ["interactions/types/stream"],
+    module = "google.golang.org/genai",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(

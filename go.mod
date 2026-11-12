@@ -12,11 +12,11 @@ require (
 	github.com/AlexxIT/go2rtc v1.9.12
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
-	github.com/anthropics/anthropic-sdk-go v1.63.0
+	github.com/anthropics/anthropic-sdk-go v1.84.0
 	github.com/bazelbuild/buildtools v0.0.0-20250930140053-2eb4fccefb52
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/coder/websocket v1.8.14
+	github.com/coder/websocket v1.8.15
 	github.com/dimuska139/go-email-normalizer/v5 v5.0.0
 	github.com/go-json-experiment/json v0.0.0-20260820222146-c27c302e5fc3
 	github.com/go-openapi/strfmt v0.25.0
@@ -49,12 +49,12 @@ require (
 	github.com/nats-io/nats-server/v2 v2.12.4
 	github.com/nats-io/nats.go v1.48.0
 	github.com/nyaruka/phonenumbers v1.6.10
-	github.com/openai/openai-go/v3 v3.10.0
+	github.com/openai/openai-go/v3 v3.98.0
 	github.com/please-build/gcfg v1.7.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/pseudomuto/protoc-gen-doc v1.5.2-0.20250211140318-129dc82aa469
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/sashabaranov/go-openai v1.41.2
+	github.com/sashabaranov/go-openai v1.43.0
 	github.com/scylladb/go-set v1.0.2
 	github.com/sercand/kuberesolver/v5 v5.1.1
 	github.com/shopspring/decimal v1.4.0
@@ -65,11 +65,11 @@ require (
 	github.com/tidwall/pretty v1.2.1
 	go.einride.tech/aip v0.86.2
 	golang.org/x/image v0.34.0
-	golang.org/x/mod v0.31.0
-	golang.org/x/net v0.48.0
-	golang.org/x/sync v0.19.0
-	golang.org/x/text v0.33.0
-	google.golang.org/genai v1.53.0
+	golang.org/x/mod v0.41.0
+	golang.org/x/net v0.60.0
+	golang.org/x/sync v0.23.0
+	golang.org/x/text v0.42.0
+	google.golang.org/genai v1.77.0
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822
 	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409
@@ -174,7 +174,7 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/standard-webhooks/standard-webhooks/libraries v0.0.1 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	go.mongodb.org/mongo-driver v1.17.6 // indirect
@@ -186,9 +186,9 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.2 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
