@@ -60,6 +60,10 @@ func (s *UserServiceServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// Close stops the UserService's background work.
+func (s *UserServiceServer) Close() {
+}
+
 type userService_OrganizationStore interface {
 	BatchInsertOrganizations(ctx context.Context, requestIDs []string, organizations []*model.Organization) ([]*model.Organization, error)
 	UpdateOrganization(ctx context.Context, organization *model.Organization, updateClause string, columns []string, etag string) (*model.Organization, error)

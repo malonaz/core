@@ -141,6 +141,22 @@ registry is per package — cross-package parent/child links do not exist):
   `Create`/`BatchCreate`/`Update`/`Delete`/`Undelete` publish typed JetStream events after the write
   (subject = `resource_segments… . subject . subject_fields…`, optional CEL
   gate). Cascaded descendants and singleton children publish nothing.
+- **Outbox**: `outbox: true` on the event options moves publishing into the
+  store's write transaction. The RPC hands its store a journal fn
+  (`s.{resource}{Kind}Journal`, an `outbox.JournalFn`) that runs the same
+  generated `Subject.Publish` through an `outbox.Journal`, which inserts
+  `(id, stream, subject, payload)` into `{schema}.journal` rather than
+  publishing. The `{Service}Server`'s `Start` runs one `outbox.Poller` per
+  schema: it claims rows `ORDER BY create_time, id … FOR UPDATE SKIP LOCKED`,
+  publishes each with the row id as `Nats-Msg-Id` (JetStream drops the
+  duplicate if a delete rolls back), and deletes them in the same transaction.
+  There is no inline publish, so an event lands up to ~250ms after commit.
+  `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals
+  buffer while a cluster is drained. The schema needs the `journal` table
+  (reference: `go/test/library/migrations/library/014_outbox_journal.sql`),
+  copied with its autovacuum settings: every row is inserted then deleted, so
+  vacuum triggers on a fixed dead-row count rather than a fraction of a
+  drained backlog. Lazy singletons are rejected. Reference: `Shelf`.
 
 ## Customizing
 

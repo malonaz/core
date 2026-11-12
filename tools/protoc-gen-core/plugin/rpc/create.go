@@ -183,10 +183,11 @@ func (mc *methodCtx) generatePrepareCreate(createRequest string) error {
 }
 
 // batchInsertCall renders the store insert for the given model slices, e.g.
-// `s.store.BatchInsertAuthors(ctx, requestIDs, authorModels, authorProfileModels)`.
-func (mc *methodCtx) batchInsertCall(requestIDs string, modelSlices []string) string {
+// `s.store.BatchInsertAuthors(ctx, requestIDs, authorModels, authorProfileModels)`,
+// followed by journalArg for an outbox resource.
+func (mc *methodCtx) batchInsertCall(requestIDs string, modelSlices []string, journalArg string) string {
 	args := append([]string{"ctx", requestIDs}, modelSlices...)
-	return fmt.Sprintf("s.store.BatchInsert%s(%s)", mc.pr.PluralGoName(), strings.Join(args, ", "))
+	return fmt.Sprintf("s.store.BatchInsert%s(%s%s)", mc.pr.PluralGoName(), strings.Join(args, ", "), journalArg)
 }
 
 // generateInsertErrorMapping emits the status mapping of a store insert error.
@@ -233,7 +234,7 @@ func (mc *methodCtx) generateCreate() error {
 	for i, child := range mc.singletonChildren {
 		modelSlices = append(modelSlices, fmt.Sprintf("[]*%s{%s}", mc.gen.modelIdent(child.Message.GoIdent.GoName), models[i+1]))
 	}
-	g.P(fmt.Sprintf("  db%s, err := %s", pr.PluralGoName(), mc.batchInsertCall("[]string{request.RequestId}", modelSlices)))
+	g.P(fmt.Sprintf("  db%s, err := %s", pr.PluralGoName(), mc.batchInsertCall("[]string{request.RequestId}", modelSlices, mc.journalArg("s", "Created"))))
 	mc.generateInsertErrorMapping()
 	g.P(fmt.Sprintf("  if len(db%s) != 1 {", pr.PluralGoName()))
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"expected 1 inserted %s, got %%d\", len(db%s)).Err()",
@@ -309,7 +310,7 @@ func (mc *methodCtx) generateMultiPatternCreateName(errReturn string) error {
 // generateCreatedEvents publishes the created events of the resource held in
 // resourceVar.
 func (mc *methodCtx) generateCreatedEvents(resourceVar string) {
-	if mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetCreated()) == 0 {
+	if !mc.publishesInline("Created") {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")

@@ -224,7 +224,22 @@ func (g *generator) generate() error {
 		g.P("return nil, ", g.Qual("fmt", "Errorf"), `("starting `, rpc.GetName(), ` server: %w", err)`)
 		g.P("}")
 	}
-	g.P("return s.start(ctx)")
+	if len(g.m.GetCodegens()) == 0 {
+		g.P("return s.start(ctx)")
+		g.P("}")
+		return nil
+	}
+	g.P("cleanup, err := s.start(ctx)")
+	g.P("if err != nil {")
+	g.P("return nil, err")
+	g.P("}")
+	// The servers' background work stops after the service's own, in reverse start order.
+	g.P("return func() {")
+	g.P("cleanup()")
+	for i := len(g.m.GetCodegens()) - 1; i >= 0; i-- {
+		g.P("s.", gen.Pascal(g.m.GetCodegens()[i].GetRpc().GetName()), "Server.Close()")
+	}
+	g.P("}, nil")
 	g.P("}")
 	return nil
 }
