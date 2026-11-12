@@ -14,7 +14,6 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
-	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/grpc/status"
@@ -178,8 +177,12 @@ func (c *Client) StreamGenerateMessage(
 
 	if len(request.Tools) > 0 {
 		tools := make([]anthropic.ToolUnionParam, 0, len(request.Tools))
-		for _, tool := range request.Tools {
-			tools = append(tools, pbToolToAnthropic(tool, request.GetConfiguration().GetStreamPartialToolCalls()))
+		for i, tool := range request.Tools {
+			anthropicTool, err := pbToolToAnthropic(tool, request.GetConfiguration().GetStreamPartialToolCalls())
+			if err != nil {
+				return status.Errorf(codes.InvalidArgument, "tool [%d]: %v", i, err).Err()
+			}
+			tools = append(tools, anthropicTool)
 		}
 		messageParams.Tools = tools
 	}
@@ -354,15 +357,22 @@ func pbReasoningEffortToAnthropicBudget(reasoningEffort aipb.ReasoningEffort) in
 	}
 }
 
-func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) anthropic.ToolUnionParam {
+func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) (anthropic.ToolUnionParam, error) {
+	properties := make(map[string]json.RawMessage, len(tool.GetJsonSchema().GetProperties()))
 	inputSchema := anthropic.ToolInputSchemaParam{
 		Type:       "object",
-		Properties: map[string]*jsonpb.Schema{},
+		Properties: properties,
 	}
 	description := tool.GetDescription()
 	if tool.GetJsonSchema() != nil {
 		inputSchema.Type = constant.Object(tool.JsonSchema.Type)
-		inputSchema.Properties = tool.GetJsonSchema().GetProperties()
+		for name, property := range tool.GetJsonSchema().GetProperties() {
+			bytes, err := ai.JSONSchemaMarshal(property)
+			if err != nil {
+				return anthropic.ToolUnionParam{}, fmt.Errorf("marshaling json schema of property %s: %w", name, err)
+			}
+			properties[name] = bytes
+		}
 		inputSchema.Required = tool.GetJsonSchema().GetRequired()
 		if desc := tool.GetJsonSchema().GetDescription(); desc != "" {
 			description += ". Schema description: " + desc
@@ -378,7 +388,7 @@ func pbToolToAnthropic(tool *aipb.Tool, eagerInputStreaming bool) anthropic.Tool
 	if eagerInputStreaming {
 		toolParam.EagerInputStreaming = anthropic.Bool(true)
 	}
-	return anthropic.ToolUnionParam{OfTool: toolParam}
+	return anthropic.ToolUnionParam{OfTool: toolParam}, nil
 }
 
 var anthropicStopReasonToPb = map[anthropic.StopReason]aiservicepb.StopReason{
