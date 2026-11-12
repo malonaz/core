@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc/codes"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
+	"github.com/malonaz/core/go/grpc/status"
 )
 
 const testModel = "providers/google-vertex/models/gemini-3.8-flash"
@@ -190,4 +194,85 @@ func TestStreamedToolCallDottedMapKey(t *testing.T) {
 			},
 		},
 	}, toolCalls[0].GetArguments().AsMap())
+}
+
+// updateReportRevisionChunks opens a real UpdateReportRevision as Vertex streams it.
+var updateReportRevisionChunks = []string{
+	functionCallChunk(`{"name":"UpdateReportRevision","id":"rIlcWftg","willContinue":true}`),
+	partialArgChunk(`{"jsonPath":"$.report_revision.change_description","stringValue":"Rename plain to Payments total.","willContinue":true}`),
+	partialArgChunk(`{"jsonPath":"$.report_revision.change_description","stringValue":""}`),
+}
+
+func TestStreamedToolCall(t *testing.T) {
+	vertex := &fakeVertex{chunks: append(slices.Clone(updateReportRevisionChunks),
+		partialArgChunk(`{"jsonPath":"$.report_revision.metadata.components.plain.position","numberValue":40}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision.metadata.components.plain.title","stringValue":"Payments total","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision.metadata.components.plain.title","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision.metadata.components.plain{}"}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision.name","stringValue":"organizations/hearth/reports/payments/revisions/1","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision.name","stringValue":""}`),
+		partialArgChunk(`{"jsonPath":"$.report_revision{}"}`),
+		partialArgChunk(`{"jsonPath":"$.update_mask","stringValue":"change_description,metadata.components","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.update_mask","stringValue":".plain","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.update_mask","stringValue":""}`),
+		functionCallChunk(`{}`),
+		stopChunk,
+	)}
+	responses, err := generate(t, vertex)
+	require.NoError(t, err)
+
+	toolCalls := toolCalls(responses)
+	require.Len(t, toolCalls, 1)
+	require.Equal(t, "UpdateReportRevision", toolCalls[0].GetName())
+	require.Equal(t, map[string]any{
+		"report_revision": map[string]any{
+			"name":               "organizations/hearth/reports/payments/revisions/1",
+			"change_description": "Rename plain to Payments total.",
+			"metadata": map[string]any{
+				"components": map[string]any{"plain": map[string]any{"position": float64(40), "title": "Payments total"}},
+			},
+		},
+		"update_mask": "change_description,metadata.components.plain",
+	}, toolCalls[0].GetArguments().AsMap())
+}
+
+// Vertex drops a call it judges malformed mid-arguments: no closing chunk, only the finish
+// reason. What it had streamed is not a call.
+func TestUnfinishedToolCall(t *testing.T) {
+	for name, lastChunks := range map[string][]string{
+		"malformed function call": {`{"candidates":[{"content":{"role":"model"},"finishReason":"MALFORMED_FUNCTION_CALL"}],"usageMetadata":{"promptTokenCount":10}}`},
+		"max tokens":              {`{"candidates":[{"content":{"role":"model"},"finishReason":"MAX_TOKENS"}],"usageMetadata":{"promptTokenCount":10}}`},
+		"stream cut short":        nil,
+	} {
+		t.Run(name, func(t *testing.T) {
+			vertex := &fakeVertex{chunks: append(slices.Clone(updateReportRevisionChunks), lastChunks...)}
+			responses, err := generate(t, vertex)
+			require.True(t, status.HasCode(err, codes.Unavailable), "error: %v", err)
+			var reasons []string
+			for errorInfo := range status.ErrorDetails[*errdetails.ErrorInfo](err) {
+				reasons = append(reasons, errorInfo.GetReason())
+				require.Equal(t, "UpdateReportRevision", errorInfo.GetMetadata()["tool_name"])
+			}
+			require.Equal(t, []string{ai.ErrorInfoReasonToolCallUnfinished}, reasons)
+			require.Empty(t, toolCalls(responses))
+		})
+	}
+}
+
+// A call may end at the next call's first chunk rather than at a closing chunk of its own.
+func TestToolCallEndedByTheNext(t *testing.T) {
+	vertex := &fakeVertex{chunks: append(slices.Clone(updateReportRevisionChunks),
+		functionCallChunk(`{"name":"GetReport","id":"HkNhn6ji","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.name","stringValue":"organizations/hearth/reports/payments"}`),
+		functionCallChunk(`{}`),
+		stopChunk,
+	)}
+	responses, err := generate(t, vertex)
+	require.NoError(t, err)
+
+	var names []string
+	for _, toolCall := range toolCalls(responses) {
+		names = append(names, toolCall.GetName())
+	}
+	require.ElementsMatch(t, []string{"UpdateReportRevision", "GetReport"}, names)
 }

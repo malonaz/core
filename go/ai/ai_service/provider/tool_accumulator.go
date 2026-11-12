@@ -82,12 +82,14 @@ func (a *ToolCallAccumulator) Matches(index int64, id, name string) bool {
 }
 
 func (a *ToolCallAccumulator) Start(index int64, id, name string) {
+	a.completeOthers(index)
 	a.calls[index] = &toolCallEntry{id: id, name: name}
 }
 
 func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	entry, ok := a.calls[index]
 	if !ok {
+		a.completeOthers(index)
 		entry = &toolCallEntry{id: id, name: name}
 		a.calls[index] = entry
 	}
@@ -120,12 +122,29 @@ func (a *ToolCallAccumulator) HasStructuredArgs(index int64) bool {
 	return ok && entry.structuredArgs != nil
 }
 
-func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
+// completeOthers marks every other call complete: a provider streams one
+// call at a time, so moving on to this one ends those before it.
+func (a *ToolCallAccumulator) completeOthers(index int64) {
 	for idx, entry := range a.calls {
 		if idx != index {
 			entry.complete = true
 		}
 	}
+}
+
+// Unfinished returns the name of the call the provider was still streaming,
+// if any: its arguments stop wherever the stream did.
+func (a *ToolCallAccumulator) Unfinished() (string, bool) {
+	for _, entry := range a.calls {
+		if !entry.complete {
+			return entry.name, true
+		}
+	}
+	return "", false
+}
+
+func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
+	a.completeOthers(index)
 	if entry, ok := a.calls[index]; ok {
 		if args != "" {
 			entry.args.WriteString(args)
@@ -134,11 +153,7 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 }
 
 func (a *ToolCallAccumulator) AppendArg(index int64, jsonPath string, value any) {
-	for idx, entry := range a.calls {
-		if idx != index {
-			entry.complete = true
-		}
-	}
+	a.completeOthers(index)
 	entry, ok := a.calls[index]
 	if !ok {
 		return

@@ -109,6 +109,7 @@ func (c *Client) StreamGenerateMessage(
 
 	var sentTtfb bool
 	var stopReason aiservicepb.StopReason
+	var finishReason genai.FinishReason
 
 	// Track block indexing to coalesce consecutive blocks of the same type.
 	var currentBlockIndex int64 = -1
@@ -142,6 +143,7 @@ func (c *Client) StreamGenerateMessage(
 
 		for _, candidate := range resp.Candidates {
 			if candidate.FinishReason != genai.FinishReasonUnspecified {
+				finishReason = candidate.FinishReason
 				var ok bool
 				stopReason, ok = finishReasonToPb[candidate.FinishReason]
 				if !ok {
@@ -371,7 +373,18 @@ func (c *Client) StreamGenerateMessage(
 		}
 	}
 
-	// Emit any tool calls that were still accumulating when the stream ended.
+	// Vertex closes a streamed call with a chunk of its own, and drops one it
+	// judges malformed mid-arguments (MALFORMED_FUNCTION_CALL) without it.
+	if toolName, ok := tca.Unfinished(); ok && sender.Err() == nil {
+		return status.Errorf(codes.Unavailable, "%s: stream ended before tool call %q was complete (finish reason %q)", model.GetProviderModelId(), toolName, finishReason).
+			WithErrorInfo(ai.ErrorInfoReasonToolCallUnfinished, c.ProviderId(), map[string]string{
+				"model":         model.GetName(),
+				"tool_name":     toolName,
+				"finish_reason": string(finishReason),
+			}).Err()
+	}
+
+	// Emit the calls a later call ended without a closing chunk.
 	toolCalls, err := tca.BuildRemaining()
 	if err != nil {
 		return err
