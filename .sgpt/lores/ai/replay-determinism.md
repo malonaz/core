@@ -18,6 +18,8 @@ labels:
   first at messages.X.content.Y`. Stored history never changes, so that chat then fails
   on every turn.
 - Gemini thought signatures and the prompt cache depend on the same stability.
+- OpenAI does not fail: it drops the reasoning that follows a changed history, and the model
+  reasons again at our cost (`lores/ai/openai`).
 
 ## The protojson trap
 `protojson` (and so `pbutil.JSONMarshal`) adds or drops whitespace depending on a hash of
@@ -37,7 +39,10 @@ Anything rendered for a model goes through `ai.JSONMarshal` (protojson + `json.C
 - Store repairs instead of recomputing them: a stand-in result for a missing tool call
   (`pairToolCalls`) must be persisted once and replayed verbatim, never replaced later.
 - Leave out messages only at the end of the history (failed inputs, superseded forks).
-- Store provider blocks verbatim: thinking text + signature, `redacted_thinking` data.
-  UI placeholders never go back to the provider.
+- Store provider blocks verbatim: thinking text + signature, `redacted_thinking` data, OpenAI's
+  encrypted reasoning. UI placeholders never go back to the provider.
+- A provider is only sent its own thoughts and signatures (`withoutForeignThoughts`): they are
+  bound to their issuer, and Anthropic, Vertex and OpenAI all reject another's. Its view of its
+  own turns is unchanged, so a chat can change provider and come back.
 - No `drop_block` (`thinking.block_binding.prefix_mismatch_behavior`): it would hide drift. Fix the
   drift instead.
