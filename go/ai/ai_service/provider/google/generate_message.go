@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -99,10 +100,16 @@ func (c *Client) StreamGenerateMessage(
 	startTime := time.Now()
 	generateContentStream := c.client.Models.GenerateContentStream(ctx, model.ProviderModelId, contents, config)
 
-	tca := provider.NewToolCallAccumulator()
+	// A discovered tool is called without being declared: its schema is its tool set's.
+	tools := slices.Clone(request.GetTools())
+	for _, toolSet := range request.GetToolSets() {
+		tools = append(tools, toolSet.GetTools()...)
+	}
+	tca := provider.NewToolCallAccumulator(tools...)
 
 	var sentTtfb bool
 	var stopReason aiservicepb.StopReason
+	var finishReason genai.FinishReason
 
 	// Track block indexing to coalesce consecutive blocks of the same type.
 	var currentBlockIndex int64 = -1
@@ -136,6 +143,7 @@ func (c *Client) StreamGenerateMessage(
 
 		for _, candidate := range resp.Candidates {
 			if candidate.FinishReason != genai.FinishReasonUnspecified {
+				finishReason = candidate.FinishReason
 				var ok bool
 				stopReason, ok = finishReasonToPb[candidate.FinishReason]
 				if !ok {
@@ -365,7 +373,18 @@ func (c *Client) StreamGenerateMessage(
 		}
 	}
 
-	// Emit any tool calls that were still accumulating when the stream ended.
+	// Vertex closes a streamed call with a chunk of its own, and drops one it
+	// judges malformed mid-arguments (MALFORMED_FUNCTION_CALL) without it.
+	if toolName, ok := tca.Unfinished(); ok && sender.Err() == nil {
+		return status.Errorf(codes.Unavailable, "%s: stream ended before tool call %q was complete (finish reason %q)", model.GetProviderModelId(), toolName, finishReason).
+			WithErrorInfo(ai.ErrorInfoReasonToolCallUnfinished, c.ProviderId(), map[string]string{
+				"model":         model.GetName(),
+				"tool_name":     toolName,
+				"finish_reason": string(finishReason),
+			}).Err()
+	}
+
+	// Emit the calls a later call ended without a closing chunk.
 	toolCalls, err := tca.BuildRemaining()
 	if err != nil {
 		return err
@@ -630,9 +649,15 @@ func buildTools(tools []*aipb.Tool) ([]*genai.Tool, error) {
 
 	for _, tool := range tools {
 		fd := &genai.FunctionDeclaration{
-			Name:                 tool.Name,
-			Description:          tool.Description,
-			ParametersJsonSchema: tool.JsonSchema,
+			Name:        tool.Name,
+			Description: tool.Description,
+		}
+		if tool.GetJsonSchema() != nil {
+			jsonSchema, err := ai.JSONSchemaMarshal(tool.GetJsonSchema())
+			if err != nil {
+				return nil, fmt.Errorf("tool %s: marshaling json schema: %w", tool.Name, err)
+			}
+			fd.ParametersJsonSchema = json.RawMessage(jsonSchema)
 		}
 		functionDeclarations = append(functionDeclarations, fd)
 	}

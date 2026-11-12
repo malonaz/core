@@ -21,11 +21,21 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["decision_test.go"],
+    srcs = [
+        "decision_test.go",
+        "generate_message_test.go",
+    ],
     deps = [
         ":google",
+        "//go/ai",
+        "//go/ai/ai_service/provider",
         "//go/grpc/require",
+        "//go/grpc/status",
+        "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/json/v1",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__genproto__googleapis__rpc__errdetails",
+        "//third_party/go:google.golang.org__grpc__codes",
     ],
 )

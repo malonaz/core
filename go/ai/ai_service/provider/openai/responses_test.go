@@ -164,6 +164,19 @@ func readResponse(t *testing.T, request *aiservicepb.GenerateMessageRequest, eve
 	return stream, readError
 }
 
+func TestResponseToolSchemaKeywords(t *testing.T) {
+	responseTool, err := pbToolToResponseTool(toolWithSchemaKeywords())
+	require.NoError(t, err)
+	bytes, err := json.Marshal(responseTool)
+	require.NoError(t, err)
+
+	var wire struct {
+		Parameters map[string]any `json:"parameters"`
+	}
+	require.NoError(t, json.Unmarshal(bytes, &wire))
+	require.Equal(t, schemaKeywordsProperties, wire.Parameters["properties"])
+}
+
 func TestResponseReader(t *testing.T) {
 	request := &aiservicepb.GenerateMessageRequest{
 		Model:         "providers/openai/models/gpt-6-sol",

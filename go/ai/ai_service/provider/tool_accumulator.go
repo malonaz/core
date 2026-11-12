@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -11,13 +12,15 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	jsonpb "github.com/malonaz/core/genproto/json/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
 type ToolCallAccumulator struct {
-	toolCallIDSeed int64
-	calls          map[int64]*toolCallEntry
+	toolCallIDSeed       int64
+	calls                map[int64]*toolCallEntry
+	toolNameToJSONSchema map[string]*jsonpb.Schema
 }
 
 type toolCallEntry struct {
@@ -28,10 +31,17 @@ type toolCallEntry struct {
 	complete       bool
 }
 
-func NewToolCallAccumulator() *ToolCallAccumulator {
+// NewToolCallAccumulator takes the tools a call may name: a tool's schema
+// settles the argument paths a provider leaves ambiguous (see mergeMapKey).
+func NewToolCallAccumulator(tools ...*aipb.Tool) *ToolCallAccumulator {
+	toolNameToJSONSchema := make(map[string]*jsonpb.Schema, len(tools))
+	for _, tool := range tools {
+		toolNameToJSONSchema[tool.GetName()] = tool.GetJsonSchema()
+	}
 	return &ToolCallAccumulator{
-		toolCallIDSeed: time.Now().UnixNano(),
-		calls:          make(map[int64]*toolCallEntry),
+		toolCallIDSeed:       time.Now().UnixNano(),
+		calls:                make(map[int64]*toolCallEntry),
+		toolNameToJSONSchema: toolNameToJSONSchema,
 	}
 }
 
@@ -72,12 +82,14 @@ func (a *ToolCallAccumulator) Matches(index int64, id, name string) bool {
 }
 
 func (a *ToolCallAccumulator) Start(index int64, id, name string) {
+	a.completeOthers(index)
 	a.calls[index] = &toolCallEntry{id: id, name: name}
 }
 
 func (a *ToolCallAccumulator) StartOrUpdate(index int64, id, name string) {
 	entry, ok := a.calls[index]
 	if !ok {
+		a.completeOthers(index)
 		entry = &toolCallEntry{id: id, name: name}
 		a.calls[index] = entry
 	}
@@ -110,12 +122,29 @@ func (a *ToolCallAccumulator) HasStructuredArgs(index int64) bool {
 	return ok && entry.structuredArgs != nil
 }
 
-func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
+// completeOthers marks every other call complete: a provider streams one
+// call at a time, so moving on to this one ends those before it.
+func (a *ToolCallAccumulator) completeOthers(index int64) {
 	for idx, entry := range a.calls {
 		if idx != index {
 			entry.complete = true
 		}
 	}
+}
+
+// Unfinished returns the name of the call the provider was still streaming,
+// if any: its arguments stop wherever the stream did.
+func (a *ToolCallAccumulator) Unfinished() (string, bool) {
+	for _, entry := range a.calls {
+		if !entry.complete {
+			return entry.name, true
+		}
+	}
+	return "", false
+}
+
+func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
+	a.completeOthers(index)
 	if entry, ok := a.calls[index]; ok {
 		if args != "" {
 			entry.args.WriteString(args)
@@ -124,11 +153,7 @@ func (a *ToolCallAccumulator) AppendArgs(index int64, args string) {
 }
 
 func (a *ToolCallAccumulator) AppendArg(index int64, jsonPath string, value any) {
-	for idx, entry := range a.calls {
-		if idx != index {
-			entry.complete = true
-		}
-	}
+	a.completeOthers(index)
 	entry, ok := a.calls[index]
 	if !ok {
 		return
@@ -136,7 +161,7 @@ func (a *ToolCallAccumulator) AppendArg(index int64, jsonPath string, value any)
 	if entry.structuredArgs == nil {
 		entry.structuredArgs = make(map[string]any)
 	}
-	setJSONPath(entry.structuredArgs, jsonPath, value)
+	setJSONPath(entry.structuredArgs, a.toolNameToJSONSchema[entry.name], jsonPath, value)
 }
 
 func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
@@ -263,7 +288,7 @@ func (a *ToolCallAccumulator) BuildRemaining() ([]*aipb.Block, error) {
 	return blocks, nil
 }
 
-func setJSONPath(root map[string]any, jsonPath string, value any) {
+func setJSONPath(root map[string]any, schema *jsonpb.Schema, jsonPath string, value any) {
 	// Vertex announces a new container with a value-less PartialArg whose
 	// path carries a container suffix: "$.quote{}" (object) or "$.items[]"
 	// (array). Rewrite the announcement into an empty-container write at the
@@ -274,11 +299,44 @@ func setJSONPath(root map[string]any, jsonPath string, value any) {
 	} else if strings.HasSuffix(jsonPath, "[]") {
 		jsonPath, value = strings.TrimSuffix(jsonPath, "[]"), []any{}
 	}
-	segments := parseJSONPathSegments(jsonPath)
+	segments := mergeMapKey(parseJSONPathSegments(jsonPath), schema)
 	if len(segments) == 0 {
 		return
 	}
 	setValueAtPath(root, segments, value)
+}
+
+// mergeMapKey rejoins a map key Vertex wrote unquoted, dots and all
+// ("$.labels.onikisu.com/folder"): nothing nests under a map of scalars, so
+// there the rest of the path is the key. Without a schema the path stands.
+func mergeMapKey(segments []any, schema *jsonpb.Schema) []any {
+	for i, segment := range segments {
+		key, ok := segment.(string)
+		if !ok {
+			schema = schema.GetItems()
+			continue
+		}
+		if property, ok := schema.GetProperties()[key]; ok {
+			schema = property
+			continue
+		}
+		schema = schema.GetAdditionalProperties()
+		switch schema.GetType() {
+		case "string", "number", "integer", "boolean":
+		default:
+			continue
+		}
+		keys := make([]string, 0, len(segments)-i)
+		for _, keySegment := range segments[i:] {
+			key, ok := keySegment.(string)
+			if !ok {
+				return segments
+			}
+			keys = append(keys, key)
+		}
+		return append(slices.Clone(segments[:i]), strings.Join(keys, "."))
+	}
+	return segments
 }
 
 func setValueAtPath(node map[string]any, segments []any, value any) {

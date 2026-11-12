@@ -75,6 +75,10 @@ updated whenever a lore is added, renamed, or removed.
   (immutable input and questions, answers in question order, no confidence field),
   request_id idempotency (lookup before the model call), the OpenAI, Gemini and TypeSafe
   Jev providers behind `provider.PostJSON` and their quirks, the provider APIs compared.
+- `lores/ai/vertex-streamed-tool-calls` — Vertex's streamed tool-call arguments:
+  the chunk sequence, calls aborted with MALFORMED_FUNCTION_CALL (failed, never
+  emitted), unquoted dotted map keys resolved against the tool schema, the abort
+  rate, and `ai.JSONSchemaMarshal` for every schema sent to a provider.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 

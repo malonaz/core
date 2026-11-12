@@ -411,7 +411,7 @@ func buildFilePart(ctx context.Context, doc *aipb.Document) (openai.ChatCompleti
 }
 
 func pbToolToOpenAI(tool *aipb.Tool) (openai.ChatCompletionToolUnionParam, error) {
-	bytes, err := ai.JSONMarshal(tool.JsonSchema)
+	bytes, err := ai.JSONSchemaMarshal(tool.JsonSchema)
 	if err != nil {
 		return openai.ChatCompletionToolUnionParam{}, fmt.Errorf("marshaling json schema: %w", err)
 	}
