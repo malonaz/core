@@ -149,9 +149,9 @@ registry is per package — cross-package parent/child links do not exist):
   There is one journal per **database**, owned by core: the database's
   `postgres_migrations` takes `includes = ["//go/outbox/migrations"]`
   (`///core//…` from a consumer) and lists `outbox/001_journal.sql` in its
-  manifest like its own, with `outbox/002_cursor.sql` (`migration_hash_test`
-  fails on any `.sql` file the manifest does not list, so a later journal
-  migration cannot be missed); never copy the table. The `{Service}Server`
+  manifest like its own (`migration_hash_test` fails on any `.sql` file the
+  manifest does not list, so a later journal migration cannot be missed);
+  never copy the table. The `{Service}Server`
   runs one `outbox.Poller` (`Start`/`Close`): it claims the oldest rows
   `ORDER BY sequence ... FOR UPDATE SKIP LOCKED`, so replicas drain disjoint
   batches, publishes each with the row id as `Nats-Msg-Id` (JetStream drops
@@ -162,12 +162,14 @@ registry is per package — cross-package parent/child links do not exist):
   reach the stream in no guaranteed order and `nats.Processor` consumes
   concurrently and redelivers, so order is the consumer's: `sequence` is
   assigned under the write's row lock, so it grows with a resource's writes.
-  A consumer applying events to its own state calls
-  `outbox.Advance(ctx, tx, consumer, event.name, sequence)` (sequence from
-  `outbox.Sequence(message.Headers)`) in the transaction that applies the
-  event, against `outbox.cursor` in its own database, and skips the event
-  when it returns false (stale or redelivered). Sequences have gaps per
-  resource (CEL-gated and unsubscribed events), so compare, never expect the
+  A consumer handles every event, never skipping a late one: each carries
+  its own transition (`previous_resource` → `resource`), so side effects key
+  on it and are idempotent on `name` + sequence (JetStream redelivers). Only
+  a consumer keeping a copy of the resource stores anything: a
+  `source_sequence` column on that copy, from
+  `outbox.Sequence(message.Headers)`, and its upsert overwrites only
+  `WHERE source_sequence < $sequence`. Sequences have gaps per resource
+  (CEL-gated and unsubscribed events), so compare, never expect the
   next one. There is no inline publish, so an event lands up to ~250ms after
   commit.
   `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals

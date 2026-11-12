@@ -19,7 +19,6 @@ import (
 // migrationPaths are the outbox's migrations, which the tests run against.
 var migrationPaths = []string{
 	"go/outbox/migrations/outbox/001_journal.sql",
-	"go/outbox/migrations/outbox/002_cursor.sql",
 }
 
 var postgresClient *postgres.Client
@@ -127,36 +126,6 @@ func TestClaimSkipsLockedEntries(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
 	require.Equal(t, payloads(t, "b"), concurrent)
-}
-
-func TestAdvance(t *testing.T) {
-	ctx := context.Background()
-	_, err := postgresClient.Exec(ctx, "TRUNCATE outbox.cursor")
-	require.NoError(t, err)
-
-	advance := func(consumer, resourceName string, sequence int64) bool {
-		advanced, err := Advance(ctx, postgresClient, consumer, resourceName, sequence)
-		require.NoError(t, err)
-		return advanced
-	}
-	type step struct {
-		consumer     string
-		resourceName string
-		sequence     int64
-	}
-	steps := []step{
-		{"sync", "shelves/a", 10},
-		{"sync", "shelves/a", 20},
-		{"sync", "shelves/a", 20},  // Redelivered.
-		{"sync", "shelves/a", 15},  // Overtaken.
-		{"sync", "shelves/b", 15},  // Another resource has its own cursor.
-		{"index", "shelves/a", 15}, // And another consumer.
-	}
-	advanced := make([]bool, 0, len(steps))
-	for _, step := range steps {
-		advanced = append(advanced, advance(step.consumer, step.resourceName, step.sequence))
-	}
-	require.Equal(t, []bool{true, true, false, false, true, true}, advanced)
 }
 
 func TestSequence(t *testing.T) {

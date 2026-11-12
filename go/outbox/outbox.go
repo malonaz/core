@@ -10,9 +10,9 @@
 // Pollers drain the journal concurrently, so events reach their stream in no
 // particular order, and a consumer is redelivered to anyway. What orders a
 // resource's events is the sequence each is published with (SequenceHeader):
-// assigned under the write's row lock, it grows with the resource's writes. A
-// consumer applying events to its own state advances its cursor on the
-// resource (Advance) and skips the events it reports stale.
+// assigned under the write's row lock, it grows with the resource's writes.
+// A consumer handles every event, since each carries its own transition, and
+// one keeping a copy of the resource overwrites it only with a later sequence.
 package outbox
 
 import (
@@ -151,22 +151,4 @@ func Sequence(headers map[string][]string) (int64, error) {
 		return 0, fmt.Errorf("parsing %s header %q: %w", SequenceHeader, values[0], err)
 	}
 	return sequence, nil
-}
-
-// advanceQuery moves a cursor forward only: no row is affected when the
-// sequence is not past it.
-const advanceQuery = `INSERT INTO outbox.cursor (consumer, resource_name, sequence) VALUES ($1, $2, $3)
-ON CONFLICT (consumer, resource_name) DO UPDATE SET sequence = EXCLUDED.sequence
-WHERE outbox.cursor.sequence < EXCLUDED.sequence`
-
-// Advance moves the consumer's cursor on the resource to sequence and reports
-// whether it moved: false means the consumer has applied a later event of the
-// resource, or this one, and must skip it. Run it in the transaction that
-// applies the event, so that the two commit together.
-func Advance(ctx context.Context, execer Execer, consumer, resourceName string, sequence int64) (bool, error) {
-	tag, err := execer.Exec(ctx, advanceQuery, consumer, resourceName, sequence)
-	if err != nil {
-		return false, fmt.Errorf("advancing cursor of %s on %s: %w", consumer, resourceName, err)
-	}
-	return tag.RowsAffected() == 1, nil
 }
