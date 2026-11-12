@@ -9,7 +9,6 @@ package outbox
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -18,19 +17,15 @@ import (
 
 	"github.com/malonaz/core/go/nats"
 	"github.com/malonaz/core/go/postgres"
-	"github.com/malonaz/core/go/uuid"
 )
-
-// Columns a journal write inserts; create_time defaults to the transaction's start time.
-var insertColumns = []string{"id", "stream", "subject", "payload"}
-
-// Columns a claim reads.
-var selectColumns = []string{"id", "create_time", "stream", "subject", "payload"}
 
 // Entry is one journaled message awaiting publication.
 type Entry struct {
-	// ID is a UUIDv7, published as the message's Nats-Msg-Id so that JetStream
-	// drops the duplicate of an entry published twice.
+	// Sequence orders the journal. It is assigned as the entry is written, so
+	// the events of one row are ordered as its writes were.
+	Sequence int64 `db:"sequence"`
+	// ID is published as the message's Nats-Msg-Id so that JetStream drops the
+	// duplicate of an entry published twice.
 	ID string `db:"id"`
 	// CreateTime is the start time of the transaction that journaled it.
 	CreateTime time.Time `db:"create_time"`
@@ -71,8 +66,8 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 	if err != nil {
 		return err
 	}
-	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES ($1, $2, $3, $4)", j.table, strings.Join(insertColumns, ", "))
-	if _, err := j.execer.Exec(ctx, query, uuid.MustNewV7().String(), subject.Stream().Name(), subject.Name(), bytes); err != nil {
+	query := fmt.Sprintf("INSERT INTO %s (stream, subject, payload) VALUES ($1, $2, $3)", j.table)
+	if _, err := j.execer.Exec(ctx, query, subject.Stream().Name(), subject.Name(), bytes); err != nil {
 		return fmt.Errorf("journaling message on %s: %w", subject.Name(), err)
 	}
 	return nil
@@ -82,20 +77,30 @@ func (j *Journal) Publish(ctx context.Context, subject *nats.Subject, message pr
 // published before failing, if it did.
 type PublishFn func(ctx context.Context, entries []*Entry) (int, error)
 
-// Claim locks the oldest entries of the journal, up to limit, skipping those
-// another poller holds, hands them to publish and deletes the ones it
-// published. It returns how many it claimed.
+// Claim hands the oldest entries of the journal, up to limit, to publish and
+// deletes the ones it published. It returns how many it claimed: none while
+// another claim holds the journal.
 func Claim(ctx context.Context, client *postgres.Client, table string, limit int, publish PublishFn) (int, error) {
-	query := fmt.Sprintf("SELECT %s FROM %s ORDER BY create_time, id LIMIT $1 FOR UPDATE SKIP LOCKED", strings.Join(selectColumns, ", "), table)
+	selectQuery := fmt.Sprintf("SELECT sequence, id, create_time, stream, subject, payload FROM %s ORDER BY sequence LIMIT $1", table)
+	deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE sequence = ANY($1)", table)
 	var claimed int
 	var publishErr error
 	transactionFN := func(tx postgres.Tx) error {
 		claimed, publishErr = 0, nil
-		rows, err := tx.Query(ctx, query, limit)
+		// One claim at a time, across replicas: a second would publish later entries
+		// while the first still held, or had failed on, earlier ones.
+		var locked bool
+		if err := tx.QueryRow(ctx, "SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0))", table).Scan(&locked); err != nil {
+			return fmt.Errorf("locking journal: %w", err)
+		}
+		if !locked {
+			return nil
+		}
+		rows, err := tx.Query(ctx, selectQuery, limit)
 		if err != nil {
 			return fmt.Errorf("claiming journal entries: %w", err)
 		}
-		entries, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[Entry])
+		entries, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[Entry])
 		if err != nil {
 			return fmt.Errorf("collecting journal entries: %w", err)
 		}
@@ -109,13 +114,13 @@ func Claim(ctx context.Context, client *postgres.Client, table string, limit int
 		if published == 0 {
 			return nil
 		}
-		ids := make([]string, 0, published)
+		// By sequence rather than up to the last one: a lower sequence may have committed since the claim.
+		sequences := make([]int64, 0, published)
 		for _, entry := range entries[:published] {
-			ids = append(ids, entry.ID)
+			sequences = append(sequences, entry.Sequence)
 		}
-		deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE id = ANY($1)", table)
-		if _, err := tx.Exec(ctx, deleteQuery, ids); err != nil {
-			return fmt.Errorf("deleting %d journal entries: %w", len(ids), err)
+		if _, err := tx.Exec(ctx, deleteQuery, sequences); err != nil {
+			return fmt.Errorf("deleting %d journal entries: %w", published, err)
 		}
 		return nil
 	}

@@ -28,4 +28,4 @@ migrations:
   - path: library/013_ancestor_search.sql
     hash: 83348f68428fa6c4b9f2e035a6c64259
   - path: library/014_outbox_journal.sql
-    hash: 90d67c4c29a1131e93509227d4b1fb21
+    hash: 7649fb333f1024c20a48422aea99eecc

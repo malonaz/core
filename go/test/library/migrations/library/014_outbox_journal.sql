@@ -1,8 +1,11 @@
 -- The outbox journal of the library schema: one row per NATS message a write
 -- published in its own transaction, deleted once the poller has published it.
--- create_time is the writing transaction's start time, which orders the poll.
 CREATE TABLE library.journal (
-    id UUID PRIMARY KEY,
+    -- Orders the poll. Assigned as the row is written, under the lock the write
+    -- holds on its resource, where a transaction's start time is not.
+    sequence BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    -- The message's Nats-Msg-Id.
+    id UUID NOT NULL DEFAULT gen_random_uuid(),
     create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
     stream TEXT NOT NULL,
     subject TEXT NOT NULL,
@@ -14,5 +17,3 @@ CREATE TABLE library.journal (
     autovacuum_vacuum_threshold = 10000,
     autovacuum_vacuum_cost_delay = 0
 );
-
-CREATE INDEX journal_create_time_id_idx ON library.journal (create_time, id);
