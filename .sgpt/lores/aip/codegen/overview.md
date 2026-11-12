@@ -156,7 +156,9 @@ registry is per package — cross-package parent/child links do not exist):
   the same transaction. A claim holds the journal's advisory lock, so one
   poller drains it at a time whatever the replicas or services on the
   database; with `sequence` assigned at insert, under the write's row lock, a
-  resource's events are published in the order of its writes. The first entry
+  resource's events reach the stream in the order of its writes (stream order
+  only: `nats.Processor` consumes concurrently and redelivers, so a consumer
+  that overwrites state from a payload still compares versions). The first entry
   that fails to publish holds the journal (nothing overtakes it): alert on
   `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. There is
   no inline publish, so an event lands up to ~250ms after commit.
