@@ -149,7 +149,9 @@ registry is per package — cross-package parent/child links do not exist):
   There is one journal per **database**, owned by core: the database's
   `postgres_migrations` takes `includes = ["//go/outbox/migrations"]`
   (`///core//…` from a consumer) and lists `outbox/001_journal.sql` in its
-  manifest like its own; never copy the table. The `{Service}Server` runs one
+  manifest like its own (`migration_hash_test` fails on any `.sql` file the
+  manifest does not list, so a later journal migration cannot be missed);
+  never copy the table. The `{Service}Server` runs one
   `outbox.Poller` (`Start`/`Close`): it claims the oldest rows
   `ORDER BY sequence`, publishes each with the row id as `Nats-Msg-Id`
   (JetStream drops the duplicate if a delete rolls back), and deletes them in
