@@ -74,7 +74,7 @@ func PostJSON(ctx context.Context, url string, headers map[string]string, reques
 		return status.FromError(err, "reading response of %s", url).Err()
 	}
 	if response.StatusCode != http.StatusOK {
-		return status.Errorf(codeFromHTTPStatus(response.StatusCode), "HTTP status %d: %s", response.StatusCode, responseBytes).Err()
+		return status.Errorf(CodeFromHTTPStatus(response.StatusCode), "HTTP status %d: %s", response.StatusCode, responseBytes).Err()
 	}
 	if err := json.Unmarshal(responseBytes, responseBody); err != nil {
 		return status.Errorf(codes.Internal, "unmarshaling response: %v", err).Err()
@@ -82,9 +82,9 @@ func PostJSON(ctx context.Context, url string, headers map[string]string, reques
 	return nil
 }
 
-// codeFromHTTPStatus extends the canonical mapping to the statuses it leaves
+// CodeFromHTTPStatus extends the canonical mapping to the statuses it leaves
 // out (413, 422, 529...): a 4xx blames the request, a 5xx the provider.
-func codeFromHTTPStatus(httpStatus int) codes.Code {
+func CodeFromHTTPStatus(httpStatus int) codes.Code {
 	code := grpc.CodeFromHTTPStatus(httpStatus)
 	switch {
 	case code != codes.Unknown:
