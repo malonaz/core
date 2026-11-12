@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/stats.proto.
  */
 export const file_malonaz_ai_v1_stats: GenFile = /*@__PURE__*/
-  fileDesc("ChltYWxvbmF6L2FpL3YxL3N0YXRzLnByb3RvEg1tYWxvbmF6LmFpLnYxImYKC1N0YXRzQnVja2V0EicKCGludGVydmFsGAEgASgLMhUuZ29vZ2xlLnR5cGUuSW50ZXJ2YWwSLgoIc25hcHNob3QYAiABKAsyHC5tYWxvbmF6LmFpLnYxLlN0YXRzU25hcHNob3QiZwoNU3RhdHNTbmFwc2hvdBInCgVjaGF0cxgBIAEoCzIYLm1hbG9uYXouYWkudjEuQ2hhdFN0YXRzEi0KCG1lc3NhZ2VzGAIgASgLMhsubWFsb25hei5haS52MS5NZXNzYWdlU3RhdHMiKQoJQ2hhdFN0YXRzEg0KBWNvdW50GAEgASgFEg0KBXByaWNlGAIgASgBImUKDE1lc3NhZ2VTdGF0cxINCgVjb3VudBgBIAEoBRINCgVwcmljZRgCIAEoARI3ChBtb2RlbF9icmVha2Rvd25zGAMgAygLMh0ubWFsb25hei5haS52MS5Nb2RlbEJyZWFrZG93biKaBwoOTW9kZWxCcmVha2Rvd24SKAoFbW9kZWwYASABKAlCGfpBFgoUYWkubWFsb25hei5jb20vTW9kZWwSDQoFY291bnQYAiABKAUSDQoFcHJpY2UYAyABKAESPAoLaW5wdXRfdG9rZW4YBCABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxI9CgxvdXRwdXRfdG9rZW4YBSABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxJHChZvdXRwdXRfcmVhc29uaW5nX3Rva2VuGAYgASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSRwoWaW5wdXRfdG9rZW5fY2FjaGVfcmVhZBgHIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEkgKF2lucHV0X3Rva2VuX2NhY2hlX3dyaXRlGAggASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSPQoMaW5wdXRfc2Vjb25kGAkgASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSPgoNb3V0cHV0X3NlY29uZBgKIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEkAKD2lucHV0X2NoYXJhY3RlchgLIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEkIKEWlucHV0X2ltYWdlX3Rva2VuGAwgASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSQwoSb3V0cHV0X2ltYWdlX3Rva2VuGA0gASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSTQocaW5wdXRfaW1hZ2VfdG9rZW5fY2FjaGVfcmVhZBgOIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEk4KHWlucHV0X2ltYWdlX3Rva2VuX2NhY2hlX3dyaXRlGA8gASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMiOwoYUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEhAKCHF1YW50aXR5GAEgASgDEg0KBXByaWNlGAIgASgBKokBChBTdGF0c0dyYW51bGFyaXR5EiEKHVNUQVRTX0dSQU5VTEFSSVRZX1VOU1BFQ0lGSUVEEAASGQoVU1RBVFNfR1JBTlVMQVJJVFlfREFZEAESGgoWU1RBVFNfR1JBTlVMQVJJVFlfV0VFSxACEhsKF1NUQVRTX0dSQU5VTEFSSVRZX01PTlRIEANCKFomZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvdjFiBnByb3RvMw", [file_google_api_resource, file_google_type_interval]);
+  fileDesc("ChltYWxvbmF6L2FpL3YxL3N0YXRzLnByb3RvEg1tYWxvbmF6LmFpLnYxImYKC1N0YXRzQnVja2V0EicKCGludGVydmFsGAEgASgLMhUuZ29vZ2xlLnR5cGUuSW50ZXJ2YWwSLgoIc25hcHNob3QYAiABKAsyHC5tYWxvbmF6LmFpLnYxLlN0YXRzU25hcHNob3QimAEKDVN0YXRzU25hcHNob3QSJwoFY2hhdHMYASABKAsyGC5tYWxvbmF6LmFpLnYxLkNoYXRTdGF0cxItCghtZXNzYWdlcxgCIAEoCzIbLm1hbG9uYXouYWkudjEuTWVzc2FnZVN0YXRzEi8KCWRlY2lzaW9ucxgDIAEoCzIcLm1hbG9uYXouYWkudjEuRGVjaXNpb25TdGF0cyIpCglDaGF0U3RhdHMSDQoFY291bnQYASABKAUSDQoFcHJpY2UYAiABKAEiZQoMTWVzc2FnZVN0YXRzEg0KBWNvdW50GAEgASgFEg0KBXByaWNlGAIgASgBEjcKEG1vZGVsX2JyZWFrZG93bnMYAyADKAsyHS5tYWxvbmF6LmFpLnYxLk1vZGVsQnJlYWtkb3duImYKDURlY2lzaW9uU3RhdHMSDQoFY291bnQYASABKAUSDQoFcHJpY2UYAiABKAESNwoQbW9kZWxfYnJlYWtkb3ducxgDIAMoCzIdLm1hbG9uYXouYWkudjEuTW9kZWxCcmVha2Rvd24imgcKDk1vZGVsQnJlYWtkb3duEigKBW1vZGVsGAEgASgJQhn6QRYKFGFpLm1hbG9uYXouY29tL01vZGVsEg0KBWNvdW50GAIgASgFEg0KBXByaWNlGAMgASgBEjwKC2lucHV0X3Rva2VuGAQgASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSPQoMb3V0cHV0X3Rva2VuGAUgASgLMicubWFsb25hei5haS52MS5SZXNvdXJjZUNvbnN1bXB0aW9uU3RhdHMSRwoWb3V0cHV0X3JlYXNvbmluZ190b2tlbhgGIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEkcKFmlucHV0X3Rva2VuX2NhY2hlX3JlYWQYByABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxJIChdpbnB1dF90b2tlbl9jYWNoZV93cml0ZRgIIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEj0KDGlucHV0X3NlY29uZBgJIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEj4KDW91dHB1dF9zZWNvbmQYCiABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxJACg9pbnB1dF9jaGFyYWN0ZXIYCyABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxJCChFpbnB1dF9pbWFnZV90b2tlbhgMIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEkMKEm91dHB1dF9pbWFnZV90b2tlbhgNIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzEk0KHGlucHV0X2ltYWdlX3Rva2VuX2NhY2hlX3JlYWQYDiABKAsyJy5tYWxvbmF6LmFpLnYxLlJlc291cmNlQ29uc3VtcHRpb25TdGF0cxJOCh1pbnB1dF9pbWFnZV90b2tlbl9jYWNoZV93cml0ZRgPIAEoCzInLm1hbG9uYXouYWkudjEuUmVzb3VyY2VDb25zdW1wdGlvblN0YXRzIjsKGFJlc291cmNlQ29uc3VtcHRpb25TdGF0cxIQCghxdWFudGl0eRgBIAEoAxINCgVwcmljZRgCIAEoASqJAQoQU3RhdHNHcmFudWxhcml0eRIhCh1TVEFUU19HUkFOVUxBUklUWV9VTlNQRUNJRklFRBAAEhkKFVNUQVRTX0dSQU5VTEFSSVRZX0RBWRABEhoKFlNUQVRTX0dSQU5VTEFSSVRZX1dFRUsQAhIbChdTVEFUU19HUkFOVUxBUklUWV9NT05USBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_google_api_resource, file_google_type_interval]);
 
 /**
  * Stats for a single time bucket.
@@ -64,6 +64,13 @@ export type StatsSnapshot = Message<"malonaz.ai.v1.StatsSnapshot"> & {
    * @generated from field: malonaz.ai.v1.MessageStats messages = 2;
    */
   messages?: MessageStats;
+
+  /**
+   * Stats about decisions.
+   *
+   * @generated from field: malonaz.ai.v1.DecisionStats decisions = 3;
+   */
+  decisions?: DecisionStats;
 };
 
 export type StatsSnapshotValid = StatsSnapshot;
@@ -146,7 +153,44 @@ export const MessageStatsSchema: GenMessage<MessageStats, {validType: MessageSta
   messageDesc(file_malonaz_ai_v1_stats, 3);
 
 /**
- * Message counts and resource consumption for a single model.
+ * Stats about decisions created within the interval.
+ *
+ * @generated from message malonaz.ai.v1.DecisionStats
+ */
+export type DecisionStats = Message<"malonaz.ai.v1.DecisionStats"> & {
+  /**
+   * Total decisions created.
+   *
+   * @generated from field: int32 count = 1;
+   */
+  count: number;
+
+  /**
+   * Total price in dollars of those decisions.
+   *
+   * @generated from field: double price = 2;
+   */
+  price: number;
+
+  /**
+   * Breakdown by answering model, ordered by model resource name.
+   *
+   * @generated from field: repeated malonaz.ai.v1.ModelBreakdown model_breakdowns = 3;
+   */
+  modelBreakdowns: ModelBreakdown[];
+};
+
+export type DecisionStatsValid = DecisionStats;
+
+/**
+ * Describes the message malonaz.ai.v1.DecisionStats.
+ * Use `create(DecisionStatsSchema)` to create a new message.
+ */
+export const DecisionStatsSchema: GenMessage<DecisionStats, {validType: DecisionStatsValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_stats, 4);
+
+/**
+ * Message or decision counts and resource consumption for a single model.
  * Consumption mirrors [ModelUsage][malonaz.ai.v1.ModelUsage] one-to-one: every
  * category stays disjoint and separately reported, so clients can sum the ones
  * they care about (and derive cache hit rates) without the server deciding for
@@ -156,7 +200,7 @@ export const MessageStatsSchema: GenMessage<MessageStats, {validType: MessageSta
  */
 export type ModelBreakdown = Message<"malonaz.ai.v1.ModelBreakdown"> & {
   /**
-   * The model that generated the messages.
+   * The model that generated the messages or answered the decisions.
    * Empty groups messages that were not generated by a model (user, system
    * and tool messages).
    * Format: providers/{provider}/models/{model}
@@ -166,14 +210,14 @@ export type ModelBreakdown = Message<"malonaz.ai.v1.ModelBreakdown"> & {
   model: string;
 
   /**
-   * Messages generated by this model.
+   * Messages generated, or decisions answered, by this model.
    *
    * @generated from field: int32 count = 2;
    */
   count: number;
 
   /**
-   * Price in dollars of those messages, summed over every category below.
+   * Price in dollars of those, summed over every category below.
    *
    * @generated from field: double price = 3;
    */
@@ -271,7 +315,7 @@ export type ModelBreakdownValid = ModelBreakdown;
  * Use `create(ModelBreakdownSchema)` to create a new message.
  */
 export const ModelBreakdownSchema: GenMessage<ModelBreakdown, {validType: ModelBreakdownValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_stats, 4);
+  messageDesc(file_malonaz_ai_v1_stats, 5);
 
 /**
  * Aggregated consumption of a single priced resource category.
@@ -303,7 +347,7 @@ export type ResourceConsumptionStatsValid = ResourceConsumptionStats;
  * Use `create(ResourceConsumptionStatsSchema)` to create a new message.
  */
 export const ResourceConsumptionStatsSchema: GenMessage<ResourceConsumptionStats, {validType: ResourceConsumptionStatsValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_stats, 5);
+  messageDesc(file_malonaz_ai_v1_stats, 6);
 
 /**
  * The bucket granularity for time-series stats.

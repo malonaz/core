@@ -22,8 +22,8 @@ var granularityToDateTruncField = map[aipb.StatsGranularity]string{
 	aipb.StatsGranularity_STATS_GRANULARITY_MONTH: "month",
 }
 
-// ComputeStats aggregates a user's or an organization's chats and messages
-// into interval totals and, when a granularity is requested, a time series.
+// ComputeStats aggregates a user's or an organization's chats, messages and
+// decisions into interval totals and, when a granularity is requested, a time series.
 // Nothing is stored: the response is computed per request.
 func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequest) (*pb.ComputeStatsResponse, error) {
 	// The name is polymorphic: a user or an organization. An empty user ID
@@ -59,8 +59,9 @@ func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequ
 	dateTruncField := granularityToDateTruncField[granularity]
 
 	var (
-		chatStatsRows    []*model.ChatStatsRow
-		messageStatsRows []*model.MessageStatsRow
+		chatStatsRows     []*model.ChatStatsRow
+		messageStatsRows  []*model.ModelStatsRow
+		decisionStatsRows []*model.ModelStatsRow
 	)
 	eg, ctxEg := errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -71,6 +72,11 @@ func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequ
 	eg.Go(func() error {
 		var err error
 		messageStatsRows, err = s.aiPostgresStore.ComputeMessageStats(ctxEg, organizationID, userID, startTime, endTime, dateTruncField)
+		return err
+	})
+	eg.Go(func() error {
+		var err error
+		decisionStatsRows, err = s.aiPostgresStore.ComputeDecisionStats(ctxEg, organizationID, userID, startTime, endTime, dateTruncField)
 		return err
 	})
 	if err := eg.Wait(); err != nil {
@@ -102,7 +108,12 @@ func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequ
 	}
 	for _, row := range messageStatsRows {
 		for _, aggregator := range aggregatorsFor(row.Bucket) {
-			aggregator.addMessageStatsRow(row)
+			aggregator.messages.add(row)
+		}
+	}
+	for _, row := range decisionStatsRows {
+		for _, aggregator := range aggregatorsFor(row.Bucket) {
+			aggregator.decisions.add(row)
 		}
 	}
 
@@ -133,14 +144,21 @@ func (s *Service) ComputeStats(ctx context.Context, request *pb.ComputeStatsRequ
 // statsAggregator folds aggregated rows into one snapshot; one instance
 // backs the totals and one backs each time bucket.
 type statsAggregator struct {
-	chatCount        int32
-	chatPrice        float64
-	messageCount     int32
-	messagePrice     float64
+	chatCount int32
+	chatPrice float64
+	messages  *modelStatsAggregator
+	decisions *modelStatsAggregator
+}
+
+// modelStatsAggregator folds the rows of one resource kind, messages or
+// decisions, into its count, price and per-model breakdowns.
+type modelStatsAggregator struct {
+	count            int32
+	price            float64
 	modelToAggregate map[string]*modelAggregate
 }
 
-// modelAggregate accumulates one model's messages. Consumption is kept
+// modelAggregate accumulates one model's rows. Consumption is kept
 // per-category (never folded) so the response mirrors ModelUsage exactly.
 type modelAggregate struct {
 	count       int32
@@ -158,76 +176,77 @@ type consumptionAggregate struct {
 // one-line change instead of three parallel edits.
 type consumptionCategory struct {
 	name     string
-	quantity func(*model.MessageStatsRow) int64
-	price    func(*model.MessageStatsRow) float64
+	quantity func(*model.ModelStatsRow) int64
+	price    func(*model.ModelStatsRow) float64
 	set      func(*aipb.ModelBreakdown, *aipb.ResourceConsumptionStats)
 }
 
 var consumptionCategories = []consumptionCategory{{
 	name:     "input_token",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputTokenQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputTokenPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputTokenQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputTokenPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputToken = c },
 }, {
 	name:     "output_token",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.OutputTokenQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.OutputTokenPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.OutputTokenQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.OutputTokenPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.OutputToken = c },
 }, {
 	name:     "output_reasoning_token",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.OutputReasoningTokenQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.OutputReasoningTokenPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.OutputReasoningTokenQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.OutputReasoningTokenPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.OutputReasoningToken = c },
 }, {
 	name:     "input_token_cache_read",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputTokenCacheReadQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputTokenCacheReadPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputTokenCacheReadQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputTokenCacheReadPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputTokenCacheRead = c },
 }, {
 	name:     "input_token_cache_write",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputTokenCacheWriteQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputTokenCacheWritePrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputTokenCacheWriteQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputTokenCacheWritePrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputTokenCacheWrite = c },
 }, {
 	name:     "input_second",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputSecondQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputSecondPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputSecondQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputSecondPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputSecond = c },
 }, {
 	name:     "output_second",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.OutputSecondQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.OutputSecondPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.OutputSecondQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.OutputSecondPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.OutputSecond = c },
 }, {
 	name:     "input_character",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputCharacterQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputCharacterPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputCharacterQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputCharacterPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputCharacter = c },
 }, {
 	name:     "input_image_token",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputImageTokenQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputImageTokenPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputImageTokenQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputImageTokenPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputImageToken = c },
 }, {
 	name:     "output_image_token",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.OutputImageTokenQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.OutputImageTokenPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.OutputImageTokenQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.OutputImageTokenPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.OutputImageToken = c },
 }, {
 	name:     "input_image_token_cache_read",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputImageTokenCacheReadQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputImageTokenCacheReadPrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputImageTokenCacheReadQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputImageTokenCacheReadPrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputImageTokenCacheRead = c },
 }, {
 	name:     "input_image_token_cache_write",
-	quantity: func(r *model.MessageStatsRow) int64 { return r.InputImageTokenCacheWriteQuantity },
-	price:    func(r *model.MessageStatsRow) float64 { return r.InputImageTokenCacheWritePrice },
+	quantity: func(r *model.ModelStatsRow) int64 { return r.InputImageTokenCacheWriteQuantity },
+	price:    func(r *model.ModelStatsRow) float64 { return r.InputImageTokenCacheWritePrice },
 	set:      func(b *aipb.ModelBreakdown, c *aipb.ResourceConsumptionStats) { b.InputImageTokenCacheWrite = c },
 }}
 
 func newStatsAggregator() *statsAggregator {
 	return &statsAggregator{
-		modelToAggregate: map[string]*modelAggregate{},
+		messages:  &modelStatsAggregator{modelToAggregate: map[string]*modelAggregate{}},
+		decisions: &modelStatsAggregator{modelToAggregate: map[string]*modelAggregate{}},
 	}
 }
 
@@ -236,9 +255,9 @@ func (a *statsAggregator) addChatStatsRow(row *model.ChatStatsRow) {
 	a.chatPrice += row.Price
 }
 
-func (a *statsAggregator) addMessageStatsRow(row *model.MessageStatsRow) {
-	a.messageCount += row.Count
-	a.messagePrice += row.Price
+func (a *modelStatsAggregator) add(row *model.ModelStatsRow) {
+	a.count += row.Count
+	a.price += row.Price
 	aggregate, ok := a.modelToAggregate[row.Model]
 	if !ok {
 		aggregate = &modelAggregate{consumption: map[string]*consumptionAggregate{}}
@@ -257,18 +276,16 @@ func (a *statsAggregator) addMessageStatsRow(row *model.MessageStatsRow) {
 	}
 }
 
-func (a *statsAggregator) snapshot() *aipb.StatsSnapshot {
-	// Sorted by model resource name for a deterministic response.
+// breakdowns returns one breakdown per model, sorted by model resource name
+// for a deterministic response.
+func (a *modelStatsAggregator) breakdowns() []*aipb.ModelBreakdown {
 	models := make([]string, 0, len(a.modelToAggregate))
 	for modelName := range a.modelToAggregate {
 		models = append(models, modelName)
 	}
 	sort.Strings(models)
 
-	messageStats := &aipb.MessageStats{
-		Count: a.messageCount,
-		Price: a.messagePrice,
-	}
+	breakdowns := make([]*aipb.ModelBreakdown, 0, len(models))
 	for _, modelName := range models {
 		aggregate := a.modelToAggregate[modelName]
 		breakdown := &aipb.ModelBreakdown{
@@ -288,14 +305,27 @@ func (a *statsAggregator) snapshot() *aipb.StatsSnapshot {
 				Price:    consumption.price,
 			})
 		}
-		messageStats.ModelBreakdowns = append(messageStats.ModelBreakdowns, breakdown)
+		breakdowns = append(breakdowns, breakdown)
 	}
+	return breakdowns
+}
+
+func (a *statsAggregator) snapshot() *aipb.StatsSnapshot {
 	return &aipb.StatsSnapshot{
 		Chats: &aipb.ChatStats{
 			Count: a.chatCount,
 			Price: a.chatPrice,
 		},
-		Messages: messageStats,
+		Messages: &aipb.MessageStats{
+			Count:           a.messages.count,
+			Price:           a.messages.price,
+			ModelBreakdowns: a.messages.breakdowns(),
+		},
+		Decisions: &aipb.DecisionStats{
+			Count:           a.decisions.count,
+			Price:           a.decisions.price,
+			ModelBreakdowns: a.decisions.breakdowns(),
+		},
 	}
 }
 

@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "annotations.proto",
         "chat.proto",
+        "decision.proto",
         "labels.proto",
         "message.proto",
         "metrics.proto",
@@ -19,6 +20,7 @@ proto_library(
     srcs = [
         "annotations.proto",
         "chat.proto",
+        "decision.proto",
         "labels.proto",
         "message.proto",
         "metrics.proto",

@@ -23,17 +23,20 @@ import (
 type aiServiceStore interface {
 	aiService_ChatStore
 	aiService_MessageStore
+	aiService_DecisionStore
 }
 
 type AiServiceServer struct {
 	*aiService_ChatServer
 	*aiService_MessageServer
+	*aiService_DecisionServer
 }
 
 func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 	return &AiServiceServer{
-		aiService_ChatServer:    newAiService_ChatServer(store),
-		aiService_MessageServer: newAiService_MessageServer(store),
+		aiService_ChatServer:     newAiService_ChatServer(store),
+		aiService_MessageServer:  newAiService_MessageServer(store),
+		aiService_DecisionServer: newAiService_DecisionServer(store),
 	}
 }
 
@@ -911,5 +914,437 @@ func (s *aiService_MessageServer) BatchGetMessages(ctx context.Context, request 
 
 	return &v1.BatchGetMessagesResponse{
 		Messages: messages,
+	}, nil
+}
+
+type aiService_DecisionStore interface {
+	BatchInsertDecisions(ctx context.Context, requestIDs []string, decisions []*model.Decision) ([]*model.Decision, error)
+	UpdateDecision(ctx context.Context, decision *model.Decision, updateClause string, columns []string, etag string) (*model.Decision, error)
+	SoftDeleteDecision(ctx context.Context, organizationId, userId, decisionId string, etag, newEtag string, deleteTime time.Time) (*model.Decision, error)
+	UndeleteDecision(ctx context.Context, organizationId, userId, decisionId string, etag, newEtag string) (*model.Decision, error)
+	GetDecision(ctx context.Context, organizationId, userId, decisionId string) (*model.Decision, error)
+	BatchGetDecisions(ctx context.Context, organizationIds []string, userIds []string, decisionIds []string) ([]*model.Decision, error)
+	ListDecisions(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Decision, error)
+}
+
+type aiService_DecisionServer struct {
+	store aiService_DecisionStore
+}
+
+func newAiService_DecisionServer(store aiService_DecisionStore) *aiService_DecisionServer {
+	return &aiService_DecisionServer{
+		store: store,
+	}
+}
+
+func (s *aiService_DecisionServer) prepareCreateDecision(ctx context.Context, request *v1.CreateDecisionRequest, importing bool) (*model.Decision, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	decisionId := request.DecisionId
+	if decisionId == "" {
+		decisionId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId, userId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	request.Decision.Name = resourcename.Sprint("organizations/{organization}/users/{user}/decisions/{decision}", organizationId, userId, decisionId)
+
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
+		if request.Decision.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else if !importing || request.Decision.CreateTime == nil {
+		request.Decision.CreateTime = timestamppb.Now()
+	}
+	if !importing || request.Decision.UpdateTime == nil {
+		request.Decision.UpdateTime = request.Decision.CreateTime
+	}
+
+	{ // Capture the Etag.
+		var err error
+		request.Decision.Etag, err = aip.ComputeETag(request.Decision)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	decisionModel, err := model.DecisionFromPb(request.Decision)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from pb to model: %v", err).Err()
+	}
+
+	return decisionModel, nil
+}
+
+func (s *aiService_DecisionServer) CreateDecision(ctx context.Context, request *v1.CreateDecisionRequest) (*v11.Decision, error) {
+	decisionModel, err := s.prepareCreateDecision(ctx, request, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.ValidateOnly {
+		return request.Decision, nil
+	}
+
+	// STEP 4: Insert the resource.
+	dbDecisions, err := s.store.BatchInsertDecisions(ctx, []string{request.RequestId}, []*model.Decision{decisionModel})
+	if err != nil {
+		if errors.Is(err, model.ErrDecisionAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "decision already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting decisions").Err()
+	}
+	if len(dbDecisions) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted decision, got %d", len(dbDecisions)).Err()
+	}
+
+	decision, err := dbDecisions[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+	}
+
+	return decision, nil
+}
+
+func (s *aiService_DecisionServer) GetDecision(ctx context.Context, request *v1.GetDecisionRequest) (*v11.Decision, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, userId, decisionId, err := model.ParseDecisionName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbDecisionModel, err := s.store.GetDecision(ctx, organizationId, userId, decisionId)
+	if err != nil {
+		if errors.Is(err, model.ErrDecisionNotExist) {
+			return nil, status.Errorf(codes.NotFound, "decision does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting decision").Err()
+	}
+
+	decision, err := dbDecisionModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+	}
+	return decision, nil
+}
+
+var updateDecisionRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateDecisionRequest, *v11.Decision]()
+
+func (s *aiService_DecisionServer) UpdateDecision(ctx context.Context, request *v1.UpdateDecisionRequest) (*v11.Decision, error) {
+	for {
+		response, err := s.updateDecision(ctx, request)
+		if err != nil {
+			if request.GetDecision().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *aiService_DecisionServer) updateDecision(ctx context.Context, request *v1.UpdateDecisionRequest) (*v11.Decision, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Decision.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateDecisionRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getDecisionRequest := &v1.GetDecisionRequest{Name: request.Decision.Name}
+	existingDecision, err := s.GetDecision(ctx, getDecisionRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Verify that the resource is not soft deleted
+	if existingDecision.DeleteTime != nil {
+		return nil, status.Errorf(codes.NotFound, "decision does not exist").Err()
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetDecision().GetEtag()
+	if etag == "" {
+		etag = existingDecision.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedDecision := proto.CloneOf(existingDecision)
+	parsedRequest.ApplyFieldMask(patchedDecision, request.Decision)
+	if err := protovalidate.Validate(patchedDecision); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedDecision.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedDecision.Etag, err = aip.ComputeETag(patchedDecision)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	decisionModel, err := model.DecisionFromPb(patchedDecision)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from pb to model: %v", err).Err()
+	}
+	dbDecisionModel, err := s.store.UpdateDecision(ctx, decisionModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrDecisionNotExist) {
+			return nil, status.Errorf(codes.NotFound, "decision does not exist").Err()
+		}
+		if errors.Is(err, model.ErrDecisionETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating decision").Err()
+	}
+
+	decision, err := dbDecisionModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+	}
+
+	return decision, nil
+}
+
+func (s *aiService_DecisionServer) DeleteDecision(ctx context.Context, request *v1.DeleteDecisionRequest) (*v11.Decision, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, decisionId, err := model.ParseDecisionName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	deleteTime := time.Now().UTC()
+	// Compute the new Etag.
+	getDecisionRequest := &v1.GetDecisionRequest{Name: request.Name}
+	existingDecision, err := s.GetDecision(ctx, getDecisionRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingDecision.DeleteTime = timestamppb.New(deleteTime)
+	newEtag, err := aip.ComputeETag(existingDecision)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Soft delete the resource.
+	dbDecisionModel, err := s.store.SoftDeleteDecision(ctx, organizationId, userId, decisionId, request.GetEtag(), newEtag, deleteTime)
+	if err != nil {
+		if errors.Is(err, model.ErrDecisionNotExist) {
+			return nil, status.Errorf(codes.NotFound, "decision does not exist").Err()
+		}
+		if errors.Is(err, model.ErrDecisionETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		if errors.Is(err, model.ErrDecisionAlreadyDeleted) {
+			if request.AllowMissing {
+				getDecisionRequest := &v1.GetDecisionRequest{Name: request.Name}
+				decision, err := s.GetDecision(ctx, getDecisionRequest)
+				if err != nil {
+					return nil, err
+				}
+				return decision, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "decision already deleted").Err()
+		}
+		return nil, status.FromError(err, "soft deleting decision").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	decision, err := dbDecisionModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+	}
+
+	return decision, nil
+}
+
+func (s *aiService_DecisionServer) UndeleteDecision(ctx context.Context, request *v1.UndeleteDecisionRequest) (*v11.Decision, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, userId, decisionId, err := model.ParseDecisionName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Compute the new etag.
+	getDecisionRequest := &v1.GetDecisionRequest{Name: request.Name}
+	existingDecision, err := s.GetDecision(ctx, getDecisionRequest)
+	if err != nil {
+		return nil, err
+	}
+	existingDecision.DeleteTime = nil
+	newEtag, err := aip.ComputeETag(existingDecision)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+	}
+
+	// STEP 2: Undelete the resource.
+	dbDecisionModel, err := s.store.UndeleteDecision(ctx, organizationId, userId, decisionId, request.GetEtag(), newEtag)
+	if err != nil {
+		if errors.Is(err, model.ErrDecisionNotExist) {
+			return nil, status.Errorf(codes.NotFound, "decision does not exist").Err()
+		}
+		if errors.Is(err, model.ErrDecisionNotDeleted) {
+			return nil, status.Errorf(codes.AlreadyExists, "decision is not deleted").Err()
+		}
+		if errors.Is(err, model.ErrDecisionETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "undeleting decision").Err()
+	}
+
+	// STEP 3: Convert to protobuf and return.
+	decision, err := dbDecisionModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+	}
+
+	return decision, nil
+}
+
+var listDecisionsRequestParser = aip.MustNewListRequestParser[*v1.ListDecisionsRequest, *v11.Decision](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *aiService_DecisionServer) ListDecisions(ctx context.Context, request *v1.ListDecisionsRequest) (*v1.ListDecisionsResponse, error) {
+	// Parse parent names
+	var organizationId, userId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listDecisionsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbDecisions, err := s.store.ListDecisions(ctx, organizationId, userId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing decisions").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbDecisions))
+	if nextPageToken != "" {
+		dbDecisions = dbDecisions[:len(dbDecisions)-1]
+	}
+
+	// Convert back to proto.
+	decisions := make([]*v11.Decision, 0, len(dbDecisions))
+	for _, dbDecision := range dbDecisions {
+		decision, err := dbDecision.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Decision to Decision: %v", err).Err()
+		}
+		decisions = append(decisions, decision)
+	}
+
+	// Create and return response.
+	return &v1.ListDecisionsResponse{
+		Decisions:     decisions,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+func (s *aiService_DecisionServer) BatchGetDecisions(ctx context.Context, request *v1.BatchGetDecisionsRequest) (*v1.BatchGetDecisionsResponse, error) {
+	var organizationId, userId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}", &organizationId, &userId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
+	decisionIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, userId, decisionId, err := model.ParseDecisionName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
+		decisionIds[i] = decisionId
+	}
+
+	dbDecisions, err := s.store.BatchGetDecisions(ctx, organizationIds, userIds, decisionIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting decision").Err()
+	}
+	if len(dbDecisions) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d decisions, found %d", len(request.Names), len(dbDecisions)).Err()
+	}
+
+	decisionNameToDecision := make(map[string]*v11.Decision, len(request.Names))
+	for _, dbDecisionModel := range dbDecisions {
+		decision, err := dbDecisionModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting decision from model to pb: %v", err).Err()
+		}
+		decisionNameToDecision[decision.Name] = decision
+	}
+
+	decisions := make([]*v11.Decision, 0, len(dbDecisions))
+	for _, name := range request.Names {
+		decision, ok := decisionNameToDecision[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		decisions = append(decisions, decision)
+	}
+
+	return &v1.BatchGetDecisionsResponse{
+		Decisions: decisions,
 	}, nil
 }

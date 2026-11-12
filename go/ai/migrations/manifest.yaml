@@ -17,3 +17,5 @@ migrations:
     hash: 274d702981b37d5433c0633c4ad85f24
   - path: message/002_create_time_index.sql
     hash: 3ecec55430142bdacb23237309198037
+  - path: decision/001_init.sql
+    hash: 5e0608efe08fdb9719746fd62552e692

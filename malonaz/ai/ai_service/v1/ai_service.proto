@@ -5,6 +5,7 @@ package malonaz.ai.ai_service.v1;
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/ai/ai_service/v1/chat.proto";
+import "malonaz/ai/ai_service/v1/decision.proto";
 import "malonaz/ai/ai_service/v1/message.proto";
 import "malonaz/ai/ai_service/v1/model.proto";
 import "malonaz/ai/ai_service/v1/speech_to_text.proto";
@@ -13,6 +14,7 @@ import "malonaz/ai/ai_service/v1/text_to_speech.proto";
 import "malonaz/ai/ai_service/v1/text_to_text.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
+import "malonaz/ai/v1/decision.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/model.proto";
 import "malonaz/ai/v1/voice.proto";
@@ -36,6 +38,9 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 //   [Chat][malonaz.ai.v1.Chat] resources with child
 //   [Message][malonaz.ai.v1.Message] resources, plus generation methods
 //   that produce assistant messages from a chat's history.
+// - Decisions: typed questions (yes/no, one of a set, a score on a scale)
+//   answered about an input with calibrated probabilities by a decision
+//   model, persisted as [Decision][malonaz.ai.v1.Decision] resources.
 //
 // # Resource model
 //
@@ -49,6 +54,9 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 //   resources holding the conversation content. The chat itself is a
 //   lightweight container: it aggregates price but holds no blocks.
 //   Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+// - Each User has a collection of [Decision][malonaz.ai.v1.Decision]
+//   resources.
+//   Format: organizations/{organization}/users/{user}/decisions/{decision}
 //
 // # Generation
 //
@@ -354,6 +362,92 @@ service AiService {
       post: "/v1/{parent=organizations/*/users/*/chats/*}/messages:streamGenerate"
       body: "*"
     };
+  }
+
+  // ===================== Decision Management =====================
+
+  // Create a decision: ask the model the decision's questions about its
+  // input, and persist the answered decision.
+  //
+  // The call is synchronous and nothing is persisted when the model fails. A
+  // `request_id` makes it idempotent: a retry returns the decision the first
+  // request created, without asking the model again. Only a retry racing the
+  // request it repeats may ask the model twice; both still return the same
+  // decision.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateDecision(CreateDecisionRequest) returns (ai.v1.Decision) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/decisions"
+      body: "decision"
+    };
+    option (google.api.method_signature) = "parent,decision";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // Get a decision.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetDecision(GetDecisionRequest) returns (ai.v1.Decision) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/decisions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // Update a decision's labels and annotations. Its model, input, questions
+  // and answers never change.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateDecision(UpdateDecisionRequest) returns (ai.v1.Decision) {
+    option (google.api.http) = {
+      patch: "/v1/{decision.name=organizations/*/users/*/decisions/*}"
+      body: "decision"
+    };
+    option (google.api.method_signature) = "decision,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // Delete a decision.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc DeleteDecision(DeleteDecisionRequest) returns (ai.v1.Decision) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/decisions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // Undelete a decision.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteDecision(UndeleteDecisionRequest) returns (ai.v1.Decision) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/decisions/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // List decisions for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListDecisions(ListDecisionsRequest) returns (ListDecisionsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/decisions"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // Get multiple decisions in a single request.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetDecisions(BatchGetDecisionsRequest) returns (BatchGetDecisionsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/decisions:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
   }
 
   // ===================== Stats =====================

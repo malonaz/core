@@ -28,7 +28,7 @@ type AnnotationSet struct {
 	PreDiscoveredTool aip.StringAnnotation
 	// Comma-separated tool names returned by a discovery tool call, on its tool result.
 	DiscoveredTools aip.StringAnnotation
-	// Mock provider script on a message: a JSON array of Messages replayed one per generation.
+	// Mock provider script. On a message: a JSON array of Messages replayed one per generation. On a decision: a JSON array of its Answers, in question order.
 	Script aip.StringAnnotation
 }
 

@@ -3,6 +3,8 @@ go_library(
     srcs = [
         "chat.go",
         "chat_postgres.pb.go",
+        "decision.go",
+        "decision_postgres.pb.go",
         "message_postgres.pb.go",
         "stats.go",
     ],

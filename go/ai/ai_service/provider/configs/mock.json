@@ -16,6 +16,13 @@ local p = "providers/mock/models/";
           "input_token_price_per_million": 1.0,
           "output_token_price_per_million": 2.0
         }
+      },
+      "decision": {
+        "context_token_limit": 1000000,
+        "image": true,
+        "pricing": {
+          "input_token_price_per_million": 1.0
+        }
       }
     }
   ]

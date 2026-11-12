@@ -32,6 +32,15 @@ type GenerateMessageClient interface {
 	StreamGenerateMessage(ctx context.Context, request *aiservicepb.GenerateMessageRequest, messages []*aipb.Message, sender *AsyncMessageContentSender) error
 }
 
+// CreateDecisionClient asks a decision model the questions of a decision about
+// its input, and returns one answer per question, in question order, with the
+// usage incurred. The service layer owns the rest: validation, pricing,
+// persistence and the answers' question ids.
+type CreateDecisionClient interface {
+	Provider
+	CreateDecision(ctx context.Context, model *aipb.Model, decision *aipb.Decision) ([]*aipb.Answer, *aipb.ModelUsage, error)
+}
+
 // StreamTextToSpeechClient synthesizes speech from incrementally streamed
 // text over a bidirectional stream. The configuration (with the voice already
 // resolved to a provider voice id) is passed alongside the stream: the

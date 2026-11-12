@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/v1/decision.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.CreateDecision.
+message CreateDecisionRequest {
+  // The resource name of the parent user.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/User"}
+  ];
+
+  // The decision to create: its model, input and questions.
+  ai.v1.Decision decision = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string decision_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  // Sending it makes the request idempotent: a retry returns the decision the
+  // first request created, without asking the model again.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not ask the
+  // model nor create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AiService.GetDecision.
+message GetDecisionRequest {
+  // The resource name of the decision to retrieve.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Decision"
+  ];
+}
+
+// Request message for AiService.UpdateDecision.
+message UpdateDecisionRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "annotations"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "decision.name_required"
+    message: "decision.name must be set"
+    expression: "has(this.decision.name)"
+  };
+
+  // The decision to update. Its `name` identifies the decision to be updated.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  ai.v1.Decision decision = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.DeleteDecision.
+message DeleteDecisionRequest {
+  // The resource name of the decision to delete.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Decision"
+  ];
+
+  // If true, and the decision is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for AiService.UndeleteDecision.
+message UndeleteDecisionRequest {
+  // The resource name of the deleted decision to restore.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Decision"
+  ];
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for AiService.ListDecisions.
+message ListDecisionsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent user that owns this collection of decisions.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "ai.malonaz.com/User"}
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted decisions.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of decisions to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListDecisions` call.
+  string page_token = 6;
+}
+
+// Response message for AiService.ListDecisions.
+message ListDecisionsResponse {
+  // The list of decisions.
+  repeated ai.v1.Decision decisions = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// Request message for AiService.BatchGetDecisions.
+message BatchGetDecisionsRequest {
+  // The resource name of the parent user that owns the decisions.
+  // Format: organizations/{organization}/users/{user}
+  // If this is set, the parent of all of the decisions specified in `names`
+  // must match this field.
+  string parent = 1 [(google.api.resource_reference) = {type: "ai.malonaz.com/User"}];
+
+  // The resource names of the decisions to retrieve.
+  // Format: organizations/{organization}/users/{user}/decisions/{decision}
+  // A maximum of 1000 decisions can be retrieved in a batch.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "ai.malonaz.com/Decision"
+  ];
+}
+
+// Response message for AiService.BatchGetDecisions.
+message BatchGetDecisionsResponse {
+  // Decisions requested.
+  repeated ai.v1.Decision decisions = 1;
+}

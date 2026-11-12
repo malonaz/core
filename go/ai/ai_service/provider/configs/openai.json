@@ -176,6 +176,20 @@ local p = "providers/openai/models/";
       }
     },
     {
+      "name": p + "gpt-6-luna",
+      "provider_model_id": "gpt-6-luna",
+      "description": "GPT-6 Luna on the Decisions API: answers typed questions about text and images with calibrated probabilities, about 10x faster than generating text.",
+      "decision": {
+        "context_token_limit": 1050000,
+        "image": true,
+        "pricing": {
+          "input_token_price_per_million": 0.1,
+          "input_token_cache_read_price_per_million": 0.01,
+          "input_token_cache_write_price_per_million": 0.125
+        }
+      }
+    },
+    {
       "name":  p + "whisper-1",
       "provider_model_id":  "whisper-1",
       "description":  "Whisper is a general-purpose speech recognition model, trained on a large dataset of diverse audio. You can also use it as a multitask model to perform multilingual speech recognition as well as speech translation and language identification.",

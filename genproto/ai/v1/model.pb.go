@@ -129,6 +129,8 @@ type Model struct {
 	Ttt *TttModelConfig `protobuf:"bytes,6,opt,name=ttt,proto3" json:"ttt,omitempty"`
 	// Configuration for TTS model.
 	Tts *TtsModelConfig `protobuf:"bytes,7,opt,name=tts,proto3" json:"tts,omitempty"`
+	// Configuration for decision model.
+	Decision *DecisionModelConfig `protobuf:"bytes,9,opt,name=decision,proto3" json:"decision,omitempty"`
 	// Provider-specific settings and metadata.
 	// This allows flexibility for provider-specific features without
 	// modifying the core schema.
@@ -211,6 +213,13 @@ func (x *Model) GetTts() *TtsModelConfig {
 	return nil
 }
 
+func (x *Model) GetDecision() *DecisionModelConfig {
+	if x != nil {
+		return x.Decision
+	}
+	return nil
+}
+
 func (x *Model) GetProviderSettings() *structpb.Struct {
 	if x != nil {
 		return x.ProviderSettings
@@ -246,6 +255,10 @@ func (x *Model) SetTts(v *TtsModelConfig) {
 	x.Tts = v
 }
 
+func (x *Model) SetDecision(v *DecisionModelConfig) {
+	x.Decision = v
+}
+
 func (x *Model) SetProviderSettings(v *structpb.Struct) {
 	x.ProviderSettings = v
 }
@@ -278,6 +291,13 @@ func (x *Model) HasTts() bool {
 	return x.Tts != nil
 }
 
+func (x *Model) HasDecision() bool {
+	if x == nil {
+		return false
+	}
+	return x.Decision != nil
+}
+
 func (x *Model) HasProviderSettings() bool {
 	if x == nil {
 		return false
@@ -299,6 +319,10 @@ func (x *Model) ClearTtt() {
 
 func (x *Model) ClearTts() {
 	x.Tts = nil
+}
+
+func (x *Model) ClearDecision() {
+	x.Decision = nil
 }
 
 func (x *Model) ClearProviderSettings() {
@@ -330,6 +354,8 @@ type Model_builder struct {
 	Ttt *TttModelConfig
 	// Configuration for TTS model.
 	Tts *TtsModelConfig
+	// Configuration for decision model.
+	Decision *DecisionModelConfig
 	// Provider-specific settings and metadata.
 	// This allows flexibility for provider-specific features without
 	// modifying the core schema.
@@ -347,6 +373,7 @@ func (b0 Model_builder) Build() *Model {
 	x.Stt = b.Stt
 	x.Ttt = b.Ttt
 	x.Tts = b.Tts
+	x.Decision = b.Decision
 	x.ProviderSettings = b.ProviderSettings
 	return m0
 }
@@ -738,6 +765,129 @@ func (b0 TttModelPricing_builder) Build() *TttModelPricing {
 	return m0
 }
 
+// Configuration for a decision model: one that answers the typed questions of
+// a [Decision][malonaz.ai.v1.Decision] with calibrated probabilities instead
+// of generating text.
+type DecisionModelConfig struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The maximum number of tokens in the model's context window, shared by the
+	// input and every question.
+	ContextTokenLimit int32 `protobuf:"varint,1,opt,name=context_token_limit,json=contextTokenLimit,proto3" json:"context_token_limit,omitempty"`
+	// True if the model accepts image blocks as input.
+	Image bool `protobuf:"varint,2,opt,name=image,proto3" json:"image,omitempty"`
+	// True if the model accepts document blocks as input.
+	Document bool `protobuf:"varint,3,opt,name=document,proto3" json:"document,omitempty"`
+	// Pricing for this model. Decision models bill their input only.
+	Pricing       *TttModelPricing `protobuf:"bytes,4,opt,name=pricing,proto3" json:"pricing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecisionModelConfig) Reset() {
+	*x = DecisionModelConfig{}
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecisionModelConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecisionModelConfig) ProtoMessage() {}
+
+func (x *DecisionModelConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *DecisionModelConfig) GetContextTokenLimit() int32 {
+	if x != nil {
+		return x.ContextTokenLimit
+	}
+	return 0
+}
+
+func (x *DecisionModelConfig) GetImage() bool {
+	if x != nil {
+		return x.Image
+	}
+	return false
+}
+
+func (x *DecisionModelConfig) GetDocument() bool {
+	if x != nil {
+		return x.Document
+	}
+	return false
+}
+
+func (x *DecisionModelConfig) GetPricing() *TttModelPricing {
+	if x != nil {
+		return x.Pricing
+	}
+	return nil
+}
+
+func (x *DecisionModelConfig) SetContextTokenLimit(v int32) {
+	x.ContextTokenLimit = v
+}
+
+func (x *DecisionModelConfig) SetImage(v bool) {
+	x.Image = v
+}
+
+func (x *DecisionModelConfig) SetDocument(v bool) {
+	x.Document = v
+}
+
+func (x *DecisionModelConfig) SetPricing(v *TttModelPricing) {
+	x.Pricing = v
+}
+
+func (x *DecisionModelConfig) HasPricing() bool {
+	if x == nil {
+		return false
+	}
+	return x.Pricing != nil
+}
+
+func (x *DecisionModelConfig) ClearPricing() {
+	x.Pricing = nil
+}
+
+type DecisionModelConfig_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The maximum number of tokens in the model's context window, shared by the
+	// input and every question.
+	ContextTokenLimit int32
+	// True if the model accepts image blocks as input.
+	Image bool
+	// True if the model accepts document blocks as input.
+	Document bool
+	// Pricing for this model. Decision models bill their input only.
+	Pricing *TttModelPricing
+}
+
+func (b0 DecisionModelConfig_builder) Build() *DecisionModelConfig {
+	m0 := &DecisionModelConfig{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.ContextTokenLimit = b.ContextTokenLimit
+	x.Image = b.Image
+	x.Document = b.Document
+	x.Pricing = b.Pricing
+	return m0
+}
+
 // Configuration for a tts model.
 type TtsModelConfig struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
@@ -751,7 +901,7 @@ type TtsModelConfig struct {
 
 func (x *TtsModelConfig) Reset() {
 	*x = TtsModelConfig{}
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -763,7 +913,7 @@ func (x *TtsModelConfig) String() string {
 func (*TtsModelConfig) ProtoMessage() {}
 
 func (x *TtsModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_v1_model_proto_msgTypes[5]
+	mi := &file_malonaz_ai_v1_model_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +983,7 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x13ProviderModelConfig\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12,\n" +
-	"\x06models\x18\x02 \x03(\v2\x14.malonaz.ai.v1.ModelR\x06models\"\xfc\x03\n" +
+	"\x06models\x18\x02 \x03(\v2\x14.malonaz.ai.v1.ModelR\x06models\"\xbc\x04\n" +
 	"\x05Model\x12!\n" +
 	"\x04name\x18\x01 \x01(\tB\r\xbaH\n" +
 	"\xc8\x01\x01r\x05\x10\x01\x18\x80\x01R\x04name\x129\n" +
@@ -843,7 +993,8 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x0edeprecate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\rdeprecateTime\x12/\n" +
 	"\x03stt\x18\x05 \x01(\v2\x1d.malonaz.ai.v1.SttModelConfigR\x03stt\x12/\n" +
 	"\x03ttt\x18\x06 \x01(\v2\x1d.malonaz.ai.v1.TttModelConfigR\x03ttt\x12/\n" +
-	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12D\n" +
+	"\x03tts\x18\a \x01(\v2\x1d.malonaz.ai.v1.TtsModelConfigR\x03tts\x12>\n" +
+	"\bdecision\x18\t \x01(\v2\".malonaz.ai.v1.DecisionModelConfigR\bdecision\x12D\n" +
 	"\x11provider_settings\x18\b \x01(\v2\x17.google.protobuf.StructR\x10providerSettings:M\xeaAJ\n" +
 	"\x14ai.malonaz.com/Model\x12#providers/{provider}/models/{model}*\x06models2\x05model\"\x10\n" +
 	"\x0eSttModelConfig\"\xa1\x02\n" +
@@ -863,38 +1014,46 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"#input_image_token_price_per_million\x18\x06 \x01(\x01R\x1einputImageTokenPricePerMillion\x12M\n" +
 	"$output_image_token_price_per_million\x18\a \x01(\x01R\x1foutputImageTokenPricePerMillion\x12_\n" +
 	".input_image_token_cache_read_price_per_million\x18\b \x01(\x01R'inputImageTokenCacheReadPricePerMillion\x12a\n" +
-	"/input_image_token_cache_write_price_per_million\x18\t \x01(\x01R(inputImageTokenCacheWritePricePerMillion\"\x9c\x01\n" +
+	"/input_image_token_cache_write_price_per_million\x18\t \x01(\x01R(inputImageTokenCacheWritePricePerMillion\"\xba\x01\n" +
+	"\x13DecisionModelConfig\x127\n" +
+	"\x13context_token_limit\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x12\x14\n" +
+	"\x05image\x18\x02 \x01(\bR\x05image\x12\x1a\n" +
+	"\bdocument\x18\x03 \x01(\bR\bdocument\x128\n" +
+	"\apricing\x18\x04 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\x9c\x01\n" +
 	"\x0eTtsModelConfig\x12C\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
 	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRatesBo\xeaAD\n" +
 	"\x17ai.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\bproviderZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_malonaz_ai_v1_model_proto_goTypes = []any{
 	(*ProviderModelConfig)(nil),   // 0: malonaz.ai.v1.ProviderModelConfig
 	(*Model)(nil),                 // 1: malonaz.ai.v1.Model
 	(*SttModelConfig)(nil),        // 2: malonaz.ai.v1.SttModelConfig
 	(*TttModelConfig)(nil),        // 3: malonaz.ai.v1.TttModelConfig
 	(*TttModelPricing)(nil),       // 4: malonaz.ai.v1.TttModelPricing
-	(*TtsModelConfig)(nil),        // 5: malonaz.ai.v1.TtsModelConfig
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 7: google.protobuf.Struct
-	(*v1.Format)(nil),             // 8: malonaz.audio.v1.Format
+	(*DecisionModelConfig)(nil),   // 5: malonaz.ai.v1.DecisionModelConfig
+	(*TtsModelConfig)(nil),        // 6: malonaz.ai.v1.TtsModelConfig
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
+	(*v1.Format)(nil),             // 9: malonaz.audio.v1.Format
 }
 var file_malonaz_ai_v1_model_proto_depIdxs = []int32{
-	1, // 0: malonaz.ai.v1.ProviderModelConfig.models:type_name -> malonaz.ai.v1.Model
-	6, // 1: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
-	2, // 2: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
-	3, // 3: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
-	5, // 4: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
-	7, // 5: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
-	4, // 6: malonaz.ai.v1.TttModelConfig.pricing:type_name -> malonaz.ai.v1.TttModelPricing
-	8, // 7: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	1,  // 0: malonaz.ai.v1.ProviderModelConfig.models:type_name -> malonaz.ai.v1.Model
+	7,  // 1: malonaz.ai.v1.Model.deprecate_time:type_name -> google.protobuf.Timestamp
+	2,  // 2: malonaz.ai.v1.Model.stt:type_name -> malonaz.ai.v1.SttModelConfig
+	3,  // 3: malonaz.ai.v1.Model.ttt:type_name -> malonaz.ai.v1.TttModelConfig
+	6,  // 4: malonaz.ai.v1.Model.tts:type_name -> malonaz.ai.v1.TtsModelConfig
+	5,  // 5: malonaz.ai.v1.Model.decision:type_name -> malonaz.ai.v1.DecisionModelConfig
+	8,  // 6: malonaz.ai.v1.Model.provider_settings:type_name -> google.protobuf.Struct
+	4,  // 7: malonaz.ai.v1.TttModelConfig.pricing:type_name -> malonaz.ai.v1.TttModelPricing
+	4,  // 8: malonaz.ai.v1.DecisionModelConfig.pricing:type_name -> malonaz.ai.v1.TttModelPricing
+	9,  // 9: malonaz.ai.v1.TtsModelConfig.audio_format:type_name -> malonaz.audio.v1.Format
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_model_proto_init() }
@@ -908,7 +1067,7 @@ func file_malonaz_ai_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_model_proto_rawDesc), len(file_malonaz_ai_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

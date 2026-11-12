@@ -78,4 +78,5 @@ func (c *Client) Stop() {}
 
 var (
 	_ provider.GenerateMessageClient = (*Client)(nil)
+	_ provider.CreateDecisionClient  = (*Client)(nil)
 )

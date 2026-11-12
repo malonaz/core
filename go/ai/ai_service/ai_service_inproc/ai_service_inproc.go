@@ -287,6 +287,69 @@ func (c *Client) BatchGetMessages(
 	return c.server.BatchGetMessages(ctx, request)
 }
 
+// CreateDecision asks a decision model the decision's questions and returns the answered, persisted decision.
+func (c *Client) CreateDecision(
+	ctx context.Context,
+	request *aiservicepb.CreateDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Decision, error) {
+	return c.server.CreateDecision(ctx, request)
+}
+
+// GetDecision retrieves a single decision by its resource name.
+func (c *Client) GetDecision(
+	ctx context.Context,
+	request *aiservicepb.GetDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Decision, error) {
+	return c.server.GetDecision(ctx, request)
+}
+
+// UpdateDecision updates a decision's labels and annotations and returns the updated resource.
+func (c *Client) UpdateDecision(
+	ctx context.Context,
+	request *aiservicepb.UpdateDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Decision, error) {
+	return c.server.UpdateDecision(ctx, request)
+}
+
+// DeleteDecision soft-deletes a decision by its resource name.
+func (c *Client) DeleteDecision(
+	ctx context.Context,
+	request *aiservicepb.DeleteDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Decision, error) {
+	return c.server.DeleteDecision(ctx, request)
+}
+
+// UndeleteDecision restores a soft-deleted decision by its resource name.
+func (c *Client) UndeleteDecision(
+	ctx context.Context,
+	request *aiservicepb.UndeleteDecisionRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Decision, error) {
+	return c.server.UndeleteDecision(ctx, request)
+}
+
+// ListDecisions lists the decisions of a user.
+func (c *Client) ListDecisions(
+	ctx context.Context,
+	request *aiservicepb.ListDecisionsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListDecisionsResponse, error) {
+	return c.server.ListDecisions(ctx, request)
+}
+
+// BatchGetDecisions retrieves multiple decisions by their resource names.
+func (c *Client) BatchGetDecisions(
+	ctx context.Context,
+	request *aiservicepb.BatchGetDecisionsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetDecisionsResponse, error) {
+	return c.server.BatchGetDecisions(ctx, request)
+}
+
 // ComputeStats computes a user's or an organization's AI consumption stats.
 func (c *Client) ComputeStats(
 	ctx context.Context,

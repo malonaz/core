@@ -16,7 +16,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/model.proto.
  */
 export const file_malonaz_ai_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("ChltYWxvbmF6L2FpL3YxL21vZGVsLnByb3RvEg1tYWxvbmF6LmFpLnYxIlAKE1Byb3ZpZGVyTW9kZWxDb25maWcSEwoLcHJvdmlkZXJfaWQYASABKAkSJAoGbW9kZWxzGAIgAygLMhQubWFsb25hei5haS52MS5Nb2RlbCKoAwoFTW9kZWwSGwoEbmFtZRgBIAEoCUINukgKcgUQARiAAcgBARIoChFwcm92aWRlcl9tb2RlbF9pZBgCIAEoCUINukgKcgUQARiAAcgBARIdCgtkZXNjcmlwdGlvbhgDIAEoCUIIukgFcgMYgAgSMgoOZGVwcmVjYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKA3N0dBgFIAEoCzIdLm1hbG9uYXouYWkudjEuU3R0TW9kZWxDb25maWcSKgoDdHR0GAYgASgLMh0ubWFsb25hei5haS52MS5UdHRNb2RlbENvbmZpZxIqCgN0dHMYByABKAsyHS5tYWxvbmF6LmFpLnYxLlR0c01vZGVsQ29uZmlnEjIKEXByb3ZpZGVyX3NldHRpbmdzGAggASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdDpN6kFKChRhaS5tYWxvbmF6LmNvbS9Nb2RlbBIjcHJvdmlkZXJzL3twcm92aWRlcn0vbW9kZWxzL3ttb2RlbH0qBm1vZGVsczIFbW9kZWwiEAoOU3R0TW9kZWxDb25maWcizQEKDlR0dE1vZGVsQ29uZmlnEhEKCXJlYXNvbmluZxgBIAEoCBIRCgl0b29sX2NhbGwYAiABKAgSJAoTY29udGV4dF90b2tlbl9saW1pdBgDIAEoBUIHukgEGgIoARIjChJvdXRwdXRfdG9rZW5fbGltaXQYBCABKAVCB7pIBBoCKAESLwoHcHJpY2luZxgFIAEoCzIeLm1hbG9uYXouYWkudjEuVHR0TW9kZWxQcmljaW5nEhkKEXN0cmljdF90b29sX25hbWVzGAYgASgIIsMDCg9UdHRNb2RlbFByaWNpbmcSJQodaW5wdXRfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YASABKAESJgoeb3V0cHV0X3Rva2VuX3ByaWNlX3Blcl9taWxsaW9uGAIgASgBEjAKKG91dHB1dF9yZWFzb25pbmdfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YAyABKAESMAooaW5wdXRfdG9rZW5fY2FjaGVfcmVhZF9wcmljZV9wZXJfbWlsbGlvbhgEIAEoARIxCilpbnB1dF90b2tlbl9jYWNoZV93cml0ZV9wcmljZV9wZXJfbWlsbGlvbhgFIAEoARIrCiNpbnB1dF9pbWFnZV90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgGIAEoARIsCiRvdXRwdXRfaW1hZ2VfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YByABKAESNgouaW5wdXRfaW1hZ2VfdG9rZW5fY2FjaGVfcmVhZF9wcmljZV9wZXJfbWlsbGlvbhgIIAEoARI3Ci9pbnB1dF9pbWFnZV90b2tlbl9jYWNoZV93cml0ZV9wcmljZV9wZXJfbWlsbGlvbhgJIAEoASJ5Cg5UdHNNb2RlbENvbmZpZxI2CgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEi8KFnN1cHBvcnRlZF9zYW1wbGVfcmF0ZXMYAiADKAVCD7pIDJIBCQgBIgUaAyjAPkJvWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBRAoXYWkubWFsb25hei5jb20vUHJvdmlkZXISFHByb3ZpZGVycy97cHJvdmlkZXJ9Kglwcm92aWRlcnMyCHByb3ZpZGVyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_audio_v1_audio]);
+  fileDesc("ChltYWxvbmF6L2FpL3YxL21vZGVsLnByb3RvEg1tYWxvbmF6LmFpLnYxIlAKE1Byb3ZpZGVyTW9kZWxDb25maWcSEwoLcHJvdmlkZXJfaWQYASABKAkSJAoGbW9kZWxzGAIgAygLMhQubWFsb25hei5haS52MS5Nb2RlbCLeAwoFTW9kZWwSGwoEbmFtZRgBIAEoCUINukgKcgUQARiAAcgBARIoChFwcm92aWRlcl9tb2RlbF9pZBgCIAEoCUINukgKcgUQARiAAcgBARIdCgtkZXNjcmlwdGlvbhgDIAEoCUIIukgFcgMYgAgSMgoOZGVwcmVjYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKA3N0dBgFIAEoCzIdLm1hbG9uYXouYWkudjEuU3R0TW9kZWxDb25maWcSKgoDdHR0GAYgASgLMh0ubWFsb25hei5haS52MS5UdHRNb2RlbENvbmZpZxIqCgN0dHMYByABKAsyHS5tYWxvbmF6LmFpLnYxLlR0c01vZGVsQ29uZmlnEjQKCGRlY2lzaW9uGAkgASgLMiIubWFsb25hei5haS52MS5EZWNpc2lvbk1vZGVsQ29uZmlnEjIKEXByb3ZpZGVyX3NldHRpbmdzGAggASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdDpN6kFKChRhaS5tYWxvbmF6LmNvbS9Nb2RlbBIjcHJvdmlkZXJzL3twcm92aWRlcn0vbW9kZWxzL3ttb2RlbH0qBm1vZGVsczIFbW9kZWwiEAoOU3R0TW9kZWxDb25maWcizQEKDlR0dE1vZGVsQ29uZmlnEhEKCXJlYXNvbmluZxgBIAEoCBIRCgl0b29sX2NhbGwYAiABKAgSJAoTY29udGV4dF90b2tlbl9saW1pdBgDIAEoBUIHukgEGgIoARIjChJvdXRwdXRfdG9rZW5fbGltaXQYBCABKAVCB7pIBBoCKAESLwoHcHJpY2luZxgFIAEoCzIeLm1hbG9uYXouYWkudjEuVHR0TW9kZWxQcmljaW5nEhkKEXN0cmljdF90b29sX25hbWVzGAYgASgIIsMDCg9UdHRNb2RlbFByaWNpbmcSJQodaW5wdXRfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YASABKAESJgoeb3V0cHV0X3Rva2VuX3ByaWNlX3Blcl9taWxsaW9uGAIgASgBEjAKKG91dHB1dF9yZWFzb25pbmdfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YAyABKAESMAooaW5wdXRfdG9rZW5fY2FjaGVfcmVhZF9wcmljZV9wZXJfbWlsbGlvbhgEIAEoARIxCilpbnB1dF90b2tlbl9jYWNoZV93cml0ZV9wcmljZV9wZXJfbWlsbGlvbhgFIAEoARIrCiNpbnB1dF9pbWFnZV90b2tlbl9wcmljZV9wZXJfbWlsbGlvbhgGIAEoARIsCiRvdXRwdXRfaW1hZ2VfdG9rZW5fcHJpY2VfcGVyX21pbGxpb24YByABKAESNgouaW5wdXRfaW1hZ2VfdG9rZW5fY2FjaGVfcmVhZF9wcmljZV9wZXJfbWlsbGlvbhgIIAEoARI3Ci9pbnB1dF9pbWFnZV90b2tlbl9jYWNoZV93cml0ZV9wcmljZV9wZXJfbWlsbGlvbhgJIAEoASKNAQoTRGVjaXNpb25Nb2RlbENvbmZpZxIkChNjb250ZXh0X3Rva2VuX2xpbWl0GAEgASgFQge6SAQaAigBEg0KBWltYWdlGAIgASgIEhAKCGRvY3VtZW50GAMgASgIEi8KB3ByaWNpbmcYBCABKAsyHi5tYWxvbmF6LmFpLnYxLlR0dE1vZGVsUHJpY2luZyJ5Cg5UdHNNb2RlbENvbmZpZxI2CgxhdWRpb19mb3JtYXQYASABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEi8KFnN1cHBvcnRlZF9zYW1wbGVfcmF0ZXMYAiADKAVCD7pIDJIBCQgBIgUaAyjAPkJvWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MepBRAoXYWkubWFsb25hei5jb20vUHJvdmlkZXISFHByb3ZpZGVycy97cHJvdmlkZXJ9Kglwcm92aWRlcnMyCHByb3ZpZGVyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_descriptor, file_google_protobuf_struct, file_google_protobuf_timestamp, file_malonaz_audio_v1_audio]);
 
 /**
  * Holds a provider config.
@@ -131,6 +131,13 @@ export type Model = Message<"malonaz.ai.v1.Model"> & {
   tts?: TtsModelConfig;
 
   /**
+   * Configuration for decision model.
+   *
+   * @generated from field: malonaz.ai.v1.DecisionModelConfig decision = 9;
+   */
+  decision?: DecisionModelConfig;
+
+  /**
    * Provider-specific settings and metadata.
    * This allows flexibility for provider-specific features without
    * modifying the core schema.
@@ -202,6 +209,13 @@ export type ModelValid = Message<"malonaz.ai.v1.Model"> & {
    * @generated from field: malonaz.ai.v1.TtsModelConfig tts = 7;
    */
   tts?: TtsModelConfigValid;
+
+  /**
+   * Configuration for decision model.
+   *
+   * @generated from field: malonaz.ai.v1.DecisionModelConfig decision = 9;
+   */
+  decision?: DecisionModelConfigValid;
 
   /**
    * Provider-specific settings and metadata.
@@ -377,6 +391,53 @@ export const TttModelPricingSchema: GenMessage<TttModelPricing, {validType: TttM
   messageDesc(file_malonaz_ai_v1_model, 4);
 
 /**
+ * Configuration for a decision model: one that answers the typed questions of
+ * a [Decision][malonaz.ai.v1.Decision] with calibrated probabilities instead
+ * of generating text.
+ *
+ * @generated from message malonaz.ai.v1.DecisionModelConfig
+ */
+export type DecisionModelConfig = Message<"malonaz.ai.v1.DecisionModelConfig"> & {
+  /**
+   * The maximum number of tokens in the model's context window, shared by the
+   * input and every question.
+   *
+   * @generated from field: int32 context_token_limit = 1;
+   */
+  contextTokenLimit: number;
+
+  /**
+   * True if the model accepts image blocks as input.
+   *
+   * @generated from field: bool image = 2;
+   */
+  image: boolean;
+
+  /**
+   * True if the model accepts document blocks as input.
+   *
+   * @generated from field: bool document = 3;
+   */
+  document: boolean;
+
+  /**
+   * Pricing for this model. Decision models bill their input only.
+   *
+   * @generated from field: malonaz.ai.v1.TttModelPricing pricing = 4;
+   */
+  pricing?: TttModelPricing;
+};
+
+export type DecisionModelConfigValid = DecisionModelConfig;
+
+/**
+ * Describes the message malonaz.ai.v1.DecisionModelConfig.
+ * Use `create(DecisionModelConfigSchema)` to create a new message.
+ */
+export const DecisionModelConfigSchema: GenMessage<DecisionModelConfig, {validType: DecisionModelConfigValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_v1_model, 5);
+
+/**
  * Configuration for a tts model.
  *
  * @generated from message malonaz.ai.v1.TtsModelConfig
@@ -423,5 +484,5 @@ export type TtsModelConfigValid = Message<"malonaz.ai.v1.TtsModelConfig"> & {
  * Use `create(TtsModelConfigSchema)` to create a new message.
  */
 export const TtsModelConfigSchema: GenMessage<TtsModelConfig, {validType: TtsModelConfigValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_v1_model, 5);
+  messageDesc(file_malonaz_ai_v1_model, 6);
 

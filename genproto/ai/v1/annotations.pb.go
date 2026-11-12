@@ -27,7 +27,7 @@ var File_malonaz_ai_v1_annotations_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_annotations_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/v1/annotations.proto\x12\rmalonaz.ai.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\x92\n" +
+	"\x1fmalonaz/ai/v1/annotations.proto\x12\rmalonaz.ai.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xd4\n" +
 	"\x9a\x95\x15i\n" +
 	"\x1fai-engine.malonaz.com/tool-type\x12FThe kind of tool: discovery, generate-message or generate-rpc-request.\x9a\x95\x15`\n" +
 	"\"ai-engine.malonaz.com/grpc-service\x12:Fully-qualified name of the gRPC service backing the tool.\x9a\x95\x15^\n" +
@@ -38,8 +38,8 @@ const file_malonaz_ai_v1_annotations_proto_rawDesc = "" +
 	"#ai-engine.malonaz.com/tool-set-name\x12>The tool set the tool belongs to; routes discovery tool calls.\x9a\x95\x15\x9b\x01\n" +
 	"'ai-engine.malonaz.com/discoverable-tool\x12p\"true\" when the tool must be discovered before use, \"false\" when it belongs to a tool set but is pre-discovered.\x9a\x95\x15m\n" +
 	")ai-engine.malonaz.com/pre-discovered-tool\x12@\"true\" when the tool is available without a discovery tool call.\x9a\x95\x15{\n" +
-	"&ai-engine.malonaz.com/discovered-tools\x12QComma-separated tool names returned by a discovery tool call, on its tool result.\x9a\x95\x15s\n" +
-	"\x17mock.malonaz.com/script\x12XMock provider script on a message: a JSON array of Messages replayed one per generation.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"&ai-engine.malonaz.com/discovered-tools\x12QComma-separated tool names returned by a discovery tool call, on its tool result.\x9a\x95\x15\xb4\x01\n" +
+	"\x17mock.malonaz.com/script\x12\x98\x01Mock provider script. On a message: a JSON array of Messages replayed one per generation. On a decision: a JSON array of its Answers, in question order.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_annotations_proto_goTypes = []any{}
 var file_malonaz_ai_v1_annotations_proto_depIdxs = []int32{

@@ -1,0 +1,29 @@
+local p = "providers/typesafe/models/";
+
+{
+  "provider_id": "typesafe",
+  "models": [
+    {
+      "name": p + "jev-1.14",
+      "provider_model_id": "jev-1.14.0",
+      "description": "Jev 1.14 is TypeSafe's latest System One model: it answers typed questions about text with calibrated probabilities and generates no text.",
+      "decision": {
+        "context_token_limit": 64000,
+        "pricing": {
+          "input_token_price_per_million": 0.042
+        }
+      }
+    },
+    {
+      "name": p + "jev-1.13",
+      "provider_model_id": "jev-1.13.0",
+      "description": "Jev 1.13 is TypeSafe's previous System One model: it answers typed questions about text with calibrated probabilities and generates no text.",
+      "decision": {
+        "context_token_limit": 64000,
+        "pricing": {
+          "input_token_price_per_million": 0.042
+        }
+      }
+    }
+  ]
+}
