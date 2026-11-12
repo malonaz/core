@@ -5,6 +5,7 @@ subinclude("//build_defs:utils")
 def postgres_migrations(
         name:str,
         dirs:list,
+        includes:list=[],
         visibility:list=[],
 ):
     # `dirs` only enumerates the directories holding .sql files. The order in
@@ -15,6 +16,17 @@ def postgres_migrations(
     srcs = ["manifest.yaml"]
     for dir in dirs:
         srcs += glob(f"{dir}/*.sql")
+
+    # `includes` are directories of migrations another package owns (e.g. core's
+    # outbox journal). They are copied in under their own directory name, so the
+    # manifest orders them among this database's own.
+    if includes:
+        srcs += [genrule(
+            name = f"_{name}#includes",
+            srcs = includes,
+            output_dirs = ["_includes"],
+            cmd = 'for src in $SRCS; do dir=_includes/$(basename $(dirname $src)) && mkdir -p $dir && cp $src $dir; done',
+        )]
 
     filegroup(
         name = name,

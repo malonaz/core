@@ -7,7 +7,6 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 
 	"github.com/malonaz/core/tools/protoc-gen-core/goident"
-	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
 
 func (mc *methodCtx) generateDelete() error {
@@ -118,8 +117,8 @@ func (mc *methodCtx) generateSoftDeleteBody(method *protogen.Method) {
 		g.P("        }")
 	} else if mc.outbox && mc.declares("Deleted") {
 		// Already a tombstone: no write of its own for the event to ride on.
-		g.P(fmt.Sprintf("        if err := s.%s(ctx, s.store.%s(), %s); err != nil {",
-			mc.outboxPublisherFN("Deleted"), schema.JournalFN(mc.schemaName), goident.Var(resourceGoName)))
+		g.P(fmt.Sprintf("        if err := s.%s(ctx, s.store.Journal(), %s); err != nil {",
+			mc.outboxPublisherFN("Deleted"), goident.Var(resourceGoName)))
 		g.P("          return nil, err")
 		g.P("        }")
 	}

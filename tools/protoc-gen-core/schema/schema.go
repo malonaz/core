@@ -1101,29 +1101,3 @@ func persistedMessage(registry *resource.Registry, parsedResource *resource.Pars
 	}
 	return message, true, nil
 }
-
-// JournalTableName is the one table a schema's outbox resources publish their
-// events to: a single journal per schema, whatever resources write to it.
-const JournalTableName = "journal"
-
-// Journal returns the journal table of a resource table's schema.
-func Journal(table Table) Table {
-	return Table{Schema: table.Schema, Name: JournalTableName}
-}
-
-// JournalTableVar is the Go constant a store holds a schema's journal table
-// name in.
-func JournalTableVar(schemaName string) string {
-	return xstrings.ToCamelCase(schemaName) + "JournalTable"
-}
-
-// JournalFN is the store method returning a schema's journal outside any
-// write's transaction.
-func JournalFN(schemaName string) string {
-	return xstrings.ToPascalCase(schemaName) + "Journal"
-}
-
-// JournalClaimFN is the store method a schema's poller drains its journal with.
-func JournalClaimFN(schemaName string) string {
-	return "Claim" + xstrings.ToPascalCase(schemaName) + "Journal"
-}

@@ -47,15 +47,14 @@ type libraryServiceStore interface {
 	libraryService_BookReviewStore
 	libraryService_NoteStore
 	libraryService_CaseStore
-	ClaimLibraryJournal(ctx context.Context, limit int, publish outbox.PublishFn) (int, error)
+	ClaimJournal(ctx context.Context, limit int, publish outbox.PublishFn) (int, error)
 }
 
 type LibraryServiceServer struct {
 	natsClient             *nats.Client
 	schedulerServiceClient v1.SchedulerServiceClient
 	runner                 LibraryServiceRunner
-	store                  libraryServiceStore
-	outboxPollers          []*outbox.Poller
+	outboxPoller           *outbox.Poller
 	*libraryService_AuthorServer
 	*libraryService_AuthorProfileServer
 	*libraryService_LibraryConfigServer
@@ -68,10 +67,13 @@ type LibraryServiceServer struct {
 
 func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner) *LibraryServiceServer {
 	return &LibraryServiceServer{
-		natsClient:                         natsClient,
-		schedulerServiceClient:             schedulerServiceClient,
-		runner:                             runner,
-		store:                              store,
+		natsClient:             natsClient,
+		schedulerServiceClient: schedulerServiceClient,
+		runner:                 runner,
+		outboxPoller: outbox.NewPoller(outbox.PollerOpts{
+			Name:  "library-service-outbox",
+			Claim: store.ClaimJournal,
+		}, natsClient),
 		libraryService_AuthorServer:        newLibraryService_AuthorServer(store),
 		libraryService_AuthorProfileServer: newLibraryService_AuthorProfileServer(store),
 		libraryService_LibraryConfigServer: newLibraryService_LibraryConfigServer(store),
@@ -93,20 +95,13 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 			return fmt.Errorf("creating stream %q: %w", streamOptions.GetName(), err)
 		}
 	}
-	s.outboxPollers = []*outbox.Poller{
-		outbox.NewPoller(outbox.PollerOpts{
-			Name:  "library-service-library-outbox",
-			Claim: s.store.ClaimLibraryJournal,
-		}, s.natsClient).Start(ctx),
-	}
+	s.outboxPoller.Start(ctx)
 	return nil
 }
 
 // Close stops the LibraryService's background work.
 func (s *LibraryServiceServer) Close() {
-	for _, poller := range s.outboxPollers {
-		poller.Close()
-	}
+	s.outboxPoller.Close()
 }
 
 // LibraryServiceRunner does the work of LibraryService's long-running operations. The
@@ -1179,7 +1174,7 @@ type libraryService_ShelfStore interface {
 	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time, journal outbox.JournalFn[*model.Shelf]) (*model.Shelf, error)
 	UndeleteShelf(ctx context.Context, organizationId, shelfId string, journal outbox.JournalFn[*model.Shelf]) (*model.Shelf, error)
 	GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
-	LibraryJournal() *outbox.Journal
+	Journal() *outbox.Journal
 	BatchGetShelves(ctx context.Context, organizationIds []string, shelfIds []string) ([]*model.Shelf, error)
 	ListShelves(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Shelf, error)
 }
@@ -1487,7 +1482,7 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 				if err != nil {
 					return nil, err
 				}
-				if err := s.publishShelfDeletedEvents(ctx, s.store.LibraryJournal(), shelf); err != nil {
+				if err := s.publishShelfDeletedEvents(ctx, s.store.Journal(), shelf); err != nil {
 					return nil, err
 				}
 				return shelf, nil

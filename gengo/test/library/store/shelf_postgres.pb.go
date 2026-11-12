@@ -18,19 +18,15 @@ var (
 	ShelfWritePostgresColumns = postgres.GetDBColumns(model.Shelf{}, postgres.ExceptColumns("best_book_page_count", "latest_book", "latest_book_title", "latest_draft_book", "total_page_count", "book_count", "total_price", "last_book_create_time", "uninventoried_book_count", "oldest_uninventoried_book"))
 )
 
-// libraryJournalTable is the outbox journal of the library schema: one row per message a
-// write published, deleted once the poller has published it to NATS.
-const libraryJournalTable = "library.journal"
-
-// LibraryJournal publishes to the library journal outside any write's transaction,
+// Journal publishes to the outbox journal outside any write's transaction,
 // for events about rows that are already committed.
-func (s *Store) LibraryJournal() *outbox.Journal {
-	return outbox.NewJournal(s.client, libraryJournalTable)
+func (s *Store) Journal() *outbox.Journal {
+	return outbox.NewJournal(s.client)
 }
 
-// ClaimLibraryJournal claims the oldest entries of the library journal and deletes the ones publish published.
-func (s *Store) ClaimLibraryJournal(ctx context.Context, limit int, publish outbox.PublishFn) (int, error) {
-	return outbox.Claim(ctx, s.client, libraryJournalTable, limit, publish)
+// ClaimJournal claims the oldest entries of the outbox journal and deletes the ones publish published.
+func (s *Store) ClaimJournal(ctx context.Context, limit int, publish outbox.PublishFn) (int, error) {
+	return outbox.Claim(ctx, s.client, limit, publish)
 }
 
 var shelfJoinSubqueryExpr = `,(SELECT best_book.page_count FROM library.book AS best_book WHERE best_book.organization_id = shelf.organization_id AND best_book.shelf_id = shelf.shelf_id AND best_book.book_id = split_part(shelf.best_book, '/', 6)) AS best_book_page_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book,(SELECT book.title FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0) ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_book_title,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.title LIKE 'Draft%') ORDER BY book.create_time DESC NULLS LAST, book.book_id LIMIT 1) AS latest_draft_book,(SELECT SUM(book.page_count) FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND (book.page_count > 0)) AS total_page_count,(SELECT COUNT(*) FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id) AS book_count,(SELECT SUM(book.price) FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id) AS total_price,(SELECT MAX(book.create_time) FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id) AS last_book_create_time,(SELECT COUNT(*) FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND ((NOT (shelf.inventory_time IS NOT NULL)) OR (book.create_time > shelf.inventory_time))) AS uninventoried_book_count,(SELECT 'organizations/' || book.organization_id || '/shelves/' || book.shelf_id || '/books/' || book.book_id FROM library.book AS book WHERE book.organization_id = shelf.organization_id AND book.shelf_id = shelf.shelf_id AND ((NOT (shelf.inventory_time IS NOT NULL)) OR (book.create_time > shelf.inventory_time)) ORDER BY book.create_time ASC NULLS LAST, book.book_id LIMIT 1) AS oldest_uninventoried_book`
@@ -118,7 +114,7 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 		}
 
 		if journal != nil {
-			if err := journal(ctx, outbox.NewJournal(tx, libraryJournalTable), inserted); err != nil {
+			if err := journal(ctx, outbox.NewJournal(tx), inserted); err != nil {
 				return err
 			}
 		}
@@ -186,7 +182,7 @@ func (s *Store) UpdateShelf(ctx context.Context, _shelf *model.Shelf, updateClau
 			return err
 		}
 		if journal != nil {
-			if err := journal(ctx, outbox.NewJournal(tx, libraryJournalTable), []*model.Shelf{result}); err != nil {
+			if err := journal(ctx, outbox.NewJournal(tx), []*model.Shelf{result}); err != nil {
 				return err
 			}
 		}
@@ -250,7 +246,7 @@ func (s *Store) SoftDeleteShelf(ctx context.Context, organizationId, shelfId str
 		}
 
 		if journal != nil {
-			if err := journal(ctx, outbox.NewJournal(tx, libraryJournalTable), []*model.Shelf{result}); err != nil {
+			if err := journal(ctx, outbox.NewJournal(tx), []*model.Shelf{result}); err != nil {
 				return err
 			}
 		}
@@ -291,7 +287,7 @@ func (s *Store) UndeleteShelf(ctx context.Context, organizationId, shelfId strin
 			return err
 		}
 		if journal != nil {
-			if err := journal(ctx, outbox.NewJournal(tx, libraryJournalTable), []*model.Shelf{result}); err != nil {
+			if err := journal(ctx, outbox.NewJournal(tx), []*model.Shelf{result}); err != nil {
 				return err
 			}
 		}
