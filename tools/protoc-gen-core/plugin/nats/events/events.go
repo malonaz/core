@@ -246,10 +246,10 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 
 	// Publish method.
 	if eventType == "Updated" {
-		g.P("func (s *", structName, ") Publish(ctx ", gen.ident(contextPkg, "Context"), ", publisher ", gen.ident(natsCPkg, "Publisher"), ", resource *", protoType, ", previousResource *", protoType, ", updateMask *", gen.ident(fieldmaskPkg, "FieldMask"), ") error {")
+		g.P("func (s *", structName, ") Publish(ctx ", gen.ident(contextPkg, "Context"), ", natsClient *", gen.ident(natsCPkg, "Client"), ", resource *", protoType, ", previousResource *", protoType, ", updateMask *", gen.ident(fieldmaskPkg, "FieldMask"), ") error {")
 		g.P("  ok, err := s.evaluate(resource, previousResource, updateMask)")
 	} else {
-		g.P("func (s *", structName, ") Publish(ctx ", gen.ident(contextPkg, "Context"), ", publisher ", gen.ident(natsCPkg, "Publisher"), ", resource *", protoType, ") error {")
+		g.P("func (s *", structName, ") Publish(ctx ", gen.ident(contextPkg, "Context"), ", natsClient *", gen.ident(natsCPkg, "Client"), ", resource *", protoType, ") error {")
 		g.P("  ok, err := s.evaluate(resource)")
 	}
 	g.P("  if err != nil {")
@@ -279,7 +279,7 @@ func generateSubjectStruct(gen *generator, message *protogen.Message, patterns [
 	g.P("  if err != nil {")
 	g.P("    return ", gen.ident(fmtPkg, "Errorf"), "(\"constructing resource event: %w\", err)")
 	g.P("  }")
-	g.P("  return publisher.Publish(ctx, subject, event)")
+	g.P("  return natsClient.Publish(ctx, subject, event)")
 	g.P("}")
 	g.P()
 

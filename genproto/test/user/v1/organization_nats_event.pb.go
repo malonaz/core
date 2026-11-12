@@ -45,7 +45,7 @@ func (s *OrganizationCreatedSubject) evaluate(resource *Organization) (bool, err
 	return true, nil
 }
 
-func (s *OrganizationCreatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Organization) error {
+func (s *OrganizationCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Organization) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func (s *OrganizationCreatedSubject) Publish(ctx context.Context, publisher nats
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationCreatedSubject) set(resource *Organization) error {
@@ -98,7 +98,7 @@ func (s *OrganizationUpdatedSubject) evaluate(resource *Organization, previousRe
 	return true, nil
 }
 
-func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Organization, previousResource *Organization, updateMask *fieldmaskpb.FieldMask) error {
+func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Organization, previousResource *Organization, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (s *OrganizationUpdatedSubject) Publish(ctx context.Context, publisher nats
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationUpdatedSubject) set(resource *Organization) error {
@@ -151,7 +151,7 @@ func (s *OrganizationDeletedSubject) evaluate(resource *Organization) (bool, err
 	return true, nil
 }
 
-func (s *OrganizationDeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Organization) error {
+func (s *OrganizationDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Organization) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -170,7 +170,7 @@ func (s *OrganizationDeletedSubject) Publish(ctx context.Context, publisher nats
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return publisher.Publish(ctx, subject, event)
+	return natsClient.Publish(ctx, subject, event)
 }
 
 func (s *OrganizationDeletedSubject) set(resource *Organization) error {

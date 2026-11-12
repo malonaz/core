@@ -21,7 +21,6 @@ go_library(
     test_only = True,
     visibility = ["//..."],
     deps = [
-        "//go/outbox",
         "//go/postgres",
         "//go/test/library/model",
         "//third_party/go:github.com__jackc__pgx__v5",

@@ -173,7 +173,6 @@ func (mc *methodCtx) generateUpdate() error {
 	if mc.hasEtag {
 		updateArgs += ", etag"
 	}
-	updateArgs += mc.updatedJournalArg("existing" + resourceGoName)
 	g.P(fmt.Sprintf("  db%s, err := s.store.%s(%s)", mc.modelGoName, storeMethod, updateArgs))
 	g.P("  if err != nil {")
 	if !mc.lazy {
@@ -288,7 +287,7 @@ func (mc *methodCtx) generatePreconditionCheck(resourceGoName string) {
 }
 
 func (mc *methodCtx) generateUpdatedEvents(resourceVar, existingVar string) {
-	if !mc.publishesInline("Updated") {
+	if mc.mi.natsEventOpts == nil || len(mc.mi.natsEventOpts.GetUpdated()) == 0 {
 		return
 	}
 	mc.g.P("  // STEP 5: Publish events.")

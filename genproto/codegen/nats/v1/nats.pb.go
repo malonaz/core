@@ -52,15 +52,7 @@ type EventOptions struct {
 	Undeleted []*EventMethodOptions `protobuf:"bytes,6,rep,name=undeleted,proto3" json:"undeleted,omitempty"`
 	// Options for imported events, published for every resource stored by its Import method.
 	// If unset, no imported event is generated.
-	Imported []*EventMethodOptions `protobuf:"bytes,7,rep,name=imported,proto3" json:"imported,omitempty"`
-	// If true, this resource's events are not published inline by the RPC that
-	// caused them. They are written to its schema's outbox journal in the same
-	// database transaction as the write, and the service's outbox poller
-	// publishes them to NATS and deletes them. A committed write and its events
-	// therefore cannot diverge.
-	//
-	// Requires a `journal` table in the resource's schema; see go/outbox.
-	Outbox        bool `protobuf:"varint,8,opt,name=outbox,proto3" json:"outbox,omitempty"`
+	Imported      []*EventMethodOptions `protobuf:"bytes,7,rep,name=imported,proto3" json:"imported,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -139,13 +131,6 @@ func (x *EventOptions) GetImported() []*EventMethodOptions {
 	return nil
 }
 
-func (x *EventOptions) GetOutbox() bool {
-	if x != nil {
-		return x.Outbox
-	}
-	return false
-}
-
 func (x *EventOptions) SetStream(v string) {
 	x.Stream = v
 }
@@ -174,10 +159,6 @@ func (x *EventOptions) SetImported(v []*EventMethodOptions) {
 	x.Imported = v
 }
 
-func (x *EventOptions) SetOutbox(v bool) {
-	x.Outbox = v
-}
-
 type EventOptions_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -204,14 +185,6 @@ type EventOptions_builder struct {
 	// Options for imported events, published for every resource stored by its Import method.
 	// If unset, no imported event is generated.
 	Imported []*EventMethodOptions
-	// If true, this resource's events are not published inline by the RPC that
-	// caused them. They are written to its schema's outbox journal in the same
-	// database transaction as the write, and the service's outbox poller
-	// publishes them to NATS and deletes them. A committed write and its events
-	// therefore cannot diverge.
-	//
-	// Requires a `journal` table in the resource's schema; see go/outbox.
-	Outbox bool
 }
 
 func (b0 EventOptions_builder) Build() *EventOptions {
@@ -225,7 +198,6 @@ func (b0 EventOptions_builder) Build() *EventOptions {
 	x.Deleted = b.Deleted
 	x.Undeleted = b.Undeleted
 	x.Imported = b.Imported
-	x.Outbox = b.Outbox
 	return m0
 }
 
@@ -386,7 +358,7 @@ var File_malonaz_codegen_nats_v1_nats_proto protoreflect.FileDescriptor
 
 const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\n" +
-	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xdc\x03\n" +
+	"\"malonaz/codegen/nats/v1/nats.proto\x12\x17malonaz.codegen.nats.v1\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/descriptor.proto\x1a\x1cmalonaz/nats/v1/stream.proto\"\xc4\x03\n" +
 	"\fEventOptions\x12\x1e\n" +
 	"\x06stream\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x06stream\x12+\n" +
 	"\x11resource_segments\x18\x02 \x03(\tR\x10resourceSegments\x12E\n" +
@@ -394,8 +366,7 @@ const file_malonaz_codegen_nats_v1_nats_proto_rawDesc = "" +
 	"\aupdated\x18\x04 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\aupdated\x12E\n" +
 	"\adeleted\x18\x05 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\adeleted\x12I\n" +
 	"\tundeleted\x18\x06 \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\tundeleted\x12G\n" +
-	"\bimported\x18\a \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\bimported\x12\x16\n" +
-	"\x06outbox\x18\b \x01(\bR\x06outbox\"o\n" +
+	"\bimported\x18\a \x03(\v2+.malonaz.codegen.nats.v1.EventMethodOptionsR\bimported\"o\n" +
 	"\x12EventMethodOptions\x12 \n" +
 	"\asubject\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\asubject\x12%\n" +
 	"\x0esubject_fields\x18\x02 \x03(\tR\rsubjectFields\x12\x10\n" +

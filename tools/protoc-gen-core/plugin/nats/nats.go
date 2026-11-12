@@ -2,17 +2,12 @@
 package nats
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
-
-	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
-	"github.com/malonaz/core/go/pbutil"
 
 	natspb "github.com/malonaz/core/genproto/nats/v1"
 )
@@ -94,17 +89,4 @@ func GenerateStreamSingleton(g *protogen.GeneratedFile, streamOptions *natspb.St
 	g.P("  return s.stream")
 	g.P("}")
 	g.P()
-}
-
-// Outbox reports whether a message's events are published to its schema's
-// outbox journal in the write's own transaction, rather than inline by the RPC.
-func Outbox(message *protogen.Message) (bool, error) {
-	eventOptions, err := pbutil.GetExtension[*codegennatspb.EventOptions](message.Desc.Options(), codegennatspb.E_Event)
-	if err != nil {
-		if errors.Is(err, pbutil.ErrExtensionNotFound) {
-			return false, nil
-		}
-		return false, fmt.Errorf("getting nats event opts for %s: %w", message.GoIdent.GoName, err)
-	}
-	return eventOptions.GetOutbox(), nil
 }
