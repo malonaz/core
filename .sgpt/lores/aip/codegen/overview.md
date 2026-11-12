@@ -161,7 +161,7 @@ registry is per package — cross-package parent/child links do not exist):
   `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. A write
   whose event exceeds `outbox.MaxPayload` fails (`ErrPayloadTooLarge`)
   rather than journal what NATS never accepts. A failed publish records
-  `last_error`; only a rejection (`nats.IsRejected`: NATS refused the message
+  `last_error`; only a rejection (`nats.IsRejected`: too large, wrong stream or sealed stream; NATS refused the message
   itself, not an outage) counts in `attempts`, and at 5 the entry is dead:
   claims skip it, `outbox_journal_dead_entries_total` counts it, and a human
   fixes the cause then resets `attempts` or deletes the row. Events
