@@ -373,9 +373,9 @@ func (c *Client) StreamGenerateMessage(
 		}
 	}
 
-	// Vertex closes a streamed call with a chunk of its own, and drops one it
-	// judges malformed mid-arguments (MALFORMED_FUNCTION_CALL) without it.
-	if toolName, ok := tca.Unfinished(); ok && sender.Err() == nil {
+	// Vertex may end its last call at STOP with no closing chunk; any other end
+	// (MALFORMED_FUNCTION_CALL, MAX_TOKENS, a cut stream) drops it mid-arguments.
+	if toolName, ok := tca.Unfinished(); ok && finishReason != genai.FinishReasonStop && sender.Err() == nil {
 		return status.Errorf(codes.Unavailable, "%s: stream ended before tool call %q was complete (finish reason %q)", model.GetProviderModelId(), toolName, finishReason).
 			WithErrorInfo(ai.ErrorInfoReasonToolCallUnfinished, c.ProviderId(), map[string]string{
 				"model":         model.GetName(),

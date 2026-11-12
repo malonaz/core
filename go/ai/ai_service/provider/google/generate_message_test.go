@@ -259,6 +259,27 @@ func TestUnfinishedToolCall(t *testing.T) {
 	}
 }
 
+// The last call may end at STOP with no closing chunk: it is complete.
+func TestToolCallEndedByStop(t *testing.T) {
+	vertex := &fakeVertex{chunks: []string{
+		functionCallChunk(`{"name":"Get_Workspace","id":"TckprinQ","willContinue":true}`),
+		functionCallChunk(`{"name":"AdvertisingGateway_Discover","id":"Xq2v9LmA","willContinue":true}`),
+		partialArgChunk(`{"jsonPath":"$.methods[0]","stringValue":"ListCampaigns"}`),
+		stopChunk,
+	}}
+	responses, err := generate(t, vertex)
+	require.NoError(t, err)
+
+	arguments := map[string]map[string]any{}
+	for _, toolCall := range toolCalls(responses) {
+		arguments[toolCall.GetName()] = toolCall.GetArguments().AsMap()
+	}
+	require.Equal(t, map[string]map[string]any{
+		"Get_Workspace":               {},
+		"AdvertisingGateway_Discover": {"methods": []any{"ListCampaigns"}},
+	}, arguments)
+}
+
 // A call may end at the next call's first chunk rather than at a closing chunk of its own.
 func TestToolCallEndedByTheNext(t *testing.T) {
 	vertex := &fakeVertex{chunks: append(slices.Clone(updateReportRevisionChunks),
