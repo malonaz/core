@@ -153,8 +153,10 @@ registry is per package — cross-package parent/child links do not exist):
   There is no inline publish, so an event lands up to ~250ms after commit.
   `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals
   buffer while a cluster is drained. The schema needs the `journal` table
-  (reference: `go/test/library/migrations/library/014_outbox_journal.sql`);
-  lazy singletons are rejected. Reference: `Shelf`.
+  (reference: `go/test/library/migrations/library/014_outbox_journal.sql`),
+  copied with its autovacuum settings: every row is inserted then deleted, so
+  vacuum triggers on a fixed dead-row count rather than a fraction of a
+  drained backlog. Lazy singletons are rejected. Reference: `Shelf`.
 
 ## Customizing
 

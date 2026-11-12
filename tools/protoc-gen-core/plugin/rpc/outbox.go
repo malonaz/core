@@ -8,8 +8,8 @@ import (
 	"github.com/huandu/xstrings"
 	"google.golang.org/protobuf/compiler/protogen"
 
-	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	modelpb "github.com/malonaz/core/genproto/codegen/model/v1"
+	codegennatspb "github.com/malonaz/core/genproto/codegen/nats/v1"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/goident"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
