@@ -125,11 +125,11 @@ func TestNewResponseParams(t *testing.T) {
 	require.Empty(t, params.Reasoning.Effort)
 
 	// A model that does not reason is sent no reasoning settings.
-	params, err = newResponseParams(&aipb.Model{ProviderModelId: "gpt-4.1", Ttt: &aipb.TttModelConfig{}}, request, nil)
+	params, err = newResponseParams(&aipb.Model{ProviderModelId: "gpt-plain", Ttt: &aipb.TttModelConfig{}}, request, nil)
 	require.NoError(t, err)
 	paramsBytes, err = json.Marshal(params)
 	require.NoError(t, err)
-	require.JSONEq(t, `{"model": "gpt-4.1", "store": false, "include": ["reasoning.encrypted_content"]}`, string(paramsBytes))
+	require.JSONEq(t, `{"model": "gpt-plain", "store": false, "include": ["reasoning.encrypted_content"]}`, string(paramsBytes))
 }
 
 // messageStream collects what a provider sends.

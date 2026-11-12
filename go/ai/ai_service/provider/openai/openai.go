@@ -15,9 +15,8 @@ import (
 )
 
 type config struct {
-	ID         string
-	BaseUrl    string
-	PcmSupport bool
+	ID      string
+	BaseUrl string
 	// Generates messages through the Responses API rather than Chat Completions.
 	ResponsesAPI bool
 }
@@ -26,7 +25,6 @@ var (
 	configOpenAI = &config{
 		ID:           provider.Openai,
 		BaseUrl:      "https://api.openai.com/v1",
-		PcmSupport:   true,
 		ResponsesAPI: true,
 	}
 
@@ -67,7 +65,8 @@ func (c *config) clientConfig(apiKey string) openai.ClientConfig {
 	return clientConfig
 }
 
-// Client implements all AI interfaces using OpenAI's API.
+// Client generates messages, transcribes speech and answers decisions through
+// OpenAI's API and the APIs compatible with it.
 type Client struct {
 	config       *config
 	apiKey       string
@@ -149,7 +148,6 @@ func (c *Client) StreamGenerateMessage(
 // Verify interface compliance at compile time.
 var (
 	_ provider.SpeechToTextClient    = (*Client)(nil)
-	_ provider.TextToSpeechClient    = (*Client)(nil)
 	_ provider.GenerateMessageClient = (*Client)(nil)
 	_ provider.CreateDecisionClient  = (*Client)(nil)
 )

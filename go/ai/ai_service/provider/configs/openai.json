@@ -318,52 +318,13 @@ local effortsPro = effortsUpToXhigh {
       "provider_settings": effortsPro
     },
 
-    // Speech.
+    // Speech. OpenAI's text-to-speech models shut down on 2027-01-06 with no successor on
+    // /v1/audio/speech (it moved to the Realtime API), so none is configured.
     {
       "name": p + "gpt-transcribe",
       "provider_model_id": "gpt-transcribe",
       "description": "GPT Transcribe is OpenAI's speech-to-text model for recorded audio, billed by audio duration.",
       "stt": {}
-    },
-    {
-      "name": p + "whisper-1",
-      "provider_model_id": "whisper-1",
-      "description": "Whisper is a general-purpose speech recognition model. Replaced by gpt-transcribe.",
-      "deprecate_time": "2027-02-26T00:00:00Z",
-      "stt": {}
-    },
-    // The text-to-speech models have no successor on /v1/audio/speech: OpenAI points to gpt-realtime-2.1-mini on the Realtime API.
-    {
-      "name": p + "tts-1",
-      "provider_model_id": "tts-1",
-      "description": "TTS is a model that converts text to natural sounding spoken text, optimized for realtime use.",
-      "deprecate_time": "2027-01-06T00:00:00Z",
-      "tts": {
-        "audio_format": {
-          "sample_rate": 24000,
-          "channels": 1,
-          "bits_per_sample": 16
-        },
-        "supported_sample_rates": [
-          24000
-        ]
-      }
-    },
-    {
-      "name": p + "gpt-4o-mini-tts",
-      "provider_model_id": "gpt-4o-mini-tts",
-      "description": "GPT-4o mini TTS is a text-to-speech model built on GPT-4o mini. The maximum number of input tokens is 2000.",
-      "deprecate_time": "2027-01-06T00:00:00Z",
-      "tts": {
-        "audio_format": {
-          "sample_rate": 24000,
-          "channels": 1,
-          "bits_per_sample": 16
-        },
-        "supported_sample_rates": [
-          24000
-        ]
-      }
     }
   ]
 }
