@@ -18,7 +18,7 @@ import (
 
 // migrationPaths are the outbox's migrations, which the tests run against.
 var migrationPaths = []string{
-	"go/outbox/migrations/outbox/001_journal.sql",
+	"go/nats/outbox/migrations/outbox/001_journal.sql",
 }
 
 var postgresClient *postgres.Client

@@ -90,7 +90,7 @@ export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
    * publishes them to NATS and deletes them. A committed write and its events
    * therefore cannot diverge.
    *
-   * Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
+   * Requires the database's migrations to include //go/nats/outbox/migrations; see go/nats/outbox.
    *
    * @generated from field: bool outbox = 8;
    */
@@ -170,7 +170,7 @@ export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> 
    * publishes them to NATS and deletes them. A committed write and its events
    * therefore cannot diverge.
    *
-   * Requires the database's migrations to include //go/outbox/migrations; see go/outbox.
+   * Requires the database's migrations to include //go/nats/outbox/migrations; see go/nats/outbox.
    *
    * @generated from field: bool outbox = 8;
    */

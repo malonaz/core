@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	v5 "github.com/jackc/pgx/v5"
 	model "github.com/malonaz/core/gengo/test/library/model"
-	outbox "github.com/malonaz/core/go/outbox"
+	outbox "github.com/malonaz/core/go/nats/outbox"
 	postgres "github.com/malonaz/core/go/postgres"
 	strings "strings"
 	time "time"

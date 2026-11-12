@@ -3,7 +3,7 @@
 // and a poller that publishes them to NATS and deletes them.
 //
 // There is one journal per database, created by the migrations of
-// //go/outbox/migrations, which a database's own migrations include. A
+// //go/nats/outbox/migrations, which a database's own migrations include. A
 // committed write and its events therefore cannot diverge, and an event
 // carries the resource as of the write.
 //

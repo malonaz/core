@@ -24,7 +24,7 @@ go_library(
         "//go/aip",
         "//go/grpc/status",
         "//go/nats",
-        "//go/outbox",
+        "//go/nats/outbox",
         "//go/pbutil",
         "//go/postgres",
         "//go/scheduler/longrunning",

@@ -23,7 +23,7 @@ go_test(
         "outbox_test.go",
         "poller_test.go",
     ],
-    data = ["//go/outbox/migrations"],
+    data = ["//go/nats/outbox/migrations"],
     deps = [
         ":outbox",
         "//go/nats",

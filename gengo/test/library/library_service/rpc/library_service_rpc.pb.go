@@ -20,7 +20,7 @@ import (
 	aip "github.com/malonaz/core/go/aip"
 	status "github.com/malonaz/core/go/grpc/status"
 	nats "github.com/malonaz/core/go/nats"
-	outbox "github.com/malonaz/core/go/outbox"
+	outbox "github.com/malonaz/core/go/nats/outbox"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	postgres "github.com/malonaz/core/go/postgres"
 	longrunning "github.com/malonaz/core/go/scheduler/longrunning"

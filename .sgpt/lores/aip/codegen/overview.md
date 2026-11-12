@@ -147,7 +147,7 @@ registry is per package — cross-package parent/child links do not exist):
   generated `Subject.Publish` through an `outbox.Journal`, which inserts
   `(stream, subject, payload)` into `outbox.journal` rather than publishing.
   There is one journal per **database**, owned by core: the database's
-  `postgres_migrations` takes `includes = ["//go/outbox/migrations"]`
+  `postgres_migrations` takes `includes = ["//go/nats/outbox/migrations"]`
   (`///core//…` from a consumer) and lists `outbox/001_journal.sql` in its
   manifest like its own (`migration_hash_test` fails on any `.sql` file the
   manifest does not list, so a later journal migration cannot be missed);

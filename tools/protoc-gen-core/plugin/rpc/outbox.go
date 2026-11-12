@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	outboxPkg      = protogen.GoImportPath("github.com/malonaz/core/go/outbox")
+	outboxPkg      = protogen.GoImportPath("github.com/malonaz/core/go/nats/outbox")
 	fieldmaskpbPkg = protogen.GoImportPath("google.golang.org/protobuf/types/known/fieldmaskpb")
 )
 

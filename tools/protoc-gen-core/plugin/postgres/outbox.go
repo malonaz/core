@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-var outboxPkg = protogen.GoImportPath("github.com/malonaz/core/go/outbox")
+var outboxPkg = protogen.GoImportPath("github.com/malonaz/core/go/nats/outbox")
 
 // generateJournal emits the store's access to its database's outbox journal:
 // the publisher of events about rows already committed, and the claim the
