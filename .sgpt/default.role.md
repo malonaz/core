@@ -70,7 +70,7 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/ai/openai` — the OpenAI provider: Responses API for openai, Chat Completions for the
   providers sharing its Client, stateless requests with encrypted reasoning kept on thought blocks,
   efforts per model in `provider_settings`, disjoint usage with cache writes, `strict_tool_names`,
-  the 2026-11 model lifecycle, SDK and API traps.
+  the 2026-11 model lifecycle (no OpenAI text-to-speech), SDK and API traps.
 - `lores/ai/decisions` — the Decision resource and CreateDecision: the contract
   (immutable input and questions, answers in question order, no confidence field),
   request_id idempotency (lookup before the model call), the OpenAI, Gemini and TypeSafe

@@ -1,6 +1,6 @@
 ---
 title: 'ai: the OpenAI provider (Responses API, reasoning replay, usage, model lifecycle)'
-description: 'How ai_service talks to OpenAI: the openai provider generates messages through the Responses API while the OpenAI-compatible providers sharing its Client (groq, cerebras, xai, moonshot, baseten) stay on Chat Completions; stateless requests (store false) with encrypted reasoning kept on thought blocks and replayed; what a block stores of an output item; reasoning efforts per model in provider_settings; disjoint usage with cache writes; strict_tool_names; the model lifecycle facts of 2026-11; SDK and API traps; how it was verified.'
+description: 'How ai_service talks to OpenAI: the openai provider generates messages through the Responses API while the OpenAI-compatible providers sharing its Client (groq, cerebras, xai, moonshot, baseten) stay on Chat Completions; stateless requests (store false) with encrypted reasoning kept on thought blocks and replayed; what a block stores of an output item; reasoning efforts per model in provider_settings; disjoint usage with cache writes; strict_tool_names; the model lifecycle facts of 2026-11 (deprecated models dropped, gpt-transcribe for speech-to-text, no OpenAI text-to-speech until it is built on the Realtime API); SDK and API traps; how it was verified.'
 labels:
     repo: core
     tags: ai,openai,responses,reasoning,prompt-cache,providers,models
@@ -19,6 +19,8 @@ path in `StreamGenerateMessage` (`openai.go`), the only place that knows there a
 - `chat_completions.go`: Chat Completions, for groq, cerebras, xai, moonshot, baseten. Unchanged by
   the move, and it no longer has any OpenAI-specific branch.
 - `content.go`: what both share (image URLs, data URLs).
+
+The Client also transcribes speech (`speech_to_text.go`) and answers decisions (`decision.go`).
 
 Why OpenAI left Chat Completions (checked against the API, 2026-11-12):
 
@@ -113,13 +115,17 @@ and the API picks.
 
 - `GET /v1/models` returns a `shutdown_date` per model; `deprecate_time` in the config is that date,
   and the service refuses the model from then on.
-- Dropped from the config, shutting down: gpt-5-mini, gpt-5-nano, gpt-5-pro (2026-12-11), gpt-4.1
-  (2027-01-14), gpt-5.1 (2027-04-01). All of them worked on the Responses path.
-- Speech: `gpt-transcribe` replaces `whisper-1` (2027-02-26) on the same endpoint and works with
-  the existing code. `tts-1` and `gpt-4o-mini-tts` shut down on 2027-01-06 with no successor on
-  `/v1/audio/speech`: OpenAI points to `gpt-realtime-2.1-mini` on the Realtime API, a session over
-  WebSocket (configure the voice and PCM output, send the text as a user message, read base64
-  audio deltas) with a conversational model, not a drop-in.
+- No model with a shutdown date is configured. Dropped: gpt-5-mini, gpt-5-nano, gpt-5-pro
+  (2026-12-11), gpt-4.1 (2027-01-14), gpt-5.1 (2027-04-01), `whisper-1` (2027-02-26), `tts-1` and
+  `gpt-4o-mini-tts` (2027-01-06). The text models all worked on the Responses path.
+- Speech-to-text is `gpt-transcribe`, on the endpoint `whisper-1` used: `speech_to_text.go`
+  (the `sashabaranov/go-openai` client), shared with Groq's whisper models.
+- **There is no OpenAI text-to-speech.** Its models have no successor on `/v1/audio/speech`:
+  OpenAI points to `gpt-realtime-2.1-mini` on the Realtime API, a session over WebSocket (configure
+  the voice and PCM output, send the text as a user message, read base64 audio deltas) with a
+  conversational model, not a drop-in. Nobody has built that. The client's text-to-speech code
+  went with the models, and with Groq's unused `playai-tts`, the last one that reached it: use
+  Cartesia, ElevenLabs or Deepgram.
 - gpt-5.6-sol is at a promotional price until 2026-11-30; the price after is not published.
 - Docs serve markdown: `developers.openai.com/api/docs/models/{model}.md`, `/pricing.md`,
   `/deprecations.md`, `/guides/{reasoning,prompt-caching,preserved-reasoning,migrate-to-responses}.md`.
