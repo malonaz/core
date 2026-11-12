@@ -21,7 +21,7 @@ All APIs are **Google AIP-compliant** (https://google.aip.dev). Key implications
   - **Wildcards**: string fields support leading and/or trailing `*` wildcards — `"*hello"`, `"hello*"`, `"*hello*"`. Wildcards are only supported as the first or last character (or both).
   - String literals are double-quoted: `metadata.status = "active"`
   - Enum values are **unquoted**: `type = CONTACT_CLASSIFICATION_SPAM`
-  - Timestamps use RFC-3339: `create_time > "2025-01-01T00:00:00Z"` (UTC) or with a timezone offset like `"2025-01-01T00:00:00-05:00"` (UTC-5). The offset shifts the effective UTC comparison point — e.g. `00:00:00+05:00` equals `19:00:00Z` the previous day.
+  - Timestamps use RFC-3339: `create_time > "2025-01-01T00:00:00Z"` (UTC) or with a timezone offset like `"2025-01-01T00:00:00-05:00"` (UTC-5). The offset shifts the effective UTC comparison point — e.g. `00:00:00+05:00` equals `19:00:00Z` the previous day. A bare string and `timestamp("…")` are equivalent: the transpiler parses either and binds the instant in UTC, because a `TIMESTAMP` column would silently drop an offset (Postgres ignores it in text, pgx strips it from a `time.Time`).
   - Examples:
     ```
     metadata.company_name = "Acme Corp"

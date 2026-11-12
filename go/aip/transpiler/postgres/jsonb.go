@@ -81,6 +81,10 @@ func buildJSONBTypedExpr(root string, path []string, exprType *expr.Type) rawSQL
 }
 
 func postgresTypeCast(exprType *expr.Type) string {
+	// protojson writes RFC 3339; as text it would order lexically.
+	if isTimestamp(exprType) {
+		return "timestamptz"
+	}
 	switch exprType.GetPrimitive() {
 	case expr.Type_BOOL:
 		return "boolean"

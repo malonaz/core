@@ -7,6 +7,7 @@ go_library(
         "null.go",
         "order_by.go",
         "postgres.go",
+        "timestamp.go",
         "types.go",
         "wildcard.go",
     ],
@@ -27,11 +28,13 @@ go_test(
     srcs = [
         "date_test.go",
         "null_test.go",
+        "timestamp_test.go",
     ],
     deps = [
         ":postgres",
         "//third_party/go:github.com__jackc__pgx__v5__pgtype",
         "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:go.einride.tech__aip__filtering",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
         "//third_party/proto:google__api__expr__v1alpha1",
     ],

@@ -196,17 +196,15 @@ func (t *Transpiler) operandLiteral(rhs *expr.Expr, columnType *expr.Type, jsonb
 	case isDate(columnType):
 		l, err := t.dateLiteral(rhs)
 		return l, err == nil, err
+	case isTimestamp(columnType):
+		return t.timestampLiteral(rhs)
 	case rhs.GetConstExpr() != nil:
 		l, err := t.constLiteral(rhs)
 		return l, err == nil, err
 	case rhs.GetIdentExpr() != nil:
 		return t.identLiteral(rhs, jsonbColumn)
 	case rhs.GetCallExpr() != nil:
-		switch rhs.GetCallExpr().GetFunction() {
-		case filtering.FunctionTimestamp:
-			l, err := t.transpileTimestampCallExpr(rhs)
-			return l, err == nil, err
-		case filtering.FunctionDuration:
+		if rhs.GetCallExpr().GetFunction() == filtering.FunctionDuration {
 			l, err := t.transpileDurationCallExpr(rhs, jsonbColumn)
 			return l, err == nil, err
 		}
@@ -395,26 +393,6 @@ func (t *Transpiler) transpileBinaryLogicalCallExpr(e *expr.Expr, op string) (bo
 	return logicalOp{op: op, lhs: lhsBoolExpr, rhs: rhsBoolExpr}, nil
 }
 
-func (t *Transpiler) transpileTimestampCallExpr(e *expr.Expr) (literal, error) {
-	callExpr := e.GetCallExpr()
-	if len(callExpr.GetArgs()) != 1 {
-		return literal{}, fmt.Errorf("unexpected number of arguments to `%s`: %d", callExpr.GetFunction(), len(callExpr.GetArgs()))
-	}
-	constArg, ok := callExpr.GetArgs()[0].GetExprKind().(*expr.Expr_ConstExpr)
-	if !ok {
-		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
-	}
-	stringArg, ok := constArg.ConstExpr.GetConstantKind().(*expr.Constant_StringValue)
-	if !ok {
-		return literal{}, fmt.Errorf("expected constant string arg to %s", callExpr.GetFunction())
-	}
-	timeArg, err := time.Parse(time.RFC3339, stringArg.StringValue)
-	if err != nil {
-		return literal{}, fmt.Errorf("invalid string arg to %s: %w", callExpr.GetFunction(), err)
-	}
-	return literal{expr: t.addParam(timeArg), value: timeArg}, nil
-}
-
 // transpileDurationCallExpr renders a duration() call; asSeconds selects the
 // JSONB representation (protojson's "1.5s" is stored stripped to a double).
 func (t *Transpiler) transpileDurationCallExpr(e *expr.Expr, asSeconds bool) (literal, error) {
@@ -468,7 +446,8 @@ func sqlLiteral(value any) (string, error) {
 	case string:
 		return "'" + strings.ReplaceAll(v, "'", "''") + "'", nil
 	case time.Time:
-		return "'" + v.UTC().Format(time.RFC3339Nano) + "'::timestamptz", nil
+		// Untyped so it takes the column's type, not the session time zone of a cast.
+		return "'" + v.UTC().Format(time.RFC3339Nano) + "'", nil
 	case time.Duration:
 		return fmt.Sprintf("'%g seconds'::interval", v.Seconds()), nil
 	case pgtype.Date:
