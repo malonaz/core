@@ -76,15 +76,25 @@ pins move, if it removes code.
 - A new provider implements `provider.CreateDecisionClient` and registers models with a `decision`
   config. Nothing else changes.
 
-Checked against the real APIs on 2026-11-11:
+Checked against the real APIs through the service (2026-11-12): create, read back, replay (2-3 ms
+against 300-450 ms for the model), stats.
 
-- Gemini, through the service: text, an inline and a URL image, a PDF, the replay (2 ms against
-  ~300 ms for the model), stats, and the 400 of a bad request. The same request returned the same
-  probabilities twice.
-- OpenAI accepted every request shape, but no answer has been parsed live: the account had no
-  credits. Its API validates the whole body (unknown fields, enums, array lengths) before it
-  checks billing, so a 429 `insufficient_quota` on a request means the request itself is valid.
+- Gemini: text, an inline and a URL image, a PDF, the 400 of a bad request. The same request
+  returned the same probabilities twice.
+- OpenAI: every question kind, an inline and a URL image, a refusal on one question while the
+  others answered, cache writes then reads in the usage. Its probabilities are rounded to two
+  decimals and do reach 0 and 1.
+- OpenAI's implicit prompt cache is not free: once the input passes 1,024 tokens (one image is
+  enough) the first call is billed as a cache write, 1.25x the input price, and only later calls
+  with the same input read it at 0.1x. One-off decisions over large inputs pay the surcharge for
+  nothing; `prompt_cache_options.mode = "explicit"` would turn it off, and is not sent today.
+- OpenAI validates the whole body (unknown fields, enums, array lengths) before it checks billing:
+  a 429 `insufficient_quota` means the request itself was valid.
 - TypeSafe: not called, no key.
+- To repeat it: run a copy of the sat (other ports, real keys instead of `--ai-service.mock-provider`)
+  outside `plz test`, from a directory holding the binaries and migrations under their sat paths.
+  The sat's `os.Exit` skips its cleanup, which only the plz sandbox hides: stop the postgres it
+  leaves behind (`pg_ctl stop -D /tmp/postgres-*`).
 
 # The provider APIs compared (2026-11-11)
 
