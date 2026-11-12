@@ -17,15 +17,19 @@ labels:
    willContinue}], willContinue: true}`. A string comes in pieces on the same path and ends with an
    empty `stringValue`. Paths come in alphabetical order at every level. A container is announced
    *after* its children: `$.report.labels{}`, `$.items[]`, no value.
-3. Closing chunk: `functionCall: {}`. Nothing else marks a call complete; there is no final `args`
-   snapshot.
+3. Closing chunk: `functionCall: {}`, when there is one; there is no final `args` snapshot. A call may
+   instead end at the next call's opening chunk, and the last call at `finishReason: STOP` with no
+   closing chunk at all (production, 2026-11-12: small calls like `*_Discover`, `Generate_ActionRow`,
+   often after a parallel `Get_Workspace`). STOP is a complete call, never an abort.
 4. Last chunk: an empty text part, `finishReason: STOP`, the usage.
 
 ## Aborted calls
 Vertex validates a streamed call as it goes and drops one it judges malformed: the stream ends with
 `finishReason: MALFORMED_FUNCTION_CALL`, **no closing chunk**, and a usage with no candidate
 tokens. The provider fails such a generation (`UNAVAILABLE`, error info `TOOL_CALL_UNFINISHED` with
-the tool and finish reason): the arguments streamed so far are not a call. A stored assistant
+the tool and finish reason): the arguments streamed so far are not a call. Only a non-STOP finish
+(MALFORMED_FUNCTION_CALL, MAX_TOKENS) or a stream cut short is an abort. Failing STOP-ended calls too
+(#156) stalled ~60% of kenji Harper chats: every retry regenerated the same shape. A stored assistant
 message with a tool call and 0 output tokens is one emitted before that guard existed.
 
 Measured by replaying real generations: one report edit (an `UpdateReportRevision` of ~250 output
