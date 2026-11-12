@@ -162,7 +162,7 @@ func (mc *methodCtx) generateBatchCreate(createRequest *protogen.Message) error 
 	}
 
 	g.P("  // Insert the whole batch atomically.")
-	g.P(fmt.Sprintf("  db%s, err := %s", pluralGoName, mc.batchInsertCall("requestIDs", modelSlices)))
+	g.P(fmt.Sprintf("  db%s, err := %s", pluralGoName, mc.batchInsertCall("requestIDs", modelSlices, mc.journalArg("s", "Created"))))
 	mc.generateInsertErrorMapping()
 	g.P(fmt.Sprintf("  if len(db%s) != n {", pluralGoName))
 	g.P(fmt.Sprintf("    return nil, %s(%s, \"expected %%d inserted %s, got %%d\", n, len(db%s)).Err()",
@@ -183,7 +183,7 @@ func (mc *methodCtx) generateBatchCreate(createRequest *protogen.Message) error 
 	g.P("  }")
 	g.P()
 
-	if mc.mi.natsEventOpts != nil && len(mc.mi.natsEventOpts.GetCreated()) > 0 {
+	if mc.publishesInline("Created") {
 		g.P(fmt.Sprintf("  for _, %s := range %s {", resourceVar, pluralVar))
 		mc.generateCreatedEvents(resourceVar)
 		g.P("  }")

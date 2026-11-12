@@ -110,6 +110,7 @@ func (mc *msgCtx) generateBatchInsert() {
 	for _, cc := range mc.singletonChildren {
 		sig += fmt.Sprintf(", %s []*%s", cc.pluralParam(), mc.gen.modelIdent(cc.goType))
 	}
+	sig += mc.journalParam()
 	sig += fmt.Sprintf(") ([]*%s, error) {", mc.goTypeFqi)
 	g.P(sig)
 
@@ -165,6 +166,7 @@ func (mc *msgCtx) generateBatchInsert() {
 		g.P("      return err")
 		g.P("    }")
 	}
+	mc.emitJournalWrite("    ", "inserted")
 	g.P("    return nil")
 	g.P("  }")
 	g.P()
