@@ -76,6 +76,16 @@ pins move, if it removes code.
 - A new provider implements `provider.CreateDecisionClient` and registers models with a `decision`
   config. Nothing else changes.
 
+Checked against the real APIs on 2026-11-11:
+
+- Gemini, through the service: text, an inline and a URL image, a PDF, the replay (2 ms against
+  ~300 ms for the model), stats, and the 400 of a bad request. The same request returned the same
+  probabilities twice.
+- OpenAI accepted every request shape, but no answer has been parsed live: the account had no
+  credits. Its API validates the whole body (unknown fields, enums, array lengths) before it
+  checks billing, so a 429 `insufficient_quota` on a request means the request itself is valid.
+- TypeSafe: not called, no key.
+
 # The provider APIs compared (2026-11-11)
 
 A decision call sends one shared input plus N independent typed questions and gets one typed answer
