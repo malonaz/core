@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/malonaz/core/gengo/ai/model"
@@ -49,8 +50,14 @@ func (s *Service) CreateDecision(ctx context.Context, request *pb.CreateDecision
 		return s.AiServiceServer.CreateDecision(ctx, request)
 	}
 
+	// The model reads the files the input names by URL; the stored decision keeps naming them.
+	providerDecision := proto.CloneOf(decision)
+	if err := resolveFiles(ctx, s.fileStore, request.GetParent(), providerDecision.GetInput()...); err != nil {
+		return nil, err
+	}
+
 	startTime := time.Now()
-	answers, modelUsage, err := providerClient.CreateDecision(ctx, model, decision)
+	answers, modelUsage, err := providerClient.CreateDecision(ctx, model, providerDecision)
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +73,10 @@ func (s *Service) CreateDecision(ctx context.Context, request *pb.CreateDecision
 	recordModelUsage(modelUsage)
 	recordGenerationMetrics(model.GetName(), &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))})
 
+	// Only an answered decision is persisted, its inline content with it.
+	if err := storeFiles(ctx, s.fileStore, request.GetParent(), decision.GetInput()...); err != nil {
+		return nil, err
+	}
 	// A retry that raced this request has the same request id: the insert returns the decision that won.
 	return s.AiServiceServer.CreateDecision(ctx, request)
 }

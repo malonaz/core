@@ -75,6 +75,15 @@ func NewImageFromData(data []byte, mediaType string) *aipb.Image {
 	}
 }
 
+// A file is named in the service's file store. Providers that inline its
+// content (openai, google) need the media type up front.
+func NewImageFromFile(file, mediaType string) *aipb.Image {
+	return &aipb.Image{
+		Source:    &aipb.Image_File{File: file},
+		MediaType: mediaType,
+	}
+}
+
 func NewDocumentBlock(document *aipb.Document) *aipb.Block {
 	return &aipb.Block{Content: &aipb.Block_Document{Document: document}}
 }
@@ -90,6 +99,13 @@ func NewDocumentFromURL(url, mediaType string) *aipb.Document {
 func NewDocumentFromData(data []byte, mediaType string) *aipb.Document {
 	return &aipb.Document{
 		Source:    &aipb.Document_Data{Data: data},
+		MediaType: mediaType,
+	}
+}
+
+func NewDocumentFromFile(file, mediaType string) *aipb.Document {
+	return &aipb.Document{
+		Source:    &aipb.Document_File{File: file},
 		MediaType: mediaType,
 	}
 }

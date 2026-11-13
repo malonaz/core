@@ -51,6 +51,7 @@ type runtime struct {
 	*provider.ModelService
 	cartesiaClient *cartesia.Client
 	providers      []provider.Provider
+	fileStore      FileStore
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
@@ -110,6 +111,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		VoiceService: voiceService,
 		ModelService: modelService,
 		providers:    providers,
+		fileStore:    hostFileStore,
 	}, nil
 }
 

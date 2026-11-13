@@ -1039,9 +1039,10 @@ type Image struct {
 	//
 	//	*Image_Data
 	//	*Image_Url
+	//	*Image_File
 	Source isImage_Source `protobuf_oneof:"source"`
 	// MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
-	// Required when using `data`, optional when using `url`.
+	// Required when using `data`, optional when using `url` or `file`.
 	MediaType string `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
 	// Quality of the image.
 	Quality       ImageQuality `protobuf:"varint,4,opt,name=quality,proto3,enum=malonaz.ai.v1.ImageQuality" json:"quality,omitempty"`
@@ -1099,6 +1100,15 @@ func (x *Image) GetUrl() string {
 	return ""
 }
 
+func (x *Image) GetFile() string {
+	if x != nil {
+		if x, ok := x.Source.(*Image_File); ok {
+			return x.File
+		}
+	}
+	return ""
+}
+
 func (x *Image) GetMediaType() string {
 	if x != nil {
 		return x.MediaType
@@ -1122,6 +1132,10 @@ func (x *Image) SetData(v []byte) {
 
 func (x *Image) SetUrl(v string) {
 	x.Source = &Image_Url{v}
+}
+
+func (x *Image) SetFile(v string) {
+	x.Source = &Image_File{v}
 }
 
 func (x *Image) SetMediaType(v string) {
@@ -1155,6 +1169,14 @@ func (x *Image) HasUrl() bool {
 	return ok
 }
 
+func (x *Image) HasFile() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*Image_File)
+	return ok
+}
+
 func (x *Image) ClearSource() {
 	x.Source = nil
 }
@@ -1171,9 +1193,16 @@ func (x *Image) ClearUrl() {
 	}
 }
 
+func (x *Image) ClearFile() {
+	if _, ok := x.Source.(*Image_File); ok {
+		x.Source = nil
+	}
+}
+
 const Image_Source_not_set_case case_Image_Source = 0
 const Image_Data_case case_Image_Source = 1
 const Image_Url_case case_Image_Source = 2
+const Image_File_case case_Image_Source = 5
 
 func (x *Image) WhichSource() case_Image_Source {
 	if x == nil {
@@ -1184,6 +1213,8 @@ func (x *Image) WhichSource() case_Image_Source {
 		return Image_Data_case
 	case *Image_Url:
 		return Image_Url_case
+	case *Image_File:
+		return Image_File_case
 	default:
 		return Image_Source_not_set_case
 	}
@@ -1200,9 +1231,13 @@ type Image_builder struct {
 	// URL to the image. Supports both HTTPS URLs and data URLs
 	// (e.g., "data:image/png;base64,...").
 	Url *string
+	// Resource name of a file holding the image, in the file store of the
+	// service's host. Opaque to the service: the store resolves it. With a
+	// file store, `data` is moved into it and read back as a `file`.
+	File *string
 	// -- end of Source
 	// MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
-	// Required when using `data`, optional when using `url`.
+	// Required when using `data`, optional when using `url` or `file`.
 	MediaType string
 	// Quality of the image.
 	Quality ImageQuality
@@ -1217,6 +1252,9 @@ func (b0 Image_builder) Build() *Image {
 	}
 	if b.Url != nil {
 		x.Source = &Image_Url{*b.Url}
+	}
+	if b.File != nil {
+		x.Source = &Image_File{*b.File}
 	}
 	x.MediaType = b.MediaType
 	x.Quality = b.Quality
@@ -1248,9 +1286,18 @@ type Image_Url struct {
 	Url string `protobuf:"bytes,2,opt,name=url,proto3,oneof"`
 }
 
+type Image_File struct {
+	// Resource name of a file holding the image, in the file store of the
+	// service's host. Opaque to the service: the store resolves it. With a
+	// file store, `data` is moved into it and read back as a `file`.
+	File string `protobuf:"bytes,5,opt,name=file,proto3,oneof"`
+}
+
 func (*Image_Data) isImage_Source() {}
 
 func (*Image_Url) isImage_Source() {}
+
+func (*Image_File) isImage_Source() {}
 
 // A document block (e.g. a PDF) supplied as model input.
 type Document struct {
@@ -1261,9 +1308,10 @@ type Document struct {
 	//
 	//	*Document_Data
 	//	*Document_Url
+	//	*Document_File
 	Source isDocument_Source `protobuf_oneof:"source"`
 	// MIME type of the document (e.g., "application/pdf", "text/plain").
-	// Required when using `data`, optional when using `url`.
+	// Required when using `data`, optional when using `url` or `file`.
 	MediaType string `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
 	// Optional title of the document, surfaced to the model as its file name.
 	Title         string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
@@ -1321,6 +1369,15 @@ func (x *Document) GetUrl() string {
 	return ""
 }
 
+func (x *Document) GetFile() string {
+	if x != nil {
+		if x, ok := x.Source.(*Document_File); ok {
+			return x.File
+		}
+	}
+	return ""
+}
+
 func (x *Document) GetMediaType() string {
 	if x != nil {
 		return x.MediaType
@@ -1344,6 +1401,10 @@ func (x *Document) SetData(v []byte) {
 
 func (x *Document) SetUrl(v string) {
 	x.Source = &Document_Url{v}
+}
+
+func (x *Document) SetFile(v string) {
+	x.Source = &Document_File{v}
 }
 
 func (x *Document) SetMediaType(v string) {
@@ -1377,6 +1438,14 @@ func (x *Document) HasUrl() bool {
 	return ok
 }
 
+func (x *Document) HasFile() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Source.(*Document_File)
+	return ok
+}
+
 func (x *Document) ClearSource() {
 	x.Source = nil
 }
@@ -1393,9 +1462,16 @@ func (x *Document) ClearUrl() {
 	}
 }
 
+func (x *Document) ClearFile() {
+	if _, ok := x.Source.(*Document_File); ok {
+		x.Source = nil
+	}
+}
+
 const Document_Source_not_set_case case_Document_Source = 0
 const Document_Data_case case_Document_Source = 1
 const Document_Url_case case_Document_Source = 2
+const Document_File_case case_Document_Source = 5
 
 func (x *Document) WhichSource() case_Document_Source {
 	if x == nil {
@@ -1406,6 +1482,8 @@ func (x *Document) WhichSource() case_Document_Source {
 		return Document_Data_case
 	case *Document_Url:
 		return Document_Url_case
+	case *Document_File:
+		return Document_File_case
 	default:
 		return Document_Source_not_set_case
 	}
@@ -1421,9 +1499,13 @@ type Document_builder struct {
 	Data []byte
 	// HTTPS URL to the document.
 	Url *string
+	// Resource name of a file holding the document, in the file store of the
+	// service's host. Opaque to the service: the store resolves it. With a
+	// file store, `data` is moved into it and read back as a `file`.
+	File *string
 	// -- end of Source
 	// MIME type of the document (e.g., "application/pdf", "text/plain").
-	// Required when using `data`, optional when using `url`.
+	// Required when using `data`, optional when using `url` or `file`.
 	MediaType string
 	// Optional title of the document, surfaced to the model as its file name.
 	Title string
@@ -1438,6 +1520,9 @@ func (b0 Document_builder) Build() *Document {
 	}
 	if b.Url != nil {
 		x.Source = &Document_Url{*b.Url}
+	}
+	if b.File != nil {
+		x.Source = &Document_File{*b.File}
 	}
 	x.MediaType = b.MediaType
 	x.Title = b.Title
@@ -1468,9 +1553,18 @@ type Document_Url struct {
 	Url string `protobuf:"bytes,2,opt,name=url,proto3,oneof"`
 }
 
+type Document_File struct {
+	// Resource name of a file holding the document, in the file store of the
+	// service's host. Opaque to the service: the store resolves it. With a
+	// file store, `data` is moved into it and read back as a `file`.
+	File string `protobuf:"bytes,5,opt,name=file,proto3,oneof"`
+}
+
 func (*Document_Data) isDocument_Source() {}
 
 func (*Document_Url) isDocument_Source() {}
+
+func (*Document_File) isDocument_Source() {}
 
 var File_malonaz_ai_v1_message_proto protoreflect.FileDescriptor
 
@@ -1523,18 +1617,22 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\bdocument\x18\n" +
 	" \x01(\v2\x17.malonaz.ai.v1.DocumentH\x00R\bdocument:\x93\x02\xbaH\x8f\x02\x1a\x8c\x02\n" +
 	")block_content_required_when_signature_set\x12)content is required when signature is set\x1a\xb3\x01this.signature == '' || has(this.thought) || has(this.text) || has(this.tool_call) || has(this.partial_tool_call) || has(this.tool_result) || has(this.image) || has(this.document)B\t\n" +
-	"\acontent\"\x9f\x02\n" +
+	"\acontent\"\xbd\x02\n" +
 	"\x05Image\x12\x14\n" +
 	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
-	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1d\n" +
+	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1c\n" +
+	"\x04file\x18\x05 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*H\x00R\x04file\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x03 \x01(\tR\tmediaType\x12?\n" +
 	"\aquality\x18\x04 \x01(\x0e2\x1b.malonaz.ai.v1.ImageQualityB\b\xbaH\x05\x82\x01\x02\x10\x01R\aquality:{\xbaHx\x1av\n" +
 	"\"image_requires_media_type_for_data\x12&media_type is required when using data\x1a(!has(this.data) || this.media_type != ''B\x0f\n" +
-	"\x06source\x12\x05\xbaH\x02\b\x01\"\xfa\x01\n" +
+	"\x06source\x12\x05\xbaH\x02\b\x01\"\x98\x02\n" +
 	"\bDocument\x12\x14\n" +
 	"\x04data\x18\x01 \x01(\fH\x00R\x04data\x12\x12\n" +
-	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1d\n" +
+	"\x03url\x18\x02 \x01(\tH\x00R\x03url\x12\x1c\n" +
+	"\x04file\x18\x05 \x01(\tB\x06\xfaA\x03\n" +
+	"\x01*H\x00R\x04file\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x03 \x01(\tR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x04 \x01(\tR\x05title:~\xbaH{\x1ay\n" +
@@ -1622,10 +1720,12 @@ func file_malonaz_ai_v1_message_proto_init() {
 	file_malonaz_ai_v1_message_proto_msgTypes[2].OneofWrappers = []any{
 		(*Image_Data)(nil),
 		(*Image_Url)(nil),
+		(*Image_File)(nil),
 	}
 	file_malonaz_ai_v1_message_proto_msgTypes[3].OneofWrappers = []any{
 		(*Document_Data)(nil),
 		(*Document_Url)(nil),
+		(*Document_File)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
