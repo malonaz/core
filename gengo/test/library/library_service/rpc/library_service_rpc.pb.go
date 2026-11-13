@@ -20,6 +20,7 @@ import (
 	aip "github.com/malonaz/core/go/aip"
 	status "github.com/malonaz/core/go/grpc/status"
 	nats "github.com/malonaz/core/go/nats"
+	outbox "github.com/malonaz/core/go/nats/outbox"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	postgres "github.com/malonaz/core/go/postgres"
 	longrunning "github.com/malonaz/core/go/scheduler/longrunning"
@@ -29,6 +30,7 @@ import (
 	metadata "google.golang.org/grpc/metadata"
 	proto "google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	slices "slices"
 	strconv "strconv"
@@ -45,12 +47,14 @@ type libraryServiceStore interface {
 	libraryService_BookReviewStore
 	libraryService_NoteStore
 	libraryService_CaseStore
+	ClaimJournal(ctx context.Context, limit int, publish outbox.PublishFn) (int, error)
 }
 
 type LibraryServiceServer struct {
 	natsClient             *nats.Client
 	schedulerServiceClient v1.SchedulerServiceClient
 	runner                 LibraryServiceRunner
+	outboxPoller           *outbox.Poller
 	*libraryService_AuthorServer
 	*libraryService_AuthorProfileServer
 	*libraryService_LibraryConfigServer
@@ -63,9 +67,13 @@ type LibraryServiceServer struct {
 
 func NewLibraryServiceServer(store libraryServiceStore, natsClient *nats.Client, schedulerServiceClient v1.SchedulerServiceClient, runner LibraryServiceRunner) *LibraryServiceServer {
 	return &LibraryServiceServer{
-		natsClient:                         natsClient,
-		schedulerServiceClient:             schedulerServiceClient,
-		runner:                             runner,
+		natsClient:             natsClient,
+		schedulerServiceClient: schedulerServiceClient,
+		runner:                 runner,
+		outboxPoller: outbox.NewPoller(outbox.PollerOpts{
+			Name:  "library-service-outbox",
+			Claim: store.ClaimJournal,
+		}, natsClient),
 		libraryService_AuthorServer:        newLibraryService_AuthorServer(store),
 		libraryService_AuthorProfileServer: newLibraryService_AuthorProfileServer(store),
 		libraryService_LibraryConfigServer: newLibraryService_LibraryConfigServer(store),
@@ -87,7 +95,13 @@ func (s *LibraryServiceServer) Start(ctx context.Context) error {
 			return fmt.Errorf("creating stream %q: %w", streamOptions.GetName(), err)
 		}
 	}
+	s.outboxPoller.Start(ctx)
 	return nil
+}
+
+// Close stops the LibraryService's background work.
+func (s *LibraryServiceServer) Close() {
+	s.outboxPoller.Close()
 }
 
 // LibraryServiceRunner does the work of LibraryService's long-running operations. The
@@ -1155,11 +1169,12 @@ func (s *libraryService_LibraryConfigServer) BatchGetLibraryConfigs(ctx context.
 }
 
 type libraryService_ShelfStore interface {
-	BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf) ([]*model.Shelf, error)
-	UpdateShelf(ctx context.Context, shelf *model.Shelf, updateClause string, columns []string) (*model.Shelf, error)
-	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time) (*model.Shelf, error)
-	UndeleteShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
+	BatchInsertShelves(ctx context.Context, requestIDs []string, shelves []*model.Shelf, journal outbox.JournalFn[*model.Shelf]) ([]*model.Shelf, error)
+	UpdateShelf(ctx context.Context, shelf *model.Shelf, updateClause string, columns []string, journal outbox.JournalFn[*model.Shelf]) (*model.Shelf, error)
+	SoftDeleteShelf(ctx context.Context, organizationId, shelfId string, force bool, deleteTime time.Time, journal outbox.JournalFn[*model.Shelf]) (*model.Shelf, error)
+	UndeleteShelf(ctx context.Context, organizationId, shelfId string, journal outbox.JournalFn[*model.Shelf]) (*model.Shelf, error)
 	GetShelf(ctx context.Context, organizationId, shelfId string) (*model.Shelf, error)
+	Journal() *outbox.Journal
 	BatchGetShelves(ctx context.Context, organizationIds []string, shelfIds []string) ([]*model.Shelf, error)
 	ListShelves(ctx context.Context, organizationId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Shelf, error)
 }
@@ -1174,6 +1189,114 @@ func newLibraryService_ShelfServer(store libraryService_ShelfStore, natsClient *
 		store:      store,
 		natsClient: natsClient,
 	}
+}
+
+// publishShelfCreatedEvents publishes the shelf created events through the publisher.
+func (s *libraryService_ShelfServer) publishShelfCreatedEvents(ctx context.Context, publisher nats.Publisher, shelf *v14.Shelf) error {
+	{
+		subject := v14.GetShelfStream().GetCreatedSubject()
+		if err := subject.Publish(ctx, publisher, shelf); err != nil {
+			return status.Errorf(codes.Internal, "journaling created event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+// shelfCreatedJournal journals the created events of a write's committed rows.
+func (s *libraryService_ShelfServer) shelfCreatedJournal(ctx context.Context, publisher nats.Publisher, rows []*model.Shelf) error {
+	for _, row := range rows {
+		shelf, err := row.ToPb()
+		if err != nil {
+			return status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		if err := s.publishShelfCreatedEvents(ctx, publisher, shelf); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// publishShelfUpdatedEvents publishes the shelf updated events through the publisher.
+func (s *libraryService_ShelfServer) publishShelfUpdatedEvents(ctx context.Context, publisher nats.Publisher, shelf *v14.Shelf, previousShelf *v14.Shelf, updateMask *fieldmaskpb.FieldMask) error {
+	{
+		subject := v14.GetShelfStream().GetUpdatedSubject()
+		if err := subject.Publish(ctx, publisher, shelf, previousShelf, updateMask); err != nil {
+			return status.Errorf(codes.Internal, "journaling updated event: %v", err).Err()
+		}
+	}
+	{
+		subject := v14.GetShelfStream().GetGenreChangeSubject()
+		if err := subject.Publish(ctx, publisher, shelf, previousShelf, updateMask); err != nil {
+			return status.Errorf(codes.Internal, "journaling genre_change event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+// shelfUpdatedJournal journals the updated events of a write's committed rows.
+func (s *libraryService_ShelfServer) shelfUpdatedJournal(previousShelf *v14.Shelf, updateMask *fieldmaskpb.FieldMask) outbox.JournalFn[*model.Shelf] {
+	return func(ctx context.Context, publisher nats.Publisher, rows []*model.Shelf) error {
+		for _, row := range rows {
+			shelf, err := row.ToPb()
+			if err != nil {
+				return status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+			}
+			if err := s.publishShelfUpdatedEvents(ctx, publisher, shelf, previousShelf, updateMask); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+// publishShelfDeletedEvents publishes the shelf deleted events through the publisher.
+func (s *libraryService_ShelfServer) publishShelfDeletedEvents(ctx context.Context, publisher nats.Publisher, shelf *v14.Shelf) error {
+	{
+		subject := v14.GetShelfStream().GetDeletedSubject()
+		if err := subject.Publish(ctx, publisher, shelf); err != nil {
+			return status.Errorf(codes.Internal, "journaling deleted event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+// shelfDeletedJournal journals the deleted events of a write's committed rows.
+func (s *libraryService_ShelfServer) shelfDeletedJournal(ctx context.Context, publisher nats.Publisher, rows []*model.Shelf) error {
+	for _, row := range rows {
+		shelf, err := row.ToPb()
+		if err != nil {
+			return status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		if err := s.publishShelfDeletedEvents(ctx, publisher, shelf); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// publishShelfUndeletedEvents publishes the shelf undeleted events through the publisher.
+func (s *libraryService_ShelfServer) publishShelfUndeletedEvents(ctx context.Context, publisher nats.Publisher, shelf *v14.Shelf) error {
+	{
+		subject := v14.GetShelfStream().GetUndeletedSubject()
+		if err := subject.Publish(ctx, publisher, shelf); err != nil {
+			return status.Errorf(codes.Internal, "journaling undeleted event: %v", err).Err()
+		}
+	}
+	return nil
+}
+
+// shelfUndeletedJournal journals the undeleted events of a write's committed rows.
+func (s *libraryService_ShelfServer) shelfUndeletedJournal(ctx context.Context, publisher nats.Publisher, rows []*model.Shelf) error {
+	for _, row := range rows {
+		shelf, err := row.ToPb()
+		if err != nil {
+			return status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
+		}
+		if err := s.publishShelfUndeletedEvents(ctx, publisher, shelf); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *libraryService_ShelfServer) prepareCreateShelf(ctx context.Context, request *v12.CreateShelfRequest, importing bool) (*model.Shelf, error) {
@@ -1229,7 +1352,7 @@ func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v
 	}
 
 	// STEP 4: Insert the resource.
-	dbShelves, err := s.store.BatchInsertShelves(ctx, []string{request.RequestId}, []*model.Shelf{shelfModel})
+	dbShelves, err := s.store.BatchInsertShelves(ctx, []string{request.RequestId}, []*model.Shelf{shelfModel}, s.shelfCreatedJournal)
 	if err != nil {
 		if errors.Is(err, model.ErrShelfAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "shelf already exists").Err()
@@ -1245,13 +1368,6 @@ func (s *libraryService_ShelfServer) CreateShelf(ctx context.Context, request *v
 		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
 	}
 
-	// STEP 5: Publish events.
-	{
-		subject := v14.GetShelfStream().GetCreatedSubject()
-		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
-			return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
-		}
-	}
 	return shelf, nil
 }
 
@@ -1322,7 +1438,7 @@ func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting shelf from pb to model: %v", err).Err()
 	}
-	dbShelfModel, err := s.store.UpdateShelf(ctx, shelfModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns())
+	dbShelfModel, err := s.store.UpdateShelf(ctx, shelfModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), s.shelfUpdatedJournal(existingShelf, request.GetUpdateMask()))
 	if err != nil {
 		if errors.Is(err, model.ErrShelfNotExist) {
 			return nil, status.Errorf(codes.NotFound, "shelf does not exist").Err()
@@ -1335,30 +1451,7 @@ func (s *libraryService_ShelfServer) UpdateShelf(ctx context.Context, request *v
 		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
 	}
 
-	// STEP 5: Publish events.
-	{
-		subject := v14.GetShelfStream().GetUpdatedSubject()
-		if err := subject.Publish(ctx, s.natsClient, shelf, existingShelf, request.GetUpdateMask()); err != nil {
-			return nil, status.Errorf(codes.Internal, "publishing updated event: %v", err).Err()
-		}
-	}
-	{
-		subject := v14.GetShelfStream().GetGenreChangeSubject()
-		if err := subject.Publish(ctx, s.natsClient, shelf, existingShelf, request.GetUpdateMask()); err != nil {
-			return nil, status.Errorf(codes.Internal, "publishing genre_change event: %v", err).Err()
-		}
-	}
 	return shelf, nil
-}
-
-func (s *libraryService_ShelfServer) publishResourceDeletedEvent(ctx context.Context, shelf *v14.Shelf) error {
-	{
-		subject := v14.GetShelfStream().GetDeletedSubject()
-		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
-			return status.Errorf(codes.Internal, "publishing deleted event: %v", err).Err()
-		}
-	}
-	return nil
 }
 
 func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v12.DeleteShelfRequest) (*v14.Shelf, error) {
@@ -1374,7 +1467,7 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 
 	deleteTime := time.Now().UTC()
 	// STEP 2: Soft delete the resource.
-	dbShelfModel, err := s.store.SoftDeleteShelf(ctx, organizationId, shelfId, request.GetForce(), deleteTime)
+	dbShelfModel, err := s.store.SoftDeleteShelf(ctx, organizationId, shelfId, request.GetForce(), deleteTime, s.shelfDeletedJournal)
 	if err != nil {
 		if errors.Is(err, model.ErrShelfNotExist) {
 			return nil, status.Errorf(codes.NotFound, "shelf does not exist").Err()
@@ -1389,7 +1482,7 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 				if err != nil {
 					return nil, err
 				}
-				if err := s.publishResourceDeletedEvent(ctx, shelf); err != nil {
+				if err := s.publishShelfDeletedEvents(ctx, s.store.Journal(), shelf); err != nil {
 					return nil, err
 				}
 				return shelf, nil
@@ -1405,22 +1498,7 @@ func (s *libraryService_ShelfServer) DeleteShelf(ctx context.Context, request *v
 		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
 	}
 
-	// STEP 4: Publish event.
-	if err := s.publishResourceDeletedEvent(ctx, shelf); err != nil {
-		return nil, err
-	}
-
 	return shelf, nil
-}
-
-func (s *libraryService_ShelfServer) publishResourceUndeletedEvent(ctx context.Context, shelf *v14.Shelf) error {
-	{
-		subject := v14.GetShelfStream().GetUndeletedSubject()
-		if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
-			return status.Errorf(codes.Internal, "publishing undeleted event: %v", err).Err()
-		}
-	}
-	return nil
 }
 
 func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request *v12.UndeleteShelfRequest) (*v14.Shelf, error) {
@@ -1435,7 +1513,7 @@ func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request 
 	}
 
 	// STEP 2: Undelete the resource.
-	dbShelfModel, err := s.store.UndeleteShelf(ctx, organizationId, shelfId)
+	dbShelfModel, err := s.store.UndeleteShelf(ctx, organizationId, shelfId, s.shelfUndeletedJournal)
 	if err != nil {
 		if errors.Is(err, model.ErrShelfNotExist) {
 			return nil, status.Errorf(codes.NotFound, "shelf does not exist").Err()
@@ -1450,11 +1528,6 @@ func (s *libraryService_ShelfServer) UndeleteShelf(ctx context.Context, request 
 	shelf, err := dbShelfModel.ToPb()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
-	}
-
-	// STEP 4: Publish event.
-	if err := s.publishResourceUndeletedEvent(ctx, shelf); err != nil {
-		return nil, err
 	}
 
 	return shelf, nil
@@ -1542,7 +1615,7 @@ func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, req
 	}
 
 	// Insert the whole batch atomically.
-	dbShelves, err := s.store.BatchInsertShelves(ctx, requestIDs, shelfModels)
+	dbShelves, err := s.store.BatchInsertShelves(ctx, requestIDs, shelfModels, s.shelfCreatedJournal)
 	if err != nil {
 		if errors.Is(err, model.ErrShelfAlreadyExists) {
 			return nil, status.Errorf(codes.AlreadyExists, "shelf already exists").Err()
@@ -1560,16 +1633,6 @@ func (s *libraryService_ShelfServer) BatchCreateShelves(ctx context.Context, req
 			return nil, status.Errorf(codes.Internal, "converting shelf from model to pb: %v", err).Err()
 		}
 		shelves[i] = shelf
-	}
-
-	for _, shelf := range shelves {
-		// STEP 5: Publish events.
-		{
-			subject := v14.GetShelfStream().GetCreatedSubject()
-			if err := subject.Publish(ctx, s.natsClient, shelf); err != nil {
-				return nil, status.Errorf(codes.Internal, "publishing created event: %v", err).Err()
-			}
-		}
 	}
 
 	return &v12.BatchCreateShelvesResponse{Shelves: shelves}, nil

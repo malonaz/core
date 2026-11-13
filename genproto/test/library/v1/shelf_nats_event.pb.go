@@ -60,7 +60,7 @@ func (s *ShelfCreatedSubject) evaluate(resource *Shelf) (bool, error) {
 	return true, nil
 }
 
-func (s *ShelfCreatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf) error {
+func (s *ShelfCreatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Shelf) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (s *ShelfCreatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *ShelfCreatedSubject) set(resource *Shelf) error {
@@ -161,7 +161,7 @@ func (s *ShelfUpdatedSubject) evaluate(resource *Shelf, previousResource *Shelf,
 	return result, nil
 }
 
-func (s *ShelfUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) error {
+func (s *ShelfUpdatedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func (s *ShelfUpdatedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *ShelfUpdatedSubject) set(resource *Shelf) error {
@@ -262,7 +262,7 @@ func (s *ShelfGenreChangeSubject) evaluate(resource *Shelf, previousResource *Sh
 	return result, nil
 }
 
-func (s *ShelfGenreChangeSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) error {
+func (s *ShelfGenreChangeSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Shelf, previousResource *Shelf, updateMask *fieldmaskpb.FieldMask) error {
 	ok, err := s.evaluate(resource, previousResource, updateMask)
 	if err != nil {
 		return err
@@ -281,7 +281,7 @@ func (s *ShelfGenreChangeSubject) Publish(ctx context.Context, natsClient *nats.
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *ShelfGenreChangeSubject) set(resource *Shelf) error {
@@ -357,7 +357,7 @@ func (s *ShelfDeletedSubject) evaluate(resource *Shelf) (bool, error) {
 	return true, nil
 }
 
-func (s *ShelfDeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf) error {
+func (s *ShelfDeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Shelf) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -376,7 +376,7 @@ func (s *ShelfDeletedSubject) Publish(ctx context.Context, natsClient *nats.Clie
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *ShelfDeletedSubject) set(resource *Shelf) error {
@@ -456,7 +456,7 @@ func (s *ShelfUndeletedSubject) evaluate(resource *Shelf) (bool, error) {
 	return true, nil
 }
 
-func (s *ShelfUndeletedSubject) Publish(ctx context.Context, natsClient *nats.Client, resource *Shelf) error {
+func (s *ShelfUndeletedSubject) Publish(ctx context.Context, publisher nats.Publisher, resource *Shelf) error {
 	ok, err := s.evaluate(resource)
 	if err != nil {
 		return err
@@ -475,7 +475,7 @@ func (s *ShelfUndeletedSubject) Publish(ctx context.Context, natsClient *nats.Cl
 	if err != nil {
 		return fmt.Errorf("constructing resource event: %w", err)
 	}
-	return natsClient.Publish(ctx, subject, event)
+	return publisher.Publish(ctx, subject, event)
 }
 
 func (s *ShelfUndeletedSubject) set(resource *Shelf) error {

@@ -141,6 +141,45 @@ registry is per package — cross-package parent/child links do not exist):
   `Create`/`BatchCreate`/`Update`/`Delete`/`Undelete` publish typed JetStream events after the write
   (subject = `resource_segments… . subject . subject_fields…`, optional CEL
   gate). Cascaded descendants and singleton children publish nothing.
+- **Outbox**: `outbox: true` on the event options moves publishing into the
+  store's write transaction. The RPC hands its store a journal fn
+  (`s.{resource}{Kind}Journal`, an `outbox.JournalFn`) that runs the same
+  generated `Subject.Publish` through an `outbox.Journal`, which inserts
+  `(stream, subject, payload)` into `outbox.journal` rather than publishing.
+  There is one journal per **database**, owned by core: the database's
+  `postgres_migrations` takes `includes = ["//go/nats/outbox/migrations"]`
+  (`///core//…` from a consumer) and lists `outbox/001_journal.sql` in its
+  manifest like its own (`migration_hash_test` fails on any `.sql` file the
+  manifest does not list, so a later journal migration cannot be missed);
+  never copy the table. The `{Service}Server`
+  runs one `outbox.Poller` (`Start`/`Close`): it claims the oldest rows
+  `ORDER BY sequence ... FOR UPDATE SKIP LOCKED`, so replicas drain disjoint
+  batches, publishes each with the row id as `Nats-Msg-Id` (JetStream drops
+  the duplicate if a delete rolls back) and its `sequence` as the
+  `Outbox-Sequence` header, and deletes the published ones in the same
+  transaction. A failing entry holds back nothing else: alert on
+  `outbox_journal_lag_seconds{poller}`, the age of the oldest entry. A write
+  whose event exceeds `outbox.MaxPayload` fails (`ErrPayloadTooLarge`)
+  rather than journal what NATS never accepts. A failed publish records
+  `last_error`; only a rejection (`nats.IsRejected`: too large, wrong stream or sealed stream; NATS refused the message
+  itself, not an outage) counts in `attempts`, and at 5 the entry is dead:
+  claims skip it, `outbox_journal_dead_entries_total` counts it, and a human
+  fixes the cause then resets `attempts` or deletes the row. Events
+  reach the stream in no guaranteed order and `nats.Processor` consumes
+  concurrently and redelivers, so order is the consumer's: `sequence` is
+  assigned under the write's row lock, so it grows with a resource's writes.
+  A consumer handles every event, never skipping a late one: each carries
+  its own transition (`previous_resource` → `resource`), so side effects key
+  on it and are idempotent on `name` + sequence (JetStream redelivers). Only
+  a consumer keeping a copy of the resource stores anything: a
+  `source_sequence` column on that copy, from
+  `outbox.Sequence(message.Headers)`, and its upsert overwrites only
+  `WHERE source_sequence < $sequence`. Sequences have gaps per resource
+  (CEL-gated and unsubscribed events), so compare, never expect the
+  next one. There is no inline publish, so an event lands up to ~250ms after
+  commit.
+  `--nats.outbox-paused` (`NATS_OUTBOX_PAUSED`) holds every poller so journals
+  buffer while a cluster is drained. Lazy singletons are rejected. Reference: `Shelf`.
 
 ## Customizing
 

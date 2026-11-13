@@ -12,6 +12,7 @@ import (
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/tools/protoc-gen-core/plugin"
+	"github.com/malonaz/core/tools/protoc-gen-core/plugin/nats"
 	"github.com/malonaz/core/tools/protoc-gen-core/resource"
 	"github.com/malonaz/core/tools/protoc-gen-core/schema"
 )
@@ -25,10 +26,13 @@ var (
 	contextPkg  = protogen.GoImportPath("context")
 
 	storeGenerated bool
+	// journalGenerated: one journal serves every outbox resource of the store's database.
+	journalGenerated bool
 )
 
 func ResetState() {
 	storeGenerated = false
+	journalGenerated = false
 }
 
 func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protogen.GoPackageName, opts *plugin.Opts) error {
@@ -108,6 +112,13 @@ func Generate(file *protogen.File, g *protogen.GeneratedFile, packageName protog
 	}
 	g.P(")")
 	g.P()
+
+	for _, mc := range msgCtxs {
+		if mc.outbox && !journalGenerated {
+			journalGenerated = true
+			gen.generateJournal()
+		}
+	}
 
 	for _, mc := range msgCtxs {
 		if mc.hasJoins {
@@ -234,6 +245,10 @@ type msgCtx struct {
 	hasEtag       bool
 	hasDeleteTime bool
 
+	// outbox is true when the resource's events are journaled in the
+	// transaction of the write that caused them, rather than published inline.
+	outbox bool
+
 	singletonChildren []*childCtx
 	// descendants are deleted alongside the resource, deepest first.
 	descendants []*descendantCtx
@@ -321,6 +336,11 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 	}
 	hasJoins := len(joins) > 0
 
+	outbox, err := nats.Outbox(message)
+	if err != nil {
+		return nil, err
+	}
+
 	if multiPattern {
 		if hasJoins {
 			return nil, fmt.Errorf("multi-pattern resource %s cannot declare joins", goType)
@@ -369,6 +389,8 @@ func (gen *generator) newMsgCtx(message *protogen.Message, modelOpts *modelpb.Mo
 
 		hasEtag:       message.Desc.Fields().ByName("etag") != nil,
 		hasDeleteTime: message.Desc.Fields().ByName("delete_time") != nil,
+
+		outbox: outbox,
 
 		singletonChildren: singletonChildren,
 		descendants:       descendants,

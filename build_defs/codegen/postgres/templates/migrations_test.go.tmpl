@@ -8,7 +8,18 @@ func TestMigrations(t *{{ goImport "testing" }}.T) {
 	migrations, err := {{ goImport "github.com/malonaz/core/go/postgres/migrator/migrations" }}.GetMigrations({{ goImport "os" }}.ReadFile, migrationsRootDirectory)
 	{{ goImport "github.com/stretchr/testify/require" }}.NoError(t, err)
 	require.NotEmpty(t, migrations, "no migrations declared")
+	listed := map[string]bool{}
 	for _, migration := range migrations {
 		require.Equal(t, migration.ExpectedHash, migration.Hash, "Hash migration has changed.")
+		listed[migration.Directory+"/"+migration.Filename] = true
+	}
+
+	// The migrator only runs what the manifest lists: a file left out of it is never applied.
+	files, err := {{ goImport "path/filepath" }}.Glob(migrationsRootDirectory + "/*/*.sql")
+	require.NoError(t, err)
+	for _, file := range files {
+		path, err := filepath.Rel(migrationsRootDirectory, file)
+		require.NoError(t, err)
+		require.True(t, listed[path], "migration %s is not listed in manifest.yaml", path)
 	}
 }

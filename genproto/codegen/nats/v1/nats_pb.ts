@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/codegen/nats/v1/nats.proto.
  */
 export const file_malonaz_codegen_nats_v1_nats: GenFile = /*@__PURE__*/
-  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSL6AgoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEj4KCXVuZGVsZXRlZBgGIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI9CghpbXBvcnRlZBgHIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucyJSChJFdmVudE1ldGhvZE9wdGlvbnMSFwoHc3ViamVjdBgBIAEoCUIGukgDyAEBEhYKDnN1YmplY3RfZmllbGRzGAIgAygJEgsKA2NlbBgDIAEoCTpZCgZzdHJlYW0SHy5nb29nbGUucHJvdG9idWYuU2VydmljZU9wdGlvbnMYkMIEIAMoCzIeLm1hbG9uYXoubmF0cy52MS5TdHJlYW1PcHRpb25zUgZzdHJlYW06XgoFZXZlbnQSHy5nb29nbGUucHJvdG9idWYuTWVzc2FnZU9wdGlvbnMYkcIEIAEoCzIlLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50T3B0aW9uc1IFZXZlbnRCMlowZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vY29kZWdlbi9uYXRzL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
+  fileDesc("CiJtYWxvbmF6L2NvZGVnZW4vbmF0cy92MS9uYXRzLnByb3RvEhdtYWxvbmF6LmNvZGVnZW4ubmF0cy52MSKKAwoMRXZlbnRPcHRpb25zEhYKBnN0cmVhbRgBIAEoCUIGukgDyAEBEhkKEXJlc291cmNlX3NlZ21lbnRzGAIgAygJEjwKB2NyZWF0ZWQYAyADKAsyKy5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE1ldGhvZE9wdGlvbnMSPAoHdXBkYXRlZBgEIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI8CgdkZWxldGVkGAUgAygLMisubWFsb25hei5jb2RlZ2VuLm5hdHMudjEuRXZlbnRNZXRob2RPcHRpb25zEj4KCXVuZGVsZXRlZBgGIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxI9CghpbXBvcnRlZBgHIAMoCzIrLm1hbG9uYXouY29kZWdlbi5uYXRzLnYxLkV2ZW50TWV0aG9kT3B0aW9ucxIOCgZvdXRib3gYCCABKAgiUgoSRXZlbnRNZXRob2RPcHRpb25zEhcKB3N1YmplY3QYASABKAlCBrpIA8gBARIWCg5zdWJqZWN0X2ZpZWxkcxgCIAMoCRILCgNjZWwYAyABKAk6WQoGc3RyZWFtEh8uZ29vZ2xlLnByb3RvYnVmLlNlcnZpY2VPcHRpb25zGJDCBCADKAsyHi5tYWxvbmF6Lm5hdHMudjEuU3RyZWFtT3B0aW9uc1IGc3RyZWFtOl4KBWV2ZW50Eh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGJHCBCABKAsyJS5tYWxvbmF6LmNvZGVnZW4ubmF0cy52MS5FdmVudE9wdGlvbnNSBWV2ZW50QjJaMGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2NvZGVnZW4vbmF0cy92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_descriptor, file_malonaz_nats_v1_stream]);
 
 /**
  * Extension to annotate a protobuf resource message with NATS event generation options.
@@ -82,6 +82,19 @@ export type EventOptions = Message<"malonaz.codegen.nats.v1.EventOptions"> & {
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 7;
    */
   imported: EventMethodOptions[];
+
+  /**
+   * If true, this resource's events are not published inline by the RPC that
+   * caused them. They are written to its database's outbox journal in the same
+   * database transaction as the write, and the service's outbox poller
+   * publishes them to NATS and deletes them. A committed write and its events
+   * therefore cannot diverge.
+   *
+   * Requires the database's migrations to include //go/nats/outbox/migrations; see go/nats/outbox.
+   *
+   * @generated from field: bool outbox = 8;
+   */
+  outbox: boolean;
 };
 
 /**
@@ -149,6 +162,19 @@ export type EventOptionsValid = Message<"malonaz.codegen.nats.v1.EventOptions"> 
    * @generated from field: repeated malonaz.codegen.nats.v1.EventMethodOptions imported = 7;
    */
   imported: EventMethodOptionsValid[];
+
+  /**
+   * If true, this resource's events are not published inline by the RPC that
+   * caused them. They are written to its database's outbox journal in the same
+   * database transaction as the write, and the service's outbox poller
+   * publishes them to NATS and deletes them. A committed write and its events
+   * therefore cannot diverge.
+   *
+   * Requires the database's migrations to include //go/nats/outbox/migrations; see go/nats/outbox.
+   *
+   * @generated from field: bool outbox = 8;
+   */
+  outbox: boolean;
 };
 
 /**

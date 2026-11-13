@@ -46,6 +46,11 @@ func (s *Subject) Name() string {
 	return s.name
 }
 
+// Stream returns the stream the subject belongs to.
+func (s *Subject) Stream() *Stream {
+	return s.stream
+}
+
 func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream.Stream, error) {
 	streamConfig := jetstream.StreamConfig{
 		Name:     s.name,

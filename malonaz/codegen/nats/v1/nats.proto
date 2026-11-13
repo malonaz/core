@@ -57,6 +57,15 @@ message EventOptions {
   // Options for imported events, published for every resource stored by its Import method.
   // If unset, no imported event is generated.
   repeated EventMethodOptions imported = 7;
+
+  // If true, this resource's events are not published inline by the RPC that
+  // caused them. They are written to its database's outbox journal in the same
+  // database transaction as the write, and the service's outbox poller
+  // publishes them to NATS and deletes them. A committed write and its events
+  // therefore cannot diverge.
+  //
+  // Requires the database's migrations to include //go/nats/outbox/migrations; see go/nats/outbox.
+  bool outbox = 8;
 }
 
 // Options controlling subject routing and conditional publishing for a single event type.
