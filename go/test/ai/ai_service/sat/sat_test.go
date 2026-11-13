@@ -108,6 +108,7 @@ func run(ctx context.Context) (func(), error) {
 			},
 		},
 		EnvironmentVariables: environmentVariables,
+		Nats:                 true,
 	}
 	satEnvironment = sat.New(config)
 	if err := satEnvironment.Start(ctx); err != nil {

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package malonaz.analysis.v1;
+
+import "malonaz/analysis/v1/result.proto";
+import "malonaz/codegen/aip/v1/annotation.proto";
+
+option go_package = "github.com/malonaz/core/genproto/analysis/v1";
+option (malonaz.codegen.aip.v1.annotation) = {
+  dynamic_key: "analysis.malonaz.com/{analysis}"
+  description: "The latest result of an analysis on this resource. Its outcome is mirrored by the label of the same key, when the output has a fixed set of outcomes."
+  value_type: "Result"
+};

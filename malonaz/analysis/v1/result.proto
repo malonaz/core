@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package malonaz.analysis.v1;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/ai/v1/decision.proto";
+
+option go_package = "github.com/malonaz/core/genproto/analysis/v1";
+
+// A Result is what an analysis produced for one resource, stored as the
+// annotation analysis.malonaz.com/{analysis} on the analysed resource.
+message Result {
+  option (google.api.resource) = {
+    type: "analysis.malonaz.com/Result"
+    pattern: "services/{service}/types/{resource_type}/analyses/{analysis}/results/{result}"
+    singular: "result"
+    plural: "results"
+  };
+
+  // The resource name of the result. Its id is uuidv5 of the analysed resource's name.
+  // Format: services/{service}/types/{resource_type}/analyses/{analysis}/results/{result}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The resource analysed.
+  string resource = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "*"
+  ];
+
+  // A hash of the model, the output definition and the rendered prompt.
+  string prompt_etag = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The value produced.
+  oneof value {
+    // For boolean, choice and score outputs.
+    malonaz.ai.v1.Answer answer = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // For structured outputs.
+    google.protobuf.Struct structured = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // For text outputs.
+    string text = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // The judge model.
+  // Format: providers/{provider}/models/{model}
+  string model = 7 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // The Decision or Chat the result came from. Empty for an in-memory evaluation.
+  string source = 8 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "*"
+  ];
+
+  // When the judge produced the result.
+  google.protobuf.Timestamp analyze_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
