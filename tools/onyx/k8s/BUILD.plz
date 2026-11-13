@@ -1,0 +1,25 @@
+go_library(
+    name = "k8s",
+    srcs = [
+        "generate.go",
+        "model.go",
+    ],
+    visibility = ["//tools/onyx/..."],
+    deps = [
+        "//malonaz/onyx/v1",
+        "//third_party/go:gopkg.in__yaml.v3",
+        "//tools/onyx/gen",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["k8s_test.go"],
+    data = glob(["testdata/**"]),
+    deps = [
+        ":k8s",
+        "//malonaz/onyx/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//tools/onyx/manifest",
+    ],
+)
