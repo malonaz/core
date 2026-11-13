@@ -1,0 +1,23 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "agent.pb.go",
+        "agent_aip.go",
+        "memory.pb.go",
+        "memory_aip.go",
+        "task.pb.go",
+        "task_aip.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/model/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__known__structpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:validate",
+    ],
+)

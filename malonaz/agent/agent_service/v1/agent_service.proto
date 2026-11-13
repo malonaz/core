@@ -1,0 +1,680 @@
+syntax = "proto3";
+
+package malonaz.agent.agent_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/agent/v1/agent.proto";
+import "malonaz/agent/v1/memory.proto";
+import "malonaz/agent/v1/task.proto";
+import "malonaz/ai/v1/message.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/agent/agent_service/v1";
+
+// AgentService manages the agent domain: Agent (durable actor), Task
+// (terminal work unit) and Memory (long-term knowledge). Creating a task only
+// enqueues a PENDING row; runners claim and execute it. Sending a message to
+// an agent appends it to the agent's chat and wakes it.
+service AgentService {
+  option (google.api.default_host) = "agent.malonaz.com";
+
+  // ===================== Agent Management =====================
+
+  // Create an agent.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateAgent(CreateAgentRequest) returns (agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/agents"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "parent,agent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Agent";
+  }
+
+  // Get an agent.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetAgent(GetAgentRequest) returns (agent.v1.Agent) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Agent";
+  }
+
+  // Update an agent.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateAgent(UpdateAgentRequest) returns (agent.v1.Agent) {
+    option (google.api.http) = {
+      patch: "/v1/{agent.name=organizations/*/users/*/agents/*}"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "agent,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Agent";
+  }
+
+  // List agents for a user.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/agents"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Agent";
+  }
+
+  // Delete an agent.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc DeleteAgent(DeleteAgentRequest) returns (agent.v1.Agent) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Agent";
+  }
+
+  // Send a message to an agent: appends it to the agent's current chat
+  // (creating the chat on first contact) and wakes the agent.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SendAgentMessage(SendAgentMessageRequest) returns (ai.v1.Message) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:sendMessage"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,message";
+  }
+
+  // ===================== Task Management =====================
+
+  // Create a task under an agent. Only persists a PENDING row — it never
+  // blocks on execution.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateTask(CreateTaskRequest) returns (agent.v1.Task) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/agents/*}/tasks"
+      body: "task"
+    };
+    option (google.api.method_signature) = "parent,task";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Task";
+  }
+
+  // Get a task.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetTask(GetTaskRequest) returns (agent.v1.Task) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*/tasks/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Task";
+  }
+
+  // List tasks for an agent.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/agents/*}/tasks"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Task";
+  }
+
+  // Delete a task.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc DeleteTask(DeleteTaskRequest) returns (agent.v1.Task) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/agents/*/tasks/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Task";
+  }
+
+  // Cancel a task and every non-terminal task below it in the tree.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc CancelTask(CancelTaskRequest) returns (agent.v1.Task) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*/tasks/*}:cancel"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Resolve a pending tool-call approval on a task parked in
+  // TASK_STATE_AWAITING_APPROVAL. The last resolution resumes the turn.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ResolveApproval(ResolveApprovalRequest) returns (agent.v1.Task) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*/tasks/*}:resolveApproval"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,tool_call_id";
+  }
+
+  // ===================== Memory Management =====================
+
+  // Create a memory.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateMemory(CreateMemoryRequest) returns (agent.v1.Memory) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/agents/*}/memories"
+      body: "memory"
+    };
+    option (google.api.method_signature) = "parent,memory";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Memory";
+  }
+
+  // Get a memory.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetMemory(GetMemoryRequest) returns (agent.v1.Memory) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*/memories/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Memory";
+  }
+
+  // Update a memory.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateMemory(UpdateMemoryRequest) returns (agent.v1.Memory) {
+    option (google.api.http) = {
+      patch: "/v1/{memory.name=organizations/*/users/*/agents/*/memories/*}"
+      body: "memory"
+    };
+    option (google.api.method_signature) = "memory,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Memory";
+  }
+
+  // List memories for an agent.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListMemories(ListMemoriesRequest) returns (ListMemoriesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/agents/*}/memories"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Memory";
+  }
+
+  // Delete a memory.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc DeleteMemory(DeleteMemoryRequest) returns (agent.v1.Memory) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/agents/*/memories/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.malonaz.com/Memory";
+  }
+}
+
+// ===================== Agent Requests =====================
+
+// Request message for AgentService.CreateAgent.
+message CreateAgentRequest {
+  // The resource name of the parent user.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/User"}
+  ];
+
+  // The agent to create.
+  agent.v1.Agent agent = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string agent_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AgentService.GetAgent.
+message GetAgentRequest {
+  // The resource name of the agent to retrieve.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Agent"
+  ];
+}
+
+// Request message for AgentService.UpdateAgent.
+message UpdateAgentRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "title",
+      "instructions",
+      "model"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "agent.name_required"
+    message: "agent.name must be set"
+    expression: "has(this.agent.name)"
+  };
+
+  // The agent to update.
+  agent.v1.Agent agent = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for AgentService.ListAgents.
+message ListAgentsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent user that owns this collection of agents.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/User"}
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted agents.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of agents to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListAgents` call.
+  string page_token = 6;
+}
+
+// Response message for AgentService.ListAgents.
+message ListAgentsResponse {
+  // The agents matching the request.
+  repeated agent.v1.Agent agents = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more.
+  string next_page_token = 2;
+}
+
+// Request message for AgentService.DeleteAgent.
+message DeleteAgentRequest {
+  // The resource name of the agent to delete.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Agent"
+  ];
+
+  // If true, and the agent is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  // This ensures the client has an up-to-date value before proceeding with deletion.
+  string etag = 3;
+}
+
+// Request message for AgentService.SendAgentMessage.
+message SendAgentMessageRequest {
+  // The resource name of the agent to message.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Agent"
+  ];
+
+  // The message to append to the agent's chat. Must use the USER role.
+  ai.v1.Message message = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// ===================== Task Requests =====================
+
+// Request message for AgentService.CreateTask.
+message CreateTaskRequest {
+  // The resource name of the agent this task is assigned to.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/Agent"}
+  ];
+
+  // The task to create.
+  agent.v1.Task task = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string task_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AgentService.GetTask.
+message GetTaskRequest {
+  // The resource name of the task to retrieve.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+}
+
+// Request message for AgentService.ListTasks.
+message ListTasksRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent agent that owns this collection of tasks.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/Agent"}
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted tasks.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of tasks to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListTasks` call.
+  string page_token = 6;
+}
+
+// Response message for AgentService.ListTasks.
+message ListTasksResponse {
+  // The tasks matching the request.
+  repeated agent.v1.Task tasks = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more.
+  string next_page_token = 2;
+}
+
+// Request message for AgentService.DeleteTask.
+message DeleteTaskRequest {
+  // The resource name of the task to delete.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+
+  // If true, and the task is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  // This ensures the client has an up-to-date value before proceeding with deletion.
+  string etag = 3;
+}
+
+// Request message for AgentService.CancelTask.
+message CancelTaskRequest {
+  // The resource name of the task to cancel.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+}
+
+// Request message for AgentService.ResolveApproval.
+message ResolveApprovalRequest {
+  // The resource name of the task whose approval is being resolved.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Task"
+  ];
+
+  // The id of the pending tool call being resolved.
+  string tool_call_id = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // If true, execute the tool call; otherwise decline it.
+  bool approved = 3;
+
+  // Optional reason returned to the model as the tool result when declining.
+  string decline_reason = 4;
+}
+
+// ===================== Memory Requests =====================
+
+// Request message for AgentService.CreateMemory.
+message CreateMemoryRequest {
+  // The resource name of the agent this memory belongs to.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/Agent"}
+  ];
+
+  // The memory to create.
+  agent.v1.Memory memory = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string memory_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+
+  // If set, validate the request and preview the response, but do not actually create the resource.
+  bool validate_only = 5;
+}
+
+// Request message for AgentService.GetMemory.
+message GetMemoryRequest {
+  // The resource name of the memory to retrieve.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/memories/{memory}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Memory"
+  ];
+}
+
+// Request message for AgentService.UpdateMemory.
+message UpdateMemoryRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "title",
+      "description",
+      "content"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "memory.name_required"
+    message: "memory.name must be set"
+    expression: "has(this.memory.name)"
+  };
+
+  // The memory to update.
+  agent.v1.Memory memory = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for AgentService.ListMemories.
+message ListMemoriesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "update_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The resource name of the parent agent that owns this collection of memories.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "agent.malonaz.com/Agent"}
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include soft-deleted memories.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of memories to return (max 100).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 100
+  }];
+
+  // A page token, received from a previous `ListMemories` call.
+  string page_token = 6;
+}
+
+// Response message for AgentService.ListMemories.
+message ListMemoriesResponse {
+  // The memories matching the request.
+  repeated agent.v1.Memory memories = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more.
+  string next_page_token = 2;
+}
+
+// Request message for AgentService.DeleteMemory.
+message DeleteMemoryRequest {
+  // The resource name of the memory to delete.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}/memories/{memory}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.malonaz.com/Memory"
+  ];
+
+  // If true, and the memory is not found, the request will succeed
+  // but no action will be taken on the server.
+  bool allow_missing = 2;
+
+  // If set, the request will only succeed if the current etag matches this value.
+  // This ensures the client has an up-to-date value before proceeding with deletion.
+  string etag = 3;
+}

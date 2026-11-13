@@ -1,0 +1,19 @@
+go_library(
+    name = "rpc",
+    srcs = ["agent_service_rpc.pb.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/agent/model",
+        "//go/aip",
+        "//go/grpc/status",
+        "//go/uuid",
+        "//malonaz/agent/agent_service/v1",
+        "//malonaz/agent/v1",
+        "//third_party/go:buf.build__go__protovalidate",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
