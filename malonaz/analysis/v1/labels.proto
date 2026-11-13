@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package malonaz.analysis.v1;
+
+import "malonaz/codegen/aip/v1/label.proto";
+
+option go_package = "github.com/malonaz/core/genproto/analysis/v1";
+option (malonaz.codegen.aip.v1.label) = {
+  dynamic_key: "analysis.malonaz.com/{analysis}"
+  description: "The latest outcome of an analysis with a fixed set of outcomes: true or false, a choice option id, or a score level index. Its presence means the analysis ran; the full result is the annotation of the same key."
+};

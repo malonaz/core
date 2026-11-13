@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package malonaz.analysis.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/v1/decision.proto";
+import "malonaz/json/v1/schema.proto";
+
+option go_package = "github.com/malonaz/core/genproto/analysis/v1";
+option (google.api.resource_definition) = {
+  type: "analysis.malonaz.com/Service"
+  pattern: "services/{service}"
+  singular: "service"
+  plural: "services"
+};
+option (google.api.resource_definition) = {
+  type: "analysis.malonaz.com/ResourceType"
+  pattern: "services/{service}/types/{resource_type}"
+  singular: "resourceType"
+  plural: "resourceTypes"
+};
+
+// An Analysis is a question or task a model answers about resources of one type,
+// recorded on each resource as an annotation keyed by the analysis id, and for
+// questions also a label.
+message Analysis {
+  option (google.api.resource) = {
+    type: "analysis.malonaz.com/Analysis"
+    pattern: "services/{service}/types/{resource_type}/analyses/{analysis}"
+    singular: "analysis"
+    plural: "analyses"
+  };
+
+  // The resource name of the analysis.
+  // Format: services/{service}/types/{resource_type}/analyses/{analysis}
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (buf.validate.field).string.pattern = "^services/[a-z0-9.-]+/types/[A-Z][A-Za-z0-9]*/analyses/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+  ];
+
+  // A human-readable summary of the analysis.
+  string description = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1024
+  }];
+
+  // The output the judge must produce.
+  oneof output {
+    option (buf.validate.oneof).required = true;
+
+    // Is a condition true?
+    malonaz.ai.v1.BooleanQuestion boolean = 3;
+    // Which one of a fixed set of options applies?
+    malonaz.ai.v1.ChoiceQuestion choice = 4;
+    // Where does the resource sit on an ordered scale?
+    malonaz.ai.v1.ScoreQuestion score = 5;
+    // A JSON value matching this schema.
+    malonaz.json.v1.Schema structured = 6;
+    // Free text.
+    TextOutput text = 7;
+  }
+
+  // The model to judge with. Unset uses the registry's default.
+  // Format: providers/{provider}/models/{model}
+  string model = 8 [(google.api.resource_reference).type = "ai.malonaz.com/Model"];
+
+  reserved 9;
+  reserved "run_config";
+
+  // The question (boolean, choice, score) or task (structured, text) the judge is given.
+  string instructions = 12 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 8192
+  }];
+
+  // The type of resource analysed, e.g. "ai.malonaz.com/Chat".
+  string resource_type = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The label key results set, empty for text and structured outputs.
+  string label_key = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// A free-text output.
+message TextOutput {
+  // The maximum length of the text, in tokens. Zero means the judge's default.
+  int32 max_tokens = 1 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 8192
+  }];
+}

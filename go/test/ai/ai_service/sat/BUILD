@@ -1,6 +1,7 @@
 go_test(
     name = "sat",
     srcs = [
+        "analysis_test.go",
         "chat_test.go",
         "decision_test.go",
         "generate_message_test.go",
@@ -16,6 +17,18 @@ go_test(
     deps = [
         "//go/ai",
         "//go/ai/ai_service/provider/mock",
+        "//go/ai/analysis",
+        "//go/ai/analysis/fixtures",
+        "//go/analysis",
+        "//go/nats",
+        "//go/pbutil/pbfieldmask",
+        "//malonaz/aip/v1",
+        "//malonaz/nats/v1",
+        "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//malonaz/analysis/analysis_service/v1",
+        "//malonaz/analysis/v1",
+        "//third_party/go:github.com__google__go-cmp__cmp",
+        "//third_party/go:google.golang.org__protobuf__testing__protocmp",
         "//go/ai/tool",
         "//go/aip",
         "//go/grpc",
