@@ -8,7 +8,8 @@ labels:
 ---
 
 `stream_partial_tool_calls` makes the Google provider set Vertex's
-`streamFunctionCallArguments` (Vertex only; the Gemini API has no such mode). The code is
+`streamFunctionCallArguments` (Vertex only; the Gemini API has no such mode: sent by hand it is
+accepted and ignored, every call arriving whole in one chunk, re-checked 2026-11-13). The code is
 `go/ai/ai_service/provider/google/generate_message.go` and `provider/tool_accumulator.go`.
 
 ## The stream, as captured (gemini-3.8-flash, 2026-11)
@@ -51,3 +52,5 @@ still read as nesting.
 what a map holds. Anything sending a schema to a provider goes through `ai.JSONSchemaMarshal`
 (camelCase keywords, compacted). Tool results that quote a schema (discovery) keep the proto names:
 they are stored history and must replay byte for byte (`lores/ai/replay-determinism`).
+gemini-4-hydrogen (2026-11-13): a ~13 KB nested-JSON call aborted in 2 of 5 streamed generations,
+none with partial args off; small, parallel and text-then-call cases never aborted.
