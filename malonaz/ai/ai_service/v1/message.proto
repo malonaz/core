@@ -5,6 +5,7 @@ package malonaz.ai.ai_service.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/metrics.proto";
@@ -398,5 +399,9 @@ message StreamGenerateMessageResponse {
     // consumption is the last one streamed out; the final `generated_message`
     // event also carries the aggregate usage.
     .malonaz.ai.v1.ModelUsage model_usage = 5;
+
+    // Sent every 15 seconds while the stream is open, so proxies and load
+    // balancers never close it as idle. Carries nothing: clients ignore it.
+    google.protobuf.Empty heartbeat = 6;
   }
 }

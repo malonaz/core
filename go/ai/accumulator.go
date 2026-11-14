@@ -112,6 +112,9 @@ func (a *MessageAccumulator) Add(response *pb.StreamGenerateMessageResponse) err
 		// The persisted message is the source of truth: it carries the resource
 		// name, aggregated model usage and price.
 		a.Message = c.GeneratedMessage
+
+	case *pb.StreamGenerateMessageResponse_Heartbeat:
+		// Keeps an idle stream open; nothing to accumulate.
 	}
 	return nil
 }
