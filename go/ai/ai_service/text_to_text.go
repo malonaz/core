@@ -167,6 +167,8 @@ func streamGenerateMessageResponseToTextToTextStreamResponse(response *pb.Stream
 		return &pb.TextToTextStreamResponse{
 			Content: &pb.TextToTextStreamResponse_GenerationMetrics{GenerationMetrics: content.GenerationMetrics},
 		}
+	case *pb.StreamGenerateMessageResponse_Heartbeat:
+		return nil
 	}
 	return nil
 }

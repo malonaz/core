@@ -24,6 +24,7 @@ go_library(
         "//third_party/go:github.com__karminski__streaming-json-go",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",
     ],
 )
@@ -41,10 +42,15 @@ go_test(
 
 go_test(
     name = "internal_test",
-    srcs = ["model_service_test.go"],
+    srcs = [
+        "async_message_content_sender_test.go",
+        "model_service_test.go",
+    ],
     resources = glob(["configs/*.json"]),
     deps = [
         ":provider",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
         "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

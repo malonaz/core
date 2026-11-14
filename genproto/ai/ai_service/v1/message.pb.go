@@ -15,6 +15,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -1577,6 +1578,7 @@ type StreamGenerateMessageResponse struct {
 	//	*StreamGenerateMessageResponse_GenerationMetrics
 	//	*StreamGenerateMessageResponse_GeneratedMessage
 	//	*StreamGenerateMessageResponse_ModelUsage
+	//	*StreamGenerateMessageResponse_Heartbeat
 	Content       isStreamGenerateMessageResponse_Content `protobuf_oneof:"content"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1659,6 +1661,15 @@ func (x *StreamGenerateMessageResponse) GetModelUsage() *v1.ModelUsage {
 	return nil
 }
 
+func (x *StreamGenerateMessageResponse) GetHeartbeat() *emptypb.Empty {
+	if x != nil {
+		if x, ok := x.Content.(*StreamGenerateMessageResponse_Heartbeat); ok {
+			return x.Heartbeat
+		}
+	}
+	return nil
+}
+
 func (x *StreamGenerateMessageResponse) SetBlock(v *v1.Block) {
 	if v == nil {
 		x.Content = nil
@@ -1693,6 +1704,14 @@ func (x *StreamGenerateMessageResponse) SetModelUsage(v *v1.ModelUsage) {
 		return
 	}
 	x.Content = &StreamGenerateMessageResponse_ModelUsage{v}
+}
+
+func (x *StreamGenerateMessageResponse) SetHeartbeat(v *emptypb.Empty) {
+	if v == nil {
+		x.Content = nil
+		return
+	}
+	x.Content = &StreamGenerateMessageResponse_Heartbeat{v}
 }
 
 func (x *StreamGenerateMessageResponse) HasContent() bool {
@@ -1742,6 +1761,14 @@ func (x *StreamGenerateMessageResponse) HasModelUsage() bool {
 	return ok
 }
 
+func (x *StreamGenerateMessageResponse) HasHeartbeat() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.Content.(*StreamGenerateMessageResponse_Heartbeat)
+	return ok
+}
+
 func (x *StreamGenerateMessageResponse) ClearContent() {
 	x.Content = nil
 }
@@ -1776,12 +1803,19 @@ func (x *StreamGenerateMessageResponse) ClearModelUsage() {
 	}
 }
 
+func (x *StreamGenerateMessageResponse) ClearHeartbeat() {
+	if _, ok := x.Content.(*StreamGenerateMessageResponse_Heartbeat); ok {
+		x.Content = nil
+	}
+}
+
 const StreamGenerateMessageResponse_Content_not_set_case case_StreamGenerateMessageResponse_Content = 0
 const StreamGenerateMessageResponse_Block_case case_StreamGenerateMessageResponse_Content = 1
 const StreamGenerateMessageResponse_StopReason_case case_StreamGenerateMessageResponse_Content = 2
 const StreamGenerateMessageResponse_GenerationMetrics_case case_StreamGenerateMessageResponse_Content = 3
 const StreamGenerateMessageResponse_GeneratedMessage_case case_StreamGenerateMessageResponse_Content = 4
 const StreamGenerateMessageResponse_ModelUsage_case case_StreamGenerateMessageResponse_Content = 5
+const StreamGenerateMessageResponse_Heartbeat_case case_StreamGenerateMessageResponse_Content = 6
 
 func (x *StreamGenerateMessageResponse) WhichContent() case_StreamGenerateMessageResponse_Content {
 	if x == nil {
@@ -1798,6 +1832,8 @@ func (x *StreamGenerateMessageResponse) WhichContent() case_StreamGenerateMessag
 		return StreamGenerateMessageResponse_GeneratedMessage_case
 	case *StreamGenerateMessageResponse_ModelUsage:
 		return StreamGenerateMessageResponse_ModelUsage_case
+	case *StreamGenerateMessageResponse_Heartbeat:
+		return StreamGenerateMessageResponse_Heartbeat_case
 	default:
 		return StreamGenerateMessageResponse_Content_not_set_case
 	}
@@ -1822,6 +1858,9 @@ type StreamGenerateMessageResponse_builder struct {
 	// consumption is the last one streamed out; the final `generated_message`
 	// event also carries the aggregate usage.
 	ModelUsage *v1.ModelUsage
+	// Sent every 15 seconds while the stream is open, so proxies and load
+	// balancers never close it as idle. Carries nothing: clients ignore it.
+	Heartbeat *emptypb.Empty
 	// -- end of Content
 }
 
@@ -1843,6 +1882,9 @@ func (b0 StreamGenerateMessageResponse_builder) Build() *StreamGenerateMessageRe
 	}
 	if b.ModelUsage != nil {
 		x.Content = &StreamGenerateMessageResponse_ModelUsage{b.ModelUsage}
+	}
+	if b.Heartbeat != nil {
+		x.Content = &StreamGenerateMessageResponse_Heartbeat{b.Heartbeat}
 	}
 	return m0
 }
@@ -1889,6 +1931,12 @@ type StreamGenerateMessageResponse_ModelUsage struct {
 	ModelUsage *v1.ModelUsage `protobuf:"bytes,5,opt,name=model_usage,json=modelUsage,proto3,oneof"`
 }
 
+type StreamGenerateMessageResponse_Heartbeat struct {
+	// Sent every 15 seconds while the stream is open, so proxies and load
+	// balancers never close it as idle. Carries nothing: clients ignore it.
+	Heartbeat *emptypb.Empty `protobuf:"bytes,6,opt,name=heartbeat,proto3,oneof"`
+}
+
 func (*StreamGenerateMessageResponse_Block) isStreamGenerateMessageResponse_Content() {}
 
 func (*StreamGenerateMessageResponse_StopReason) isStreamGenerateMessageResponse_Content() {}
@@ -1899,11 +1947,13 @@ func (*StreamGenerateMessageResponse_GeneratedMessage) isStreamGenerateMessageRe
 
 func (*StreamGenerateMessageResponse_ModelUsage) isStreamGenerateMessageResponse_Content() {}
 
+func (*StreamGenerateMessageResponse_Heartbeat) isStreamGenerateMessageResponse_Content() {}
+
 var File_malonaz_ai_ai_service_v1_message_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"&malonaz/ai/ai_service/v1/message.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xa5\x02\n" +
+	"&malonaz/ai/ai_service/v1/message.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xa5\x02\n" +
 	"\x14CreateMessageRequest\x129\n" +
 	"\x06parent\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Chat\xbaH\x03\xc8\x01\x01R\x06parent\x12;\n" +
@@ -1993,7 +2043,7 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"stopReason\x12:\n" +
 	"\vmodel_usage\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\x80\x03\n" +
+	"\x12generation_metrics\x18\x04 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xb8\x03\n" +
 	"\x1dStreamGenerateMessageResponse\x12,\n" +
 	"\x05block\x18\x01 \x01(\v2\x14.malonaz.ai.v1.BlockH\x00R\x05block\x12G\n" +
 	"\vstop_reason\x18\x02 \x01(\x0e2$.malonaz.ai.ai_service.v1.StopReasonH\x00R\n" +
@@ -2001,7 +2051,8 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsH\x00R\x11generationMetrics\x12E\n" +
 	"\x11generated_message\x18\x04 \x01(\v2\x16.malonaz.ai.v1.MessageH\x00R\x10generatedMessage\x12<\n" +
 	"\vmodel_usage\x18\x05 \x01(\v2\x19.malonaz.ai.v1.ModelUsageH\x00R\n" +
-	"modelUsageB\x10\n" +
+	"modelUsage\x126\n" +
+	"\theartbeat\x18\x06 \x01(\v2\x16.google.protobuf.EmptyH\x00R\theartbeatB\x10\n" +
 	"\acontent\x12\x05\xbaH\x02\b\x01*\xce\x01\n" +
 	"\n" +
 	"StopReason\x12\x1b\n" +
@@ -2041,6 +2092,7 @@ var file_malonaz_ai_ai_service_v1_message_proto_goTypes = []any{
 	(*v1.ModelUsage)(nil),                  // 22: malonaz.ai.v1.ModelUsage
 	(*v1.GenerationMetrics)(nil),           // 23: malonaz.ai.v1.GenerationMetrics
 	(*v1.Block)(nil),                       // 24: malonaz.ai.v1.Block
+	(*emptypb.Empty)(nil),                  // 25: google.protobuf.Empty
 }
 var file_malonaz_ai_ai_service_v1_message_proto_depIdxs = []int32{
 	16, // 0: malonaz.ai.ai_service.v1.CreateMessageRequest.message:type_name -> malonaz.ai.v1.Message
@@ -2065,11 +2117,12 @@ var file_malonaz_ai_ai_service_v1_message_proto_depIdxs = []int32{
 	23, // 19: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
 	16, // 20: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.generated_message:type_name -> malonaz.ai.v1.Message
 	22, // 21: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	25, // 22: malonaz.ai.ai_service.v1.StreamGenerateMessageResponse.heartbeat:type_name -> google.protobuf.Empty
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_message_proto_init() }
@@ -2083,6 +2136,7 @@ func file_malonaz_ai_ai_service_v1_message_proto_init() {
 		(*StreamGenerateMessageResponse_GenerationMetrics)(nil),
 		(*StreamGenerateMessageResponse_GeneratedMessage)(nil),
 		(*StreamGenerateMessageResponse_ModelUsage)(nil),
+		(*StreamGenerateMessageResponse_Heartbeat)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

@@ -216,6 +216,8 @@ func sendMessage(ctx context.Context, client aiservicepb.AiServiceClient, messag
 
 		case *aiservicepb.StreamGenerateMessageResponse_GenerationMetrics:
 			printGenerationMetricsCompact(c.GenerationMetrics)
+
+		case *aiservicepb.StreamGenerateMessageResponse_Heartbeat:
 		}
 	}
 
@@ -573,6 +575,8 @@ func handleStreamResponse(response *aiservicepb.StreamGenerateMessageResponse, i
 
 	case *aiservicepb.StreamGenerateMessageResponse_GenerationMetrics:
 		printGenerationMetrics(content.GenerationMetrics)
+
+	case *aiservicepb.StreamGenerateMessageResponse_Heartbeat:
 	}
 }
 
