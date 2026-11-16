@@ -9610,7 +9610,7 @@ go_mod_download(
     name = "google.golang.org__protobuf",
     _tag = "download",
     module = "google.golang.org/protobuf",
-    version = "v1.36.11",
+    version = "v1.36.12",
     visibility = ["PUBLIC"],
 )
 
@@ -9622,6 +9622,7 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [
         ":google.golang.org__protobuf__encoding__prototext",
+        ":google.golang.org__protobuf__internal__editiondefaults",
         ":google.golang.org__protobuf__internal__filedesc",
         ":google.golang.org__protobuf__internal__genid",
         ":google.golang.org__protobuf__internal__strs",

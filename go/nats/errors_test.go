@@ -15,13 +15,13 @@ func TestIsRejected(t *testing.T) {
 		return fmt.Errorf("publishing message: %w", &jetstream.APIError{ErrorCode: code})
 	}
 	errs := map[string]error{
-		"max payload":           fmt.Errorf("publishing message: %w", nats.ErrMaxPayload),
-		"stream mismatch":       apiErr(10060),
-		"message too large":     apiErr(10054),
-		"stream not found":      apiErr(10059),
-		"insufficient storage":  apiErr(10047),
-		"connection closed":     nats.ErrConnectionClosed,
-		"unknown error":         errors.New("timeout"),
+		"max payload":          fmt.Errorf("publishing message: %w", nats.ErrMaxPayload),
+		"stream mismatch":      apiErr(10060),
+		"message too large":    apiErr(10054),
+		"stream not found":     apiErr(10059),
+		"insufficient storage": apiErr(10047),
+		"connection closed":    nats.ErrConnectionClosed,
+		"unknown error":        errors.New("timeout"),
 	}
 	rejected := make(map[string]bool, len(errs))
 	for name, err := range errs {
