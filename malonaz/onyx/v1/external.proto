@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package malonaz.onyx.v1;
+
+import "buf/validate/validate.proto";
+import "malonaz/onyx/v1/main.proto";
+
+option go_package = "github.com/malonaz/core/genproto/onyx/v1";
+
+// A binary onyx does not generate, e.g. a Python server or nginx: what its Kubernetes base needs. Its
+// pod is hardened as an onyx binary's, and probed over grpc.health.v1 on its first gRPC listener,
+// or else over HTTP on its first listener with a health path.
+message ExternalManifest {
+  option (buf.validate.message).cel = {
+    id: "external.health"
+    message: "an external binary needs a gRPC listener (grpc.health.v1) or an http_health_path, which its probes call"
+    expression: "this.listeners.exists(l, l.grpc || l.http_health_path != '')"
+  };
+
+  // Kebab-case name of the binary: its Deployment, Service and service account.
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+  // The container's command; the image's own when empty.
+  repeated string command = 2;
+
+  // The TCP ports it serves.
+  repeated Listener listeners = 3 [(buf.validate.field).repeated.min_items = 1];
+
+  // As MainManifest's.
+  Resources resources = 4;
+
+  // As MainManifest's.
+  int32 shutdown_seconds = 5 [
+    (buf.validate.field).int32 = {
+      gte: 1
+      lte: 3600
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // As MainManifest's.
+  int32 startup_seconds = 6 [
+    (buf.validate.field).int32 = {
+      gte: 5
+      lte: 3600
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // As MainManifest's.
+  repeated string writable_dirs = 7 [
+    (buf.validate.field).repeated.unique = true,
+    (buf.validate.field).repeated.items.string.pattern = "^(/[a-z0-9._-]+)+$"
+  ];
+
+  // A TCP port of the binary.
+  message Listener {
+    // Kebab-case; its Service port and Ingress are `{binary}-{name}`.
+    string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
+
+    // TCP port.
+    int32 port = 2 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 65535
+    }];
+
+    // Serves gRPC.
+    bool grpc = 3;
+
+    // Reached from outside the cluster: it gets an Ingress.
+    bool public = 4;
+
+    // Path of an HTTP health check served here, e.g. `/health`; probed when no listener serves gRPC.
+    string http_health_path = 5 [
+      (buf.validate.field).string.pattern = "^/",
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
+  }
+}

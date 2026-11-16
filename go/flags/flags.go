@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"os"
 
 	goflags "github.com/jessevdk/go-flags"
@@ -56,6 +57,21 @@ func ParseArgs(opts any, args []string, options ...Options) error {
 	}
 	parser := goflags.NewParser(opts, combinedOptions)
 	_, err := parser.ParseArgs(args)
+	return err
+}
+
+// ParseWithDefaults parses os.Args into opts, first replacing the default of each flag in
+// longNameToDefault, keyed by namespaced long name (`a-service-grpc.port`). Env still wins over them.
+func ParseWithDefaults(opts any, longNameToDefault map[string]string, options ...Options) error {
+	parser := goflags.NewParser(opts, combineOptions(options...))
+	for longName, value := range longNameToDefault {
+		option := parser.FindOptionByLongName(longName)
+		if option == nil {
+			return fmt.Errorf("no flag --%s to default", longName)
+		}
+		option.Default = []string{value}
+	}
+	_, err := parser.ParseArgs(os.Args)
 	return err
 }
 

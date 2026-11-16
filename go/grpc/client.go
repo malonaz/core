@@ -64,7 +64,8 @@ func getClientTransportCredentialsOptions(opts *ClientOpts, certsOpts *certs.Opt
 
 	var tlsConfig *tls.Config
 	if certsOpts == nil {
-		tlsConfig = &tls.Config{InsecureSkipVerify: true}
+		// Verified against the system roots.
+		tlsConfig = &tls.Config{}
 	} else {
 		var err error
 		tlsConfig, err = certsOpts.ClientTLSConfig()

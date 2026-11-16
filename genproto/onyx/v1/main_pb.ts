@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/onyx/v1/main.proto.
  */
 export const file_malonaz_onyx_v1_main: GenFile = /*@__PURE__*/
-  fileDesc("ChptYWxvbmF6L29ueXgvdjEvbWFpbi5wcm90bxIPbWFsb25hei5vbnl4LnYxIoABCgxNYWluTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBINCgVzZXR1cBgCIAEoCBIyCgdzZXJ2ZXJzGAMgAygLMhcubWFsb25hei5vbnl4LnYxLlNlcnZlckIIukgFkgECCAEi6wUKBlNlcnZlchItCgRuYW1lGAEgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEiwKBGdycGMYAiABKAsyHC5tYWxvbmF6Lm9ueXgudjEuU2VydmVyLkdycGNIABIsCgRodHRwGAMgASgLMhwubWFsb25hei5vbnl4LnYxLlNlcnZlci5IdHRwSAASPgoOZ3JwY193ZWJfcHJveHkYBCABKAsyJC5tYWxvbmF6Lm9ueXgudjEuU2VydmVyLkdycGNXZWJQcm94eUgAEjYKCXByb2Nlc3NvchgFIAEoCzIhLm1hbG9uYXoub255eC52MS5TZXJ2ZXIuUHJvY2Vzc29ySAAapgIKBEdycGMSQwoMaW50ZXJjZXB0b3JzGAEgAygOMhwubWFsb25hei5vbnl4LnYxLkludGVyY2VwdG9yQg+6SAySAQkiB4IBBBABIAASFgoOZGVzY3JpcHRvcl9zZXQYAiABKAkSQAoIc2VydmljZXMYAyADKAsyJC5tYWxvbmF6Lm9ueXgudjEuU2VydmVyLkdycGMuU2VydmljZUIIukgFkgECCAEafwoHU2VydmljZRIWCgVwcm90bxgBIAEoCUIHukgEcgIQARIwCgdzZXJ2aWNlGAIgASgJQh+6SBxyGjIYXlthLXowLTldKygtW2EtejAtOV0rKSokEhkKCG1hbmlmZXN0GAMgASgJQge6SARyAhABEg8KB2dhdGV3YXkYBCABKAgabgoESHR0cBJACghzZXJ2aWNlcxgBIAMoCzIkLm1hbG9uYXoub255eC52MS5TZXJ2ZXIuSHR0cC5TZXJ2aWNlQgi6SAWSAQIIARokCgdTZXJ2aWNlEhkKCG1hbmlmZXN0GAEgASgJQge6SARyAhABGg4KDEdycGNXZWJQcm94eRomCglQcm9jZXNzb3ISGQoIbWFuaWZlc3QYASABKAlCB7pIBHICEAFCDQoEa2luZBIFukgCCAEq5AIKC0ludGVyY2VwdG9yEhsKF0lOVEVSQ0VQVE9SX1VOU1BFQ0lGSUVEEAASLgoqSU5URVJDRVBUT1JfU0VTU0lPTl9MT0NBTF9DT05URVhUX0lOSkVDVE9SEAESLworSU5URVJDRVBUT1JfRVhURVJOQUxfQVBJX0tFWV9BVVRIRU5USUNBVElPThACEi8KK0lOVEVSQ0VQVE9SX0lOVEVSTkFMX1NFUlZJQ0VfQVVUSEVOVElDQVRJT04QAxIiCh5JTlRFUkNFUFRPUl9KV1RfQVVUSEVOVElDQVRJT04QBBIpCiVJTlRFUkNFUFRPUl9QRVJNSVNTSU9OX0FVVEhFTlRJQ0FUSU9OEAUSJAogSU5URVJDRVBUT1JfU0VTU0lPTl9MT0dfSU5KRUNUT1IQBhIxCi1JTlRFUkNFUFRPUl9TRVNTSU9OX09VVEdPSU5HX0NPTlRFWFRfSU5KRUNUT1IQB0IqWihnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9vbnl4L3YxYgZwcm90bzM", [file_buf_validate_validate]);
+  fileDesc("ChptYWxvbmF6L29ueXgvdjEvbWFpbi5wcm90bxIPbWFsb25hei5vbnl4LnYxIrkCCgxNYWluTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBINCgVzZXR1cBgCIAEoCBIyCgdzZXJ2ZXJzGAMgAygLMhcubWFsb25hei5vbnl4LnYxLlNlcnZlckIIukgFkgECCAESLQoJcmVzb3VyY2VzGAQgASgLMhoubWFsb25hei5vbnl4LnYxLlJlc291cmNlcxInChBzaHV0ZG93bl9zZWNvbmRzGAUgASgFQg26SAoaBRiQHCgB2AEBEiYKD3N0YXJ0dXBfc2Vjb25kcxgGIAEoBUINukgKGgUYkBwoBdgBARI3Cg13cml0YWJsZV9kaXJzGAcgAygJQiC6SB2SARoYASIWchQyEl4oL1thLXowLTkuXy1dKykrJCL5AQoJUmVzb3VyY2VzEjcKCHJlcXVlc3RzGAEgASgLMiUubWFsb25hei5vbnl4LnYxLlJlc291cmNlcy5RdWFudGl0aWVzEjUKBmxpbWl0cxgCIAEoCzIlLm1hbG9uYXoub255eC52MS5SZXNvdXJjZXMuUXVhbnRpdGllcxp8CgpRdWFudGl0aWVzEjQKA2NwdRgBIAEoCUInukgkch8yHV4oWzAtOV0rbXxbMC05XSsoXC5bMC05XSspPykk2AEBEjgKBm1lbW9yeRgCIAEoCUIoukglciAyHl5bMC05XSsoS2l8TWl8R2l8VGl8a3xNfEd8VCk/JNgBASKKCwoGU2VydmVyEi0KBG5hbWUYASABKAlCH7pIHHIaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiQSLAoEZ3JwYxgCIAEoCzIcLm1hbG9uYXoub255eC52MS5TZXJ2ZXIuR3JwY0gAEiwKBGh0dHAYAyABKAsyHC5tYWxvbmF6Lm9ueXgudjEuU2VydmVyLkh0dHBIABI+Cg5ncnBjX3dlYl9wcm94eRgEIAEoCzIkLm1hbG9uYXoub255eC52MS5TZXJ2ZXIuR3JwY1dlYlByb3h5SAASNgoJcHJvY2Vzc29yGAUgASgLMiEubWFsb25hei5vbnl4LnYxLlNlcnZlci5Qcm9jZXNzb3JIABIcCgRwb3J0GAYgASgFQg66SAsaBhj//wMoAdgBARIQCghpbnRlcm5hbBgHIAEoCBIOCgZwdWJsaWMYCCABKAga3wMKBEdycGMSQwoMaW50ZXJjZXB0b3JzGAEgAygOMhwubWFsb25hei5vbnl4LnYxLkludGVyY2VwdG9yQg+6SAySAQkiB4IBBBABIAASFgoOZGVzY3JpcHRvcl9zZXQYAiABKAkSQAoIc2VydmljZXMYAyADKAsyJC5tYWxvbmF6Lm9ueXgudjEuU2VydmVyLkdycGMuU2VydmljZUIIukgFkgECCAESJAoMZ2F0ZXdheV9wb3J0GAQgASgFQg66SAsaBhj//wMoAdgBARp/CgdTZXJ2aWNlEhYKBXByb3RvGAEgASgJQge6SARyAhABEjAKB3NlcnZpY2UYAiABKAlCH7pIHHIaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiQSGQoIbWFuaWZlc3QYAyABKAlCB7pIBHICEAESDwoHZ2F0ZXdheRgEIAEoCDqQAbpIjAEaiQEKGHNlcnZlci5ncnBjLmdhdGV3YXlfcG9ydBIvZ2F0ZXdheV9wb3J0IGlzIHNldCBidXQgbm8gc2VydmljZSBzZXRzIGdhdGV3YXkaPHRoaXMuZ2F0ZXdheV9wb3J0ID09IDAgfHwgdGhpcy5zZXJ2aWNlcy5leGlzdHMocywgcy5nYXRld2F5KRpuCgRIdHRwEkAKCHNlcnZpY2VzGAEgAygLMiQubWFsb25hei5vbnl4LnYxLlNlcnZlci5IdHRwLlNlcnZpY2VCCLpIBZIBAggBGiQKB1NlcnZpY2USGQoIbWFuaWZlc3QYASABKAlCB7pIBHICEAEaDgoMR3JwY1dlYlByb3h5GiYKCVByb2Nlc3NvchIZCghtYW5pZmVzdBgBIAEoCUIHukgEcgIQATqjA7pInwMarAEKGXNlcnZlci5wcm9jZXNzb3JfbGlzdGVuZXISQ2EgcHJvY2Vzc29yIGhhcyBubyBsaXN0ZW5lcjogcG9ydCwgaW50ZXJuYWwgYW5kIHB1YmxpYyBkbyBub3QgYXBwbHkaSiFoYXModGhpcy5wcm9jZXNzb3IpIHx8ICh0aGlzLnBvcnQgPT0gMCAmJiAhdGhpcy5pbnRlcm5hbCAmJiAhdGhpcy5wdWJsaWMpGmYKFnNlcnZlci5pbnRlcm5hbF9wdWJsaWMSK2Egc2VydmVyIGNhbm5vdCBiZSBib3RoIGludGVybmFsIGFuZCBwdWJsaWMaHyEodGhpcy5pbnRlcm5hbCAmJiB0aGlzLnB1YmxpYykahQEKGXNlcnZlci5pbnRlcm5hbF9ncnBjX3BvcnQSMmFuIGludGVybmFsIGdycGMgc2VydmVyIGJpbmRzIGEgc29ja2V0LCBub3QgYSBwb3J0GjQhKGhhcyh0aGlzLmdycGMpICYmIHRoaXMuaW50ZXJuYWwgJiYgdGhpcy5wb3J0ICE9IDApQg0KBGtpbmQSBbpIAggBKuQCCgtJbnRlcmNlcHRvchIbChdJTlRFUkNFUFRPUl9VTlNQRUNJRklFRBAAEi4KKklOVEVSQ0VQVE9SX1NFU1NJT05fTE9DQUxfQ09OVEVYVF9JTkpFQ1RPUhABEi8KK0lOVEVSQ0VQVE9SX0VYVEVSTkFMX0FQSV9LRVlfQVVUSEVOVElDQVRJT04QAhIvCitJTlRFUkNFUFRPUl9JTlRFUk5BTF9TRVJWSUNFX0FVVEhFTlRJQ0FUSU9OEAMSIgoeSU5URVJDRVBUT1JfSldUX0FVVEhFTlRJQ0FUSU9OEAQSKQolSU5URVJDRVBUT1JfUEVSTUlTU0lPTl9BVVRIRU5USUNBVElPThAFEiQKIElOVEVSQ0VQVE9SX1NFU1NJT05fTE9HX0lOSkVDVE9SEAYSMQotSU5URVJDRVBUT1JfU0VTU0lPTl9PVVRHT0lOR19DT05URVhUX0lOSkVDVE9SEAdCKlooZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vb255eC92MWIGcHJvdG8z", [file_buf_validate_validate]);
 
 /**
  * A Go binary: the servers composing services, and the flags and wiring generated for them.
@@ -39,6 +39,35 @@ export type MainManifest = Message<"malonaz.onyx.v1.MainManifest"> & {
    * @generated from field: repeated malonaz.onyx.v1.Server servers = 3;
    */
   servers: Server[];
+
+  /**
+   * Compute of the binary's container, mirroring Kubernetes' requests and limits.
+   *
+   * @generated from field: malonaz.onyx.v1.Resources resources = 4;
+   */
+  resources?: Resources;
+
+  /**
+   * Seconds the binary takes to stop gracefully: its pod's termination grace period. Defaults to
+   * Kubernetes' 30.
+   *
+   * @generated from field: int32 shutdown_seconds = 5;
+   */
+  shutdownSeconds: number;
+
+  /**
+   * Seconds the binary may take to become live, e.g. setup's migrations. Defaults to 300.
+   *
+   * @generated from field: int32 startup_seconds = 6;
+   */
+  startupSeconds: number;
+
+  /**
+   * Absolute paths the binary writes besides `/tmp`, on a read-only root filesystem.
+   *
+   * @generated from field: repeated string writable_dirs = 7;
+   */
+  writableDirs: string[];
 };
 
 export type MainManifestValid = MainManifest;
@@ -49,6 +78,66 @@ export type MainManifestValid = MainManifest;
  */
 export const MainManifestSchema: GenMessage<MainManifest, {validType: MainManifestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_onyx_v1_main, 0);
+
+/**
+ * Compute requests and limits, as Kubernetes quantities.
+ *
+ * @generated from message malonaz.onyx.v1.Resources
+ */
+export type Resources = Message<"malonaz.onyx.v1.Resources"> & {
+  /**
+   * What the scheduler reserves.
+   *
+   * @generated from field: malonaz.onyx.v1.Resources.Quantities requests = 1;
+   */
+  requests?: Resources_Quantities;
+
+  /**
+   * What the container may not exceed.
+   *
+   * @generated from field: malonaz.onyx.v1.Resources.Quantities limits = 2;
+   */
+  limits?: Resources_Quantities;
+};
+
+export type ResourcesValid = Resources;
+
+/**
+ * Describes the message malonaz.onyx.v1.Resources.
+ * Use `create(ResourcesSchema)` to create a new message.
+ */
+export const ResourcesSchema: GenMessage<Resources, {validType: ResourcesValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_onyx_v1_main, 1);
+
+/**
+ * A cpu and memory amount.
+ *
+ * @generated from message malonaz.onyx.v1.Resources.Quantities
+ */
+export type Resources_Quantities = Message<"malonaz.onyx.v1.Resources.Quantities"> & {
+  /**
+   * Cores, or millicores: `500m`, `2`.
+   *
+   * @generated from field: string cpu = 1;
+   */
+  cpu: string;
+
+  /**
+   * Bytes, with an optional suffix: `512Mi`, `2Gi`.
+   *
+   * @generated from field: string memory = 2;
+   */
+  memory: string;
+};
+
+export type Resources_QuantitiesValid = Resources_Quantities;
+
+/**
+ * Describes the message malonaz.onyx.v1.Resources.Quantities.
+ * Use `create(Resources_QuantitiesSchema)` to create a new message.
+ */
+export const Resources_QuantitiesSchema: GenMessage<Resources_Quantities, {validType: Resources_QuantitiesValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_onyx_v1_main, 1, 0);
 
 /**
  * A server of the binary.
@@ -102,6 +191,27 @@ export type Server = Message<"malonaz.onyx.v1.Server"> & {
     value: Server_Processor;
     case: "processor";
   } | { case: undefined; value?: undefined };
+
+  /**
+   * TCP port. Defaults to the kind's: grpc 9090, http 8080, grpc_web_proxy 8443.
+   *
+   * @generated from field: int32 port = 6;
+   */
+  port: number;
+
+  /**
+   * Only reached from within the pod: a grpc server binds `/tmp/{name}.socket`, and nothing is exposed.
+   *
+   * @generated from field: bool internal = 7;
+   */
+  internal: boolean;
+
+  /**
+   * Reached from outside the cluster: each of its listeners gets an Ingress.
+   *
+   * @generated from field: bool public = 8;
+   */
+  public: boolean;
 };
 
 export type ServerValid = Server;
@@ -111,7 +221,7 @@ export type ServerValid = Server;
  * Use `create(ServerSchema)` to create a new message.
  */
 export const ServerSchema: GenMessage<Server, {validType: ServerValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1);
+  messageDesc(file_malonaz_onyx_v1_main, 2);
 
 /**
  * A gRPC server.
@@ -139,6 +249,13 @@ export type Server_Grpc = Message<"malonaz.onyx.v1.Server.Grpc"> & {
    * @generated from field: repeated malonaz.onyx.v1.Server.Grpc.Service services = 3;
    */
   services: Server_Grpc_Service[];
+
+  /**
+   * TCP port of the grpc-gateway, when a service sets gateway. Defaults to 8080.
+   *
+   * @generated from field: int32 gateway_port = 4;
+   */
+  gatewayPort: number;
 };
 
 export type Server_GrpcValid = Server_Grpc;
@@ -148,7 +265,7 @@ export type Server_GrpcValid = Server_Grpc;
  * Use `create(Server_GrpcSchema)` to create a new message.
  */
 export const Server_GrpcSchema: GenMessage<Server_Grpc, {validType: Server_GrpcValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 0);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 0);
 
 /**
  * A gRPC service registered on the server.
@@ -192,7 +309,7 @@ export type Server_Grpc_ServiceValid = Server_Grpc_Service;
  * Use `create(Server_Grpc_ServiceSchema)` to create a new message.
  */
 export const Server_Grpc_ServiceSchema: GenMessage<Server_Grpc_Service, {validType: Server_Grpc_ServiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 0, 0);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 0, 0);
 
 /**
  * An HTTP server.
@@ -215,7 +332,7 @@ export type Server_HttpValid = Server_Http;
  * Use `create(Server_HttpSchema)` to create a new message.
  */
 export const Server_HttpSchema: GenMessage<Server_Http, {validType: Server_HttpValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 1);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 1);
 
 /**
  * A service registering routes on the server.
@@ -238,7 +355,7 @@ export type Server_Http_ServiceValid = Server_Http_Service;
  * Use `create(Server_Http_ServiceSchema)` to create a new message.
  */
 export const Server_Http_ServiceSchema: GenMessage<Server_Http_Service, {validType: Server_Http_ServiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 1, 0);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 1, 0);
 
 /**
  * A grpc-web to gRPC proxy; the backend is configured by its own flags.
@@ -255,7 +372,7 @@ export type Server_GrpcWebProxyValid = Server_GrpcWebProxy;
  * Use `create(Server_GrpcWebProxySchema)` to create a new message.
  */
 export const Server_GrpcWebProxySchema: GenMessage<Server_GrpcWebProxy, {validType: Server_GrpcWebProxyValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 2);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 2);
 
 /**
  * A service with no listener: started and health-checked, nothing more.
@@ -278,7 +395,7 @@ export type Server_ProcessorValid = Server_Processor;
  * Use `create(Server_ProcessorSchema)` to create a new message.
  */
 export const Server_ProcessorSchema: GenMessage<Server_Processor, {validType: Server_ProcessorValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_main, 1, 3);
+  messageDesc(file_malonaz_onyx_v1_main, 2, 3);
 
 /**
  * A gRPC server interceptor.

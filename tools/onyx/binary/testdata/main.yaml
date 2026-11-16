@@ -1,6 +1,7 @@
 name: test
 servers:
   - name: a-service
+    internal: true
     grpc:
       services:
         - service: a-service
@@ -21,6 +22,7 @@ servers:
     processor:
       manifest: //d/d_processor:manifest(tools/onyx/binary/testdata/d_processor.yaml)
   - name: d-http
+    port: 45329
     http:
       services:
         - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)

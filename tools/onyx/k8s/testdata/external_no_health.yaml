@@ -1,0 +1,4 @@
+name: web
+listeners:
+  - name: http
+    port: 8080

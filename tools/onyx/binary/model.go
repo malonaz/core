@@ -20,6 +20,8 @@ type Binary struct {
 	GoImportPath string
 	// In start order: a server after every server it dials in-process.
 	Servers []*Server
+	// What the servers bind, in manifest order.
+	Listeners []*manifest.Listener
 	// Distinct service manifests, in manifest order.
 	Services []*Service
 	// Distinct gRPC dependencies, in manifest order.
@@ -150,6 +152,12 @@ type loader struct {
 }
 
 func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
+	listeners, err := manifest.Listeners(m.GetServers())
+	if err != nil {
+		return nil, err
+	}
+	l.binary.Listeners = listeners
+
 	// Which server serves which gRPC service: the first one wins.
 	served := map[string]*Server{}
 	var servers []*Server

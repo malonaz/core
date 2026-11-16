@@ -51,8 +51,8 @@ func tlsConfig(keyFile, certFile, caFile string, server bool) (*tls.Config, erro
 		config.Certificates = []tls.Certificate{certificate}
 		config.ClientAuth = tls.NoClientCert
 	} else {
+		// The server's certificate must chain to the CA and name the dialed host.
 		config.RootCAs = certificatePool
-		config.InsecureSkipVerify = true
 	}
 	config.BuildNameToCertificate()
 	return config, nil

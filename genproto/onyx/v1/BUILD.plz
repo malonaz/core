@@ -1,6 +1,7 @@
 go_library(
     name = "v1",
     srcs = [
+        "external.pb.go",
         "main.pb.go",
         "service.pb.go",
     ],
