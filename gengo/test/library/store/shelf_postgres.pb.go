@@ -134,7 +134,16 @@ func (s *Store) BatchInsertShelves(ctx context.Context, requestIDs []string, she
 				return nil, lookupErr
 			}
 			if len(existing) == n {
-				return orderShelvesByRequestID(requestIDs, existing)
+				replayed, err := orderShelvesByRequestID(requestIDs, existing)
+				if err != nil {
+					return nil, err
+				}
+				if journal != nil {
+					if err := journal(ctx, s.Journal(), replayed); err != nil {
+						return nil, err
+					}
+				}
+				return replayed, nil
 			}
 			// Not a whole replay: another unique constraint of the table fired.
 			return nil, model.ErrShelfAlreadyExists

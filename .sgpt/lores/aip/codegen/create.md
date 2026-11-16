@@ -46,6 +46,11 @@ How: the insert is `ON CONFLICT (identifiers) DO UPDATE SET id = id RETURNING
 misses the identifier conflict and trips the `request_id` unique constraint
 instead; the store then re-reads by request id and returns the committed row.
 
+Events: a replay publishes its created events again, on both paths, so
+consumers must be idempotent. The upsert path journals inside its
+transaction; the `request_id` path's transaction aborted, so the store
+journals the re-read rows through `s.Journal()` (outside any transaction).
+
 ## Timestamps and the migration header
 
 `create_time` is stamped `now()` and copied to `update_time`. If the incoming

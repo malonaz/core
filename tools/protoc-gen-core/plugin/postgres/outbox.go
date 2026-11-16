@@ -50,3 +50,17 @@ func (mc *msgCtx) emitJournalWrite(indent, rowsExpr string) {
 	g.P(fmt.Sprintf("%s  }", indent))
 	g.P(fmt.Sprintf("%s}", indent))
 }
+
+// emitCommittedJournalWrite emits, outside any transaction, the publishing of
+// the events of already committed rows the expression yields to the journal.
+func (mc *msgCtx) emitCommittedJournalWrite(indent, rowsExpr string) {
+	if !mc.outbox {
+		return
+	}
+	g := mc.g
+	g.P(fmt.Sprintf("%sif journal != nil {", indent))
+	g.P(fmt.Sprintf("%s  if err := journal(ctx, s.Journal(), %s); err != nil {", indent, rowsExpr))
+	g.P(fmt.Sprintf("%s    return nil, err", indent))
+	g.P(fmt.Sprintf("%s  }", indent))
+	g.P(fmt.Sprintf("%s}", indent))
+}

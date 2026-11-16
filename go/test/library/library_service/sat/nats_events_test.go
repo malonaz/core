@@ -304,6 +304,44 @@ func TestNatsEvents_Shelf(t *testing.T) {
 		require.Len(t, shelfNameToCreatedEvents[canary.Name], 1)
 	})
 
+	// A replay re-publishes the created event: delivery is at least once.
+	for name, shelfID := range map[string]string{
+		"ServerGeneratedID": "",
+		"ClientChosenID":    "replay-" + uuid.MustNewV7().String(),
+	} {
+		t.Run("ReplayedCreate_EmitsEvent_"+name, func(t *testing.T) {
+			t.Parallel()
+			createShelfRequest := &libraryservicepb.CreateShelfRequest{
+				Parent:    organizationParent,
+				ShelfId:   shelfID,
+				RequestId: uuid.MustNewV7().String(),
+				Shelf: &librarypb.Shelf{
+					CorrelationId_2: "hello",
+					DisplayName:     "Nats Replayed Shelf",
+					Genre:           librarypb.ShelfGenre_SHELF_GENRE_FICTION,
+					Metadata:        &librarypb.ShelfMetadata{Capacity: 100},
+				},
+			}
+			shelf, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+			require.NoError(t, err)
+			replayed, err := libraryServiceClient.CreateShelf(ctx, createShelfRequest)
+			require.NoError(t, err)
+			grpcrequire.Equal(t, shelf, replayed)
+
+			require.Eventually(t, func() bool {
+				mu.Lock()
+				defer mu.Unlock()
+				return len(shelfNameToCreatedEvents[shelf.Name]) >= 2
+			}, natsEventCheckTimeout, natsEventCheckInterval)
+
+			mu.Lock()
+			defer mu.Unlock()
+			events := shelfNameToCreatedEvents[shelf.Name]
+			require.Len(t, events, 2)
+			grpcrequire.Equal(t, events[0].Shelf, events[1].Shelf)
+		})
+	}
+
 	t.Run("UpdatedEvent", func(t *testing.T) {
 		t.Parallel()
 		shelf := createTestShelf(t, organizationParent, "Nats Updated Shelf", librarypb.ShelfGenre_SHELF_GENRE_HISTORY)
