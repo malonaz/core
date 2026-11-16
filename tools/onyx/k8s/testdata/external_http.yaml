@@ -1,0 +1,8 @@
+name: web
+writable_dirs:
+  - /run/web
+listeners:
+  - name: http
+    port: 8080
+    public: true
+    http_health_path: /health

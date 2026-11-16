@@ -105,6 +105,7 @@ func (g *generator) generate() {
 	}
 
 	g.opts()
+	defaults := g.flagDefaults()
 
 	g.P("func main() {")
 	g.P("ctx := ", ctx, ".Background()")
@@ -116,7 +117,11 @@ func (g *generator) generate() {
 	g.P()
 
 	g.P("func run(ctx ", ctx, ".Context) error {")
-	g.P("if err := ", g.Qual(core+"/flags", "Parse"), "(&opts); err != nil {")
+	if defaults {
+		g.P("if err := ", g.Qual(core+"/flags", "ParseWithDefaults"), "(&opts, flagDefaults); err != nil {")
+	} else {
+		g.P("if err := ", g.Qual(core+"/flags", "Parse"), "(&opts); err != nil {")
+	}
 	g.P("return err")
 	g.P("}")
 	g.P("if err := ", g.Qual(core+"/logging", "Init"), "(opts.Logging); err != nil {")
@@ -213,6 +218,34 @@ func (g *generator) generate() {
 	g.P()
 
 	g.handleSignals()
+}
+
+// flagDefaults writes the manifest's ports and sockets over the opts' defaults, reporting whether there
+// were any.
+func (g *generator) flagDefaults() bool {
+	var lines []string
+	for _, listener := range g.b.Listeners {
+		switch {
+		case listener.SocketPath != "":
+			lines = append(lines,
+				strconv.Quote(listener.Namespace+".socket-path")+": "+strconv.Quote(listener.SocketPath)+",",
+				strconv.Quote(listener.Namespace+".disable-tls")+`: "true",`,
+			)
+		case listener.CustomPort:
+			lines = append(lines, strconv.Quote(listener.Namespace+".port")+": "+strconv.Quote(strconv.Itoa(int(listener.Port)))+",")
+		}
+	}
+	if len(lines) == 0 {
+		return false
+	}
+	g.P("// The manifest's ports and sockets. Env and flags still override them.")
+	g.P("var flagDefaults = map[string]string{")
+	for _, line := range lines {
+		g.P(line)
+	}
+	g.P("}")
+	g.P()
+	return true
 }
 
 func (g *generator) opts() {

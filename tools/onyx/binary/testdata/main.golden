@@ -59,6 +59,13 @@ var opts struct {
 	HService   *hservice.Opts   `group:"HService" namespace:"h-service" env-namespace:"H_SERVICE"`
 }
 
+// The manifest's ports and sockets. Env and flags still override them.
+var flagDefaults = map[string]string{
+	"a-service-grpc.socket-path": "/tmp/a-service.socket",
+	"a-service-grpc.disable-tls": "true",
+	"d-http-http.port":           "45329",
+}
+
 func main() {
 	ctx := context.Background()
 	if err := run(ctx); err != nil {
@@ -68,7 +75,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	if err := flags.Parse(&opts); err != nil {
+	if err := flags.ParseWithDefaults(&opts, flagDefaults); err != nil {
 		return err
 	}
 	if err := logging.Init(opts.Logging); err != nil {

@@ -1,0 +1,6 @@
+name: test
+servers:
+  - name: d-processor
+    port: 8080
+    processor:
+      manifest: //d/d_processor:manifest

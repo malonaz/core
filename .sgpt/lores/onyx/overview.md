@@ -15,9 +15,9 @@ wiring. Two manifests, both YAML typed as `malonaz/onyx/v1` protos:
 | Manifest | Describes | Generates |
 |---|---|---|
 | `ServiceManifest` | one Go service: its package, generated servers, constructor arguments | `service.tmpl.go` — the `Service` struct, `New(opts, deps...)`, `Start` |
-| `MainManifest` | one binary: the servers it runs and the services on them | `main.go` — flags, connections, services, servers, health, shutdown |
+| `MainManifest` | one binary: the servers it runs and the services on them | `main.go` — flags, connections, services, servers, health, shutdown; and its Kubernetes base (`--mode k8s`) |
 
-`tools/onyx` is the generator (`--mode service|main`), `malonaz/onyx/v1`
+`tools/onyx` is the generator (`--mode service|main|k8s`), `malonaz/onyx/v1`
 the schema, `build_defs/codegen/onyx` the rules. The reference binary is
 `cmd/library-service` over `go/test/library/library_service`; what the
 generated main does at runtime is `lores/onyx/binary`.
@@ -92,6 +92,85 @@ Server kinds: `grpc`, `http`, `grpc_web_proxy`, `processor` (a service with
 no listener — started and health-checked). Interceptors are the
 `Interceptor` enum, outermost first. **Order servers however you like: the
 generator starts them in dependency order** (`lores/onyx/binary`).
+
+Listener fields. The generated main bakes them into its flag defaults
+(`flags.ParseWithDefaults`), so the binary binds the same thing locally and
+in Kubernetes; env and flags still override them:
+
+| Field | Meaning |
+|---|---|
+| `port` | TCP port; defaults to grpc 9090, http 8080, grpc_web_proxy 8443 |
+| `grpc.gateway_port` | the gateway's port; defaults to 8080; needs a service with `gateway` |
+| `internal` | reached only within the pod: a grpc server binds `/tmp/{name}.socket` with TLS off; nothing is exposed |
+| `public` | each of its listeners gets an Ingress |
+
+A processor takes none of them, and `internal` excludes `public`. What each
+server binds is resolved once, by `manifest.Listeners`.
+
+## Kubernetes
+
+`onyx_k8s(name, manifest, image?)` writes the binary's base next to its
+manifest: `serviceaccount.yaml`, `deployment.yaml`, `service.yaml`,
+`networkpolicy.yaml`, `pdb.yaml` (`maxUnavailable: 1`), `ingress.yaml` (only
+with a public server) and the `kustomization.yaml` listing them. The objects
+are `k8s.io/api` types (Kubernetes 1.37), written through their JSON form with the `status` and unset fields
+(`creationTimestamp: null`, `{}`) dropped, keys sorted. Nothing in it is
+environment specific:
+
+- The Deployment sets no env: the ports come from the binary's defaults.
+  Probes hit the `health` container port (`:4040/liveness`, `/readiness`);
+  Prometheus (`:13434`) is announced by `prometheus.io/*` annotations and a
+  `metrics` port.
+- The pod is hardened: it runs as the images' `appuser` (uid 10001,
+  `runAsNonRoot`), with `RuntimeDefault` seccomp, no privilege escalation, all
+  capabilities dropped, a read-only root filesystem with an `emptyDir` on
+  `/tmp` (sockets, temp files) and on each of the manifest's `writable_dirs`,
+  and no service account token (IRSA and Pod Identity project their own).
+- The manifest's `shutdown_seconds` is the termination grace period, and
+  `startup_seconds` (default 300) the startup probe's budget, e.g. for
+  setup's migrations.
+- Listener ports in the ephemeral range (32768-60999) are reserved with the
+  `net.ipv4.ip_local_reserved_ports` sysctl, so an outbound connection made
+  before a server binds cannot take its port.
+- The NetworkPolicy allows ingress from anywhere, only to the health,
+  metrics and exposed listener ports. An overlay narrows `from` (the
+  namespace and ingress controller for listeners, monitoring for metrics),
+  adds a namespace default deny and restricts egress (DNS, databases, AWS).
+- TLS between pods is `go/certs`: clients verify the server against
+  `CA_FILE`, so a server cert names `localhost` (in-binary dials) and
+  `{name}.{namespace}.svc`. Caller identity is
+  `INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION`, not mTLS.
+- The Service has a port per non-internal listener, named by its flag
+  namespace (`{server}-grpc`, `{server}-grpc-gateway`, ...); a grpc server's
+  own port sets `appProtocol: grpc`.
+- Each public listener gets an Ingress of that name with no host, routing
+  to its Service port by number (an Ingress names a port only up to 15
+  characters). It carries the AWS Load Balancer Controller's per-listener
+  annotations, which other controllers ignore: `listen-ports` on HTTPS at the
+  listener's port, and the target group's health check. A grpc listener is
+  `backend-protocol-version: GRPC`, checked on its own port at
+  `/grpc.health.v1.Health/Check` for code 0; another listener of an onyx
+  binary at `/readiness` on 4040, of an external binary at its `http_health_path`.
+- `resources` on the MainManifest (`requests`/`limits` of `cpu` and
+  `memory`, Kubernetes quantities) become the container's resources.
+- `image` is a `docker_image` rule whose fqn is templated in; without it the
+  image is the binary's name.
+
+A binary onyx does not generate (e.g. a Python server) gets the same base
+from an `ExternalManifest` (`malonaz/onyx/v1/external.proto`) through
+`onyx_k8s_external(name, manifest = "external.yaml", image?)`: its `name`,
+`command`, `listeners` (`name`, `port`, `grpc`, `public`,
+`http_health_path`), and the MainManifest's `resources`, `shutdown_seconds`,
+`startup_seconds` and `writable_dirs`. With no onyx health or Prometheus
+servers, it is probed over grpc.health.v1 on its first gRPC listener, or else
+over HTTP on its first listener with a health path; CEL requires one. Its
+Service ports and Ingresses are `{binary}-{listener}`.
+
+An environment's kustomize overlay adds the rest: image tag, replicas, env,
+the IRSA annotation on the ServiceAccount, the Ingress class, and the
+load balancer's settings (certificates, scheme, WAF, a public port other than
+the listener's), namespace. Two listeners on one port (e.g. a gateway and an http
+server both defaulting to 8080) fail k8s generation.
 
 ## Build rules
 

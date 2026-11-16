@@ -1,3 +1,5 @@
 # Collapse codegen in PR reviews.
 genproto/** linguist-generated=true
 gengo/** linguist-generated=true
+# onyx k8s output the tests expect, rewritten with UPDATE_GOLDEN=1.
+tools/onyx/k8s/testdata/golden*/** linguist-generated=true

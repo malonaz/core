@@ -16,6 +16,12 @@ onyx_main_src(
     test_only = True,
 )
 
+onyx_k8s(
+    name = "k8s",
+    manifest = ":manifest",
+    test_only = True,
+)
+
 go_binary(
     name = "library-service",
     srcs = [":main.go"],

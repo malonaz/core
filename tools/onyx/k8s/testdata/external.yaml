@@ -1,0 +1,14 @@
+name: inference
+command: ["./inference-server", "--port=50051"]
+shutdown_seconds: 20
+resources:
+  requests:
+    cpu: "1"
+    memory: 4Gi
+listeners:
+  - name: grpc
+    port: 50051
+    grpc: true
+  - name: http
+    port: 8080
+    public: true

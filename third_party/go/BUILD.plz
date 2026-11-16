@@ -1177,7 +1177,7 @@ go_mod_download(
     name = "github.com__davecgh__go-spew",
     _tag = "download",
     module = "github.com/davecgh/go-spew",
-    version = "v1.1.1",
+    version = "v1.1.2-0.20180830191138-d8f796af33cc",
     visibility = ["PUBLIC"],
 )
 
@@ -1279,6 +1279,23 @@ go_module(
     module = "github.com/fsnotify/fsnotify",
     visibility = ["PUBLIC"],
     deps = [":golang.org__x__sys__unix"],
+)
+
+go_mod_download(
+    name = "github.com__fxamacker__cbor__v2",
+    _tag = "download",
+    module = "github.com/fxamacker/cbor/v2",
+    version = "v2.9.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__fxamacker__cbor__v2",
+    download = ":_github.com__fxamacker__cbor__v2#download",
+    install = ["."],
+    module = "github.com/fxamacker/cbor/v2",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__x448__float16"],
 )
 
 go_mod_download(
@@ -1512,7 +1529,7 @@ go_mod_download(
     name = "github.com__go-openapi__jsonpointer",
     _tag = "download",
     module = "github.com/go-openapi/jsonpointer",
-    version = "v0.21.0",
+    version = "v1.0.0",
     visibility = ["PUBLIC"],
 )
 
@@ -1522,14 +1539,23 @@ go_module(
     install = ["."],
     module = "github.com/go-openapi/jsonpointer",
     visibility = ["PUBLIC"],
-    deps = [":github.com__go-openapi__swag"],
+    deps = [":github.com__go-openapi__jsonpointer__jsonname"],
+)
+
+go_module(
+    name = "github.com__go-openapi__jsonpointer__jsonname",
+    download = ":_github.com__go-openapi__jsonpointer#download",
+    install = ["jsonname"],
+    module = "github.com/go-openapi/jsonpointer",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
     name = "github.com__go-openapi__jsonreference",
     _tag = "download",
     module = "github.com/go-openapi/jsonreference",
-    version = "v0.21.0",
+    version = "v1.0.0",
     visibility = ["PUBLIC"],
 )
 
@@ -1763,7 +1789,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag",
     _tag = "download",
     module = "github.com/go-openapi/swag",
-    version = "v0.24.1",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1777,7 +1803,6 @@ go_module(
         ":github.com__go-openapi__swag__cmdutils",
         ":github.com__go-openapi__swag__conv",
         ":github.com__go-openapi__swag__fileutils",
-        ":github.com__go-openapi__swag__jsonname",
         ":github.com__go-openapi__swag__jsonutils",
         ":github.com__go-openapi__swag__loading",
         ":github.com__go-openapi__swag__mangling",
@@ -1785,6 +1810,7 @@ go_module(
         ":github.com__go-openapi__swag__stringutils",
         ":github.com__go-openapi__swag__typeutils",
         ":github.com__go-openapi__swag__yamlutils",
+        "//third_party/go:github.com__go-openapi__jsonpointer__jsonname",
     ],
 )
 
@@ -1792,7 +1818,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__cmdutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/cmdutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1809,7 +1835,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__conv",
     _tag = "download",
     module = "github.com/go-openapi/swag/conv",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1826,7 +1852,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__fileutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/fileutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1840,27 +1866,10 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__go-openapi__swag__jsonname",
-    _tag = "download",
-    module = "github.com/go-openapi/swag/jsonname",
-    version = "v0.24.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__go-openapi__swag__jsonname",
-    download = ":_github.com__go-openapi__swag__jsonname#download",
-    install = ["."],
-    module = "github.com/go-openapi/swag/jsonname",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__go-openapi__swag__jsonutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/jsonutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1871,9 +1880,44 @@ go_module(
     module = "github.com/go-openapi/swag/jsonutils",
     visibility = ["PUBLIC"],
     deps = [
-        ":github.com__mailru__easyjson",
-        ":github.com__mailru__easyjson__jlexer",
-        ":github.com__mailru__easyjson__jwriter",
+        ":github.com__go-openapi__swag__jsonutils__adapters",
+        ":github.com__go-openapi__swag__jsonutils__adapters__ifaces",
+        ":github.com__go-openapi__swag__typeutils",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__jsonutils__adapters",
+    download = ":_github.com__go-openapi__swag__jsonutils#download",
+    install = ["adapters"],
+    module = "github.com/go-openapi/swag/jsonutils",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__swag__jsonutils__adapters__ifaces",
+        ":github.com__go-openapi__swag__jsonutils__adapters__stdlib__json",
+    ],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__jsonutils__adapters__ifaces",
+    download = ":_github.com__go-openapi__swag__jsonutils#download",
+    install = ["adapters/ifaces"],
+    module = "github.com/go-openapi/swag/jsonutils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__jsonutils__adapters__stdlib__json",
+    download = ":_github.com__go-openapi__swag__jsonutils#download",
+    install = ["adapters/stdlib/json"],
+    module = "github.com/go-openapi/swag/jsonutils",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__go-openapi__swag__pools",
+        ":github.com__go-openapi__swag__typeutils",
+        "//third_party/go:github.com__go-openapi__swag__conv",
+        "//third_party/go:github.com__go-openapi__swag__jsonutils__adapters__ifaces",
     ],
 )
 
@@ -1881,7 +1925,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__loading",
     _tag = "download",
     module = "github.com/go-openapi/swag/loading",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1898,7 +1942,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__mangling",
     _tag = "download",
     module = "github.com/go-openapi/swag/mangling",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1915,7 +1959,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__netutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/netutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1929,10 +1973,27 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__go-openapi__swag__pools",
+    _tag = "download",
+    module = "github.com/go-openapi/swag/pools",
+    version = "v0.27.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__go-openapi__swag__pools",
+    download = ":_github.com__go-openapi__swag__pools#download",
+    install = ["."],
+    module = "github.com/go-openapi/swag/pools",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "github.com__go-openapi__swag__stringutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/stringutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1949,7 +2010,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__typeutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/typeutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1966,7 +2027,7 @@ go_mod_download(
     name = "github.com__go-openapi__swag__yamlutils",
     _tag = "download",
     module = "github.com/go-openapi/swag/yamlutils",
-    version = "v0.24.0",
+    version = "v0.27.1",
     visibility = ["PUBLIC"],
 )
 
@@ -1977,8 +2038,11 @@ go_module(
     module = "github.com/go-openapi/swag/yamlutils",
     visibility = ["PUBLIC"],
     deps = [
-        ":gopkg.in__yaml.v3",
+        ":go.yaml.in__yaml__v3",
+        "//third_party/go:github.com__go-openapi__swag__conv",
         "//third_party/go:github.com__go-openapi__swag__jsonutils",
+        "//third_party/go:github.com__go-openapi__swag__jsonutils__adapters__ifaces",
+        "//third_party/go:github.com__go-openapi__swag__typeutils",
     ],
 )
 
@@ -4480,23 +4544,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__josharian__intern",
-    _tag = "download",
-    module = "github.com/josharian/intern",
-    version = "v1.0.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__josharian__intern",
-    download = ":_github.com__josharian__intern#download",
-    install = ["."],
-    module = "github.com/josharian/intern",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_mod_download(
     name = "github.com__jpillora__backoff",
     _tag = "download",
     module = "github.com/jpillora/backoff",
@@ -4511,6 +4558,26 @@ go_module(
     module = "github.com/jpillora/backoff",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__json-iterator__go",
+    _tag = "download",
+    module = "github.com/json-iterator/go",
+    version = "v1.1.12",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__json-iterator__go",
+    download = ":_github.com__json-iterator__go#download",
+    install = ["."],
+    module = "github.com/json-iterator/go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__modern-go__concurrent",
+        ":github.com__modern-go__reflect2",
+    ],
 )
 
 go_mod_download(
@@ -5010,53 +5077,6 @@ go_module(
 )
 
 go_mod_download(
-    name = "github.com__mailru__easyjson",
-    _tag = "download",
-    module = "github.com/mailru/easyjson",
-    version = "v0.9.0",
-    visibility = ["PUBLIC"],
-)
-
-go_module(
-    name = "github.com__mailru__easyjson",
-    download = ":_github.com__mailru__easyjson#download",
-    install = ["."],
-    module = "github.com/mailru/easyjson",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":github.com__mailru__easyjson__jlexer",
-        ":github.com__mailru__easyjson__jwriter",
-    ],
-)
-
-go_module(
-    name = "github.com__mailru__easyjson__buffer",
-    download = ":_github.com__mailru__easyjson#download",
-    install = ["buffer"],
-    module = "github.com/mailru/easyjson",
-    visibility = ["PUBLIC"],
-    deps = [],
-)
-
-go_module(
-    name = "github.com__mailru__easyjson__jlexer",
-    download = ":_github.com__mailru__easyjson#download",
-    install = ["jlexer"],
-    module = "github.com/mailru/easyjson",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__josharian__intern"],
-)
-
-go_module(
-    name = "github.com__mailru__easyjson__jwriter",
-    download = ":_github.com__mailru__easyjson#download",
-    install = ["jwriter"],
-    module = "github.com/mailru/easyjson",
-    visibility = ["PUBLIC"],
-    deps = ["//third_party/go:github.com__mailru__easyjson__buffer"],
-)
-
-go_mod_download(
     name = "github.com__malonaz__pgq",
     _tag = "download",
     module = "github.com/malonaz/pgq",
@@ -5140,6 +5160,40 @@ go_module(
     download = ":_github.com__mitchellh__reflectwalk#download",
     install = ["."],
     module = "github.com/mitchellh/reflectwalk",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__modern-go__concurrent",
+    _tag = "download",
+    module = "github.com/modern-go/concurrent",
+    version = "v0.0.0-20180306012644-bacd9c7ef1dd",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__modern-go__concurrent",
+    download = ":_github.com__modern-go__concurrent#download",
+    install = ["."],
+    module = "github.com/modern-go/concurrent",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__modern-go__reflect2",
+    _tag = "download",
+    module = "github.com/modern-go/reflect2",
+    version = "v1.0.3-0.20250322232337-35a7c28c31ee",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__modern-go__reflect2",
+    download = ":_github.com__modern-go__reflect2#download",
+    install = ["."],
+    module = "github.com/modern-go/reflect2",
     visibility = ["PUBLIC"],
     deps = [],
 )
@@ -6129,7 +6183,7 @@ go_mod_download(
     name = "github.com__pmezard__go-difflib",
     _tag = "download",
     module = "github.com/pmezard/go-difflib",
-    version = "v1.0.0",
+    version = "v1.0.1-0.20181226105442-5d4384ee4fb2",
     visibility = ["PUBLIC"],
 )
 
@@ -6655,7 +6709,7 @@ go_mod_download(
     name = "github.com__spf13__pflag",
     _tag = "download",
     module = "github.com/spf13/pflag",
-    version = "v1.0.9",
+    version = "v1.0.10",
     visibility = ["PUBLIC"],
 )
 
@@ -6994,6 +7048,23 @@ go_module(
     module = "github.com/tidwall/sjson",
     visibility = ["PUBLIC"],
     deps = ["//third_party/go:github.com__tidwall__gjson"],
+)
+
+go_mod_download(
+    name = "github.com__x448__float16",
+    _tag = "download",
+    module = "github.com/x448/float16",
+    version = "v0.8.4",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__x448__float16",
+    download = ":_github.com__x448__float16#download",
+    install = ["."],
+    module = "github.com/x448/float16",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(
@@ -7514,7 +7585,7 @@ go_mod_download(
     name = "go.yaml.in__yaml__v2",
     _tag = "download",
     module = "go.yaml.in/yaml/v2",
-    version = "v2.4.2",
+    version = "v2.4.4",
     visibility = ["PUBLIC"],
 )
 
@@ -8256,7 +8327,7 @@ go_mod_download(
     name = "golang.org__x__time",
     _tag = "download",
     module = "golang.org/x/time",
-    version = "v0.14.0",
+    version = "v0.15.0",
     visibility = ["PUBLIC"],
 )
 
@@ -10295,6 +10366,23 @@ go_module(
 )
 
 go_mod_download(
+    name = "gopkg.in__inf.v0",
+    _tag = "download",
+    module = "gopkg.in/inf.v0",
+    version = "v0.9.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "gopkg.in__inf.v0",
+    download = ":_gopkg.in__inf.v0#download",
+    install = ["."],
+    module = "gopkg.in/inf.v0",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "gopkg.in__warnings.v0",
     _tag = "download",
     module = "gopkg.in/warnings.v0",
@@ -10346,6 +10434,545 @@ go_module(
 )
 
 go_mod_download(
+    name = "k8s.io__api",
+    _tag = "download",
+    module = "k8s.io/api",
+    version = "v0.37.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "k8s.io__api__apps__v1",
+    download = ":_k8s.io__api#download",
+    install = ["apps/v1"],
+    module = "k8s.io/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__api__core__v1",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+    ],
+)
+
+go_module(
+    name = "k8s.io__api__core__v1",
+    download = ":_k8s.io__api#download",
+    install = ["core/v1"],
+    module = "k8s.io/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__api__resource",
+        ":k8s.io__apimachinery__pkg__api__validate__content",
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__klog__v2",
+    ],
+)
+
+go_module(
+    name = "k8s.io__api__networking__v1",
+    download = ":_k8s.io__api#download",
+    install = ["networking/v1"],
+    module = "k8s.io/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        "//third_party/go:k8s.io__api__core__v1",
+    ],
+)
+
+go_module(
+    name = "k8s.io__api__policy__v1",
+    download = ":_k8s.io__api#download",
+    install = ["policy/v1"],
+    module = "k8s.io/api",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__apis__meta__v1",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+    ],
+)
+
+go_mod_download(
+    name = "k8s.io__apimachinery",
+    _tag = "download",
+    module = "k8s.io/apimachinery",
+    version = "v0.37.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__api__operation",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/api/operation"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__api__resource",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/api/resource"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__runtime__serializer__cbor__direct",
+        "//third_party/go:gopkg.in__inf.v0",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__api__validate__constraints",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/api/validate/constraints"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__api__validate__content",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/api/validate/content"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:k8s.io__apimachinery__pkg__api__validate__constraints"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__apis__meta__v1",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/apis/meta/v1"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__conversion",
+        ":k8s.io__apimachinery__pkg__fields",
+        ":k8s.io__apimachinery__pkg__labels",
+        ":k8s.io__apimachinery__pkg__runtime",
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__runtime__serializer__cbor__direct",
+        ":k8s.io__apimachinery__pkg__selection",
+        ":k8s.io__apimachinery__pkg__types",
+        ":k8s.io__apimachinery__pkg__util__intstr",
+        ":k8s.io__apimachinery__pkg__util__json",
+        ":k8s.io__apimachinery__pkg__util__runtime",
+        ":k8s.io__apimachinery__pkg__watch",
+        ":k8s.io__utils__ptr",
+        ":sigs.k8s.io__randfill",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__resource",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__conversion",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/conversion"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__apimachinery__third_party__forked__golang__reflect"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__conversion__queryparams",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/conversion/queryparams"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__fields",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/fields"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__apimachinery__pkg__selection"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__labels",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/labels"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__selection",
+        ":k8s.io__apimachinery__pkg__util__sets",
+        ":k8s.io__apimachinery__pkg__util__validation",
+        ":k8s.io__apimachinery__pkg__util__validation__field",
+        ":k8s.io__klog__v2",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__validate__content",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__runtime",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/runtime"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__runtime__schema",
+        ":k8s.io__apimachinery__pkg__runtime__serializer__cbor__direct",
+        ":k8s.io__apimachinery__pkg__util__errors",
+        ":k8s.io__apimachinery__pkg__util__json",
+        ":k8s.io__apimachinery__pkg__util__naming",
+        ":k8s.io__apimachinery__pkg__util__runtime",
+        ":k8s.io__apimachinery__pkg__util__sets",
+        ":k8s.io__apimachinery__pkg__util__validation__field",
+        ":k8s.io__klog__v2",
+        ":k8s.io__kube-openapi__pkg__util",
+        ":sigs.k8s.io__structured-merge-diff__v6__value",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__operation",
+        "//third_party/go:k8s.io__apimachinery__pkg__conversion",
+        "//third_party/go:k8s.io__apimachinery__pkg__conversion__queryparams",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__runtime__schema",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/runtime/schema"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__runtime__serializer__cbor__direct",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/runtime/serializer/cbor/direct"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__apimachinery__pkg__runtime__serializer__cbor__internal__modes"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__runtime__serializer__cbor__internal__modes",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/runtime/serializer/cbor/internal/modes"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":sigs.k8s.io__json",
+        "//third_party/go:github.com__fxamacker__cbor__v2",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__selection",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/selection"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__types",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/types"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__errors",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/errors"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__apimachinery__pkg__util__sets"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__intstr",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/intstr"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__klog__v2",
+        ":sigs.k8s.io__randfill",
+        "//third_party/go:k8s.io__apimachinery__pkg__runtime__serializer__cbor__direct",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__json",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/json"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__json"],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__naming",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/naming"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__net",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/net"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__util__sets",
+        ":k8s.io__klog__v2",
+        ":k8s.io__utils__net",
+        "//third_party/go:golang.org__x__net__http2",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__runtime",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/runtime"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__klog__v2",
+        ":k8s.io__klog__v2__textlogger",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__sets",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/sets"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__validation",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/validation"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__apimachinery__pkg__util__validation__field",
+        ":k8s.io__klog__v2",
+        ":k8s.io__utils__net",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__validate__content",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__util__validation__field",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/util/validation/field"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:k8s.io__apimachinery__pkg__util__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__util__sets",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__pkg__watch",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["pkg/watch"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__klog__v2",
+        ":k8s.io__utils__ptr",
+        "//third_party/go:k8s.io__apimachinery__pkg__runtime",
+        "//third_party/go:k8s.io__apimachinery__pkg__runtime__schema",
+        "//third_party/go:k8s.io__apimachinery__pkg__util__net",
+        "//third_party/go:k8s.io__apimachinery__pkg__util__runtime",
+    ],
+)
+
+go_module(
+    name = "k8s.io__apimachinery__third_party__forked__golang__reflect",
+    download = ":_k8s.io__apimachinery#download",
+    install = ["third_party/forked/golang/reflect"],
+    module = "k8s.io/apimachinery",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "k8s.io__klog__v2",
+    _tag = "download",
+    module = "k8s.io/klog/v2",
+    version = "v2.140.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["."],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s.io__klog__v2__internal__buffer",
+        ":k8s.io__klog__v2__internal__clock",
+        ":k8s.io__klog__v2__internal__dbg",
+        ":k8s.io__klog__v2__internal__serialize",
+        ":k8s.io__klog__v2__internal__severity",
+        ":k8s.io__klog__v2__internal__sloghandler",
+        "//third_party/go:github.com__go-logr__logr",
+    ],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__buffer",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/buffer"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [":k8s.io__klog__v2__internal__severity"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__clock",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/clock"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__dbg",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/dbg"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__serialize",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/serialize"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__go-logr__logr"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__severity",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/severity"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__sloghandler",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/sloghandler"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:k8s.io__klog__v2__internal__severity"],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__internal__verbosity",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["internal/verbosity"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__klog__v2__textlogger",
+    download = ":_k8s.io__klog__v2#download",
+    install = ["textlogger"],
+    module = "k8s.io/klog/v2",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__go-logr__logr",
+        "//third_party/go:k8s.io__klog__v2__internal__buffer",
+        "//third_party/go:k8s.io__klog__v2__internal__serialize",
+        "//third_party/go:k8s.io__klog__v2__internal__severity",
+        "//third_party/go:k8s.io__klog__v2__internal__sloghandler",
+        "//third_party/go:k8s.io__klog__v2__internal__verbosity",
+    ],
+)
+
+go_mod_download(
+    name = "k8s.io__kube-openapi",
+    _tag = "download",
+    module = "k8s.io/kube-openapi",
+    version = "v0.0.0-20260721132016-d427ff9ee9ad",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "k8s.io__kube-openapi__pkg__util",
+    download = ":_k8s.io__kube-openapi#download",
+    install = ["pkg/util"],
+    module = "k8s.io/kube-openapi",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "k8s.io__utils",
+    _tag = "download",
+    module = "k8s.io/utils",
+    version = "v0.0.0-20260626114624-be93311217bd",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "k8s.io__utils__internal__third_party__forked__golang__net",
+    download = ":_k8s.io__utils#download",
+    install = ["internal/third_party/forked/golang/net"],
+    module = "k8s.io/utils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "k8s.io__utils__net",
+    download = ":_k8s.io__utils#download",
+    install = ["net"],
+    module = "k8s.io/utils",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:k8s.io__utils__internal__third_party__forked__golang__net"],
+)
+
+go_module(
+    name = "k8s.io__utils__ptr",
+    download = ":_k8s.io__utils#download",
+    install = ["ptr"],
+    module = "k8s.io/utils",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
     name = "nhooyr.io__websocket",
     _tag = "download",
     module = "nhooyr.io/websocket",
@@ -10385,10 +11012,82 @@ go_module(
 )
 
 go_mod_download(
+    name = "sigs.k8s.io__json",
+    _tag = "download",
+    module = "sigs.k8s.io/json",
+    version = "v0.0.0-20250730193827-2d320260d730",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "sigs.k8s.io__json",
+    download = ":_sigs.k8s.io__json#download",
+    install = ["."],
+    module = "sigs.k8s.io/json",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__json__internal__golang__encoding__json"],
+)
+
+go_module(
+    name = "sigs.k8s.io__json__internal__golang__encoding__json",
+    download = ":_sigs.k8s.io__json#download",
+    install = ["internal/golang/encoding/json"],
+    module = "sigs.k8s.io/json",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "sigs.k8s.io__randfill",
+    _tag = "download",
+    module = "sigs.k8s.io/randfill",
+    version = "v1.0.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "sigs.k8s.io__randfill",
+    download = ":_sigs.k8s.io__randfill#download",
+    install = ["."],
+    module = "sigs.k8s.io/randfill",
+    visibility = ["PUBLIC"],
+    deps = [":sigs.k8s.io__randfill__bytesource"],
+)
+
+go_module(
+    name = "sigs.k8s.io__randfill__bytesource",
+    download = ":_sigs.k8s.io__randfill#download",
+    install = ["bytesource"],
+    module = "sigs.k8s.io/randfill",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "sigs.k8s.io__structured-merge-diff__v6",
+    _tag = "download",
+    module = "sigs.k8s.io/structured-merge-diff/v6",
+    version = "v6.4.2",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "sigs.k8s.io__structured-merge-diff__v6__value",
+    download = ":_sigs.k8s.io__structured-merge-diff__v6#download",
+    install = ["value"],
+    module = "sigs.k8s.io/structured-merge-diff/v6",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__json-iterator__go",
+        "//third_party/go:go.yaml.in__yaml__v2",
+    ],
+)
+
+go_mod_download(
     name = "sigs.k8s.io__yaml",
     _tag = "download",
     module = "sigs.k8s.io/yaml",
-    version = "v1.4.0",
+    version = "v1.6.0",
     visibility = ["PUBLIC"],
 )
 
@@ -10398,14 +11097,5 @@ go_module(
     install = ["."],
     module = "sigs.k8s.io/yaml",
     visibility = ["PUBLIC"],
-    deps = [":sigs.k8s.io__yaml__goyaml.v2"],
-)
-
-go_module(
-    name = "sigs.k8s.io__yaml__goyaml.v2",
-    download = ":_sigs.k8s.io__yaml#download",
-    install = ["goyaml.v2"],
-    module = "sigs.k8s.io/yaml",
-    visibility = ["PUBLIC"],
-    deps = [],
+    deps = ["//third_party/go:go.yaml.in__yaml__v2"],
 )

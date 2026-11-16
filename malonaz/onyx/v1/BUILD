@@ -1,6 +1,7 @@
 proto_library(
     name = "v1",
     srcs = [
+        "external.proto",
         "main.proto",
         "service.proto",
     ],

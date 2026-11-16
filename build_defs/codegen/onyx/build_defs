@@ -48,6 +48,73 @@ def onyx_main_src(
     return _onyx_src(name, "main", manifest, visibility, labels, test_only)
 
 
+def onyx_k8s(
+        name:str,
+        manifest:str,
+        image:str="",
+        visibility:list=[],
+        labels:list=[],
+        test_only:bool=False,
+):
+    """The Kubernetes base of a MainManifest, written next to it: serviceaccount.yaml,
+    deployment.yaml, service.yaml, networkpolicy.yaml, pdb.yaml, ingress.yaml when a server is public,
+    and the kustomization.yaml listing them.
+
+    Args:
+      image: docker_image rule the Deployment runs. Defaults to the binary's name, for an overlay to set.
+    """
+    cmd = f"mkdir _k8s && $TOOLS --mode k8s --manifest $(location {manifest}) --output _k8s"
+    deps = [manifest]
+    if image:
+        fqn = canonicalise(image) + "_fqn"
+        cmd += f' --image "$(cat $(location {fqn}))"'
+        deps += [fqn]
+    return genrule(
+        name = name,
+        output_dirs = ["_k8s"],
+        cmd = cmd,
+        deps = deps,
+        tools = [CONFIG.CORE.ONYX],
+        labels = labels + ["codegen", "k8s"],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+
+def onyx_k8s_external(
+        name:str,
+        manifest:str="external.yaml",
+        image:str="",
+        visibility:list=[],
+        labels:list=[],
+        test_only:bool=False,
+):
+    """The Kubernetes base of an ExternalManifest, for a binary onyx does not generate (e.g. Python):
+    the same files as onyx_k8s, with the pod probed over grpc.health.v1.
+
+    Args:
+      manifest: The ExternalManifest yaml.
+      image: docker_image rule the Deployment runs. Defaults to the binary's name, for an overlay to set.
+    """
+    cmd = "mkdir _k8s && $TOOLS --mode k8s-external --manifest $SRCS --output _k8s"
+    deps = []
+    if image:
+        fqn = canonicalise(image) + "_fqn"
+        cmd += f' --image "$(cat $(location {fqn}))"'
+        deps += [fqn]
+    return genrule(
+        name = name,
+        srcs = [manifest],
+        output_dirs = ["_k8s"],
+        cmd = cmd,
+        deps = deps,
+        tools = [CONFIG.CORE.ONYX],
+        labels = labels + ["codegen", "k8s"],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+
 def _onyx_src(name:str, mode:str, manifest:str, visibility:list, labels:list, test_only:bool):
     cmd = f"$TOOLS --mode {mode} --manifest $(location {manifest}) --output $OUT"
     if CONFIG.GO.IMPORT_PATH:
