@@ -3,12 +3,15 @@ package pbcobra
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/huandu/xstrings"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/type/decimal"
 	"google.golang.org/protobuf/proto"
@@ -27,6 +30,11 @@ const (
 
 	annotationKeyService = "pbcobra.service"
 	annotationKeyMethod  = "pbcobra.method"
+
+	// flagJSON and flagJSONFile take the whole request as JSON: what flags cannot spell (a map of
+	// messages), and a file a script or an agent writes, runs and corrects.
+	flagJSON     = "json"
+	flagJSONFile = "json-file"
 )
 
 var (
@@ -166,7 +174,57 @@ func (b *CommandBuilder) buildMethodCommand(methodDescriptor protoreflect.Method
 			return nil, fmt.Errorf("adding flag for field %q: %w", fields.Get(i).FullName(), err)
 		}
 	}
+	addJSONFlags(cmd)
 	return cmd, nil
+}
+
+// addJSONFlags lets the request be given whole as JSON, beside or instead of its flags.
+func addJSONFlags(cmd *cobra.Command) {
+	cmd.Flags().String(flagJSON, "", "The request as JSON (protojson: snake_case or lowerCamelCase field names, enums by name). Flags set beside it override its fields.")
+	cmd.Flags().String(flagJSONFile, "", "A file holding the request as JSON, as --json takes it; - reads stdin.")
+	cmd.MarkFlagsMutuallyExclusive(flagJSON, flagJSONFile)
+	// Runs before cobra checks the required flags: the JSON request stands in for them.
+	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if cmd.Flags().Changed(flagJSON) || cmd.Flags().Changed(flagJSONFile) {
+			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+				delete(flag.Annotations, cobra.BashCompOneRequiredFlag)
+			})
+		}
+		return nil
+	}
+}
+
+// readJSONRequest fills request from --json or --json-file, if either is set. Unknown fields are
+// refused, so a misspelled name fails the call instead of being dropped.
+func readJSONRequest(cmd *cobra.Command, request proto.Message) error {
+	var bytes []byte
+	switch {
+	case cmd.Flags().Changed(flagJSON):
+		value, err := cmd.Flags().GetString(flagJSON)
+		if err != nil {
+			return err
+		}
+		bytes = []byte(value)
+	case cmd.Flags().Changed(flagJSONFile):
+		path, err := cmd.Flags().GetString(flagJSONFile)
+		if err != nil {
+			return err
+		}
+		if path == "-" {
+			bytes, err = io.ReadAll(cmd.InOrStdin())
+		} else {
+			bytes, err = os.ReadFile(path)
+		}
+		if err != nil {
+			return fmt.Errorf("reading --%s: %w", flagJSONFile, err)
+		}
+	default:
+		return nil
+	}
+	if err := pbutil.JSONUnmarshalStrict(bytes, request); err != nil {
+		return fmt.Errorf("parsing the JSON request as %s: %w", request.ProtoReflect().Descriptor().FullName(), err)
+	}
+	return nil
 }
 
 func (b *CommandBuilder) formatResponseDoc(msg protoreflect.MessageDescriptor) string {
@@ -371,6 +429,9 @@ func (b *CommandBuilder) addFlagWithPrefix(
 
 func (b *CommandBuilder) invokeMethod(cmd *cobra.Command, method protoreflect.MethodDescriptor) error {
 	request := dynamicpb.NewMessage(method.Input())
+	if err := readJSONRequest(cmd, request); err != nil {
+		return err
+	}
 
 	fields := method.Input().Fields()
 	for i := 0; i < fields.Len(); i++ {
@@ -498,7 +559,8 @@ func (b *CommandBuilder) setFieldWithPrefix(msg *dynamicpb.Message, field protor
 	}
 
 	if !cmd.Flags().Changed(name) {
-		if field.Kind() == protoreflect.StringKind {
+		// A flag's default fills only what the JSON request left unset.
+		if field.Kind() == protoreflect.StringKind && !msg.Has(field) {
 			if v, _ := cmd.Flags().GetString(name); v != "" {
 				msg.Set(field, protoreflect.ValueOfString(v))
 			}
