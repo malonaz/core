@@ -322,9 +322,9 @@ const AgentSearchDocumentExpression = `setweight(to_tsvector('simple', coalesce(
 
 type agentSearchRow struct {
 	model.Agent
-	SnippetTitle            *string `db:"__snippet_title"`
-	SnippetLabels           *string `db:"__snippet_labels"`
-	SnippetSpecInstructions *string `db:"__snippet_spec_instructions"`
+	Snippet0 *string `db:"__snippet_0"`
+	Snippet1 *string `db:"__snippet_1"`
+	Snippet2 *string `db:"__snippet_2"`
 }
 
 func (s *Store) SearchAgents(ctx context.Context, organizationId, userId string, showDeleted bool, includeSnippets bool, tsQuery, whereClause, paginationClause string, columns []string, params ...any) ([]*model.Agent, []map[string]string, error) {
@@ -351,9 +351,9 @@ func (s *Store) SearchAgents(ctx context.Context, organizationId, userId string,
 		whereClause = postgres.AddToWhereClause(whereClause, fmt.Sprintf("agent.search_document @@ to_tsquery('simple', $%d)", len(params)+1))
 		orderByClause = fmt.Sprintf("ORDER BY ts_rank(agent.search_document, to_tsquery('simple', $%d)) DESC, agent.create_time DESC", len(params)+1)
 		if includeSnippets {
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_title`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(agent.labels, 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_labels`, len(params)+1))
-			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.spec #>> '{instructions}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_spec_instructions`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.title, ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_0`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce((SELECT string_agg(j #>> '{}', ' ') FROM jsonb_path_query(agent.labels, 'strict $.** ? (@.type() == "string")') AS j), ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_1`, len(params)+1))
+			snippetColumns = append(snippetColumns, fmt.Sprintf(`ts_headline('simple', coalesce(agent.spec #>> '{instructions}', ''), to_tsquery('simple', $%d), 'StartSel=**, StopSel=**, MaxFragments=2, MaxWords=12, MinWords=4') AS __snippet_2`, len(params)+1))
 		}
 		params = append(params, tsQuery)
 	}
@@ -381,14 +381,14 @@ func (s *Store) SearchAgents(ctx context.Context, organizationId, userId string,
 			continue
 		}
 		snippet := map[string]string{}
-		if searchRow.SnippetTitle != nil && strings.Contains(*searchRow.SnippetTitle, "**") {
-			snippet["title"] = *searchRow.SnippetTitle
+		if searchRow.Snippet0 != nil && strings.Contains(*searchRow.Snippet0, "**") {
+			snippet["title"] = *searchRow.Snippet0
 		}
-		if searchRow.SnippetLabels != nil && strings.Contains(*searchRow.SnippetLabels, "**") {
-			snippet["labels"] = *searchRow.SnippetLabels
+		if searchRow.Snippet1 != nil && strings.Contains(*searchRow.Snippet1, "**") {
+			snippet["labels"] = *searchRow.Snippet1
 		}
-		if searchRow.SnippetSpecInstructions != nil && strings.Contains(*searchRow.SnippetSpecInstructions, "**") {
-			snippet["spec.instructions"] = *searchRow.SnippetSpecInstructions
+		if searchRow.Snippet2 != nil && strings.Contains(*searchRow.Snippet2, "**") {
+			snippet["spec.instructions"] = *searchRow.Snippet2
 		}
 		snippets = append(snippets, snippet)
 	}

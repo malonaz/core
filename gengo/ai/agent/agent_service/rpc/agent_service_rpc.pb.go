@@ -42,6 +42,10 @@ func (s *AgentServiceServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// Close stops the AgentService's background work.
+func (s *AgentServiceServer) Close() {
+}
+
 type agentService_DefinitionStore interface {
 	BatchInsertDefinitions(ctx context.Context, requestIDs []string, definitions []*model.Definition) ([]*model.Definition, error)
 	UpdateDefinition(ctx context.Context, definition *model.Definition, updateClause string, columns []string, etag string) (*model.Definition, error)
