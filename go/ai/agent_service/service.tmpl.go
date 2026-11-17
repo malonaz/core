@@ -62,5 +62,12 @@ func (s *Service) Start(ctx context.Context, withServiceAccount func(context.Con
 	if err := s.AgentServiceServer.Start(ctx); err != nil {
 		return nil, fmt.Errorf("starting agent-service server: %w", err)
 	}
-	return s.start(ctx)
+	cleanup, err := s.start(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		cleanup()
+		s.AgentServiceServer.Close()
+	}, nil
 }
