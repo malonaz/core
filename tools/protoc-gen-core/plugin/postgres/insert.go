@@ -184,7 +184,17 @@ func (mc *msgCtx) generateBatchInsert() {
 	g.P("        return nil, lookupErr")
 	g.P("      }")
 	g.P("      if len(existing) == n {")
-	g.P(fmt.Sprintf("        return %s(requestIDs, existing)", orderFn))
+	if mc.outbox {
+		// The aborted transaction dropped its journal write; republish the replay.
+		g.P(fmt.Sprintf("        replayed, err := %s(requestIDs, existing)", orderFn))
+		g.P("        if err != nil {")
+		g.P("          return nil, err")
+		g.P("        }")
+		mc.emitCommittedJournalWrite("        ", "replayed")
+		g.P("        return replayed, nil")
+	} else {
+		g.P(fmt.Sprintf("        return %s(requestIDs, existing)", orderFn))
+	}
 	g.P("      }")
 	g.P("      // Not a whole replay: another unique constraint of the table fired.")
 	g.P(fmt.Sprintf("      return nil, %s", mc.errAlreadyExists))
