@@ -21,6 +21,9 @@ type Opts struct {
 	ReconnectDelay time.Duration `long:"reconnect-delay" env:"RECONNECT_DELAY" default:"1s"`
 	// OutboxPaused stops outbox pollers publishing, so journals buffer events while a cluster is drained.
 	OutboxPaused bool `long:"outbox-paused" env:"OUTBOX_PAUSED"`
+	// StreamReplicas is the replica count of a stream whose options set none. 0 leaves the server's
+	// default of 1, as a single server can hold no more.
+	StreamReplicas int `long:"stream-replicas" env:"STREAM_REPLICAS"`
 }
 
 func (o *Opts) url() string {

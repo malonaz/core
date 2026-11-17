@@ -52,6 +52,17 @@ func (s *Subject) Stream() *Stream {
 }
 
 func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream.Stream, error) {
+	stream, err := c.JetStream.CreateOrUpdateStream(ctx, c.streamConfig(s))
+	if err != nil {
+		return nil, fmt.Errorf("creating or updating stream %q: %w", s.options.GetName(), err)
+	}
+	c.log.Info(fmt.Sprintf("created or updated stream %q", s.options.GetName()))
+	return stream, nil
+}
+
+// streamConfig maps a stream's options onto JetStream's, with the client's replicas where the
+// options set none.
+func (c *Client) streamConfig(s *Stream) jetstream.StreamConfig {
 	streamConfig := jetstream.StreamConfig{
 		Name:     s.name,
 		Subjects: []string{s.Subject(">").name},
@@ -70,6 +81,8 @@ func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream
 	}
 	if replicas := s.options.GetReplicas(); replicas != 0 {
 		streamConfig.Replicas = int(replicas)
+	} else if c.opts.StreamReplicas != 0 {
+		streamConfig.Replicas = c.opts.StreamReplicas
 	}
 	switch s.options.GetRetention() {
 	case natspb.RetentionPolicy_RETENTION_POLICY_INTEREST:
@@ -91,10 +104,5 @@ func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream
 	default:
 		streamConfig.Discard = jetstream.DiscardOld
 	}
-	stream, err := c.JetStream.CreateOrUpdateStream(ctx, streamConfig)
-	if err != nil {
-		return nil, fmt.Errorf("creating or updating stream %q: %w", s.options.GetName(), err)
-	}
-	c.log.Info(fmt.Sprintf("created or updated stream %q", s.options.GetName()))
-	return stream, nil
+	return streamConfig
 }
