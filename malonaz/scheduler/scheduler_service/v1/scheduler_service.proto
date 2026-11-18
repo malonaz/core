@@ -72,6 +72,8 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 // after its run window closed is skipped and counted in `missed_tick_count`:
 // downtime is never caught up. A tick's job is created idempotently, so a
 // pass interrupted after the insert replays into the same job.
+// RunSchedule creates the same job by hand, at once, leaving the recurrence
+// alone.
 //
 // # Long-running operations
 //
@@ -555,6 +557,31 @@ service SchedulerService {
       }
       additional_bindings: {
         post: "/v1/{name=organizations/*/users/*/schedules/*}:resume"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Run a schedule now, outside its cron: create the job a tick would, under
+  // the schedule's parent with its payload, priority and labels and
+  // `schedule` naming it, due at once and expiring after the schedule's
+  // `run_window` (never when unset). The recurrence is untouched: neither the
+  // next tick nor `last_schedule_time`, `last_job` or `missed_tick_count`
+  // move. A PAUSED schedule runs too. Nothing keeps the job from overlapping
+  // a tick's: the queue's `max_concurrency` bounds both.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc RunSchedule(RunScheduleRequest) returns (scheduler.v1.Job) {
+    option (google.api.http) = {
+      post: "/v1/{name=schedules/*}:run"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/schedules/*}:run"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{name=organizations/*/users/*/schedules/*}:run"
         body: "*"
       }
     };

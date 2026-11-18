@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/scheduler_service/v1/schedule.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_schedule: GenFile = /*@__PURE__*/
-  fileDesc("CjVtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEi+gEKFUNyZWF0ZVNjaGVkdWxlUmVxdWVzdBIzCgZwYXJlbnQYASABKAlCI/pBIBIec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlEjgKCHNjaGVkdWxlGAIgASgLMh4ubWFsb25hei5zY2hlZHVsZXIudjEuU2NoZWR1bGVCBrpIA8gBARI6CgtzY2hlZHVsZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIlAKEkdldFNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBASKSAgoVVXBkYXRlU2NoZWR1bGVSZXF1ZXN0EjgKCHNjaGVkdWxlGAEgASgLMh4ubWFsb25hei5zY2hlZHVsZXIudjEuU2NoZWR1bGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATqFAbpIThpMChZzY2hlZHVsZS5uYW1lX3JlcXVpcmVkEhlzY2hlZHVsZS5uYW1lIG11c3QgYmUgc2V0GhdoYXModGhpcy5zY2hlZHVsZS5uYW1lKeqcwQMvCgZsYWJlbHMKBGNyb24KCXRpbWVfem9uZQoIcHJpb3JpdHkKCnJ1bl93aW5kb3cieAoVRGVsZXRlU2NoZWR1bGVSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSLmAQoUTGlzdFNjaGVkdWxlc1JlcXVlc3QSMwoGcGFyZW50GAEgASgJQiP6QSASHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZRIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6RILzLQIIZIrzLTMKC2NyZWF0ZV90aW1lChJuZXh0X3NjaGVkdWxlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqImMKFUxpc3RTY2hlZHVsZXNSZXNwb25zZRIxCglzY2hlZHVsZXMYASADKAsyHi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkilgEKGEJhdGNoR2V0U2NoZWR1bGVzUmVxdWVzdBIzCgZwYXJlbnQYASABKAlCI/pBIBIec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlEkUKBW5hbWVzGAIgAygJQjb6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIEJIBDQgBEOgHGAEiBHICEAEiTgoZQmF0Y2hHZXRTY2hlZHVsZXNSZXNwb25zZRIxCglzY2hlZHVsZXMYASADKAsyHi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZSJgChRQYXVzZVNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBARIMCgRldGFnGAIgASgJImEKFVJlc3VtZVNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBARIMCgRldGFnGAIgASgJQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_schedule]);
+  fileDesc("CjVtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9zY2hlZHVsZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEi+gEKFUNyZWF0ZVNjaGVkdWxlUmVxdWVzdBIzCgZwYXJlbnQYASABKAlCI/pBIBIec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlEjgKCHNjaGVkdWxlGAIgASgLMh4ubWFsb25hei5zY2hlZHVsZXIudjEuU2NoZWR1bGVCBrpIA8gBARI6CgtzY2hlZHVsZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIlAKEkdldFNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBASKSAgoVVXBkYXRlU2NoZWR1bGVSZXF1ZXN0EjgKCHNjaGVkdWxlGAEgASgLMh4ubWFsb25hei5zY2hlZHVsZXIudjEuU2NoZWR1bGVCBrpIA9gBAxI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATqFAbpIThpMChZzY2hlZHVsZS5uYW1lX3JlcXVpcmVkEhlzY2hlZHVsZS5uYW1lIG11c3QgYmUgc2V0GhdoYXModGhpcy5zY2hlZHVsZS5uYW1lKeqcwQMvCgZsYWJlbHMKBGNyb24KCXRpbWVfem9uZQoIcHJpb3JpdHkKCnJ1bl93aW5kb3cieAoVRGVsZXRlU2NoZWR1bGVSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSLmAQoUTGlzdFNjaGVkdWxlc1JlcXVlc3QSMwoGcGFyZW50GAEgASgJQiP6QSASHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZRIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6RILzLQIIZIrzLTMKC2NyZWF0ZV90aW1lChJuZXh0X3NjaGVkdWxlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqImMKFUxpc3RTY2hlZHVsZXNSZXNwb25zZRIxCglzY2hlZHVsZXMYASADKAsyHi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkilgEKGEJhdGNoR2V0U2NoZWR1bGVzUmVxdWVzdBIzCgZwYXJlbnQYASABKAlCI/pBIBIec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlEkUKBW5hbWVzGAIgAygJQjb6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIEJIBDQgBEOgHGAEiBHICEAEiTgoZQmF0Y2hHZXRTY2hlZHVsZXNSZXNwb25zZRIxCglzY2hlZHVsZXMYASADKAsyHi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZSJgChRQYXVzZVNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBARIMCgRldGFnGAIgASgJImEKFVJlc3VtZVNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBARIMCgRldGFnGAIgASgJInEKElJ1blNjaGVkdWxlUmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHnNjaGVkdWxlci5tYWxvbmF6LmNvbS9TY2hlZHVsZbpIA8gBARIfCgpyZXF1ZXN0X2lkGAIgASgJQgu6SAhyA7ABAdgBAUJBWj9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvc2NoZWR1bGVyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_schedule]);
 
 /**
  * Request message for SchedulerService.CreateSchedule.
@@ -577,4 +577,61 @@ export type ResumeScheduleRequestValid = Message<"malonaz.scheduler.scheduler_se
  */
 export const ResumeScheduleRequestSchema: GenMessage<ResumeScheduleRequest, {validType: ResumeScheduleRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_scheduler_service_v1_schedule, 9);
+
+/**
+ * Request message for SchedulerService.RunSchedule.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.RunScheduleRequest
+ */
+export type RunScheduleRequest = Message<"malonaz.scheduler.scheduler_service.v1.RunScheduleRequest"> & {
+  /**
+   * The resource name of the schedule to run.
+   * Format: schedules/{schedule}
+   * Format: organizations/{organization}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the job it created instead of creating another.
+   *
+   * @generated from field: string request_id = 2;
+   */
+  requestId: string;
+};
+
+/**
+ * Request message for SchedulerService.RunSchedule.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.RunScheduleRequest
+ */
+export type RunScheduleRequestValid = Message<"malonaz.scheduler.scheduler_service.v1.RunScheduleRequest"> & {
+  /**
+   * The resource name of the schedule to run.
+   * Format: schedules/{schedule}
+   * Format: organizations/{organization}/schedules/{schedule}
+   * Format: organizations/{organization}/users/{user}/schedules/{schedule}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the job it created instead of creating another.
+   *
+   * @generated from field: string request_id = 2;
+   */
+  requestId: string;
+};
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.RunScheduleRequest.
+ * Use `create(RunScheduleRequestSchema)` to create a new message.
+ */
+export const RunScheduleRequestSchema: GenMessage<RunScheduleRequest, {validType: RunScheduleRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_schedule, 10);
 

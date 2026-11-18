@@ -91,22 +91,31 @@ func runWindowEnd(expression *cron.Expression, schedule *schedulerpb.Schedule, t
 // createScheduledJob enqueues the tick's job through CreateJob, so it gets the
 // routing and validation every job gets, under the schedule's parent.
 func (s *Service) createScheduledJob(ctx context.Context, schedule *schedulerpb.Schedule, tick, expireTime time.Time) (*schedulerpb.Job, error) {
+	createJobRequest, err := newScheduleJobRequest(schedule)
+	if err != nil {
+		return nil, err
+	}
+	createJobRequest.Job.ScheduleTime = timestamppb.New(tick)
+	createJobRequest.Job.ExpireTime = timestamppb.New(expireTime)
+	createJobRequest.RequestId = uuid.NewV5(scheduleTickRequestIDNamespace, schedule.GetName()+"/"+tick.UTC().Format(time.RFC3339)).String()
+	return s.createJob(ctx, createJobRequest, schedule.GetName())
+}
+
+// newScheduleJobRequest returns the create of a job the schedule describes:
+// under the schedule's parent, with its payload, priority and labels.
+func newScheduleJobRequest(schedule *schedulerpb.Schedule) (*pb.CreateJobRequest, error) {
 	organizationID, userID, _, err := model.ParseScheduleName(schedule.GetName())
 	if err != nil {
 		return nil, err
 	}
-	createJobRequest := &pb.CreateJobRequest{
+	return &pb.CreateJobRequest{
 		Parent: jobParent(organizationID, userID),
 		Job: &schedulerpb.Job{
-			Labels:       schedule.GetLabels(),
-			Payload:      schedule.GetPayload(),
-			Priority:     schedule.GetPriority(),
-			ScheduleTime: timestamppb.New(tick),
-			ExpireTime:   timestamppb.New(expireTime),
+			Labels:   schedule.GetLabels(),
+			Payload:  schedule.GetPayload(),
+			Priority: schedule.GetPriority(),
 		},
-		RequestId: uuid.NewV5(scheduleTickRequestIDNamespace, schedule.GetName()+"/"+tick.UTC().Format(time.RFC3339)).String(),
-	}
-	return s.createJob(ctx, createJobRequest, schedule.GetName())
+	}, nil
 }
 
 // jobParent returns the parent a schedule's jobs live under: the schedule's own.

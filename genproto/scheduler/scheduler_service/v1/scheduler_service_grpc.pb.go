@@ -49,6 +49,7 @@ const (
 	SchedulerService_BatchGetSchedules_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetSchedules"
 	SchedulerService_PauseSchedule_FullMethodName     = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseSchedule"
 	SchedulerService_ResumeSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeSchedule"
+	SchedulerService_RunSchedule_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/RunSchedule"
 )
 
 // SchedulerServiceClient is the client API for SchedulerService service.
@@ -112,6 +113,8 @@ const (
 // after its run window closed is skipped and counted in `missed_tick_count`:
 // downtime is never caught up. A tick's job is created idempotently, so a
 // pass interrupted after the insert replays into the same job.
+// RunSchedule creates the same job by hand, at once, leaving the recurrence
+// alone.
 //
 // # Long-running operations
 //
@@ -279,6 +282,16 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeSchedule(ctx context.Context, in *ResumeScheduleRequest, opts ...grpc.CallOption) (*v1.Schedule, error)
+	// Run a schedule now, outside its cron: create the job a tick would, under
+	// the schedule's parent with its payload, priority and labels and
+	// `schedule` naming it, due at once and expiring after the schedule's
+	// `run_window` (never when unset). The recurrence is untouched: neither the
+	// next tick nor `last_schedule_time`, `last_job` or `missed_tick_count`
+	// move. A PAUSED schedule runs too. Nothing keeps the job from overlapping
+	// a tick's: the queue's `max_concurrency` bounds both.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	RunSchedule(ctx context.Context, in *RunScheduleRequest, opts ...grpc.CallOption) (*v1.Job, error)
 }
 
 type schedulerServiceClient struct {
@@ -569,6 +582,16 @@ func (c *schedulerServiceClient) ResumeSchedule(ctx context.Context, in *ResumeS
 	return out, nil
 }
 
+func (c *schedulerServiceClient) RunSchedule(ctx context.Context, in *RunScheduleRequest, opts ...grpc.CallOption) (*v1.Job, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.Job)
+	err := c.cc.Invoke(ctx, SchedulerService_RunSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SchedulerServiceServer is the server API for SchedulerService service.
 // All implementations should embed UnimplementedSchedulerServiceServer
 // for forward compatibility.
@@ -630,6 +653,8 @@ func (c *schedulerServiceClient) ResumeSchedule(ctx context.Context, in *ResumeS
 // after its run window closed is skipped and counted in `missed_tick_count`:
 // downtime is never caught up. A tick's job is created idempotently, so a
 // pass interrupted after the insert replays into the same job.
+// RunSchedule creates the same job by hand, at once, leaving the recurrence
+// alone.
 //
 // # Long-running operations
 //
@@ -797,6 +822,16 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeSchedule(context.Context, *ResumeScheduleRequest) (*v1.Schedule, error)
+	// Run a schedule now, outside its cron: create the job a tick would, under
+	// the schedule's parent with its payload, priority and labels and
+	// `schedule` naming it, due at once and expiring after the schedule's
+	// `run_window` (never when unset). The recurrence is untouched: neither the
+	// next tick nor `last_schedule_time`, `last_job` or `missed_tick_count`
+	// move. A PAUSED schedule runs too. Nothing keeps the job from overlapping
+	// a tick's: the queue's `max_concurrency` bounds both.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	RunSchedule(context.Context, *RunScheduleRequest) (*v1.Job, error)
 }
 
 // UnimplementedSchedulerServiceServer should be embedded to have
@@ -889,6 +924,9 @@ func (UnimplementedSchedulerServiceServer) PauseSchedule(context.Context, *Pause
 }
 func (UnimplementedSchedulerServiceServer) ResumeSchedule(context.Context, *ResumeScheduleRequest) (*v1.Schedule, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResumeSchedule not implemented")
+}
+func (UnimplementedSchedulerServiceServer) RunSchedule(context.Context, *RunScheduleRequest) (*v1.Job, error) {
+	return nil, status.Error(codes.Unimplemented, "method RunSchedule not implemented")
 }
 func (UnimplementedSchedulerServiceServer) testEmbeddedByValue() {}
 
@@ -1414,6 +1452,24 @@ func _SchedulerService_ResumeSchedule_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchedulerService_RunSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).RunSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_RunSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).RunSchedule(ctx, req.(*RunScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SchedulerService_ServiceDesc is the grpc.ServiceDesc for SchedulerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1532,6 +1588,10 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResumeSchedule",
 			Handler:    _SchedulerService_ResumeSchedule_Handler,
+		},
+		{
+			MethodName: "RunSchedule",
+			Handler:    _SchedulerService_RunSchedule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

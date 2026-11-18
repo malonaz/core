@@ -136,6 +136,10 @@ class SchedulerServiceBase(abc.ABC):
     async def ResumeSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest, malonaz.scheduler.v1.schedule_pb2.Schedule]') -> None:
         pass
 
+    @abc.abstractmethod
+    async def RunSchedule(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.schedule_pb2.RunScheduleRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
+        pass
+
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
         return {
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateQueue': grpclib.const.Handler(
@@ -305,6 +309,12 @@ class SchedulerServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest,
                 malonaz.scheduler.v1.schedule_pb2.Schedule,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/RunSchedule': grpclib.const.Handler(
+                self.RunSchedule,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.schedule_pb2.RunScheduleRequest,
+                malonaz.scheduler.v1.job_pb2.Job,
             ),
         }
 
@@ -479,4 +489,10 @@ class SchedulerServiceStub:
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeSchedule',
             malonaz.scheduler.scheduler_service.v1.schedule_pb2.ResumeScheduleRequest,
             malonaz.scheduler.v1.schedule_pb2.Schedule,
+        )
+        self.RunSchedule = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/RunSchedule',
+            malonaz.scheduler.scheduler_service.v1.schedule_pb2.RunScheduleRequest,
+            malonaz.scheduler.v1.job_pb2.Job,
         )
