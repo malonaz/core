@@ -126,14 +126,12 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("connecting to b-service: %w", err)
 	}
 	bServiceClient := bservicepb.NewBServiceClient(bServiceConnection.Get())
-	bServiceHealthCheck := bServiceConnection.HealthCheckFn(bservicepb.BService_ServiceDesc.ServiceName)
 
 	cServiceConnection, err := connect(opts.CServiceGRPC)
 	if err != nil {
 		return fmt.Errorf("connecting to c-service: %w", err)
 	}
 	cServiceClient := cservicepb.NewCServiceClient(cServiceConnection.Get())
-	cServiceHealthCheck := cServiceConnection.HealthCheckFn(cservicepb.CService_ServiceDesc.ServiceName)
 
 	aServiceConnection, err := connect(opts.AServiceGRPC.ClientOpts())
 	if err != nil {
@@ -233,7 +231,7 @@ func run(ctx context.Context) error {
 	}
 	gracefulStopFns = append(gracefulStopFns, aServiceGRPCServer.GracefulStop)
 	stopFns = append(stopFns, aServiceGRPCServer.Stop)
-	aServiceGRPCServer.GetHealthServer().RegisterService(aservicepb.AService_ServiceDesc.ServiceName, bServiceHealthCheck, cServiceHealthCheck, aPsqlClient.Ping)
+	aServiceGRPCServer.GetHealthServer().RegisterService(aservicepb.AService_ServiceDesc.ServiceName, aPsqlClient.Ping)
 	healthServer.RegisterService("a-service", aServiceGRPCServer.GetHealthServer().CheckFn())
 	// Bound now, so a dependent's Start() can reach it.
 	if err := aServiceGRPCServer.Listen(ctx); err != nil {
@@ -243,7 +241,7 @@ func run(ctx context.Context) error {
 	defer aServiceGRPCServer.Stop()
 
 	// a-processor
-	healthServer.RegisterService("a-processor", aService.HealthCheck)
+	healthServer.RegisterLivenessCheck("a-processor", aService.HealthCheck)
 
 	// d-processor
 	dProcessor, err := dprocessor.New(opts.DProcessor, aServiceClient)
@@ -256,7 +254,7 @@ func run(ctx context.Context) error {
 	}
 	dProcessorStop := sync.OnceFunc(dProcessorCleanup)
 	defer dProcessorStop()
-	healthServer.RegisterService("d-processor", dProcessor.HealthCheck)
+	healthServer.RegisterLivenessCheck("d-processor", dProcessor.HealthCheck)
 
 	// d-http
 	hService, err := hservice.New(opts.HService, bServiceClient)
@@ -273,7 +271,7 @@ func run(ctx context.Context) error {
 	})
 	gracefulStopFns = append(gracefulStopFns, dHttpHTTPServer.GracefulStop)
 	stopFns = append(stopFns, dHttpHTTPServer.Stop)
-	dHttpHTTPServer.GetHealthServer().RegisterService("h-service", bServiceHealthCheck)
+	dHttpHTTPServer.GetHealthServer().RegisterService("h-service")
 	healthServer.RegisterService("d-http", dHttpHTTPServer.GetHealthServer().CheckFn())
 	if err := dHttpHTTPServer.Listen(ctx); err != nil {
 		return fmt.Errorf("listening d-http: %w", err)
