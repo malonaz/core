@@ -28,14 +28,17 @@ type Server struct {
 	ready      bool
 	mutex      sync.RWMutex
 	httpServer *http.Server
+	// Fail /liveness, not /readiness: what only a restart recovers from.
+	nameToLivenessCheck map[string]Check
 }
 
 // NewServer creates a new health check server.
 func NewServer(opts *Opts, name string) *Server {
 	s := &Server{
-		GRPCServer: NewGRPCServer(opts.GRPCOpts, name),
-		opts:       opts,
-		name:       name,
+		GRPCServer:          NewGRPCServer(opts.GRPCOpts, name),
+		opts:                opts,
+		name:                name,
+		nameToLivenessCheck: map[string]Check{},
 	}
 	s.WithLogger(slog.Default())
 	mux := http.NewServeMux()
@@ -67,6 +70,12 @@ func (s *Server) MarkReady() {
 	s.log.Info("Health server marked as ready")
 }
 
+// RegisterLivenessCheck fails /liveness while check fails, so the binary is restarted. Register
+// before Serve.
+func (s *Server) RegisterLivenessCheck(name string, check Check) {
+	s.nameToLivenessCheck[name] = check
+}
+
 // Serve starts the HTTP health check server.
 func (s *Server) Serve(ctx context.Context) {
 	if s.opts.Disable {
@@ -92,6 +101,13 @@ func (s *Server) liveness(w http.ResponseWriter, r *http.Request) {
 	if !s.isReady() {
 		http.Error(w, "Server not ready", http.StatusServiceUnavailable)
 		return
+	}
+	for name, check := range s.nameToLivenessCheck {
+		if err := check(r.Context()); err != nil {
+			s.log.WarnContext(r.Context(), "liveness check failed", "check", name, "error", err)
+			http.Error(w, fmt.Sprintf("%s: %v", name, err), http.StatusServiceUnavailable)
+			return
+		}
 	}
 	w.Write([]byte("ok"))
 }
