@@ -11,67 +11,67 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGracefulStopHijacked(t *testing.T) {
-	testCases := []struct {
-		name                 string
-		gracefulStopHijacked bool
-		// Whether GracefulStop returns while the hijacked handler still runs.
-		expectedStopsEarly bool
-	}{
-		{name: "ignores hijacked handlers by default", expectedStopsEarly: true},
-		{name: "waits for hijacked handlers", gracefulStopHijacked: true},
-	}
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			hijacked := make(chan struct{})
-			release := make(chan struct{})
-			server := NewServer(&Opts{GracefulStopTimeout: 5, GracefulStopHijacked: testCase.gracefulStopHijacked}, "test", func(server *Server) {
-				server.RegisterRoute("/call", func(w http.ResponseWriter, r *http.Request) {
-					conn, _, err := http.NewResponseController(w).Hijack()
-					if err != nil {
-						return
-					}
-					defer conn.Close()
-					close(hijacked)
-					<-release
-				})
-			})
-			listener, err := server.listen()
-			require.NoError(t, err)
-			go server.httpServer.Serve(listener)
-
-			conn, err := net.Dial("tcp", listener.Addr().String())
-			require.NoError(t, err)
-			defer conn.Close()
-			_, err = fmt.Fprint(conn, "GET /call HTTP/1.1\r\nHost: test\r\n\r\n")
-			require.NoError(t, err)
-			<-hijacked
-
-			stopped := make(chan error, 1)
-			go func() { stopped <- server.GracefulStop() }()
-			select {
-			case err := <-stopped:
-				require.True(t, testCase.expectedStopsEarly, "GracefulStop returned before the hijacked handler did")
-				require.NoError(t, err)
-				close(release)
+// serveHijacked serves a route whose handler hijacks the connection and runs until release closes,
+// and returns once a request to it has been hijacked.
+func serveHijacked(t *testing.T, gracefulStopTimeout int, release chan struct{}) *Server {
+	hijacked := make(chan struct{})
+	server := NewServer(&Opts{GracefulStopTimeout: gracefulStopTimeout}, "test", func(server *Server) {
+		server.RegisterRoute("/call", func(w http.ResponseWriter, r *http.Request) {
+			conn, _, err := http.NewResponseController(w).Hijack()
+			if err != nil {
 				return
-			case <-time.After(200 * time.Millisecond):
-				require.False(t, testCase.expectedStopsEarly, "GracefulStop did not return")
 			}
-			close(release)
-			select {
-			case err := <-stopped:
-				require.NoError(t, err)
-			case <-time.After(time.Second):
-				t.Fatal("GracefulStop did not return once the hijacked handler did")
-			}
+			defer conn.Close()
+			close(hijacked)
+			<-release
 		})
+	})
+	listener, err := server.listen()
+	require.NoError(t, err)
+	go server.httpServer.Serve(listener)
+
+	conn, err := net.Dial("tcp", listener.Addr().String())
+	require.NoError(t, err)
+	t.Cleanup(func() { conn.Close() })
+	_, err = fmt.Fprint(conn, "GET /call HTTP/1.1\r\nHost: test\r\n\r\n")
+	require.NoError(t, err)
+	<-hijacked
+	return server
+}
+
+func TestGracefulStopWaitsForHijackedHandlers(t *testing.T) {
+	release := make(chan struct{})
+	server := serveHijacked(t, 5, release)
+
+	stopped := make(chan error, 1)
+	go func() { stopped <- server.GracefulStop() }()
+	select {
+	case <-stopped:
+		t.Fatal("GracefulStop returned before the hijacked handler did")
+	case <-time.After(200 * time.Millisecond):
+	}
+	close(release)
+	select {
+	case err := <-stopped:
+		require.NoError(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("GracefulStop did not return once the hijacked handler did")
 	}
 }
 
-// The handler counter is released by handlers that are not hijacked too.
-func TestGracefulStopHijackedAfterRequests(t *testing.T) {
-	server := NewServer(&Opts{GracefulStopTimeout: 5, GracefulStopHijacked: true}, "test", func(server *Server) {
+func TestGracefulStopGivesUpOnHijackedHandlersAtTimeout(t *testing.T) {
+	release := make(chan struct{})
+	defer close(release)
+	server := serveHijacked(t, 1, release)
+
+	start := time.Now()
+	require.NoError(t, server.GracefulStop())
+	require.InDelta(t, time.Second, time.Since(start), float64(500*time.Millisecond))
+}
+
+// Handlers that are not hijacked release the count too.
+func TestGracefulStopAfterRequests(t *testing.T) {
+	server := NewServer(&Opts{GracefulStopTimeout: 5}, "test", func(server *Server) {
 		server.RegisterRoute("/ok", func(w http.ResponseWriter, r *http.Request) {})
 	})
 	listener, err := server.listen()

@@ -21,10 +21,7 @@ type Opts struct {
 	ReadTimeout         time.Duration    `long:"read-timeout" env:"READ_TIMEOUT" description:"HTTP read timeout" default:"30s"`
 	WriteTimeout        time.Duration    `long:"write-timeout" env:"WRITE_TIMEOUT" description:"HTTP write timeout" default:"30s"`
 	IdleTimeout         time.Duration    `long:"idle-timeout" env:"IDLE_TIMEOUT"  description:"HTTP idle timeout" default:"120s"`
-	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
-	// http.Server.Shutdown ignores hijacked connections, so a websocket outlives the stop unless the
-	// process does.
-	GracefulStopHijacked bool `long:"graceful-stop-hijacked" env:"GRACEFUL_STOP_HIJACKED" description:"Whether a graceful stop also waits, within its timeout, for handlers on hijacked connections (websockets)."`
+	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop, handlers on hijacked connections (websockets) included." default:"30"`
 }
 
 // Server holds the HTTP server state.
@@ -135,8 +132,8 @@ func (s *Server) Stop() error {
 }
 
 // GracefulStop stops the HTTP server, waiting for in-flight requests up to the graceful stop timeout,
-// and for handlers on hijacked connections too with GracefulStopHijacked. A no-op once a stop has
-// been requested.
+// handlers on hijacked connections (websockets) included, which http.Server.Shutdown ignores. A
+// no-op once a stop has been requested.
 func (s *Server) GracefulStop() error {
 	if !s.lifecycle.GracefulStop() {
 		return nil
@@ -151,11 +148,9 @@ func (s *Server) GracefulStop() error {
 		s.log.Warn("graceful shutdown failed, forcing", "error", err)
 		return s.httpServer.Close()
 	}
-	if s.opts.GracefulStopHijacked {
-		// Shutdown closed the listeners, so no handler starts while this waits.
-		if err := s.waitForHandlers(ctx); err != nil {
-			s.log.Warn("handlers on hijacked connections outlived the graceful stop", "error", err)
-		}
+	// Shutdown closed the listeners, so no handler starts while this waits.
+	if err := s.waitForHandlers(ctx); err != nil {
+		s.log.Warn("handlers on hijacked connections outlived the graceful stop", "error", err)
 	}
 	return nil
 }
