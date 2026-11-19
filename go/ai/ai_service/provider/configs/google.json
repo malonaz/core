@@ -83,7 +83,13 @@ local p = "providers/google/models/";
         "reasoning": true,
         "tool_call": true,
         "context_token_limit": 1048576,
-        "output_token_limit": 65536
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 3,
+          "output_token_price_per_million": 15,
+          "output_reasoning_token_price_per_million": 15,
+          "input_token_cache_read_price_per_million": 0.15
+        }
       },
       "provider_settings": {
         "thinking_config_key": "thinking_level",
@@ -134,6 +140,7 @@ local p = "providers/google/models/";
         "tool_call": true,
         "context_token_limit": 1048576,
         "output_token_limit": 65536,
+        // Launch pricing through 2026-12-31; doubles (1.5 / 7.5 / 7.5 / 0.15) on 2027-01-01.
         "pricing": {
           "input_token_price_per_million": 0.75,
           "output_token_price_per_million": 3.75,
