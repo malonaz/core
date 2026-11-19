@@ -10,13 +10,8 @@ metadata:
     app.kubernetes.io/name: web
   name: web-http
 spec:
-  rules:
-    - http:
-        paths:
-          - backend:
-              service:
-                name: web
-                port:
-                  number: 8080
-            path: /
-            pathType: Prefix
+  defaultBackend:
+    service:
+      name: web
+      port:
+        number: 8080

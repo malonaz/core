@@ -87,6 +87,11 @@ func TestLoadRejectsProcessorPort(t *testing.T) {
 	require.ErrorContains(t, err, "a processor has no listener")
 }
 
+func TestLoadRejectsHostsNotPublic(t *testing.T) {
+	err := manifest.Load(testdata+"hosts_not_public.yaml", &onyxpb.MainManifest{})
+	require.ErrorContains(t, err, "hosts and gateway_hosts need public")
+}
+
 func TestLoadRejectsBadQuantity(t *testing.T) {
 	err := manifest.Load(testdata+"bad_quantity.yaml", &onyxpb.MainManifest{})
 	require.ErrorContains(t, err, "resources.requests.memory")

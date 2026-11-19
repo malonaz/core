@@ -378,7 +378,10 @@ type Server struct {
 	// Only reached from within the pod: a grpc server binds `/tmp/{name}.socket`, and nothing is exposed.
 	Internal bool `protobuf:"varint,7,opt,name=internal,proto3" json:"internal,omitempty"`
 	// Reached from outside the cluster: each of its listeners gets an Ingress.
-	Public        bool `protobuf:"varint,8,opt,name=public,proto3" json:"public,omitempty"`
+	Public bool `protobuf:"varint,8,opt,name=public,proto3" json:"public,omitempty"`
+	// Hostnames routed to the server's listener on 443, on an Ingress of their own (`{listener}-hosts`).
+	// Needs public. A grpc server's gateway takes `grpc.gateway_hosts`.
+	Hosts         []string `protobuf:"bytes,9,rep,name=hosts,proto3" json:"hosts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -479,6 +482,13 @@ func (x *Server) GetPublic() bool {
 	return false
 }
 
+func (x *Server) GetHosts() []string {
+	if x != nil {
+		return x.Hosts
+	}
+	return nil
+}
+
 func (x *Server) SetName(v string) {
 	x.Name = v
 }
@@ -525,6 +535,10 @@ func (x *Server) SetInternal(v bool) {
 
 func (x *Server) SetPublic(v bool) {
 	x.Public = v
+}
+
+func (x *Server) SetHosts(v []string) {
+	x.Hosts = v
 }
 
 func (x *Server) HasKind() bool {
@@ -642,6 +656,9 @@ type Server_builder struct {
 	Internal bool
 	// Reached from outside the cluster: each of its listeners gets an Ingress.
 	Public bool
+	// Hostnames routed to the server's listener on 443, on an Ingress of their own (`{listener}-hosts`).
+	// Needs public. A grpc server's gateway takes `grpc.gateway_hosts`.
+	Hosts []string
 }
 
 func (b0 Server_builder) Build() *Server {
@@ -664,6 +681,7 @@ func (b0 Server_builder) Build() *Server {
 	x.Port = b.Port
 	x.Internal = b.Internal
 	x.Public = b.Public
+	x.Hosts = b.Hosts
 	return m0
 }
 
@@ -795,7 +813,9 @@ type Server_Grpc struct {
 	// Services registered on this server.
 	Services []*Server_Grpc_Service `protobuf:"bytes,3,rep,name=services,proto3" json:"services,omitempty"`
 	// TCP port of the grpc-gateway, when a service sets gateway. Defaults to 8080.
-	GatewayPort   int32 `protobuf:"varint,4,opt,name=gateway_port,json=gatewayPort,proto3" json:"gateway_port,omitempty"`
+	GatewayPort int32 `protobuf:"varint,4,opt,name=gateway_port,json=gatewayPort,proto3" json:"gateway_port,omitempty"`
+	// Hostnames routed to the gateway on 443, as `hosts` are to the server.
+	GatewayHosts  []string `protobuf:"bytes,5,rep,name=gateway_hosts,json=gatewayHosts,proto3" json:"gateway_hosts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -853,6 +873,13 @@ func (x *Server_Grpc) GetGatewayPort() int32 {
 	return 0
 }
 
+func (x *Server_Grpc) GetGatewayHosts() []string {
+	if x != nil {
+		return x.GatewayHosts
+	}
+	return nil
+}
+
 func (x *Server_Grpc) SetInterceptors(v []Interceptor) {
 	x.Interceptors = v
 }
@@ -869,6 +896,10 @@ func (x *Server_Grpc) SetGatewayPort(v int32) {
 	x.GatewayPort = v
 }
 
+func (x *Server_Grpc) SetGatewayHosts(v []string) {
+	x.GatewayHosts = v
+}
+
 type Server_Grpc_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -880,6 +911,8 @@ type Server_Grpc_builder struct {
 	Services []*Server_Grpc_Service
 	// TCP port of the grpc-gateway, when a service sets gateway. Defaults to 8080.
 	GatewayPort int32
+	// Hostnames routed to the gateway on 443, as `hosts` are to the server.
+	GatewayHosts []string
 }
 
 func (b0 Server_Grpc_builder) Build() *Server_Grpc {
@@ -890,6 +923,7 @@ func (b0 Server_Grpc_builder) Build() *Server_Grpc {
 	x.DescriptorSet = b.DescriptorSet
 	x.Services = b.Services
 	x.GatewayPort = b.GatewayPort
+	x.GatewayHosts = b.GatewayHosts
 	return m0
 }
 
@@ -1246,7 +1280,7 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\n" +
 	"Quantities\x129\n" +
 	"\x03cpu\x18\x01 \x01(\tB'\xbaH$\xd8\x01\x01r\x1f2\x1d^([0-9]+m|[0-9]+(\\.[0-9]+)?)$R\x03cpu\x12@\n" +
-	"\x06memory\x18\x02 \x01(\tB(\xbaH%\xd8\x01\x01r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$R\x06memory\"\xc4\f\n" +
+	"\x06memory\x18\x02 \x01(\tB(\xbaH%\xd8\x01\x01r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$R\x06memory\"\xa8\x10\n" +
 	"\x06Server\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x122\n" +
 	"\x04grpc\x18\x02 \x01(\v2\x1c.malonaz.onyx.v1.Server.GrpcH\x00R\x04grpc\x122\n" +
@@ -1255,28 +1289,32 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\tprocessor\x18\x05 \x01(\v2!.malonaz.onyx.v1.Server.ProcessorH\x00R\tprocessor\x12\"\n" +
 	"\x04port\x18\x06 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\x04port\x12\x1a\n" +
 	"\binternal\x18\a \x01(\bR\binternal\x12\x16\n" +
-	"\x06public\x18\b \x01(\bR\x06public\x1a\xb7\x04\n" +
+	"\x06public\x18\b \x01(\bR\x06public\x12N\n" +
+	"\x05hosts\x18\t \x03(\tB8\xbaH5\x92\x012\x18\x01\".r,2*^([a-z0-9]([a-z0-9-]*[a-z0-9])?\\.)+[a-z]+$R\x05hosts\x1a\xab\x06\n" +
 	"\x04Grpc\x12Q\n" +
 	"\finterceptors\x18\x01 \x03(\x0e2\x1c.malonaz.onyx.v1.InterceptorB\x0f\xbaH\f\x92\x01\t\"\a\x82\x01\x04\x10\x01 \x00R\finterceptors\x12%\n" +
 	"\x0edescriptor_set\x18\x02 \x01(\tR\rdescriptorSet\x12J\n" +
 	"\bservices\x18\x03 \x03(\v2$.malonaz.onyx.v1.Server.Grpc.ServiceB\b\xbaH\x05\x92\x01\x02\b\x01R\bservices\x121\n" +
-	"\fgateway_port\x18\x04 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\vgatewayPort\x1a\xa2\x01\n" +
+	"\fgateway_port\x18\x04 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\vgatewayPort\x12]\n" +
+	"\rgateway_hosts\x18\x05 \x03(\tB8\xbaH5\x92\x012\x18\x01\".r,2*^([a-z0-9]([a-z0-9-]*[a-z0-9])?\\.)+[a-z]+$R\fgatewayHosts\x1a\xa2\x01\n" +
 	"\aService\x12\x1d\n" +
 	"\x05proto\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05proto\x129\n" +
 	"\aservice\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\aservice\x12#\n" +
 	"\bmanifest\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest\x12\x18\n" +
-	"\agateway\x18\x04 \x01(\bR\agateway:\x90\x01\xbaH\x8c\x01\x1a\x89\x01\n" +
-	"\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1a\x82\x01\n" +
+	"\agateway\x18\x04 \x01(\bR\agateway:\xa5\x02\xbaH\xa1\x02\x1a\x89\x01\n" +
+	"\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1a\x92\x01\n" +
+	"\x19server.grpc.gateway_hosts\x120gateway_hosts is set but no service sets gateway\x1aCsize(this.gateway_hosts) == 0 || this.services.exists(s, s.gateway)\x1a\x82\x01\n" +
 	"\x04Http\x12J\n" +
 	"\bservices\x18\x01 \x03(\v2$.malonaz.onyx.v1.Server.Http.ServiceB\b\xbaH\x05\x92\x01\x02\b\x01R\bservices\x1a.\n" +
 	"\aService\x12#\n" +
 	"\bmanifest\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest\x1a\x0e\n" +
 	"\fGrpcWebProxy\x1a0\n" +
 	"\tProcessor\x12#\n" +
-	"\bmanifest\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest:\xa3\x03\xbaH\x9f\x03\x1a\xac\x01\n" +
+	"\bmanifest\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest:\xc3\x04\xbaH\xbf\x04\x1a\xac\x01\n" +
 	"\x19server.processor_listener\x12Ca processor has no listener: port, internal and public do not apply\x1aJ!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\x1af\n" +
 	"\x16server.internal_public\x12+a server cannot be both internal and public\x1a\x1f!(this.internal && this.public)\x1a\x85\x01\n" +
-	"\x19server.internal_grpc_port\x122an internal grpc server binds a socket, not a port\x1a4!(has(this.grpc) && this.internal && this.port != 0)B\r\n" +
+	"\x19server.internal_grpc_port\x122an internal grpc server binds a socket, not a port\x1a4!(has(this.grpc) && this.internal && this.port != 0)\x1a\x9d\x01\n" +
+	"\x13server.hosts_public\x12#hosts and gateway_hosts need public\x1aathis.public || (size(this.hosts) == 0 && (!has(this.grpc) || size(this.grpc.gateway_hosts) == 0))B\r\n" +
 	"\x04kind\x12\x05\xbaH\x02\b\x01*\xe4\x02\n" +
 	"\vInterceptor\x12\x1b\n" +
 	"\x17INTERCEPTOR_UNSPECIFIED\x10\x00\x12.\n" +

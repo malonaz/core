@@ -26,8 +26,13 @@ servers:
   - name: external
     public: true
     port: 45322
+    hosts:
+      - grpc.example.com
     grpc:
       gateway_port: 45323
+      gateway_hosts:
+        - api.example.com
+        - api.staging.example.com
       services:
         - service: b-service
           proto: //b/v1

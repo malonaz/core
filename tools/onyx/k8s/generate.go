@@ -41,6 +41,8 @@ const (
 	// Kubernetes' default startup budget for the binary to become live.
 	defaultStartupSeconds = 300
 	probePeriodSeconds    = 5
+	// Where a listener's hosts are served.
+	httpsPort = 443
 )
 
 // binary is what the base is generated from: an onyx binary's MainManifest, or an external
@@ -195,6 +197,9 @@ func generate(b *binary, image string) (map[string][]byte, error) {
 		policyPorts = append(policyPorts, newPolicyPort(l.Port))
 		if l.Public {
 			ingresses = append(ingresses, newIngress(name, labels, l, b))
+			if len(l.Hosts) > 0 {
+				ingresses = append(ingresses, newHostsIngress(name, labels, l, b))
+			}
 		}
 	}
 
@@ -383,12 +388,41 @@ func newResources(r *onyxpb.Resources) (corev1.ResourceRequirements, error) {
 	return corev1.ResourceRequirements{Requests: requests, Limits: limits}, nil
 }
 
-// newIngress routes everything to the listener. Its annotations are what the AWS Load Balancer
-// Controller needs per listener, and other controllers ignore: the port it listens on, and how the
-// listener's target group checks health. An overlay sets the class and the rest.
+// newIngress routes everything on the listener's port to it, as the default backend, so a host rule
+// on that port ranks first. Its annotations are what the AWS Load Balancer Controller needs per
+// listener, and other controllers ignore: the port it listens on, and how the listener's target
+// group checks health. An overlay sets the class and the rest.
 func newIngress(name string, labels map[string]string, l *manifest.Listener, b *binary) *networkingv1.Ingress {
+	return &networkingv1.Ingress{
+		TypeMeta:   metav1.TypeMeta{APIVersion: "networking.k8s.io/v1", Kind: "Ingress"},
+		ObjectMeta: metav1.ObjectMeta{Name: l.Namespace, Labels: labels, Annotations: ingressAnnotations(l, b, l.Port)},
+		Spec:       networkingv1.IngressSpec{DefaultBackend: newIngressBackend(name, l)},
+	}
+}
+
+// newHostsIngress routes the listener's hosts on 443 to it, with the same target group settings.
+func newHostsIngress(name string, labels map[string]string, l *manifest.Listener, b *binary) *networkingv1.Ingress {
+	var rules []networkingv1.IngressRule
+	for _, host := range l.Hosts {
+		rules = append(rules, networkingv1.IngressRule{
+			Host: host,
+			IngressRuleValue: networkingv1.IngressRuleValue{HTTP: &networkingv1.HTTPIngressRuleValue{Paths: []networkingv1.HTTPIngressPath{{
+				Path:     "/",
+				PathType: ptr.To(networkingv1.PathTypePrefix),
+				Backend:  *newIngressBackend(name, l),
+			}}}},
+		})
+	}
+	return &networkingv1.Ingress{
+		TypeMeta:   metav1.TypeMeta{APIVersion: "networking.k8s.io/v1", Kind: "Ingress"},
+		ObjectMeta: metav1.ObjectMeta{Name: l.Namespace + "-hosts", Labels: labels, Annotations: ingressAnnotations(l, b, httpsPort)},
+		Spec:       networkingv1.IngressSpec{Rules: rules},
+	}
+}
+
+func ingressAnnotations(l *manifest.Listener, b *binary, port int32) map[string]string {
 	annotations := map[string]string{
-		albAnnotation + "listen-ports": fmt.Sprintf(`[{"HTTPS": %d}]`, l.Port),
+		albAnnotation + "listen-ports": fmt.Sprintf(`[{"HTTPS": %d}]`, port),
 	}
 	switch {
 	case l.GRPC:
@@ -404,21 +438,16 @@ func newIngress(name string, labels map[string]string, l *manifest.Listener, b *
 		annotations[albAnnotation+"healthcheck-port"] = strconv.Itoa(int(b.httpHealthPort))
 		annotations[albAnnotation+"healthcheck-path"] = b.httpHealthPath
 	}
-	return &networkingv1.Ingress{
-		TypeMeta:   metav1.TypeMeta{APIVersion: "networking.k8s.io/v1", Kind: "Ingress"},
-		ObjectMeta: metav1.ObjectMeta{Name: l.Namespace, Labels: labels, Annotations: annotations},
-		Spec: networkingv1.IngressSpec{Rules: []networkingv1.IngressRule{{
-			IngressRuleValue: networkingv1.IngressRuleValue{HTTP: &networkingv1.HTTPIngressRuleValue{Paths: []networkingv1.HTTPIngressPath{{
-				Path:     "/",
-				PathType: ptr.To(networkingv1.PathTypePrefix),
-				// By number: an Ingress names a port only up to 15 characters, and ours are flag namespaces.
-				Backend: networkingv1.IngressBackend{Service: &networkingv1.IngressServiceBackend{
-					Name: name,
-					Port: networkingv1.ServiceBackendPort{Number: l.Port},
-				}},
-			}}}},
-		}}},
-	}
+	return annotations
+}
+
+// newIngressBackend is the listener's Service port, by number: an Ingress names a port only up to 15
+// characters, and ours are flag namespaces.
+func newIngressBackend(name string, l *manifest.Listener) *networkingv1.IngressBackend {
+	return &networkingv1.IngressBackend{Service: &networkingv1.IngressServiceBackend{
+		Name: name,
+		Port: networkingv1.ServiceBackendPort{Number: l.Port},
+	}}
 }
 
 // kustomization lists the base's files; kustomize's own types would pull in kustomize.

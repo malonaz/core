@@ -8,13 +8,8 @@ metadata:
     app.kubernetes.io/name: inference
   name: inference-http
 spec:
-  rules:
-    - http:
-        paths:
-          - backend:
-              service:
-                name: inference
-                port:
-                  number: 8080
-            path: /
-            pathType: Prefix
+  defaultBackend:
+    service:
+      name: inference
+      port:
+        number: 8080

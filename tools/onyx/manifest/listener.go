@@ -33,13 +33,15 @@ type Listener struct {
 	GRPC     bool
 	Internal bool
 	Public   bool
+	// Hostnames the load balancer's 443 routes to the listener.
+	Hosts []string
 }
 
 // Listeners returns what the servers bind, in server order.
 func Listeners(servers []*onyxpb.Server) ([]*Listener, error) {
 	var listeners []*Listener
-	listen := func(server *onyxpb.Server, namespace string, port, defaultPort int32, grpc bool) {
-		listener := &Listener{Namespace: namespace, Port: port, CustomPort: port != 0, GRPC: grpc, Internal: server.GetInternal(), Public: server.GetPublic()}
+	listen := func(server *onyxpb.Server, namespace string, port, defaultPort int32, grpc bool, hosts []string) {
+		listener := &Listener{Namespace: namespace, Port: port, CustomPort: port != 0, GRPC: grpc, Internal: server.GetInternal(), Public: server.GetPublic(), Hosts: hosts}
 		if port == 0 {
 			listener.Port = defaultPort
 		}
@@ -54,18 +56,18 @@ func Listeners(servers []*onyxpb.Server) ([]*Listener, error) {
 			if server.GetInternal() {
 				listeners = append(listeners, &Listener{Namespace: namespace, SocketPath: "/tmp/" + name + ".socket", GRPC: true, Internal: true})
 			} else {
-				listen(server, namespace, server.GetPort(), defaultGRPCPort, true)
+				listen(server, namespace, server.GetPort(), defaultGRPCPort, true, server.GetHosts())
 			}
 			for _, service := range kind.Grpc.GetServices() {
 				if service.GetGateway() {
-					listen(server, name+"-grpc-gateway", kind.Grpc.GetGatewayPort(), defaultGatewayPort, false)
+					listen(server, name+"-grpc-gateway", kind.Grpc.GetGatewayPort(), defaultGatewayPort, false, kind.Grpc.GetGatewayHosts())
 					break
 				}
 			}
 		case *onyxpb.Server_Http_:
-			listen(server, name+"-http", server.GetPort(), defaultHTTPPort, false)
+			listen(server, name+"-http", server.GetPort(), defaultHTTPPort, false, server.GetHosts())
 		case *onyxpb.Server_GrpcWebProxy_:
-			listen(server, name+"-grpcwebproxy", server.GetPort(), defaultGRPCWebProxyPort, false)
+			listen(server, name+"-grpcwebproxy", server.GetPort(), defaultGRPCWebProxyPort, false, server.GetHosts())
 		case *onyxpb.Server_Processor_:
 		default:
 			return nil, fmt.Errorf("server %s: unknown kind %T", name, kind)

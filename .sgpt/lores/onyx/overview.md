@@ -103,6 +103,8 @@ in Kubernetes; env and flags still override them:
 | `grpc.gateway_port` | the gateway's port; defaults to 8080; needs a service with `gateway` |
 | `internal` | reached only within the pod: a grpc server binds `/tmp/{name}.socket` with TLS off; nothing is exposed |
 | `public` | each of its listeners gets an Ingress |
+| `hosts` | hostnames the load balancer's 443 routes to the server's listener; needs `public` |
+| `grpc.gateway_hosts` | the same for the gateway |
 
 A processor takes none of them, and `internal` excludes `public`. What each
 server binds is resolved once, by `manifest.Listeners`.
@@ -143,9 +145,12 @@ environment specific:
 - The Service has a port per non-internal listener, named by its flag
   namespace (`{server}-grpc`, `{server}-grpc-gateway`, ...); a grpc server's
   own port sets `appProtocol: grpc`.
-- Each public listener gets an Ingress of that name with no host, routing
-  to its Service port by number (an Ingress names a port only up to 15
-  characters). It carries the AWS Load Balancer Controller's per-listener
+- Each public listener gets an Ingress of that name with no host, its
+  Service port by number (an Ingress names a port only up to 15
+  characters) as the `defaultBackend`: the listener's default action, so any
+  Ingress's host rule on that port ranks first. A listener with `hosts` also
+  gets `{listener}-hosts`, a rule per host on 443 with the same target group
+  settings. It carries the AWS Load Balancer Controller's per-listener
   annotations, which other controllers ignore: `listen-ports` on HTTPS at the
   listener's port, and the target group's health check. A grpc listener is
   `backend-protocol-version: GRPC`, checked on its own port at

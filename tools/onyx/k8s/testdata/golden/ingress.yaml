@@ -12,8 +12,28 @@ metadata:
     app.kubernetes.io/name: test
   name: external-grpc
 spec:
+  defaultBackend:
+    service:
+      name: test
+      port:
+        number: 45322
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol-version: GRPC
+    alb.ingress.kubernetes.io/healthcheck-path: /grpc.health.v1.Health/Check
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/success-codes: "0"
+  labels:
+    app.kubernetes.io/name: test
+  name: external-grpc-hosts
+spec:
   rules:
-    - http:
+    - host: grpc.example.com
+      http:
         paths:
           - backend:
               service:
@@ -34,8 +54,36 @@ metadata:
     app.kubernetes.io/name: test
   name: external-grpc-gateway
 spec:
+  defaultBackend:
+    service:
+      name: test
+      port:
+        number: 45323
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /readiness
+    alb.ingress.kubernetes.io/healthcheck-port: "4040"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+  labels:
+    app.kubernetes.io/name: test
+  name: external-grpc-gateway-hosts
+spec:
   rules:
-    - http:
+    - host: api.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: test
+                port:
+                  number: 45323
+            path: /
+            pathType: Prefix
+    - host: api.staging.example.com
+      http:
         paths:
           - backend:
               service:
@@ -56,13 +104,8 @@ metadata:
     app.kubernetes.io/name: test
   name: web-grpcwebproxy
 spec:
-  rules:
-    - http:
-        paths:
-          - backend:
-              service:
-                name: test
-                port:
-                  number: 8443
-            path: /
-            pathType: Prefix
+  defaultBackend:
+    service:
+      name: test
+      port:
+        number: 8443

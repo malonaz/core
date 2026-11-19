@@ -87,6 +87,11 @@ message Server {
     message: "an internal grpc server binds a socket, not a port"
     expression: "!(has(this.grpc) && this.internal && this.port != 0)"
   };
+  option (buf.validate.message).cel = {
+    id: "server.hosts_public"
+    message: "hosts and gateway_hosts need public"
+    expression: "this.public || (size(this.hosts) == 0 && (!has(this.grpc) || size(this.grpc.gateway_hosts) == 0))"
+  };
 
   // Kebab-case. The flag namespace (`{name}-grpc`, `{name}-http`, ...) and health entry of the server.
   // A gRPC server named after the one service it serves shares that service's flags.
@@ -124,12 +129,24 @@ message Server {
   // Reached from outside the cluster: each of its listeners gets an Ingress.
   bool public = 8;
 
+  // Hostnames routed to the server's listener on 443, on an Ingress of their own (`{listener}-hosts`).
+  // Needs public. A grpc server's gateway takes `grpc.gateway_hosts`.
+  repeated string hosts = 9 [
+    (buf.validate.field).repeated.unique = true,
+    (buf.validate.field).repeated.items.string.pattern = "^([a-z0-9]([a-z0-9-]*[a-z0-9])?\\.)+[a-z]+$"
+  ];
+
   // A gRPC server.
   message Grpc {
     option (buf.validate.message).cel = {
       id: "server.grpc.gateway_port"
       message: "gateway_port is set but no service sets gateway"
       expression: "this.gateway_port == 0 || this.services.exists(s, s.gateway)"
+    };
+    option (buf.validate.message).cel = {
+      id: "server.grpc.gateway_hosts"
+      message: "gateway_hosts is set but no service sets gateway"
+      expression: "size(this.gateway_hosts) == 0 || this.services.exists(s, s.gateway)"
     };
 
     // Outermost first.
@@ -166,6 +183,12 @@ message Server {
         lte: 65535
       },
       (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
+
+    // Hostnames routed to the gateway on 443, as `hosts` are to the server.
+    repeated string gateway_hosts = 5 [
+      (buf.validate.field).repeated.unique = true,
+      (buf.validate.field).repeated.items.string.pattern = "^([a-z0-9]([a-z0-9-]*[a-z0-9])?\\.)+[a-z]+$"
     ];
   }
 
