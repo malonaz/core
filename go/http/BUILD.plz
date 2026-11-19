@@ -7,3 +7,12 @@ go_library(
         "//go/lifecycle",
     ],
 )
+
+go_test(
+    name = "test",
+    srcs = ["server_test.go"],
+    deps = [
+        ":http",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)
