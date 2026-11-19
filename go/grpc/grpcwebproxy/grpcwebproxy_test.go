@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -65,4 +66,45 @@ func TestWrapHTTPCompresses(t *testing.T) {
 	// Only for a client that accepts it.
 	require.Equal(t, response{Path: "/pkg.Service/Method", Body: body}, serve(t, &Opts{}, "/pkg.Service/Method", "", body))
 	require.Equal(t, response{Path: "/pkg.Service/Method", Body: body}, serve(t, &Opts{DisableCompression: true}, "/pkg.Service/Method", "gzip", body))
+}
+
+// A server stream's messages reach the client as they are flushed, not when the response ends.
+func TestWrapHTTPCompressesStreams(t *testing.T) {
+	read := make(chan struct{})
+	server := httptest.NewServer(wrapHTTP(&Opts{}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/grpc-web+proto")
+		io.WriteString(w, "first|")
+		w.(http.Flusher).Flush()
+		<-read
+		io.WriteString(w, "second")
+	})))
+	t.Cleanup(server.Close)
+
+	request, err := http.NewRequest(http.MethodPost, server.URL+"/pkg.Service/Method", nil)
+	require.NoError(t, err)
+	// Set by hand, the transport leaves the body compressed.
+	request.Header.Set("Accept-Encoding", "gzip")
+	response, err := http.DefaultClient.Do(request)
+	require.NoError(t, err)
+	defer response.Body.Close()
+	require.Equal(t, "gzip", response.Header.Get("Content-Encoding"))
+	reader, err := gzip.NewReader(response.Body)
+	require.NoError(t, err)
+
+	first := make([]byte, len("first|"))
+	done := make(chan error, 1)
+	go func() {
+		_, err := io.ReadFull(reader, first)
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("the first message was held back until the response ended")
+	}
+	close(read)
+	rest, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	require.Equal(t, "first|second", string(first)+string(rest))
 }
