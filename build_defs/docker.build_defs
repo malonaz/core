@@ -143,3 +143,150 @@ def _docker_tarball_rule(name, srcs, dockerfile, base_image, test_only):
         srcs = srcs + [dockerfile],
         test_only = test_only,
     ), dockerfile
+
+# Packs srcs under a directory as root-owned, timestamp-free entries, so a layer's digest only
+# changes with its content.
+_CRANE_LAYER_PY = """
+import gzip, os, sys, tarfile
+def root(info):
+    info.uid = info.gid = 0
+    info.uname = info.gname = "root"
+    info.mtime = 0
+    return info
+with gzip.GzipFile(os.environ["OUT"], "wb", compresslevel=6, mtime=0) as gz:
+    with tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
+        for src in sys.argv[2:]:
+            tar.add(src, arcname=os.path.join(sys.argv[1], os.path.basename(src)), filter=root)
+"""
+
+def crane_layer(name, srcs, dir = "/", visibility = None):
+    """crane_layer defines an image layer for crane_image, owned by root like a Dockerfile COPY.
+
+    Args:
+      name: Name of the rule.
+      srcs: Files or directories, placed under dir by their base name.
+      dir: Directory in the image to place srcs in.
+      visibility: Visibility of this rule.
+    """
+    return build_rule(
+        name = name,
+        srcs = srcs,
+        outs = [name + ".tar.gz"],
+        cmd = "python3 -c '%s' %s $SRCS" % (_CRANE_LAYER_PY, _shell_quote(dir.lstrip("/"))),
+        visibility = visibility,
+    )
+
+def crane_image(
+        name,
+        base_image,
+        layers,
+        image = "",
+        repo = "",
+        cmd = [],
+        entrypoint = [],
+        workdir = "",
+        user = "",
+        env = {},
+        exposed_ports = [],
+        labels = [],
+        visibility = None):
+    """crane_image defines an image made by appending layer tarballs to a base image with crane.
+
+    There is no Docker build: crane assembles the image in the registry and uploads only the
+    layers it lacks, so a large layer that rarely changes costs nothing on a push.
+
+    Use `plz run :<name>_push` to push it, or `plz run :<name>` to load it into Docker. Both need
+    registry access, since crane reads the base image from the registry.
+
+    Args:
+      name: Name of the rule.
+      base_image: A docker_image target, pushed before appending, or an image reference.
+      layers: crane_layer targets, appended in order.
+      image: Name of the image to create. Defaults to '<package_name>/<name>'.
+      repo: Registry/repository prefix for the fqn (e.g. an ECR registry URL).
+      cmd: Exec-form CMD. crane splits values on commas, so arguments can't contain one.
+      entrypoint: Exec-form ENTRYPOINT, same comma caveat as cmd.
+      workdir: Working directory.
+      user: User to run as.
+      env: Environment variables to set.
+      exposed_ports: Ports to expose, e.g. "8080" or "8080/tcp".
+      labels: Labels to tag this rule with.
+      visibility: Visibility of this rule.
+    """
+    image = image or package_name() + "/" + name
+    labels += ["docker_image=" + image, "docker"]
+    base_is_target = base_image.startswith("//") or base_image.startswith(":")
+    if base_is_target:
+        base_image = canonicalise(base_image)
+
+    mutate_args = []
+    for arg in entrypoint:
+        mutate_args += ["--entrypoint=" + _shell_quote(arg)]
+    for arg in cmd:
+        mutate_args += ["--cmd=" + _shell_quote(arg)]
+    if workdir:
+        mutate_args += ["--workdir=" + _shell_quote(workdir)]
+    if user:
+        mutate_args += ["--user=" + _shell_quote(user)]
+    for key, value in sorted(env.items()):
+        mutate_args += ["--env=" + _shell_quote(key + "=" + value)]
+    for port in exposed_ports:
+        mutate_args += ["--exposed-ports=" + _shell_quote(port)]
+    mutate_args += ["--append=$(out_location %s)" % layer for layer in layers]
+    mutate_args = " ".join(mutate_args)
+
+    # The version hashes the base, every layer and the image config.
+    hashes = " ".join(["$(hash %s)" % src for src in layers + ([base_image + "_fqn"] if base_is_target else [])])
+    version = "$(echo %s %s %s | md5sum - | cut -f1 -d' ')" % (hashes, _shell_quote(base_image), _shell_quote(mutate_args))
+    fqn = build_rule(
+        name = "%s_fqn" % name,
+        srcs = layers,
+        cmd = 'echo -n "%s/%s:%s" >> $OUT' % (repo, image, version),
+        outs = ["%s_fqn" % name],
+        deps = [base_image + "_fqn"] if base_is_target else [],
+        labels = labels,
+        stamp = True,
+        visibility = visibility,
+    )
+
+    base_ref = "`cat $SRCS_BASE`" if base_is_target else base_image
+    mutate = "$(out_location %s) mutate %s %s --tag `cat $SRCS_FQN`" % (CONFIG.CORE.CRANE, base_ref, mutate_args)
+    srcs = {"fqn": [fqn]}
+    if base_is_target:
+        srcs["base"] = [base_image + "_fqn"]
+    deps = [CONFIG.CORE.CRANE] + layers + ([base_image + "_push"] if base_is_target else [])
+    push_base = ["./$(out_location %s_push)" % base_image] if base_is_target else []
+
+    # crane mutate pushes the result.
+    crane_push = sh_cmd(
+        name = name + "_push",
+        cmd = push_base + [mutate],
+        srcs = srcs,
+        deps = deps,
+        visibility = visibility,
+        labels = labels,
+    )
+
+    # Writes the image to a tarball instead of pushing it, then loads that into Docker.
+    tar = "plz-out/tmp/%s.tar" % name
+    crane_load = sh_cmd(
+        name = name,
+        cmd = push_base + [mutate + " --output " + tar, "docker load -i " + tar, "rm -f " + tar],
+        srcs = srcs,
+        deps = deps,
+        visibility = visibility,
+        labels = labels + ["docker-build"],
+    )
+
+    sh_cmd(
+        name = name + "_run",
+        cmd = "./$(out_location %s) && docker run -it `cat $SRCS`" % crane_load,
+        srcs = [fqn],
+        deps = [crane_load],
+        visibility = visibility,
+        labels = labels,
+    )
+    return crane_load
+
+def _shell_quote(s):
+    return "'" + s.replace("'", "'\"'\"'") + "'"

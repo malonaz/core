@@ -104,6 +104,10 @@ DefaultValue = //tools/template
 ConfigKey = Onyx
 DefaultValue = //tools/onyx
 
+[PluginConfig "crane"]
+ConfigKey = Crane
+DefaultValue = //third_party/misc/crane
+
 ;; JS
 [PluginConfig "protoc_gen_es"]
 ConfigKey = ProtocGenEs
