@@ -24,13 +24,38 @@ var roleToMessageCountColumn = map[aipb.Role]string{
 	aipb.Role_ROLE_TOOL:      "tool_message_count",
 }
 
-// CreateMessage keeps the parent chat's per-role live message count in step.
+// CreateMessage moves the message's inline content into the file store and
+// keeps the parent chat's per-role live message count in step.
 func (s *Service) CreateMessage(ctx context.Context, request *pb.CreateMessageRequest) (*aipb.Message, error) {
+	if request.GetValidateOnly() {
+		return s.AiServiceServer.CreateMessage(ctx, request)
+	}
+	chatRn, err := aipb.ParseChatRn(request.GetParent())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
+	}
+	if err := storeFiles(ctx, s.fileStore, chatRn.Parent(), request.GetMessage().GetBlocks()...); err != nil {
+		return nil, err
+	}
 	message, err := s.AiServiceServer.CreateMessage(ctx, request)
-	if err != nil || request.GetValidateOnly() {
-		return message, err
+	if err != nil {
+		return nil, err
 	}
 	return message, s.incrementChatMessageCount(ctx, message, 1)
+}
+
+// UpdateMessage moves the inline content of rewritten blocks into the file store.
+func (s *Service) UpdateMessage(ctx context.Context, request *pb.UpdateMessageRequest) (*aipb.Message, error) {
+	if pbfieldmask.New(request.GetUpdateMask()).Contains("blocks") {
+		messageRn, err := aipb.ParseMessageRn(request.GetMessage().GetName())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing message name: %v", err).Err()
+		}
+		if err := storeFiles(ctx, s.fileStore, messageRn.ChatRn().Parent(), request.GetMessage().GetBlocks()...); err != nil {
+			return nil, err
+		}
+	}
+	return s.AiServiceServer.UpdateMessage(ctx, request)
 }
 
 // DeleteMessage keeps the parent chat's per-role live message count in step.

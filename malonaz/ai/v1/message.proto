@@ -199,10 +199,15 @@ message Image {
     // URL to the image. Supports both HTTPS URLs and data URLs
     // (e.g., "data:image/png;base64,...").
     string url = 2;
+
+    // Resource name of a file holding the image, in the file store of the
+    // service's host. Opaque to the service: the store resolves it. With a
+    // file store, `data` is moved into it and read back as a `file`.
+    string file = 5 [(google.api.resource_reference).type = "*"];
   }
 
   // MIME type of the image (e.g., "image/png", "image/jpeg", "image/webp", "image/gif").
-  // Required when using `data`, optional when using `url`.
+  // Required when using `data`, optional when using `url` or `file`.
   string media_type = 3;
 
   // Quality of the image.
@@ -226,10 +231,15 @@ message Document {
 
     // HTTPS URL to the document.
     string url = 2;
+
+    // Resource name of a file holding the document, in the file store of the
+    // service's host. Opaque to the service: the store resolves it. With a
+    // file store, `data` is moved into it and read back as a `file`.
+    string file = 5 [(google.api.resource_reference).type = "*"];
   }
 
   // MIME type of the document (e.g., "application/pdf", "text/plain").
-  // Required when using `data`, optional when using `url`.
+  // Required when using `data`, optional when using `url` or `file`.
   string media_type = 3;
 
   // Optional title of the document, surfaced to the model as its file name.
