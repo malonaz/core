@@ -21,7 +21,7 @@ type Opts struct {
 	Retention          time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever. Must match the scheduler-service's"`
 	WorkerID           string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
 	Endpoints          []string      `long:"endpoint" env:"ENDPOINT" env-delim:"," description:"A gRPC endpoint to deliver to (unix: path, http(s):// or host:port); its scheduler-run methods are discovered over reflection at startup and every rediscover-interval. Repeatable"`
-	RediscoverInterval time.Duration `long:"rediscover-interval" env:"REDISCOVER_INTERVAL" default:"1m" description:"Interval between rediscoveries of the endpoints' methods while running, so a method an endpoint starts serving gets its queue without a restart; 0 disables"`
+	RediscoverInterval time.Duration `long:"rediscover-interval" env:"REDISCOVER_INTERVAL" default:"10s" description:"Interval between rediscoveries of the endpoints' methods while running, so a method an endpoint starts serving gets its queue without a restart; 0 disables"`
 	// What a declared queue whose policy has no backoff gets. Must match the scheduler-service's.
 	DefaultRetryBackoff *scheduler.RetryBackoffOpts `group:"Default retry backoff" namespace:"default-retry-backoff" env-namespace:"DEFAULT_RETRY_BACKOFF"`
 }
