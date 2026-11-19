@@ -40,6 +40,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/karminski/streaming-json-go v0.0.4
+	github.com/klauspost/compress v1.18.3
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/lib/pq v1.10.9
 	github.com/malonaz/pgq v0.0.0-20251114112516-9240ed92bf50
@@ -60,6 +61,7 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
+	github.com/spf13/pflag v1.0.10
 	github.com/spiffe/go-spiffe/v2 v2.6.0
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/pretty v1.2.1
@@ -144,7 +146,6 @@ require (
 	github.com/joschi/pgq v0.0.6 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.3 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
@@ -176,7 +177,6 @@ require (
 	github.com/sigurn/crc16 v0.0.0-20240131213347-83fcde1e29d1 // indirect
 	github.com/sigurn/crc8 v0.0.0-20220107193325-2243fe600f9f // indirect
 	github.com/spf13/cast v1.7.0 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/standard-webhooks/standard-webhooks/libraries v0.0.1 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
 	github.com/tidwall/gjson v1.20.0 // indirect
