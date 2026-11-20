@@ -8,7 +8,6 @@ import (
 
 	"github.com/malonaz/core/gengo/scheduler/store"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
-	"github.com/malonaz/core/go/grpc"
 )
 
 type Service struct {
@@ -18,7 +17,6 @@ type Service struct {
 	withServiceAccount     func(context.Context) context.Context
 	schedulerPostgresStore *store.Store
 	schedulerServiceClient schedulerservicepb.SchedulerServiceClient
-	grpcDialer             *grpc.Dialer
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -30,7 +28,6 @@ func New(
 	opts *Opts,
 	schedulerPostgresStore *store.Store,
 	schedulerServiceClient schedulerservicepb.SchedulerServiceClient,
-	grpcDialer *grpc.Dialer,
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
@@ -42,7 +39,6 @@ func New(
 		opts:                   opts,
 		schedulerPostgresStore: schedulerPostgresStore,
 		schedulerServiceClient: schedulerServiceClient,
-		grpcDialer:             grpcDialer,
 	}
 	return service, nil
 }

@@ -27,7 +27,6 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/scheduler"
-	"github.com/malonaz/core/go/scheduler/endpoints"
 	"github.com/malonaz/core/go/scheduler/transition"
 )
 
@@ -208,7 +207,7 @@ func (s *Service) heartbeat(ctx context.Context, cancel context.CancelFunc, log 
 // invoke delivers the payload to the queue's method on its endpoint as the
 // request body and returns the response under the queue's response type.
 func (s *Service) invoke(ctx context.Context, route *route, job *model.Job) (*anypb.Any, error) {
-	connection, err := endpoints.Dial(ctx, s.grpcDialer, route.endpoint)
+	connection, err := s.endpoints.Acquire(ctx, route.endpoint)
 	if err != nil {
 		return nil, grpcstatus.Errorf(codes.Unavailable, "connecting to %s: %v", route.endpoint, err)
 	}

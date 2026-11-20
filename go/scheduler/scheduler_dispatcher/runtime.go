@@ -10,6 +10,7 @@ import (
 	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	"github.com/malonaz/core/go/routine"
 	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/scheduler/endpoints"
 )
 
 type Opts struct {
@@ -26,6 +27,7 @@ type Opts struct {
 }
 
 type runtime struct {
+	endpoints           *endpoints.Pool
 	defaultRetryBackoff *policypb.RetryBackoff
 
 	// Bounds concurrency; the claim loop only asks for as many jobs as there are free slots.
@@ -54,6 +56,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		return nil, err
 	}
 	return &runtime{
+		endpoints:           endpoints.NewPool(),
 		defaultRetryBackoff: defaultRetryBackoff,
 		slots:               make(chan struct{}, opts.MaxParallelJobs),
 		claimSignal:         make(chan struct{}, 1),
@@ -93,6 +96,7 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		}
 		cancelWorkers()
 		s.workers.Wait()
+		s.endpoints.Close()
 	}, nil
 }
 

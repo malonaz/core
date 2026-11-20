@@ -7,5 +7,3 @@ dependencies:
   - grpc_client:
       service: scheduler-service
       proto: //malonaz/scheduler/scheduler_service/v1
-  # Its endpoints are given by flag: those the binary serves are dialed as its own servers.
-  - grpc_dialer: {}
