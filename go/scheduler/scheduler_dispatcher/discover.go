@@ -63,7 +63,7 @@ func (s *Service) rediscover(ctx context.Context) error {
 // convergeEndpoint reflects the endpoint and converges the queue of each of
 // its scheduler-run methods, returning their names.
 func (s *Service) convergeEndpoint(ctx context.Context, url string) ([]string, error) {
-	methods, err := s.endpoints.Discover(ctx, url)
+	methods, err := endpoints.Discover(ctx, s.grpcDialer, url)
 	if err != nil {
 		return nil, err
 	}

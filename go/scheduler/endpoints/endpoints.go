@@ -1,12 +1,11 @@
 // Package endpoints holds the dispatcher's view of the gRPC endpoints it
-// delivers to: one connection per endpoint, and its schema fetched over gRPC
-// reflection, from which the scheduler-run methods are discovered.
+// delivers to: dialed as its binary dials them, and their schema fetched over
+// gRPC reflection, from which the scheduler-run methods are discovered.
 package endpoints
 
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -35,48 +34,21 @@ type Method struct {
 	Policy       *policypb.QueuePolicy
 }
 
-// Pool caches one connection per endpoint URL.
-type Pool struct {
-	mutex           sync.Mutex
-	urlToConnection map[string]*grpc.Connection
-}
-
-// NewPool returns an empty pool.
-func NewPool() *Pool {
-	return &Pool{urlToConnection: map[string]*grpc.Connection{}}
-}
-
-// Acquire returns the connection to the endpoint, dialing it on first use.
-func (p *Pool) Acquire(ctx context.Context, url string) (*grpc.Connection, error) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	if connection, ok := p.urlToConnection[url]; ok {
-		return connection, nil
-	}
-	connection, err := dial(ctx, url)
+// Dial returns the dialer's connection to the endpoint url (unix: path, http(s):// or host:port).
+func Dial(ctx context.Context, dialer *grpc.Dialer, url string) (*grpc.Connection, error) {
+	opts, err := grpc.ParseClientOpts(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing url %q: %w", url, err)
 	}
-	p.urlToConnection[url] = connection
-	return connection, nil
-}
-
-// Close closes every connection.
-func (p *Pool) Close() {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	for url, connection := range p.urlToConnection {
-		delete(p.urlToConnection, url)
-		connection.Close()
-	}
+	return dialer.Dial(ctx, opts)
 }
 
 // Discover returns the scheduler-run methods the endpoint serves: those
 // carrying a malonaz.scheduler.v1.method annotation, read over gRPC
 // reflection. The endpoint's message types are registered globally so
 // payloads and responses of types this binary does not link render in JSON.
-func (p *Pool) Discover(ctx context.Context, url string) ([]*Method, error) {
-	connection, err := p.Acquire(ctx, url)
+func Discover(ctx context.Context, dialer *grpc.Dialer, url string) ([]*Method, error) {
+	connection, err := Dial(ctx, dialer, url)
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "endpoint %s: %v", url, err).Err()
 	}
@@ -148,20 +120,4 @@ func registerGlobalTypes(files *protoregistry.Files) error {
 		return registrationErr == nil
 	})
 	return registrationErr
-}
-
-func dial(ctx context.Context, url string) (*grpc.Connection, error) {
-	opts, err := grpc.ParseClientOpts(url)
-	if err != nil {
-		return nil, fmt.Errorf("parsing url %q: %w", url, err)
-	}
-	connection, err := grpc.NewConnection(opts, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("creating connection: %w", err)
-	}
-	// The dial is non-blocking; the connection outlives the call that opened it.
-	if err := connection.Connect(context.WithoutCancel(ctx)); err != nil {
-		return nil, fmt.Errorf("connecting: %w", err)
-	}
-	return connection, nil
 }
