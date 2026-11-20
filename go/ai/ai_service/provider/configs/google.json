@@ -76,6 +76,34 @@ local p = "providers/google/models/";
     },
 
     {
+      "name": p + "gemini-4-neon",
+      "provider_model_id": "gemini-4-neon",
+      "description": "Frontier-level intelligence with fast end-to-end task completion across complex software engineering, knowledge work, and science workflows, and long decode up to 1M tokens. Natively multimodal: supports text, image, video, audio and PDF input, code execution, computer use, file search, search and maps grounding, and structured outputs.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": true,
+        "context_token_limit": 1048576,
+        "output_token_limit": 65536,
+        "pricing": {
+          "input_token_price_per_million": 3,
+          "output_token_price_per_million": 15,
+          "output_reasoning_token_price_per_million": 15,
+          "input_token_cache_read_price_per_million": 0.15
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "LOW",
+        "REASONING_EFFORT_DEFAULT": "LOW",
+        "REASONING_EFFORT_LOW": "LOW",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH",
+        "REASONING_EFFORT_XHIGH": "XHIGH",
+        "REASONING_EFFORT_MAX": "XHIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-4-hydrogen",
       "provider_model_id": "gemini-4-hydrogen",
       "description": "Brings cutting-edge intelligence to everyone, with speed and efficiency for everyday coding and agentic workflows, and long decode up to 1M tokens. Natively multimodal: supports text, image, video, audio and PDF input, code execution, computer use, file search, search and maps grounding, and structured outputs.",
@@ -112,6 +140,7 @@ local p = "providers/google/models/";
         "tool_call": true,
         "context_token_limit": 1048576,
         "output_token_limit": 65536,
+        // Launch pricing through 2026-12-31; doubles (1.5 / 7.5 / 7.5 / 0.15) on 2027-01-01.
         "pricing": {
           "input_token_price_per_million": 0.75,
           "output_token_price_per_million": 3.75,

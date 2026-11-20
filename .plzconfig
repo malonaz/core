@@ -39,6 +39,10 @@ Target = //plugins:go
 GoTool = //tools/go:toolchain|go
 ImportPath = github.com/malonaz/core
 CgoEnabled = true
+; Pure Go user and DNS lookups: a static binary's glibc NSS dlopens libnss_*.so, which crashes
+; against a different libc or nsswitch.conf (e.g. distroless's `passwd: compat`, EDP-6138).
+BuildTags = osusergo
+BuildTags = netgo
 
 [Plugin "proto"]
 Target = //plugins:proto
@@ -103,6 +107,10 @@ DefaultValue = //tools/template
 [PluginConfig "onyx"]
 ConfigKey = Onyx
 DefaultValue = //tools/onyx
+
+[PluginConfig "crane"]
+ConfigKey = Crane
+DefaultValue = //third_party/misc/crane
 
 ;; JS
 [PluginConfig "protoc_gen_es"]

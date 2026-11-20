@@ -18,6 +18,7 @@ import (
 	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/scheduler/cron"
 	"github.com/malonaz/core/go/scheduler/transition"
+	"github.com/malonaz/core/go/uuid"
 )
 
 // defaultTimeZone is the zone a schedule's cron expression is evaluated in when none is given.
@@ -99,6 +100,30 @@ func (s *Service) PauseSchedule(ctx context.Context, request *pb.PauseScheduleRe
 // ResumeSchedule restarts ticks from the first occurrence after now.
 func (s *Service) ResumeSchedule(ctx context.Context, request *pb.ResumeScheduleRequest) (*schedulerpb.Schedule, error) {
 	return s.setScheduleState(ctx, request.GetName(), request.GetEtag(), schedulerpb.ScheduleState_SCHEDULE_STATE_ENABLED)
+}
+
+// scheduleRunRequestIDNamespace scopes a run's request id to its schedule, so
+// one id sent to two schedules runs both.
+var scheduleRunRequestIDNamespace = uuid.MustParse("3a1d766a-f665-4b72-a639-56c83ae4bf3e")
+
+// RunSchedule creates the job a tick would, due now, leaving the recurrence alone.
+func (s *Service) RunSchedule(ctx context.Context, request *pb.RunScheduleRequest) (*schedulerpb.Job, error) {
+	getScheduleRequest := &pb.GetScheduleRequest{Name: request.GetName()}
+	schedule, err := s.GetSchedule(ctx, getScheduleRequest)
+	if err != nil {
+		return nil, err
+	}
+	createJobRequest, err := newScheduleJobRequest(schedule)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "building job request: %v", err).Err()
+	}
+	if runWindow := schedule.GetRunWindow(); runWindow != nil {
+		createJobRequest.Job.ExpireTime = timestamppb.New(transition.Now().Add(runWindow.AsDuration()))
+	}
+	if request.GetRequestId() != "" {
+		createJobRequest.RequestId = uuid.NewV5(scheduleRunRequestIDNamespace, schedule.GetName()+"/"+request.GetRequestId()).String()
+	}
+	return s.createJob(ctx, createJobRequest, schedule.GetName())
 }
 
 // setScheduleState moves the schedule to state under its row lock; a schedule

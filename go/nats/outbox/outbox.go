@@ -36,9 +36,9 @@ import (
 const table = "outbox.journal"
 
 const (
-	// MaxPayload is the largest payload a journal takes: NATS's default
-	// max_payload, less room for the headers it is published with.
-	MaxPayload = 1<<20 - 1<<10
+	// MaxPayload is the largest payload a journal takes: a 4MB max_payload,
+	// less room for the headers it is published with.
+	MaxPayload = 4<<20 - 1<<10
 	// maxAttempts is how many times NATS rejects an entry before claims leave
 	// it in the journal as dead.
 	maxAttempts = 5

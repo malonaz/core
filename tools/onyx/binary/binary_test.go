@@ -42,13 +42,9 @@ func TestLoad(t *testing.T) {
 	require.Equal(t, "b-service", inProcess.Name)
 	require.Equal(t, "b-service", inProcess.Server.GetName())
 	require.Equal(t, "b-service", inProcess.Service.GetName())
-	// a-service health-checks it; b-service's own dependency on itself does not.
-	require.True(t, inProcess.HealthChecked)
 	require.Equal(t, "c-service", remote.Name)
 	require.Nil(t, remote.Server)
-	// d-processor alone holds it, and a processor reports its own health, not its dependencies'.
 	require.Equal(t, "a-service", processorOnly.Name)
-	require.False(t, processorOnly.HealthChecked)
 
 	source, err := Generate(b)
 	require.NoError(t, err)

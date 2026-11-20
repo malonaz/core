@@ -14,13 +14,14 @@ import (
 )
 
 type Opts struct {
-	MaxParallelJobs int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
-	PollInterval    time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
-	LeaseDuration   time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its handler call is in flight. Must match the scheduler-service's"`
-	DrainTimeout    time.Duration `long:"drain-timeout" env:"DRAIN_TIMEOUT" default:"20s" description:"How long a stopping instance lets in-flight jobs finish before releasing them; keep it under the orchestrator's stop timeout"`
-	Retention       time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever. Must match the scheduler-service's"`
-	WorkerID        string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
-	Endpoints       []string      `long:"endpoint" env:"ENDPOINT" env-delim:"," description:"A gRPC endpoint to deliver to (unix: path, http(s):// or host:port); its scheduler-run methods are discovered over reflection at startup. Repeatable"`
+	MaxParallelJobs    int           `long:"max-parallel-jobs" env:"MAX_PARALLEL_JOBS" default:"50" description:"Jobs this instance processes concurrently"`
+	PollInterval       time.Duration `long:"poll-interval" env:"POLL_INTERVAL" default:"1s" description:"Interval between claim scans while idle"`
+	LeaseDuration      time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease held on a running job, renewed while its handler call is in flight. Must match the scheduler-service's"`
+	DrainTimeout       time.Duration `long:"drain-timeout" env:"DRAIN_TIMEOUT" default:"20s" description:"How long a stopping instance lets in-flight jobs finish before releasing them; keep it under the orchestrator's stop timeout"`
+	Retention          time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever. Must match the scheduler-service's"`
+	WorkerID           string        `long:"worker-id" env:"WORKER_ID" description:"Identifies this instance on the jobs it runs; defaults to hostname:pid"`
+	Endpoints          []string      `long:"endpoint" env:"ENDPOINT" env-delim:"," description:"A gRPC endpoint to deliver to (unix: path, http(s):// or host:port); its scheduler-run methods are discovered over reflection at startup and every rediscover-interval. Repeatable"`
+	RediscoverInterval time.Duration `long:"rediscover-interval" env:"REDISCOVER_INTERVAL" default:"10s" description:"Interval between rediscoveries of the endpoints' methods while running, so a method an endpoint starts serving gets its queue without a restart; 0 disables"`
 	// What a declared queue whose policy has no backoff gets. Must match the scheduler-service's.
 	DefaultRetryBackoff *scheduler.RetryBackoffOpts `group:"Default retry backoff" namespace:"default-retry-backoff" env-namespace:"DEFAULT_RETRY_BACKOFF"`
 }
@@ -40,8 +41,8 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.MaxParallelJobs < 1 {
 		return nil, fmt.Errorf("max-parallel-jobs must be at least 1")
 	}
-	if opts.LeaseDuration <= 0 || opts.PollInterval <= 0 || opts.DrainTimeout < 0 {
-		return nil, fmt.Errorf("lease-duration and poll-interval must be positive, drain-timeout non-negative")
+	if opts.LeaseDuration <= 0 || opts.PollInterval <= 0 || opts.DrainTimeout < 0 || opts.RediscoverInterval < 0 {
+		return nil, fmt.Errorf("lease-duration and poll-interval must be positive, drain-timeout and rediscover-interval non-negative")
 	}
 	if opts.WorkerID == "" {
 		hostname, err := os.Hostname()
@@ -64,7 +65,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 
 // start discovers the endpoints' methods and converges their queues, then
 // claims and runs jobs until stopped. Every endpoint must be serving: the
-// dispatcher is started after the services it dispatches to.
+// dispatcher is started after the services it dispatches to. It then
+// rediscovers every RediscoverInterval, as an endpoint redeployed without the
+// dispatcher may serve new methods.
 //
 // Stopping is a drain: no job is claimed once it begins, in-flight jobs get
 // DrainTimeout to finish, and those still running are then released untouched
@@ -73,11 +76,19 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 	if err := s.discover(ctx); err != nil {
 		return nil, err
 	}
+	rediscover := func() {}
+	if s.opts.RediscoverInterval > 0 {
+		// The jitter delays the first pass, which startup just did, and spreads replicas' passes.
+		rediscoverRoutine := routine.New("scheduler-rediscover", s.rediscover).
+			WithTicker(s.opts.RediscoverInterval).WithStartupJitter(s.opts.RediscoverInterval).WithConstantBackOff(10).WithMetrics().WithLogger(s.log).Start(ctx)
+		rediscover = rediscoverRoutine.Close
+	}
 	// Workers outlive the claim routine: they are cancelled and drained last.
 	workerCtx, cancelWorkers := context.WithCancel(ctx)
 	claim := routine.New("scheduler-claim", func(ctx context.Context) error { return s.claim(ctx, workerCtx) }).
 		WithTicker(s.opts.PollInterval).WithSignal(s.claimSignal).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx)
 	return func() {
+		rediscover()
 		claim.Close()
 		s.log.InfoContext(ctx, "draining in-flight jobs", "timeout", s.opts.DrainTimeout, "in_flight", len(s.slots))
 		if !s.drain(s.opts.DrainTimeout) {

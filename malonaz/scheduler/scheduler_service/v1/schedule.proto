@@ -215,3 +215,23 @@ message ResumeScheduleRequest {
   // If set, the request will only succeed if the current etag matches this value.
   string etag = 2;
 }
+
+// Request message for SchedulerService.RunSchedule.
+message RunScheduleRequest {
+  // The resource name of the schedule to run.
+  // Format: schedules/{schedule}
+  // Format: organizations/{organization}/schedules/{schedule}
+  // Format: organizations/{organization}/users/{user}/schedules/{schedule}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Schedule"
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the job it created instead of creating another.
+  string request_id = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}

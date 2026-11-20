@@ -109,8 +109,6 @@ type GRPCClient struct {
 	Server *Server
 	// The service of this binary implementing it, else nil.
 	Service *Service
-	// A server health-checks it.
-	HealthChecked bool
 	// A service asked for its Operations client: the google.longrunning.Operations of the server
 	// serving it, on the same connection.
 	Operations bool
@@ -252,22 +250,6 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 			}
 		}
 	}
-	// Only grpc and http servers report a service's dependencies; a processor reports the
-	// service's own HealthCheck, so a client it alone holds is not health-checked.
-	for _, server := range servers {
-		if server.GetProcessor() != nil {
-			continue
-		}
-		for _, service := range server.Services {
-			for _, dep := range service.Dependencies {
-				// A service's health does not gate on itself.
-				if dep.GRPCClient != nil && dep.GRPCClient.Service != service {
-					dep.GRPCClient.HealthChecked = true
-				}
-			}
-		}
-	}
-
 	if err := l.checkServiceCycles(); err != nil {
 		return nil, err
 	}

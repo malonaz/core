@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/malonaz/core/go/health"
@@ -20,7 +21,7 @@ type Opts struct {
 	ReadTimeout         time.Duration    `long:"read-timeout" env:"READ_TIMEOUT" description:"HTTP read timeout" default:"30s"`
 	WriteTimeout        time.Duration    `long:"write-timeout" env:"WRITE_TIMEOUT" description:"HTTP write timeout" default:"30s"`
 	IdleTimeout         time.Duration    `long:"idle-timeout" env:"IDLE_TIMEOUT"  description:"HTTP idle timeout" default:"120s"`
-	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop." default:"30"`
+	GracefulStopTimeout int              `long:"graceful-stop-timeout" env:"GRACEFUL_STOP_TIMEOUT" description:"How many seconds to wait for graceful stop, handlers on hijacked connections (websockets) included." default:"30"`
 }
 
 // Server holds the HTTP server state.
@@ -32,6 +33,8 @@ type Server struct {
 	healthServer *health.GRPCServer
 	patternSet   map[string]struct{}
 	lifecycle    lifecycle.State
+	// Running handlers, hijacked ones included.
+	handlers sync.WaitGroup
 }
 
 // NewServer creates a new HTTP server and lets register add its routes.
@@ -45,12 +48,16 @@ func NewServer(opts *Opts, name string, register func(*Server)) *Server {
 		patternSet:   map[string]struct{}{},
 		httpServer: &http.Server{
 			Addr:         fmt.Sprintf(":%d", opts.Port),
-			Handler:      mux,
 			ReadTimeout:  opts.ReadTimeout,
 			WriteTimeout: opts.WriteTimeout,
 			IdleTimeout:  opts.IdleTimeout,
 		},
 	}
+	s.httpServer.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.handlers.Add(1)
+		defer s.handlers.Done()
+		mux.ServeHTTP(w, r)
+	})
 	register(s)
 	return s
 }
@@ -124,8 +131,9 @@ func (s *Server) Stop() error {
 	return s.httpServer.Close()
 }
 
-// GracefulStop stops the HTTP server, waiting for in-flight requests up to the graceful stop timeout.
-// A no-op once a stop has been requested.
+// GracefulStop stops the HTTP server, waiting for in-flight requests up to the graceful stop timeout,
+// handlers on hijacked connections (websockets) included, which http.Server.Shutdown ignores. A
+// no-op once a stop has been requested.
 func (s *Server) GracefulStop() error {
 	if !s.lifecycle.GracefulStop() {
 		return nil
@@ -140,5 +148,23 @@ func (s *Server) GracefulStop() error {
 		s.log.Warn("graceful shutdown failed, forcing", "error", err)
 		return s.httpServer.Close()
 	}
+	// Shutdown closed the listeners, so no handler starts while this waits.
+	if err := s.waitForHandlers(ctx); err != nil {
+		s.log.Warn("handlers on hijacked connections outlived the graceful stop", "error", err)
+	}
 	return nil
+}
+
+func (s *Server) waitForHandlers(ctx context.Context) error {
+	done := make(chan struct{})
+	go func() {
+		s.handlers.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

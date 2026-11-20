@@ -1,6 +1,6 @@
 ---
 title: Recurring jobs with Schedule
-description: How recurring work is declared on the scheduler — the Schedule resource (cron + payload template), what each tick materializes (a plain Job under the schedule's parent, its `schedule` field naming the schedule), tick/missed-tick/run-window semantics, pause/resume, the idempotent replay, and traps.
+description: How recurring work is declared on the scheduler — the Schedule resource (cron + payload template), what each tick materializes (a plain Job under the schedule's parent, its `schedule` field naming the schedule), tick/missed-tick/run-window semantics, pause/resume, RunSchedule (a manual run leaving the recurrence alone), the idempotent replay, and traps.
 labels:
     lang: go, protobuf
     repo: core
@@ -77,6 +77,16 @@ Nothing wakes the dispatcher: the job is claimed by its ordinary poll.
 recomputes it from now — ticks that fell inside the pause are gone, not missed.
 Both are idempotent and take an optional etag (`ABORTED` when stale). A `cron`
 update on a paused schedule leaves `next_schedule_time` unset until the resume.
+
+## Running one by hand
+
+`RunSchedule{name, request_id}` creates the job a tick would (parent, payload,
+priority, labels, `schedule` set) due at once, expiring after `run_window`
+(never when unset), and returns it. Nothing on the schedule moves: no
+`last_job`, `last_schedule_time` or next tick, and a PAUSED schedule runs too.
+The request id is hashed with the schedule name (`uuidv5`), so one id sent to
+two schedules runs both. No guard against overlapping a tick's job beyond the
+queue's `max_concurrency`.
 
 ## Listing a schedule's jobs
 

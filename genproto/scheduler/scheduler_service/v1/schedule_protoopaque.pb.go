@@ -913,6 +913,84 @@ func (b0 ResumeScheduleRequest_builder) Build() *ResumeScheduleRequest {
 	return m0
 }
 
+// Request message for SchedulerService.RunSchedule.
+type RunScheduleRequest struct {
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name      string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_RequestId string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *RunScheduleRequest) Reset() {
+	*x = RunScheduleRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_schedule_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunScheduleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunScheduleRequest) ProtoMessage() {}
+
+func (x *RunScheduleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_schedule_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RunScheduleRequest) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *RunScheduleRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
+func (x *RunScheduleRequest) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *RunScheduleRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
+}
+
+type RunScheduleRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The resource name of the schedule to run.
+	// Format: schedules/{schedule}
+	// Format: organizations/{organization}/schedules/{schedule}
+	// Format: organizations/{organization}/users/{user}/schedules/{schedule}
+	Name string
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the job it created instead of creating another.
+	RequestId string
+}
+
+func (b0 RunScheduleRequest_builder) Build() *RunScheduleRequest {
+	m0 := &RunScheduleRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_RequestId = b.RequestId
+	return m0
+}
+
 var File_malonaz_scheduler_scheduler_service_v1_schedule_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_scheduler_service_v1_schedule_proto_rawDesc = "" +
@@ -972,9 +1050,14 @@ const file_malonaz_scheduler_scheduler_service_v1_schedule_proto_rawDesc = "" +
 	"\x15ResumeScheduleRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1escheduler.malonaz.com/Schedule\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
-	"\x04etag\x18\x02 \x01(\tR\x04etagBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\x82\x01\n" +
+	"\x12RunScheduleRequest\x12@\n" +
+	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
+	"\x1escheduler.malonaz.com/Schedule\xbaH\x03\xc8\x01\x01R\x04name\x12*\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestIdBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
-var file_malonaz_scheduler_scheduler_service_v1_schedule_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_scheduler_scheduler_service_v1_schedule_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_scheduler_scheduler_service_v1_schedule_proto_goTypes = []any{
 	(*CreateScheduleRequest)(nil),     // 0: malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest
 	(*GetScheduleRequest)(nil),        // 1: malonaz.scheduler.scheduler_service.v1.GetScheduleRequest
@@ -986,15 +1069,16 @@ var file_malonaz_scheduler_scheduler_service_v1_schedule_proto_goTypes = []any{
 	(*BatchGetSchedulesResponse)(nil), // 7: malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse
 	(*PauseScheduleRequest)(nil),      // 8: malonaz.scheduler.scheduler_service.v1.PauseScheduleRequest
 	(*ResumeScheduleRequest)(nil),     // 9: malonaz.scheduler.scheduler_service.v1.ResumeScheduleRequest
-	(*v1.Schedule)(nil),               // 10: malonaz.scheduler.v1.Schedule
-	(*fieldmaskpb.FieldMask)(nil),     // 11: google.protobuf.FieldMask
+	(*RunScheduleRequest)(nil),        // 10: malonaz.scheduler.scheduler_service.v1.RunScheduleRequest
+	(*v1.Schedule)(nil),               // 11: malonaz.scheduler.v1.Schedule
+	(*fieldmaskpb.FieldMask)(nil),     // 12: google.protobuf.FieldMask
 }
 var file_malonaz_scheduler_scheduler_service_v1_schedule_proto_depIdxs = []int32{
-	10, // 0: malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest.schedule:type_name -> malonaz.scheduler.v1.Schedule
-	10, // 1: malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest.schedule:type_name -> malonaz.scheduler.v1.Schedule
-	11, // 2: malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 3: malonaz.scheduler.scheduler_service.v1.ListSchedulesResponse.schedules:type_name -> malonaz.scheduler.v1.Schedule
-	10, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse.schedules:type_name -> malonaz.scheduler.v1.Schedule
+	11, // 0: malonaz.scheduler.scheduler_service.v1.CreateScheduleRequest.schedule:type_name -> malonaz.scheduler.v1.Schedule
+	11, // 1: malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest.schedule:type_name -> malonaz.scheduler.v1.Schedule
+	12, // 2: malonaz.scheduler.scheduler_service.v1.UpdateScheduleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 3: malonaz.scheduler.scheduler_service.v1.ListSchedulesResponse.schedules:type_name -> malonaz.scheduler.v1.Schedule
+	11, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetSchedulesResponse.schedules:type_name -> malonaz.scheduler.v1.Schedule
 	5,  // [5:5] is the sub-list for method output_type
 	5,  // [5:5] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -1013,7 +1097,7 @@ func file_malonaz_scheduler_scheduler_service_v1_schedule_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_scheduler_service_v1_schedule_proto_rawDesc), len(file_malonaz_scheduler_scheduler_service_v1_schedule_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

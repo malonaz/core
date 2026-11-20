@@ -476,3 +476,68 @@ func TestSchedule_DeleteLeavesJobs(t *testing.T) {
 	jobs := scheduleJobs(t, schedule)
 	require.True(t, slices.ContainsFunc(jobs, func(listed *schedulerpb.Job) bool { return listed.GetName() == job.GetName() }))
 }
+
+func runSchedule(t *testing.T, name, requestID string) *schedulerpb.Job {
+	t.Helper()
+	runScheduleRequest := &schedulerservicepb.RunScheduleRequest{Name: name, RequestId: requestID}
+	job, err := schedulerServiceClient.RunSchedule(ctx, runScheduleRequest)
+	require.NoError(t, err)
+	return job
+}
+
+func TestSchedule_Run(t *testing.T) {
+	t.Parallel()
+	for shape, parent := range scheduleParents() {
+		t.Run(shape, func(t *testing.T) {
+			t.Parallel()
+			declared := newSchedule(t, rareCron)
+			declared.Labels = map[string]string{"team": "core"}
+			declared.Priority = 3
+			declared.RunWindow = durationpb.New(time.Hour)
+			created := createSchedule(t, parent, declared)
+
+			before := time.Now()
+			requestID := uuid.MustNewV7().String()
+			job := runSchedule(t, created.GetName(), requestID)
+			require.Equal(t, parentOf(created.GetName()), parentOf(job.GetName()), "the job lives under the schedule's parent")
+			require.Equal(t, created.GetName(), job.GetSchedule())
+			require.Equal(t, created.GetLabels(), job.GetLabels())
+			require.Equal(t, created.GetQueue(), job.GetQueue())
+			require.Equal(t, created.GetMethod(), job.GetMethod())
+			require.Equal(t, created.GetPriority(), job.GetPriority())
+			require.True(t, proto.Equal(created.GetPayload(), job.GetPayload()))
+			require.WithinRange(t, job.GetExpireTime().AsTime(), before.Add(time.Hour).Truncate(time.Microsecond), time.Now().Add(time.Hour), "the job expires after the run window")
+
+			// The same request id returns the same job.
+			require.Equal(t, job.GetName(), runSchedule(t, created.GetName(), requestID).GetName())
+			// The recurrence is untouched.
+			grpcrequire.Equal(t, created, getSchedule(t, created.GetName()))
+
+			waitForState(t, job.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+			jobs := scheduleJobs(t, created)
+			require.Len(t, jobs, 1)
+			require.Equal(t, job.GetName(), jobs[0].GetName())
+		})
+	}
+}
+
+func TestSchedule_RunPaused(t *testing.T) {
+	t.Parallel()
+	created := createSchedule(t, "", newSchedule(t, rareCron))
+	paused, err := schedulerServiceClient.PauseSchedule(ctx, &schedulerservicepb.PauseScheduleRequest{Name: created.GetName()})
+	require.NoError(t, err)
+
+	job := runSchedule(t, created.GetName(), "")
+	require.Nil(t, job.GetExpireTime(), "without a run window the job never expires")
+	waitForState(t, job.GetName(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+	grpcrequire.Equal(t, paused, getSchedule(t, created.GetName()))
+
+	// No request id runs again; one request id sent to two schedules runs both.
+	require.NotEqual(t, job.GetName(), runSchedule(t, created.GetName(), "").GetName())
+	other := createSchedule(t, "", newSchedule(t, rareCron))
+	requestID := uuid.MustNewV7().String()
+	require.NotEqual(t, runSchedule(t, created.GetName(), requestID).GetName(), runSchedule(t, other.GetName(), requestID).GetName())
+
+	_, err = schedulerServiceClient.RunSchedule(ctx, &schedulerservicepb.RunScheduleRequest{Name: created.GetName() + "x"})
+	grpcrequire.Error(t, codes.NotFound, err)
+}

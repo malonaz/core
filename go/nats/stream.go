@@ -52,7 +52,9 @@ func (s *Subject) Stream() *Stream {
 }
 
 func (c *Client) CreateOrUpdateStream(ctx context.Context, s *Stream) (jetstream.Stream, error) {
-	stream, err := c.JetStream.CreateOrUpdateStream(ctx, c.streamConfig(s))
+	stream, err := retryUnavailable(ctx, c.log, "creating or updating stream", func() (jetstream.Stream, error) {
+		return c.JetStream.CreateOrUpdateStream(ctx, c.streamConfig(s))
+	})
 	if err != nil {
 		return nil, fmt.Errorf("creating or updating stream %q: %w", s.options.GetName(), err)
 	}

@@ -77,7 +77,6 @@ func (g *generator) internalServiceAuthentication() bool {
 func serviceVar(s *Service) string             { return gen.Camel(s.GetName()) }
 func serviceOpts(s *Service) string            { return "opts." + gen.Pascal(s.GetName()) }
 func clientVar(c *GRPCClient) string           { return gen.Camel(c.Name) + "Client" }
-func healthCheckVar(c *GRPCClient) string      { return gen.Camel(c.Name) + "HealthCheck" }
 func operationsClientVar(c *GRPCClient) string { return gen.Camel(c.Name) + "OperationsClient" }
 func storeVar(s *Store) string                 { return gen.Camel(s.Name) + "Store" }
 func psqlVar(d *Database) string               { return gen.Camel(d.Name) + "PsqlClient" }
@@ -187,7 +186,9 @@ func (g *generator) generate() {
 		case *onyxpb.Server_GrpcWebProxy_:
 			g.grpcWebProxy(server)
 		case *onyxpb.Server_Processor_:
-			g.P("healthServer.RegisterService(\"", server.GetName(), "\", ", serviceVar(server.Services[0]), ".HealthCheck)")
+			// A processor fails its check once a routine has exited for good: restart the binary rather
+			// than pull it from serving, which every replica would do at once on a poison message.
+			g.P("healthServer.RegisterLivenessCheck(\"", server.GetName(), "\", ", serviceVar(server.Services[0]), ".HealthCheck)")
 		}
 	}
 
@@ -374,9 +375,6 @@ func (g *generator) grpcClients() {
 		if client.Operations {
 			g.P(operationsClientVar(client), " := ", g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "NewOperationsClient"), "(", connection, ".Get())")
 		}
-		if client.HealthChecked {
-			g.P(healthCheckVar(client), " := ", connection, ".HealthCheckFn(", pb, ".", client.GoName, "_ServiceDesc.ServiceName)")
-		}
 	}
 }
 
@@ -520,14 +518,12 @@ func (g *generator) service(s *Service) {
 	g.P("defer ", v, "Stop()")
 }
 
-// healthChecks are what a service's health on a server depends on: its databases and the gRPC
-// services it dials, other than itself.
+// healthChecks are what a service's health on a server depends on: its own databases. Not the
+// gRPC services it dials: their health would cascade up the call graph to every caller.
 func (g *generator) healthChecks(s *Service) []string {
 	var checks []string
 	for _, dep := range s.Dependencies {
 		switch {
-		case dep.GRPCClient != nil && dep.GRPCClient.Service != s:
-			checks = append(checks, healthCheckVar(dep.GRPCClient))
 		case dep.Store != nil:
 			checks = append(checks, psqlVar(dep.Store.Database)+".Ping")
 		case dep.Database != nil:

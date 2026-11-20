@@ -142,7 +142,9 @@ func (p *Processor[T]) Start(ctx context.Context) error {
 		AckWait:        ackWait,
 		DeliverPolicy:  deliverPolicy,
 	}
-	consumer, err := p.client.JetStream.CreateOrUpdateConsumer(ctx, stream, consumerConfig)
+	consumer, err := retryUnavailable(ctx, p.log, "creating or updating consumer", func() (jetstream.Consumer, error) {
+		return p.client.JetStream.CreateOrUpdateConsumer(ctx, stream, consumerConfig)
+	})
 	if err != nil {
 		return fmt.Errorf("creating or updating consumer: %w", err)
 	}

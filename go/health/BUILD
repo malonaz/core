@@ -18,3 +18,12 @@ go_library(
         "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
     ],
 )
+
+go_test(
+    name = "health_test",
+    srcs = ["http_server_test.go"],
+    deps = [
+        ":health",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)
