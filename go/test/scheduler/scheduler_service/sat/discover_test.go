@@ -114,6 +114,26 @@ func TestDiscover_RevertsDrift(t *testing.T) {
 	require.NotEqual(t, paused.GetEtag(), reverted.GetEtag())
 }
 
+func TestDiscover_Rediscovers(t *testing.T) {
+	// A running replica converges again without a restart: a policy drifted
+	// after its startup is put back by its next pass.
+	queue := getQueue(t, tunableQueue)
+	_, output, err := startReplica(t, []string{"--scheduler-dispatcher.rediscover-interval", "200ms"}, processorURL)
+	require.NoError(t, err, output.String())
+
+	updateQueueRequest := &schedulerservicepb.UpdateQueueRequest{
+		Queue:      &schedulerpb.Queue{Name: queue.GetName(), Policy: &policypb.QueuePolicy{MaxAttempts: 7}},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
+	}
+	_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		return getQueue(t, queue.GetName()).GetPolicy().GetMaxAttempts() == queue.GetPolicy().GetMaxAttempts()
+	}, waitTimeout, 50*time.Millisecond, output.String())
+	grpcrequire.Equal(t, queue.GetPolicy(), getQueue(t, queue.GetName()).GetPolicy())
+}
+
 func TestDiscover_BadEndpointFailsStartup(t *testing.T) {
 	for _, testCase := range []struct {
 		name     string

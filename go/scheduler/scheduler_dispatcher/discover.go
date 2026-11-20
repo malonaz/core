@@ -2,6 +2,7 @@ package scheduler_dispatcher
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -35,19 +36,46 @@ var queueConvergeMask = pbfieldmask.FromPaths("endpoint", "response_type", "poli
 func (s *Service) discover(ctx context.Context) error {
 	declared := map[string]struct{}{}
 	for _, url := range s.opts.Endpoints {
-		methods, err := s.endpoints.Discover(ctx, url)
+		names, err := s.convergeEndpoint(ctx, url)
 		if err != nil {
 			return err
 		}
-		for _, method := range methods {
-			queue, err := s.convergeQueue(ctx, url, method)
-			if err != nil {
-				return fmt.Errorf("converging queue of %s.%s: %w", method.Service, method.Method, err)
-			}
-			declared[queue.GetName()] = struct{}{}
+		for _, name := range names {
+			declared[name] = struct{}{}
 		}
 	}
 	return s.logUndeclared(ctx, declared)
+}
+
+// rediscover converges every endpoint's queues again while running. An
+// endpoint failing (mid-rollout) does not hold back the others; undeclared
+// queues were reported at startup.
+func (s *Service) rediscover(ctx context.Context) error {
+	var errs []error
+	for _, url := range s.opts.Endpoints {
+		if _, err := s.convergeEndpoint(ctx, url); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// convergeEndpoint reflects the endpoint and converges the queue of each of
+// its scheduler-run methods, returning their names.
+func (s *Service) convergeEndpoint(ctx context.Context, url string) ([]string, error) {
+	methods, err := s.endpoints.Discover(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(methods))
+	for _, method := range methods {
+		queue, err := s.convergeQueue(ctx, url, method)
+		if err != nil {
+			return nil, fmt.Errorf("converging queue of %s.%s: %w", method.Service, method.Method, err)
+		}
+		names = append(names, queue.GetName())
+	}
+	return names, nil
 }
 
 // convergeQueue creates the method's queue, or updates it when its endpoint,

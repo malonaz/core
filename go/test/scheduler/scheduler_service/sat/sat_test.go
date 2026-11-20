@@ -145,6 +145,8 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--scheduler-dispatcher.default-retry-backoff.max", defaultBackoffMax.String(),
 			"--scheduler-dispatcher.default-retry-backoff.multiplier", strconv.FormatFloat(defaultBackoffMultiplier, 'f', -1, 64),
 			"--scheduler-dispatcher.worker-id", name,
+			// Off, so a pass does not revert what a test drifts on purpose; TestDiscover_Rediscovers turns it on.
+			"--scheduler-dispatcher.rediscover-interval", "0",
 		),
 	}
 }
