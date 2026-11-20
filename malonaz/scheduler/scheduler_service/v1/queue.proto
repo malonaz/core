@@ -5,7 +5,10 @@ package malonaz.scheduler.scheduler_service.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/interval.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/scheduler/v1/queue.proto";
 
@@ -181,4 +184,46 @@ message ResumeQueueRequest {
 
   // If set, the request will only succeed if the current etag matches this value.
   string etag = 2;
+}
+
+// Request message for SchedulerService.ComputeQueueStats.
+message ComputeQueueStatsRequest {
+  option (buf.validate.message).cel = {
+    id: "step_requires_bounded_interval"
+    message: "step requires an interval with a start_time and an end_time"
+    expression: "!has(this.step) || (has(this.interval.start_time) && has(this.interval.end_time))"
+  };
+
+  // The queue to compute stats for; `queues/-` aggregates every queue.
+  // Format: queues/{queue}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "scheduler.malonaz.com/Queue"
+  ];
+
+  // The interval to compute stats over, by job completion time. Unset means
+  // all time: every job kept within the scheduler's retention.
+  google.type.Interval interval = 2;
+
+  // The width of each time-series bucket. Unset means totals only. At most
+  // 1440 buckets fit in the interval.
+  google.protobuf.Duration step = 3 [(buf.validate.field).duration.gte = {seconds: 60}];
+}
+
+// Response message for SchedulerService.ComputeQueueStats.
+message ComputeQueueStatsResponse {
+  // The interval these stats were computed over.
+  google.type.Interval interval = 1;
+
+  // The time at which these stats were computed.
+  google.protobuf.Timestamp compute_time = 2;
+
+  // Aggregate stats over the full interval.
+  scheduler.v1.QueueStatsSnapshot totals = 3;
+
+  // Time-series stats, one entry per step with completed jobs, ordered by
+  // interval start: a quiet step has no bucket. Only populated when a step is
+  // requested.
+  repeated scheduler.v1.QueueStatsBucket buckets = 4;
 }

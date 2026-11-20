@@ -7,8 +7,10 @@ import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../google/api/resource_pb";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Interval } from "../../../google/type/interval_pb";
+import { file_google_type_interval } from "../../../google/type/interval_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
 import type { QueuePolicy, QueuePolicyValid } from "../policy/v1/policy_pb";
@@ -19,7 +21,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/v1/queue.proto.
  */
 export const file_malonaz_scheduler_v1_queue: GenFile = /*@__PURE__*/
-  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi6wUKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESTgoHc2VydmljZRgGIAEoCUI9ukg6cjUyM15bYS16QS1aX11bYS16QS1aMC05X10qKFwuW2EtekEtWl9dW2EtekEtWjAtOV9dKikrJMgBARIyCgZtZXRob2QYByABKAlCIrpIH3IaMhheW2EtekEtWl9dW2EtekEtWjAtOV9dKiTIAQESGAoIZW5kcG9pbnQYCCABKAlCBrpIA8gBARI9CgxyZXF1ZXN0X3R5cGUYCSABKAlCJ7pIJHIfMh1edHlwZVwuZ29vZ2xlYXBpc1wuY29tL1teL10rJMgBARI+Cg1yZXNwb25zZV90eXBlGAogASgJQie6SCRyHzIdXnR5cGVcLmdvb2dsZWFwaXNcLmNvbS9bXi9dKyTIAQESRgoGcG9saWN5GAsgASgLMigubWFsb25hei5zY2hlZHVsZXIucG9saWN5LnYxLlF1ZXVlUG9saWN5Qgy6SAPIAQG66g8CEAESOgoFc3RhdHMYDCABKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzQgngQQO66g8CKAE6dupBPAobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlEg5xdWV1ZXMve3F1ZXVlfSoGcXVldWVzMgVxdWV1ZdKmBAsKCXNjaGVkdWxlcoL2LCQwYjBiZjliNi1kOGVlLTQwYzAtODQ4My03YjI0NWMxOWFmZWMi6wEKClF1ZXVlU3RhdHMSFQoNcnVubmluZ19jb3VudBgCIAEoBRIRCglkdWVfY291bnQYBCABKAUSFwoPc2NoZWR1bGVkX2NvdW50GAUgASgFEhYKDnJldHJ5aW5nX2NvdW50GAYgASgFEhQKDGZhaWxlZF9jb3VudBgHIAEoBRIzCg9vbGRlc3RfZHVlX3RpbWUYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSgQIARACSgQIAxAEUg1wZW5kaW5nX2NvdW50UhxvbGRlc3RfcGVuZGluZ19zY2hlZHVsZV90aW1lKloKClF1ZXVlU3RhdGUSGwoXUVVFVUVfU1RBVEVfVU5TUEVDSUZJRUQQABIXChNRVUVVRV9TVEFURV9SVU5OSU5HEAESFgoSUVVFVUVfU1RBVEVfUEFVU0VEEAJCL1otZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_policy_v1_policy]);
+  fileDesc("CiBtYWxvbmF6L3NjaGVkdWxlci92MS9xdWV1ZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi6wUKBVF1ZXVlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEjwKBXN0YXRlGAUgASgOMiAubWFsb25hei5zY2hlZHVsZXIudjEuUXVldWVTdGF0ZUIL4EEDukgFggECEAESTgoHc2VydmljZRgGIAEoCUI9ukg6cjUyM15bYS16QS1aX11bYS16QS1aMC05X10qKFwuW2EtekEtWl9dW2EtekEtWjAtOV9dKikrJMgBARIyCgZtZXRob2QYByABKAlCIrpIH3IaMhheW2EtekEtWl9dW2EtekEtWjAtOV9dKiTIAQESGAoIZW5kcG9pbnQYCCABKAlCBrpIA8gBARI9CgxyZXF1ZXN0X3R5cGUYCSABKAlCJ7pIJHIfMh1edHlwZVwuZ29vZ2xlYXBpc1wuY29tL1teL10rJMgBARI+Cg1yZXNwb25zZV90eXBlGAogASgJQie6SCRyHzIdXnR5cGVcLmdvb2dsZWFwaXNcLmNvbS9bXi9dKyTIAQESRgoGcG9saWN5GAsgASgLMigubWFsb25hei5zY2hlZHVsZXIucG9saWN5LnYxLlF1ZXVlUG9saWN5Qgy6SAPIAQG66g8CEAESOgoFc3RhdHMYDCABKAsyIC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzQgngQQO66g8CKAE6dupBPAobc2NoZWR1bGVyLm1hbG9uYXouY29tL1F1ZXVlEg5xdWV1ZXMve3F1ZXVlfSoGcXVldWVzMgVxdWV1ZdKmBAsKCXNjaGVkdWxlcoL2LCQwYjBiZjliNi1kOGVlLTQwYzAtODQ4My03YjI0NWMxOWFmZWMi6wEKClF1ZXVlU3RhdHMSFQoNcnVubmluZ19jb3VudBgCIAEoBRIRCglkdWVfY291bnQYBCABKAUSFwoPc2NoZWR1bGVkX2NvdW50GAUgASgFEhYKDnJldHJ5aW5nX2NvdW50GAYgASgFEhQKDGZhaWxlZF9jb3VudBgHIAEoBRIzCg9vbGRlc3RfZHVlX3RpbWUYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSgQIARACSgQIAxAEUg1wZW5kaW5nX2NvdW50UhxvbGRlc3RfcGVuZGluZ19zY2hlZHVsZV90aW1lIvgBChJRdWV1ZVN0YXRzU25hcHNob3QSFwoPc3VjY2VlZGVkX2NvdW50GAEgASgDEhQKDGZhaWxlZF9jb3VudBgCIAEoAxIXCg9jYW5jZWxsZWRfY291bnQYAyABKAMSFQoNYXR0ZW1wdF9jb3VudBgEIAEoAxJBCg13YWl0X2R1cmF0aW9uGAUgASgLMioubWFsb25hei5zY2hlZHVsZXIudjEuRHVyYXRpb25EaXN0cmlidXRpb24SQAoMcnVuX2R1cmF0aW9uGAYgASgLMioubWFsb25hei5zY2hlZHVsZXIudjEuRHVyYXRpb25EaXN0cmlidXRpb24ijgEKFER1cmF0aW9uRGlzdHJpYnV0aW9uEiYKA3A1MBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbhImCgNwOTUYAiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SJgoDbWF4GAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uIncKEFF1ZXVlU3RhdHNCdWNrZXQSJwoIaW50ZXJ2YWwYASABKAsyFS5nb29nbGUudHlwZS5JbnRlcnZhbBI6CghzbmFwc2hvdBgCIAEoCzIoLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlU3RhdHNTbmFwc2hvdCpaCgpRdWV1ZVN0YXRlEhsKF1FVRVVFX1NUQVRFX1VOU1BFQ0lGSUVEEAASFwoTUVVFVUVfU1RBVEVfUlVOTklORxABEhYKElFVRVVFX1NUQVRFX1BBVVNFRBACQi9aLWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_timestamp, file_google_type_interval, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_policy_v1_policy]);
 
 /**
  * A Queue is one gRPC method the scheduler delivers jobs to, with the policy
@@ -306,6 +308,138 @@ export type QueueStatsValid = QueueStats;
  */
 export const QueueStatsSchema: GenMessage<QueueStats, {validType: QueueStatsValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_v1_queue, 1);
+
+/**
+ * What a queue's jobs did over a period, read off the jobs that completed in
+ * it: how many succeeded, failed or were cancelled, the attempts they took,
+ * and how long they waited and ran.
+ *
+ * @generated from message malonaz.scheduler.v1.QueueStatsSnapshot
+ */
+export type QueueStatsSnapshot = Message<"malonaz.scheduler.v1.QueueStatsSnapshot"> & {
+  /**
+   * The number of jobs that SUCCEEDED.
+   *
+   * @generated from field: int64 succeeded_count = 1;
+   */
+  succeededCount: bigint;
+
+  /**
+   * The number of jobs that FAILED: attempts exhausted, a non-retryable
+   * error, or expired before starting.
+   *
+   * @generated from field: int64 failed_count = 2;
+   */
+  failedCount: bigint;
+
+  /**
+   * The number of jobs that were CANCELLED.
+   *
+   * @generated from field: int64 cancelled_count = 3;
+   */
+  cancelledCount: bigint;
+
+  /**
+   * The attempts these jobs made, retries included: past one per job that
+   * ran, what retries cost.
+   *
+   * @generated from field: int64 attempt_count = 4;
+   */
+  attemptCount: bigint;
+
+  /**
+   * How long a job waited for a worker, from due to the start of its first
+   * attempt, over the jobs that ran exactly once.
+   *
+   * @generated from field: malonaz.scheduler.v1.DurationDistribution wait_duration = 5;
+   */
+  waitDuration?: DurationDistribution;
+
+  /**
+   * How long a job's last attempt ran, over the jobs that SUCCEEDED or FAILED
+   * after starting.
+   *
+   * @generated from field: malonaz.scheduler.v1.DurationDistribution run_duration = 6;
+   */
+  runDuration?: DurationDistribution;
+};
+
+export type QueueStatsSnapshotValid = QueueStatsSnapshot;
+
+/**
+ * Describes the message malonaz.scheduler.v1.QueueStatsSnapshot.
+ * Use `create(QueueStatsSnapshotSchema)` to create a new message.
+ */
+export const QueueStatsSnapshotSchema: GenMessage<QueueStatsSnapshot, {validType: QueueStatsSnapshotValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_v1_queue, 2);
+
+/**
+ * A distribution of durations, summarized by its percentiles. Unset when no
+ * duration was measured.
+ *
+ * @generated from message malonaz.scheduler.v1.DurationDistribution
+ */
+export type DurationDistribution = Message<"malonaz.scheduler.v1.DurationDistribution"> & {
+  /**
+   * The median.
+   *
+   * @generated from field: google.protobuf.Duration p50 = 1;
+   */
+  p50?: Duration;
+
+  /**
+   * The 95th percentile.
+   *
+   * @generated from field: google.protobuf.Duration p95 = 2;
+   */
+  p95?: Duration;
+
+  /**
+   * The longest.
+   *
+   * @generated from field: google.protobuf.Duration max = 3;
+   */
+  max?: Duration;
+};
+
+export type DurationDistributionValid = DurationDistribution;
+
+/**
+ * Describes the message malonaz.scheduler.v1.DurationDistribution.
+ * Use `create(DurationDistributionSchema)` to create a new message.
+ */
+export const DurationDistributionSchema: GenMessage<DurationDistribution, {validType: DurationDistributionValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_v1_queue, 3);
+
+/**
+ * A queue's stats over one bucket of a time series.
+ *
+ * @generated from message malonaz.scheduler.v1.QueueStatsBucket
+ */
+export type QueueStatsBucket = Message<"malonaz.scheduler.v1.QueueStatsBucket"> & {
+  /**
+   * The bucket: a whole step, aligned to the Unix epoch.
+   *
+   * @generated from field: google.type.Interval interval = 1;
+   */
+  interval?: Interval;
+
+  /**
+   * The stats of the jobs that completed in the bucket.
+   *
+   * @generated from field: malonaz.scheduler.v1.QueueStatsSnapshot snapshot = 2;
+   */
+  snapshot?: QueueStatsSnapshot;
+};
+
+export type QueueStatsBucketValid = QueueStatsBucket;
+
+/**
+ * Describes the message malonaz.scheduler.v1.QueueStatsBucket.
+ * Use `create(QueueStatsBucketSchema)` to create a new message.
+ */
+export const QueueStatsBucketSchema: GenMessage<QueueStatsBucket, {validType: QueueStatsBucketValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_v1_queue, 4);
 
 /**
  * Whether a queue's jobs are being claimed.

@@ -183,30 +183,40 @@ func (s *Service) RetryJob(ctx context.Context, request *pb.RetryJobRequest) (*s
 
 // BatchRetryJobs retries every job as RetryJob does, in one transaction.
 func (s *Service) BatchRetryJobs(ctx context.Context, request *pb.BatchRetryJobsRequest) (*pb.BatchRetryJobsResponse, error) {
-	names, err := parseBatchJobNames(request.GetParent(), request.GetNames())
+	jobs, err := s.transitionJobsByName(ctx, request.GetParent(), request.GetNames(), retry)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.BatchRetryJobsResponse{Jobs: jobs}, nil
+}
+
+// transitionJobsByName applies fn to every named job in one transaction, and
+// returns them in the order of names.
+func (s *Service) transitionJobsByName(ctx context.Context, parent string, names []string, fn func(*schedulerpb.Job) error) ([]*schedulerpb.Job, error) {
+	parsedNames, err := parseBatchJobNames(parent, names)
 	if err != nil {
 		return nil, err
 	}
 	now := transition.Now()
-	jobModels, err := s.schedulerPostgresStore.TransitionJobsByName(ctx, names, func(job *model.Job) error {
-		return transition.Mutate(job, now, retry)
+	jobModels, err := s.schedulerPostgresStore.TransitionJobsByName(ctx, parsedNames, func(job *model.Job) error {
+		return transition.Mutate(job, now, fn)
 	})
 	if err != nil {
 		return nil, jobTransitionError(err)
 	}
-	jobsByName := make(map[string]*schedulerpb.Job, len(jobModels))
+	nameToJob := make(map[string]*schedulerpb.Job, len(jobModels))
 	for _, jobModel := range jobModels {
 		job, err := jobModel.ToPb()
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "converting job from model to pb: %v", err).Err()
 		}
-		jobsByName[job.GetName()] = job
+		nameToJob[job.GetName()] = job
 	}
-	response := &pb.BatchRetryJobsResponse{Jobs: make([]*schedulerpb.Job, len(request.GetNames()))}
-	for i, name := range request.GetNames() {
-		response.Jobs[i] = jobsByName[name]
+	jobs := make([]*schedulerpb.Job, len(names))
+	for i, name := range names {
+		jobs[i] = nameToJob[name]
 	}
-	return response, nil
+	return jobs, nil
 }
 
 // retry returns a FAILED or CANCELLED job to PENDING for one more, manual,
@@ -280,8 +290,22 @@ func parseBatchJobNames(parent string, names []string) (store.JobNames, error) {
 // CancelJob moves a PENDING or RUNNING job to CANCELLED; the dispatcher running
 // it notices on its next lease renewal and cancels the handler call.
 func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (*schedulerpb.Job, error) {
-	now := transition.Now()
-	job, err := s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
+	return s.transitionJob(ctx, request.GetName(), s.cancel(transition.Now()))
+}
+
+// BatchCancelJobs cancels every job as CancelJob does, in one transaction.
+func (s *Service) BatchCancelJobs(ctx context.Context, request *pb.BatchCancelJobsRequest) (*pb.BatchCancelJobsResponse, error) {
+	jobs, err := s.transitionJobsByName(ctx, request.GetParent(), request.GetNames(), s.cancel(transition.Now()))
+	if err != nil {
+		return nil, err
+	}
+	return &pb.BatchCancelJobsResponse{Jobs: jobs}, nil
+}
+
+// cancel moves a PENDING or RUNNING job to CANCELLED at now, recording the
+// attempt a RUNNING job had in flight.
+func (s *Service) cancel(now time.Time) func(*schedulerpb.Job) error {
+	return func(job *schedulerpb.Job) error {
 		if transition.IsTerminal(job.GetState()) {
 			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
@@ -296,11 +320,7 @@ func (s *Service) CancelJob(ctx context.Context, request *pb.CancelJobRequest) (
 		job.Error = cancelled.Proto()
 		transition.Observe(job, job.State)
 		return nil
-	})
-	if err != nil {
-		return nil, err
 	}
-	return job, nil
 }
 
 // WaitJob polls the job until it is terminal or the timeout elapses and

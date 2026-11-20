@@ -183,6 +183,20 @@ service SchedulerService {
     option (google.api.method_signature) = "name";
   }
 
+  // Compute a queue's stats over an interval from the jobs that completed in
+  // it: how many succeeded, failed or were cancelled, the attempts they took,
+  // and how long they waited and ran; totals and, when a step is set, a sparse
+  // time series. `queues/-` aggregates every queue. Nothing is stored: jobs
+  // purged past retention are not counted. Fails with NOT_FOUND on an unknown
+  // queue, and with INVALID_ARGUMENT when the step cuts the interval into more
+  // than 1440 buckets.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ComputeQueueStats(ComputeQueueStatsRequest) returns (ComputeQueueStatsResponse) {
+    option (google.api.http) = {get: "/v1/{name=queues/*}:computeStats"};
+    option (google.api.method_signature) = "name";
+  }
+
   // ===================== Job Management =====================
 
   // Create a job in the queue its payload type selects. Fails with
@@ -373,6 +387,28 @@ service SchedulerService {
       }
     };
     option (google.api.method_signature) = "name";
+  }
+
+  // Cancel multiple jobs atomically, with the semantics of
+  // [CancelJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob]:
+  // either every job is cancelled or none is. Fails with NOT_FOUND when any
+  // job is missing, and FAILED_PRECONDITION when any is terminal.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc BatchCancelJobs(BatchCancelJobsRequest) returns (BatchCancelJobsResponse) {
+    option (google.api.http) = {
+      post: "/v1/jobs:batchCancel"
+      body: "*"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/jobs:batchCancel"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*/users/*}/jobs:batchCancel"
+        body: "*"
+      }
+    };
+    option (google.api.method_signature) = "parent,names";
   }
 
   // Wait for a job to reach a terminal state, or for the timeout to elapse,

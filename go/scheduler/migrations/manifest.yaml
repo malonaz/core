@@ -15,3 +15,5 @@ migrations:
     hash: d9a7544c5f6ba779549475c7da2e478a
   - path: job/005_due_index.sql
     hash: 8017db521f5c7b4803a08ab154228818
+  - path: job/006_complete_index.sql
+    hash: 1f6f313fdd227b504e75c92e5306bd7a

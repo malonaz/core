@@ -20,6 +20,7 @@ go_library(
         "queue.go",
         "runtime.go",
         "schedule.go",
+        "stats.go",
         "tick.go",
         ":service.tmpl.go",
     ],
@@ -46,8 +47,10 @@ go_library(
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",
         "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__type__interval",
     ],
 )

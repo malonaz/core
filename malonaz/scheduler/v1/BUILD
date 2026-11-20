@@ -30,6 +30,7 @@ proto_library(
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:google__rpc__code",
         "//third_party/proto:google__rpc__status",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

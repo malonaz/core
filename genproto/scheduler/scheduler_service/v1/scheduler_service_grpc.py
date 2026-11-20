@@ -57,6 +57,10 @@ class SchedulerServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def ComputeQueueStats(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsRequest, malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
     async def CreateJob(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.CreateJobRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
         pass
 
@@ -94,6 +98,10 @@ class SchedulerServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def CancelJob(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest, malonaz.scheduler.v1.job_pb2.Job]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchCancelJobs(self, stream: 'grpclib.server.Stream[malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsRequest, malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -190,6 +198,12 @@ class SchedulerServiceBase(abc.ABC):
                 malonaz.scheduler.scheduler_service.v1.queue_pb2.ResumeQueueRequest,
                 malonaz.scheduler.v1.queue_pb2.Queue,
             ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ComputeQueueStats': grpclib.const.Handler(
+                self.ComputeQueueStats,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsRequest,
+                malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsResponse,
+            ),
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateJob': grpclib.const.Handler(
                 self.CreateJob,
                 grpclib.const.Cardinality.UNARY_UNARY,
@@ -249,6 +263,12 @@ class SchedulerServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest,
                 malonaz.scheduler.v1.job_pb2.Job,
+            ),
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchCancelJobs': grpclib.const.Handler(
+                self.BatchCancelJobs,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsRequest,
+                malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsResponse,
             ),
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob': grpclib.const.Handler(
                 self.WaitJob,
@@ -370,6 +390,12 @@ class SchedulerServiceStub:
             malonaz.scheduler.scheduler_service.v1.queue_pb2.ResumeQueueRequest,
             malonaz.scheduler.v1.queue_pb2.Queue,
         )
+        self.ComputeQueueStats = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/ComputeQueueStats',
+            malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsRequest,
+            malonaz.scheduler.scheduler_service.v1.queue_pb2.ComputeQueueStatsResponse,
+        )
         self.CreateJob = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateJob',
@@ -429,6 +455,12 @@ class SchedulerServiceStub:
             '/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob',
             malonaz.scheduler.scheduler_service.v1.job_pb2.CancelJobRequest,
             malonaz.scheduler.v1.job_pb2.Job,
+        )
+        self.BatchCancelJobs = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchCancelJobs',
+            malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsRequest,
+            malonaz.scheduler.scheduler_service.v1.job_pb2.BatchCancelJobsResponse,
         )
         self.WaitJob = grpclib.client.UnaryUnaryMethod(
             channel,

@@ -348,6 +348,43 @@ func TestBatchRetryJobs(t *testing.T) {
 	})
 }
 
+func TestBatchCancelJobs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("cancels every job in order", func(t *testing.T) {
+		t.Parallel()
+		first := createJob(t, &processorpb.EchoRequest{Value: "batch-cancel"}, scheduler.WithScheduleTime(farFuture))
+		second := createJob(t, &processorpb.EchoRequest{Value: "batch-cancel"}, scheduler.WithScheduleTime(farFuture))
+		batchCancelJobsRequest := &schedulerservicepb.BatchCancelJobsRequest{Names: []string{second.GetName(), first.GetName()}}
+		response, err := schedulerServiceClient.BatchCancelJobs(ctx, batchCancelJobsRequest)
+		require.NoError(t, err)
+		require.Len(t, response.GetJobs(), 2)
+		require.Equal(t, second.GetName(), response.GetJobs()[0].GetName())
+		require.Equal(t, first.GetName(), response.GetJobs()[1].GetName())
+		for _, job := range response.GetJobs() {
+			require.Equal(t, schedulerpb.JobState_JOB_STATE_CANCELLED, job.GetState())
+			require.Equal(t, codes.Canceled, codes.Code(job.GetError().GetCode()))
+			require.NotNil(t, job.GetCompleteTime())
+			require.NotNil(t, job.GetPurgeTime())
+		}
+	})
+
+	t.Run("a terminal job cancels nothing", func(t *testing.T) {
+		t.Parallel()
+		cancelled := createJob(t, &processorpb.EchoRequest{Value: "batch-cancel"}, scheduler.WithScheduleTime(farFuture))
+		pending := createJob(t, &processorpb.EchoRequest{Value: "batch-cancel"}, scheduler.WithScheduleTime(farFuture))
+		cancelJob(t, cancelled.GetName())
+		batchCancelJobsRequest := &schedulerservicepb.BatchCancelJobsRequest{Names: []string{pending.GetName(), cancelled.GetName()}}
+		_, err := schedulerServiceClient.BatchCancelJobs(ctx, batchCancelJobsRequest)
+		grpcrequire.Error(t, codes.FailedPrecondition, err)
+		require.Equal(t, schedulerpb.JobState_JOB_STATE_PENDING, getJob(t, pending.GetName()).GetState())
+		batchCancelJobsRequest.Names = []string{pending.GetName(), "jobs/does-not-exist"}
+		_, err = schedulerServiceClient.BatchCancelJobs(ctx, batchCancelJobsRequest)
+		grpcrequire.Error(t, codes.NotFound, err)
+		cancelJob(t, pending.GetName())
+	})
+}
+
 func TestListJobs(t *testing.T) {
 	t.Parallel()
 	// Every job in this test carries a unique label so it can be told apart from the rest of the suite.
