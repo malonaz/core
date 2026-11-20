@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
@@ -246,7 +247,14 @@ func unaryMethodNames(serviceDescriptor protoreflect.ServiceDescriptor) []string
 
 // call executes a tool call the AiService did not answer and returns its result, or an error result if it failed,
 // stamped with the call's name and id.
-func (b *toolbox) call(ctx context.Context, toolCall *aipb.ToolCall) *aipb.ToolResult {
+func (b *toolbox) call(ctx context.Context, toolCall *aipb.ToolCall) (toolResult *aipb.ToolResult) {
+	// A tool's panic fails its call, not the replica.
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err := status.Errorf(codes.Internal, "tool call panicked: %v", recovered).Err()
+			toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), err)
+		}
+	}()
 	toolResult, err := b.execute(ctx, toolCall)
 	if err != nil {
 		return ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), err)
@@ -276,6 +284,10 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 		requestID := uuid.NewV5(toolRequestIDNamespace, b.agent.GetName()+"/"+toolCall.GetId()).String()
 		request.ProtoReflect().Set(field, protoreflect.ValueOfString(requestID))
 	}
+	// The builder sets generated well-known types on the dynamic request: validation walks one descriptor set.
+	if request, err = uniformMessage(methodTool.method.Input(), request); err != nil {
+		return nil, err
+	}
 	response, err := b.service.toolRouter.invoke(ctx, methodTool.endpoint, methodTool.method, request)
 	if err != nil {
 		return nil, err
@@ -289,6 +301,19 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 		return nil, status.Errorf(codes.Internal, "unmarshaling response: %v", err).Err()
 	}
 	return ai.NewStructuredToolResult(toolCall.GetName(), toolCall.GetId(), content), nil
+}
+
+// uniformMessage re-reads a message as a dynamic message of one descriptor, its nested messages included.
+func uniformMessage(messageDescriptor protoreflect.MessageDescriptor, message proto.Message) (protoreflect.ProtoMessage, error) {
+	messageBytes, err := proto.Marshal(message)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "marshaling request: %v", err).Err()
+	}
+	dynamicMessage := dynamicpb.NewMessage(messageDescriptor)
+	if err := proto.Unmarshal(messageBytes, dynamicMessage); err != nil {
+		return nil, status.Errorf(codes.Internal, "unmarshaling request: %v", err).Err()
+	}
+	return dynamicMessage, nil
 }
 
 // buildToolCallMessage builds the message a tool call's arguments describe, its title stripped, and any request id
