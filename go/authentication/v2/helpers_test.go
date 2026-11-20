@@ -30,6 +30,7 @@ const (
 	echoMethod        = "/malonaz.test.mock.v1.MockService/Echo"
 	echoStreamMethod  = "/malonaz.test.mock.v1.MockService/EchoStream"
 	getBookMethod     = "/malonaz.test.library.library_service.v1.LibraryService/GetBook"
+	createBookMethod  = "/malonaz.test.library.library_service.v1.LibraryService/CreateBook"
 	listBooksMethod   = "/malonaz.test.library.library_service.v1.LibraryService/ListBooks"
 	reflectionMethod  = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
 	mockService       = "malonaz.test.mock.v1.MockService"

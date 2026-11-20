@@ -145,6 +145,8 @@ func (i *Interceptor) newServiceAccount(ctx context.Context, config *authenticat
 type authenticatedCall struct {
 	session *authenticationpb.Session
 	grants  []*authenticationpb.Grant
+	// issuer is the id of the issuer whose token proved the principal, for the log alone: no session carries it.
+	issuer string
 	// consumed is the metadata key of the credential used, removed before the handler runs.
 	consumed string
 }
@@ -180,11 +182,11 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) (*aut
 		}
 		call.session, call.grants, call.consumed = session, account.config.GetGrants(), metadataKeyServerToken
 	case len(bearerTokens) == 1:
-		session, err := i.tokens.authenticate(ctx, bearerTokens[0])
+		session, issuerID, err := i.tokens.authenticate(ctx, bearerTokens[0])
 		if err != nil {
 			return nil, err
 		}
-		call.session, call.grants, call.consumed = session, session.GetGrants(), metadataKeyAuthorization
+		call.session, call.grants, call.issuer, call.consumed = session, session.GetGrants(), issuerID, metadataKeyAuthorization
 	case len(apiKeys) == 1:
 		account, err := i.apiKeys.authenticate(apiKeys[0])
 		if err != nil {
@@ -196,11 +198,11 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) (*aut
 		session := proto.CloneOf(authenticatorSessions[0])
 		call.session, call.grants = session, session.GetGrants()
 	default:
-		session, err := i.authenticateCookie(ctx)
+		session, issuerID, err := i.authenticateCookie(ctx)
 		if err != nil {
 			return nil, err
 		}
-		call.session, call.grants = session, session.GetGrants()
+		call.session, call.grants, call.issuer = session, session.GetGrants(), issuerID
 	}
 	for _, grant := range call.grants {
 		if _, ok := i.roleIDToMethodToConditions[grant.GetRole()]; !ok {
@@ -215,28 +217,28 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) (*aut
 		call.session.Client = client
 	}
 	// Logged before the decision, so a denial says who was denied.
-	injectLogFields(ctx, call.session)
+	injectLogFields(ctx, call)
 	return call, nil
 }
 
 // authenticateCookie reads the session cookie, through the gateway or grpc-web, as v1 did. An invalid token there is
 // no credential: a page cannot clear an HttpOnly cookie, and rejecting it would lock the browser out of public methods.
-func (i *Interceptor) authenticateCookie(ctx context.Context) (*authenticationpb.Session, error) {
+func (i *Interceptor) authenticateCookie(ctx context.Context) (*authenticationpb.Session, string, error) {
 	httpCookie, err := (&coregrpc.GatewayCookie{}).GetHTTPCookie(ctx, i.cookieName)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "reading gateway cookie: %v", err).Err()
+		return nil, "", status.Errorf(codes.Unauthenticated, "reading gateway cookie: %v", err).Err()
 	}
 	if httpCookie == nil {
 		httpCookie = coregrpc.WebCookie{}.GetHTTPCookie(ctx, i.cookieName)
 	}
 	if httpCookie == nil {
-		return &authenticationpb.Session{}, nil
+		return &authenticationpb.Session{}, "", nil
 	}
-	session, err := i.tokens.authenticate(ctx, httpCookie.GetValue())
+	session, issuerID, err := i.tokens.authenticate(ctx, httpCookie.GetValue())
 	if status.HasCode(err, codes.Unauthenticated) {
-		return &authenticationpb.Session{}, nil
+		return &authenticationpb.Session{}, "", nil
 	}
-	return session, err
+	return session, issuerID, err
 }
 
 // bearerTokens returns the bearer tokens of the authorization headers. Another scheme is no credential of ours, as in v1.
@@ -252,8 +254,8 @@ func bearerTokens(md metadata.MD) []string {
 }
 
 // authorize allows the call when a grant of the presenter, or a public role, allows the method over "*" and the
-// condition of one of its rules holds. Nothing is allowed on an error.
-func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, request any) error {
+// condition of one of its rules holds, returning that grant's role. Nothing is allowed on an error.
+func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, request any) (string, error) {
 	var activation map[string]any
 	var conditionErr error
 	for _, grants := range [][]*authenticationpb.Grant{call.grants, i.publicGrants} {
@@ -264,7 +266,7 @@ func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, requ
 			}
 			for _, condition := range i.roleIDToMethodToConditions[grant.GetRole()][fullMethod] {
 				if condition == nil {
-					return nil
+					return grant.GetRole(), nil
 				}
 				if activation == nil {
 					activation = conditionActivation(call.session, request)
@@ -275,18 +277,18 @@ func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, requ
 					continue
 				}
 				if allowed {
-					return nil
+					return grant.GetRole(), nil
 				}
 			}
 		}
 	}
 	if call.session.GetPrincipal() == nil && call.session.GetCaller() == nil {
-		return status.Errorf(codes.Unauthenticated, "%s requires a credential", fullMethod).Err()
+		return "", status.Errorf(codes.Unauthenticated, "%s requires a credential", fullMethod).Err()
 	}
 	if conditionErr != nil {
-		return status.Errorf(codes.Internal, "evaluating a condition on %s: %v", fullMethod, conditionErr).Err()
+		return "", status.Errorf(codes.Internal, "evaluating a condition on %s: %v", fullMethod, conditionErr).Err()
 	}
-	return status.Errorf(codes.PermissionDenied, "no grant allows %s", fullMethod).Err()
+	return "", status.Errorf(codes.PermissionDenied, "no grant allows %s", fullMethod).Err()
 }
 
 // emptyPrincipal stands for an absent principal, actor or caller: rules read an empty subject.
@@ -331,9 +333,11 @@ func (i *Interceptor) Unary() grpc.UnaryServerInterceptor {
 		if err != nil {
 			return nil, err
 		}
-		if err := i.authorize(info.FullMethod, call, request); err != nil {
+		role, err := i.authorize(info.FullMethod, call, request)
+		if err != nil {
 			return nil, err
 		}
+		middleware.InjectLogFields(ctx, "role", role)
 		return handler(i.handlerContext(ctx, info.FullMethod, call), request)
 	}
 	return grpc_selector.UnaryServerInterceptor(interceptor, middleware.AllButHealth)
@@ -356,9 +360,11 @@ func (i *Interceptor) Stream() grpc.StreamServerInterceptor {
 			}
 			peeked.request = request
 		}
-		if err := i.authorize(info.FullMethod, call, request); err != nil {
+		role, err := i.authorize(info.FullMethod, call, request)
+		if err != nil {
 			return err
 		}
+		middleware.InjectLogFields(stream.Context(), "role", role)
 		peeked.ctx = i.handlerContext(stream.Context(), info.FullMethod, call)
 		return handler(srv, peeked)
 	}

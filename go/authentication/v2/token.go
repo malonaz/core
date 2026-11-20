@@ -87,20 +87,21 @@ type tokenAuthenticator struct {
 	issuers []*issuer
 }
 
-// authenticate verifies a token and maps it to a session. A token that does not verify, or whose claims do not map,
-// proves nothing: UNAUTHENTICATED. Only a fault of ours is INTERNAL.
-func (a *tokenAuthenticator) authenticate(ctx context.Context, rawToken string) (*authenticationpb.Session, error) {
+// authenticate verifies a token and maps it to a session, returned with the id of the issuer that vouched for it. A
+// token that does not verify, or whose claims do not map, proves nothing: UNAUTHENTICATED. Only a fault of ours is
+// INTERNAL.
+func (a *tokenAuthenticator) authenticate(ctx context.Context, rawToken string) (*authenticationpb.Session, string, error) {
 	unverified, err := readUnverifiedClaims(rawToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "parsing token: %v", err).Err()
+		return nil, "", status.Errorf(codes.Unauthenticated, "parsing token: %v", err).Err()
 	}
 	issuer, err := a.match(unverified)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	keyOption, err := issuer.keys.verifyOption(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "issuer %q: %v", issuer.config.GetId(), err).Err()
+		return nil, "", status.Errorf(codes.Internal, "issuer %q: %v", issuer.config.GetId(), err).Err()
 	}
 	verifiedToken, err := jwt.Parse([]byte(rawToken),
 		keyOption,
@@ -109,13 +110,13 @@ func (a *tokenAuthenticator) authenticate(ctx context.Context, rawToken string) 
 		jwt.WithRequiredClaim(jwt.ExpirationKey),
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "verifying token: %v", err).Err()
+		return nil, "", status.Errorf(codes.Unauthenticated, "verifying token: %v", err).Err()
 	}
 	session, err := issuer.session(verifiedToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "issuer %q: %v", issuer.config.GetId(), err).Err()
+		return nil, "", status.Errorf(codes.Unauthenticated, "issuer %q: %v", issuer.config.GetId(), err).Err()
 	}
-	return session, nil
+	return session, issuer.config.GetId(), nil
 }
 
 // match finds the one issuer naming both the token's `iss` and one of its audiences.

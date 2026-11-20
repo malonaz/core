@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -77,31 +78,57 @@ func TestCompareClientVersion(t *testing.T) {
 	require.Equal(t, -1, authentication.CompareClientVersion(&authenticationpb.Session{}, 0, 0, 0))
 }
 
-// The session is logged once authenticated, before the decision, so a denial says who was denied.
+// The session is logged once authenticated, before the decision, so a denial says who was denied; with it the issuer
+// whose token proved the principal and, once allowed, the role that allowed the call.
 func TestLogFields(t *testing.T) {
 	f := newFixture(t)
 	interceptor := f.interceptor(t)
-	var fields []any
-	logged := func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		response, err := handler(ctx, request)
-		fields, _ = middleware.GetFields(ctx)
-		return response, err
-	}
-	handler := func(ctx context.Context, request any) (any, error) { return nil, nil }
-	info := &grpc.UnaryServerInfo{FullMethod: "/malonaz.test.library.library_service.v1.LibraryService/CreateBook"}
-	md := metadata.Join(bearer(f.token(t, map[string]any{"shelf": "shelves/1"})), metadata.Pairs("x-client-platform", "ios"))
-	ctx := metadata.NewIncomingContext(context.Background(), md)
-	_, err := middleware.UnaryServerLogContextTagInitializer()(ctx, nil, info, func(ctx context.Context, request any) (any, error) {
-		return logged(ctx, request, info, func(ctx context.Context, request any) (any, error) {
-			return interceptor.Unary()(ctx, request, info, handler)
+	token := f.token(t, map[string]any{"shelf": "shelves/1"})
+
+	fields := logFields(interceptor, getBookMethod, metadata.Join(bearer(token), metadata.Pairs("x-client-platform", "ios")))
+	require.Equal(t, "users/alice", fields["principal"])
+	require.Equal(t, "shelves/1", fields["attribute.shelf"])
+	require.Equal(t, "ios", fields["client_platform"])
+
+	for _, test := range []struct {
+		name   string
+		method string
+		md     metadata.MD
+		want   map[string]any
+	}{
+		{name: "token", method: getBookMethod, md: bearer(token), want: map[string]any{"issuer": "test", "role": "reader"}},
+		{name: "cookie", method: getBookMethod, md: webCookie(token), want: map[string]any{"issuer": "test", "role": "reader"}},
+		{name: "api key", method: getBookMethod, md: apiKey("key-1"), want: map[string]any{"role": "reader"}},
+		{name: "public method, anonymous", method: echoMethod, want: map[string]any{"role": "public"}},
+		{name: "denied", method: createBookMethod, md: bearer(token), want: map[string]any{"issuer": "test"}},
+		{name: "carried", method: getBookMethod, md: serverToken(sign(t, serverSecret, jwa.HS256, serverClaims())), want: map[string]any{"role": "carrier"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fields := logFields(interceptor, test.method, test.md)
+			got := map[string]any{}
+			for _, key := range []string{"issuer", "role"} {
+				if value, ok := fields[key]; ok {
+					got[key] = value
+				}
+			}
+			require.Equal(t, test.want, got)
 		})
-	})
-	require.Error(t, err)
-	fieldMap := map[string]any{}
-	for i := 0; i+1 < len(fields); i += 2 {
-		fieldMap[fields[i].(string)] = fields[i+1]
 	}
-	require.Equal(t, "users/alice", fieldMap["principal"])
-	require.Equal(t, "shelves/1", fieldMap["attribute.shelf"])
-	require.Equal(t, "ios", fieldMap["client_platform"])
+}
+
+// logFields runs a unary call through the interceptor under the log's tag, returning the fields logged.
+func logFields(interceptor *authentication.Interceptor, fullMethod string, md metadata.MD) map[string]any {
+	info := &grpc.UnaryServerInfo{FullMethod: fullMethod}
+	handler := func(ctx context.Context, request any) (any, error) { return nil, nil }
+	fieldMap := map[string]any{}
+	ctx := metadata.NewIncomingContext(context.Background(), md)
+	middleware.UnaryServerLogContextTagInitializer()(ctx, nil, info, func(ctx context.Context, request any) (any, error) {
+		_, err := interceptor.Unary()(ctx, request, info, handler)
+		fields, _ := middleware.GetFields(ctx)
+		for i := 0; i+1 < len(fields); i += 2 {
+			fieldMap[fields[i].(string)] = fields[i+1]
+		}
+		return nil, err
+	})
+	return fieldMap
 }

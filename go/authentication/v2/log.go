@@ -4,16 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	"github.com/malonaz/core/go/grpc/middleware"
 )
 
-// injectLogFields adds the session to the call's log: its principal, actor, caller, the principal's attributes
-// (`attribute.{key}`, formatted as v1 formatted `claim.{key}`) and the client.
-func injectLogFields(ctx context.Context, session *authenticationpb.Session) {
+// injectLogFields adds the authenticated call to its log: the principal, the issuer whose token proved it, actor,
+// caller, the principal's attributes (`attribute.{key}`, formatted as v1 formatted `claim.{key}`) and the client.
+func injectLogFields(ctx context.Context, call *authenticatedCall) {
+	session := call.session
 	var fields []any
 	if subject := session.GetPrincipal().GetSubject(); subject != "" {
 		fields = append(fields, "principal", subject)
+	}
+	if call.issuer != "" {
+		fields = append(fields, "issuer", call.issuer)
 	}
 	if subject := session.GetActor().GetSubject(); subject != "" {
 		fields = append(fields, "actor", subject)
