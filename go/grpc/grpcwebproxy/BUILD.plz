@@ -11,10 +11,20 @@ go_library(
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware",
         "//third_party/go:github.com__grpc-ecosystem__go-grpc-middleware__providers__prometheus",
         "//third_party/go:github.com__improbable-eng__grpc-web__go__grpcweb",
+        "//third_party/go:github.com__klauspost__compress__gzhttp",
         "//third_party/go:github.com__mwitkow__go-conntrack",
         "//third_party/go:github.com__mwitkow__grpc-proxy__proxy",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__credentials",
         "//third_party/go:google.golang.org__grpc__metadata",
+    ],
+)
+
+go_test(
+    name = "test",
+    srcs = ["grpcwebproxy_test.go"],
+    deps = [
+        ":grpcwebproxy",
+        "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

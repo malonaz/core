@@ -4606,6 +4606,15 @@ go_mod_download(
 )
 
 go_module(
+    name = "github.com__klauspost__compress",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["."],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "github.com__klauspost__compress__flate",
     download = ":_github.com__klauspost__compress#download",
     install = ["flate"],
@@ -4613,6 +4622,86 @@ go_module(
     visibility = ["PUBLIC"],
     deps = [":github.com__klauspost__compress__internal__le"],
 )
+
+go_module(
+    name = "github.com__klauspost__compress__fse",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["fse"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__gzhttp",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["gzhttp"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__klauspost__compress__gzhttp__writer",
+        ":github.com__klauspost__compress__gzhttp__writer__gzkp",
+        ":github.com__klauspost__compress__gzip",
+        ":github.com__klauspost__compress__zstd",
+    ],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__gzhttp__writer",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["gzhttp/writer"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__gzhttp__writer__gzkp",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["gzhttp/writer/gzkp"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__klauspost__compress__gzip",
+        "//third_party/go:github.com__klauspost__compress__gzhttp__writer",
+    ],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__gzip",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["gzip"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__klauspost__compress__flate"],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__huff0",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["huff0"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__klauspost__compress__fse",
+        ":github.com__klauspost__compress__internal__le",
+    ] + select({
+        ":__config_darwin_amd64": [":github.com__klauspost__compress__internal__cpuinfo"],
+        ":__config_darwin_arm64": [],
+        ":__config_linux_amd64": [":github.com__klauspost__compress__internal__cpuinfo"],
+        ":__config_linux_arm64": [],
+        "default": [],
+    }),
+)
+
+if is_platform(
+    arch = ["amd64"],
+    os = [
+        "darwin",
+        "linux",
+    ],
+):
+    go_module(name = "github.com__klauspost__compress__internal__cpuinfo", download = ":_github.com__klauspost__compress#download", install = ["internal/cpuinfo"], module = "github.com/klauspost/compress", visibility = ["PUBLIC"], deps = [])
 
 go_module(
     name = "github.com__klauspost__compress__internal__le",
@@ -4633,6 +4722,15 @@ go_module(
 )
 
 go_module(
+    name = "github.com__klauspost__compress__internal__snapref",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["internal/snapref"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "github.com__klauspost__compress__s2",
     download = ":_github.com__klauspost__compress#download",
     install = ["s2"],
@@ -4642,6 +4740,36 @@ go_module(
         "//third_party/go:github.com__klauspost__compress__internal__le",
         "//third_party/go:github.com__klauspost__compress__internal__race",
     ],
+)
+
+go_module(
+    name = "github.com__klauspost__compress__zstd",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["zstd"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__klauspost__compress",
+        "//third_party/go:github.com__klauspost__compress__huff0",
+        "//third_party/go:github.com__klauspost__compress__internal__le",
+        "//third_party/go:github.com__klauspost__compress__internal__snapref",
+        ":github.com__klauspost__compress__zstd__internal__xxhash",
+    ] + select({
+        ":__config_darwin_amd64": ["//third_party/go:github.com__klauspost__compress__internal__cpuinfo"],
+        ":__config_darwin_arm64": [],
+        ":__config_linux_amd64": ["//third_party/go:github.com__klauspost__compress__internal__cpuinfo"],
+        ":__config_linux_arm64": [],
+        "default": [],
+    }),
+)
+
+go_module(
+    name = "github.com__klauspost__compress__zstd__internal__xxhash",
+    download = ":_github.com__klauspost__compress#download",
+    install = ["zstd/internal/xxhash"],
+    module = "github.com/klauspost/compress",
+    visibility = ["PUBLIC"],
+    deps = [],
 )
 
 go_mod_download(

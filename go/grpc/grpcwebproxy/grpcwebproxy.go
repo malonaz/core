@@ -8,12 +8,14 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/mwitkow/go-conntrack"
 	"github.com/mwitkow/grpc-proxy/proxy"
 	"google.golang.org/grpc"
@@ -36,6 +38,8 @@ type Opts struct {
 	AllowAllOrigins     bool                   `long:"allow-all-origins" env:"ALLOW_ALL_ORIGINS" description:"Allow requests from any origin."`
 	AllowedOrigins      []string               `long:"allowed-origins" env:"ALLOWED_ORIGINS" description:"Comma-separated list of allowed origins."`
 	AllowedHeaders      []string               `long:"allowed-headers" env:"ALLOWED_HEADERS" description:"Headers allowed to propagate to backend."`
+	StripPathPrefixes   []string               `long:"strip-path-prefixes" env:"STRIP_PATH_PREFIXES" env-delim:"," description:"Path prefixes removed before routing (e.g. /gateway), for a load balancer that cannot strip them."`
+	DisableCompression  bool                   `long:"disable-compression" env:"DISABLE_COMPRESSION" description:"Do not gzip responses."`
 	Backend             *commongrpc.ClientOpts `group:"Backend" namespace:"backend" env-namespace:"BACKEND"`
 }
 
@@ -59,7 +63,7 @@ func NewServer(opts *Opts, certsOpts *certs.Opts, prometheusOpts *prometheus.Opt
 	}
 	s.grpcServer = s.buildGRPCProxyServer()
 	s.httpServer = &http.Server{
-		Handler:      s.wrapWithGRPCWeb(),
+		Handler:      wrapHTTP(opts, s.wrapWithGRPCWeb()),
 		WriteTimeout: time.Duration(opts.WriteTimeout) * time.Second,
 		ReadTimeout:  time.Duration(opts.ReadTimeout) * time.Second,
 	}
@@ -253,6 +257,42 @@ func (s *Server) wrapWithGRPCWeb() http.Handler {
 	}
 
 	return grpcweb.WrapServer(s.grpcServer, options...)
+}
+
+// Content types of grpc-web responses, which gzip shrinks: proto messages and their base64 form.
+var compressedContentTypes = []string{
+	"application/grpc-web",
+	"application/grpc-web+proto",
+	"application/grpc-web-text",
+	"application/grpc-web-text+proto",
+}
+
+// wrapHTTP strips the configured path prefixes and gzips responses for clients that accept it. A
+// flush (grpcweb flushes each message) starts compression early, so server streams still stream.
+func wrapHTTP(opts *Opts, handler http.Handler) http.Handler {
+	if !opts.DisableCompression {
+		wrapper, err := gzhttp.NewWrapper(gzhttp.ContentTypes(compressedContentTypes))
+		if err != nil {
+			// The options are constant.
+			panic(fmt.Sprintf("building gzip wrapper: %v", err))
+		}
+		handler = wrapper(handler)
+	}
+	if len(opts.StripPathPrefixes) == 0 {
+		return handler
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, prefix := range opts.StripPathPrefixes {
+			// Only a whole segment: `/gateway` strips `/gateway/pkg.Service/Method`, never `/gateway.pkg.Service/Method`.
+			if path, ok := strings.CutPrefix(r.URL.Path, strings.TrimSuffix(prefix, "/")+"/"); ok {
+				r = r.Clone(r.Context())
+				r.URL.Path = "/" + path
+				r.URL.RawPath = ""
+				break
+			}
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) buildListener() (net.Listener, error) {
