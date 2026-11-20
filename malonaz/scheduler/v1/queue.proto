@@ -5,7 +5,9 @@ package malonaz.scheduler.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/interval.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/scheduler/policy/v1/policy.proto";
@@ -125,6 +127,55 @@ message QueueStats {
   // The earliest due time among due jobs: the schedule time, or the creation
   // time of a job without one. Unset when nothing is due.
   google.protobuf.Timestamp oldest_due_time = 8;
+}
+
+// What a queue's jobs did over a period, read off the jobs that completed in
+// it: how many succeeded, failed or were cancelled, the attempts they took,
+// and how long they waited and ran.
+message QueueStatsSnapshot {
+  // The number of jobs that SUCCEEDED.
+  int64 succeeded_count = 1;
+
+  // The number of jobs that FAILED: attempts exhausted, a non-retryable
+  // error, or expired before starting.
+  int64 failed_count = 2;
+
+  // The number of jobs that were CANCELLED.
+  int64 cancelled_count = 3;
+
+  // The attempts these jobs made, retries included: past one per job that
+  // ran, what retries cost.
+  int64 attempt_count = 4;
+
+  // How long a job waited for a worker, from due to the start of its first
+  // attempt, over the jobs that ran exactly once.
+  DurationDistribution wait_duration = 5;
+
+  // How long a job's last attempt ran, over the jobs that SUCCEEDED or FAILED
+  // after starting.
+  DurationDistribution run_duration = 6;
+}
+
+// A distribution of durations, summarized by its percentiles. Unset when no
+// duration was measured.
+message DurationDistribution {
+  // The median.
+  google.protobuf.Duration p50 = 1;
+
+  // The 95th percentile.
+  google.protobuf.Duration p95 = 2;
+
+  // The longest.
+  google.protobuf.Duration max = 3;
+}
+
+// A queue's stats over one bucket of a time series.
+message QueueStatsBucket {
+  // The bucket: a whole step, aligned to the Unix epoch.
+  google.type.Interval interval = 1;
+
+  // The stats of the jobs that completed in the bucket.
+  QueueStatsSnapshot snapshot = 2;
 }
 
 // Whether a queue's jobs are being claimed.

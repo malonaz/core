@@ -3,6 +3,7 @@ package scheduler_service
 import (
 	"context"
 	"errors"
+	"maps"
 	"slices"
 	"time"
 
@@ -55,7 +56,41 @@ func (s *Service) CreateSchedule(ctx context.Context, request *pb.CreateSchedule
 		RunWindow:        declared.GetRunWindow(),
 		NextScheduleTime: timestamppb.New(expression.Next(transition.Now())),
 	}
-	return s.SchedulerServiceServer.CreateSchedule(ctx, request)
+	schedule, err := s.SchedulerServiceServer.CreateSchedule(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return s.withLastJobState(ctx, schedule)
+}
+
+func (s *Service) GetSchedule(ctx context.Context, request *pb.GetScheduleRequest) (*schedulerpb.Schedule, error) {
+	schedule, err := s.SchedulerServiceServer.GetSchedule(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return s.withLastJobState(ctx, schedule)
+}
+
+func (s *Service) ListSchedules(ctx context.Context, request *pb.ListSchedulesRequest) (*pb.ListSchedulesResponse, error) {
+	listSchedulesResponse, err := s.SchedulerServiceServer.ListSchedules(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.attachLastJobStates(ctx, listSchedulesResponse.GetSchedules()); err != nil {
+		return nil, err
+	}
+	return listSchedulesResponse, nil
+}
+
+func (s *Service) BatchGetSchedules(ctx context.Context, request *pb.BatchGetSchedulesRequest) (*pb.BatchGetSchedulesResponse, error) {
+	batchGetSchedulesResponse, err := s.SchedulerServiceServer.BatchGetSchedules(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.attachLastJobStates(ctx, batchGetSchedulesResponse.GetSchedules()); err != nil {
+		return nil, err
+	}
+	return batchGetSchedulesResponse, nil
 }
 
 var updateScheduleRequestParser = aip.MustNewUpdateRequestParser[*pb.UpdateScheduleRequest, *schedulerpb.Schedule]()
@@ -177,7 +212,45 @@ func (s *Service) transitionSchedule(ctx context.Context, name, etag string, fn 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting schedule from model to pb: %v", err).Err()
 	}
+	return s.withLastJobState(ctx, schedule)
+}
+
+func (s *Service) withLastJobState(ctx context.Context, schedule *schedulerpb.Schedule) (*schedulerpb.Schedule, error) {
+	if err := s.attachLastJobStates(ctx, []*schedulerpb.Schedule{schedule}); err != nil {
+		return nil, err
+	}
 	return schedule, nil
+}
+
+// attachLastJobStates fills every schedule's last_job_state from one query;
+// a purged job leaves it unset.
+func (s *Service) attachLastJobStates(ctx context.Context, schedules []*schedulerpb.Schedule) error {
+	scheduleToJobID := make(map[*schedulerpb.Schedule]string, len(schedules))
+	for _, schedule := range schedules {
+		if schedule.GetLastJob() == "" {
+			continue
+		}
+		_, _, jobID, err := model.ParseJobName(schedule.GetLastJob())
+		if err != nil {
+			return status.Errorf(codes.Internal, "parsing last job name: %v", err).Err()
+		}
+		scheduleToJobID[schedule] = jobID
+	}
+	if len(scheduleToJobID) == 0 {
+		return nil
+	}
+	jobStates, err := s.schedulerPostgresStore.ListJobStates(ctx, slices.Collect(maps.Values(scheduleToJobID)))
+	if err != nil {
+		return status.FromError(err, "listing last job states").Err()
+	}
+	jobIDToState := make(map[string]schedulerpb.JobState, len(jobStates))
+	for _, jobState := range jobStates {
+		jobIDToState[jobState.JobID] = schedulerpb.JobState(jobState.State)
+	}
+	for schedule, jobID := range scheduleToJobID {
+		schedule.LastJobState = jobIDToState[jobID]
+	}
+	return nil
 }
 
 // mutateSchedule applies fn to the schedule's proto form and, when fn reports

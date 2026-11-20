@@ -7,10 +7,12 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
-import type { FieldMask } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
+import type { Duration, FieldMask, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_duration, file_google_protobuf_field_mask, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { Interval, IntervalValid } from "../../../../google/type/interval_pb";
+import { file_google_type_interval } from "../../../../google/type/interval_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
-import type { Queue, QueueValid } from "../../v1/queue_pb";
+import type { Queue, QueueStatsBucket, QueueStatsSnapshot, QueueValid } from "../../v1/queue_pb";
 import { file_malonaz_scheduler_v1_queue } from "../../v1/queue_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -18,7 +20,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/scheduler_service/v1/queue.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_queue: GenFile = /*@__PURE__*/
-  fileDesc("CjJtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9xdWV1ZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEiuQEKEkNyZWF0ZVF1ZXVlUmVxdWVzdBIyCgVxdWV1ZRgBIAEoCzIbLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlQga6SAPIAQESNwoIcXVldWVfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgEIAEoCCJKCg9HZXRRdWV1ZVJlcXVlc3QSNwoEbmFtZRgBIAEoCUIp4EEC+kEdChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWW6SAPIAQEi8QEKElVwZGF0ZVF1ZXVlUmVxdWVzdBIyCgVxdWV1ZRgBIAEoCzIbLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6brpIRRpDChNxdWV1ZS5uYW1lX3JlcXVpcmVkEhZxdWV1ZS5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5xdWV1ZS5uYW1lKeqcwQMhCghlbmRwb2ludAoNcmVzcG9uc2VfdHlwZQoGcG9saWN5InIKEkRlbGV0ZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkipgEKEUxpc3RRdWV1ZXNSZXF1ZXN0Eg4KBmZpbHRlchgBIAEoCRIQCghvcmRlcl9ieRgCIAEoCRIdCglwYWdlX3NpemUYAyABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgEIAEoCTo8gvMtAghkivMtKwoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lEg9jcmVhdGVfdGltZSBhc2OS8y0DCgEqIloKEkxpc3RRdWV1ZXNSZXNwb25zZRIrCgZxdWV1ZXMYASADKAsyGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiWwoVQmF0Y2hHZXRRdWV1ZXNSZXF1ZXN0EkIKBW5hbWVzGAEgAygJQjP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIEJIBDQgBEOgHGAEiBHICEAEiRQoWQmF0Y2hHZXRRdWV1ZXNSZXNwb25zZRIrCgZxdWV1ZXMYASADKAsyGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSJaChFQYXVzZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIMCgRldGFnGAIgASgJIlsKElJlc3VtZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIMCgRldGFnGAIgASgJQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_queue]);
+  fileDesc("CjJtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9xdWV1ZS5wcm90bxImbWFsb25hei5zY2hlZHVsZXIuc2NoZWR1bGVyX3NlcnZpY2UudjEiuQEKEkNyZWF0ZVF1ZXVlUmVxdWVzdBIyCgVxdWV1ZRgBIAEoCzIbLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlQga6SAPIAQESNwoIcXVldWVfaWQYAiABKAlCJbpIInIdEAEYPzIXXlthLXowLTldKC0/W2EtejAtOV0pKiTYAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQESFQoNdmFsaWRhdGVfb25seRgEIAEoCCJKCg9HZXRRdWV1ZVJlcXVlc3QSNwoEbmFtZRgBIAEoCUIp4EEC+kEdChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWW6SAPIAQEi8QEKElVwZGF0ZVF1ZXVlUmVxdWVzdBIyCgVxdWV1ZRgBIAEoCzIbLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6brpIRRpDChNxdWV1ZS5uYW1lX3JlcXVpcmVkEhZxdWV1ZS5uYW1lIG11c3QgYmUgc2V0GhRoYXModGhpcy5xdWV1ZS5uYW1lKeqcwQMhCghlbmRwb2ludAoNcmVzcG9uc2VfdHlwZQoGcG9saWN5InIKEkRlbGV0ZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkipgEKEUxpc3RRdWV1ZXNSZXF1ZXN0Eg4KBmZpbHRlchgBIAEoCRIQCghvcmRlcl9ieRgCIAEoCRIdCglwYWdlX3NpemUYAyABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgEIAEoCTo8gvMtAghkivMtKwoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lEg9jcmVhdGVfdGltZSBhc2OS8y0DCgEqIloKEkxpc3RRdWV1ZXNSZXNwb25zZRIrCgZxdWV1ZXMYASADKAsyGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiWwoVQmF0Y2hHZXRRdWV1ZXNSZXF1ZXN0EkIKBW5hbWVzGAEgAygJQjP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIEJIBDQgBEOgHGAEiBHICEAEiRQoWQmF0Y2hHZXRRdWV1ZXNSZXNwb25zZRIrCgZxdWV1ZXMYASADKAsyGy5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZSJaChFQYXVzZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIMCgRldGFnGAIgASgJIlsKElJlc3VtZVF1ZXVlUmVxdWVzdBI3CgRuYW1lGAEgASgJQingQQL6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZbpIA8gBARIMCgRldGFnGAIgASgJIusCChhDb21wdXRlUXVldWVTdGF0c1JlcXVlc3QSNwoEbmFtZRgBIAEoCUIp4EEC+kEdChtzY2hlZHVsZXIubWFsb25hei5jb20vUXVldWW6SAPIAQESJwoIaW50ZXJ2YWwYAiABKAsyFS5nb29nbGUudHlwZS5JbnRlcnZhbBIzCgRzdGVwGAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgq6SAeqAQQyAgg8OrcBukizARqwAQoec3RlcF9yZXF1aXJlc19ib3VuZGVkX2ludGVydmFsEjtzdGVwIHJlcXVpcmVzIGFuIGludGVydmFsIHdpdGggYSBzdGFydF90aW1lIGFuZCBhbiBlbmRfdGltZRpRIWhhcyh0aGlzLnN0ZXApIHx8IChoYXModGhpcy5pbnRlcnZhbC5zdGFydF90aW1lKSAmJiBoYXModGhpcy5pbnRlcnZhbC5lbmRfdGltZSkpIukBChlDb21wdXRlUXVldWVTdGF0c1Jlc3BvbnNlEicKCGludGVydmFsGAEgASgLMhUuZ29vZ2xlLnR5cGUuSW50ZXJ2YWwSMAoMY29tcHV0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI4CgZ0b3RhbHMYAyABKAsyKC5tYWxvbmF6LnNjaGVkdWxlci52MS5RdWV1ZVN0YXRzU25hcHNob3QSNwoHYnVja2V0cxgEIAMoCzImLm1hbG9uYXouc2NoZWR1bGVyLnYxLlF1ZXVlU3RhdHNCdWNrZXRCQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3NjaGVkdWxlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_duration, file_google_protobuf_field_mask, file_google_protobuf_timestamp, file_google_type_interval, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_queue]);
 
 /**
  * Request message for SchedulerService.CreateQueue.
@@ -514,4 +516,119 @@ export type ResumeQueueRequestValid = Message<"malonaz.scheduler.scheduler_servi
  */
 export const ResumeQueueRequestSchema: GenMessage<ResumeQueueRequest, {validType: ResumeQueueRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_scheduler_scheduler_service_v1_queue, 9);
+
+/**
+ * Request message for SchedulerService.ComputeQueueStats.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest
+ */
+export type ComputeQueueStatsRequest = Message<"malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest"> & {
+  /**
+   * The queue to compute stats for; `queues/-` aggregates every queue.
+   * Format: queues/{queue}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The interval to compute stats over, by job completion time. Unset means
+   * all time: every job kept within the scheduler's retention.
+   *
+   * @generated from field: google.type.Interval interval = 2;
+   */
+  interval?: Interval;
+
+  /**
+   * The width of each time-series bucket. Unset means totals only. At most
+   * 1440 buckets fit in the interval.
+   *
+   * @generated from field: google.protobuf.Duration step = 3;
+   */
+  step?: Duration;
+};
+
+/**
+ * Request message for SchedulerService.ComputeQueueStats.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest
+ */
+export type ComputeQueueStatsRequestValid = Message<"malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest"> & {
+  /**
+   * The queue to compute stats for; `queues/-` aggregates every queue.
+   * Format: queues/{queue}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The interval to compute stats over, by job completion time. Unset means
+   * all time: every job kept within the scheduler's retention.
+   *
+   * @generated from field: google.type.Interval interval = 2;
+   */
+  interval?: IntervalValid;
+
+  /**
+   * The width of each time-series bucket. Unset means totals only. At most
+   * 1440 buckets fit in the interval.
+   *
+   * @generated from field: google.protobuf.Duration step = 3;
+   */
+  step?: Duration;
+};
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest.
+ * Use `create(ComputeQueueStatsRequestSchema)` to create a new message.
+ */
+export const ComputeQueueStatsRequestSchema: GenMessage<ComputeQueueStatsRequest, {validType: ComputeQueueStatsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_queue, 10);
+
+/**
+ * Response message for SchedulerService.ComputeQueueStats.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse
+ */
+export type ComputeQueueStatsResponse = Message<"malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse"> & {
+  /**
+   * The interval these stats were computed over.
+   *
+   * @generated from field: google.type.Interval interval = 1;
+   */
+  interval?: Interval;
+
+  /**
+   * The time at which these stats were computed.
+   *
+   * @generated from field: google.protobuf.Timestamp compute_time = 2;
+   */
+  computeTime?: Timestamp;
+
+  /**
+   * Aggregate stats over the full interval.
+   *
+   * @generated from field: malonaz.scheduler.v1.QueueStatsSnapshot totals = 3;
+   */
+  totals?: QueueStatsSnapshot;
+
+  /**
+   * Time-series stats, one entry per step with completed jobs, ordered by
+   * interval start: a quiet step has no bucket. Only populated when a step is
+   * requested.
+   *
+   * @generated from field: repeated malonaz.scheduler.v1.QueueStatsBucket buckets = 4;
+   */
+  buckets: QueueStatsBucket[];
+};
+
+export type ComputeQueueStatsResponseValid = ComputeQueueStatsResponse;
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse.
+ * Use `create(ComputeQueueStatsResponseSchema)` to create a new message.
+ */
+export const ComputeQueueStatsResponseSchema: GenMessage<ComputeQueueStatsResponse, {validType: ComputeQueueStatsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_queue, 11);
 

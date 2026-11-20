@@ -49,5 +49,6 @@ go_test(
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__longrunning__operations",
         "//third_party/proto:google__rpc__code",
+        "//third_party/proto:google__type__interval",
     ],
 )

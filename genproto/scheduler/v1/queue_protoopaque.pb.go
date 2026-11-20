@@ -14,8 +14,10 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	v1 "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	interval "google.golang.org/genproto/googleapis/type/interval"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -511,11 +513,392 @@ func (b0 QueueStats_builder) Build() *QueueStats {
 	return m0
 }
 
+// What a queue's jobs did over a period, read off the jobs that completed in
+// it: how many succeeded, failed or were cancelled, the attempts they took,
+// and how long they waited and ran.
+type QueueStatsSnapshot struct {
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_SucceededCount int64                  `protobuf:"varint,1,opt,name=succeeded_count,json=succeededCount,proto3"`
+	xxx_hidden_FailedCount    int64                  `protobuf:"varint,2,opt,name=failed_count,json=failedCount,proto3"`
+	xxx_hidden_CancelledCount int64                  `protobuf:"varint,3,opt,name=cancelled_count,json=cancelledCount,proto3"`
+	xxx_hidden_AttemptCount   int64                  `protobuf:"varint,4,opt,name=attempt_count,json=attemptCount,proto3"`
+	xxx_hidden_WaitDuration   *DurationDistribution  `protobuf:"bytes,5,opt,name=wait_duration,json=waitDuration,proto3"`
+	xxx_hidden_RunDuration    *DurationDistribution  `protobuf:"bytes,6,opt,name=run_duration,json=runDuration,proto3"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *QueueStatsSnapshot) Reset() {
+	*x = QueueStatsSnapshot{}
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueueStatsSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueueStatsSnapshot) ProtoMessage() {}
+
+func (x *QueueStatsSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *QueueStatsSnapshot) GetSucceededCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_SucceededCount
+	}
+	return 0
+}
+
+func (x *QueueStatsSnapshot) GetFailedCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_FailedCount
+	}
+	return 0
+}
+
+func (x *QueueStatsSnapshot) GetCancelledCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_CancelledCount
+	}
+	return 0
+}
+
+func (x *QueueStatsSnapshot) GetAttemptCount() int64 {
+	if x != nil {
+		return x.xxx_hidden_AttemptCount
+	}
+	return 0
+}
+
+func (x *QueueStatsSnapshot) GetWaitDuration() *DurationDistribution {
+	if x != nil {
+		return x.xxx_hidden_WaitDuration
+	}
+	return nil
+}
+
+func (x *QueueStatsSnapshot) GetRunDuration() *DurationDistribution {
+	if x != nil {
+		return x.xxx_hidden_RunDuration
+	}
+	return nil
+}
+
+func (x *QueueStatsSnapshot) SetSucceededCount(v int64) {
+	x.xxx_hidden_SucceededCount = v
+}
+
+func (x *QueueStatsSnapshot) SetFailedCount(v int64) {
+	x.xxx_hidden_FailedCount = v
+}
+
+func (x *QueueStatsSnapshot) SetCancelledCount(v int64) {
+	x.xxx_hidden_CancelledCount = v
+}
+
+func (x *QueueStatsSnapshot) SetAttemptCount(v int64) {
+	x.xxx_hidden_AttemptCount = v
+}
+
+func (x *QueueStatsSnapshot) SetWaitDuration(v *DurationDistribution) {
+	x.xxx_hidden_WaitDuration = v
+}
+
+func (x *QueueStatsSnapshot) SetRunDuration(v *DurationDistribution) {
+	x.xxx_hidden_RunDuration = v
+}
+
+func (x *QueueStatsSnapshot) HasWaitDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_WaitDuration != nil
+}
+
+func (x *QueueStatsSnapshot) HasRunDuration() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_RunDuration != nil
+}
+
+func (x *QueueStatsSnapshot) ClearWaitDuration() {
+	x.xxx_hidden_WaitDuration = nil
+}
+
+func (x *QueueStatsSnapshot) ClearRunDuration() {
+	x.xxx_hidden_RunDuration = nil
+}
+
+type QueueStatsSnapshot_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The number of jobs that SUCCEEDED.
+	SucceededCount int64
+	// The number of jobs that FAILED: attempts exhausted, a non-retryable
+	// error, or expired before starting.
+	FailedCount int64
+	// The number of jobs that were CANCELLED.
+	CancelledCount int64
+	// The attempts these jobs made, retries included: past one per job that
+	// ran, what retries cost.
+	AttemptCount int64
+	// How long a job waited for a worker, from due to the start of its first
+	// attempt, over the jobs that ran exactly once.
+	WaitDuration *DurationDistribution
+	// How long a job's last attempt ran, over the jobs that SUCCEEDED or FAILED
+	// after starting.
+	RunDuration *DurationDistribution
+}
+
+func (b0 QueueStatsSnapshot_builder) Build() *QueueStatsSnapshot {
+	m0 := &QueueStatsSnapshot{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_SucceededCount = b.SucceededCount
+	x.xxx_hidden_FailedCount = b.FailedCount
+	x.xxx_hidden_CancelledCount = b.CancelledCount
+	x.xxx_hidden_AttemptCount = b.AttemptCount
+	x.xxx_hidden_WaitDuration = b.WaitDuration
+	x.xxx_hidden_RunDuration = b.RunDuration
+	return m0
+}
+
+// A distribution of durations, summarized by its percentiles. Unset when no
+// duration was measured.
+type DurationDistribution struct {
+	state          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_P50 *durationpb.Duration   `protobuf:"bytes,1,opt,name=p50,proto3"`
+	xxx_hidden_P95 *durationpb.Duration   `protobuf:"bytes,2,opt,name=p95,proto3"`
+	xxx_hidden_Max *durationpb.Duration   `protobuf:"bytes,3,opt,name=max,proto3"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DurationDistribution) Reset() {
+	*x = DurationDistribution{}
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DurationDistribution) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DurationDistribution) ProtoMessage() {}
+
+func (x *DurationDistribution) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *DurationDistribution) GetP50() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_P50
+	}
+	return nil
+}
+
+func (x *DurationDistribution) GetP95() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_P95
+	}
+	return nil
+}
+
+func (x *DurationDistribution) GetMax() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_Max
+	}
+	return nil
+}
+
+func (x *DurationDistribution) SetP50(v *durationpb.Duration) {
+	x.xxx_hidden_P50 = v
+}
+
+func (x *DurationDistribution) SetP95(v *durationpb.Duration) {
+	x.xxx_hidden_P95 = v
+}
+
+func (x *DurationDistribution) SetMax(v *durationpb.Duration) {
+	x.xxx_hidden_Max = v
+}
+
+func (x *DurationDistribution) HasP50() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_P50 != nil
+}
+
+func (x *DurationDistribution) HasP95() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_P95 != nil
+}
+
+func (x *DurationDistribution) HasMax() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Max != nil
+}
+
+func (x *DurationDistribution) ClearP50() {
+	x.xxx_hidden_P50 = nil
+}
+
+func (x *DurationDistribution) ClearP95() {
+	x.xxx_hidden_P95 = nil
+}
+
+func (x *DurationDistribution) ClearMax() {
+	x.xxx_hidden_Max = nil
+}
+
+type DurationDistribution_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The median.
+	P50 *durationpb.Duration
+	// The 95th percentile.
+	P95 *durationpb.Duration
+	// The longest.
+	Max *durationpb.Duration
+}
+
+func (b0 DurationDistribution_builder) Build() *DurationDistribution {
+	m0 := &DurationDistribution{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_P50 = b.P50
+	x.xxx_hidden_P95 = b.P95
+	x.xxx_hidden_Max = b.Max
+	return m0
+}
+
+// A queue's stats over one bucket of a time series.
+type QueueStatsBucket struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Interval *interval.Interval     `protobuf:"bytes,1,opt,name=interval,proto3"`
+	xxx_hidden_Snapshot *QueueStatsSnapshot    `protobuf:"bytes,2,opt,name=snapshot,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *QueueStatsBucket) Reset() {
+	*x = QueueStatsBucket{}
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueueStatsBucket) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueueStatsBucket) ProtoMessage() {}
+
+func (x *QueueStatsBucket) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_v1_queue_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *QueueStatsBucket) GetInterval() *interval.Interval {
+	if x != nil {
+		return x.xxx_hidden_Interval
+	}
+	return nil
+}
+
+func (x *QueueStatsBucket) GetSnapshot() *QueueStatsSnapshot {
+	if x != nil {
+		return x.xxx_hidden_Snapshot
+	}
+	return nil
+}
+
+func (x *QueueStatsBucket) SetInterval(v *interval.Interval) {
+	x.xxx_hidden_Interval = v
+}
+
+func (x *QueueStatsBucket) SetSnapshot(v *QueueStatsSnapshot) {
+	x.xxx_hidden_Snapshot = v
+}
+
+func (x *QueueStatsBucket) HasInterval() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Interval != nil
+}
+
+func (x *QueueStatsBucket) HasSnapshot() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Snapshot != nil
+}
+
+func (x *QueueStatsBucket) ClearInterval() {
+	x.xxx_hidden_Interval = nil
+}
+
+func (x *QueueStatsBucket) ClearSnapshot() {
+	x.xxx_hidden_Snapshot = nil
+}
+
+type QueueStatsBucket_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The bucket: a whole step, aligned to the Unix epoch.
+	Interval *interval.Interval
+	// The stats of the jobs that completed in the bucket.
+	Snapshot *QueueStatsSnapshot
+}
+
+func (b0 QueueStatsBucket_builder) Build() *QueueStatsBucket {
+	m0 := &QueueStatsBucket{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Interval = b.Interval
+	x.xxx_hidden_Snapshot = b.Snapshot
+	return m0
+}
+
 var File_malonaz_scheduler_v1_queue_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\n" +
-	" malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a(malonaz/scheduler/policy/v1/policy.proto\"\xdb\x06\n" +
+	" malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1agoogle/type/interval.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a(malonaz/scheduler/policy/v1/policy.proto\"\xdb\x06\n" +
 	"\x05Queue\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -541,7 +924,21 @@ const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\x0fscheduled_count\x18\x05 \x01(\x05R\x0escheduledCount\x12%\n" +
 	"\x0eretrying_count\x18\x06 \x01(\x05R\rretryingCount\x12!\n" +
 	"\ffailed_count\x18\a \x01(\x05R\vfailedCount\x12B\n" +
-	"\x0foldest_due_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\roldestDueTimeJ\x04\b\x01\x10\x02J\x04\b\x03\x10\x04R\rpending_countR\x1coldest_pending_schedule_time*Z\n" +
+	"\x0foldest_due_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\roldestDueTimeJ\x04\b\x01\x10\x02J\x04\b\x03\x10\x04R\rpending_countR\x1coldest_pending_schedule_time\"\xce\x02\n" +
+	"\x12QueueStatsSnapshot\x12'\n" +
+	"\x0fsucceeded_count\x18\x01 \x01(\x03R\x0esucceededCount\x12!\n" +
+	"\ffailed_count\x18\x02 \x01(\x03R\vfailedCount\x12'\n" +
+	"\x0fcancelled_count\x18\x03 \x01(\x03R\x0ecancelledCount\x12#\n" +
+	"\rattempt_count\x18\x04 \x01(\x03R\fattemptCount\x12O\n" +
+	"\rwait_duration\x18\x05 \x01(\v2*.malonaz.scheduler.v1.DurationDistributionR\fwaitDuration\x12M\n" +
+	"\frun_duration\x18\x06 \x01(\v2*.malonaz.scheduler.v1.DurationDistributionR\vrunDuration\"\x9d\x01\n" +
+	"\x14DurationDistribution\x12+\n" +
+	"\x03p50\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x03p50\x12+\n" +
+	"\x03p95\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x03p95\x12+\n" +
+	"\x03max\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x03max\"\x8b\x01\n" +
+	"\x10QueueStatsBucket\x121\n" +
+	"\binterval\x18\x01 \x01(\v2\x15.google.type.IntervalR\binterval\x12D\n" +
+	"\bsnapshot\x18\x02 \x01(\v2(.malonaz.scheduler.v1.QueueStatsSnapshotR\bsnapshot*Z\n" +
 	"\n" +
 	"QueueState\x12\x1b\n" +
 	"\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -549,26 +946,38 @@ const file_malonaz_scheduler_v1_queue_proto_rawDesc = "" +
 	"\x12QUEUE_STATE_PAUSED\x10\x02B/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3"
 
 var file_malonaz_scheduler_v1_queue_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_scheduler_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_scheduler_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_malonaz_scheduler_v1_queue_proto_goTypes = []any{
 	(QueueState)(0),               // 0: malonaz.scheduler.v1.QueueState
 	(*Queue)(nil),                 // 1: malonaz.scheduler.v1.Queue
 	(*QueueStats)(nil),            // 2: malonaz.scheduler.v1.QueueStats
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
-	(*v1.QueuePolicy)(nil),        // 4: malonaz.scheduler.policy.v1.QueuePolicy
+	(*QueueStatsSnapshot)(nil),    // 3: malonaz.scheduler.v1.QueueStatsSnapshot
+	(*DurationDistribution)(nil),  // 4: malonaz.scheduler.v1.DurationDistribution
+	(*QueueStatsBucket)(nil),      // 5: malonaz.scheduler.v1.QueueStatsBucket
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*v1.QueuePolicy)(nil),        // 7: malonaz.scheduler.policy.v1.QueuePolicy
+	(*durationpb.Duration)(nil),   // 8: google.protobuf.Duration
+	(*interval.Interval)(nil),     // 9: google.type.Interval
 }
 var file_malonaz_scheduler_v1_queue_proto_depIdxs = []int32{
-	3, // 0: malonaz.scheduler.v1.Queue.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.scheduler.v1.Queue.update_time:type_name -> google.protobuf.Timestamp
-	0, // 2: malonaz.scheduler.v1.Queue.state:type_name -> malonaz.scheduler.v1.QueueState
-	4, // 3: malonaz.scheduler.v1.Queue.policy:type_name -> malonaz.scheduler.policy.v1.QueuePolicy
-	2, // 4: malonaz.scheduler.v1.Queue.stats:type_name -> malonaz.scheduler.v1.QueueStats
-	3, // 5: malonaz.scheduler.v1.QueueStats.oldest_due_time:type_name -> google.protobuf.Timestamp
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6,  // 0: malonaz.scheduler.v1.Queue.create_time:type_name -> google.protobuf.Timestamp
+	6,  // 1: malonaz.scheduler.v1.Queue.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 2: malonaz.scheduler.v1.Queue.state:type_name -> malonaz.scheduler.v1.QueueState
+	7,  // 3: malonaz.scheduler.v1.Queue.policy:type_name -> malonaz.scheduler.policy.v1.QueuePolicy
+	2,  // 4: malonaz.scheduler.v1.Queue.stats:type_name -> malonaz.scheduler.v1.QueueStats
+	6,  // 5: malonaz.scheduler.v1.QueueStats.oldest_due_time:type_name -> google.protobuf.Timestamp
+	4,  // 6: malonaz.scheduler.v1.QueueStatsSnapshot.wait_duration:type_name -> malonaz.scheduler.v1.DurationDistribution
+	4,  // 7: malonaz.scheduler.v1.QueueStatsSnapshot.run_duration:type_name -> malonaz.scheduler.v1.DurationDistribution
+	8,  // 8: malonaz.scheduler.v1.DurationDistribution.p50:type_name -> google.protobuf.Duration
+	8,  // 9: malonaz.scheduler.v1.DurationDistribution.p95:type_name -> google.protobuf.Duration
+	8,  // 10: malonaz.scheduler.v1.DurationDistribution.max:type_name -> google.protobuf.Duration
+	9,  // 11: malonaz.scheduler.v1.QueueStatsBucket.interval:type_name -> google.type.Interval
+	3,  // 12: malonaz.scheduler.v1.QueueStatsBucket.snapshot:type_name -> malonaz.scheduler.v1.QueueStatsSnapshot
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_v1_queue_proto_init() }
@@ -582,7 +991,7 @@ func file_malonaz_scheduler_v1_queue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_v1_queue_proto_rawDesc), len(file_malonaz_scheduler_v1_queue_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
