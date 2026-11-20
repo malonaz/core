@@ -28,6 +28,12 @@ see it; this lore is the rules behind it.
   serves are remote and get `grpc.ClientOpts` flags.
 - Connections are shared per endpoint string (two remote clients pointed at
   the same address share one `grpc.Connection`); same for postgres clients.
+  A binary on `INTERCEPTOR_AUTHENTICATION`, or with a service taking
+  `grpc_dialer`, dials every client through one `grpc.Dialer` built over all
+  its gRPC servers' opts: an endpoint one of them listens on is that server,
+  whether a client is bound to it or names it by flag (`unix:/tmp/x.socket`,
+  `localhost:{port}`), and is dialed with the server's own opts. Other binaries
+  keep their `connect` closure (`testdata/main.golden`).
 - Stores are distinct by `target`; a store declared over two databases is an
   error. Components (`service` dependencies) are distinct by `target` and
   must agree on `name`.
@@ -76,11 +82,15 @@ service's account. Then:
 - each service's `Start` receives `As("{service}")` where v1 passed the
   internal-service `WithServiceAccount`: calls made on that context present
   a server token as the service itself;
-- in-process connections get
-  `grpc.WithPerRPCCredentials(authentication.Credentials())`;
-  remote clients and the grpc-gateway's own connection do not (the gateway is
-  the HTTP edge: its calls arrive as from outside, with the caller's
-  bearer, cookie or API key);
+- the dialer gives `grpc.WithPerRPCCredentials(authentication.Credentials())`
+  to its connections to the binary's own servers and to no other
+  (`Dialer.WithServerOptions`): in-process clients, a remote client whose
+  flags name one of the binary's own endpoints (onikisu's ai-engine
+  `server-reflection` on the external port), and the endpoints a service
+  dials at run time through `grpc_dialer` (the scheduler dispatcher's
+  `--endpoint`s). A truly remote endpoint, and the grpc-gateway's own
+  connection, never get it (the gateway is the HTTP edge: its calls arrive as
+  from outside, with the caller's bearer, cookie or API key);
 - every gRPC server must list it (generation fails otherwise: an unlisted
   server would serve anyone yet receive server tokens), and runs
   `Unary()`/`Stream()` where v1's chain ran,

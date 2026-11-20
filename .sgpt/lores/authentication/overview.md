@@ -99,7 +99,12 @@ Health checks skip the interceptor. Hooks and the other POST interceptors of
 ## Between servers
 
 `authentication.Credentials()` is a per-RPC credential, installed only on
-connections to the binary's own servers. Per call it mints an HS256 JWT under
+connections to the binary's own servers: onyx gives it to the binary's
+`grpc.Dialer` as `WithServerOptions`, which adds it to a connection exactly
+when the endpoint dialed is one a gRPC server of the binary listens on, by
+whatever route the endpoint came (an in-process client, a client's flags, a
+dispatcher `--endpoint`). Never on the context, and never chosen by service
+name: a remote server may serve the same services. Per call it mints an HS256 JWT under
 `--server-secret`: `iss` = `serviceAccounts/{calling account}`, `sub` the
 principal (absent when anonymous), `act` `{sub: actor}`, `aud` the destination
 gRPC service, `exp` one minute, and `session` = base64url of the binary
@@ -118,7 +123,14 @@ decide (`plz run //go/authentication/v2:benchmark -- -test.bench .`).
   `_API_KEY_HEADER`, `_COOKIE_NAME`, `_SERVER_SECRET`). Every gRPC server of
   such a binary must list it (generation fails otherwise).
 - Every onyx service needs a service account of its name (onyx calls `As`
-  and `Serve` with it).
+  and `Serve` with it). The scheduler dispatcher calls its endpoints, and
+  ai-engine its reflection server, as their own accounts or carrying the
+  caller's session: their grants (or `carrier`) must allow
+  `/grpc.reflection.v1.ServerReflection/ServerReflectionInfo` and, for the
+  dispatcher, the scheduler-run methods it delivers.
+- A component dialing endpoints it learns at run time takes `grpc_dialer`
+  (`lores/onyx/overview`) instead of dialing them itself: a connection made
+  elsewhere carries nothing and arrives anonymous.
 - The client IP is X-Forwarded-For's leftmost entry, as v1 read it: the
   caller controls it.
 - v1's rule texts move unchanged: wrap each as

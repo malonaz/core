@@ -56,6 +56,7 @@ Dependency kinds (`Dependency.kind`, a `oneof` — one key per list entry):
 | `postgres_client {name, database?}` | `{name}PostgresClient *postgres.Client` | the raw client of `{database}` |
 | `nats {}` | `natsClient *nats.Client` | the one NATS client |
 | `service {name, target}` | `{name}Service *target.Service` | a plain component built from `opts.{Name}Service`, shared by the binary |
+| `grpc_dialer {}` | `grpcDialer *grpc.Dialer` | the binary's dialer, for endpoints known only at run time (core's scheduler dispatcher): it dials an endpoint one of the binary's gRPC servers listens on as that server (with the server token on `INTERCEPTOR_AUTHENTICATION`), any other as remote, one connection per endpoint, closed when main returns |
 
 The package must define `Opts`, `runtime`, `newRuntime(*Opts)` and
 `(*Service).start(ctx) (func(), error)` unless `include_runtime: true`
