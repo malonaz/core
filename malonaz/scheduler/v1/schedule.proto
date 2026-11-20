@@ -10,6 +10,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/scheduler/v1/job.proto";
 
 option go_package = "github.com/malonaz/core/genproto/scheduler/v1";
 
@@ -150,6 +151,14 @@ message Schedule {
   // The number of ticks skipped because their run window had closed before
   // the scheduler reached them.
   int32 missed_tick_count = 17 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The state of `last_job`, read with the schedule: whether the last tick's
+  // work waits, runs, succeeded or broke. Unset once that job is deleted or
+  // purged.
+  JobState last_job_state = 18 [
+    (malonaz.codegen.model.v1.field_opts).skip = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 }
 
 // Whether a schedule's ticks are being materialized.
