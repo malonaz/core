@@ -69,6 +69,7 @@ go_test(
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__connectivity",
+        "//third_party/go:google.golang.org__grpc__credentials",
         "//third_party/go:google.golang.org__grpc__credentials__insecure",
         "//third_party/go:google.golang.org__grpc__health",
         "//third_party/go:google.golang.org__grpc__health__grpc_health_v1",
