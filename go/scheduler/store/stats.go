@@ -14,7 +14,7 @@ import (
 // jobMeasures is what a completed job contributes to its queue's stats, defined once for the
 // exact stats and the hourly roll-ups. Wait is measured on the jobs that ran once and were never
 // retried by hand, from due to start; run on the outcomes of an attempt (SUCCEEDED, FAILED).
-var jobMeasures = fmt.Sprintf(`queue, state, attempt_count, complete_time,
+var jobMeasures = fmt.Sprintf(`queue, state, attempt_count,
     CASE WHEN attempt_count = 1 AND COALESCE(labels->>'%[1]s', '') <> '%[2]s'
         THEN extract(epoch FROM start_time - COALESCE(schedule_time, create_time))::float8 END AS wait_seconds,
     CASE WHEN state IN (%[3]d, %[4]d)
@@ -39,21 +39,22 @@ type QueueStatsRow struct {
 	RunMax         *float64   `db:"run_max"`
 }
 
-// The jobs completed in [$2, $3), of queue $1 or of every queue when it is NULL.
+// The jobs completed in [$2, $3), of queue $1 or of every queue when it is NULL. Percentiles are
+// by nearest rank, as the roll-ups' histograms read them, so both paths agree.
 var computeQueueStatsTemplate = fmt.Sprintf(`
 SELECT %%s AS bucket,
     count(*) FILTER (WHERE job.state = %[1]d) AS succeeded_count,
     count(*) FILTER (WHERE job.state = %[2]d) AS failed_count,
     count(*) FILTER (WHERE job.state = %[3]d) AS cancelled_count,
     COALESCE(sum(job.attempt_count), 0) AS attempt_count,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY job.wait_seconds) AS wait_p50,
-    percentile_cont(0.95) WITHIN GROUP (ORDER BY job.wait_seconds) AS wait_p95,
+    percentile_disc(0.5) WITHIN GROUP (ORDER BY job.wait_seconds) AS wait_p50,
+    percentile_disc(0.95) WITHIN GROUP (ORDER BY job.wait_seconds) AS wait_p95,
     max(job.wait_seconds) AS wait_max,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY job.run_seconds) AS run_p50,
-    percentile_cont(0.95) WITHIN GROUP (ORDER BY job.run_seconds) AS run_p95,
+    percentile_disc(0.5) WITHIN GROUP (ORDER BY job.run_seconds) AS run_p50,
+    percentile_disc(0.95) WITHIN GROUP (ORDER BY job.run_seconds) AS run_p95,
     max(job.run_seconds) AS run_max
 FROM (
-    SELECT %[4]s
+    SELECT complete_time, %[4]s
     FROM scheduler.job
     WHERE complete_time IS NOT NULL AND complete_time >= $2 AND complete_time < $3
         AND ($1::text IS NULL OR queue = $1)
@@ -94,38 +95,29 @@ func (s *Store) ComputeQueueStats(ctx context.Context, queueName *string, startT
 
 // JobMeasure is what one completed job contributes to its queue's stats.
 type JobMeasure struct {
-	Queue        string    `db:"queue"`
-	State        int16     `db:"state"`
-	AttemptCount int64     `db:"attempt_count"`
-	CompleteTime time.Time `db:"complete_time"`
-	WaitSeconds  *float64  `db:"wait_seconds"`
-	RunSeconds   *float64  `db:"run_seconds"`
+	Queue        string   `db:"queue"`
+	State        int16    `db:"state"`
+	AttemptCount int64    `db:"attempt_count"`
+	WaitSeconds  *float64 `db:"wait_seconds"`
+	RunSeconds   *float64 `db:"run_seconds"`
 }
 
 var listJobMeasuresQuery = "SELECT " + jobMeasures + `
 FROM scheduler.job
 WHERE complete_time IS NOT NULL AND complete_time >= $1 AND complete_time < $2`
 
-// ListJobMeasures returns the measures of every job completed in [startTime, endTime).
-func (s *Store) ListJobMeasures(ctx context.Context, startTime, endTime time.Time) ([]*JobMeasure, error) {
-	rows, err := s.client.Query(ctx, listJobMeasuresQuery, startTime, endTime)
-	if err != nil {
-		return nil, fmt.Errorf("listing job measures: %w", err)
-	}
-	measures, err := v5.CollectRows(rows, v5.RowToAddrOfStructByName[JobMeasure])
-	if err != nil {
-		return nil, fmt.Errorf("collecting rows: %w", err)
-	}
-	return measures, nil
-}
+const queueRollUpStartQuery = `
+SELECT date_trunc('hour', min(complete_time)) FROM scheduler.job
+WHERE complete_time >= GREATEST($1, LEAST(COALESCE((SELECT max(hour) FROM scheduler.queue_hour_stats), $1), $2))`
 
-// EarliestCompleteTime returns when the oldest job kept completed, or nil when none has.
-func (s *Store) EarliestCompleteTime(ctx context.Context) (*time.Time, error) {
-	var earliest *time.Time
-	if err := s.client.QueryRow(ctx, "SELECT min(complete_time) FROM scheduler.job WHERE complete_time IS NOT NULL").Scan(&earliest); err != nil {
-		return nil, fmt.Errorf("reading earliest complete time: %w", err)
+// QueueRollUpStart returns the first hour a roll-up pass rebuilds, or nil when no job completed
+// since: from the latest hour rolled up, but no later than reopen, nor earlier than cutoff.
+func (s *Store) QueueRollUpStart(ctx context.Context, cutoff, reopen time.Time) (*time.Time, error) {
+	var start *time.Time
+	if err := s.client.QueryRow(ctx, queueRollUpStartQuery, cutoff, reopen).Scan(&start); err != nil {
+		return nil, fmt.Errorf("reading roll-up start: %w", err)
 	}
-	return earliest, nil
+	return start, nil
 }
 
 // QueueHourStats is what a queue's jobs that completed in one hour did. Histograms count seconds by
@@ -150,25 +142,36 @@ WHERE hour >= $2 AND hour < $3 AND ($1::text IS NULL OR queue = $1)
 ORDER BY hour`, queueHourStatsColumns)
 )
 
-// queueHourStatsAdvisoryLockKey serializes replacements of hours across scheduler replicas.
+// queueHourStatsAdvisoryLockKey serializes roll-ups across scheduler replicas, so none writes an
+// hour from a read older than another's.
 const queueHourStatsAdvisoryLockKey int64 = 0x7175_6575_655f_6872
 
-// ReplaceQueueHourStats replaces every queue's stats over the hours in [startTime, endTime) with
-// stats, in one transaction.
-func (s *Store) ReplaceQueueHourStats(ctx context.Context, startTime, endTime time.Time, stats []*QueueHourStats) error {
+// RollUpQueueHour replaces every queue's stats over the hour starting at hour with rollUp's fold
+// of the measures of the jobs completed in it, read and written in one locked transaction.
+func (s *Store) RollUpQueueHour(ctx context.Context, hour time.Time, rollUp func([]*JobMeasure) []*QueueHourStats) error {
+	end := hour.Add(time.Hour)
 	transactionFN := func(tx postgres.Tx) error {
 		if _, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", queueHourStatsAdvisoryLockKey); err != nil {
 			return fmt.Errorf("taking roll-up lock: %w", err)
 		}
-		if _, err := tx.Exec(ctx, "DELETE FROM scheduler.queue_hour_stats WHERE hour >= $1 AND hour < $2", startTime, endTime); err != nil {
-			return fmt.Errorf("deleting hours: %w", err)
+		rows, err := tx.Query(ctx, listJobMeasuresQuery, hour, end)
+		if err != nil {
+			return fmt.Errorf("listing job measures: %w", err)
 		}
+		measures, err := v5.CollectRows(rows, v5.RowToAddrOfStructByName[JobMeasure])
+		if err != nil {
+			return fmt.Errorf("collecting rows: %w", err)
+		}
+		if _, err := tx.Exec(ctx, "DELETE FROM scheduler.queue_hour_stats WHERE hour = $1", hour); err != nil {
+			return fmt.Errorf("deleting hour: %w", err)
+		}
+		stats := rollUp(measures)
 		if len(stats) == 0 {
 			return nil
 		}
 		query, params := postgres.BatchInsertQuery("INSERT INTO scheduler.queue_hour_stats %s VALUES %s", stats, queueHourStatsColumns...)
 		if _, err := tx.Exec(ctx, query, params...); err != nil {
-			return fmt.Errorf("inserting hours: %w", err)
+			return fmt.Errorf("inserting hour: %w", err)
 		}
 		return nil
 	}
@@ -189,20 +192,10 @@ func (s *Store) ListQueueHourStats(ctx context.Context, queueName *string, start
 	return stats, nil
 }
 
-// LatestQueueHour returns the latest hour rolled up, or nil when none is.
-func (s *Store) LatestQueueHour(ctx context.Context) (*time.Time, error) {
-	var latest *time.Time
-	if err := s.client.QueryRow(ctx, "SELECT max(hour) FROM scheduler.queue_hour_stats").Scan(&latest); err != nil {
-		return nil, fmt.Errorf("reading latest queue hour: %w", err)
-	}
-	return latest, nil
-}
-
 // PurgeQueueHourStats deletes the hours before cutoff.
-func (s *Store) PurgeQueueHourStats(ctx context.Context, cutoff time.Time) (int64, error) {
-	tag, err := s.client.Exec(ctx, "DELETE FROM scheduler.queue_hour_stats WHERE hour < $1", cutoff)
-	if err != nil {
-		return 0, fmt.Errorf("purging queue hour stats: %w", err)
+func (s *Store) PurgeQueueHourStats(ctx context.Context, cutoff time.Time) error {
+	if _, err := s.client.Exec(ctx, "DELETE FROM scheduler.queue_hour_stats WHERE hour < $1", cutoff); err != nil {
+		return fmt.Errorf("purging queue hour stats: %w", err)
 	}
-	return tag.RowsAffected(), nil
+	return nil
 }

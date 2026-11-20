@@ -58,24 +58,27 @@ func (s *Service) ComputeQueueStats(ctx context.Context, request *pb.ComputeQueu
 	if endTime.Before(startTime) {
 		return nil, status.Errorf(codes.InvalidArgument, "interval ends before it starts").Err()
 	}
+	rolledUp := endTime.Sub(startTime) > maxJobStatsSpan
+	interval, compute := request.GetInterval(), s.computeJobStats
+	if rolledUp {
+		// Roll-ups hold whole hours: the interval widens to them.
+		startTime, endTime = startTime.Truncate(time.Hour), endTime.Add(time.Hour-1).Truncate(time.Hour)
+		interval = &intervalpb.Interval{StartTime: timestamppb.New(startTime), EndTime: timestamppb.New(endTime)}
+		compute = s.computeHourStats
+	}
 	step := request.GetStep().AsDuration()
 	if step > 0 && endTime.Sub(startTime) > maxQueueStatsBuckets*step {
 		return nil, status.Errorf(codes.InvalidArgument, "step cuts the interval into more than %d buckets", maxQueueStatsBuckets).Err()
 	}
-
-	compute := s.computeJobStats
-	if endTime.Sub(startTime) > maxJobStatsSpan {
-		if step%time.Hour != 0 {
-			return nil, status.Errorf(codes.InvalidArgument, "past %s, step must be a whole number of hours", maxJobStatsSpan).Err()
-		}
-		compute = s.computeHourStats
+	if rolledUp && step%time.Hour != 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "past a day, step must be a whole number of hours").Err()
 	}
 	totals, buckets, err := compute(ctx, queueName, startTime, endTime, step)
 	if err != nil {
 		return nil, status.FromError(err, "computing queue stats").Err()
 	}
 	return &pb.ComputeQueueStatsResponse{
-		Interval:    request.GetInterval(),
+		Interval:    interval,
 		ComputeTime: timestamppb.Now(),
 		Totals:      totals,
 		Buckets:     buckets,
@@ -108,34 +111,37 @@ func (s *Service) computeJobStats(ctx context.Context, queueName *string, startT
 	return totals, buckets, nil
 }
 
-// computeHourStats folds the hourly roll-ups over the interval, widened to whole hours:
-// percentiles within the histogram's 10%.
+// computeHourStats folds the hourly roll-ups: percentiles within the histogram's 10%.
 func (s *Service) computeHourStats(ctx context.Context, queueName *string, startTime, endTime time.Time, step time.Duration) (*schedulerpb.QueueStatsSnapshot, []*schedulerpb.QueueStatsBucket, error) {
-	hours, err := s.schedulerPostgresStore.ListQueueHourStats(ctx, queueName, startTime.Truncate(time.Hour), endTime)
+	hours, err := s.schedulerPostgresStore.ListQueueHourStats(ctx, queueName, startTime, endTime)
 	if err != nil {
 		return nil, nil, err
 	}
+	totals, buckets := foldHours(hours, step)
+	return totals, buckets, nil
+}
+
+// foldHours folds ordered hours into totals and, given a step, a bucket per step holding any.
+func foldHours(hours []*store.QueueHourStats, step time.Duration) (*schedulerpb.QueueStatsSnapshot, []*schedulerpb.QueueStatsBucket) {
 	totals := &statsFold{}
 	var bucketStarts []time.Time
-	bucketStartToFold := map[time.Time]*statsFold{}
+	var bucketFolds []*statsFold
 	for _, hour := range hours {
 		totals.addHour(hour)
 		if step == 0 {
 			continue
 		}
-		// Hours come in order, so buckets do too.
-		bucketStart := alignToEpoch(hour.Hour, step)
-		if _, ok := bucketStartToFold[bucketStart]; !ok {
+		if bucketStart := alignToEpoch(hour.Hour, step); len(bucketStarts) == 0 || !bucketStart.Equal(bucketStarts[len(bucketStarts)-1]) {
 			bucketStarts = append(bucketStarts, bucketStart)
-			bucketStartToFold[bucketStart] = &statsFold{}
+			bucketFolds = append(bucketFolds, &statsFold{})
 		}
-		bucketStartToFold[bucketStart].addHour(hour)
+		bucketFolds[len(bucketFolds)-1].addHour(hour)
 	}
 	buckets := make([]*schedulerpb.QueueStatsBucket, len(bucketStarts))
 	for i, bucketStart := range bucketStarts {
-		buckets[i] = &schedulerpb.QueueStatsBucket{Interval: bucketInterval(bucketStart, step), Snapshot: bucketStartToFold[bucketStart].snapshot()}
+		buckets[i] = &schedulerpb.QueueStatsBucket{Interval: bucketInterval(bucketStart, step), Snapshot: bucketFolds[i].snapshot()}
 	}
-	return totals.snapshot(), buckets, nil
+	return totals.snapshot(), buckets
 }
 
 // queueHourStatsOf rolls the measures of the jobs completed in one hour up by queue.

@@ -218,8 +218,8 @@ export const SchedulerService: GenService<{
    * Past a day, they are read off hourly roll-ups, kept past the jobs'
    * retention: the interval widens to whole hours, the step must be a whole
    * number of hours, and percentiles are within 10% (maxima stay exact). A job
-   * retried by hand more than an hour after it completed stays counted in its
-   * hour.
+   * retried by hand once its hour is rolled up stays counted there, and counts
+   * again in the hour it completes again.
    *
    * Fails with NOT_FOUND on an unknown queue, and with INVALID_ARGUMENT when
    * the step cuts the interval into more than 1440 buckets or, past a day, is

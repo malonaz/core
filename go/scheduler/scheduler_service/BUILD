@@ -55,3 +55,14 @@ go_library(
         "//third_party/proto:google__type__interval",
     ],
 )
+
+go_test(
+    name = "scheduler_service_test",
+    srcs = ["stats_test.go"],
+    deps = [
+        ":scheduler_service",
+        "//go/scheduler/histogram",
+        "//go/scheduler/store",
+        "//third_party/go:github.com__stretchr__testify__require",
+    ],
+)

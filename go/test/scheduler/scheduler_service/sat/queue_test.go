@@ -3,6 +3,7 @@ package sat
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -328,10 +329,18 @@ func TestComputeQueueStats(t *testing.T) {
 		rolledUp := response.GetTotals()
 		require.Equal(t, exact.GetCancelledCount(), rolledUp.GetCancelledCount())
 		require.Equal(t, exact.GetAttemptCount(), rolledUp.GetAttemptCount())
-		// Maxima are exact; percentiles within the histogram's 10%.
-		require.Equal(t, exact.GetRunDuration().GetMax().AsDuration(), rolledUp.GetRunDuration().GetMax().AsDuration())
-		require.Equal(t, exact.GetWaitDuration().GetMax().AsDuration(), rolledUp.GetWaitDuration().GetMax().AsDuration())
-		require.InEpsilon(t, exact.GetRunDuration().GetMax().AsDuration().Seconds(), rolledUp.GetRunDuration().GetP95().AsDuration().Seconds(), 0.1)
+		// Maxima are exact; percentiles, both by nearest rank, within the histogram's 10%.
+		for _, durations := range [][2]*schedulerpb.DurationDistribution{
+			{exact.GetWaitDuration(), rolledUp.GetWaitDuration()},
+			{exact.GetRunDuration(), rolledUp.GetRunDuration()},
+		} {
+			exactDuration, rolledUpDuration := durations[0], durations[1]
+			require.Equal(t, exactDuration.GetMax().AsDuration(), rolledUpDuration.GetMax().AsDuration())
+			require.InEpsilon(t, exactDuration.GetP50().AsDuration().Seconds(), rolledUpDuration.GetP50().AsDuration().Seconds(), 0.1)
+			require.InEpsilon(t, exactDuration.GetP95().AsDuration().Seconds(), rolledUpDuration.GetP95().AsDuration().Seconds(), 0.1)
+		}
+		// The interval widens to the whole hours the roll-ups hold.
+		require.True(t, response.GetInterval().GetStartTime().AsTime().Equal(week.GetInterval().GetStartTime().AsTime().Truncate(time.Hour)))
 		var failedCount int64
 		for _, bucket := range response.GetBuckets() {
 			start, end := bucket.GetInterval().GetStartTime().AsTime(), bucket.GetInterval().GetEndTime().AsTime()
@@ -344,6 +353,30 @@ func TestComputeQueueStats(t *testing.T) {
 		week.Step = durationpb.New(30 * time.Minute)
 		_, err := schedulerServiceClient.ComputeQueueStats(ctx, week)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("past a day, a queue without jobs", func(t *testing.T) {
+		t.Parallel()
+		idle := declareQueue(t, deadURL, newPolicy())
+		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     idle.GetName(),
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+			Step:     durationpb.New(time.Hour),
+		})
+		grpcrequire.Equal(t, &schedulerpb.QueueStatsSnapshot{}, response.GetTotals())
+		require.Empty(t, response.GetBuckets())
+	})
+
+	t.Run("past a day, every queue", func(t *testing.T) {
+		t.Parallel()
+		week := &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     "queues/-",
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+		}
+		require.Eventually(t, func() bool {
+			totals := compute(t, week).GetTotals()
+			return totals.GetFailedCount() >= 2 && totals.GetCancelledCount() >= 1
+		}, waitTimeout, 50*time.Millisecond, "the roll-up never caught up")
 	})
 
 	t.Run("every queue", func(t *testing.T) {
@@ -365,6 +398,22 @@ func TestComputeQueueStats(t *testing.T) {
 		_, err = schedulerServiceClient.ComputeQueueStats(ctx, computeQueueStatsRequest)
 		grpcrequire.Error(t, codes.NotFound, err)
 	})
+}
+
+func TestQueueHourStats_Purged(t *testing.T) {
+	t.Parallel()
+	postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
+	require.NoError(t, err)
+	queue := "queues/" + strings.ReplaceAll(uuid.MustNewV7().String(), "-", "")
+	// Past the default year of retention.
+	_, err = postgresClient.Exec(ctx, `INSERT INTO scheduler.queue_hour_stats (queue, hour, succeeded_count, failed_count, cancelled_count, attempt_count)
+VALUES ($1, $2, 1, 0, 0, 1)`, queue, time.Now().UTC().Add(-2*365*24*time.Hour).Truncate(time.Hour))
+	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		var count int
+		require.NoError(t, postgresClient.QueryRow(ctx, "SELECT count(*) FROM scheduler.queue_hour_stats WHERE queue = $1", queue).Scan(&count))
+		return count == 0
+	}, waitTimeout, 50*time.Millisecond)
 }
 
 func TestQueue_DeleteWithJobs(t *testing.T) {

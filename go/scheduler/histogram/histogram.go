@@ -5,8 +5,9 @@ package histogram
 import "math"
 
 // Size is the number of buckets. Bucket 0 holds durations under a millisecond, bucket k those in
-// [1ms·r^(k-1), 1ms·r^k) with r = 2^(1/4), and the last one everything from about 35 days on: a
-// percentile read off its bucket is within 10% of the true one.
+// [1ms·r^(k-1), 1ms·r^k) with r = 2^(1/4), and the last one everything from about 35 days on:
+// between those, a percentile read off its bucket is within 10% of the true one. Histograms are
+// stored (scheduler.queue_hour_stats): changing the buckets needs a migration.
 const Size = 128
 
 const (
@@ -41,11 +42,13 @@ func (h Histogram) Quantile(q float64) (float64, bool) {
 		return 0, false
 	}
 	rank := max(1, int64(math.Ceil(q*float64(total))))
-	i := 0
-	for seen := h[0]; seen < rank; seen += h[i] {
-		i++
+	var seen int64
+	for i, count := range h {
+		if seen += count; seen >= rank {
+			return midpoint(i), true
+		}
 	}
-	return midpoint(i), true
+	return midpoint(len(h) - 1), true
 }
 
 func bucket(seconds float64) int {
