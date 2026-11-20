@@ -1,0 +1,11 @@
+name: test
+servers:
+  - name: b-service
+    grpc:
+      services:
+        - service: b-service
+          proto: //a/v1(tools/onyx/binary/testdata/b.proto)
+          manifest: //b/b_service:manifest(tools/onyx/binary/testdata/b_service.yaml)
+  - name: dispatcher-service
+    processor:
+      manifest: //dispatcher/dispatcher_service:manifest(tools/onyx/binary/testdata/dispatcher_service.yaml)

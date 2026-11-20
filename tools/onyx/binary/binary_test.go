@@ -153,7 +153,7 @@ func TestGenerateAuthentication(t *testing.T) {
 	require.NotContains(t, main, "github.com/malonaz/core/go/authentication\"")
 	require.Contains(t, main, `Authentication *authentication.Opts `+"`"+`group:"Authentication" namespace:"authentication" env-namespace:"AUTHENTICATION"`+"`")
 	construct := strings.Index(main, "authentication.NewInterceptor(ctx, opts.Authentication)")
-	firstConnect := strings.Index(main, ":= connect(")
+	firstConnect := strings.Index(main, ":= grpcDialer.Dial(")
 	firstListen := strings.Index(main, ".Listen(ctx)")
 	require.True(t, construct >= 0 && construct < firstConnect, "the interceptor is built before anything dials")
 	for _, serve := range []string{
@@ -166,18 +166,36 @@ func TestGenerateAuthentication(t *testing.T) {
 		index := strings.Index(main, serve)
 		require.True(t, index >= 0 && index < firstListen, "%s, before any server listens", serve)
 	}
-	// In-process connections carry the server token; the remote one and the gateway's own do not.
-	require.Contains(t, main, "connect(opts.BServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
-	require.Contains(t, main, "connect(opts.SchedulerServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
-	require.Contains(t, main, "connect(opts.CServiceGRPC)")
+	// Every connection goes through the dialer, which knows every gRPC server of the binary and gives the server token
+	// to the connections to them alone; the gateway dials its server without it.
+	require.Contains(t, main, "grpcDialer := grpc.NewDialer(opts.Certs, opts.Prometheus,\n\t\topts.BServiceGRPC,\n\t\topts.AServiceGRPC,\n\t\topts.SchedulerServiceGRPC,\n\t\topts.LroServiceGRPC,\n\t)")
+	require.Contains(t, main, "grpcDialer.WithServerOptions(grpc2.WithPerRPCCredentials(authentication.Credentials()))")
+	require.Contains(t, main, "grpcDialer.Dial(ctx, opts.BServiceGRPC.ClientOpts())")
+	require.Contains(t, main, "grpcDialer.Dial(ctx, opts.CServiceGRPC)")
+	require.Contains(t, main, "dispatcherservice.New(opts.DispatcherService, grpcDialer)")
 	require.Contains(t, main, "grpc.NewGateway(opts.BServiceGRPCGateway, opts.BServiceGRPC.ClientOpts(), opts.Certs, opts.Prometheus,")
-	require.Equal(t, 1, strings.Count(main, "WithOptions("), "only connect installs dial options")
-	for _, service := range []string{"aService", "bService", "lroService", "schedulerService", "dProcessor", "hService"} {
+	require.NotContains(t, main, "WithOptions(")
+	require.NotContains(t, main, "connect(")
+	for _, service := range []string{"aService", "bService", "lroService", "schedulerService", "dProcessor", "hService", "dispatcherService"} {
 		require.Contains(t, main, service+"WithServiceAccount, err := authenticationInterceptor.As(")
 		require.Contains(t, main, service+".Start(ctx, "+service+"WithServiceAccount)")
 	}
 	require.Equal(t, 4, strings.Count(main, "authenticationInterceptor.Unary(),"))
 	require.Equal(t, 4, strings.Count(main, "authenticationInterceptor.Stream(),"))
+}
+
+// A binary on v1 whose service takes the dialer dials every client through it, with nothing more for its own servers.
+func TestGenerateDialer(t *testing.T) {
+	b, err := load(t, "dialer.yaml")
+	require.NoError(t, err)
+	source, err := Generate(b)
+	require.NoError(t, err)
+	main := string(source)
+	require.Contains(t, main, "grpcDialer := grpc.NewDialer(opts.Certs, opts.Prometheus,\n\t\topts.BServiceGRPC,\n\t)\n\tdefer grpcDialer.Close()")
+	require.Contains(t, main, "grpcDialer.Dial(ctx, opts.BServiceGRPC.ClientOpts())")
+	require.Contains(t, main, "dispatcherservice.New(opts.DispatcherService, grpcDialer)")
+	require.NotContains(t, main, "WithServerOptions")
+	require.NotContains(t, main, "connect(")
 }
 
 func TestLoadRejectsServerWithoutAuthentication(t *testing.T) {

@@ -43,3 +43,6 @@ servers:
     http:
       services:
         - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)
+  - name: dispatcher-service
+    processor:
+      manifest: //dispatcher/dispatcher_service:manifest(tools/onyx/binary/testdata/dispatcher_service.yaml)

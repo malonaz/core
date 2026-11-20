@@ -35,6 +35,8 @@ type Binary struct {
 	// Distinct interceptors, in manifest order.
 	Interceptors []onyxpb.Interceptor
 	Nats         bool
+	// A service takes the binary's gRPC dialer.
+	GRPCDialer bool
 }
 
 // Server is one server of the binary.
@@ -91,6 +93,7 @@ type Dependency struct {
 	Database   *Database
 	Component  *Component
 	Nats       bool
+	GRPCDialer bool
 }
 
 // GRPCClient is a distinct gRPC dependency of the binary.
@@ -425,6 +428,10 @@ func (l *loader) dependency(m *onyxpb.ServiceManifest, dep *onyxpb.Dependency, s
 	case *onyxpb.Dependency_Nats_:
 		l.binary.Nats = true
 		return &Dependency{Nats: true}, nil
+
+	case *onyxpb.Dependency_GrpcDialer_:
+		l.binary.GRPCDialer = true
+		return &Dependency{GRPCDialer: true}, nil
 
 	case *onyxpb.Dependency_Service_:
 		target, err := manifest.ParseLabel(kind.Service.GetTarget())

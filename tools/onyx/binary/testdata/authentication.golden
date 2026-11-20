@@ -14,6 +14,7 @@ import (
 	aservice "example.com/repo/a/a_service"
 	bservice "example.com/repo/b/b_service"
 	dprocessor "example.com/repo/d/d_processor"
+	dispatcherservice "example.com/repo/dispatcher/dispatcher_service"
 	"example.com/repo/gengo/a/store"
 	aservicepb "example.com/repo/genproto/a/v1"
 	bservicepb "example.com/repo/genproto/b/v1"
@@ -59,12 +60,13 @@ var opts struct {
 	DHttpHTTP            *http.Opts        `group:"DHttp HTTP (Server)" namespace:"d-http-http" env-namespace:"D_HTTP_HTTP"`
 
 	// Services.
-	AService         *aservice.Opts         `group:"AService" namespace:"a-service" env-namespace:"A_SERVICE"`
-	BService         *bservice.Opts         `group:"BService" namespace:"b-service" env-namespace:"B_SERVICE"`
-	LroService       *lroservice.Opts       `group:"LroService" namespace:"lro-service" env-namespace:"LRO_SERVICE"`
-	SchedulerService *schedulerservice.Opts `group:"SchedulerService" namespace:"scheduler-service" env-namespace:"SCHEDULER_SERVICE"`
-	DProcessor       *dprocessor.Opts       `group:"DProcessor" namespace:"d-processor" env-namespace:"D_PROCESSOR"`
-	HService         *hservice.Opts         `group:"HService" namespace:"h-service" env-namespace:"H_SERVICE"`
+	AService          *aservice.Opts          `group:"AService" namespace:"a-service" env-namespace:"A_SERVICE"`
+	BService          *bservice.Opts          `group:"BService" namespace:"b-service" env-namespace:"B_SERVICE"`
+	LroService        *lroservice.Opts        `group:"LroService" namespace:"lro-service" env-namespace:"LRO_SERVICE"`
+	SchedulerService  *schedulerservice.Opts  `group:"SchedulerService" namespace:"scheduler-service" env-namespace:"SCHEDULER_SERVICE"`
+	DProcessor        *dprocessor.Opts        `group:"DProcessor" namespace:"d-processor" env-namespace:"D_PROCESSOR"`
+	HService          *hservice.Opts          `group:"HService" namespace:"h-service" env-namespace:"H_SERVICE"`
+	DispatcherService *dispatcherservice.Opts `group:"DispatcherService" namespace:"dispatcher-service" env-namespace:"DISPATCHER_SERVICE"`
 }
 
 // The manifest's ports and sockets. Env and flags still override them.
@@ -130,46 +132,35 @@ func run(ctx context.Context) error {
 	}
 
 	// gRPC connections, one per endpoint.
-	endpointToGRPCConnection := map[string]*grpc.Connection{}
-	connect := func(clientOpts *grpc.ClientOpts, options ...grpc2.DialOption) (*grpc.Connection, error) {
-		if connection, ok := endpointToGRPCConnection[clientOpts.Endpoint()]; ok {
-			return connection, nil
-		}
-		connection, err := grpc.NewConnection(clientOpts, opts.Certs, opts.Prometheus)
-		if err != nil {
-			return nil, err
-		}
-		if err := connection.WithOptions(options...).Connect(ctx); err != nil {
-			return nil, err
-		}
-		endpointToGRPCConnection[clientOpts.Endpoint()] = connection
-		return connection, nil
-	}
-	defer func() {
-		for _, connection := range endpointToGRPCConnection {
-			connection.Close()
-		}
-	}()
+	grpcDialer := grpc.NewDialer(opts.Certs, opts.Prometheus,
+		opts.BServiceGRPC,
+		opts.AServiceGRPC,
+		opts.SchedulerServiceGRPC,
+		opts.LroServiceGRPC,
+	)
+	// Only the binary's own servers receive the token: it carries the call's session.
+	grpcDialer.WithServerOptions(grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	defer grpcDialer.Close()
 
-	bServiceConnection, err := connect(opts.BServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	bServiceConnection, err := grpcDialer.Dial(ctx, opts.BServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to b-service: %w", err)
 	}
 	bServiceClient := bservicepb.NewBServiceClient(bServiceConnection.Get())
 
-	cServiceConnection, err := connect(opts.CServiceGRPC)
+	cServiceConnection, err := grpcDialer.Dial(ctx, opts.CServiceGRPC)
 	if err != nil {
 		return fmt.Errorf("connecting to c-service: %w", err)
 	}
 	cServiceClient := cservicepb.NewCServiceClient(cServiceConnection.Get())
 
-	schedulerServiceConnection, err := connect(opts.SchedulerServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	schedulerServiceConnection, err := grpcDialer.Dial(ctx, opts.SchedulerServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to scheduler-service: %w", err)
 	}
 	schedulerServiceClient := schedulerservicepb.NewSchedulerServiceClient(schedulerServiceConnection.Get())
 
-	aServiceConnection, err := connect(opts.AServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	aServiceConnection, err := grpcDialer.Dial(ctx, opts.AServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to a-service: %w", err)
 	}
@@ -419,10 +410,27 @@ func run(ctx context.Context) error {
 	runServer(ctx, "d-http", dHttpHTTPServer.Serve)
 	defer dHttpHTTPServer.Stop()
 
+	// dispatcher-service
+	dispatcherServiceWithServiceAccount, err := authenticationInterceptor.As("dispatcher-service")
+	if err != nil {
+		return fmt.Errorf("service account of dispatcher-service: %w", err)
+	}
+	dispatcherService, err := dispatcherservice.New(opts.DispatcherService, grpcDialer)
+	if err != nil {
+		return fmt.Errorf("instantiating dispatcher-service server: %w", err)
+	}
+	dispatcherServiceCleanup, err := dispatcherService.Start(ctx, dispatcherServiceWithServiceAccount)
+	if err != nil {
+		return fmt.Errorf("starting dispatcher-service: %w", err)
+	}
+	dispatcherServiceStop := sync.OnceFunc(dispatcherServiceCleanup)
+	defer dispatcherServiceStop()
+	healthServer.RegisterLivenessCheck("dispatcher-service", dispatcherService.HealthCheck)
+
 	go healthServer.Serve(ctx)
 	defer healthServer.Shutdown()
 	gracefulStopFns = append(gracefulStopFns, func() error {
-		lifecycle.CloseAll(dProcessorStop)
+		lifecycle.CloseAll(dProcessorStop, dispatcherServiceStop)
 		return nil
 	})
 	gracefulStopFns = append(gracefulStopFns, func() error {
