@@ -5,7 +5,6 @@ go_library(
         "codec.go",
         "codes.go",
         "cookie.go",
-        "dialer.go",
         "form_urlencoded_marshaler.go",
         "gateway.go",
         "headers.go",
@@ -60,7 +59,6 @@ go_test(
     srcs = [
         "client_test.go",
         "cookie_test.go",
-        "dialer_test.go",
         "gateway_test.go",
     ],
     deps = [
