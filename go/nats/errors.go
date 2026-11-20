@@ -1,7 +1,9 @@
 package nats
 
 import (
+	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -55,4 +57,14 @@ func IsRejected(err error) bool {
 	}
 	var apiErr *jetstream.APIError
 	return errors.As(err, &apiErr) && rejectedErrorCodes[apiErr.ErrorCode]
+}
+
+// IsUnavailable reports whether JetStream could not answer for now, as while a rolling restart
+// moves its meta leader (503, "JetStream system temporarily unavailable"): a retry may succeed.
+func IsUnavailable(err error) bool {
+	if errors.Is(err, nats.ErrTimeout) || errors.Is(err, nats.ErrNoResponders) || errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var apiErr *jetstream.APIError
+	return errors.As(err, &apiErr) && apiErr.Code == http.StatusServiceUnavailable
 }
