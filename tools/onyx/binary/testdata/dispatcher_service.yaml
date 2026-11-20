@@ -1,4 +1,0 @@
-name: dispatcher-service
-target: //dispatcher/dispatcher_service
-dependencies:
-  - grpc_dialer: {}

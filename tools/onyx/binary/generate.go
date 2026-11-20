@@ -351,67 +351,20 @@ func (g *generator) opts() {
 	g.P()
 }
 
-// grpcDialer reports whether the binary dials through a grpc.Dialer: one on go/authentication/v2, whose connections
-// to its own servers carry the server token, or one whose services take the dialer.
-func (g *generator) grpcDialer() bool {
-	return g.authentication() || g.b.GRPCDialer
-}
-
 func (g *generator) grpcClients() {
-	if len(g.b.GRPCClients) == 0 && !g.b.GRPCDialer {
+	if len(g.b.GRPCClients) == 0 {
 		return
 	}
 	grpc := g.Import(core + "/grpc")
 	fmt_ := g.Import("fmt")
 	g.P()
 	g.P("// gRPC connections, one per endpoint.")
-	dial := "connect("
-	if g.grpcDialer() {
-		g.dialer(grpc)
-		dial = "grpcDialer.Dial(ctx, "
-	} else {
-		g.connect(grpc)
-	}
-	for _, client := range g.b.GRPCClients {
-		clientOpts := g.grpcOptsField(client.Name)
-		if client.Server != nil {
-			clientOpts = serverOpts(client.Server, "GRPC") + ".ClientOpts()"
-		}
-		pb := gen.PB(g.File, client.GRPCService)
-		connection := gen.Camel(client.Name) + "Connection"
-		g.P()
-		g.P(connection, ", err := ", dial, clientOpts, ")")
-		g.P("if err != nil {")
-		g.P("return ", fmt_, `.Errorf("connecting to `, client.Name, `: %w", err)`)
-		g.P("}")
-		g.P(clientVar(client), " := ", pb, ".New", client.GoName, "Client(", connection, ".Get())")
-		if client.Operations {
-			g.P(operationsClientVar(client), " := ", g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "NewOperationsClient"), "(", connection, ".Get())")
-		}
-	}
-}
-
-// dialer builds the binary's grpc.Dialer over its gRPC servers: a connection to an endpoint one of them listens on,
-// whether a client is bound to it or names it by flag, is a connection to that server.
-func (g *generator) dialer(grpc string) {
-	g.P("grpcDialer := ", grpc, ".NewDialer(opts.Certs, opts.Prometheus,")
-	for _, server := range g.b.Servers {
-		if server.GetGrpc() != nil {
-			g.P(serverOpts(server, "GRPC"), ",")
-		}
-	}
-	g.P(")")
-	if g.authentication() {
-		g.P("// Only the binary's own servers receive the token: it carries the call's session.")
-		g.P("grpcDialer.WithServerOptions(", g.Qual("google.golang.org/grpc", "WithPerRPCCredentials"), "(", g.authenticationPackage(), ".Credentials()))")
-	}
-	g.P("defer grpcDialer.Close()")
-}
-
-// connect is the dialing of a binary without a grpc.Dialer.
-func (g *generator) connect(grpc string) {
 	g.P("endpointToGRPCConnection := map[string]*", grpc, ".Connection{}")
-	g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
+	if g.authentication() {
+		g.P("connect := func(clientOpts *", grpc, ".ClientOpts, options ...", g.Qual("google.golang.org/grpc", "DialOption"), ") (*", grpc, ".Connection, error) {")
+	} else {
+		g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
+	}
 	g.P("if connection, ok := endpointToGRPCConnection[clientOpts.Endpoint()]; ok {")
 	g.P("return connection, nil")
 	g.P("}")
@@ -419,7 +372,11 @@ func (g *generator) connect(grpc string) {
 	g.P("if err != nil {")
 	g.P("return nil, err")
 	g.P("}")
-	g.P("if err := connection.Connect(ctx); err != nil {")
+	if g.authentication() {
+		g.P("if err := connection.WithOptions(options...).Connect(ctx); err != nil {")
+	} else {
+		g.P("if err := connection.Connect(ctx); err != nil {")
+	}
 	g.P("return nil, err")
 	g.P("}")
 	g.P("endpointToGRPCConnection[clientOpts.Endpoint()] = connection")
@@ -430,6 +387,27 @@ func (g *generator) connect(grpc string) {
 	g.P("connection.Close()")
 	g.P("}")
 	g.P("}()")
+	for _, client := range g.b.GRPCClients {
+		clientOpts := g.grpcOptsField(client.Name)
+		if client.Server != nil {
+			clientOpts = serverOpts(client.Server, "GRPC") + ".ClientOpts()"
+			// Only the binary's own servers receive the token: it carries the call's session.
+			if g.authentication() {
+				clientOpts += ", " + g.Qual("google.golang.org/grpc", "WithPerRPCCredentials") + "(" + g.authenticationPackage() + ".Credentials())"
+			}
+		}
+		pb := gen.PB(g.File, client.GRPCService)
+		connection := gen.Camel(client.Name) + "Connection"
+		g.P()
+		g.P(connection, ", err := connect(", clientOpts, ")")
+		g.P("if err != nil {")
+		g.P("return ", fmt_, `.Errorf("connecting to `, client.Name, `: %w", err)`)
+		g.P("}")
+		g.P(clientVar(client), " := ", pb, ".New", client.GoName, "Client(", connection, ".Get())")
+		if client.Operations {
+			g.P(operationsClientVar(client), " := ", g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "NewOperationsClient"), "(", connection, ".Get())")
+		}
+	}
 }
 
 func (g *generator) postgres() {
@@ -591,8 +569,6 @@ func (g *generator) service(s *Service) {
 			args = append(args, componentVar(dep.Component))
 		case dep.Nats:
 			args = append(args, "natsClient")
-		case dep.GRPCDialer:
-			args = append(args, "grpcDialer")
 		}
 	}
 	g.P(v, ", err := ", g.Qual(s.Target.GoImportPath(g.b.GoImportPath), "New"), "(", strings.Join(args, ", "), ")")
