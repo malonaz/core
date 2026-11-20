@@ -32,6 +32,7 @@ go_library(
         "//go/routine",
         "//go/scheduler",
         "//go/scheduler/cron",
+        "//go/scheduler/histogram",
         "//go/scheduler/model",
         "//go/scheduler/scheduler_service/rpc",
         "//go/scheduler/store",
@@ -52,5 +53,16 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/proto:google__type__interval",
+    ],
+)
+
+go_test(
+    name = "scheduler_service_test",
+    srcs = ["stats_test.go"],
+    deps = [
+        ":scheduler_service",
+        "//go/scheduler/histogram",
+        "//go/scheduler/store",
+        "//third_party/go:github.com__stretchr__testify__require",
     ],
 )

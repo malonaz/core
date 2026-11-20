@@ -533,7 +533,7 @@ export type ComputeQueueStatsRequest = Message<"malonaz.scheduler.scheduler_serv
 
   /**
    * The interval to compute stats over, by job completion time. Unset means
-   * all time: every job kept within the scheduler's retention.
+   * all time: every hour rolled up.
    *
    * @generated from field: google.type.Interval interval = 2;
    */
@@ -541,7 +541,7 @@ export type ComputeQueueStatsRequest = Message<"malonaz.scheduler.scheduler_serv
 
   /**
    * The width of each time-series bucket. Unset means totals only. At most
-   * 1440 buckets fit in the interval.
+   * 1440 buckets fit in the interval; past a day, a whole number of hours.
    *
    * @generated from field: google.protobuf.Duration step = 3;
    */
@@ -564,7 +564,7 @@ export type ComputeQueueStatsRequestValid = Message<"malonaz.scheduler.scheduler
 
   /**
    * The interval to compute stats over, by job completion time. Unset means
-   * all time: every job kept within the scheduler's retention.
+   * all time: every hour rolled up.
    *
    * @generated from field: google.type.Interval interval = 2;
    */
@@ -572,7 +572,7 @@ export type ComputeQueueStatsRequestValid = Message<"malonaz.scheduler.scheduler
 
   /**
    * The width of each time-series bucket. Unset means totals only. At most
-   * 1440 buckets fit in the interval.
+   * 1440 buckets fit in the interval; past a day, a whole number of hours.
    *
    * @generated from field: google.protobuf.Duration step = 3;
    */

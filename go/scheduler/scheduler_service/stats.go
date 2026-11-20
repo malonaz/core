@@ -15,15 +15,21 @@ import (
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/scheduler/histogram"
 	"github.com/malonaz/core/go/scheduler/transition"
 )
 
-// maxQueueStatsBuckets bounds a time series: a day by the minute.
-const maxQueueStatsBuckets = 1440
+const (
+	// maxQueueStatsBuckets bounds a time series: a day by the minute.
+	maxQueueStatsBuckets = 1440
+	// maxJobStatsSpan is the longest interval read off the jobs themselves: past it, stats come
+	// from the hourly roll-ups, as a week of jobs is a million rows.
+	maxJobStatsSpan = 24 * time.Hour
+)
 
 // ComputeQueueStats reads a queue's completed jobs into interval totals and,
-// when a step is requested, a sparse time series. Nothing is stored: the
-// response is computed per request.
+// when a step is requested, a sparse time series: off the jobs up to a day,
+// off the hourly roll-ups past it.
 func (s *Service) ComputeQueueStats(ctx context.Context, request *pb.ComputeQueueStatsRequest) (*pb.ComputeQueueStatsResponse, error) {
 	queueID, err := model.ParseQueueName(request.GetName())
 	if err != nil {
@@ -52,44 +58,200 @@ func (s *Service) ComputeQueueStats(ctx context.Context, request *pb.ComputeQueu
 	if endTime.Before(startTime) {
 		return nil, status.Errorf(codes.InvalidArgument, "interval ends before it starts").Err()
 	}
+	rolledUp := endTime.Sub(startTime) > maxJobStatsSpan
+	interval, compute := request.GetInterval(), s.computeJobStats
+	if rolledUp {
+		// Roll-ups hold whole hours: the interval widens to them.
+		startTime, endTime = startTime.Truncate(time.Hour), endTime.Add(time.Hour-1).Truncate(time.Hour)
+		interval = &intervalpb.Interval{StartTime: timestamppb.New(startTime), EndTime: timestamppb.New(endTime)}
+		compute = s.computeHourStats
+	}
 	step := request.GetStep().AsDuration()
 	if step > 0 && endTime.Sub(startTime) > maxQueueStatsBuckets*step {
 		return nil, status.Errorf(codes.InvalidArgument, "step cuts the interval into more than %d buckets", maxQueueStatsBuckets).Err()
 	}
-
-	rows, err := s.schedulerPostgresStore.ComputeQueueStats(ctx, queueName, startTime, endTime, step)
+	if rolledUp && step%time.Hour != 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "past a day, step must be a whole number of hours").Err()
+	}
+	totals, buckets, err := compute(ctx, queueName, startTime, endTime, step)
 	if err != nil {
 		return nil, status.FromError(err, "computing queue stats").Err()
 	}
-	response := &pb.ComputeQueueStatsResponse{
-		Interval:    request.GetInterval(),
+	return &pb.ComputeQueueStatsResponse{
+		Interval:    interval,
 		ComputeTime: timestamppb.Now(),
-	}
-	for _, row := range rows {
-		if row.Bucket == nil {
-			response.Totals = queueStatsSnapshotToPb(row)
-			continue
-		}
-		response.Buckets = append(response.Buckets, &schedulerpb.QueueStatsBucket{
-			Interval: &intervalpb.Interval{
-				StartTime: timestamppb.New(*row.Bucket),
-				EndTime:   timestamppb.New(row.Bucket.Add(step)),
-			},
-			Snapshot: queueStatsSnapshotToPb(row),
-		})
-	}
-	return response, nil
+		Totals:      totals,
+		Buckets:     buckets,
+	}, nil
 }
 
-func queueStatsSnapshotToPb(row *store.QueueStatsRow) *schedulerpb.QueueStatsSnapshot {
-	return &schedulerpb.QueueStatsSnapshot{
-		SucceededCount: row.SucceededCount,
-		FailedCount:    row.FailedCount,
-		CancelledCount: row.CancelledCount,
-		AttemptCount:   row.AttemptCount,
-		WaitDuration:   durationDistributionToPb(row.WaitP50, row.WaitP95, row.WaitMax),
-		RunDuration:    durationDistributionToPb(row.RunP50, row.RunP95, row.RunMax),
+// computeJobStats reads the stats off the jobs: exact percentiles.
+func (s *Service) computeJobStats(ctx context.Context, queueName *string, startTime, endTime time.Time, step time.Duration) (*schedulerpb.QueueStatsSnapshot, []*schedulerpb.QueueStatsBucket, error) {
+	rows, err := s.schedulerPostgresStore.ComputeQueueStats(ctx, queueName, startTime, endTime, step)
+	if err != nil {
+		return nil, nil, err
 	}
+	var totals *schedulerpb.QueueStatsSnapshot
+	var buckets []*schedulerpb.QueueStatsBucket
+	for _, row := range rows {
+		snapshot := &schedulerpb.QueueStatsSnapshot{
+			SucceededCount: row.SucceededCount,
+			FailedCount:    row.FailedCount,
+			CancelledCount: row.CancelledCount,
+			AttemptCount:   row.AttemptCount,
+			WaitDuration:   durationDistributionToPb(row.WaitP50, row.WaitP95, row.WaitMax),
+			RunDuration:    durationDistributionToPb(row.RunP50, row.RunP95, row.RunMax),
+		}
+		if row.Bucket == nil {
+			totals = snapshot
+			continue
+		}
+		buckets = append(buckets, &schedulerpb.QueueStatsBucket{Interval: bucketInterval(*row.Bucket, step), Snapshot: snapshot})
+	}
+	return totals, buckets, nil
+}
+
+// computeHourStats folds the hourly roll-ups: percentiles within the histogram's 10%.
+func (s *Service) computeHourStats(ctx context.Context, queueName *string, startTime, endTime time.Time, step time.Duration) (*schedulerpb.QueueStatsSnapshot, []*schedulerpb.QueueStatsBucket, error) {
+	hours, err := s.schedulerPostgresStore.ListQueueHourStats(ctx, queueName, startTime, endTime)
+	if err != nil {
+		return nil, nil, err
+	}
+	totals, buckets := foldHours(hours, step)
+	return totals, buckets, nil
+}
+
+// foldHours folds ordered hours into totals and, given a step, a bucket per step holding any.
+func foldHours(hours []*store.QueueHourStats, step time.Duration) (*schedulerpb.QueueStatsSnapshot, []*schedulerpb.QueueStatsBucket) {
+	totals := &statsFold{}
+	var bucketStarts []time.Time
+	var bucketFolds []*statsFold
+	for _, hour := range hours {
+		totals.addHour(hour)
+		if step == 0 {
+			continue
+		}
+		if bucketStart := alignToEpoch(hour.Hour, step); len(bucketStarts) == 0 || !bucketStart.Equal(bucketStarts[len(bucketStarts)-1]) {
+			bucketStarts = append(bucketStarts, bucketStart)
+			bucketFolds = append(bucketFolds, &statsFold{})
+		}
+		bucketFolds[len(bucketFolds)-1].addHour(hour)
+	}
+	buckets := make([]*schedulerpb.QueueStatsBucket, len(bucketStarts))
+	for i, bucketStart := range bucketStarts {
+		buckets[i] = &schedulerpb.QueueStatsBucket{Interval: bucketInterval(bucketStart, step), Snapshot: bucketFolds[i].snapshot()}
+	}
+	return totals.snapshot(), buckets
+}
+
+// queueHourStatsOf rolls the measures of the jobs completed in one hour up by queue.
+func queueHourStatsOf(hour time.Time, measures []*store.JobMeasure) []*store.QueueHourStats {
+	queueToFold := map[string]*statsFold{}
+	for _, measure := range measures {
+		fold, ok := queueToFold[measure.Queue]
+		if !ok {
+			fold = &statsFold{}
+			queueToFold[measure.Queue] = fold
+		}
+		fold.addJob(measure)
+	}
+	hourStats := make([]*store.QueueHourStats, 0, len(queueToFold))
+	for queue, fold := range queueToFold {
+		hourStats = append(hourStats, &store.QueueHourStats{
+			Queue:          queue,
+			Hour:           hour,
+			SucceededCount: fold.succeeded,
+			FailedCount:    fold.failed,
+			CancelledCount: fold.cancelled,
+			AttemptCount:   fold.attempts,
+			WaitHistogram:  fold.wait.histogram,
+			WaitMaxSeconds: fold.wait.max,
+			RunHistogram:   fold.run.histogram,
+			RunMaxSeconds:  fold.run.max,
+		})
+	}
+	return hourStats
+}
+
+// statsFold adds jobs into an hour's stats, or hours into an interval's.
+type statsFold struct {
+	succeeded, failed, cancelled, attempts int64
+	wait, run                              durationFold
+}
+
+func (f *statsFold) addJob(measure *store.JobMeasure) {
+	switch schedulerpb.JobState(measure.State) {
+	case schedulerpb.JobState_JOB_STATE_SUCCEEDED:
+		f.succeeded++
+	case schedulerpb.JobState_JOB_STATE_FAILED:
+		f.failed++
+	case schedulerpb.JobState_JOB_STATE_CANCELLED:
+		f.cancelled++
+	}
+	f.attempts += measure.AttemptCount
+	f.wait.add(measure.WaitSeconds)
+	f.run.add(measure.RunSeconds)
+}
+
+func (f *statsFold) addHour(hour *store.QueueHourStats) {
+	f.succeeded += hour.SucceededCount
+	f.failed += hour.FailedCount
+	f.cancelled += hour.CancelledCount
+	f.attempts += hour.AttemptCount
+	f.wait.merge(hour.WaitHistogram, hour.WaitMaxSeconds)
+	f.run.merge(hour.RunHistogram, hour.RunMaxSeconds)
+}
+
+func (f *statsFold) snapshot() *schedulerpb.QueueStatsSnapshot {
+	return &schedulerpb.QueueStatsSnapshot{
+		SucceededCount: f.succeeded,
+		FailedCount:    f.failed,
+		CancelledCount: f.cancelled,
+		AttemptCount:   f.attempts,
+		WaitDuration:   f.wait.distribution(),
+		RunDuration:    f.run.distribution(),
+	}
+}
+
+// durationFold counts durations, in seconds, and keeps the longest exactly; both stay nil until
+// one is counted.
+type durationFold struct {
+	histogram histogram.Histogram
+	max       *float64
+}
+
+func (f *durationFold) add(seconds *float64) {
+	if seconds != nil {
+		f.extend(*seconds)
+		f.histogram.Add(*seconds)
+	}
+}
+
+func (f *durationFold) merge(counts histogram.Histogram, max *float64) {
+	if max != nil {
+		f.extend(*max)
+		f.histogram.Merge(counts)
+	}
+}
+
+// extend makes room for a duration: the histogram on the first one, and the longest so far.
+func (f *durationFold) extend(seconds float64) {
+	if f.histogram == nil {
+		f.histogram = histogram.New()
+	}
+	if f.max == nil || seconds > *f.max {
+		f.max = &seconds
+	}
+}
+
+// distribution reads the percentiles off the histogram, never past the exact longest.
+func (f *durationFold) distribution() *schedulerpb.DurationDistribution {
+	if f.max == nil {
+		return nil
+	}
+	p50, _ := f.histogram.Quantile(0.5)
+	p95, _ := f.histogram.Quantile(0.95)
+	return durationDistributionToPb(new(min(p50, *f.max)), new(min(p95, *f.max)), f.max)
 }
 
 // durationDistributionToPb converts percentiles in seconds; all three are set
@@ -107,4 +269,13 @@ func durationDistributionToPb(p50, p95, max *float64) *schedulerpb.DurationDistr
 
 func secondsToPb(seconds float64) *durationpb.Duration {
 	return durationpb.New(time.Duration(seconds * float64(time.Second)))
+}
+
+// alignToEpoch returns the start of the step-wide bucket, aligned to the Unix epoch, holding t.
+func alignToEpoch(t time.Time, step time.Duration) time.Time {
+	return time.Unix(0, t.UnixNano()-t.UnixNano()%int64(step)).UTC()
+}
+
+func bucketInterval(start time.Time, step time.Duration) *intervalpb.Interval {
+	return &intervalpb.Interval{StartTime: timestamppb.New(start), EndTime: timestamppb.New(start.Add(step))}
 }
