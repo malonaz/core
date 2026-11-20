@@ -98,23 +98,35 @@ Health checks skip the interceptor. Hooks and the other POST interceptors of
 
 ## Between servers
 
-`authentication.Credentials()` is a per-RPC credential, installed only on
-connections to the binary's own servers: onyx gives it to the binary's
-`grpc.Dialer` as `WithServerOptions`, which adds it to a connection exactly
-when the endpoint dialed is one a gRPC server of the binary listens on, by
-whatever route the endpoint came (an in-process client, a client's flags, a
-dispatcher `--endpoint`). Never on the context, and never chosen by service
-name: a remote server may serve the same services. Per call it mints an HS256 JWT under
-`--server-secret`: `iss` = `serviceAccounts/{calling account}`, `sub` the
-principal (absent when anonymous), `act` `{sub: actor}`, `aud` the destination
-gRPC service, `exp` one minute, and `session` = base64url of the binary
-`Session` (principal, actor, grants, client; never the caller). What the token
-carries is taken as written: only a holder of the key signs one. The calling
-account is `As(account)`'s, else the account `Serve(account, services...)`
-named for the gRPC service handling the current call. A context with a
-session but no serving account fails the outgoing call (INTERNAL); one with
-neither calls anonymously. Cost: about 21 µs to sign and 39 µs to verify and
-decide (`plz run //go/authentication/v2:benchmark -- -test.bench .`).
+Identity rides the call's context, as in v1. The interceptor puts on each
+handler's context, and `As` on a service's, what core's gRPC client asks for
+on every outgoing call (`grpc.WithCallMetadata`, read by a per-RPC credential
+every `grpc.Connection` has): nothing for a host, the generator or a manifest
+to declare, and any connection made with `grpc.NewConnection` carries it. As
+the call is sent (once a transport is ready, once per attempt) it mints an
+HS256 JWT under `--server-secret`: `iss` = `serviceAccounts/{calling account}`,
+`sub` the principal (absent when anonymous), `act` `{sub: actor}`, `aud` the
+destination gRPC service, `exp` one minute, and `session` = base64url of the
+binary `Session` (principal, actor, grants, client; never the caller). What the
+token carries is taken as written: only a holder of the key signs one. The
+calling account is `As(account)`'s (it wins over a handler's session), else
+the account `Serve(account, services...)` named for the gRPC service handling
+the current call. A context with a session but no serving account fails the
+outgoing call (INTERNAL); a context with neither sends nothing. A context kept
+past its call (`context.WithoutCancel`, a goroutine) signs fresh tokens. Cost:
+about 21 µs to sign and 39 µs to verify and decide (`plz run
+//go/authentication/v2:benchmark -- -test.bench .`).
+
+- A remote server called on such a context receives the token too, addressed
+  to its service and dead in a minute. A remote server on v2 under another
+  secret refuses it (UNAUTHENTICATED), and one shown an API key as well sees two
+  credentials: call it on a context carrying no identity.
+- The grpc-gateway and the grpc-web proxy relay only the outside caller's
+  credential: their connections are not core's, and their requests' contexts
+  carry no identity (`TestEdgeRelaysOnlyTheOutsideCredential`).
+- A connection made with gRPC directly (`grpc.NewClient`) carries nothing;
+  `grpcinproc` and pbreflection's in-process client call the handler with the
+  caller's context, so it reads the caller's session and passes no interceptor.
 
 ## Adopting it
 
@@ -128,9 +140,6 @@ decide (`plz run //go/authentication/v2:benchmark -- -test.bench .`).
   caller's session: their grants (or `carrier`) must allow
   `/grpc.reflection.v1.ServerReflection/ServerReflectionInfo` and, for the
   dispatcher, the scheduler-run methods it delivers.
-- A component dialing endpoints it learns at run time takes `grpc_dialer`
-  (`lores/onyx/overview`) instead of dialing them itself: a connection made
-  elsewhere carries nothing and arrives anonymous.
 - The client IP is X-Forwarded-For's leftmost entry, as v1 read it: the
   caller controls it.
 - v1's rule texts move unchanged: wrap each as
@@ -150,5 +159,8 @@ decide (`plz run //go/authentication/v2:benchmark -- -test.bench .`).
 Scopes other than `*` (needs the derivation of the resources a call names,
 and the `resources` condition variable); `ExchangeToken`; keys per service
 account that this process can sign with (an account with its own keys can be
-verified, not `As`'d or `Serve`'d); clock skew between pods (tokens never
-leave the process today).
+verified, not `As`'d or `Serve`'d); clock skew. Signer and verifier share a
+process today; once they are different machines, verification needs
+`jwt.WithAcceptableSkew` of a few seconds: jwx v2.1.6 checks `exp`, `iat` and
+`nbf` with no skew, so a token whose `iat` is a second ahead of the verifier's
+clock is refused (`"iat" not satisfied`, UNAUTHENTICATED).
