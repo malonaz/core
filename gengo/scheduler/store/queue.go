@@ -114,8 +114,9 @@ type QueueStatsRow struct {
 }
 
 // The jobs completed in [$2, $3), of queue $1 or of every queue when it is
-// NULL. Wait is measured on the jobs that ran once and were never retried by
-// hand, whose start follows their due time; run on the outcomes of an attempt
+// NULL, read off job_stats_idx alone. Wait is measured on the jobs that ran
+// once, whose start follows their due time (a job cancelled unstarted then
+// retried by hand counts from its creation); run on the outcomes of an attempt
 // (SUCCEEDED, FAILED).
 var computeQueueStatsTemplate = fmt.Sprintf(`
 SELECT %%s AS bucket,
@@ -131,7 +132,7 @@ SELECT %%s AS bucket,
     max(job.run_seconds) AS run_max
 FROM (
     SELECT state, attempt_count, complete_time,
-        CASE WHEN attempt_count = 1 AND COALESCE(labels->>$4, '') <> $5
+        CASE WHEN attempt_count = 1
             THEN extract(epoch FROM start_time - COALESCE(schedule_time, create_time))::float8 END AS wait_seconds,
         CASE WHEN state IN (%[1]d, %[2]d)
             THEN extract(epoch FROM complete_time - start_time)::float8 END AS run_seconds
@@ -144,10 +145,10 @@ FROM (
 var (
 	// One row over the whole interval.
 	computeQueueStatsTotalsQuery = fmt.Sprintf(computeQueueStatsTemplate, "NULL::timestamp", "")
-	// The totals' row, with a NULL bucket, then a row per $6-second bucket
+	// The totals' row, with a NULL bucket, then a row per $4-second bucket
 	// aligned to the epoch: percentiles cannot be folded from the buckets'.
 	computeQueueStatsBucketsQuery = fmt.Sprintf(computeQueueStatsTemplate,
-		"date_bin(make_interval(secs => $6), job.complete_time, timestamp 'epoch')",
+		"date_bin(make_interval(secs => $4), job.complete_time, timestamp 'epoch')",
 		"GROUP BY GROUPING SETS ((bucket), ()) ORDER BY bucket NULLS FIRST")
 )
 
@@ -157,7 +158,7 @@ var (
 // a completed job, in order.
 func (s *Store) ComputeQueueStats(ctx context.Context, queueName *string, startTime, endTime time.Time, step time.Duration) ([]*QueueStatsRow, error) {
 	query := computeQueueStatsTotalsQuery
-	params := []any{queueName, startTime, endTime, schedulerpb.Labels.Retried.GetKey(), schedulerpb.Labels.Retried.True}
+	params := []any{queueName, startTime, endTime}
 	if step > 0 {
 		query = computeQueueStatsBucketsQuery
 		params = append(params, step.Seconds())
