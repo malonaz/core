@@ -133,8 +133,7 @@ func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {
 }
 
 // A binary on go/authentication/v2: one interceptor built before anything dials, the account serving each gRPC
-// service named before any server serves, the server token on in-process connections only, and As handed to
-// every service's Start.
+// service named before any server serves, and As handed to every service's Start.
 func TestGenerateAuthentication(t *testing.T) {
 	b, err := load(t, "authentication.yaml")
 	require.NoError(t, err)
@@ -166,12 +165,10 @@ func TestGenerateAuthentication(t *testing.T) {
 		index := strings.Index(main, serve)
 		require.True(t, index >= 0 && index < firstListen, "%s, before any server listens", serve)
 	}
-	// In-process connections carry the server token; the remote one and the gateway's own do not.
-	require.Contains(t, main, "connect(opts.BServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
-	require.Contains(t, main, "connect(opts.SchedulerServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
+	// Clients are dialed as in a v1 binary: the context of each call, not its connection, carries the session.
+	require.Contains(t, main, "connect(opts.BServiceGRPC.ClientOpts())")
 	require.Contains(t, main, "connect(opts.CServiceGRPC)")
-	require.Contains(t, main, "grpc.NewGateway(opts.BServiceGRPCGateway, opts.BServiceGRPC.ClientOpts(), opts.Certs, opts.Prometheus,")
-	require.Equal(t, 1, strings.Count(main, "WithOptions("), "only connect installs dial options")
+	require.NotContains(t, main, "WithOptions(")
 	for _, service := range []string{"aService", "bService", "lroService", "schedulerService", "dProcessor", "hService"} {
 		require.Contains(t, main, service+"WithServiceAccount, err := authenticationInterceptor.As(")
 		require.Contains(t, main, service+".Start(ctx, "+service+"WithServiceAccount)")

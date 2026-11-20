@@ -360,11 +360,7 @@ func (g *generator) grpcClients() {
 	g.P()
 	g.P("// gRPC connections, one per endpoint.")
 	g.P("endpointToGRPCConnection := map[string]*", grpc, ".Connection{}")
-	if g.authentication() {
-		g.P("connect := func(clientOpts *", grpc, ".ClientOpts, options ...", g.Qual("google.golang.org/grpc", "DialOption"), ") (*", grpc, ".Connection, error) {")
-	} else {
-		g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
-	}
+	g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
 	g.P("if connection, ok := endpointToGRPCConnection[clientOpts.Endpoint()]; ok {")
 	g.P("return connection, nil")
 	g.P("}")
@@ -372,11 +368,7 @@ func (g *generator) grpcClients() {
 	g.P("if err != nil {")
 	g.P("return nil, err")
 	g.P("}")
-	if g.authentication() {
-		g.P("if err := connection.WithOptions(options...).Connect(ctx); err != nil {")
-	} else {
-		g.P("if err := connection.Connect(ctx); err != nil {")
-	}
+	g.P("if err := connection.Connect(ctx); err != nil {")
 	g.P("return nil, err")
 	g.P("}")
 	g.P("endpointToGRPCConnection[clientOpts.Endpoint()] = connection")
@@ -391,10 +383,6 @@ func (g *generator) grpcClients() {
 		clientOpts := g.grpcOptsField(client.Name)
 		if client.Server != nil {
 			clientOpts = serverOpts(client.Server, "GRPC") + ".ClientOpts()"
-			// Only the binary's own servers receive the token: it carries the call's session.
-			if g.authentication() {
-				clientOpts += ", " + g.Qual("google.golang.org/grpc", "WithPerRPCCredentials") + "(" + g.authenticationPackage() + ".Credentials())"
-			}
 		}
 		pb := gen.PB(g.File, client.GRPCService)
 		connection := gen.Camel(client.Name) + "Connection"

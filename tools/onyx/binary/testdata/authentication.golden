@@ -131,7 +131,7 @@ func run(ctx context.Context) error {
 
 	// gRPC connections, one per endpoint.
 	endpointToGRPCConnection := map[string]*grpc.Connection{}
-	connect := func(clientOpts *grpc.ClientOpts, options ...grpc2.DialOption) (*grpc.Connection, error) {
+	connect := func(clientOpts *grpc.ClientOpts) (*grpc.Connection, error) {
 		if connection, ok := endpointToGRPCConnection[clientOpts.Endpoint()]; ok {
 			return connection, nil
 		}
@@ -139,7 +139,7 @@ func run(ctx context.Context) error {
 		if err != nil {
 			return nil, err
 		}
-		if err := connection.WithOptions(options...).Connect(ctx); err != nil {
+		if err := connection.Connect(ctx); err != nil {
 			return nil, err
 		}
 		endpointToGRPCConnection[clientOpts.Endpoint()] = connection
@@ -151,7 +151,7 @@ func run(ctx context.Context) error {
 		}
 	}()
 
-	bServiceConnection, err := connect(opts.BServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	bServiceConnection, err := connect(opts.BServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to b-service: %w", err)
 	}
@@ -163,13 +163,13 @@ func run(ctx context.Context) error {
 	}
 	cServiceClient := cservicepb.NewCServiceClient(cServiceConnection.Get())
 
-	schedulerServiceConnection, err := connect(opts.SchedulerServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	schedulerServiceConnection, err := connect(opts.SchedulerServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to scheduler-service: %w", err)
 	}
 	schedulerServiceClient := schedulerservicepb.NewSchedulerServiceClient(schedulerServiceConnection.Get())
 
-	aServiceConnection, err := connect(opts.AServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))
+	aServiceConnection, err := connect(opts.AServiceGRPC.ClientOpts())
 	if err != nil {
 		return fmt.Errorf("connecting to a-service: %w", err)
 	}
