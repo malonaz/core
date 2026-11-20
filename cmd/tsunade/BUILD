@@ -48,6 +48,7 @@ go_test(
     external = True,
     deps = [
         "//go/authentication/v2",
+        "//go/grpc",
         "//malonaz/ai/ai_service/v1",
         "//third_party/go:github.com__stretchr__testify__require",
         "//third_party/go:google.golang.org__grpc",

@@ -13,6 +13,7 @@ import (
 
 	aipb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	authentication "github.com/malonaz/core/go/authentication/v2"
+	coregrpc "github.com/malonaz/core/go/grpc"
 )
 
 const apiKeyHeader = "tsunade-api-key"
@@ -58,7 +59,7 @@ func TestAuthentication(t *testing.T) {
 
 	callerToMetadata := func(method string) map[string]metadata.MD {
 		ctx := credentials.NewContextWithRequestInfo(asAIService(context.Background()), credentials.RequestInfo{Method: method})
-		serverToken, err := authentication.Credentials().GetRequestMetadata(ctx)
+		serverToken, err := coregrpc.CallMetadata(ctx)
 		require.NoError(t, err)
 		return map[string]metadata.MD{
 			"sgpt":       metadata.Pairs(apiKeyHeader, "sgpt-key"),

@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
-	"github.com/malonaz/core/go/authentication/v2/internal/sessioncontext"
+	coregrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 )
@@ -49,9 +49,6 @@ func (a *serviceAccount) session() *authenticationpb.Session {
 	return &authenticationpb.Session{Principal: a.principal(), Grants: a.config.GetGrants()}
 }
 
-type asKey struct{}
-type servingKey struct{}
-
 // As returns what makes calls on a context be made by the service account as itself: what onyx hands to a
 // service's Start. It replaces any session the context carries.
 func (i *Interceptor) As(account string) (func(context.Context) context.Context, error) {
@@ -59,8 +56,9 @@ func (i *Interceptor) As(account string) (func(context.Context) context.Context,
 	if err != nil {
 		return nil, err
 	}
+	callMetadata := carrier{account: serviceAccount, session: serviceAccount.session()}.metadata
 	return func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, asKey{}, serviceAccount)
+		return coregrpc.WithCallMetadata(ctx, callMetadata)
 	}, nil
 }
 
@@ -88,43 +86,24 @@ func (i *Interceptor) signingAccount(account string) (*serviceAccount, error) {
 	return serviceAccount, nil
 }
 
-// Credentials are the per-RPC credentials presenting a server's token on each call. Install them only on
-// connections to the platform's own servers: the token carries the session.
-func Credentials() credentials.PerRPCCredentials {
-	return serverCredentials{}
+// carrier presents a session on the calls made on a context, as an account: the one As named, with itself as the
+// principal, or the one serving the call the context belongs to, with that call's session.
+type carrier struct {
+	account *serviceAccount
+	session *authenticationpb.Session
 }
 
-// serverCredentials read all they need from the call's context, where the interceptor and As put it.
-type serverCredentials struct{}
-
-// RequireTransportSecurity is false: the platform's servers talk over unix sockets inside one process.
-func (serverCredentials) RequireTransportSecurity() bool { return false }
-
-// GetRequestMetadata mints the call's token. A context carrying no session calls anonymously, as in v1.
-func (serverCredentials) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
-	account, session := carried(ctx)
-	if session == nil {
-		return nil, nil
-	}
+// metadata mints a call's token as the call is sent, so a context outliving its call still signs live tokens.
+func (c carrier) metadata(ctx context.Context) (map[string]string, error) {
 	requestInfo, _ := credentials.RequestInfoFromContext(ctx)
-	if account == nil {
+	if c.account == nil {
 		return nil, status.Errorf(codes.Internal, "no service account serves this call: cannot carry its session to %s", requestInfo.Method).Err()
 	}
-	token, err := account.sign(session, serviceName(requestInfo.Method))
+	token, err := c.account.sign(c.session, serviceName(requestInfo.Method))
 	if err != nil {
 		return nil, err
 	}
 	return map[string]string{metadataKeyServerToken: token}, nil
-}
-
-// carried returns the session a call made on the context carries and the account presenting it: the account As
-// named, as itself, or else the account serving the call the context belongs to, with that call's session.
-func carried(ctx context.Context) (*serviceAccount, *authenticationpb.Session) {
-	if account, ok := ctx.Value(asKey{}).(*serviceAccount); ok {
-		return account, account.session()
-	}
-	account, _ := ctx.Value(servingKey{}).(*serviceAccount)
-	return account, sessioncontext.From(ctx)
 }
 
 // sign mints the token carrying a session to a service: `iss` the account, `sub` the principal, `act` the actor,

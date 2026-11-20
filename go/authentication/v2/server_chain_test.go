@@ -59,7 +59,7 @@ func TestCoreServerChain(t *testing.T) {
 	t.Cleanup(func() { server.Stop() })
 
 	p := &platform{interceptor: interceptor}
-	connection := p.dial(t, serverOpts.SocketPath, false)
+	connection := p.dial(t, serverOpts.SocketPath)
 	library := librarypb.NewLibraryServiceClient(connection)
 
 	_, err = library.GetBook(metadata.NewOutgoingContext(context.Background(), apiKey("key-1")), getBookRequest)

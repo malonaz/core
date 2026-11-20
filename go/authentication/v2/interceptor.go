@@ -321,10 +321,7 @@ func (i *Interceptor) handlerContext(ctx context.Context, fullMethod string, cal
 		ctx = metadata.NewIncomingContext(ctx, md)
 	}
 	ctx = sessioncontext.With(ctx, call.session)
-	if account, ok := i.serviceToAccount[serviceName(fullMethod)]; ok {
-		ctx = context.WithValue(ctx, servingKey{}, account)
-	}
-	return ctx
+	return coregrpc.WithCallMetadata(ctx, carrier{account: i.serviceToAccount[serviceName(fullMethod)], session: call.session}.metadata)
 }
 
 // Unary returns the unary server interceptor.
