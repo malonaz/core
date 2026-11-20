@@ -20,6 +20,7 @@ filegroup(
         "job.go",
         "queue.go",
         "schedule.go",
+        "stats.go",
     ],
     labels = [
         "codegen",
@@ -34,6 +35,7 @@ go_library(
         "job.go",
         "queue.go",
         "schedule.go",
+        "stats.go",
         ":codegen",
     ],
     import_path = "github.com/malonaz/core/gengo/scheduler/store",

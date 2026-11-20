@@ -15,6 +15,9 @@ type Opts struct {
 	Retention     time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
 	SweepInterval time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
 	TickInterval  time.Duration `long:"tick-interval" env:"TICK_INTERVAL" default:"1s" description:"Interval between passes materializing due schedules' jobs"`
+	// Roll-ups outlive the jobs: they are what queue stats past a day read.
+	RollUpInterval      time.Duration `long:"roll-up-interval" env:"ROLL_UP_INTERVAL" default:"1m" description:"Interval between passes rolling completed jobs up into hourly queue stats"`
+	QueueStatsRetention time.Duration `long:"queue-stats-retention" env:"QUEUE_STATS_RETENTION" default:"8760h" description:"How long hourly queue stats are kept; 0 keeps them forever"`
 	// WaitJob's timeout is client-supplied, so it is capped here rather than trusted.
 	WaitJobMaxTimeout time.Duration `long:"wait-job-max-timeout" env:"WAIT_JOB_MAX_TIMEOUT" default:"5m" description:"Longest a WaitJob call blocks, whatever timeout the request asks for"`
 	// Workers on any instance write terminal transitions, so WaitJob can only re-read the row.
@@ -28,8 +31,8 @@ type runtime struct {
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
-	if opts.LeaseDuration <= 0 || opts.SweepInterval <= 0 || opts.TickInterval <= 0 || opts.WaitJobMaxTimeout <= 0 || opts.WaitJobPollInterval <= 0 {
-		return nil, fmt.Errorf("lease-duration, sweep-interval, tick-interval, wait-job-max-timeout and wait-job-poll-interval must be positive")
+	if opts.LeaseDuration <= 0 || opts.SweepInterval <= 0 || opts.TickInterval <= 0 || opts.RollUpInterval <= 0 || opts.WaitJobMaxTimeout <= 0 || opts.WaitJobPollInterval <= 0 {
+		return nil, fmt.Errorf("lease-duration, sweep-interval, tick-interval, roll-up-interval, wait-job-max-timeout and wait-job-poll-interval must be positive")
 	}
 	defaultRetryBackoff, err := opts.DefaultRetryBackoff.Proto()
 	if err != nil {
@@ -39,14 +42,16 @@ func newRuntime(opts *Opts) (*runtime, error) {
 }
 
 // start runs the store's upkeep: materializing due schedules' jobs, reaping
-// jobs no dispatcher will complete and sweeping those past retention.
-// Delivery is the dispatcher's.
+// jobs no dispatcher will complete, rolling completed ones up into hourly
+// queue stats and sweeping those past retention. Delivery is the dispatcher's.
 func (s *Service) start(ctx context.Context) (func(), error) {
 	routines := []*routine.Routine{
 		routine.New("scheduler-tick", s.tick).
 			WithTicker(s.opts.TickInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
 		routine.New("scheduler-reap", s.reap).
 			WithTicker(s.opts.LeaseDuration / 2).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
+		routine.New("scheduler-roll-up", s.rollUp).
+			WithTicker(s.opts.RollUpInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
 	}
 	if s.opts.Retention > 0 {
 		routines = append(routines, routine.New("scheduler-sweep", s.sweep).

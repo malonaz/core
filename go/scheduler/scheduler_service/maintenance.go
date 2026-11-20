@@ -2,6 +2,7 @@ package scheduler_service
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
@@ -92,6 +93,54 @@ func (s *Service) observeBacklog(ctx context.Context) error {
 	}
 	observeQueueStats(stats, now)
 	return nil
+}
+
+// rollUp keeps the hourly stats ComputeQueueStats reads past a day. Each pass
+// rebuilds, from the jobs, every hour from the one before the latest rolled up
+// (jobs commit late into it) to now: from the earliest job kept when none is.
+// Rebuilding makes a pass idempotent: any replica may run it, and the next
+// redoes one that failed. An hour rolled up stays as its jobs completed: a job
+// retried later is not taken back out of it.
+func (s *Service) rollUp(ctx context.Context) error {
+	now := transition.Now()
+	start, err := s.rollUpStart(ctx)
+	if err != nil || start == nil {
+		return err
+	}
+	for hour := *start; hour.Before(now); hour = hour.Add(time.Hour) {
+		end := hour.Add(time.Hour)
+		measures, err := s.schedulerPostgresStore.ListJobMeasures(ctx, hour, end)
+		if err != nil {
+			return err
+		}
+		if err := s.schedulerPostgresStore.ReplaceQueueHourStats(ctx, hour, end, queueHourStatsOf(hour, measures)); err != nil {
+			return err
+		}
+	}
+	if s.opts.QueueStatsRetention > 0 {
+		if _, err := s.schedulerPostgresStore.PurgeQueueHourStats(ctx, now.Add(-s.opts.QueueStatsRetention)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// rollUpStart returns the first hour a roll-up pass rebuilds, or nil when no job has completed.
+func (s *Service) rollUpStart(ctx context.Context) (*time.Time, error) {
+	latest, err := s.schedulerPostgresStore.LatestQueueHour(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if latest != nil {
+		start := latest.Add(-time.Hour)
+		return &start, nil
+	}
+	earliest, err := s.schedulerPostgresStore.EarliestCompleteTime(ctx)
+	if err != nil || earliest == nil {
+		return nil, err
+	}
+	start := earliest.Truncate(time.Hour)
+	return &start, nil
 }
 
 // sweep deletes terminal jobs past their retention.

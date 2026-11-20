@@ -32,6 +32,7 @@ go_library(
         "//go/routine",
         "//go/scheduler",
         "//go/scheduler/cron",
+        "//go/scheduler/histogram",
         "//go/scheduler/model",
         "//go/scheduler/scheduler_service/rpc",
         "//go/scheduler/store",

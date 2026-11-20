@@ -312,6 +312,40 @@ func TestComputeQueueStats(t *testing.T) {
 		require.Equal(t, int64(1), cancelledCount)
 	})
 
+	t.Run("past a day reads the hourly roll-ups", func(t *testing.T) {
+		t.Parallel()
+		exact := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: queue.GetName(), Interval: interval}).GetTotals()
+		week := &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     queue.GetName(),
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+			Step:     durationpb.New(time.Hour),
+		}
+		var response *schedulerservicepb.ComputeQueueStatsResponse
+		require.Eventually(t, func() bool {
+			response = compute(t, week)
+			return response.GetTotals().GetFailedCount() == exact.GetFailedCount()
+		}, waitTimeout, 50*time.Millisecond, "the roll-up never caught up")
+		rolledUp := response.GetTotals()
+		require.Equal(t, exact.GetCancelledCount(), rolledUp.GetCancelledCount())
+		require.Equal(t, exact.GetAttemptCount(), rolledUp.GetAttemptCount())
+		// Maxima are exact; percentiles within the histogram's 10%.
+		require.Equal(t, exact.GetRunDuration().GetMax().AsDuration(), rolledUp.GetRunDuration().GetMax().AsDuration())
+		require.Equal(t, exact.GetWaitDuration().GetMax().AsDuration(), rolledUp.GetWaitDuration().GetMax().AsDuration())
+		require.InEpsilon(t, exact.GetRunDuration().GetMax().AsDuration().Seconds(), rolledUp.GetRunDuration().GetP95().AsDuration().Seconds(), 0.1)
+		var failedCount int64
+		for _, bucket := range response.GetBuckets() {
+			start, end := bucket.GetInterval().GetStartTime().AsTime(), bucket.GetInterval().GetEndTime().AsTime()
+			require.Equal(t, time.Hour, end.Sub(start))
+			require.True(t, start.Equal(start.Truncate(time.Hour)))
+			failedCount += bucket.GetSnapshot().GetFailedCount()
+		}
+		require.Equal(t, exact.GetFailedCount(), failedCount)
+
+		week.Step = durationpb.New(30 * time.Minute)
+		_, err := schedulerServiceClient.ComputeQueueStats(ctx, week)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
 	t.Run("every queue", func(t *testing.T) {
 		t.Parallel()
 		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: "queues/-", Interval: interval})

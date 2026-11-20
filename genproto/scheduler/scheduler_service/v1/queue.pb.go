@@ -886,10 +886,10 @@ type ComputeQueueStatsRequest struct {
 	// Format: queues/{queue}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The interval to compute stats over, by job completion time. Unset means
-	// all time: every job kept within the scheduler's retention.
+	// all time: every hour rolled up.
 	Interval *interval.Interval `protobuf:"bytes,2,opt,name=interval,proto3" json:"interval,omitempty"`
 	// The width of each time-series bucket. Unset means totals only. At most
-	// 1440 buckets fit in the interval.
+	// 1440 buckets fit in the interval; past a day, a whole number of hours.
 	Step          *durationpb.Duration `protobuf:"bytes,3,opt,name=step,proto3" json:"step,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -982,10 +982,10 @@ type ComputeQueueStatsRequest_builder struct {
 	// Format: queues/{queue}
 	Name string
 	// The interval to compute stats over, by job completion time. Unset means
-	// all time: every job kept within the scheduler's retention.
+	// all time: every hour rolled up.
 	Interval *interval.Interval
 	// The width of each time-series bucket. Unset means totals only. At most
-	// 1440 buckets fit in the interval.
+	// 1440 buckets fit in the interval; past a day, a whole number of hours.
 	Step *durationpb.Duration
 }
 

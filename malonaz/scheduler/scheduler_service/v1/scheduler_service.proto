@@ -186,10 +186,18 @@ service SchedulerService {
   // Compute a queue's stats over an interval from the jobs that completed in
   // it: how many succeeded, failed or were cancelled, the attempts they took,
   // and how long they waited and ran; totals and, when a step is set, a sparse
-  // time series. `queues/-` aggregates every queue. Nothing is stored: jobs
-  // purged past retention are not counted. Fails with NOT_FOUND on an unknown
-  // queue, and with INVALID_ARGUMENT when the step cuts the interval into more
-  // than 1440 buckets.
+  // time series. `queues/-` aggregates every queue.
+  //
+  // Up to a day, stats are read off the jobs themselves, percentiles exact.
+  // Past a day, they are read off hourly roll-ups, kept past the jobs'
+  // retention: the interval widens to whole hours, the step must be a whole
+  // number of hours, and percentiles are within 10% (maxima stay exact). A job
+  // retried by hand more than an hour after it completed stays counted in its
+  // hour.
+  //
+  // Fails with NOT_FOUND on an unknown queue, and with INVALID_ARGUMENT when
+  // the step cuts the interval into more than 1440 buckets or, past a day, is
+  // not a whole number of hours.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc ComputeQueueStats(ComputeQueueStatsRequest) returns (ComputeQueueStatsResponse) {

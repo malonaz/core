@@ -132,6 +132,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--prometheus.port", strconv.Itoa(prometheusPort),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
 			"--scheduler-service.sweep-interval", "500ms",
+			"--scheduler-service.roll-up-interval", "200ms",
 			"--scheduler-service.tick-interval", tickInterval.String(),
 			"--scheduler-service.wait-job-max-timeout", waitJobMaxTimeout.String(),
 			"--scheduler-service.wait-job-poll-interval", waitJobPollInterval.String(),
