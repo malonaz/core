@@ -48,7 +48,7 @@ func (h Histogram) Quantile(q float64) (float64, bool) {
 			return midpoint(i), true
 		}
 	}
-	return midpoint(len(h) - 1), true
+	return midpoint(len(h) - 1), true // unreachable: rank ≤ total
 }
 
 func bucket(seconds float64) int {

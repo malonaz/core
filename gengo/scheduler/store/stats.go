@@ -108,10 +108,11 @@ WHERE complete_time IS NOT NULL AND complete_time >= $1 AND complete_time < $2`
 
 const queueRollUpStartQuery = `
 SELECT date_trunc('hour', min(complete_time)) FROM scheduler.job
-WHERE complete_time >= GREATEST($1, LEAST(COALESCE((SELECT max(hour) FROM scheduler.queue_hour_stats), $1), $2))`
+WHERE complete_time >= GREATEST($1, LEAST(COALESCE((SELECT max(hour) FROM scheduler.queue_hour_stats) + interval '1 hour', $1), $2))`
 
 // QueueRollUpStart returns the first hour a roll-up pass rebuilds, or nil when no job completed
-// since: from the latest hour rolled up, but no later than reopen, nor earlier than cutoff.
+// since: from the hour after the latest rolled up, but from reopen when that is earlier (an hour
+// still taking late jobs), and never before cutoff.
 func (s *Store) QueueRollUpStart(ctx context.Context, cutoff, reopen time.Time) (*time.Time, error) {
 	var start *time.Time
 	if err := s.client.QueryRow(ctx, queueRollUpStartQuery, cutoff, reopen).Scan(&start); err != nil {

@@ -102,10 +102,10 @@ const rollUpLateness = 5 * time.Minute
 
 // rollUp keeps the hourly stats ComputeQueueStats reads past a day. Each pass
 // rebuilds, from the jobs, every hour from QueueRollUpStart to now: a first
-// pass backfills every job kept. Rebuilding makes a pass idempotent, so any
-// replica may run it and the next redoes one that failed. A job retried after
-// its hour was last rolled up stays counted there, and counts again where it
-// completes again.
+// pass backfills every job kept, and an idle stretch costs nothing. Rebuilding
+// makes a pass idempotent, so any replica may run it and the next redoes one
+// that failed. A job retried after its hour is final stays counted there, and
+// counts again where it completes again.
 func (s *Service) rollUp(ctx context.Context) error {
 	now := transition.Now()
 	// Hours before the cutoff are purged, so never rolled up.
@@ -116,7 +116,9 @@ func (s *Service) rollUp(ctx context.Context) error {
 			return err
 		}
 	}
-	start, err := s.schedulerPostgresStore.QueueRollUpStart(ctx, cutoff, now.Add(-rollUpLateness).Truncate(time.Hour))
+	// An hour is rebuilt until a pass has run after its jobs stopped landing; then it is final.
+	reopen := now.Add(-rollUpLateness - s.opts.RollUpInterval).Truncate(time.Hour)
+	start, err := s.schedulerPostgresStore.QueueRollUpStart(ctx, cutoff, reopen)
 	if err != nil || start == nil {
 		return err
 	}
