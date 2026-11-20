@@ -81,14 +81,13 @@ func TestDialer(t *testing.T) {
 	require.Same(t, first, second, "one connection per endpoint")
 }
 
-// A client given by flags the port of one of the binary's own servers, with no host or localhost, as onikisu's
-// ai-engine dials its external server for reflection, reaches it as that server.
+// A client given by flags the address of one of the binary's own ports, as onikisu's ai-engine dials its external
+// server for reflection, reaches it as that server.
 func TestDialerOwnPortNamedByFlags(t *testing.T) {
 	own, address := serveHealth(t, "tcp", ":0")
 	port := address.(*net.TCPAddr).Port
 	dialer := NewDialer(nil, nil, &ServerOpts{Port: port, DisableTLS: true}).WithServerOptions(grpc.WithPerRPCCredentials(ownCredentials{}))
 	t.Cleanup(dialer.Close)
-	check(t, dialer, &ClientOpts{Port: port})
-	check(t, dialer, &ClientOpts{Host: "localhost", Port: port})
-	require.Equal(t, []bool{true, true}, own.own)
+	check(t, dialer, &ClientOpts{Host: "localhost", Port: port, DisableTLS: true})
+	require.Equal(t, []bool{true}, own.own)
 }

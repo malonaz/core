@@ -26,7 +26,7 @@ type Dialer struct {
 func NewDialer(certsOpts *certs.Opts, prometheusOpts *prometheus.Opts, servers ...*ServerOpts) *Dialer {
 	endpointToServer := make(map[string]*ServerOpts, len(servers))
 	for _, server := range servers {
-		endpointToServer[destination(server.ClientOpts())] = server
+		endpointToServer[server.ClientOpts().Endpoint()] = server
 	}
 	return &Dialer{
 		certsOpts:            certsOpts,
@@ -47,7 +47,7 @@ func (d *Dialer) WithServerOptions(options ...grpc.DialOption) *Dialer {
 func (d *Dialer) Dial(ctx context.Context, opts *ClientOpts) (*Connection, error) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
-	endpoint := destination(opts)
+	endpoint := opts.Endpoint()
 	if connection, ok := d.endpointToConnection[endpoint]; ok {
 		return connection, nil
 	}
@@ -64,14 +64,6 @@ func (d *Dialer) Dial(ctx context.Context, opts *ClientOpts) (*Connection, error
 	}
 	d.endpointToConnection[endpoint] = connection
 	return connection, nil
-}
-
-// destination is the endpoint opts lead to: an empty host is the local system, as net.Dial reads it.
-func destination(opts *ClientOpts) string {
-	if opts.SocketPath == "" && opts.Host == "" {
-		return (&ClientOpts{Host: "localhost", Port: opts.Port}).Endpoint()
-	}
-	return opts.Endpoint()
 }
 
 // Close closes every connection.
