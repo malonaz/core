@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, every edge outcome, the token one server presents to another, how a host adopts it, why v1 still exists, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, why v1 still exists, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -95,6 +95,17 @@ stays). A stream is authenticated before its first message is read. The tests in
 
 Health checks skip the interceptor. Hooks and the other POST interceptors of
 `go/grpc/server.go` run after it, only for calls it let in.
+
+## The log
+
+Each field present is added to the call's log line (`log.go`), once
+authenticated and before the decision, so that a denial says who was denied:
+`principal`, `issuer` (the configured issuer's id, for a token, bearer or
+cookie), `actor`, `caller`, `attribute.{key}`, `ip_address`,
+`client_platform`, `client_version`, `user_agent`. An allowed call adds
+`role`: the role held (a grant's or a public role, never an included one)
+whose rule allowed it. A carried call logs no `issuer`: no session carries it,
+the edge's line has it.
 
 ## Between servers
 
