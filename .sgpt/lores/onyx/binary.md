@@ -32,7 +32,8 @@ see it; this lore is the rules behind it.
   `grpc_dialer`, dials every client through one `grpc.Dialer` built over all
   its gRPC servers' opts: an endpoint one of them listens on is that server,
   whether a client is bound to it or names it by flag (`unix:/tmp/x.socket`,
-  `localhost:{port}`), and is dialed with the server's own opts. Other binaries
+  `localhost:{port}`, or a port with no host: the local system), and is
+  dialed with the server's own opts. Other binaries
   keep their `connect` closure (`testdata/main.golden`).
 - Stores are distinct by `target`; a store declared over two databases is an
   error. Components (`service` dependencies) are distinct by `target` and
