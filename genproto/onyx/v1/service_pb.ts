@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/onyx/v1/service.proto.
  */
 export const file_malonaz_onyx_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Ch1tYWxvbmF6L29ueXgvdjEvc2VydmljZS5wcm90bxIPbWFsb25hei5vbnl4LnYxIvABCg9TZXJ2aWNlTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAESFwoPaW5jbHVkZV9ydW50aW1lGAMgASgIEh0KFWV4cG9ydF9zZXJ2aWNlX2ZpZWxkcxgEIAEoCBIqCghjb2RlZ2VucxgFIAMoCzIYLm1hbG9uYXoub255eC52MS5Db2RlZ2VuEjEKDGRlcGVuZGVuY2llcxgGIAMoCzIbLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5IuABCgdDb2RlZ2VuEisKA3JwYxgBIAEoCzIcLm1hbG9uYXoub255eC52MS5Db2RlZ2VuLlJwY0gAGpgBCgNScGMSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBImCgVzdG9yZRgCIAEoCUIXukgUcg8yDV5bYS16MC05Xy1dKyTYAQESFwoGdGFyZ2V0GAMgASgJQge6SARyAhABEgwKBG5hdHMYBCABKAgSEwoLbG9uZ3J1bm5pbmcYBSABKAhCDQoEa2luZBIFukgCCAEi+wYKCkRlcGVuZGVuY3kSPQoLZ3JwY19jbGllbnQYASABKAsyJi5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5HcnBjQ2xpZW50SAASSgoScG9zdGdyZXNfZGJfY2xpZW50GAIgASgLMiwubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuUG9zdGdyZXNEYkNsaWVudEgAEkUKD3Bvc3RncmVzX2NsaWVudBgDIAEoCzIqLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5LlBvc3RncmVzQ2xpZW50SAASMAoEbmF0cxgEIAEoCzIgLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5Lk5hdHNIABI2CgdzZXJ2aWNlGAUgASgLMiMubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuU2VydmljZUgAEj0KC2dycGNfZGlhbGVyGAYgASgLMiYubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuR3JwY0RpYWxlckgAGpwBCgpHcnBjQ2xpZW50EhYKBXByb3RvGAEgASgJQge6SARyAhABEjAKB3NlcnZpY2UYAiABKAlCH7pIHHIaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiQSMAoEbmFtZRgDIAEoCUIiukgfchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJNgBARISCgpvcGVyYXRpb25zGAQgASgIGnoKEFBvc3RncmVzRGJDbGllbnQSIgoEbmFtZRgBIAEoCUIUukgRcg8yDV5bYS16MC05Xy1dKyQSKQoIZGF0YWJhc2UYAiABKAlCF7pIFHIPMg1eW2EtejAtOV8tXSsk2AEBEhcKBnRhcmdldBgDIAEoCUIHukgEcgIQARpfCg5Qb3N0Z3Jlc0NsaWVudBIiCgRuYW1lGAEgASgJQhS6SBFyDzINXlthLXowLTlfLV0rJBIpCghkYXRhYmFzZRgCIAEoCUIXukgUcg8yDV5bYS16MC05Xy1dKyTYAQEaBgoETmF0cxoMCgpHcnBjRGlhbGVyGlEKB1NlcnZpY2USLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAFCDQoEa2luZBIFukgCCAFCKlooZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vb255eC92MWIGcHJvdG8z", [file_buf_validate_validate]);
+  fileDesc("Ch1tYWxvbmF6L29ueXgvdjEvc2VydmljZS5wcm90bxIPbWFsb25hei5vbnl4LnYxIvABCg9TZXJ2aWNlTWFuaWZlc3QSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBIXCgZ0YXJnZXQYAiABKAlCB7pIBHICEAESFwoPaW5jbHVkZV9ydW50aW1lGAMgASgIEh0KFWV4cG9ydF9zZXJ2aWNlX2ZpZWxkcxgEIAEoCBIqCghjb2RlZ2VucxgFIAMoCzIYLm1hbG9uYXoub255eC52MS5Db2RlZ2VuEjEKDGRlcGVuZGVuY2llcxgGIAMoCzIbLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5IuABCgdDb2RlZ2VuEisKA3JwYxgBIAEoCzIcLm1hbG9uYXoub255eC52MS5Db2RlZ2VuLlJwY0gAGpgBCgNScGMSLQoEbmFtZRgBIAEoCUIfukgcchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJBImCgVzdG9yZRgCIAEoCUIXukgUcg8yDV5bYS16MC05Xy1dKyTYAQESFwoGdGFyZ2V0GAMgASgJQge6SARyAhABEgwKBG5hdHMYBCABKAgSEwoLbG9uZ3J1bm5pbmcYBSABKAhCDQoEa2luZBIFukgCCAEirgYKCkRlcGVuZGVuY3kSPQoLZ3JwY19jbGllbnQYASABKAsyJi5tYWxvbmF6Lm9ueXgudjEuRGVwZW5kZW5jeS5HcnBjQ2xpZW50SAASSgoScG9zdGdyZXNfZGJfY2xpZW50GAIgASgLMiwubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuUG9zdGdyZXNEYkNsaWVudEgAEkUKD3Bvc3RncmVzX2NsaWVudBgDIAEoCzIqLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5LlBvc3RncmVzQ2xpZW50SAASMAoEbmF0cxgEIAEoCzIgLm1hbG9uYXoub255eC52MS5EZXBlbmRlbmN5Lk5hdHNIABI2CgdzZXJ2aWNlGAUgASgLMiMubWFsb25hei5vbnl4LnYxLkRlcGVuZGVuY3kuU2VydmljZUgAGpwBCgpHcnBjQ2xpZW50EhYKBXByb3RvGAEgASgJQge6SARyAhABEjAKB3NlcnZpY2UYAiABKAlCH7pIHHIaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiQSMAoEbmFtZRgDIAEoCUIiukgfchoyGF5bYS16MC05XSsoLVthLXowLTldKykqJNgBARISCgpvcGVyYXRpb25zGAQgASgIGnoKEFBvc3RncmVzRGJDbGllbnQSIgoEbmFtZRgBIAEoCUIUukgRcg8yDV5bYS16MC05Xy1dKyQSKQoIZGF0YWJhc2UYAiABKAlCF7pIFHIPMg1eW2EtejAtOV8tXSsk2AEBEhcKBnRhcmdldBgDIAEoCUIHukgEcgIQARpfCg5Qb3N0Z3Jlc0NsaWVudBIiCgRuYW1lGAEgASgJQhS6SBFyDzINXlthLXowLTlfLV0rJBIpCghkYXRhYmFzZRgCIAEoCUIXukgUcg8yDV5bYS16MC05Xy1dKyTYAQEaBgoETmF0cxpRCgdTZXJ2aWNlEi0KBG5hbWUYASABKAlCH7pIHHIaMhheW2EtejAtOV0rKC1bYS16MC05XSspKiQSFwoGdGFyZ2V0GAIgASgJQge6SARyAhABQg0KBGtpbmQSBbpIAggBQipaKGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL29ueXgvdjFiBnByb3RvMw", [file_buf_validate_validate]);
 
 /**
  * A Go service: the library onyx wires from its dependencies and generated servers.
@@ -205,14 +205,6 @@ export type Dependency = Message<"malonaz.onyx.v1.Dependency"> & {
      */
     value: Dependency_Service;
     case: "service";
-  } | {
-    /**
-     * The binary's gRPC dialer.
-     *
-     * @generated from field: malonaz.onyx.v1.Dependency.GrpcDialer grpc_dialer = 6;
-     */
-    value: Dependency_GrpcDialer;
-    case: "grpcDialer";
   } | { case: undefined; value?: undefined };
 };
 
@@ -359,25 +351,6 @@ export const Dependency_NatsSchema: GenMessage<Dependency_Nats, {validType: Depe
   messageDesc(file_malonaz_onyx_v1_service, 2, 3);
 
 /**
- * The binary's gRPC dialer, `*grpc.Dialer`, for endpoints known only at run time: it dials them as the binary dials
- * its gRPC clients, an endpoint one of the binary's own servers listens on as that server, carrying the server token
- * under go/authentication/v2, and any other as remote.
- *
- * @generated from message malonaz.onyx.v1.Dependency.GrpcDialer
- */
-export type Dependency_GrpcDialer = Message<"malonaz.onyx.v1.Dependency.GrpcDialer"> & {
-};
-
-export type Dependency_GrpcDialerValid = Dependency_GrpcDialer;
-
-/**
- * Describes the message malonaz.onyx.v1.Dependency.GrpcDialer.
- * Use `create(Dependency_GrpcDialerSchema)` to create a new message.
- */
-export const Dependency_GrpcDialerSchema: GenMessage<Dependency_GrpcDialer, {validType: Dependency_GrpcDialerValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_service, 2, 4);
-
-/**
  * A plain Go component built from its own Opts and shared by every service in the binary.
  *
  * @generated from message malonaz.onyx.v1.Dependency.Service
@@ -405,5 +378,5 @@ export type Dependency_ServiceValid = Dependency_Service;
  * Use `create(Dependency_ServiceSchema)` to create a new message.
  */
 export const Dependency_ServiceSchema: GenMessage<Dependency_Service, {validType: Dependency_ServiceValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_onyx_v1_service, 2, 5);
+  messageDesc(file_malonaz_onyx_v1_service, 2, 4);
 
