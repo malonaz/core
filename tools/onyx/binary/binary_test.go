@@ -131,3 +131,61 @@ func TestLoadRejectsLongrunningWithoutScheduler(t *testing.T) {
 	_, err := load(t, "lro_unscheduled.yaml")
 	require.ErrorContains(t, err, "no service of the binary has a grpc_client on malonaz.scheduler.scheduler_service.v1.SchedulerService")
 }
+
+// A binary on go/authentication/v2: one interceptor built before anything dials, the account serving each gRPC
+// service named before any server serves, the server token on in-process connections only, and As handed to
+// every service's Start.
+func TestGenerateAuthentication(t *testing.T) {
+	b, err := load(t, "authentication.yaml")
+	require.NoError(t, err)
+	source, err := Generate(b)
+	require.NoError(t, err)
+	golden := "tools/onyx/binary/testdata/authentication.golden"
+	if os.Getenv("UPDATE_GOLDEN") != "" {
+		require.NoError(t, os.WriteFile(golden, source, 0o644))
+	}
+	expected, err := os.ReadFile(golden)
+	require.NoError(t, err)
+	require.Equal(t, string(expected), string(source))
+
+	main := string(source)
+	require.NotContains(t, main, "sessionManager")
+	require.NotContains(t, main, "github.com/malonaz/core/go/authentication\"")
+	require.Contains(t, main, `Authentication *authentication.Opts `+"`"+`group:"Authentication" namespace:"authentication" env-namespace:"AUTHENTICATION"`+"`")
+	construct := strings.Index(main, "authentication.NewInterceptor(ctx, opts.Authentication)")
+	firstConnect := strings.Index(main, ":= connect(")
+	firstListen := strings.Index(main, ".Listen(ctx)")
+	require.True(t, construct >= 0 && construct < firstConnect, "the interceptor is built before anything dials")
+	for _, serve := range []string{
+		`authenticationInterceptor.Serve("a-service", aservicepb.AService_ServiceDesc.ServiceName)`,
+		`authenticationInterceptor.Serve("b-service", bservicepb.BService_ServiceDesc.ServiceName)`,
+		`authenticationInterceptor.Serve("lro-service", lroservicepb.LroService_ServiceDesc.ServiceName)`,
+		`authenticationInterceptor.Serve("scheduler-service", schedulerservicepb.SchedulerService_ServiceDesc.ServiceName)`,
+		`authenticationInterceptor.Serve("scheduler-service", longrunningpb.Operations_ServiceDesc.ServiceName)`,
+	} {
+		index := strings.Index(main, serve)
+		require.True(t, index >= 0 && index < firstListen, "%s, before any server listens", serve)
+	}
+	// In-process connections carry the server token; the remote one and the gateway's own do not.
+	require.Contains(t, main, "connect(opts.BServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
+	require.Contains(t, main, "connect(opts.SchedulerServiceGRPC.ClientOpts(), grpc2.WithPerRPCCredentials(authentication.Credentials()))")
+	require.Contains(t, main, "connect(opts.CServiceGRPC)")
+	require.Contains(t, main, "grpc.NewGateway(opts.BServiceGRPCGateway, opts.BServiceGRPC.ClientOpts(), opts.Certs, opts.Prometheus,")
+	require.Equal(t, 1, strings.Count(main, "WithOptions("), "only connect installs dial options")
+	for _, service := range []string{"aService", "bService", "lroService", "schedulerService", "dProcessor", "hService"} {
+		require.Contains(t, main, service+"WithServiceAccount, err := authenticationInterceptor.As(")
+		require.Contains(t, main, service+".Start(ctx, "+service+"WithServiceAccount)")
+	}
+	require.Equal(t, 4, strings.Count(main, "authenticationInterceptor.Unary(),"))
+	require.Equal(t, 4, strings.Count(main, "authenticationInterceptor.Stream(),"))
+}
+
+func TestLoadRejectsServerWithoutAuthentication(t *testing.T) {
+	_, err := load(t, "authentication_partial.yaml")
+	require.ErrorContains(t, err, "server b-service does not list INTERCEPTOR_AUTHENTICATION, which every gRPC server of the binary must")
+}
+
+func TestLoadRejectsMixedInterceptors(t *testing.T) {
+	_, err := load(t, "authentication_mixed.yaml")
+	require.ErrorContains(t, err, "INTERCEPTOR_AUTHENTICATION replaces every other interceptor, but the binary also lists INTERCEPTOR_SESSION_LOG_INJECTOR")
+}

@@ -1,6 +1,7 @@
 package binary
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -43,6 +44,8 @@ var interceptors = map[onyxpb.Interceptor]interceptor{
 	onyxpb.Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION:   {opts: true},
 	onyxpb.Interceptor_INTERCEPTOR_JWT_AUTHENTICATION:                {opts: true, ctx: true},
 	onyxpb.Interceptor_INTERCEPTOR_PERMISSION_AUTHENTICATION:         {opts: true},
+	// Built once by authenticationInterceptor(), its v2 package and constructor differing from the above.
+	onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION: {},
 }
 
 // interceptorName is the interceptor's Go name: `ExternalApiKeyAuthentication`.
@@ -51,7 +54,17 @@ func interceptorName(i onyxpb.Interceptor) string {
 }
 
 func (g *generator) sessionManager() bool {
-	return len(g.b.Interceptors) > 0
+	return len(g.b.Interceptors) > 0 && !g.authentication()
+}
+
+// authentication reports whether the binary runs go/authentication/v2, which then is its only interceptor.
+func (g *generator) authentication() bool {
+	return slices.Contains(g.b.Interceptors, onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION)
+}
+
+// authenticationPackage is go/authentication/v2, imported under its package name.
+func (g *generator) authenticationPackage() string {
+	return g.ImportAs(core+"/authentication/v2", "authentication")
 }
 
 // listens reports whether any server binds a listener: processors alone never call runServer.
@@ -139,6 +152,9 @@ func (g *generator) generate() {
 	if g.sessionManager() {
 		g.P("sessionManager := ", g.Qual(core+"/authentication", "NewSessionManager"), "(opts.SessionManager)")
 		g.P()
+	}
+	if g.authentication() {
+		g.authenticationInterceptor()
 	}
 	g.P("errChan := make(chan error, 1)")
 	if g.listens() {
@@ -257,6 +273,10 @@ func (g *generator) opts() {
 	g.P("Prometheus *", g.Qual(core+"/prometheus", "Opts"), " ", gen.Tag("Prometheus", "prometheus"))
 	g.P("Certs *", g.Qual(core+"/certs", "Opts"), " ", gen.Tag("Certs", "certs"))
 
+	if g.authentication() {
+		g.P()
+		g.P("Authentication *", g.authenticationPackage(), ".Opts ", gen.Tag("Authentication", "authentication"))
+	}
 	if g.sessionManager() {
 		g.P()
 		g.P("SessionManager *", g.Qual(core+"/authentication", "SessionManagerOpts"), " ", gen.Tag("Session Manager", "session-manager"))
@@ -340,7 +360,11 @@ func (g *generator) grpcClients() {
 	g.P()
 	g.P("// gRPC connections, one per endpoint.")
 	g.P("endpointToGRPCConnection := map[string]*", grpc, ".Connection{}")
-	g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
+	if g.authentication() {
+		g.P("connect := func(clientOpts *", grpc, ".ClientOpts, options ...", g.Qual("google.golang.org/grpc", "DialOption"), ") (*", grpc, ".Connection, error) {")
+	} else {
+		g.P("connect := func(clientOpts *", grpc, ".ClientOpts) (*", grpc, ".Connection, error) {")
+	}
 	g.P("if connection, ok := endpointToGRPCConnection[clientOpts.Endpoint()]; ok {")
 	g.P("return connection, nil")
 	g.P("}")
@@ -348,7 +372,11 @@ func (g *generator) grpcClients() {
 	g.P("if err != nil {")
 	g.P("return nil, err")
 	g.P("}")
-	g.P("if err := connection.Connect(ctx); err != nil {")
+	if g.authentication() {
+		g.P("if err := connection.WithOptions(options...).Connect(ctx); err != nil {")
+	} else {
+		g.P("if err := connection.Connect(ctx); err != nil {")
+	}
 	g.P("return nil, err")
 	g.P("}")
 	g.P("endpointToGRPCConnection[clientOpts.Endpoint()] = connection")
@@ -363,6 +391,10 @@ func (g *generator) grpcClients() {
 		clientOpts := g.grpcOptsField(client.Name)
 		if client.Server != nil {
 			clientOpts = serverOpts(client.Server, "GRPC") + ".ClientOpts()"
+			// Only the binary's own servers receive the token: it carries the call's session.
+			if g.authentication() {
+				clientOpts += ", " + g.Qual("google.golang.org/grpc", "WithPerRPCCredentials") + "(" + g.authenticationPackage() + ".Credentials())"
+			}
 		}
 		pb := gen.PB(g.File, client.GRPCService)
 		connection := gen.Camel(client.Name) + "Connection"
@@ -470,10 +502,50 @@ func (g *generator) interceptors() {
 	}
 }
 
+// authenticationInterceptor builds the binary's one interceptor before anything dials, and names the account
+// serving each gRPC service, all before any server serves: the interceptor reads those names unguarded.
+func (g *generator) authenticationInterceptor() {
+	fmt_ := g.Import("fmt")
+	g.P("authenticationInterceptor, err := ", g.authenticationPackage(), ".NewInterceptor(ctx, opts.Authentication)")
+	g.P("if err != nil {")
+	g.P("return ", fmt_, `.Errorf("instantiating authentication interceptor: %w", err)`)
+	g.P("}")
+	served := map[string]bool{}
+	serve := func(account, serviceName string) {
+		if served[serviceName] {
+			return
+		}
+		served[serviceName] = true
+		g.P("if err := authenticationInterceptor.Serve(\"", account, "\", ", serviceName, "); err != nil {")
+		g.P("return ", fmt_, ".Errorf(\"serving as ", account, ": %w\", err)")
+		g.P("}")
+	}
+	for _, server := range g.b.Servers {
+		if !slices.Contains(server.GetGrpc().GetInterceptors(), onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION) {
+			continue
+		}
+		for _, registration := range server.GRPC {
+			serve(registration.Service.GetName(), gen.PB(g.File, registration.GRPC)+"."+registration.GRPC.GoName+"_ServiceDesc.ServiceName")
+		}
+		// The Operations server carries its calls to the scheduler as the scheduler service.
+		if server.SchedulerClient != nil && server.SchedulerClient.Service != nil {
+			serve(server.SchedulerClient.Service.GetName(), g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "Operations_ServiceDesc")+".ServiceName")
+		}
+	}
+	g.P()
+}
+
 func (g *generator) service(s *Service) {
 	fmt_ := g.Import("fmt")
 	v := serviceVar(s)
 	withServiceAccount := "nil"
+	if g.authentication() {
+		withServiceAccount = v + "WithServiceAccount"
+		g.P(withServiceAccount, ", err := authenticationInterceptor.As(\"", s.GetName(), "\")")
+		g.P("if err != nil {")
+		g.P("return ", fmt_, `.Errorf("service account of `, s.GetName(), `: %w", err)`)
+		g.P("}")
+	}
 	if g.internalServiceAuthentication() {
 		withServiceAccount = v + "WithServiceAccount"
 		g.P(withServiceAccount, ", err := opts.InternalServiceAuthentication.WithServiceAccount(\"", s.GetName(), "\")")
