@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package malonaz.ai.genui.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
+
+extend google.protobuf.MessageOptions {
+  // Marks an input component: rendering it ends the agentic turn until the user
+  // answers with an [InputResponse][malonaz.ai.genui.v1.InputResponse]. Any
+  // other component is a display component, rendered and acknowledged.
+  bool input = 76000;
+}

@@ -5,9 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 
+	"github.com/google/cel-go/cel"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	grpc_selector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"google.golang.org/grpc"
@@ -27,10 +29,14 @@ type PermissionAuthenticationInterceptorOpts struct {
 }
 
 type PermissionAuthenticationInterceptor struct {
-	sessionManager              *SessionManager
-	serviceAccountIDToMethodSet map[string]map[string]struct{}
-	publicMethodSet             map[string]struct{}
-	issuerIDToAuthorizer        map[string]*jwtAuthorizer
+	sessionManager                   *SessionManager
+	serviceAccountIDToServiceAccount map[string]*authenticationpb.ServiceAccount
+	serviceAccountIDToMethodSet      map[string]map[string]struct{}
+	publicMethodSet                  map[string]struct{}
+	issuerIDToAuthorizer             map[string]*jwtAuthorizer
+	// delegationProgram restricts every delegated session; nil restricts none.
+	delegationProgram cel.Program
+	actAs             *actAsAuthorizer
 }
 
 // compileWildcardPermission converts a glob-style permission pattern into a compiled regexp.
@@ -44,21 +50,29 @@ func compileWildcardPermission(pattern string) (*regexp.Regexp, error) {
 	return compiled, nil
 }
 
-// getMethodSet returns the set of all registered RPC full method names from the proto registry.
-func getMethodSet() map[string]struct{} {
-	fullMethodSet := map[string]struct{}{}
+// rangeMethods calls f with every registered RPC method and its full name, until f returns false.
+func rangeMethods(f func(fullMethod string, method protoreflect.MethodDescriptor) bool) {
 	protoregistry.GlobalFiles.RangeFiles(func(fileDescriptor protoreflect.FileDescriptor) bool {
 		services := fileDescriptor.Services()
 		for i := 0; i < services.Len(); i++ {
 			serviceDescriptor := services.Get(i)
-			serviceName := string(serviceDescriptor.FullName())
 			methods := serviceDescriptor.Methods()
 			for j := 0; j < methods.Len(); j++ {
-				methodName := string(methods.Get(j).Name())
-				fullMethod := fmt.Sprintf("/%s/%s", serviceName, methodName)
-				fullMethodSet[fullMethod] = struct{}{}
+				method := methods.Get(j)
+				if !f(fmt.Sprintf("/%s/%s", serviceDescriptor.FullName(), method.Name()), method) {
+					return false
+				}
 			}
 		}
+		return true
+	})
+}
+
+// getMethodSet returns the set of all registered RPC full method names from the proto registry.
+func getMethodSet() map[string]struct{} {
+	fullMethodSet := map[string]struct{}{}
+	rangeMethods(func(fullMethod string, _ protoreflect.MethodDescriptor) bool {
+		fullMethodSet[fullMethod] = struct{}{}
 		return true
 	})
 	return fullMethodSet
@@ -75,6 +89,11 @@ func NewPermissionAuthenticationInterceptor(
 
 	// Collect all registered RPC full method names from the proto registry.
 	methodSet := getMethodSet()
+
+	serviceAccountIDToServiceAccount := make(map[string]*authenticationpb.ServiceAccount, len(configuration.ServiceAccounts))
+	for _, serviceAccount := range configuration.ServiceAccounts {
+		serviceAccountIDToServiceAccount[serviceAccount.Id] = serviceAccount
+	}
 
 	// Compute a mapping of role ids to role.
 	roleIDToRole := map[string]*authenticationpb.Role{}
@@ -150,11 +169,30 @@ func NewPermissionAuthenticationInterceptor(
 		issuerIDToAuthorizer[jwtIssuer.Id] = authorizer
 	}
 
+	var delegationProgram cel.Program
+	if expression := configuration.GetDelegationAuthorizationCel(); expression != "" {
+		environment, err := cel.NewEnv(append([]cel.EnvOption{cel.Variable("method", cel.StringType)}, sessionCelOptions...)...)
+		if err != nil {
+			return nil, fmt.Errorf("creating delegation CEL environment: %w", err)
+		}
+		if delegationProgram, err = compileBoolCel(environment, expression); err != nil {
+			return nil, fmt.Errorf("compiling delegation authorization CEL: %w", err)
+		}
+	}
+
+	actAs, err := newActAsAuthorizer(serviceAccountIDToServiceAccount)
+	if err != nil {
+		return nil, err
+	}
+
 	return &PermissionAuthenticationInterceptor{
-		sessionManager:              sessionManager,
-		serviceAccountIDToMethodSet: serviceAccountIDToMethodSet,
-		publicMethodSet:             publicMethodSet,
-		issuerIDToAuthorizer:        issuerIDToAuthorizer,
+		sessionManager:                   sessionManager,
+		serviceAccountIDToServiceAccount: serviceAccountIDToServiceAccount,
+		serviceAccountIDToMethodSet:      serviceAccountIDToMethodSet,
+		publicMethodSet:                  publicMethodSet,
+		issuerIDToAuthorizer:             issuerIDToAuthorizer,
+		delegationProgram:                delegationProgram,
+		actAs:                            actAs,
 	}, nil
 }
 
@@ -222,15 +260,15 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		}
 	}
 
-	// Verify the session signature.
-	ok, err := i.sessionManager.verify(signedSession)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "verifying session: %v", err).Err()
-	}
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid session signature").Err()
+	if err := i.sessionManager.verify(signedSession); err != nil {
+		return nil, err
 	}
 	session := signedSession.Session
+
+	// Acting as another identity is about who the caller is, not the method: checked even on authorized sessions.
+	if err := i.actAs.authorizeRequest(fullMethod, session, request); err != nil {
+		return nil, err
+	}
 
 	// The session is already authorized, we do not re-check permissions.
 	if session.Authorized {
@@ -246,7 +284,7 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 			if !ok {
 				return nil, status.Errorf(codes.Unauthenticated, "unknown issuer %q", issuerID).Err()
 			}
-			allowed, err := authorizer.authorize(fullMethod, identity.JwtIdentity.GetClaims(), request)
+			allowed, err := authorizer.authorize(fullMethod, session, request)
 			if err != nil {
 				if errors.Is(err, ErrMethodNotConfigured) {
 					return nil, status.Errorf(codes.PermissionDenied, "no authorization rule for %q", fullMethod).Err()
@@ -270,6 +308,14 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 		default:
 			return nil, status.Errorf(codes.Unauthenticated, "only service accounts are supported").Err()
 		}
+		if err := i.authorizeDelegation(fullMethod, session); err != nil {
+			return nil, err
+		}
+	}
+
+	// A service account behaves the same whether it calls directly or an actor acts as it.
+	if serviceAccountIdentity := session.GetServiceAccountIdentity(); session.GetDelegation() != nil && serviceAccountIdentity != nil {
+		session.Labels = maps.Clone(i.serviceAccountIDToServiceAccount[serviceAccountIdentity.GetServiceAccountId()].GetLabels())
 	}
 
 	// Set the session to authorized, sign it and store it.
@@ -280,6 +326,23 @@ func (i *PermissionAuthenticationInterceptor) authenticate(ctx context.Context, 
 	}
 	isUpdate := true
 	return i.sessionManager.injectSignedSessionIntoLocalContext(ctx, signedSession, isUpdate)
+}
+
+// authorizeDelegation checks a delegated session against the restrictions on actors.
+func (i *PermissionAuthenticationInterceptor) authorizeDelegation(fullMethod string, session *authenticationpb.Session) error {
+	if session.GetDelegation() == nil || i.delegationProgram == nil {
+		return nil
+	}
+	variables := sessionCelVariables(session)
+	variables["method"] = fullMethod
+	allowed, err := evalBool(i.delegationProgram, variables)
+	if err != nil {
+		return status.Errorf(codes.Internal, "evaluating delegation authorization: %v", err).Err()
+	}
+	if !allowed {
+		return status.Errorf(codes.PermissionDenied, "actor %q may not call %q", session.GetDelegation().GetActor(), fullMethod).Err()
+	}
+	return nil
 }
 
 // Unary implements the authentication unary interceptor.

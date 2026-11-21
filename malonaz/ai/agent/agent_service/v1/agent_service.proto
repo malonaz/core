@@ -1,0 +1,287 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "malonaz/ai/agent/agent_service/v1/agent.proto";
+import "malonaz/ai/agent/agent_service/v1/definition.proto";
+import "malonaz/ai/agent/v1/agent.proto";
+import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/authentication/v1/authentication.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// This API stores agents and runs their turns. Every tool an agent holds is a
+// gRPC method, called on the service's behalf; built-in tools let agents
+// launch sub-agents, message their tree and label themselves.
+//
+// # Resource model
+//
+// - [Definition][malonaz.ai.agent.v1.Definition]: a reusable agent blueprint.
+//   Format: organizations/{organization}/definitions/{definition}
+// - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
+//   an AiService chat, its sub-agents linked by `parent_agent`.
+//   Format: organizations/{organization}/users/{user}/agents/{agent}
+//
+// # Messaging
+//
+// Messages are the only way into an agent, from a client or another agent, and
+// always asynchronous: MessageAgent queues a message on the agent, in its
+// `queued_messages`, waking it if idle, and the agent's turn delivers every
+// queued message to its chat, at its start and between its tool rounds. Each
+// turn a sub-agent ends is sent to its parent as a report, so a parent never
+// waits: it ends its turn and wakes on the report.
+//
+// # Schedules
+//
+// Agents schedule their own wake-ups through their built-in schedule tool, on
+// the SchedulerService: a recurring Schedule, or a one-off Job, under the
+// agent's user, labeled `agent.ai.malonaz.com/agent` with the agent's id and
+// `agent.ai.malonaz.com/wake` with how it wakes the agent (`self` or
+// `sub-agent`). Each run is a Job calling WakeAgent, its payload a
+// WakeAgentRequest; a Schedule's tick jobs carry its labels and name it in
+// `schedule`. Clients manage them on the SchedulerService, under the agent's
+// user `organizations/{o}/users/{u}`, with `{agent}` the agent's id:
+//
+// - recurring: ListSchedules, filter
+//   `labels."agent.ai.malonaz.com/agent" = "{agent}"`; PauseSchedule,
+//   ResumeSchedule, DeleteSchedule to cancel.
+// - upcoming one-offs: ListJobs, filter
+//   `labels."agent.ai.malonaz.com/agent" = "{agent}" AND NOT schedule:* AND state = JOB_STATE_PENDING`,
+//   order_by `schedule_time`; CancelJob to cancel.
+// - a schedule's runs: ListJobs, filter `schedule = "{schedule name}"`.
+//
+// Deleting an agent deletes its schedules and cancels its pending runs;
+// undeleting it restores neither.
+service AgentService {
+  option (google.api.default_host) = "agent.ai.malonaz.com";
+
+  // ===================== Definition Management =====================
+
+  // Create a definition.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateDefinition(CreateDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*}/definitions"
+      body: "definition"
+    };
+    option (google.api.method_signature) = "parent,definition";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Get a definition.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetDefinition(GetDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/definitions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Update a definition.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      patch: "/v1/{definition.name=organizations/*/definitions/*}"
+      body: "definition"
+    };
+    option (google.api.method_signature) = "definition,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Delete a definition.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteDefinition(DeleteDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/definitions/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // Undelete a definition.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteDefinition(UndeleteDefinitionRequest) returns (malonaz.ai.agent.v1.Definition) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/definitions/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // List definitions.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListDefinitions(ListDefinitionsRequest) returns (ListDefinitionsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*}/definitions"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
+  }
+
+  // ===================== Agent Management =====================
+
+  // Create an agent.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateAgent(CreateAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/agents"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "parent,agent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+    option (malonaz.authentication.v1.principal_field) = "agent.principal";
+  }
+
+  // Get an agent.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetAgent(GetAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Update an agent.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateAgent(UpdateAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      patch: "/v1/{agent.name=organizations/*/users/*/agents/*}"
+      body: "agent"
+    };
+    option (google.api.method_signature) = "agent,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Delete an agent.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteAgent(DeleteAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/agents/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Undelete an agent.
+  //
+  // See: https://google.aip.dev/164 (Soft delete).
+  rpc UndeleteAgent(UndeleteAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:undelete"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // List agents.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/agents"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Search agents.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc SearchAgents(SearchAgentsRequest) returns (SearchAgentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/agents:search"};
+    option (google.api.method_signature) = "parent,query";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Agent";
+  }
+
+  // Cancel an agent's running turn. Its pending messages stay queued.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc CancelAgent(CancelAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:cancel"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // Stream an agent's live activity, optionally for its whole tree. There is
+  // no replay: the agent's chat is its history, so clients open the stream,
+  // then list the chat's messages, deduping by message name.
+  rpc StreamAgent(StreamAgentRequest) returns (stream StreamAgentResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/agents/*}:stream"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ===================== Awaited tool calls =====================
+
+  // Approve a tool call the agent's turn awaits approval for. The turn resumes,
+  // running it, once its last awaited call is settled. Approving again is a
+  // no-op; approving a denied call fails.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ApproveToolCall(ApproveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:approveToolCall"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,tool_call_id";
+  }
+
+  // Resolve a tool call the agent's turn awaits, supplying its result: an
+  // input component's answer, or an error result denying a call awaiting
+  // approval. The turn resumes, writing it, once its last awaited call is
+  // settled. Resolving again with the same result is a no-op; any other
+  // decision fails.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ResolveToolCall(ResolveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:resolveToolCall"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,tool_call_id,result";
+  }
+
+  // ===================== Messaging =====================
+
+  // Send an agent a message, queued on the agent for its turn to deliver.
+  // Wakes an idle agent. The user's message to an awaiting agent denies the
+  // calls it awaits, the user replying instead, and resumes its turn. Returns
+  // the agent, the message in its queue.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc MessageAgent(MessageAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/agents/*}:message"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,message";
+  }
+
+  // ===================== Schedules =====================
+
+  // Wake an agent on a run of one of its schedules: queue the run's message on
+  // it, or launch its sub-agent with the run's task. Run only by the scheduler,
+  // as the job of a Schedule's tick or of a one-off: the job derives every
+  // request id, so a replayed or retried run delivers once.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc WakeAgent(WakeAgentRequest) returns (malonaz.ai.agent.v1.Agent) {
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 30}
+      max_attempts: 5
+    };
+  }
+}

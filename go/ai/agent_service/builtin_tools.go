@@ -1,0 +1,424 @@
+package agent_service
+
+import (
+	"cmp"
+	"context"
+	"fmt"
+	"maps"
+	"slices"
+	"strconv"
+	"strings"
+
+	"buf.build/go/protovalidate"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/structpb"
+
+	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
+	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
+	"github.com/malonaz/core/go/ai"
+	aitool "github.com/malonaz/core/go/ai/tool"
+	"github.com/malonaz/core/go/aip"
+	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/pbutil"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
+	"github.com/malonaz/core/go/pbutil/pbreflection"
+	"github.com/malonaz/core/go/uuid"
+)
+
+const (
+	createAgentsToolName = "create_agents"
+	messageAgentToolName = "message_agent"
+	listAgentsToolName   = "list_agents"
+	updateLabelsToolName = "update_labels"
+
+	scheduleToolName       = "schedule"
+	listSchedulesToolName  = "list_schedules"
+	cancelScheduleToolName = "cancel_schedule"
+
+	// builtinToolFile declares the built-in tools' arguments.
+	builtinToolFile = "malonaz/ai/agent/agent_service/v1/builtin_tool.proto"
+
+	// endTurnHint closes the results of the tools that message agents: replies are messages that wake the caller,
+	// never something to wait for.
+	endTurnHint = "End your turn now: each reply arrives later as a new message that wakes you. Never poll for it."
+)
+
+// builtinToolNamespace derives the request ids of what built-in tools create from their call's id, so a call run
+// again after a crash creates nothing twice.
+var builtinToolNamespace = uuid.MustParse("9b1f6c2e-7d84-4a53-b0e6-3c5a8f21d947")
+
+// builtinTools are the tools every agent holds, implemented natively.
+type builtinTools struct {
+	tools             []*aipb.Tool
+	nameToBuiltinTool map[string]*builtinTool
+}
+
+// builtinTool is a built-in tool: its arguments are a message of builtinToolFile.
+type builtinTool struct {
+	tool    *aipb.Tool
+	execute func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall) (*aipb.ToolResult, error)
+}
+
+// newInProcessBuilder returns a tool builder over this binary's own descriptors of the given proto files: built-in
+// tools and genui components go through the same schema machinery as RPC tools.
+func newInProcessBuilder(ctx context.Context, files ...string) (*aitool.Builder, error) {
+	serviceInfoProvider, err := pbreflection.NewServiceInfoProvider(protoregistry.GlobalFiles, nil)
+	if err != nil {
+		return nil, err
+	}
+	reflectionServerOptions := reflection.ServerOptions{
+		Services:           serviceInfoProvider,
+		DescriptorResolver: protoregistry.GlobalFiles,
+		ExtensionResolver:  protoregistry.GlobalTypes,
+	}
+	reflectionClient := pbreflection.NewServerReflectionClientInProc(reflectionServerOptions)
+	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithFiles(files...))
+	if err != nil {
+		return nil, fmt.Errorf("resolving the schema of %v: %w", files, err)
+	}
+	return aitool.NewBuilder(schema), nil
+}
+
+func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
+	builder, err := newInProcessBuilder(ctx, builtinToolFile)
+	if err != nil {
+		return nil, err
+	}
+
+	createAgentsTool, err := newBuiltinTool(builder, createAgentsToolName, createAgentsToolDescription, createAgents)
+	if err != nil {
+		return nil, err
+	}
+	messageAgentTool, err := newBuiltinTool(builder, messageAgentToolName, messageAgentToolDescription, messageAgent)
+	if err != nil {
+		return nil, err
+	}
+	listAgentsTool, err := newBuiltinTool(builder, listAgentsToolName, listAgentsToolDescription, listAgents)
+	if err != nil {
+		return nil, err
+	}
+	updateLabelsTool, err := newBuiltinTool(builder, updateLabelsToolName, updateLabelsToolDescription, updateLabels)
+	if err != nil {
+		return nil, err
+	}
+	scheduleTool, err := newBuiltinTool(builder, scheduleToolName, scheduleToolDescription, createSchedule)
+	if err != nil {
+		return nil, err
+	}
+	listSchedulesTool, err := newBuiltinTool(builder, listSchedulesToolName, listSchedulesToolDescription, listSchedules)
+	if err != nil {
+		return nil, err
+	}
+	cancelScheduleTool, err := newBuiltinTool(builder, cancelScheduleToolName, cancelScheduleToolDescription, cancelSchedule)
+	if err != nil {
+		return nil, err
+	}
+	builtinTools := &builtinTools{nameToBuiltinTool: map[string]*builtinTool{}}
+	for _, builtinTool := range []*builtinTool{
+		createAgentsTool, messageAgentTool, listAgentsTool, updateLabelsTool, scheduleTool, listSchedulesTool, cancelScheduleTool,
+	} {
+		builtinTools.tools = append(builtinTools.tools, builtinTool.tool)
+		builtinTools.nameToBuiltinTool[builtinTool.tool.GetName()] = builtinTool
+	}
+	return builtinTools, nil
+}
+
+// newBuiltinTool builds a built-in tool whose arguments are a T, parsed and validated before run.
+func newBuiltinTool[T proto.Message](
+	builder *aitool.Builder,
+	name, description string,
+	run func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments T) (*aipb.ToolResult, error),
+) (*builtinTool, error) {
+	var arguments T
+	tool, err := builder.CreateTool(aitool.MessageToolRequest(arguments, aitool.WithTitle(toolCallTitleDescription)))
+	if err != nil {
+		return nil, fmt.Errorf("creating built-in tool %s: %w", name, err)
+	}
+	tool.Name = name
+	tool.Description = description
+	messageDescriptor := arguments.ProtoReflect().Descriptor()
+	execute := func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall) (*aipb.ToolResult, error) {
+		dynamicArguments, err := buildToolCallMessage(builder.SchemaBuilder(), messageDescriptor, toolCall)
+		if err != nil {
+			return nil, err
+		}
+		// The schema's descriptors are reflected copies: convert to the generated type through the wire format.
+		argumentsBytes, err := proto.Marshal(dynamicArguments)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "marshaling arguments: %v", err).Err()
+		}
+		typedArguments := arguments.ProtoReflect().New().Interface().(T)
+		if err := proto.Unmarshal(argumentsBytes, typedArguments); err != nil {
+			return nil, status.Errorf(codes.Internal, "unmarshaling arguments: %v", err).Err()
+		}
+		if err := protovalidate.Validate(typedArguments); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid arguments: %v", err).Err()
+		}
+		return run(ctx, s, agent, toolCall, typedArguments)
+	}
+	return &builtinTool{tool: tool, execute: execute}, nil
+}
+
+// builtinRequestID derives the request id of something a built-in tool call creates.
+func builtinRequestID(agent *agentpb.Agent, toolCall *aipb.ToolCall, parts ...string) string {
+	return uuid.NewV5(builtinToolNamespace, strings.Join(append([]string{agent.GetName(), toolCall.GetId()}, parts...), "/")).String()
+}
+
+// structuredToolResult renders a message as a tool call's structured result.
+func structuredToolResult(toolCall *aipb.ToolCall, message proto.Message) (*aipb.ToolResult, error) {
+	content, err := pbutil.MarshalToStruct(message)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "marshaling result: %v", err).Err()
+	}
+	return ai.NewStructuredToolResult(toolCall.GetName(), toolCall.GetId(), structpb.NewStructValue(content)), nil
+}
+
+// ============================== create_agents ==============================
+
+const createAgentsToolDescription = "Launch one or more sub-agents, each working on its own task concurrently with you. " +
+	"Each sub-agent runs either a `definition` you may launch, which sets its instructions, model, reasoning effort and tools, " +
+	"or ad-hoc `instructions`, with a `model`, `reasoning_effort` and `tools` (a subset of yours) that default to yours. " +
+	"It receives its `task` as its first message and shares none of your context: include everything it needs, and what to report back. " +
+	"Launching never blocks: this returns the sub-agents' names at once. " +
+	"After launching, END YOUR TURN: each time a sub-agent ends a turn, its report arrives as a new message that wakes you, naming the sub-agent. " +
+	"Never poll for reports with list_agents. Use message_agent to follow up with a sub-agent."
+
+func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.CreateAgentsToolArguments) (*aipb.ToolResult, error) {
+	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
+	if err := mayLaunchSubAgents(agent); err != nil {
+		return nil, err
+	}
+	// Validate every launch first, so an invalid one launches none.
+	subAgents := make([]*agentpb.Agent, 0, len(arguments.GetAgents()))
+	for i, subAgentArguments := range arguments.GetAgents() {
+		subAgent, err := newSubAgent(agent, subAgentArguments)
+		if err == nil {
+			err = s.validateTools(subAgent.GetSpec())
+		}
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "agent %d: %v", i+1, err).Err()
+		}
+		subAgents = append(subAgents, subAgent)
+	}
+
+	lines := make([]string, len(subAgents))
+	var eg errgroup.Group
+	for i, subAgent := range subAgents {
+		eg.Go(func() error {
+			createAgentRequest := &agentservicepb.CreateAgentRequest{
+				Parent:    agentRn.UserRn().String(),
+				Agent:     subAgent,
+				RequestId: builtinRequestID(agent, toolCall, strconv.Itoa(i), "agent"),
+			}
+			// Failures are reported per sub-agent, never aborting the others.
+			if err := protovalidate.Validate(createAgentRequest); err != nil {
+				lines[i] = fmt.Sprintf("- %q: launch failed: %v", subAgent.GetTitle(), err)
+				return nil
+			}
+			createdAgent, err := s.CreateAgent(ctx, createAgentRequest)
+			if err != nil {
+				lines[i] = fmt.Sprintf("- %q: launch failed: %v", subAgent.GetTitle(), err)
+				return nil
+			}
+			task := arguments.GetAgents()[i].GetTask()
+			if err := s.sendAgentMessage(ctx, agent, createdAgent.GetName(), task, builtinRequestID(agent, toolCall, strconv.Itoa(i), "task")); err != nil {
+				lines[i] = fmt.Sprintf("- %s (%q): created, but sending its task failed, so it is idle; retry with message_agent: %v", createdAgent.GetName(), subAgent.GetTitle(), err)
+				return nil
+			}
+			lines[i] = fmt.Sprintf("- %s (%q): launched", createdAgent.GetName(), subAgent.GetTitle())
+			return nil
+		})
+	}
+	_ = eg.Wait()
+	content := strings.Join(lines, "\n") + "\n" + endTurnHint
+	return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), content), nil
+}
+
+// mayLaunchSubAgents checks that an agent's depth leaves it room for sub-agents.
+func mayLaunchSubAgents(agent *agentpb.Agent) error {
+	if agent.GetSpec().GetMaxSubAgentDepth() == 0 {
+		return status.Errorf(codes.PermissionDenied, "you may not launch sub-agents").Err()
+	}
+	return nil
+}
+
+// newSubAgent validates a launch against what the caller may delegate: only its own definitions and tools. Ad-hoc
+// settings default to the caller's.
+func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToolArguments_SubAgent) (*agentpb.Agent, error) {
+	spec := agent.GetSpec()
+	subAgent := &agentpb.Agent{
+		Title:       arguments.GetTitle(),
+		ParentAgent: agent.GetName(),
+	}
+
+	if arguments.GetDefinition() != "" {
+		if arguments.GetInstructions() != "" || arguments.GetModel() != "" || arguments.GetReasoningEffort() != aipb.ReasoningEffort_REASONING_EFFORT_UNSPECIFIED || len(arguments.GetTools()) > 0 {
+			return nil, fmt.Errorf("a definition sets the instructions, model, reasoning_effort and tools: omit them")
+		}
+		if !slices.Contains(spec.GetSubAgentDefinitions(), arguments.GetDefinition()) {
+			if len(spec.GetSubAgentDefinitions()) == 0 {
+				return nil, fmt.Errorf("you may not launch definition %q: launch an ad-hoc sub-agent instead", arguments.GetDefinition())
+			}
+			return nil, fmt.Errorf("you may not launch definition %q: launch one of %s, or an ad-hoc sub-agent",
+				arguments.GetDefinition(), strings.Join(spec.GetSubAgentDefinitions(), ", "))
+		}
+		subAgent.Definition = arguments.GetDefinition()
+		return subAgent, nil
+	}
+
+	if strings.TrimSpace(arguments.GetInstructions()) == "" {
+		return nil, fmt.Errorf("instructions are required without a definition")
+	}
+	tools, err := subAgentTools(spec.GetTools(), arguments.GetTools())
+	if err != nil {
+		return nil, err
+	}
+	subAgent.Spec = &agentpb.AgentSpec{
+		Instructions:     arguments.GetInstructions(),
+		Model:            cmp.Or(arguments.GetModel(), spec.GetModel()),
+		ReasoningEffort:  cmp.Or(arguments.GetReasoningEffort(), spec.GetReasoningEffort()),
+		Tools:            tools,
+		MaxSubAgentDepth: spec.GetMaxSubAgentDepth() - 1,
+	}
+	return subAgent, nil
+}
+
+// approvalStrictness orders tool approvals from the loosest: no approval, approval of the calls with side effects,
+// approval of every call.
+var approvalStrictness = map[agentpb.AgentSpec_Tool_Approval]int{
+	agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED: 0,
+	agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED:  1,
+	agentpb.AgentSpec_Tool_APPROVAL_REQUIRED:     2,
+}
+
+// subAgentTools returns the tools of an ad-hoc sub-agent: a subset of its parent's, all of them by default, each
+// approval inheriting its parent's or tightening it, never loosening it.
+func subAgentTools(parentTools, requestedTools []*agentpb.AgentSpec_Tool) ([]*agentpb.AgentSpec_Tool, error) {
+	nameToParentTool := make(map[string]*agentpb.AgentSpec_Tool, len(parentTools))
+	parentToolNames := make([]string, 0, len(parentTools))
+	for _, parentTool := range parentTools {
+		nameToParentTool[parentTool.GetName()] = parentTool
+		parentToolNames = append(parentToolNames, parentTool.GetName())
+	}
+	if len(requestedTools) == 0 {
+		requestedTools = parentTools
+	}
+	tools := make([]*agentpb.AgentSpec_Tool, 0, len(requestedTools))
+	for _, requestedTool := range requestedTools {
+		parentTool, ok := nameToParentTool[requestedTool.GetName()]
+		if !ok {
+			return nil, fmt.Errorf("you do not hold tool %s (yours: %s)", requestedTool.GetName(), strings.Join(parentToolNames, ", "))
+		}
+		tool := proto.CloneOf(parentTool)
+		if requestedTool.GetApproval() != agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED {
+			if approvalStrictness[requestedTool.GetApproval()] < approvalStrictness[parentTool.GetApproval()] {
+				return nil, fmt.Errorf("tool %s may not loosen your approval %s to %s", tool.GetName(), parentTool.GetApproval(), requestedTool.GetApproval())
+			}
+			tool.Approval = requestedTool.GetApproval()
+		}
+		tools = append(tools, tool)
+	}
+	return tools, nil
+}
+
+// =============================== message_agent ==============================
+
+const messageAgentToolDescription = "Send a message to another agent in your tree: typically one of your sub-agents, to follow up or redirect it, or your parent agent. " +
+	"Sending never blocks and returns no reply: the recipient reads the message on its next turn. " +
+	"After sending, END YOUR TURN: a sub-agent's next turn report arrives later as a new message that wakes you. Never poll for it."
+
+func messageAgent(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.MessageAgentToolArguments) (*aipb.ToolResult, error) {
+	if _, err := agentpb.ParseAgentRn(arguments.GetAgent()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid agent %q: %v", arguments.GetAgent(), err).Err()
+	}
+	if arguments.GetAgent() == agent.GetName() {
+		return nil, status.Errorf(codes.InvalidArgument, "you cannot message yourself").Err()
+	}
+	getAgentRequest := &agentservicepb.GetAgentRequest{Name: arguments.GetAgent()}
+	recipient, err := s.GetAgent(ctx, getAgentRequest)
+	if err != nil {
+		return nil, err
+	}
+	if recipient.GetRootAgent() != agent.GetRootAgent() {
+		return nil, status.Errorf(codes.PermissionDenied, "agent %q is not in your agent tree", arguments.GetAgent()).Err()
+	}
+	if err := s.sendAgentMessage(ctx, agent, recipient.GetName(), arguments.GetMessage(), builtinRequestID(agent, toolCall)); err != nil {
+		return nil, err
+	}
+	content := fmt.Sprintf("Sent to %s. %s", recipient.GetName(), endTurnHint)
+	return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), content), nil
+}
+
+// ================================ list_agents ===============================
+
+const listAgentsToolDescription = "List your sub-agents: their name, title, state, latest turn and labels. " +
+	"For an overview only: sub-agent reports arrive by themselves as new messages, so never call this to wait for them."
+
+var subAgentSummaryMask = pbfieldmask.FromPaths("name", "title", "state", "latest_turn", "labels").MustValidate(&agentpb.Agent{})
+
+func listAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, _ *agentservicepb.ListAgentsToolArguments) (*aipb.ToolResult, error) {
+	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
+	listAgentsRequest := &agentservicepb.ListAgentsRequest{
+		Parent: agentRn.UserRn().String(),
+		Filter: fmt.Sprintf("parent_agent = %q", agent.GetName()),
+		// Launch order, stable while paginating.
+		OrderBy: "create_time asc",
+	}
+	subAgents, err := aip.Paginate[*agentpb.Agent](ctx, listAgentsRequest, s.ListAgents)
+	if err != nil {
+		return nil, err
+	}
+	for _, subAgent := range subAgents {
+		subAgentSummaryMask.Apply(subAgent)
+	}
+	listAgentsResponse := &agentservicepb.ListAgentsResponse{Agents: subAgents}
+	return structuredToolResult(toolCall, listAgentsResponse)
+}
+
+// =============================== update_labels ==============================
+
+const updateLabelsToolDescription = "Set and remove labels on yourself, e.g. to publish your progress or status to the agents and users watching you. " +
+	"`set` maps keys to values (lowercase letters, digits, '_' and '-', at most 63 characters); `remove` lists keys to drop. " +
+	"Returns your labels after the change."
+
+func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.UpdateLabelsToolArguments) (*aipb.ToolResult, error) {
+	if len(arguments.GetSet()) == 0 && len(arguments.GetRemove()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "nothing to set or remove").Err()
+	}
+	// One path per key: concurrent updates of other keys survive, and the update retries on their etag races.
+	var paths []string
+	for _, key := range append(slices.Collect(maps.Keys(arguments.GetSet())), arguments.GetRemove()...) {
+		if isPlatformLabel(key) {
+			return nil, status.Errorf(codes.PermissionDenied, "label %s is reserved to the platform", key).Err()
+		}
+		paths = append(paths, "labels.`"+key+"`")
+	}
+	updateAgentRequest := &agentservicepb.UpdateAgentRequest{
+		Agent:      &agentpb.Agent{Name: agent.GetName(), Labels: arguments.GetSet()},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: paths},
+	}
+	updatedAgent, err := s.UpdateAgent(ctx, updateAgentRequest)
+	if err != nil {
+		return nil, err
+	}
+	updatedLabels := &agentpb.Agent{Labels: updatedAgent.GetLabels()}
+	return structuredToolResult(toolCall, updatedLabels)
+}
+
+// isPlatformLabel reports whether a label key is in a *.malonaz.com prefix, which agents may not write.
+func isPlatformLabel(key string) bool {
+	prefix, _, ok := strings.Cut(key, "/")
+	return ok && (prefix == "malonaz.com" || strings.HasSuffix(prefix, ".malonaz.com"))
+}

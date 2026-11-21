@@ -35,7 +35,7 @@ func newClaims(t *testing.T, claimToValue map[string]any) *structpb.Struct {
 
 func TestJwtAuthorizer_MethodNotConfigured(t *testing.T) {
 	authorizer := newTestAuthorizer(t, map[string]string{})
-	allowed, err := authorizer.authorize(getBookMethod, newClaims(t, nil), nil)
+	allowed, err := authorizer.authorize(getBookMethod, jwtSession(newClaims(t, nil)), nil)
 	require.ErrorIs(t, err, ErrMethodNotConfigured)
 	require.False(t, allowed)
 }
@@ -46,12 +46,12 @@ func TestJwtAuthorizer_ClaimsBased(t *testing.T) {
 	})
 
 	adminClaims := newClaims(t, map[string]any{"role": "admin"})
-	allowed, err := authorizer.authorize(getBookMethod, adminClaims, nil)
+	allowed, err := authorizer.authorize(getBookMethod, jwtSession(adminClaims), nil)
 	require.NoError(t, err)
 	require.True(t, allowed)
 
 	userClaims := newClaims(t, map[string]any{"role": "user"})
-	allowed, err = authorizer.authorize(getBookMethod, userClaims, nil)
+	allowed, err = authorizer.authorize(getBookMethod, jwtSession(userClaims), nil)
 	require.NoError(t, err)
 	require.False(t, allowed)
 }
@@ -66,14 +66,14 @@ func TestJwtAuthorizer_RequestBased(t *testing.T) {
 	getBookRequest := &librarypb.GetBookRequest{
 		Name: "organizations/acme/shelves/fiction/books/dune",
 	}
-	allowed, err := authorizer.authorize(getBookMethod, claims, getBookRequest)
+	allowed, err := authorizer.authorize(getBookMethod, jwtSession(claims), getBookRequest)
 	require.NoError(t, err)
 	require.True(t, allowed)
 
 	getBookRequest = &librarypb.GetBookRequest{
 		Name: "organizations/other/shelves/fiction/books/dune",
 	}
-	allowed, err = authorizer.authorize(getBookMethod, claims, getBookRequest)
+	allowed, err = authorizer.authorize(getBookMethod, jwtSession(claims), getBookRequest)
 	require.NoError(t, err)
 	require.False(t, allowed)
 }
@@ -88,14 +88,14 @@ func TestJwtAuthorizer_RequestFieldAccess(t *testing.T) {
 	listBooksRequest := &librarypb.ListBooksRequest{
 		Parent: "organizations/acme/shelves/fiction",
 	}
-	allowed, err := authorizer.authorize(listBookMethod, claims, listBooksRequest)
+	allowed, err := authorizer.authorize(listBookMethod, jwtSession(claims), listBooksRequest)
 	require.NoError(t, err)
 	require.True(t, allowed)
 
 	listBooksRequest = &librarypb.ListBooksRequest{
 		Parent: "organizations/acme/shelves/history",
 	}
-	allowed, err = authorizer.authorize(listBookMethod, claims, listBooksRequest)
+	allowed, err = authorizer.authorize(listBookMethod, jwtSession(claims), listBooksRequest)
 	require.NoError(t, err)
 	require.False(t, allowed)
 }
@@ -117,4 +117,36 @@ func TestNewJwtAuthorizer_InvalidExpression(t *testing.T) {
 	}
 	_, err := newJwtAuthorizer(jwtIssuer)
 	require.Error(t, err)
+}
+
+// jwtSession returns a session of the test issuer carrying claims.
+func jwtSession(claims *structpb.Struct) *authenticationpb.Session {
+	return &authenticationpb.Session{
+		Identity: &authenticationpb.Session_JwtIdentity{JwtIdentity: &authenticationpb.JwtIdentity{IssuerId: "test-issuer", Claims: claims}},
+	}
+}
+
+func TestJwtAuthorizer_Actor(t *testing.T) {
+	authorizer := newTestAuthorizer(t, map[string]string{
+		getBookMethod:  `actor == ""`,
+		listBookMethod: `has(session.delegation) && session.delegation.actor.startsWith("agents/")`,
+	})
+	direct := jwtSession(newClaims(t, nil))
+	delegated := jwtSession(newClaims(t, nil))
+	delegated.Delegation = &authenticationpb.Delegation{Actor: "agents/a"}
+
+	for _, test := range []struct {
+		method  string
+		session *authenticationpb.Session
+		allowed bool
+	}{
+		{getBookMethod, direct, true},
+		{getBookMethod, delegated, false},
+		{listBookMethod, direct, false},
+		{listBookMethod, delegated, true},
+	} {
+		allowed, err := authorizer.authorize(test.method, test.session, nil)
+		require.NoError(t, err)
+		require.Equal(t, test.allowed, allowed, "%s delegated=%t", test.method, test.session.Delegation != nil)
+	}
 }

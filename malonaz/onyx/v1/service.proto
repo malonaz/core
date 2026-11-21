@@ -25,6 +25,11 @@ message ServiceManifest {
 
   // Constructor arguments, in order. Resolved by the binary hosting the service.
   repeated Dependency dependencies = 6;
+
+  // Stop the service in the binary's graceful chain ahead of every server, with the processors,
+  // rather than after the servers' graceful stops: for a service whose stop releases work that
+  // still needs the servers, or ends streams that would hold their graceful stop.
+  bool stop_before_servers = 7;
 }
 
 // A generated component the Service embeds.
@@ -80,6 +85,9 @@ message Dependency {
 
     // A plain Go component.
     Service service = 5;
+
+    // The binary's session manager.
+    SessionManager session_manager = 6;
   }
 
   // A gRPC client. Dialed through the hosting server's own opts when the binary serves the service,
@@ -134,6 +142,10 @@ message Dependency {
 
   // The NATS client.
   message Nats {}
+
+  // The binary's session manager, signing and verifying sessions with its shared secret. The
+  // binary must configure interceptors.
+  message SessionManager {}
 
   // A plain Go component built from its own Opts and shared by every service in the binary.
   message Service {

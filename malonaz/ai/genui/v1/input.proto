@@ -5,6 +5,7 @@ package malonaz.ai.genui.v1;
 import "buf/validate/validate.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/ai/genui/v1/options.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/genui/v1";
 
@@ -59,6 +60,8 @@ message InputResponse {
 // A question with constrained answers, e.g. disambiguation
 // ("which John did you mean?").
 message Choice {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // The question posed to the user. Generate first so it renders while the
   // options stream in.
   string question = 1 [(buf.validate.field).required = true];
@@ -89,6 +92,8 @@ message ChoiceResponse {
 // A question allowing several answers to be selected before submitting,
 // e.g. "which contacts should I include in the follow-up?".
 message MultiChoice {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // The question posed to the user. Generate first so it renders while the
   // options stream in.
   string question = 1 [(buf.validate.field).required = true];
@@ -115,6 +120,8 @@ message MultiChoiceResponse {
 // An explicit approve/reject gate for a consequential action (send quote,
 // delete contact).
 message Confirmation {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // Short headline describing the action awaiting approval.
   string title = 1 [(buf.validate.field).required = true];
 
@@ -142,6 +149,8 @@ message ConfirmationResponse {
 // [FormResponse][malonaz.ai.genui.v1.FormResponse], e.g. capturing a new
 // lead's details in one step instead of a free-text back-and-forth.
 message Form {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // Optional heading rendered above the fields. Generate first so the heading
   // appears while the fields stream in.
   string title = 1;
@@ -287,6 +296,8 @@ message FormToggleInput {
 // "which John did you mean?". The client renders each candidate using the
 // same hydration as [ResourceList][malonaz.ai.genui.v1.ResourceList].
 message ResourcePicker {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // Optional heading rendered above the candidates. Generate first so the
   // heading appears while the candidates stream in.
   string title = 1;
@@ -325,6 +336,8 @@ message ResourcePickerResponse {
 
 // Bounded numeric input, e.g. "how satisfied was the customer, 1-5?".
 message Slider {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // The label naming the value being picked. Generate first; the track only
   // renders once the bounds below arrive.
   string label = 1 [(buf.validate.field).required = true];
@@ -349,6 +362,8 @@ message SliderResponse {
 
 // A calendar/clock input, e.g. "when should I schedule the call?".
 message DateTimePicker {
+  option (malonaz.ai.genui.v1.input) = true;
+
   // The label naming the moment being picked. Generate first so it renders
   // while the constraints below stream in.
   string label = 1 [(buf.validate.field).required = true];
