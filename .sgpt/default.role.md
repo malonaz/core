@@ -53,8 +53,9 @@ updated whenever a lore is added, renamed, or removed.
   `request_id` (idempotent, v7 default) vs `unique_key` (coalescing;
   not-started/started slots held across retries, and why); retries: retryable
   codes, backoff precedence (RetryInfo, the method's, the configurable default);
-  retention: declared on the method annotation over the scheduler default
-  (`-1s` keeps forever), left unset in the stored policy, applied at completion.
+  retention: the method annotation's `retention_duration` / `retain_forever`
+  oneof over the scheduler default, left unset in the stored policy, applied at
+  completion.
 - `lores/scheduler/longrunning` — AIP-151 operations as scheduler jobs:
   annotations, generated producer/runner split, `{job parent}/operations/{job}`
   naming and why, the per-server Operations server onyx derives from the

@@ -40,15 +40,16 @@ message QueuePolicy {
     }
   }];
 
-  // How long the queue's terminal jobs are kept, counted from their
-  // completion; -1s keeps them forever. Defaults to the scheduler's
-  // retention. A change applies to jobs completing after it: completed jobs
-  // keep their `purge_time`.
-  google.protobuf.Duration retention = 6 [(buf.validate.field).cel = {
-    id: "queue_policy.retention"
-    message: "retention must be positive, or -1s to keep jobs forever"
-    expression: "this > duration('0s') || this == duration('-1s')"
-  }];
+  // How long the queue's terminal jobs are kept. Unset follows the
+  // scheduler's retention. A change applies to jobs completing after it:
+  // completed jobs keep their `purge_time`.
+  oneof retention {
+    // Terminal jobs are deleted this long after they complete.
+    google.protobuf.Duration retention_duration = 6 [(buf.validate.field).duration.gt = {}];
+
+    // Terminal jobs are never deleted.
+    bool retain_forever = 7 [(buf.validate.field).bool.const = true];
+  }
 }
 
 // An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).

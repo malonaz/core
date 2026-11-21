@@ -1,6 +1,6 @@
 ---
 title: Producing scheduler jobs
-description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (declared per method over the scheduler default, -1s forever, never filled in).
+description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (a per-method oneof over the scheduler default: a duration or forever, never filled in).
 labels:
     lang: go
     repo: core
@@ -59,21 +59,23 @@ fails the job.
 ## Retention
 
 A terminal job is deleted at its `purge_time`, stamped when it turns terminal
-(success, failure, cancel, expiry) from its method's declared `retention`,
-else `--scheduler-{dispatcher,service}.retention` (720h; 0 keeps forever; must
-match). One function decides: `transition.PurgeTime(now, policy, default)`.
+(success, failure, cancel, expiry) from the `retention` oneof its method
+declares, else `--scheduler-{dispatcher,service}.retention` (720h; 0 keeps
+forever; must match). One function decides: `transition.PurgeTime(now,
+policy, default)`.
 
 ```proto
 option (malonaz.codegen.scheduler.v1.method).policy = {
   attempt_timeout: {seconds: 30}
-  retention: {seconds: 259200}  // 3 days; {seconds: -1} keeps forever
+  retention_duration: {seconds: 259200}  // or: retain_forever: true
 };
 ```
 
 - **Declare it on the annotation, never through the API**: the dispatcher
   converges the declared policy, and the annotation is the source of truth.
-- Positive, or exactly `-1s` for forever; `0` is rejected so that `{}` can
-  never silently mean forever.
+- A oneof, not a sentinel duration: unset, a positive `retention_duration`,
+  or `retain_forever: true` (`false` is rejected) each name one state, so
+  "undeclared" can never read as "forever".
 - Unlike the backoff, an undeclared retention is **not** filled into the
   stored policy: it means "the flag", read at completion, so a flag change
   reaches such queues. A changed declaration only affects jobs completing

@@ -1600,7 +1600,7 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x04Step\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\"\x11\n" +
 	"\x0fUnroutedRequest\"\x12\n" +
-	"\x10UnroutedResponse2\x9f\r\n" +
+	"\x10UnroutedResponse2\x94\r\n" +
 	"\tProcessor\x12y\n" +
 	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\"\f\xc2\xcf$\b\n" +
 	"\x06\n" +
@@ -1625,10 +1625,11 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x06Serial\x122.malonaz.test.scheduler.processor.v1.SerialRequest\x1a3.malonaz.test.scheduler.processor.v1.SerialResponse\"\x0e\xc2\xcf$\n" +
 	"\n" +
 	"\b\n" +
-	"\x02\b\x05\x10\x01 \x01\x12\x92\x01\n" +
-	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\"\x19\xc2\xcf$\x15\n" +
-	"\x13\n" +
-	"\x02\b\x05\x10\x012\v\b\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x85\x01\n" +
+	"\x02\b\x05\x10\x01 \x01\x12\x87\x01\n" +
+	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\"\x0e\xc2\xcf$\n" +
+	"\n" +
+	"\b\n" +
+	"\x02\b\x05\x10\x018\x01\x12\x85\x01\n" +
 	"\aOperate\x123.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\"&\xc2\xcf$\"\n" +
 	" \n" +
 	"\x02\b\x05\x10\x03\x1a\x14\n" +

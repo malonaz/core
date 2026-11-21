@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/policy/v1/policy.proto.
  */
 export const file_malonaz_scheduler_policy_v1_policy: GenFile = /*@__PURE__*/
-  fileDesc("CihtYWxvbmF6L3NjaGVkdWxlci9wb2xpY3kvdjEvcG9saWN5LnByb3RvEhttYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEizAMKC1F1ZXVlUG9saWN5Ej8KD2F0dGVtcHRfdGltZW91dBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESHQoMbWF4X2F0dGVtcHRzGAIgASgFQge6SAQaAigBEkAKDXJldHJ5X2JhY2tvZmYYAyABKAsyKS5tYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEuUmV0cnlCYWNrb2ZmEiAKD21heF9jb25jdXJyZW5jeRgEIAEoBUIHukgEGgIoABI8Cg9yZXRyeWFibGVfY29kZXMYBSADKA4yEC5nb29nbGUucnBjLkNvZGVCEbpIDpIBCxgBIgeCAQQQASAAEroBCglyZXRlbnRpb24YBiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CiwG6SIcBugGDAQoWcXVldWVfcG9saWN5LnJldGVudGlvbhI3cmV0ZW50aW9uIG11c3QgYmUgcG9zaXRpdmUsIG9yIC0xcyB0byBrZWVwIGpvYnMgZm9yZXZlchowdGhpcyA+IGR1cmF0aW9uKCcwcycpIHx8IHRoaXMgPT0gZHVyYXRpb24oJy0xcycpIqABCgxSZXRyeUJhY2tvZmYSNwoHaW5pdGlhbBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESMwoDbWF4GAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgu6SAiqAQIqAMgBARIiCgptdWx0aXBsaWVyGAMgASgBQg66SAsSCSkAAAAAAADwP0I2WjRnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvcG9saWN5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration, file_google_rpc_code]);
+  fileDesc("CihtYWxvbmF6L3NjaGVkdWxlci9wb2xpY3kvdjEvcG9saWN5LnByb3RvEhttYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEiggMKC1F1ZXVlUG9saWN5Ej8KD2F0dGVtcHRfdGltZW91dBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESHQoMbWF4X2F0dGVtcHRzGAIgASgFQge6SAQaAigBEkAKDXJldHJ5X2JhY2tvZmYYAyABKAsyKS5tYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEuUmV0cnlCYWNrb2ZmEiAKD21heF9jb25jdXJyZW5jeRgEIAEoBUIHukgEGgIoABI8Cg9yZXRyeWFibGVfY29kZXMYBSADKA4yEC5nb29nbGUucnBjLkNvZGVCEbpIDpIBCxgBIgeCAQQQASAAEkEKEnJldGVudGlvbl9kdXJhdGlvbhgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIIukgFqgECKgBIABIhCg5yZXRhaW5fZm9yZXZlchgHIAEoCEIHukgEagIIAUgAQgsKCXJldGVudGlvbiKgAQoMUmV0cnlCYWNrb2ZmEjcKB2luaXRpYWwYASABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CC7pICKoBAioAyAEBEjMKA21heBgCIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESIgoKbXVsdGlwbGllchgDIAEoAUIOukgLEgkpAAAAAAAA8D9CNlo0Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3BvbGljeS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_duration, file_google_rpc_code]);
 
 /**
  * The execution policy of a method's jobs.
@@ -63,14 +63,29 @@ export type QueuePolicy = Message<"malonaz.scheduler.policy.v1.QueuePolicy"> & {
   retryableCodes: Code[];
 
   /**
-   * How long the queue's terminal jobs are kept, counted from their
-   * completion; -1s keeps them forever. Defaults to the scheduler's
-   * retention. A change applies to jobs completing after it: completed jobs
-   * keep their `purge_time`.
+   * How long the queue's terminal jobs are kept. Unset follows the
+   * scheduler's retention. A change applies to jobs completing after it:
+   * completed jobs keep their `purge_time`.
    *
-   * @generated from field: google.protobuf.Duration retention = 6;
+   * @generated from oneof malonaz.scheduler.policy.v1.QueuePolicy.retention
    */
-  retention?: Duration;
+  retention: {
+    /**
+     * Terminal jobs are deleted this long after they complete.
+     *
+     * @generated from field: google.protobuf.Duration retention_duration = 6;
+     */
+    value: Duration;
+    case: "retentionDuration";
+  } | {
+    /**
+     * Terminal jobs are never deleted.
+     *
+     * @generated from field: bool retain_forever = 7;
+     */
+    value: boolean;
+    case: "retainForever";
+  } | { case: undefined; value?: undefined };
 };
 
 /**
@@ -119,14 +134,29 @@ export type QueuePolicyValid = Message<"malonaz.scheduler.policy.v1.QueuePolicy"
   retryableCodes: Code[];
 
   /**
-   * How long the queue's terminal jobs are kept, counted from their
-   * completion; -1s keeps them forever. Defaults to the scheduler's
-   * retention. A change applies to jobs completing after it: completed jobs
-   * keep their `purge_time`.
+   * How long the queue's terminal jobs are kept. Unset follows the
+   * scheduler's retention. A change applies to jobs completing after it:
+   * completed jobs keep their `purge_time`.
    *
-   * @generated from field: google.protobuf.Duration retention = 6;
+   * @generated from oneof malonaz.scheduler.policy.v1.QueuePolicy.retention
    */
-  retention?: Duration;
+  retention: {
+    /**
+     * Terminal jobs are deleted this long after they complete.
+     *
+     * @generated from field: google.protobuf.Duration retention_duration = 6;
+     */
+    value: Duration;
+    case: "retentionDuration";
+  } | {
+    /**
+     * Terminal jobs are never deleted.
+     *
+     * @generated from field: bool retain_forever = 7;
+     */
+    value: boolean;
+    case: "retainForever";
+  } | { case: undefined; value?: undefined };
 };
 
 /**

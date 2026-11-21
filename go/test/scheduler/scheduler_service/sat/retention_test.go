@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -16,51 +15,61 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-// requireRetention checks a terminal job is purged the retention after it
-// completed, or never for a negative one.
-func requireRetention(t *testing.T, job *schedulerpb.Job, retention time.Duration) {
+// declaredRetention is the retention a processor method declares.
+type declaredRetention struct {
+	duration time.Duration // 0 when none is declared.
+	forever  bool
+}
+
+// requirePurgeTime checks the terminal job is purged as its queue declares,
+// else the scheduler's default retention after it completed.
+func requirePurgeTime(t *testing.T, job *schedulerpb.Job, declared declaredRetention) {
 	t.Helper()
 	require.True(t, isTerminal(job.GetState()))
-	if retention < 0 {
+	switch {
+	case declared.forever:
 		require.Nil(t, job.GetPurgeTime())
-		return
+	case declared.duration > 0:
+		require.Equal(t, job.GetCompleteTime().AsTime().Add(declared.duration), job.GetPurgeTime().AsTime())
+	default:
+		require.Equal(t, job.GetCompleteTime().AsTime().Add(defaultRetention), job.GetPurgeTime().AsTime())
 	}
-	require.Equal(t, job.GetCompleteTime().AsTime().Add(retention), job.GetPurgeTime().AsTime())
 }
 
 func TestRetention(t *testing.T) {
 	t.Parallel()
 	// Each queue's retention is declared on its method's annotation, or not at all.
 	for name, test := range map[string]struct {
-		queue     string
-		declared  *durationpb.Duration
-		retention time.Duration
+		queue    string
+		declared declaredRetention
 		// A request that succeeds.
 		request func() proto.Message
 	}{
-		"declared": {
-			queue: flakyQueue, declared: durationpb.New(flakyRetention), retention: flakyRetention,
+		"duration": {
+			queue: flakyQueue, declared: declaredRetention{duration: flakyRetention},
 			request: func() proto.Message { return &processorpb.FlakyRequest{Key: uuid.MustNewV7().String()} },
 		},
-		"declared forever": {
-			queue: progressQueue, declared: durationpb.New(progressRetention), retention: progressRetention,
+		"forever": {
+			queue: progressQueue, declared: declaredRetention{forever: true},
 			request: func() proto.Message { return &processorpb.ProgressRequest{} },
 		},
 		"default": {
-			queue: echoQueue, retention: defaultRetention,
+			queue:   echoQueue,
 			request: func() proto.Message { return &processorpb.EchoRequest{Value: uuid.MustNewV7().String()} },
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			// Stored as declared: an undeclared retention is not filled with the default.
-			require.True(t, proto.Equal(test.declared, getQueue(t, test.queue).GetPolicy().GetRetention()))
+			policy := getQueue(t, test.queue).GetPolicy()
+			require.Equal(t, test.declared.duration, policy.GetRetentionDuration().AsDuration())
+			require.Equal(t, test.declared.forever, policy.GetRetainForever())
 
 			t.Run("succeeded", func(t *testing.T) {
 				t.Parallel()
 				job := waitForTerminal(t, createJob(t, test.request()).GetName())
 				require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, job.GetState())
-				requireRetention(t, job, test.retention)
+				requirePurgeTime(t, job, test.declared)
 			})
 			t.Run("cancelled", func(t *testing.T) {
 				t.Parallel()
@@ -68,7 +77,7 @@ func TestRetention(t *testing.T) {
 				cancelJobRequest := &schedulerservicepb.CancelJobRequest{Name: created.GetName()}
 				cancelled, err := schedulerServiceClient.CancelJob(ctx, cancelJobRequest)
 				require.NoError(t, err)
-				requireRetention(t, cancelled, test.retention)
+				requirePurgeTime(t, cancelled, test.declared)
 			})
 			t.Run("batch cancelled", func(t *testing.T) {
 				t.Parallel()
@@ -78,7 +87,7 @@ func TestRetention(t *testing.T) {
 				batchCancelJobsResponse, err := schedulerServiceClient.BatchCancelJobs(ctx, batchCancelJobsRequest)
 				require.NoError(t, err)
 				for _, job := range batchCancelJobsResponse.GetJobs() {
-					requireRetention(t, job, test.retention)
+					requirePurgeTime(t, job, test.declared)
 				}
 			})
 			t.Run("expired", func(t *testing.T) {
@@ -87,7 +96,7 @@ func TestRetention(t *testing.T) {
 				created := createJob(t, test.request(), scheduler.WithExpireTime(time.Now().Add(-time.Second)))
 				job := waitForTerminal(t, created.GetName())
 				require.Equal(t, int32(codes.DeadlineExceeded), job.GetError().GetCode())
-				requireRetention(t, job, test.retention)
+				requirePurgeTime(t, job, test.declared)
 			})
 		})
 	}
@@ -97,6 +106,6 @@ func TestRetention(t *testing.T) {
 		created := createJob(t, &processorpb.FlakyRequest{Key: uuid.MustNewV7().String(), Failures: 1, Code: int32(codes.InvalidArgument)})
 		job := waitForTerminal(t, created.GetName())
 		require.Equal(t, schedulerpb.JobState_JOB_STATE_FAILED, job.GetState())
-		requireRetention(t, job, flakyRetention)
+		requirePurgeTime(t, job, declaredRetention{duration: flakyRetention})
 	})
 }

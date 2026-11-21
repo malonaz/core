@@ -114,16 +114,17 @@ func Observe(job *schedulerpb.Job, state schedulerpb.JobState) {
 }
 
 // PurgeTime returns when a job completing now is deleted: after its queue's
-// retention, else the scheduler's default; nil keeps it forever.
+// retention, else the scheduler's default (0 keeps it); nil keeps it forever.
 func PurgeTime(now time.Time, policy *policypb.QueuePolicy, defaultRetention time.Duration) *timestamppb.Timestamp {
-	retention := defaultRetention
-	if policy.GetRetention() != nil {
-		retention = policy.GetRetention().AsDuration()
-	}
-	if retention <= 0 {
+	switch {
+	case policy.GetRetainForever():
 		return nil
+	case policy.HasRetentionDuration():
+		return timestamppb.New(now.Add(policy.GetRetentionDuration().AsDuration()))
+	case defaultRetention > 0:
+		return timestamppb.New(now.Add(defaultRetention))
 	}
-	return timestamppb.New(now.Add(retention))
+	return nil
 }
 
 // JobName returns the job's resource name under whichever parent it has.

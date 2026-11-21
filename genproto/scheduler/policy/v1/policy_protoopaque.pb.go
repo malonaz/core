@@ -27,13 +27,13 @@ const (
 
 // The execution policy of a method's jobs.
 type QueuePolicy struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_AttemptTimeout *durationpb.Duration   `protobuf:"bytes,1,opt,name=attempt_timeout,json=attemptTimeout,proto3"`
-	xxx_hidden_MaxAttempts    int32                  `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3"`
-	xxx_hidden_RetryBackoff   *RetryBackoff          `protobuf:"bytes,3,opt,name=retry_backoff,json=retryBackoff,proto3"`
-	xxx_hidden_MaxConcurrency int32                  `protobuf:"varint,4,opt,name=max_concurrency,json=maxConcurrency,proto3"`
-	xxx_hidden_RetryableCodes []code.Code            `protobuf:"varint,5,rep,packed,name=retryable_codes,json=retryableCodes,proto3,enum=google.rpc.Code"`
-	xxx_hidden_Retention      *durationpb.Duration   `protobuf:"bytes,6,opt,name=retention,proto3"`
+	state                     protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_AttemptTimeout *durationpb.Duration    `protobuf:"bytes,1,opt,name=attempt_timeout,json=attemptTimeout,proto3"`
+	xxx_hidden_MaxAttempts    int32                   `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3"`
+	xxx_hidden_RetryBackoff   *RetryBackoff           `protobuf:"bytes,3,opt,name=retry_backoff,json=retryBackoff,proto3"`
+	xxx_hidden_MaxConcurrency int32                   `protobuf:"varint,4,opt,name=max_concurrency,json=maxConcurrency,proto3"`
+	xxx_hidden_RetryableCodes []code.Code             `protobuf:"varint,5,rep,packed,name=retryable_codes,json=retryableCodes,proto3,enum=google.rpc.Code"`
+	xxx_hidden_Retention      isQueuePolicy_Retention `protobuf_oneof:"retention"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -98,11 +98,22 @@ func (x *QueuePolicy) GetRetryableCodes() []code.Code {
 	return nil
 }
 
-func (x *QueuePolicy) GetRetention() *durationpb.Duration {
+func (x *QueuePolicy) GetRetentionDuration() *durationpb.Duration {
 	if x != nil {
-		return x.xxx_hidden_Retention
+		if x, ok := x.xxx_hidden_Retention.(*queuePolicy_RetentionDuration); ok {
+			return x.RetentionDuration
+		}
 	}
 	return nil
+}
+
+func (x *QueuePolicy) GetRetainForever() bool {
+	if x != nil {
+		if x, ok := x.xxx_hidden_Retention.(*queuePolicy_RetainForever); ok {
+			return x.RetainForever
+		}
+	}
+	return false
 }
 
 func (x *QueuePolicy) SetAttemptTimeout(v *durationpb.Duration) {
@@ -125,8 +136,16 @@ func (x *QueuePolicy) SetRetryableCodes(v []code.Code) {
 	x.xxx_hidden_RetryableCodes = v
 }
 
-func (x *QueuePolicy) SetRetention(v *durationpb.Duration) {
-	x.xxx_hidden_Retention = v
+func (x *QueuePolicy) SetRetentionDuration(v *durationpb.Duration) {
+	if v == nil {
+		x.xxx_hidden_Retention = nil
+		return
+	}
+	x.xxx_hidden_Retention = &queuePolicy_RetentionDuration{v}
+}
+
+func (x *QueuePolicy) SetRetainForever(v bool) {
+	x.xxx_hidden_Retention = &queuePolicy_RetainForever{v}
 }
 
 func (x *QueuePolicy) HasAttemptTimeout() bool {
@@ -150,6 +169,22 @@ func (x *QueuePolicy) HasRetention() bool {
 	return x.xxx_hidden_Retention != nil
 }
 
+func (x *QueuePolicy) HasRetentionDuration() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Retention.(*queuePolicy_RetentionDuration)
+	return ok
+}
+
+func (x *QueuePolicy) HasRetainForever() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_Retention.(*queuePolicy_RetainForever)
+	return ok
+}
+
 func (x *QueuePolicy) ClearAttemptTimeout() {
 	x.xxx_hidden_AttemptTimeout = nil
 }
@@ -160,6 +195,36 @@ func (x *QueuePolicy) ClearRetryBackoff() {
 
 func (x *QueuePolicy) ClearRetention() {
 	x.xxx_hidden_Retention = nil
+}
+
+func (x *QueuePolicy) ClearRetentionDuration() {
+	if _, ok := x.xxx_hidden_Retention.(*queuePolicy_RetentionDuration); ok {
+		x.xxx_hidden_Retention = nil
+	}
+}
+
+func (x *QueuePolicy) ClearRetainForever() {
+	if _, ok := x.xxx_hidden_Retention.(*queuePolicy_RetainForever); ok {
+		x.xxx_hidden_Retention = nil
+	}
+}
+
+const QueuePolicy_Retention_not_set_case case_QueuePolicy_Retention = 0
+const QueuePolicy_RetentionDuration_case case_QueuePolicy_Retention = 6
+const QueuePolicy_RetainForever_case case_QueuePolicy_Retention = 7
+
+func (x *QueuePolicy) WhichRetention() case_QueuePolicy_Retention {
+	if x == nil {
+		return QueuePolicy_Retention_not_set_case
+	}
+	switch x.xxx_hidden_Retention.(type) {
+	case *queuePolicy_RetentionDuration:
+		return QueuePolicy_RetentionDuration_case
+	case *queuePolicy_RetainForever:
+		return QueuePolicy_RetainForever_case
+	default:
+		return QueuePolicy_Retention_not_set_case
+	}
 }
 
 type QueuePolicy_builder struct {
@@ -179,11 +244,16 @@ type QueuePolicy_builder struct {
 	// once regardless of the attempts left. Defaults to UNAVAILABLE, INTERNAL,
 	// UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
 	RetryableCodes []code.Code
-	// How long the queue's terminal jobs are kept, counted from their
-	// completion; -1s keeps them forever. Defaults to the scheduler's
-	// retention. A change applies to jobs completing after it: completed jobs
-	// keep their `purge_time`.
-	Retention *durationpb.Duration
+	// How long the queue's terminal jobs are kept. Unset follows the
+	// scheduler's retention. A change applies to jobs completing after it:
+	// completed jobs keep their `purge_time`.
+
+	// Fields of oneof xxx_hidden_Retention:
+	// Terminal jobs are deleted this long after they complete.
+	RetentionDuration *durationpb.Duration
+	// Terminal jobs are never deleted.
+	RetainForever *bool
+	// -- end of xxx_hidden_Retention
 }
 
 func (b0 QueuePolicy_builder) Build() *QueuePolicy {
@@ -195,9 +265,42 @@ func (b0 QueuePolicy_builder) Build() *QueuePolicy {
 	x.xxx_hidden_RetryBackoff = b.RetryBackoff
 	x.xxx_hidden_MaxConcurrency = b.MaxConcurrency
 	x.xxx_hidden_RetryableCodes = b.RetryableCodes
-	x.xxx_hidden_Retention = b.Retention
+	if b.RetentionDuration != nil {
+		x.xxx_hidden_Retention = &queuePolicy_RetentionDuration{b.RetentionDuration}
+	}
+	if b.RetainForever != nil {
+		x.xxx_hidden_Retention = &queuePolicy_RetainForever{*b.RetainForever}
+	}
 	return m0
 }
+
+type case_QueuePolicy_Retention protoreflect.FieldNumber
+
+func (x case_QueuePolicy_Retention) String() string {
+	md := file_malonaz_scheduler_policy_v1_policy_proto_msgTypes[0].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isQueuePolicy_Retention interface {
+	isQueuePolicy_Retention()
+}
+
+type queuePolicy_RetentionDuration struct {
+	// Terminal jobs are deleted this long after they complete.
+	RetentionDuration *durationpb.Duration `protobuf:"bytes,6,opt,name=retention_duration,json=retentionDuration,proto3,oneof"`
+}
+
+type queuePolicy_RetainForever struct {
+	// Terminal jobs are never deleted.
+	RetainForever bool `protobuf:"varint,7,opt,name=retain_forever,json=retainForever,proto3,oneof"`
+}
+
+func (*queuePolicy_RetentionDuration) isQueuePolicy_Retention() {}
+
+func (*queuePolicy_RetainForever) isQueuePolicy_Retention() {}
 
 // An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).
 type RetryBackoff struct {
@@ -314,15 +417,16 @@ var File_malonaz_scheduler_policy_v1_policy_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_policy_v1_policy_proto_rawDesc = "" +
 	"\n" +
-	"(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\xa2\x04\n" +
+	"(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\xef\x03\n" +
 	"\vQueuePolicy\x12O\n" +
 	"\x0fattempt_timeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\x0eattemptTimeout\x12*\n" +
 	"\fmax_attempts\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\vmaxAttempts\x12N\n" +
 	"\rretry_backoff\x18\x03 \x01(\v2).malonaz.scheduler.policy.v1.RetryBackoffR\fretryBackoff\x120\n" +
 	"\x0fmax_concurrency\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x0emaxConcurrency\x12L\n" +
-	"\x0fretryable_codes\x18\x05 \x03(\x0e2\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x0eretryableCodes\x12\xc5\x01\n" +
-	"\tretention\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\x8b\x01\xbaH\x87\x01\xba\x01\x83\x01\n" +
-	"\x16queue_policy.retention\x127retention must be positive, or -1s to keep jobs forever\x1a0this > duration('0s') || this == duration('-1s')R\tretention\"\xba\x01\n" +
+	"\x0fretryable_codes\x18\x05 \x03(\x0e2\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x0eretryableCodes\x12T\n" +
+	"\x12retention_duration\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x02*\x00H\x00R\x11retentionDuration\x120\n" +
+	"\x0eretain_forever\x18\a \x01(\bB\a\xbaH\x04j\x02\b\x01H\x00R\rretainForeverB\v\n" +
+	"\tretention\"\xba\x01\n" +
 	"\fRetryBackoff\x12@\n" +
 	"\ainitial\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\ainitial\x128\n" +
 	"\x03max\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\x03max\x12.\n" +
@@ -341,7 +445,7 @@ var file_malonaz_scheduler_policy_v1_policy_proto_depIdxs = []int32{
 	2, // 0: malonaz.scheduler.policy.v1.QueuePolicy.attempt_timeout:type_name -> google.protobuf.Duration
 	1, // 1: malonaz.scheduler.policy.v1.QueuePolicy.retry_backoff:type_name -> malonaz.scheduler.policy.v1.RetryBackoff
 	3, // 2: malonaz.scheduler.policy.v1.QueuePolicy.retryable_codes:type_name -> google.rpc.Code
-	2, // 3: malonaz.scheduler.policy.v1.QueuePolicy.retention:type_name -> google.protobuf.Duration
+	2, // 3: malonaz.scheduler.policy.v1.QueuePolicy.retention_duration:type_name -> google.protobuf.Duration
 	2, // 4: malonaz.scheduler.policy.v1.RetryBackoff.initial:type_name -> google.protobuf.Duration
 	2, // 5: malonaz.scheduler.policy.v1.RetryBackoff.max:type_name -> google.protobuf.Duration
 	6, // [6:6] is the sub-list for method output_type
@@ -355,6 +459,10 @@ func init() { file_malonaz_scheduler_policy_v1_policy_proto_init() }
 func file_malonaz_scheduler_policy_v1_policy_proto_init() {
 	if File_malonaz_scheduler_policy_v1_policy_proto != nil {
 		return
+	}
+	file_malonaz_scheduler_policy_v1_policy_proto_msgTypes[0].OneofWrappers = []any{
+		(*queuePolicy_RetentionDuration)(nil),
+		(*queuePolicy_RetainForever)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
