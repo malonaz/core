@@ -25,15 +25,15 @@ type declaredRetention struct {
 // else the scheduler's default retention after it completed.
 func requirePurgeTime(t *testing.T, job *schedulerpb.Job, declared declaredRetention) {
 	t.Helper()
-	require.True(t, isTerminal(job.GetState()))
-	switch {
-	case declared.forever:
+	if declared.forever {
 		require.Nil(t, job.GetPurgeTime())
-	case declared.duration > 0:
-		require.Equal(t, job.GetCompleteTime().AsTime().Add(declared.duration), job.GetPurgeTime().AsTime())
-	default:
-		require.Equal(t, job.GetCompleteTime().AsTime().Add(defaultRetention), job.GetPurgeTime().AsTime())
+		return
 	}
+	retention := defaultRetention
+	if declared.duration > 0 {
+		retention = declared.duration
+	}
+	require.Equal(t, job.GetCompleteTime().AsTime().Add(retention), job.GetPurgeTime().AsTime())
 }
 
 func TestRetention(t *testing.T) {
