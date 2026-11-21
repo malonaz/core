@@ -1,6 +1,6 @@
 ---
 title: Producing scheduler jobs
-description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, and what the payload type decides.
+description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (a per-method oneof over the scheduler default: a duration or forever, never filled in).
 labels:
     lang: go
     repo: core
@@ -55,6 +55,36 @@ retry time: a flag change lands when a dispatcher next converges the queues.
 A sat whose concurrent writes race on etags shortens it (onikisu's Stripe sat:
 1s); not below what the race needs within `max_attempts`, or the third abort
 fails the job.
+
+## Retention
+
+A terminal job is deleted at its `purge_time`, stamped when it turns terminal
+(success, failure, cancel, expiry) from the `retention` oneof its method
+declares, else `--scheduler-{dispatcher,service}.retention` (720h; 0 keeps
+forever; must match). One function decides: `transition.PurgeTime(now,
+policy, default)`.
+
+```proto
+option (malonaz.codegen.scheduler.v1.method).policy = {
+  attempt_timeout: {seconds: 30}
+  retention_duration: {seconds: 259200}  // or: retain_forever: true
+};
+```
+
+- **Declare it on the annotation, never through the API**: the dispatcher
+  converges the declared policy, and the annotation is the source of truth.
+- A oneof, not a sentinel duration: unset, a positive `retention_duration`,
+  or `retain_forever: true` (`false` is rejected) each name one state, so
+  "undeclared" can never read as "forever".
+- Unlike the backoff, an undeclared retention is **not** filled into the
+  stored policy: it means "the flag", read at completion, so a flag change
+  reaches such queues. A changed declaration only affects jobs completing
+  after the dispatcher converges it.
+- The service's job transitions read the policy in the locking query
+  (`store.LockedJob`, a scalar subquery on `scheduler.queue`), the dispatcher
+  from the claim's join: never a query per job.
+- The sweep always runs: a declared retention purges even when the default
+  keeps forever.
 
 ## Options
 

@@ -17,6 +17,7 @@ import (
 
 	"github.com/malonaz/core/gengo/scheduler/model"
 	"github.com/malonaz/core/gengo/scheduler/store"
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	pb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
@@ -192,15 +193,13 @@ func (s *Service) BatchRetryJobs(ctx context.Context, request *pb.BatchRetryJobs
 
 // transitionJobsByName applies fn to every named job in one transaction, and
 // returns them in the order of names.
-func (s *Service) transitionJobsByName(ctx context.Context, parent string, names []string, fn func(*schedulerpb.Job) error) ([]*schedulerpb.Job, error) {
+func (s *Service) transitionJobsByName(ctx context.Context, parent string, names []string, fn jobTransition) ([]*schedulerpb.Job, error) {
 	parsedNames, err := parseBatchJobNames(parent, names)
 	if err != nil {
 		return nil, err
 	}
 	now := transition.Now()
-	jobModels, err := s.schedulerPostgresStore.TransitionJobsByName(ctx, parsedNames, func(job *model.Job) error {
-		return transition.Mutate(job, now, fn)
-	})
+	jobModels, err := s.schedulerPostgresStore.TransitionJobsByName(ctx, parsedNames, fn.apply(now))
 	if err != nil {
 		return nil, jobTransitionError(err)
 	}
@@ -222,7 +221,7 @@ func (s *Service) transitionJobsByName(ctx context.Context, parent string, names
 // retry returns a FAILED or CANCELLED job to PENDING for one more, manual,
 // attempt, keeping its history. The expiry is dropped: a retry asks for the job
 // to run regardless.
-func retry(job *schedulerpb.Job) error {
+func retry(job *schedulerpb.Job, _ *policypb.QueuePolicy) error {
 	switch job.GetState() {
 	case schedulerpb.JobState_JOB_STATE_FAILED, schedulerpb.JobState_JOB_STATE_CANCELLED:
 	default:
@@ -248,7 +247,7 @@ func (s *Service) BatchDeleteJobs(ctx context.Context, request *pb.BatchDeleteJo
 	if err != nil {
 		return nil, err
 	}
-	err = s.schedulerPostgresStore.DeleteJobsByName(ctx, names, request.GetAllowMissing(), func(jobModel *model.Job) error {
+	err = s.schedulerPostgresStore.DeleteJobsByName(ctx, names, request.GetAllowMissing(), func(jobModel *store.LockedJob) error {
 		if schedulerpb.JobState(jobModel.State) != schedulerpb.JobState_JOB_STATE_RUNNING {
 			return nil
 		}
@@ -304,8 +303,8 @@ func (s *Service) BatchCancelJobs(ctx context.Context, request *pb.BatchCancelJo
 
 // cancel moves a PENDING or RUNNING job to CANCELLED at now, recording the
 // attempt a RUNNING job had in flight.
-func (s *Service) cancel(now time.Time) func(*schedulerpb.Job) error {
-	return func(job *schedulerpb.Job) error {
+func (s *Service) cancel(now time.Time) jobTransition {
+	return func(job *schedulerpb.Job, policy *policypb.QueuePolicy) error {
 		if transition.IsTerminal(job.GetState()) {
 			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
@@ -316,7 +315,7 @@ func (s *Service) cancel(now time.Time) func(*schedulerpb.Job) error {
 		job.State = schedulerpb.JobState_JOB_STATE_CANCELLED
 		job.CompleteTime = timestamppb.New(now)
 		job.LockTime = nil
-		job.PurgeTime = transition.PurgeTime(now, s.opts.Retention)
+		job.PurgeTime = transition.PurgeTime(now, policy, s.opts.Retention)
 		job.Error = cancelled.Proto()
 		transition.Observe(job, job.State)
 		return nil
@@ -352,7 +351,7 @@ func (s *Service) WaitJob(ctx context.Context, request *pb.WaitJobRequest) (*sch
 
 // ReportJobProgress records a RUNNING job's latest progress.
 func (s *Service) ReportJobProgress(ctx context.Context, request *pb.ReportJobProgressRequest) (*schedulerpb.Job, error) {
-	return s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job) error {
+	return s.transitionJob(ctx, request.GetName(), func(job *schedulerpb.Job, _ *policypb.QueuePolicy) error {
 		if job.GetState() != schedulerpb.JobState_JOB_STATE_RUNNING {
 			return &statePreconditionError{name: job.GetName(), state: job.GetState()}
 		}
@@ -361,17 +360,30 @@ func (s *Service) ReportJobProgress(ctx context.Context, request *pb.ReportJobPr
 	})
 }
 
+// jobTransition mutates a locked job, given its queue's policy (nil when the
+// queue is gone).
+type jobTransition func(job *schedulerpb.Job, policy *policypb.QueuePolicy) error
+
+// apply returns the store transition running the mutation at now.
+func (fn jobTransition) apply(now time.Time) func(*store.LockedJob) error {
+	return func(job *store.LockedJob) error {
+		policy, err := job.Policy()
+		if err != nil {
+			return err
+		}
+		return transition.Mutate(&job.Job, now, func(jobPb *schedulerpb.Job) error { return fn(jobPb, policy) })
+	}
+}
+
 // transitionJob applies fn to the named job under a row lock, translating
 // store and precondition errors to gRPC statuses.
-func (s *Service) transitionJob(ctx context.Context, name string, fn func(*schedulerpb.Job) error) (*schedulerpb.Job, error) {
+func (s *Service) transitionJob(ctx context.Context, name string, fn jobTransition) (*schedulerpb.Job, error) {
 	_, _, jobID, err := model.ParseJobName(name)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
 	}
 	now := transition.Now()
-	jobModel, err := s.schedulerPostgresStore.TransitionJob(ctx, jobID, func(job *model.Job) error {
-		return transition.Mutate(job, now, fn)
-	})
+	jobModel, err := s.schedulerPostgresStore.TransitionJob(ctx, jobID, fn.apply(now))
 	if err != nil {
 		return nil, jobTransitionError(err)
 	}

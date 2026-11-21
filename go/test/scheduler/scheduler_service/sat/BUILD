@@ -7,6 +7,7 @@ go_test(
         "policy_test.go",
         "processor_test.go",
         "queue_test.go",
+        "retention_test.go",
         "sat_test.go",
         "schedule_test.go",
         "shutdown_test.go",

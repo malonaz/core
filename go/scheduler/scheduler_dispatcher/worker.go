@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcstatus "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -110,7 +111,8 @@ func (s *Service) process(ctx context.Context, claimed *store.ClaimedJob) {
 		response, err = unwrapOperation(response)
 		if errors.Is(err, errUnfinishedOperation) {
 			// A runner that hands back an unfinished operation will do so again: no retry.
-			policy = &policypb.QueuePolicy{MaxAttempts: 1}
+			policy = proto.CloneOf(policy)
+			policy.MaxAttempts = 1
 		}
 	}
 	s.complete(ctx, log, job, policy, response, err)
@@ -153,9 +155,9 @@ func routing(claimed *store.ClaimedJob) (*route, error) {
 	if claimed.QueuePolicy == nil || claimed.QueueEndpoint == nil || claimed.QueueResponseType == nil {
 		return nil, grpcstatus.Errorf(codes.FailedPrecondition, "queue %s does not exist", claimed.Queue)
 	}
-	policy := &policypb.QueuePolicy{}
-	if err := pbutil.JSONUnmarshal(claimed.QueuePolicy, policy); err != nil {
-		return nil, grpcstatus.Errorf(codes.Internal, "unmarshaling queue policy: %v", err)
+	policy, err := claimed.Policy()
+	if err != nil {
+		return nil, grpcstatus.Error(codes.Internal, err.Error())
 	}
 	return &route{endpoint: *claimed.QueueEndpoint, responseType: *claimed.QueueResponseType, policy: policy}, nil
 }
@@ -250,7 +252,7 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 		case err == nil:
 			job.State = schedulerpb.JobState_JOB_STATE_SUCCEEDED
 			job.CompleteTime = timestamppb.New(now)
-			job.PurgeTime = transition.PurgeTime(now, s.opts.Retention)
+			job.PurgeTime = transition.PurgeTime(now, policy, s.opts.Retention)
 			job.Error = nil
 			job.Response = response
 		case nextScheduleTime != nil:
@@ -260,7 +262,7 @@ func (s *Service) complete(ctx context.Context, log *slog.Logger, job *model.Job
 		default:
 			job.State = schedulerpb.JobState_JOB_STATE_FAILED
 			job.CompleteTime = timestamppb.New(now)
-			job.PurgeTime = transition.PurgeTime(now, s.opts.Retention)
+			job.PurgeTime = transition.PurgeTime(now, policy, s.opts.Retention)
 			job.Error = grpcstatus.Convert(err).Proto()
 		}
 		transition.Observe(job, job.State)

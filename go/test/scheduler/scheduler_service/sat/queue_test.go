@@ -173,6 +173,18 @@ func TestQueue_Validation(t *testing.T) {
 			grpcrequire.Error(t, codes.InvalidArgument, create(queue))
 		}
 	})
+	t.Run("non-positive retention duration", func(t *testing.T) {
+		for _, retention := range []time.Duration{0, -time.Hour} {
+			policy := newPolicy()
+			policy.Retention = &policypb.QueuePolicy_RetentionDuration{RetentionDuration: durationpb.New(retention)}
+			grpcrequire.Error(t, codes.InvalidArgument, create(fakeQueue(method, deadURL, policy)))
+		}
+	})
+	t.Run("retain forever set to false", func(t *testing.T) {
+		policy := newPolicy()
+		policy.Retention = &policypb.QueuePolicy_RetainForever{RetainForever: false}
+		grpcrequire.Error(t, codes.InvalidArgument, create(fakeQueue(method, deadURL, policy)))
+	})
 	t.Run("bad retryable code", func(t *testing.T) {
 		policy := newPolicy()
 		policy.RetryableCodes = []codepb.Code{codepb.Code_OK}

@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
 )
@@ -112,13 +113,18 @@ func Observe(job *schedulerpb.Job, state schedulerpb.JobState) {
 	transitionCounter.WithLabelValues(job.GetQueue(), job.GetMethod(), state.String()).Inc()
 }
 
-// PurgeTime returns when a job completing now is deleted under the retention;
-// nil keeps it forever.
-func PurgeTime(now time.Time, retention time.Duration) *timestamppb.Timestamp {
-	if retention <= 0 {
+// PurgeTime returns when a job completing now is deleted: after its queue's
+// retention, else the scheduler's default (0 keeps it); nil keeps it forever.
+func PurgeTime(now time.Time, policy *policypb.QueuePolicy, defaultRetention time.Duration) *timestamppb.Timestamp {
+	switch {
+	case policy.GetRetainForever():
 		return nil
+	case policy.HasRetentionDuration():
+		return timestamppb.New(now.Add(policy.GetRetentionDuration().AsDuration()))
+	case defaultRetention > 0:
+		return timestamppb.New(now.Add(defaultRetention))
 	}
-	return timestamppb.New(now.Add(retention))
+	return nil
 }
 
 // JobName returns the job's resource name under whichever parent it has.

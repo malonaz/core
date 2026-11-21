@@ -100,8 +100,8 @@ export const file_malonaz_scheduler_scheduler_service_v1_scheduler_service: GenF
  * A running job holds a lease that the dispatcher renews while the call is in
  * flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
  *
- * Terminal jobs are kept for the scheduler's retention and deleted at their
- * `purge_time`.
+ * Terminal jobs are kept for their queue's retention, else the scheduler's,
+ * and deleted at their `purge_time`.
  *
  * @generated from service malonaz.scheduler.scheduler_service.v1.SchedulerService
  */

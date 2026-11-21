@@ -165,7 +165,8 @@ type Job struct {
 	// PENDING, which is how a crashed worker's jobs are recovered.
 	LockTime *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=lock_time,json=lockTime,proto3" json:"lock_time,omitempty"`
 	// The time after which a terminal job is permanently deleted. Set when the
-	// job reaches a terminal state, from the scheduler's retention.
+	// job reaches a terminal state, from its queue's retention, else the
+	// scheduler's.
 	PurgeTime *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=purge_time,json=purgeTime,proto3" json:"purge_time,omitempty"`
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32 `protobuf:"varint,17,opt,name=attempt_count,json=attemptCount,proto3" json:"attempt_count,omitempty"`
@@ -667,7 +668,8 @@ type Job_builder struct {
 	// PENDING, which is how a crashed worker's jobs are recovered.
 	LockTime *timestamppb.Timestamp
 	// The time after which a terminal job is permanently deleted. Set when the
-	// job reaches a terminal state, from the scheduler's retention.
+	// job reaches a terminal state, from its queue's retention, else the
+	// scheduler's.
 	PurgeTime *timestamppb.Timestamp
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32

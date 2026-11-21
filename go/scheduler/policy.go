@@ -41,6 +41,8 @@ var defaultRetryableCodes = []codepb.Code{
 
 // NormalizePolicy fills a queue policy's defaults in: what the scheduler
 // stores and runs, so a declared policy compares equal to the stored one.
+// Retention stays unset: the scheduler's default is read at completion, so a
+// change of the flag reaches such queues.
 func NormalizePolicy(policy *policypb.QueuePolicy, defaultRetryBackoff *policypb.RetryBackoff) *policypb.QueuePolicy {
 	policy = proto.CloneOf(policy)
 	if policy.RetryBackoff == nil {

@@ -1600,15 +1600,15 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x04Step\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\"\x11\n" +
 	"\x0fUnroutedRequest\"\x12\n" +
-	"\x10UnroutedResponse2\x8c\r\n" +
+	"\x10UnroutedResponse2\x94\r\n" +
 	"\tProcessor\x12y\n" +
 	"\x04Echo\x120.malonaz.test.scheduler.processor.v1.EchoRequest\x1a1.malonaz.test.scheduler.processor.v1.EchoResponse\"\f\xc2\xcf$\b\n" +
 	"\x06\n" +
-	"\x02\b\x05\x10\x01\x12\x93\x01\n" +
-	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\"#\xc2\xcf$\x1f\n" +
-	"\x1d\n" +
+	"\x02\b\x05\x10\x01\x12\x99\x01\n" +
+	"\x05Flaky\x121.malonaz.test.scheduler.processor.v1.FlakyRequest\x1a2.malonaz.test.scheduler.processor.v1.FlakyResponse\")\xc2\xcf$%\n" +
+	"#\n" +
 	"\x02\b\x05\x10\x03\x1a\x15\n" +
-	"\x06\x10\x80Ɔ\x8f\x01\x12\x02\b\x05\x19\x00\x00\x00\x00\x00\x00\x00@\x12|\n" +
+	"\x06\x10\x80Ɔ\x8f\x01\x12\x02\b\x05\x19\x00\x00\x00\x00\x00\x00\x00@2\x04\b\x80\xe9\x0f\x12|\n" +
 	"\x05Sleep\x121.malonaz.test.scheduler.processor.v1.SleepRequest\x1a2.malonaz.test.scheduler.processor.v1.SleepResponse\"\f\xc2\xcf$\b\n" +
 	"\x06\n" +
 	"\x02\b\n" +
@@ -1625,10 +1625,11 @@ const file_malonaz_test_scheduler_processor_v1_processor_proto_rawDesc = "" +
 	"\x06Serial\x122.malonaz.test.scheduler.processor.v1.SerialRequest\x1a3.malonaz.test.scheduler.processor.v1.SerialResponse\"\x0e\xc2\xcf$\n" +
 	"\n" +
 	"\b\n" +
-	"\x02\b\x05\x10\x01 \x01\x12\x85\x01\n" +
-	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\"\f\xc2\xcf$\b\n" +
-	"\x06\n" +
-	"\x02\b\x05\x10\x01\x12\x85\x01\n" +
+	"\x02\b\x05\x10\x01 \x01\x12\x87\x01\n" +
+	"\bProgress\x124.malonaz.test.scheduler.processor.v1.ProgressRequest\x1a5.malonaz.test.scheduler.processor.v1.ProgressResponse\"\x0e\xc2\xcf$\n" +
+	"\n" +
+	"\b\n" +
+	"\x02\b\x05\x10\x018\x01\x12\x85\x01\n" +
 	"\aOperate\x123.malonaz.test.scheduler.processor.v1.OperateRequest\x1a\x1d.google.longrunning.Operation\"&\xc2\xcf$\"\n" +
 	" \n" +
 	"\x02\b\x05\x10\x03\x1a\x14\n" +

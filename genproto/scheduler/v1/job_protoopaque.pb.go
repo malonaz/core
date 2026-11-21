@@ -616,7 +616,8 @@ type Job_builder struct {
 	// PENDING, which is how a crashed worker's jobs are recovered.
 	LockTime *timestamppb.Timestamp
 	// The time after which a terminal job is permanently deleted. Set when the
-	// job reaches a terminal state, from the scheduler's retention.
+	// job reaches a terminal state, from its queue's retention, else the
+	// scheduler's.
 	PurgeTime *timestamppb.Timestamp
 	// The number of times the job has been claimed by a worker.
 	AttemptCount int32
