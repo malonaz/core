@@ -180,8 +180,9 @@ type QueuePolicy_builder struct {
 	// UNKNOWN, DEADLINE_EXCEEDED, RESOURCE_EXHAUSTED and ABORTED.
 	RetryableCodes []code.Code
 	// How long the queue's terminal jobs are kept, counted from their
-	// completion. Defaults to the scheduler's retention. A change applies to
-	// jobs completing after it: completed jobs keep their `purge_time`.
+	// completion; -1s keeps them forever. Defaults to the scheduler's
+	// retention. A change applies to jobs completing after it: completed jobs
+	// keep their `purge_time`.
 	Retention *durationpb.Duration
 }
 
@@ -313,14 +314,15 @@ var File_malonaz_scheduler_policy_v1_policy_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_policy_v1_policy_proto_rawDesc = "" +
 	"\n" +
-	"(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\x9d\x03\n" +
+	"(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\xa2\x04\n" +
 	"\vQueuePolicy\x12O\n" +
 	"\x0fattempt_timeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\x0eattemptTimeout\x12*\n" +
 	"\fmax_attempts\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\vmaxAttempts\x12N\n" +
 	"\rretry_backoff\x18\x03 \x01(\v2).malonaz.scheduler.policy.v1.RetryBackoffR\fretryBackoff\x120\n" +
 	"\x0fmax_concurrency\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x0emaxConcurrency\x12L\n" +
-	"\x0fretryable_codes\x18\x05 \x03(\x0e2\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x0eretryableCodes\x12A\n" +
-	"\tretention\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x02*\x00R\tretention\"\xba\x01\n" +
+	"\x0fretryable_codes\x18\x05 \x03(\x0e2\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x0eretryableCodes\x12\xc5\x01\n" +
+	"\tretention\x18\x06 \x01(\v2\x19.google.protobuf.DurationB\x8b\x01\xbaH\x87\x01\xba\x01\x83\x01\n" +
+	"\x16queue_policy.retention\x127retention must be positive, or -1s to keep jobs forever\x1a0this > duration('0s') || this == duration('-1s')R\tretention\"\xba\x01\n" +
 	"\fRetryBackoff\x12@\n" +
 	"\ainitial\x18\x01 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\ainitial\x128\n" +
 	"\x03max\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\v\xbaH\b\xc8\x01\x01\xaa\x01\x02*\x00R\x03max\x12.\n" +

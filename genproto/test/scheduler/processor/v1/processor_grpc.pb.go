@@ -58,7 +58,8 @@ type ProcessorClient interface {
 	// Same as Echo, serialised: the order jobs are claimed in is observable as
 	// the order they run in.
 	Serial(ctx context.Context, in *SerialRequest, opts ...grpc.CallOption) (*SerialResponse, error)
-	// Reports `steps` progress updates to the scheduler before returning.
+	// Reports `steps` progress updates to the scheduler before returning. Its
+	// jobs are kept forever.
 	Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler
@@ -227,7 +228,8 @@ type ProcessorServer interface {
 	// Same as Echo, serialised: the order jobs are claimed in is observable as
 	// the order they run in.
 	Serial(context.Context, *SerialRequest) (*SerialResponse, error)
-	// Reports `steps` progress updates to the scheduler before returning.
+	// Reports `steps` progress updates to the scheduler before returning. Its
+	// jobs are kept forever.
 	Progress(context.Context, *ProgressRequest) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler

@@ -27,7 +27,7 @@ from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb
 from google.rpc import code_pb2 as google_dot_rpc_dot_code__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\xc7\x02\n\x0bQueuePolicy\x12?\n\x0f\x61ttempt_timeout\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x1d\n\x0cmax_attempts\x18\x02 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12@\n\rretry_backoff\x18\x03 \x01(\x0b\x32).malonaz.scheduler.policy.v1.RetryBackoff\x12 \n\x0fmax_concurrency\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12<\n\x0fretryable_codes\x18\x05 \x03(\x0e\x32\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\x0b\x18\x01\"\x07\x82\x01\x04\x10\x01 \x00\x12\x36\n\tretention\x18\x06 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\xbaH\x05\xaa\x01\x02*\x00\"\xa0\x01\n\x0cRetryBackoff\x12\x37\n\x07initial\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x33\n\x03max\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\"\n\nmultiplier\x18\x03 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\xf0?B6Z4github.com/malonaz/core/genproto/scheduler/policy/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n(malonaz/scheduler/policy/v1/policy.proto\x12\x1bmalonaz.scheduler.policy.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x15google/rpc/code.proto\"\xcc\x03\n\x0bQueuePolicy\x12?\n\x0f\x61ttempt_timeout\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x1d\n\x0cmax_attempts\x18\x02 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x01\x12@\n\rretry_backoff\x18\x03 \x01(\x0b\x32).malonaz.scheduler.policy.v1.RetryBackoff\x12 \n\x0fmax_concurrency\x18\x04 \x01(\x05\x42\x07\xbaH\x04\x1a\x02(\x00\x12<\n\x0fretryable_codes\x18\x05 \x03(\x0e\x32\x10.google.rpc.CodeB\x11\xbaH\x0e\x92\x01\x0b\x18\x01\"\x07\x82\x01\x04\x10\x01 \x00\x12\xba\x01\n\tretention\x18\x06 \x01(\x0b\x32\x19.google.protobuf.DurationB\x8b\x01\xbaH\x87\x01\xba\x01\x83\x01\n\x16queue_policy.retention\x12\x37retention must be positive, or -1s to keep jobs forever\x1a\x30this > duration(\'0s\') || this == duration(\'-1s\')\"\xa0\x01\n\x0cRetryBackoff\x12\x37\n\x07initial\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\x33\n\x03max\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationB\x0b\xbaH\x08\xaa\x01\x02*\x00\xc8\x01\x01\x12\"\n\nmultiplier\x18\x03 \x01(\x01\x42\x0e\xbaH\x0b\x12\t)\x00\x00\x00\x00\x00\x00\xf0?B6Z4github.com/malonaz/core/genproto/scheduler/policy/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -44,7 +44,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_QUEUEPOLICY'].fields_by_name['retryable_codes']._loaded_options = None
   _globals['_QUEUEPOLICY'].fields_by_name['retryable_codes']._serialized_options = b'\272H\016\222\001\013\030\001\"\007\202\001\004\020\001 \000'
   _globals['_QUEUEPOLICY'].fields_by_name['retention']._loaded_options = None
-  _globals['_QUEUEPOLICY'].fields_by_name['retention']._serialized_options = b'\272H\005\252\001\002*\000'
+  _globals['_QUEUEPOLICY'].fields_by_name['retention']._serialized_options = b'\272H\207\001\272\001\203\001\n\026queue_policy.retention\0227retention must be positive, or -1s to keep jobs forever\0320this > duration(\'0s\') || this == duration(\'-1s\')'
   _globals['_RETRYBACKOFF'].fields_by_name['initial']._loaded_options = None
   _globals['_RETRYBACKOFF'].fields_by_name['initial']._serialized_options = b'\272H\010\252\001\002*\000\310\001\001'
   _globals['_RETRYBACKOFF'].fields_by_name['max']._loaded_options = None
@@ -52,7 +52,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_RETRYBACKOFF'].fields_by_name['multiplier']._loaded_options = None
   _globals['_RETRYBACKOFF'].fields_by_name['multiplier']._serialized_options = b'\272H\013\022\t)\000\000\000\000\000\000\360?'
   _globals['_QUEUEPOLICY']._serialized_start=158
-  _globals['_QUEUEPOLICY']._serialized_end=485
-  _globals['_RETRYBACKOFF']._serialized_start=488
-  _globals['_RETRYBACKOFF']._serialized_end=648
+  _globals['_QUEUEPOLICY']._serialized_end=618
+  _globals['_RETRYBACKOFF']._serialized_start=621
+  _globals['_RETRYBACKOFF']._serialized_end=781
 # @@protoc_insertion_point(module_scope)

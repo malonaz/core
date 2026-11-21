@@ -68,6 +68,7 @@ const (
 	flakyBackoffInitial = 300 * time.Millisecond
 	flakyMaxAttempts    = 3
 	flakyRetention      = 72 * time.Hour
+	progressRetention   = -time.Second // Kept forever.
 	deadlineTimeout     = 1 * time.Second
 	deadlineMaxAttempts = 2
 	sleepTimeout        = 10 * time.Second

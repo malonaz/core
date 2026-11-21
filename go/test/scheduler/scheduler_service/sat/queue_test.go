@@ -173,8 +173,8 @@ func TestQueue_Validation(t *testing.T) {
 			grpcrequire.Error(t, codes.InvalidArgument, create(queue))
 		}
 	})
-	t.Run("non-positive retention", func(t *testing.T) {
-		for _, retention := range []time.Duration{0, -time.Hour} {
+	t.Run("retention neither positive nor forever", func(t *testing.T) {
+		for _, retention := range []time.Duration{0, -2 * time.Second, -time.Hour} {
 			policy := newPolicy()
 			policy.Retention = durationpb.New(retention)
 			grpcrequire.Error(t, codes.InvalidArgument, create(fakeQueue(method, deadURL, policy)))
@@ -201,10 +201,6 @@ func TestQueue_Validation(t *testing.T) {
 			UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"policy.max_attempts"}},
 		}
 		_, err := schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
-		grpcrequire.Error(t, codes.InvalidArgument, err)
-		updateQueueRequest.Queue.Policy = &policypb.QueuePolicy{Retention: durationpb.New(0)}
-		updateQueueRequest.UpdateMask = &fieldmaskpb.FieldMask{Paths: []string{"policy.retention"}}
-		_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
 		grpcrequire.Error(t, codes.InvalidArgument, err)
 		updateQueueRequest.UpdateMask = &fieldmaskpb.FieldMask{Paths: []string{"policy.no_such_field"}}
 		_, err = schedulerServiceClient.UpdateQueue(ctx, updateQueueRequest)
