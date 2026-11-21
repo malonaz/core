@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/policy/v1/policy.proto.
  */
 export const file_malonaz_scheduler_policy_v1_policy: GenFile = /*@__PURE__*/
-  fileDesc("CihtYWxvbmF6L3NjaGVkdWxlci9wb2xpY3kvdjEvcG9saWN5LnByb3RvEhttYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEijwIKC1F1ZXVlUG9saWN5Ej8KD2F0dGVtcHRfdGltZW91dBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESHQoMbWF4X2F0dGVtcHRzGAIgASgFQge6SAQaAigBEkAKDXJldHJ5X2JhY2tvZmYYAyABKAsyKS5tYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEuUmV0cnlCYWNrb2ZmEiAKD21heF9jb25jdXJyZW5jeRgEIAEoBUIHukgEGgIoABI8Cg9yZXRyeWFibGVfY29kZXMYBSADKA4yEC5nb29nbGUucnBjLkNvZGVCEbpIDpIBCxgBIgeCAQQQASAAIqABCgxSZXRyeUJhY2tvZmYSNwoHaW5pdGlhbBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESMwoDbWF4GAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgu6SAiqAQIqAMgBARIiCgptdWx0aXBsaWVyGAMgASgBQg66SAsSCSkAAAAAAADwP0I2WjRnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvcG9saWN5L3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration, file_google_rpc_code]);
+  fileDesc("CihtYWxvbmF6L3NjaGVkdWxlci9wb2xpY3kvdjEvcG9saWN5LnByb3RvEhttYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEixwIKC1F1ZXVlUG9saWN5Ej8KD2F0dGVtcHRfdGltZW91dBgBIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkILukgIqgECKgDIAQESHQoMbWF4X2F0dGVtcHRzGAIgASgFQge6SAQaAigBEkAKDXJldHJ5X2JhY2tvZmYYAyABKAsyKS5tYWxvbmF6LnNjaGVkdWxlci5wb2xpY3kudjEuUmV0cnlCYWNrb2ZmEiAKD21heF9jb25jdXJyZW5jeRgEIAEoBUIHukgEGgIoABI8Cg9yZXRyeWFibGVfY29kZXMYBSADKA4yEC5nb29nbGUucnBjLkNvZGVCEbpIDpIBCxgBIgeCAQQQASAAEjYKCXJldGVudGlvbhgGIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIIukgFqgECKgAioAEKDFJldHJ5QmFja29mZhI3Cgdpbml0aWFsGAEgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgu6SAiqAQIqAMgBARIzCgNtYXgYAiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CC7pICKoBAioAyAEBEiIKCm11bHRpcGxpZXIYAyABKAFCDrpICxIJKQAAAAAAAPA/QjZaNGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9wb2xpY3kvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_duration, file_google_rpc_code]);
 
 /**
  * The execution policy of a method's jobs.
@@ -61,6 +61,15 @@ export type QueuePolicy = Message<"malonaz.scheduler.policy.v1.QueuePolicy"> & {
    * @generated from field: repeated google.rpc.Code retryable_codes = 5;
    */
   retryableCodes: Code[];
+
+  /**
+   * How long the queue's terminal jobs are kept, counted from their
+   * completion. Defaults to the scheduler's retention. A change applies to
+   * jobs completing after it: completed jobs keep their `purge_time`.
+   *
+   * @generated from field: google.protobuf.Duration retention = 6;
+   */
+  retention?: Duration;
 };
 
 /**
@@ -107,6 +116,15 @@ export type QueuePolicyValid = Message<"malonaz.scheduler.policy.v1.QueuePolicy"
    * @generated from field: repeated google.rpc.Code retryable_codes = 5;
    */
   retryableCodes: Code[];
+
+  /**
+   * How long the queue's terminal jobs are kept, counted from their
+   * completion. Defaults to the scheduler's retention. A change applies to
+   * jobs completing after it: completed jobs keep their `purge_time`.
+   *
+   * @generated from field: google.protobuf.Duration retention = 6;
+   */
+  retention?: Duration;
 };
 
 /**

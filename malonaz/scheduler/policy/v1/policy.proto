@@ -39,6 +39,11 @@ message QueuePolicy {
       }
     }
   }];
+
+  // How long the queue's terminal jobs are kept, counted from their
+  // completion. Defaults to the scheduler's retention. A change applies to
+  // jobs completing after it: completed jobs keep their `purge_time`.
+  google.protobuf.Duration retention = 6 [(buf.validate.field).duration.gt = {}];
 }
 
 // An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).

@@ -1,6 +1,6 @@
 ---
 title: Producing scheduler jobs
-description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, and what the payload type decides.
+description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (per-queue override of the scheduler default, never filled in).
 labels:
     lang: go
     repo: core
@@ -55,6 +55,25 @@ retry time: a flag change lands when a dispatcher next converges the queues.
 A sat whose concurrent writes race on etags shortens it (onikisu's Stripe sat:
 1s); not below what the race needs within `max_attempts`, or the third abort
 fails the job.
+
+## Retention
+
+A terminal job is deleted at its `purge_time`, stamped when it turns terminal
+(success, failure, cancel, expiry) from its queue policy's `retention`, else
+`--scheduler-{dispatcher,service}.retention` (720h; 0 keeps forever; must
+match). One function decides: `transition.PurgeTime(now, policy, default)`.
+Unlike the backoff, an unset retention is **not** filled into the stored
+policy: it means "the flag", read at completion, so a flag change reaches
+such queues. A policy change only affects jobs completing after it.
+
+- Declare it on the method (`retention: {seconds: 259200}`): the dispatcher
+  converges declared policies, so one set through `UpdateQueue` on a
+  discovered queue is reverted on the next rediscover.
+- The service's job transitions get the policy from the lock itself
+  (`store.LockedJob`, a scalar subquery on `scheduler.queue`), the
+  dispatcher from the claim's join: never a query per job.
+- The sweep always runs: a queue's retention purges even when the default
+  keeps forever.
 
 ## Options
 

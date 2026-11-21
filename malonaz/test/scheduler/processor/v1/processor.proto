@@ -21,7 +21,8 @@ service Processor {
     };
   }
 
-  // Fails the first `failures` calls sharing a key, then succeeds.
+  // Fails the first `failures` calls sharing a key, then succeeds. Its jobs
+  // are kept for three days rather than the scheduler's retention.
   rpc Flaky(FlakyRequest) returns (FlakyResponse) {
     option (malonaz.codegen.scheduler.v1.method).policy = {
       attempt_timeout: {seconds: 5}
@@ -31,6 +32,7 @@ service Processor {
         max: {seconds: 5}
         multiplier: 2
       }
+      retention: {seconds: 259200}
     };
   }
 

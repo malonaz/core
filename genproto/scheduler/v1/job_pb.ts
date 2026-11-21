@@ -185,7 +185,8 @@ export type Job = Message<"malonaz.scheduler.v1.Job"> & {
 
   /**
    * The time after which a terminal job is permanently deleted. Set when the
-   * job reaches a terminal state, from the scheduler's retention.
+   * job reaches a terminal state, from its queue's retention, else the
+   * scheduler's.
    *
    * @generated from field: google.protobuf.Timestamp purge_time = 16;
    */
@@ -393,7 +394,8 @@ export type JobValid = Message<"malonaz.scheduler.v1.Job"> & {
 
   /**
    * The time after which a terminal job is permanently deleted. Set when the
-   * job reaches a terminal state, from the scheduler's retention.
+   * job reaches a terminal state, from its queue's retention, else the
+   * scheduler's.
    *
    * @generated from field: google.protobuf.Timestamp purge_time = 16;
    */

@@ -12,7 +12,9 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/postgres"
 )
 
@@ -32,11 +34,34 @@ func IsUniqueKeyConflict(err error) bool {
 	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == jobUniqueKeyLiveIndex
 }
 
+// LockedJob is a job locked for a transition, carrying its queue's policy as
+// of the lock.
+type LockedJob struct {
+	model.Job
+	QueuePolicy []byte `db:"queue_policy"`
+}
+
+// Policy decodes the job's queue policy, nil when the queue row is gone.
+func (j *LockedJob) Policy() (*policypb.QueuePolicy, error) {
+	if j.QueuePolicy == nil {
+		return nil, nil
+	}
+	policy := &policypb.QueuePolicy{}
+	if err := pbutil.JSONUnmarshal(j.QueuePolicy, policy); err != nil {
+		return nil, fmt.Errorf("unmarshaling queue policy: %w", err)
+	}
+	return policy, nil
+}
+
+// jobQueuePolicyColumn selects a locked job's queue policy; a subquery rather
+// than a join, so callers' unqualified where clauses stay unambiguous.
+const jobQueuePolicyColumn = "(SELECT policy FROM scheduler.queue WHERE 'queues/' || queue.queue_id = job.queue) AS queue_policy"
+
 var (
 	// job_id identifies the row; every other column is written by a transition.
 	jobTransitionColumns = postgres.GetDBColumns(model.Job{}, postgres.ExceptColumns("job_id"))
 	jobTransitionQuery   = updateQuery("scheduler.job", jobTransitionColumns) + fmt.Sprintf(" WHERE job_id = $%d", len(jobTransitionColumns)+1)
-	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s FROM scheduler.job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE #locking#", JobPostgresColumns)
+	jobSelectForUpdate   = postgres.SelectQuery("SELECT %s, "+jobQueuePolicyColumn+" FROM scheduler.job WHERE #where# #order_by# LIMIT #limit# FOR UPDATE #locking#", JobPostgresColumns)
 )
 
 func updateQuery(table string, columns []string) string {
@@ -51,11 +76,11 @@ func updateQuery(table string, columns []string) string {
 // transition to each and persists them, all in one transaction. SKIP LOCKED
 // lets concurrent workers claim disjoint sets without contending. Rows are
 // selected in orderBy order (e.g. "ORDER BY schedule_time NULLS FIRST").
-func (s *Store) TransitionJobs(ctx context.Context, whereClause, orderBy string, limit int, params []any, transition func(*model.Job) error) ([]*model.Job, error) {
+func (s *Store) TransitionJobs(ctx context.Context, whereClause, orderBy string, limit int, params []any, transition func(*LockedJob) error) ([]*LockedJob, error) {
 	return s.transitionJobs(ctx, whereClause, orderBy, limit, true, params, transition)
 }
 
-func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string, limit int, skipLocked bool, params []any, transition func(*model.Job) error) ([]*model.Job, error) {
+func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string, limit int, skipLocked bool, params []any, transition func(*LockedJob) error) ([]*LockedJob, error) {
 	locking := ""
 	if skipLocked {
 		locking = "SKIP LOCKED"
@@ -67,7 +92,7 @@ func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string,
 		"#locking#", locking,
 	).Replace(jobSelectForUpdate)
 
-	var jobs []*model.Job
+	var jobs []*LockedJob
 	transactionFN := func(tx postgres.Tx) error {
 		var err error
 		if jobs, err = lockJobs(ctx, tx, query, params...); err != nil {
@@ -81,19 +106,19 @@ func (s *Store) transitionJobs(ctx context.Context, whereClause, orderBy string,
 	return jobs, nil
 }
 
-func lockJobs(ctx context.Context, tx postgres.Tx, query string, params ...any) ([]*model.Job, error) {
+func lockJobs(ctx context.Context, tx postgres.Tx, query string, params ...any) ([]*LockedJob, error) {
 	rows, err := tx.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting jobs: %w", err)
 	}
-	jobs, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[model.Job])
+	jobs, err := v5.CollectRows(rows, v5.RowToAddrOfStructByNameLax[LockedJob])
 	if err != nil {
 		return nil, fmt.Errorf("collecting rows: %w", err)
 	}
 	return jobs, nil
 }
 
-func writeJobs(ctx context.Context, tx postgres.Tx, jobs []*model.Job, transition func(*model.Job) error) error {
+func writeJobs(ctx context.Context, tx postgres.Tx, jobs []*LockedJob, transition func(*LockedJob) error) error {
 	if len(jobs) == 0 {
 		return nil
 	}
@@ -102,7 +127,7 @@ func writeJobs(ctx context.Context, tx postgres.Tx, jobs []*model.Job, transitio
 		if err := transition(job); err != nil {
 			return err
 		}
-		params := append(postgres.GetParams(job, jobTransitionColumns...), job.JobID)
+		params := append(postgres.GetParams(&job.Job, jobTransitionColumns...), job.JobID)
 		batch.Queue(jobTransitionQuery, params...)
 	}
 	return tx.SendBatch(ctx, batch).Close()
@@ -112,7 +137,7 @@ func writeJobs(ctx context.Context, tx postgres.Tx, jobs []*model.Job, transitio
 // may return an error to refuse the change (e.g. a state precondition). The
 // row is waited for, not skipped: a lease renewal holding it must not turn a
 // cancel into NotFound.
-func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func(*model.Job) error) (*model.Job, error) {
+func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func(*LockedJob) error) (*LockedJob, error) {
 	jobs, err := s.transitionJobs(ctx, "job_id = $1", "", 1, false, []any{jobID}, transition)
 	if err != nil {
 		return nil, err
@@ -126,7 +151,7 @@ func (s *Store) TransitionJob(ctx context.Context, jobID string, transition func
 // jobsByNameForUpdate locks the jobs named by parallel organization, user and
 // job id arrays ("" for no parent segment). Locking in job_id order makes
 // concurrent batches over overlapping jobs queue instead of deadlocking.
-var jobsByNameForUpdate = postgres.SelectQuery(`SELECT %s FROM scheduler.job
+var jobsByNameForUpdate = postgres.SelectQuery(`SELECT %s, `+jobQueuePolicyColumn+` FROM scheduler.job
 JOIN unnest($1::text[], $2::text[], $3::text[]) AS name(organization, usr, job)
 ON job_id = name.job AND organization_id IS NOT DISTINCT FROM NULLIF(name.organization, '') AND user_id IS NOT DISTINCT FROM NULLIF(name.usr, '')
 ORDER BY job_id FOR UPDATE OF job`, JobPostgresColumns)
@@ -136,13 +161,13 @@ type JobNames struct {
 	OrganizationIDs, UserIDs, JobIDs []string
 }
 
-func (n JobNames) lock(ctx context.Context, tx postgres.Tx) ([]*model.Job, error) {
+func (n JobNames) lock(ctx context.Context, tx postgres.Tx) ([]*LockedJob, error) {
 	return lockJobs(ctx, tx, jobsByNameForUpdate, n.OrganizationIDs, n.UserIDs, n.JobIDs)
 }
 
 // missing names the requested jobs absent from the locked ones, so a batch
 // failure says which job it was.
-func (n JobNames) missing(jobs []*model.Job) error {
+func (n JobNames) missing(jobs []*LockedJob) error {
 	found := make(map[string]bool, len(jobs))
 	for _, job := range jobs {
 		found[job.JobID] = true
@@ -159,8 +184,8 @@ func (n JobNames) missing(jobs []*model.Job) error {
 // TransitionJobsByName locks the jobs, waiting on held rows, and applies
 // transition to each in one transaction: every job transitions or none does.
 // Returns model.ErrJobNotExist when any job is missing.
-func (s *Store) TransitionJobsByName(ctx context.Context, names JobNames, transition func(*model.Job) error) ([]*model.Job, error) {
-	var jobs []*model.Job
+func (s *Store) TransitionJobsByName(ctx context.Context, names JobNames, transition func(*LockedJob) error) ([]*LockedJob, error) {
+	var jobs []*LockedJob
 	transactionFN := func(tx postgres.Tx) error {
 		var err error
 		if jobs, err = names.lock(ctx, tx); err != nil {
@@ -180,7 +205,7 @@ func (s *Store) TransitionJobsByName(ctx context.Context, names JobNames, transi
 // DeleteJobsByName locks the jobs and deletes them in one transaction once
 // check accepts each: every job is deleted or none is. Returns
 // model.ErrJobNotExist when any job is missing, unless allowMissing.
-func (s *Store) DeleteJobsByName(ctx context.Context, names JobNames, allowMissing bool, check func(*model.Job) error) error {
+func (s *Store) DeleteJobsByName(ctx context.Context, names JobNames, allowMissing bool, check func(*LockedJob) error) error {
 	transactionFN := func(tx postgres.Tx) error {
 		jobs, err := names.lock(ctx, tx)
 		if err != nil {

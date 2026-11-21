@@ -67,6 +67,7 @@ const (
 	// Policies as declared on the processor's methods (processor.proto).
 	flakyBackoffInitial = 300 * time.Millisecond
 	flakyMaxAttempts    = 3
+	flakyRetention      = 72 * time.Hour
 	deadlineTimeout     = 1 * time.Second
 	deadlineMaxAttempts = 2
 	sleepTimeout        = 10 * time.Second
@@ -79,6 +80,8 @@ const (
 	defaultBackoffInitial    = 3 * time.Second
 	defaultBackoffMax        = 3 * time.Minute
 	defaultBackoffMultiplier = 1.5
+	// Likewise for a queue declaring no retention.
+	defaultRetention = 240 * time.Hour
 
 	// Generous ceiling for polling assertions.
 	waitTimeout = 30 * time.Second
@@ -131,6 +134,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--health.port", strconv.Itoa(healthPort),
 			"--prometheus.port", strconv.Itoa(prometheusPort),
 			"--scheduler-service.lease-duration", leaseDuration.String(),
+			"--scheduler-service.retention", defaultRetention.String(),
 			"--scheduler-service.sweep-interval", "500ms",
 			"--scheduler-service.roll-up-interval", "200ms",
 			"--scheduler-service.tick-interval", tickInterval.String(),
@@ -142,6 +146,7 @@ func schedulerSUT(name string, port, healthPort, prometheusPort int, endpoints .
 			"--scheduler-dispatcher.max-parallel-jobs", strconv.Itoa(maxParallelJobs),
 			"--scheduler-dispatcher.poll-interval", pollInterval.String(),
 			"--scheduler-dispatcher.lease-duration", leaseDuration.String(),
+			"--scheduler-dispatcher.retention", defaultRetention.String(),
 			"--scheduler-dispatcher.default-retry-backoff.initial", defaultBackoffInitial.String(),
 			"--scheduler-dispatcher.default-retry-backoff.max", defaultBackoffMax.String(),
 			"--scheduler-dispatcher.default-retry-backoff.multiplier", strconv.FormatFloat(defaultBackoffMultiplier, 'f', -1, 64),

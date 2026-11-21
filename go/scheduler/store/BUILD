@@ -41,8 +41,10 @@ go_library(
     import_path = "github.com/malonaz/core/gengo/scheduler/store",
     visibility = ["//..."],
     deps = [
+        "//go/pbutil",
         "//go/postgres",
         "//go/scheduler/model",
+        "//malonaz/scheduler/policy/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
