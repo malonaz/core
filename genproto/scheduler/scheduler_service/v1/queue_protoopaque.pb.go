@@ -13,9 +13,12 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	v1 "github.com/malonaz/core/genproto/scheduler/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	interval "google.golang.org/genproto/googleapis/type/interval"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -846,11 +849,266 @@ func (b0 ResumeQueueRequest_builder) Build() *ResumeQueueRequest {
 	return m0
 }
 
+// Request message for SchedulerService.ComputeQueueStats.
+type ComputeQueueStatsRequest struct {
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name     string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Interval *interval.Interval     `protobuf:"bytes,2,opt,name=interval,proto3"`
+	xxx_hidden_Step     *durationpb.Duration   `protobuf:"bytes,3,opt,name=step,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *ComputeQueueStatsRequest) Reset() {
+	*x = ComputeQueueStatsRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComputeQueueStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComputeQueueStatsRequest) ProtoMessage() {}
+
+func (x *ComputeQueueStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ComputeQueueStatsRequest) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *ComputeQueueStatsRequest) GetInterval() *interval.Interval {
+	if x != nil {
+		return x.xxx_hidden_Interval
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsRequest) GetStep() *durationpb.Duration {
+	if x != nil {
+		return x.xxx_hidden_Step
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsRequest) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *ComputeQueueStatsRequest) SetInterval(v *interval.Interval) {
+	x.xxx_hidden_Interval = v
+}
+
+func (x *ComputeQueueStatsRequest) SetStep(v *durationpb.Duration) {
+	x.xxx_hidden_Step = v
+}
+
+func (x *ComputeQueueStatsRequest) HasInterval() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Interval != nil
+}
+
+func (x *ComputeQueueStatsRequest) HasStep() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Step != nil
+}
+
+func (x *ComputeQueueStatsRequest) ClearInterval() {
+	x.xxx_hidden_Interval = nil
+}
+
+func (x *ComputeQueueStatsRequest) ClearStep() {
+	x.xxx_hidden_Step = nil
+}
+
+type ComputeQueueStatsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The queue to compute stats for; `queues/-` aggregates every queue.
+	// Format: queues/{queue}
+	Name string
+	// The interval to compute stats over, by job completion time. Unset means
+	// all time: every hour rolled up.
+	Interval *interval.Interval
+	// The width of each time-series bucket. Unset means totals only. At most
+	// 1440 buckets fit in the interval; past a day, a whole number of hours.
+	Step *durationpb.Duration
+}
+
+func (b0 ComputeQueueStatsRequest_builder) Build() *ComputeQueueStatsRequest {
+	m0 := &ComputeQueueStatsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Interval = b.Interval
+	x.xxx_hidden_Step = b.Step
+	return m0
+}
+
+// Response message for SchedulerService.ComputeQueueStats.
+type ComputeQueueStatsResponse struct {
+	state                  protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Interval    *interval.Interval      `protobuf:"bytes,1,opt,name=interval,proto3"`
+	xxx_hidden_ComputeTime *timestamppb.Timestamp  `protobuf:"bytes,2,opt,name=compute_time,json=computeTime,proto3"`
+	xxx_hidden_Totals      *v1.QueueStatsSnapshot  `protobuf:"bytes,3,opt,name=totals,proto3"`
+	xxx_hidden_Buckets     *[]*v1.QueueStatsBucket `protobuf:"bytes,4,rep,name=buckets,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ComputeQueueStatsResponse) Reset() {
+	*x = ComputeQueueStatsResponse{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComputeQueueStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComputeQueueStatsResponse) ProtoMessage() {}
+
+func (x *ComputeQueueStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ComputeQueueStatsResponse) GetInterval() *interval.Interval {
+	if x != nil {
+		return x.xxx_hidden_Interval
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsResponse) GetComputeTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_ComputeTime
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsResponse) GetTotals() *v1.QueueStatsSnapshot {
+	if x != nil {
+		return x.xxx_hidden_Totals
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsResponse) GetBuckets() []*v1.QueueStatsBucket {
+	if x != nil {
+		if x.xxx_hidden_Buckets != nil {
+			return *x.xxx_hidden_Buckets
+		}
+	}
+	return nil
+}
+
+func (x *ComputeQueueStatsResponse) SetInterval(v *interval.Interval) {
+	x.xxx_hidden_Interval = v
+}
+
+func (x *ComputeQueueStatsResponse) SetComputeTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_ComputeTime = v
+}
+
+func (x *ComputeQueueStatsResponse) SetTotals(v *v1.QueueStatsSnapshot) {
+	x.xxx_hidden_Totals = v
+}
+
+func (x *ComputeQueueStatsResponse) SetBuckets(v []*v1.QueueStatsBucket) {
+	x.xxx_hidden_Buckets = &v
+}
+
+func (x *ComputeQueueStatsResponse) HasInterval() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Interval != nil
+}
+
+func (x *ComputeQueueStatsResponse) HasComputeTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ComputeTime != nil
+}
+
+func (x *ComputeQueueStatsResponse) HasTotals() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Totals != nil
+}
+
+func (x *ComputeQueueStatsResponse) ClearInterval() {
+	x.xxx_hidden_Interval = nil
+}
+
+func (x *ComputeQueueStatsResponse) ClearComputeTime() {
+	x.xxx_hidden_ComputeTime = nil
+}
+
+func (x *ComputeQueueStatsResponse) ClearTotals() {
+	x.xxx_hidden_Totals = nil
+}
+
+type ComputeQueueStatsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The interval these stats were computed over.
+	Interval *interval.Interval
+	// The time at which these stats were computed.
+	ComputeTime *timestamppb.Timestamp
+	// Aggregate stats over the full interval.
+	Totals *v1.QueueStatsSnapshot
+	// Time-series stats, one entry per step with completed jobs, ordered by
+	// interval start: a quiet step has no bucket. Only populated when a step is
+	// requested.
+	Buckets []*v1.QueueStatsBucket
+}
+
+func (b0 ComputeQueueStatsResponse_builder) Build() *ComputeQueueStatsResponse {
+	m0 := &ComputeQueueStatsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Interval = b.Interval
+	x.xxx_hidden_ComputeTime = b.ComputeTime
+	x.xxx_hidden_Totals = b.Totals
+	x.xxx_hidden_Buckets = &b.Buckets
+	return m0
+}
+
 var File_malonaz_scheduler_scheduler_service_v1_queue_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_scheduler_service_v1_queue_proto_rawDesc = "" +
 	"\n" +
-	"2malonaz/scheduler/scheduler_service/v1/queue.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a malonaz/scheduler/v1/queue.proto\"\xe2\x01\n" +
+	"2malonaz/scheduler/scheduler_service/v1/queue.proto\x12&malonaz.scheduler.scheduler_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1agoogle/type/interval.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a malonaz/scheduler/v1/queue.proto\"\xe2\x01\n" +
 	"\x12CreateQueueRequest\x129\n" +
 	"\x05queue\x18\x01 \x01(\v2\x1b.malonaz.scheduler.v1.QueueB\x06\xbaH\x03\xc8\x01\x01R\x05queue\x12@\n" +
 	"\bqueue_id\x18\x02 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\aqueueId\x12*\n" +
@@ -898,34 +1156,59 @@ const file_malonaz_scheduler_scheduler_service_v1_queue_proto_rawDesc = "" +
 	"\x12ResumeQueueRequest\x12=\n" +
 	"\x04name\x18\x01 \x01(\tB)\xe0A\x02\xfaA\x1d\n" +
 	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
-	"\x04etag\x18\x02 \x01(\tR\x04etagBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"\x81\x03\n" +
+	"\x18ComputeQueueStatsRequest\x12=\n" +
+	"\x04name\x18\x01 \x01(\tB)\xe0A\x02\xfaA\x1d\n" +
+	"\x1bscheduler.malonaz.com/Queue\xbaH\x03\xc8\x01\x01R\x04name\x121\n" +
+	"\binterval\x18\x02 \x01(\v2\x15.google.type.IntervalR\binterval\x129\n" +
+	"\x04step\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\n" +
+	"\xbaH\a\xaa\x01\x042\x02\b<R\x04step:\xb7\x01\xbaH\xb3\x01\x1a\xb0\x01\n" +
+	"\x1estep_requires_bounded_interval\x12;step requires an interval with a start_time and an end_time\x1aQ!has(this.step) || (has(this.interval.start_time) && has(this.interval.end_time))\"\x91\x02\n" +
+	"\x19ComputeQueueStatsResponse\x121\n" +
+	"\binterval\x18\x01 \x01(\v2\x15.google.type.IntervalR\binterval\x12=\n" +
+	"\fcompute_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vcomputeTime\x12@\n" +
+	"\x06totals\x18\x03 \x01(\v2(.malonaz.scheduler.v1.QueueStatsSnapshotR\x06totals\x12@\n" +
+	"\abuckets\x18\x04 \x03(\v2&.malonaz.scheduler.v1.QueueStatsBucketR\abucketsBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
-var file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_scheduler_scheduler_service_v1_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_scheduler_scheduler_service_v1_queue_proto_goTypes = []any{
-	(*CreateQueueRequest)(nil),     // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest
-	(*GetQueueRequest)(nil),        // 1: malonaz.scheduler.scheduler_service.v1.GetQueueRequest
-	(*UpdateQueueRequest)(nil),     // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest
-	(*DeleteQueueRequest)(nil),     // 3: malonaz.scheduler.scheduler_service.v1.DeleteQueueRequest
-	(*ListQueuesRequest)(nil),      // 4: malonaz.scheduler.scheduler_service.v1.ListQueuesRequest
-	(*ListQueuesResponse)(nil),     // 5: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
-	(*BatchGetQueuesRequest)(nil),  // 6: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesRequest
-	(*BatchGetQueuesResponse)(nil), // 7: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
-	(*PauseQueueRequest)(nil),      // 8: malonaz.scheduler.scheduler_service.v1.PauseQueueRequest
-	(*ResumeQueueRequest)(nil),     // 9: malonaz.scheduler.scheduler_service.v1.ResumeQueueRequest
-	(*v1.Queue)(nil),               // 10: malonaz.scheduler.v1.Queue
-	(*fieldmaskpb.FieldMask)(nil),  // 11: google.protobuf.FieldMask
+	(*CreateQueueRequest)(nil),        // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest
+	(*GetQueueRequest)(nil),           // 1: malonaz.scheduler.scheduler_service.v1.GetQueueRequest
+	(*UpdateQueueRequest)(nil),        // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest
+	(*DeleteQueueRequest)(nil),        // 3: malonaz.scheduler.scheduler_service.v1.DeleteQueueRequest
+	(*ListQueuesRequest)(nil),         // 4: malonaz.scheduler.scheduler_service.v1.ListQueuesRequest
+	(*ListQueuesResponse)(nil),        // 5: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse
+	(*BatchGetQueuesRequest)(nil),     // 6: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesRequest
+	(*BatchGetQueuesResponse)(nil),    // 7: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse
+	(*PauseQueueRequest)(nil),         // 8: malonaz.scheduler.scheduler_service.v1.PauseQueueRequest
+	(*ResumeQueueRequest)(nil),        // 9: malonaz.scheduler.scheduler_service.v1.ResumeQueueRequest
+	(*ComputeQueueStatsRequest)(nil),  // 10: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest
+	(*ComputeQueueStatsResponse)(nil), // 11: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse
+	(*v1.Queue)(nil),                  // 12: malonaz.scheduler.v1.Queue
+	(*fieldmaskpb.FieldMask)(nil),     // 13: google.protobuf.FieldMask
+	(*interval.Interval)(nil),         // 14: google.type.Interval
+	(*durationpb.Duration)(nil),       // 15: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil),     // 16: google.protobuf.Timestamp
+	(*v1.QueueStatsSnapshot)(nil),     // 17: malonaz.scheduler.v1.QueueStatsSnapshot
+	(*v1.QueueStatsBucket)(nil),       // 18: malonaz.scheduler.v1.QueueStatsBucket
 }
 var file_malonaz_scheduler_scheduler_service_v1_queue_proto_depIdxs = []int32{
-	10, // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest.queue:type_name -> malonaz.scheduler.v1.Queue
-	10, // 1: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest.queue:type_name -> malonaz.scheduler.v1.Queue
-	11, // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 3: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse.queues:type_name -> malonaz.scheduler.v1.Queue
-	10, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse.queues:type_name -> malonaz.scheduler.v1.Queue
-	5,  // [5:5] is the sub-list for method output_type
-	5,  // [5:5] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	12, // 0: malonaz.scheduler.scheduler_service.v1.CreateQueueRequest.queue:type_name -> malonaz.scheduler.v1.Queue
+	12, // 1: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest.queue:type_name -> malonaz.scheduler.v1.Queue
+	13, // 2: malonaz.scheduler.scheduler_service.v1.UpdateQueueRequest.update_mask:type_name -> google.protobuf.FieldMask
+	12, // 3: malonaz.scheduler.scheduler_service.v1.ListQueuesResponse.queues:type_name -> malonaz.scheduler.v1.Queue
+	12, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetQueuesResponse.queues:type_name -> malonaz.scheduler.v1.Queue
+	14, // 5: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest.interval:type_name -> google.type.Interval
+	15, // 6: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsRequest.step:type_name -> google.protobuf.Duration
+	14, // 7: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse.interval:type_name -> google.type.Interval
+	16, // 8: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse.compute_time:type_name -> google.protobuf.Timestamp
+	17, // 9: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse.totals:type_name -> malonaz.scheduler.v1.QueueStatsSnapshot
+	18, // 10: malonaz.scheduler.scheduler_service.v1.ComputeQueueStatsResponse.buckets:type_name -> malonaz.scheduler.v1.QueueStatsBucket
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_scheduler_service_v1_queue_proto_init() }
@@ -939,7 +1222,7 @@ func file_malonaz_scheduler_scheduler_service_v1_queue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_scheduler_service_v1_queue_proto_rawDesc), len(file_malonaz_scheduler_scheduler_service_v1_queue_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -11,13 +11,15 @@ import type { Any, Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
+import type { JobState } from "./job_pb";
+import { file_malonaz_scheduler_v1_job } from "./job_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/scheduler/v1/schedule.proto.
  */
 export const file_malonaz_scheduler_v1_schedule: GenFile = /*@__PURE__*/
-  fileDesc("CiNtYWxvbmF6L3NjaGVkdWxlci92MS9zY2hlZHVsZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEi1AkKCFNjaGVkdWxlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEtABCgZsYWJlbHMYBSADKAsyKi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI2CgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIP4EEFukgDyAEBuuoPAhgBEjIKBXF1ZXVlGAcgASgJQiPgQQP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRITCgZtZXRob2QYCCABKAlCA+BBAxIZCgRjcm9uGAkgASgJQgu6SAhyAxiAAsgBARIaCgl0aW1lX3pvbmUYCiABKAlCB7pIBHICGEASPwoFc3RhdGUYCyABKA4yIy5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZVN0YXRlQgvgQQO6SAWCAQIQARIkCghwcmlvcml0eRgMIAEoBUISukgPGg0YZCic//////////8BEj0KCnJ1bl93aW5kb3cYDSABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CDrpIBaoBAioAuuoPAiABEkEKEmxhc3Rfc2NoZWR1bGVfdGltZRgOIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARJBChJuZXh0X3NjaGVkdWxlX3RpbWUYDyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESOQoIbGFzdF9qb2IYECABKAlCJ+BBA/pBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrrqDwIgARIeChFtaXNzZWRfdGlja19jb3VudBgRIAEoBUID4EEDGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6+QHqQb4BCh5zY2hlZHVsZXIubWFsb25hei5jb20vU2NoZWR1bGUSFHNjaGVkdWxlcy97c2NoZWR1bGV9EjFvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3NjaGVkdWxlcy97c2NoZWR1bGV9Ej5vcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9zY2hlZHVsZXMve3NjaGVkdWxlfSoJc2NoZWR1bGVzMghzY2hlZHVsZdKmBAsKCXNjaGVkdWxlcoL2LCQ0YzcyOGE3ZC05NzExLTRiNzctOGU2Yy1lOTg1NTRjOTllOTAqZgoNU2NoZWR1bGVTdGF0ZRIeChpTQ0hFRFVMRV9TVEFURV9VTlNQRUNJRklFRBAAEhoKFlNDSEVEVUxFX1NUQVRFX0VOQUJMRUQQARIZChVTQ0hFRFVMRV9TVEFURV9QQVVTRUQQAkIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiNtYWxvbmF6L3NjaGVkdWxlci92MS9zY2hlZHVsZS5wcm90bxIUbWFsb25hei5zY2hlZHVsZXIudjEilwoKCFNjaGVkdWxlEhEKBG5hbWUYASABKAlCA+BBCBI0CgtjcmVhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAQgASgJEtABCgZsYWJlbHMYBSADKAsyKi5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI2CgdwYXlsb2FkGAYgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIP4EEFukgDyAEBuuoPAhgBEjIKBXF1ZXVlGAcgASgJQiPgQQP6QR0KG3NjaGVkdWxlci5tYWxvbmF6LmNvbS9RdWV1ZRITCgZtZXRob2QYCCABKAlCA+BBAxIZCgRjcm9uGAkgASgJQgu6SAhyAxiAAsgBARIaCgl0aW1lX3pvbmUYCiABKAlCB7pIBHICGEASPwoFc3RhdGUYCyABKA4yIy5tYWxvbmF6LnNjaGVkdWxlci52MS5TY2hlZHVsZVN0YXRlQgvgQQO6SAWCAQIQARIkCghwcmlvcml0eRgMIAEoBUISukgPGg0YZCic//////////8BEj0KCnJ1bl93aW5kb3cYDSABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CDrpIBaoBAioAuuoPAiABEkEKEmxhc3Rfc2NoZWR1bGVfdGltZRgOIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCCeBBA7rqDwIgARJBChJuZXh0X3NjaGVkdWxlX3RpbWUYDyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESOQoIbGFzdF9qb2IYECABKAlCJ+BBA/pBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrrqDwIgARIeChFtaXNzZWRfdGlja19jb3VudBgRIAEoBUID4EEDEkEKDmxhc3Rfam9iX3N0YXRlGBIgASgOMh4ubWFsb25hei5zY2hlZHVsZXIudjEuSm9iU3RhdGVCCeBBA7rqDwIoARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOvkB6kG+AQoec2NoZWR1bGVyLm1hbG9uYXouY29tL1NjaGVkdWxlEhRzY2hlZHVsZXMve3NjaGVkdWxlfRIxb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS9zY2hlZHVsZXMve3NjaGVkdWxlfRI+b3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vc2NoZWR1bGVzL3tzY2hlZHVsZX0qCXNjaGVkdWxlczIIc2NoZWR1bGXSpgQLCglzY2hlZHVsZXKC9iwkNGM3MjhhN2QtOTcxMS00Yjc3LThlNmMtZTk4NTU0Yzk5ZTkwKmYKDVNjaGVkdWxlU3RhdGUSHgoaU0NIRURVTEVfU1RBVEVfVU5TUEVDSUZJRUQQABIaChZTQ0hFRFVMRV9TVEFURV9FTkFCTEVEEAESGQoVU0NIRURVTEVfU1RBVEVfUEFVU0VEEAJCL1otZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vc2NoZWR1bGVyL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_scheduler_v1_job]);
 
 /**
  * A Schedule is recurring work declared once: a cron expression and a payload
@@ -173,6 +175,15 @@ export type Schedule = Message<"malonaz.scheduler.v1.Schedule"> & {
    * @generated from field: int32 missed_tick_count = 17;
    */
   missedTickCount: number;
+
+  /**
+   * The state of `last_job`, read with the schedule: whether the last tick's
+   * work waits, runs, succeeded or broke. Unset once that job is deleted or
+   * purged.
+   *
+   * @generated from field: malonaz.scheduler.v1.JobState last_job_state = 18;
+   */
+  lastJobState: JobState;
 };
 
 /**
@@ -329,6 +340,15 @@ export type ScheduleValid = Message<"malonaz.scheduler.v1.Schedule"> & {
    * @generated from field: int32 missed_tick_count = 17;
    */
   missedTickCount: number;
+
+  /**
+   * The state of `last_job`, read with the schedule: whether the last tick's
+   * work waits, runs, succeeded or broke. Unset once that job is deleted or
+   * purged.
+   *
+   * @generated from field: malonaz.scheduler.v1.JobState last_job_state = 18;
+   */
+  lastJobState: JobState;
 };
 
 /**

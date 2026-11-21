@@ -111,6 +111,7 @@ type Schedule struct {
 	xxx_hidden_NextScheduleTime *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=next_schedule_time,json=nextScheduleTime,proto3"`
 	xxx_hidden_LastJob          string                 `protobuf:"bytes,16,opt,name=last_job,json=lastJob,proto3"`
 	xxx_hidden_MissedTickCount  int32                  `protobuf:"varint,17,opt,name=missed_tick_count,json=missedTickCount,proto3"`
+	xxx_hidden_LastJobState     JobState               `protobuf:"varint,18,opt,name=last_job_state,json=lastJobState,proto3,enum=malonaz.scheduler.v1.JobState"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -259,6 +260,13 @@ func (x *Schedule) GetMissedTickCount() int32 {
 	return 0
 }
 
+func (x *Schedule) GetLastJobState() JobState {
+	if x != nil {
+		return x.xxx_hidden_LastJobState
+	}
+	return JobState_JOB_STATE_UNSPECIFIED
+}
+
 func (x *Schedule) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -325,6 +333,10 @@ func (x *Schedule) SetLastJob(v string) {
 
 func (x *Schedule) SetMissedTickCount(v int32) {
 	x.xxx_hidden_MissedTickCount = v
+}
+
+func (x *Schedule) SetLastJobState(v JobState) {
+	x.xxx_hidden_LastJobState = v
 }
 
 func (x *Schedule) HasCreateTime() bool {
@@ -446,6 +458,10 @@ type Schedule_builder struct {
 	// The number of ticks skipped because their run window had closed before
 	// the scheduler reached them.
 	MissedTickCount int32
+	// The state of `last_job`, read with the schedule: whether the last tick's
+	// work waits, runs, succeeded or broke. Unset once that job is deleted or
+	// purged.
+	LastJobState JobState
 }
 
 func (b0 Schedule_builder) Build() *Schedule {
@@ -469,6 +485,7 @@ func (b0 Schedule_builder) Build() *Schedule {
 	x.xxx_hidden_NextScheduleTime = b.NextScheduleTime
 	x.xxx_hidden_LastJob = b.LastJob
 	x.xxx_hidden_MissedTickCount = b.MissedTickCount
+	x.xxx_hidden_LastJobState = b.LastJobState
 	return m0
 }
 
@@ -476,7 +493,7 @@ var File_malonaz_scheduler_v1_schedule_proto protoreflect.FileDescriptor
 
 const file_malonaz_scheduler_v1_schedule_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/scheduler/v1/schedule.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x8e\v\n" +
+	"#malonaz/scheduler/v1/schedule.proto\x12\x14malonaz.scheduler.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\x1emalonaz/scheduler/v1/job.proto\"\xdf\v\n" +
 	"\bSchedule\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -500,7 +517,8 @@ const file_malonaz_scheduler_v1_schedule_proto_rawDesc = "" +
 	"\x12next_schedule_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\x10nextScheduleTime\x12B\n" +
 	"\blast_job\x18\x10 \x01(\tB'\xe0A\x03\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xba\xea\x0f\x02 \x01R\alastJob\x12/\n" +
-	"\x11missed_tick_count\x18\x11 \x01(\x05B\x03\xe0A\x03R\x0fmissedTickCount\x1a9\n" +
+	"\x11missed_tick_count\x18\x11 \x01(\x05B\x03\xe0A\x03R\x0fmissedTickCount\x12O\n" +
+	"\x0elast_job_state\x18\x12 \x01(\x0e2\x1e.malonaz.scheduler.v1.JobStateB\t\xe0A\x03\xba\xea\x0f\x02(\x01R\flastJobState\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xf9\x01\xeaA\xbe\x01\n" +
@@ -520,6 +538,7 @@ var file_malonaz_scheduler_v1_schedule_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 	(*anypb.Any)(nil),             // 4: google.protobuf.Any
 	(*durationpb.Duration)(nil),   // 5: google.protobuf.Duration
+	(JobState)(0),                 // 6: malonaz.scheduler.v1.JobState
 }
 var file_malonaz_scheduler_v1_schedule_proto_depIdxs = []int32{
 	3, // 0: malonaz.scheduler.v1.Schedule.create_time:type_name -> google.protobuf.Timestamp
@@ -530,11 +549,12 @@ var file_malonaz_scheduler_v1_schedule_proto_depIdxs = []int32{
 	5, // 5: malonaz.scheduler.v1.Schedule.run_window:type_name -> google.protobuf.Duration
 	3, // 6: malonaz.scheduler.v1.Schedule.last_schedule_time:type_name -> google.protobuf.Timestamp
 	3, // 7: malonaz.scheduler.v1.Schedule.next_schedule_time:type_name -> google.protobuf.Timestamp
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	6, // 8: malonaz.scheduler.v1.Schedule.last_job_state:type_name -> malonaz.scheduler.v1.JobState
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_v1_schedule_proto_init() }
@@ -542,6 +562,7 @@ func file_malonaz_scheduler_v1_schedule_proto_init() {
 	if File_malonaz_scheduler_v1_schedule_proto != nil {
 		return
 	}
+	file_malonaz_scheduler_v1_job_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

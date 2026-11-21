@@ -25,13 +25,15 @@ _sym_db = _symbol_database.Default()
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
+from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
+from google.type import interval_pb2 as google_dot_type_dot_interval__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 from malonaz.scheduler.policy.v1 import policy_pb2 as malonaz_dot_scheduler_dot_policy_dot_v1_dot_policy__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a(malonaz/scheduler/policy/v1/policy.proto\"\xeb\x05\n\x05Queue\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12<\n\x05state\x18\x05 \x01(\x0e\x32 .malonaz.scheduler.v1.QueueStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12N\n\x07service\x18\x06 \x01(\tB=\xbaH:r523^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+$\xc8\x01\x01\x12\x32\n\x06method\x18\x07 \x01(\tB\"\xbaH\x1fr\x1a\x32\x18^[a-zA-Z_][a-zA-Z0-9_]*$\xc8\x01\x01\x12\x18\n\x08\x65ndpoint\x18\x08 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12=\n\x0crequest_type\x18\t \x01(\tB\'\xbaH$r\x1f\x32\x1d^type\\.googleapis\\.com/[^/]+$\xc8\x01\x01\x12>\n\rresponse_type\x18\n \x01(\tB\'\xbaH$r\x1f\x32\x1d^type\\.googleapis\\.com/[^/]+$\xc8\x01\x01\x12\x46\n\x06policy\x18\x0b \x01(\x0b\x32(.malonaz.scheduler.policy.v1.QueuePolicyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01\x12:\n\x05stats\x18\x0c \x01(\x0b\x32 .malonaz.scheduler.v1.QueueStatsB\t\xe0\x41\x03\xba\xea\x0f\x02(\x01:v\xea\x41<\n\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queue\xd2\xa6\x04\x0b\n\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xeb\x01\n\nQueueStats\x12\x15\n\rrunning_count\x18\x02 \x01(\x05\x12\x11\n\tdue_count\x18\x04 \x01(\x05\x12\x17\n\x0fscheduled_count\x18\x05 \x01(\x05\x12\x16\n\x0eretrying_count\x18\x06 \x01(\x05\x12\x14\n\x0c\x66\x61iled_count\x18\x07 \x01(\x05\x12\x33\n\x0foldest_due_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.TimestampJ\x04\x08\x01\x10\x02J\x04\x08\x03\x10\x04R\rpending_countR\x1coldest_pending_schedule_time*Z\n\nQueueState\x12\x1b\n\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n\x13QUEUE_STATE_RUNNING\x10\x01\x12\x16\n\x12QUEUE_STATE_PAUSED\x10\x02\x42/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n malonaz/scheduler/v1/queue.proto\x12\x14malonaz.scheduler.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1agoogle/type/interval.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a(malonaz/scheduler/policy/v1/policy.proto\"\xeb\x05\n\x05Queue\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12<\n\x05state\x18\x05 \x01(\x0e\x32 .malonaz.scheduler.v1.QueueStateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12N\n\x07service\x18\x06 \x01(\tB=\xbaH:r523^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+$\xc8\x01\x01\x12\x32\n\x06method\x18\x07 \x01(\tB\"\xbaH\x1fr\x1a\x32\x18^[a-zA-Z_][a-zA-Z0-9_]*$\xc8\x01\x01\x12\x18\n\x08\x65ndpoint\x18\x08 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12=\n\x0crequest_type\x18\t \x01(\tB\'\xbaH$r\x1f\x32\x1d^type\\.googleapis\\.com/[^/]+$\xc8\x01\x01\x12>\n\rresponse_type\x18\n \x01(\tB\'\xbaH$r\x1f\x32\x1d^type\\.googleapis\\.com/[^/]+$\xc8\x01\x01\x12\x46\n\x06policy\x18\x0b \x01(\x0b\x32(.malonaz.scheduler.policy.v1.QueuePolicyB\x0c\xbaH\x03\xc8\x01\x01\xba\xea\x0f\x02\x10\x01\x12:\n\x05stats\x18\x0c \x01(\x0b\x32 .malonaz.scheduler.v1.QueueStatsB\t\xe0\x41\x03\xba\xea\x0f\x02(\x01:v\xea\x41<\n\x1bscheduler.malonaz.com/Queue\x12\x0equeues/{queue}*\x06queues2\x05queue\xd2\xa6\x04\x0b\n\tscheduler\x82\xf6,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec\"\xeb\x01\n\nQueueStats\x12\x15\n\rrunning_count\x18\x02 \x01(\x05\x12\x11\n\tdue_count\x18\x04 \x01(\x05\x12\x17\n\x0fscheduled_count\x18\x05 \x01(\x05\x12\x16\n\x0eretrying_count\x18\x06 \x01(\x05\x12\x14\n\x0c\x66\x61iled_count\x18\x07 \x01(\x05\x12\x33\n\x0foldest_due_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.TimestampJ\x04\x08\x01\x10\x02J\x04\x08\x03\x10\x04R\rpending_countR\x1coldest_pending_schedule_time\"\xf8\x01\n\x12QueueStatsSnapshot\x12\x17\n\x0fsucceeded_count\x18\x01 \x01(\x03\x12\x14\n\x0c\x66\x61iled_count\x18\x02 \x01(\x03\x12\x17\n\x0f\x63\x61ncelled_count\x18\x03 \x01(\x03\x12\x15\n\rattempt_count\x18\x04 \x01(\x03\x12\x41\n\rwait_duration\x18\x05 \x01(\x0b\x32*.malonaz.scheduler.v1.DurationDistribution\x12@\n\x0crun_duration\x18\x06 \x01(\x0b\x32*.malonaz.scheduler.v1.DurationDistribution\"\x8e\x01\n\x14\x44urationDistribution\x12&\n\x03p50\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12&\n\x03p95\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12&\n\x03max\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\"w\n\x10QueueStatsBucket\x12\'\n\x08interval\x18\x01 \x01(\x0b\x32\x15.google.type.Interval\x12:\n\x08snapshot\x18\x02 \x01(\x0b\x32(.malonaz.scheduler.v1.QueueStatsSnapshot*Z\n\nQueueState\x12\x1b\n\x17QUEUE_STATE_UNSPECIFIED\x10\x00\x12\x17\n\x13QUEUE_STATE_RUNNING\x10\x01\x12\x16\n\x12QUEUE_STATE_PAUSED\x10\x02\x42/Z-github.com/malonaz/core/genproto/scheduler/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -63,10 +65,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_QUEUE'].fields_by_name['stats']._serialized_options = b'\340A\003\272\352\017\002(\001'
   _globals['_QUEUE']._loaded_options = None
   _globals['_QUEUE']._serialized_options = b'\352A<\n\033scheduler.malonaz.com/Queue\022\016queues/{queue}*\006queues2\005queue\322\246\004\013\n\tscheduler\202\366,$0b0bf9b6-d8ee-40c0-8483-7b245c19afec'
-  _globals['_QUEUESTATE']._serialized_start=1282
-  _globals['_QUEUESTATE']._serialized_end=1372
-  _globals['_QUEUE']._serialized_start=295
-  _globals['_QUEUE']._serialized_end=1042
-  _globals['_QUEUESTATS']._serialized_start=1045
-  _globals['_QUEUESTATS']._serialized_end=1280
+  _globals['_QUEUESTATE']._serialized_start=1859
+  _globals['_QUEUESTATE']._serialized_end=1949
+  _globals['_QUEUE']._serialized_start=355
+  _globals['_QUEUE']._serialized_end=1102
+  _globals['_QUEUESTATS']._serialized_start=1105
+  _globals['_QUEUESTATS']._serialized_end=1340
+  _globals['_QUEUESTATSSNAPSHOT']._serialized_start=1343
+  _globals['_QUEUESTATSSNAPSHOT']._serialized_end=1591
+  _globals['_DURATIONDISTRIBUTION']._serialized_start=1594
+  _globals['_DURATIONDISTRIBUTION']._serialized_end=1736
+  _globals['_QUEUESTATSBUCKET']._serialized_start=1738
+  _globals['_QUEUESTATSBUCKET']._serialized_end=1857
 # @@protoc_insertion_point(module_scope)

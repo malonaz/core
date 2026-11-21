@@ -1122,6 +1122,148 @@ func (b0 CancelJobRequest_builder) Build() *CancelJobRequest {
 	return m0
 }
 
+// Request message for SchedulerService.BatchCancelJobs.
+type BatchCancelJobsRequest struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Names  []string               `protobuf:"bytes,2,rep,name=names,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *BatchCancelJobsRequest) Reset() {
+	*x = BatchCancelJobsRequest{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCancelJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCancelJobsRequest) ProtoMessage() {}
+
+func (x *BatchCancelJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCancelJobsRequest) GetParent() string {
+	if x != nil {
+		return x.xxx_hidden_Parent
+	}
+	return ""
+}
+
+func (x *BatchCancelJobsRequest) GetNames() []string {
+	if x != nil {
+		return x.xxx_hidden_Names
+	}
+	return nil
+}
+
+func (x *BatchCancelJobsRequest) SetParent(v string) {
+	x.xxx_hidden_Parent = v
+}
+
+func (x *BatchCancelJobsRequest) SetNames(v []string) {
+	x.xxx_hidden_Names = v
+}
+
+type BatchCancelJobsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The parent shared by every job. Optional; when set, every name must be a
+	// direct child of it.
+	// Format: organizations/{organization}
+	// Format: organizations/{organization}/users/{user}
+	Parent string
+	// The resource names of the jobs to cancel.
+	// Format: jobs/{job}
+	// Format: organizations/{organization}/jobs/{job}
+	// Format: organizations/{organization}/users/{user}/jobs/{job}
+	// A maximum of 1000 jobs can be cancelled in a batch.
+	Names []string
+}
+
+func (b0 BatchCancelJobsRequest_builder) Build() *BatchCancelJobsRequest {
+	m0 := &BatchCancelJobsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Names = b.Names
+	return m0
+}
+
+// Response message for SchedulerService.BatchCancelJobs.
+type BatchCancelJobsResponse struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Jobs *[]*v1.Job             `protobuf:"bytes,1,rep,name=jobs,proto3"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *BatchCancelJobsResponse) Reset() {
+	*x = BatchCancelJobsResponse{}
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCancelJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCancelJobsResponse) ProtoMessage() {}
+
+func (x *BatchCancelJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BatchCancelJobsResponse) GetJobs() []*v1.Job {
+	if x != nil {
+		if x.xxx_hidden_Jobs != nil {
+			return *x.xxx_hidden_Jobs
+		}
+	}
+	return nil
+}
+
+func (x *BatchCancelJobsResponse) SetJobs(v []*v1.Job) {
+	x.xxx_hidden_Jobs = &v
+}
+
+type BatchCancelJobsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The cancelled jobs, in the order of the request's names.
+	Jobs []*v1.Job
+}
+
+func (b0 BatchCancelJobsResponse_builder) Build() *BatchCancelJobsResponse {
+	m0 := &BatchCancelJobsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Jobs = &b.Jobs
+	return m0
+}
+
 // Request message for SchedulerService.ReportJobProgress.
 type ReportJobProgressRequest struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
@@ -1133,7 +1275,7 @@ type ReportJobProgressRequest struct {
 
 func (x *ReportJobProgressRequest) Reset() {
 	*x = ReportJobProgressRequest{}
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1145,7 +1287,7 @@ func (x *ReportJobProgressRequest) String() string {
 func (*ReportJobProgressRequest) ProtoMessage() {}
 
 func (x *ReportJobProgressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[13]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1221,7 +1363,7 @@ type WaitJobRequest struct {
 
 func (x *WaitJobRequest) Reset() {
 	*x = WaitJobRequest{}
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1233,7 +1375,7 @@ func (x *WaitJobRequest) String() string {
 func (*WaitJobRequest) ProtoMessage() {}
 
 func (x *WaitJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[14]
+	mi := &file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1370,7 +1512,13 @@ const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\"O\n" +
 	"\x10CancelJobRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
-	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\x91\x01\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\"\x99\x01\n" +
+	"\x16BatchCancelJobsRequest\x126\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1e\xfaA\x1b\x12\x19scheduler.malonaz.com/JobR\x06parent\x12G\n" +
+	"\x05names\x18\x02 \x03(\tB1\xfaA\x1b\n" +
+	"\x19scheduler.malonaz.com/Job\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"H\n" +
+	"\x17BatchCancelJobsResponse\x12-\n" +
+	"\x04jobs\x18\x01 \x03(\v2\x19.malonaz.scheduler.v1.JobR\x04jobs\"\x91\x01\n" +
 	"\x18ReportJobProgressRequest\x12;\n" +
 	"\x04name\x18\x01 \x01(\tB'\xe0A\x02\xfaA\x1b\n" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x128\n" +
@@ -1380,7 +1528,7 @@ const file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc = "" +
 	"\x19scheduler.malonaz.com/Job\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x022\x00R\atimeoutBAZ?github.com/malonaz/core/genproto/scheduler/scheduler_service/v1b\x06proto3"
 
-var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_malonaz_scheduler_scheduler_service_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*CreateJobRequest)(nil),         // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest
 	(*GetJobRequest)(nil),            // 1: malonaz.scheduler.scheduler_service.v1.GetJobRequest
@@ -1395,27 +1543,30 @@ var file_malonaz_scheduler_scheduler_service_v1_job_proto_goTypes = []any{
 	(*BatchRetryJobsRequest)(nil),    // 10: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsRequest
 	(*BatchRetryJobsResponse)(nil),   // 11: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsResponse
 	(*CancelJobRequest)(nil),         // 12: malonaz.scheduler.scheduler_service.v1.CancelJobRequest
-	(*ReportJobProgressRequest)(nil), // 13: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
-	(*WaitJobRequest)(nil),           // 14: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
-	(*v1.Job)(nil),                   // 15: malonaz.scheduler.v1.Job
-	(*fieldmaskpb.FieldMask)(nil),    // 16: google.protobuf.FieldMask
-	(*anypb.Any)(nil),                // 17: google.protobuf.Any
-	(*durationpb.Duration)(nil),      // 18: google.protobuf.Duration
+	(*BatchCancelJobsRequest)(nil),   // 13: malonaz.scheduler.scheduler_service.v1.BatchCancelJobsRequest
+	(*BatchCancelJobsResponse)(nil),  // 14: malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse
+	(*ReportJobProgressRequest)(nil), // 15: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
+	(*WaitJobRequest)(nil),           // 16: malonaz.scheduler.scheduler_service.v1.WaitJobRequest
+	(*v1.Job)(nil),                   // 17: malonaz.scheduler.v1.Job
+	(*fieldmaskpb.FieldMask)(nil),    // 18: google.protobuf.FieldMask
+	(*anypb.Any)(nil),                // 19: google.protobuf.Any
+	(*durationpb.Duration)(nil),      // 20: google.protobuf.Duration
 }
 var file_malonaz_scheduler_scheduler_service_v1_job_proto_depIdxs = []int32{
-	15, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	15, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
-	16, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
-	15, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	15, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	15, // 5: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
-	17, // 6: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
-	18, // 7: malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout:type_name -> google.protobuf.Duration
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	17, // 0: malonaz.scheduler.scheduler_service.v1.CreateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	17, // 1: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.job:type_name -> malonaz.scheduler.v1.Job
+	18, // 2: malonaz.scheduler.scheduler_service.v1.UpdateJobRequest.update_mask:type_name -> google.protobuf.FieldMask
+	17, // 3: malonaz.scheduler.scheduler_service.v1.ListJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	17, // 4: malonaz.scheduler.scheduler_service.v1.BatchGetJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	17, // 5: malonaz.scheduler.scheduler_service.v1.BatchRetryJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	17, // 6: malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse.jobs:type_name -> malonaz.scheduler.v1.Job
+	19, // 7: malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest.progress:type_name -> google.protobuf.Any
+	20, // 8: malonaz.scheduler.scheduler_service.v1.WaitJobRequest.timeout:type_name -> google.protobuf.Duration
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_scheduler_scheduler_service_v1_job_proto_init() }
@@ -1429,7 +1580,7 @@ func file_malonaz_scheduler_scheduler_service_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc), len(file_malonaz_scheduler_scheduler_service_v1_job_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

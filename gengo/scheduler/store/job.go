@@ -254,3 +254,22 @@ func (s *Store) PurgeJobs(ctx context.Context, now time.Time) (int64, error) {
 	}
 	return tag.RowsAffected(), nil
 }
+
+// JobState is a job's state, by its ID.
+type JobState struct {
+	JobID string `db:"job_id"`
+	State int16  `db:"state"`
+}
+
+// ListJobStates returns the state of every job among jobIDs that still exists.
+func (s *Store) ListJobStates(ctx context.Context, jobIDs []string) ([]*JobState, error) {
+	rows, err := s.client.Query(ctx, "SELECT job_id, state FROM scheduler.job WHERE job_id = ANY($1)", jobIDs)
+	if err != nil {
+		return nil, fmt.Errorf("listing job states: %w", err)
+	}
+	states, err := v5.CollectRows(rows, v5.RowToAddrOfStructByName[JobState])
+	if err != nil {
+		return nil, fmt.Errorf("collecting rows: %w", err)
+	}
+	return states, nil
+}

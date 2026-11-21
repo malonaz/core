@@ -29,6 +29,7 @@ const (
 	SchedulerService_BatchGetQueues_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchGetQueues"
 	SchedulerService_PauseQueue_FullMethodName        = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/PauseQueue"
 	SchedulerService_ResumeQueue_FullMethodName       = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ResumeQueue"
+	SchedulerService_ComputeQueueStats_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ComputeQueueStats"
 	SchedulerService_CreateJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateJob"
 	SchedulerService_GetJob_FullMethodName            = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/GetJob"
 	SchedulerService_UpdateJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/UpdateJob"
@@ -39,6 +40,7 @@ const (
 	SchedulerService_BatchDeleteJobs_FullMethodName   = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchDeleteJobs"
 	SchedulerService_BatchRetryJobs_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchRetryJobs"
 	SchedulerService_CancelJob_FullMethodName         = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CancelJob"
+	SchedulerService_BatchCancelJobs_FullMethodName   = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/BatchCancelJobs"
 	SchedulerService_WaitJob_FullMethodName           = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/WaitJob"
 	SchedulerService_ReportJobProgress_FullMethodName = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/ReportJobProgress"
 	SchedulerService_CreateSchedule_FullMethodName    = "/malonaz.scheduler.scheduler_service.v1.SchedulerService/CreateSchedule"
@@ -168,6 +170,24 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeQueue(ctx context.Context, in *ResumeQueueRequest, opts ...grpc.CallOption) (*v1.Queue, error)
+	// Compute a queue's stats over an interval from the jobs that completed in
+	// it: how many succeeded, failed or were cancelled, the attempts they took,
+	// and how long they waited and ran; totals and, when a step is set, a sparse
+	// time series. `queues/-` aggregates every queue.
+	//
+	// Up to a day, stats are read off the jobs themselves, percentiles exact.
+	// Past a day, they are read off hourly roll-ups, kept past the jobs'
+	// retention: the interval widens to whole hours, the step must be a whole
+	// number of hours, and percentiles are within 10% (maxima stay exact). A job
+	// retried by hand once its hour is rolled up stays counted there, and counts
+	// again in the hour it completes again.
+	//
+	// Fails with NOT_FOUND on an unknown queue, and with INVALID_ARGUMENT when
+	// the step cuts the interval into more than 1440 buckets or, past a day, is
+	// not a whole number of hours.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ComputeQueueStats(ctx context.Context, in *ComputeQueueStatsRequest, opts ...grpc.CallOption) (*ComputeQueueStatsResponse, error)
 	// Create a job in the queue its payload type selects. Fails with
 	// FAILED_PRECONDITION when no queue accepts the payload type. A job on a
 	// PAUSED queue is accepted and waits. When the job carries a `unique_key`
@@ -227,6 +247,13 @@ type SchedulerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*v1.Job, error)
+	// Cancel multiple jobs atomically, with the semantics of
+	// [CancelJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob]:
+	// either every job is cancelled or none is. Fails with NOT_FOUND when any
+	// job is missing, and FAILED_PRECONDITION when any is terminal.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	BatchCancelJobs(ctx context.Context, in *BatchCancelJobsRequest, opts ...grpc.CallOption) (*BatchCancelJobsResponse, error)
 	// Wait for a job to reach a terminal state, or for the timeout to elapse,
 	// whichever comes first, and return it as it is then. Timing out is not an
 	// error: callers inspect `state`. The timeout is capped by the server; see
@@ -382,6 +409,16 @@ func (c *schedulerServiceClient) ResumeQueue(ctx context.Context, in *ResumeQueu
 	return out, nil
 }
 
+func (c *schedulerServiceClient) ComputeQueueStats(ctx context.Context, in *ComputeQueueStatsRequest, opts ...grpc.CallOption) (*ComputeQueueStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ComputeQueueStatsResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_ComputeQueueStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *schedulerServiceClient) CreateJob(ctx context.Context, in *CreateJobRequest, opts ...grpc.CallOption) (*v1.Job, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Job)
@@ -476,6 +513,16 @@ func (c *schedulerServiceClient) CancelJob(ctx context.Context, in *CancelJobReq
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Job)
 	err := c.cc.Invoke(ctx, SchedulerService_CancelJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *schedulerServiceClient) BatchCancelJobs(ctx context.Context, in *BatchCancelJobsRequest, opts ...grpc.CallOption) (*BatchCancelJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchCancelJobsResponse)
+	err := c.cc.Invoke(ctx, SchedulerService_BatchCancelJobs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -708,6 +755,24 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResumeQueue(context.Context, *ResumeQueueRequest) (*v1.Queue, error)
+	// Compute a queue's stats over an interval from the jobs that completed in
+	// it: how many succeeded, failed or were cancelled, the attempts they took,
+	// and how long they waited and ran; totals and, when a step is set, a sparse
+	// time series. `queues/-` aggregates every queue.
+	//
+	// Up to a day, stats are read off the jobs themselves, percentiles exact.
+	// Past a day, they are read off hourly roll-ups, kept past the jobs'
+	// retention: the interval widens to whole hours, the step must be a whole
+	// number of hours, and percentiles are within 10% (maxima stay exact). A job
+	// retried by hand once its hour is rolled up stays counted there, and counts
+	// again in the hour it completes again.
+	//
+	// Fails with NOT_FOUND on an unknown queue, and with INVALID_ARGUMENT when
+	// the step cuts the interval into more than 1440 buckets or, past a day, is
+	// not a whole number of hours.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	ComputeQueueStats(context.Context, *ComputeQueueStatsRequest) (*ComputeQueueStatsResponse, error)
 	// Create a job in the queue its payload type selects. Fails with
 	// FAILED_PRECONDITION when no queue accepts the payload type. A job on a
 	// PAUSED queue is accepted and waits. When the job carries a `unique_key`
@@ -767,6 +832,13 @@ type SchedulerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	CancelJob(context.Context, *CancelJobRequest) (*v1.Job, error)
+	// Cancel multiple jobs atomically, with the semantics of
+	// [CancelJob][malonaz.scheduler.scheduler_service.v1.SchedulerService.CancelJob]:
+	// either every job is cancelled or none is. Fails with NOT_FOUND when any
+	// job is missing, and FAILED_PRECONDITION when any is terminal.
+	//
+	// See: https://google.aip.dev/136 (Custom methods).
+	BatchCancelJobs(context.Context, *BatchCancelJobsRequest) (*BatchCancelJobsResponse, error)
 	// Wait for a job to reach a terminal state, or for the timeout to elapse,
 	// whichever comes first, and return it as it is then. Timing out is not an
 	// error: callers inspect `state`. The timeout is capped by the server; see
@@ -865,6 +937,9 @@ func (UnimplementedSchedulerServiceServer) PauseQueue(context.Context, *PauseQue
 func (UnimplementedSchedulerServiceServer) ResumeQueue(context.Context, *ResumeQueueRequest) (*v1.Queue, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResumeQueue not implemented")
 }
+func (UnimplementedSchedulerServiceServer) ComputeQueueStats(context.Context, *ComputeQueueStatsRequest) (*ComputeQueueStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ComputeQueueStats not implemented")
+}
 func (UnimplementedSchedulerServiceServer) CreateJob(context.Context, *CreateJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateJob not implemented")
 }
@@ -894,6 +969,9 @@ func (UnimplementedSchedulerServiceServer) BatchRetryJobs(context.Context, *Batc
 }
 func (UnimplementedSchedulerServiceServer) CancelJob(context.Context, *CancelJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelJob not implemented")
+}
+func (UnimplementedSchedulerServiceServer) BatchCancelJobs(context.Context, *BatchCancelJobsRequest) (*BatchCancelJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCancelJobs not implemented")
 }
 func (UnimplementedSchedulerServiceServer) WaitJob(context.Context, *WaitJobRequest) (*v1.Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method WaitJob not implemented")
@@ -1092,6 +1170,24 @@ func _SchedulerService_ResumeQueue_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchedulerService_ComputeQueueStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ComputeQueueStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).ComputeQueueStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_ComputeQueueStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).ComputeQueueStats(ctx, req.(*ComputeQueueStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SchedulerService_CreateJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateJobRequest)
 	if err := dec(in); err != nil {
@@ -1268,6 +1364,24 @@ func _SchedulerService_CancelJob_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchedulerServiceServer).CancelJob(ctx, req.(*CancelJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SchedulerService_BatchCancelJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCancelJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchedulerServiceServer).BatchCancelJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchedulerService_BatchCancelJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchedulerServiceServer).BatchCancelJobs(ctx, req.(*BatchCancelJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1510,6 +1624,10 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SchedulerService_ResumeQueue_Handler,
 		},
 		{
+			MethodName: "ComputeQueueStats",
+			Handler:    _SchedulerService_ComputeQueueStats_Handler,
+		},
+		{
 			MethodName: "CreateJob",
 			Handler:    _SchedulerService_CreateJob_Handler,
 		},
@@ -1548,6 +1666,10 @@ var SchedulerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelJob",
 			Handler:    _SchedulerService_CancelJob_Handler,
+		},
+		{
+			MethodName: "BatchCancelJobs",
+			Handler:    _SchedulerService_BatchCancelJobs_Handler,
 		},
 		{
 			MethodName: "WaitJob",

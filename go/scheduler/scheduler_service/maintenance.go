@@ -2,12 +2,14 @@ package scheduler_service
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/malonaz/core/gengo/scheduler/model"
+	"github.com/malonaz/core/gengo/scheduler/store"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/scheduler/transition"
 )
@@ -91,6 +93,42 @@ func (s *Service) observeBacklog(ctx context.Context) error {
 		return err
 	}
 	observeQueueStats(stats, now)
+	return nil
+}
+
+// rollUpLateness is how long after an hour ends its jobs may still commit: until then, the hour is
+// rolled up again.
+const rollUpLateness = 5 * time.Minute
+
+// rollUp keeps the hourly stats ComputeQueueStats reads past a day. Each pass
+// rebuilds, from the jobs, every hour from QueueRollUpStart to now: a first
+// pass backfills every job kept, and an idle stretch costs nothing. Rebuilding
+// makes a pass idempotent, so any replica may run it and the next redoes one
+// that failed. A job retried after its hour is final stays counted there, and
+// counts again where it completes again.
+func (s *Service) rollUp(ctx context.Context) error {
+	now := transition.Now()
+	// Hours before the cutoff are purged, so never rolled up.
+	cutoff := time.Unix(0, 0).UTC()
+	if s.opts.QueueStatsRetention > 0 {
+		cutoff = now.Add(-s.opts.QueueStatsRetention).Truncate(time.Hour)
+		if err := s.schedulerPostgresStore.PurgeQueueHourStats(ctx, cutoff); err != nil {
+			return err
+		}
+	}
+	// An hour is rebuilt until a pass has run after its jobs stopped landing; then it is final.
+	reopen := now.Add(-rollUpLateness - s.opts.RollUpInterval).Truncate(time.Hour)
+	start, err := s.schedulerPostgresStore.QueueRollUpStart(ctx, cutoff, reopen)
+	if err != nil || start == nil {
+		return err
+	}
+	for hour := *start; hour.Before(now); hour = hour.Add(time.Hour) {
+		if err := s.schedulerPostgresStore.RollUpQueueHour(ctx, hour, func(measures []*store.JobMeasure) []*store.QueueHourStats {
+			return queueHourStatsOf(hour, measures)
+		}); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

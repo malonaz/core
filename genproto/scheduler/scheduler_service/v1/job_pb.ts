@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/scheduler/scheduler_service/v1/job.proto.
  */
 export const file_malonaz_scheduler_scheduler_service_v1_job: GenFile = /*@__PURE__*/
-  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIuEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEi4KA2pvYhgCIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIuUBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmi6SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDIQoGbGFiZWxzCg1zY2hlZHVsZV90aW1lCghwcmlvcml0eSJuChBEZWxldGVKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiigIKD0xpc3RKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6coLzLQIIZIrzLWEKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoNc2NoZWR1bGVfdGltZQoLZXhwaXJlX3RpbWUKDWNvbXBsZXRlX3RpbWUKCHByaW9yaXR5EhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIocBChNCYXRjaEdldEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIj8KFEJhdGNoR2V0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiSAoPUmV0cnlKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASKhAQoWQmF0Y2hEZWxldGVKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhJACgVuYW1lcxgCIAMoCUIx+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgQkgENCAEQ6AcYASIEcgIQARIVCg1hbGxvd19taXNzaW5nGAMgASgIIokBChVCYXRjaFJldHJ5Sm9ic1JlcXVlc3QSLgoGcGFyZW50GAEgASgJQh76QRsSGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2ISQAoFbmFtZXMYAiADKAlCMfpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIEJIBDQgBEOgHGAEiBHICEAEiQQoWQmF0Y2hSZXRyeUpvYnNSZXNwb25zZRInCgRqb2JzGAEgAygLMhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIkkKEENhbmNlbEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIoEBChhSZXBvcnRKb2JQcm9ncmVzc1JlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBEi4KCHByb2dyZXNzGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueUIGukgDyAEBIn0KDldhaXRKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARI0Cgd0aW1lb3V0GAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgi6SAWqAQIyAEJBWj9naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9zY2hlZHVsZXIvc2NoZWR1bGVyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
+  fileDesc("CjBtYWxvbmF6L3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MS9qb2IucHJvdG8SJm1hbG9uYXouc2NoZWR1bGVyLnNjaGVkdWxlcl9zZXJ2aWNlLnYxIuEBChBDcmVhdGVKb2JSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEi4KA2pvYhgCIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgDyAEBEjUKBmpvYl9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBARIVCg12YWxpZGF0ZV9vbmx5GAUgASgIIkYKDUdldEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIuUBChBVcGRhdGVKb2JSZXF1ZXN0Ei4KA2pvYhgBIAEoCzIZLm1hbG9uYXouc2NoZWR1bGVyLnYxLkpvYkIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmi6SD8aPQoRam9iLm5hbWVfcmVxdWlyZWQSFGpvYi5uYW1lIG11c3QgYmUgc2V0GhJoYXModGhpcy5qb2IubmFtZSnqnMEDIQoGbGFiZWxzCg1zY2hlZHVsZV90aW1lCghwcmlvcml0eSJuChBEZWxldGVKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiigIKD0xpc3RKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHQoJcGFnZV9zaXplGAQgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YBSABKAk6coLzLQIIZIrzLWEKC2NyZWF0ZV90aW1lCgt1cGRhdGVfdGltZQoNc2NoZWR1bGVfdGltZQoLZXhwaXJlX3RpbWUKDWNvbXBsZXRlX3RpbWUKCHByaW9yaXR5EhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJUChBMaXN0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2ISFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIocBChNCYXRjaEdldEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIj8KFEJhdGNoR2V0Sm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IiSAoPUmV0cnlKb2JSZXF1ZXN0EjUKBG5hbWUYASABKAlCJ+BBAvpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIA8gBASKhAQoWQmF0Y2hEZWxldGVKb2JzUmVxdWVzdBIuCgZwYXJlbnQYASABKAlCHvpBGxIZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYhJACgVuYW1lcxgCIAMoCUIx+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgQkgENCAEQ6AcYASIEcgIQARIVCg1hbGxvd19taXNzaW5nGAMgASgIIokBChVCYXRjaFJldHJ5Sm9ic1JlcXVlc3QSLgoGcGFyZW50GAEgASgJQh76QRsSGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2ISQAoFbmFtZXMYAiADKAlCMfpBGwoZc2NoZWR1bGVyLm1hbG9uYXouY29tL0pvYrpIEJIBDQgBEOgHGAEiBHICEAEiQQoWQmF0Y2hSZXRyeUpvYnNSZXNwb25zZRInCgRqb2JzGAEgAygLMhkubWFsb25hei5zY2hlZHVsZXIudjEuSm9iIkkKEENhbmNlbEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBIooBChZCYXRjaENhbmNlbEpvYnNSZXF1ZXN0Ei4KBnBhcmVudBgBIAEoCUIe+kEbEhlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iEkAKBW5hbWVzGAIgAygJQjH6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SBCSAQ0IARDoBxgBIgRyAhABIkIKF0JhdGNoQ2FuY2VsSm9ic1Jlc3BvbnNlEicKBGpvYnMYASADKAsyGS5tYWxvbmF6LnNjaGVkdWxlci52MS5Kb2IigQEKGFJlcG9ydEpvYlByb2dyZXNzUmVxdWVzdBI1CgRuYW1lGAEgASgJQifgQQL6QRsKGXNjaGVkdWxlci5tYWxvbmF6LmNvbS9Kb2K6SAPIAQESLgoIcHJvZ3Jlc3MYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Qga6SAPIAQEifQoOV2FpdEpvYlJlcXVlc3QSNQoEbmFtZRgBIAEoCUIn4EEC+kEbChlzY2hlZHVsZXIubWFsb25hei5jb20vSm9iukgDyAEBEjQKB3RpbWVvdXQYAiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CCLpIBaoBAjIAQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3NjaGVkdWxlci9zY2hlZHVsZXJfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_any, file_google_protobuf_duration, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_scheduler_v1_job]);
 
 /**
  * Request message for SchedulerService.CreateJob.
@@ -666,6 +666,78 @@ export const CancelJobRequestSchema: GenMessage<CancelJobRequest, {validType: Ca
   messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 12);
 
 /**
+ * Request message for SchedulerService.BatchCancelJobs.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.BatchCancelJobsRequest
+ */
+export type BatchCancelJobsRequest = Message<"malonaz.scheduler.scheduler_service.v1.BatchCancelJobsRequest"> & {
+  /**
+   * The parent shared by every job. Optional; when set, every name must be a
+   * direct child of it.
+   * Format: organizations/{organization}
+   * Format: organizations/{organization}/users/{user}
+   *
+   * @generated from field: string parent = 1;
+   */
+  parent: string;
+
+  /**
+   * The resource names of the jobs to cancel.
+   * Format: jobs/{job}
+   * Format: organizations/{organization}/jobs/{job}
+   * Format: organizations/{organization}/users/{user}/jobs/{job}
+   * A maximum of 1000 jobs can be cancelled in a batch.
+   *
+   * @generated from field: repeated string names = 2;
+   */
+  names: string[];
+};
+
+export type BatchCancelJobsRequestValid = BatchCancelJobsRequest;
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.BatchCancelJobsRequest.
+ * Use `create(BatchCancelJobsRequestSchema)` to create a new message.
+ */
+export const BatchCancelJobsRequestSchema: GenMessage<BatchCancelJobsRequest, {validType: BatchCancelJobsRequestValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 13);
+
+/**
+ * Response message for SchedulerService.BatchCancelJobs.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse
+ */
+export type BatchCancelJobsResponse = Message<"malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse"> & {
+  /**
+   * The cancelled jobs, in the order of the request's names.
+   *
+   * @generated from field: repeated malonaz.scheduler.v1.Job jobs = 1;
+   */
+  jobs: Job[];
+};
+
+/**
+ * Response message for SchedulerService.BatchCancelJobs.
+ *
+ * @generated from message malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse
+ */
+export type BatchCancelJobsResponseValid = Message<"malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse"> & {
+  /**
+   * The cancelled jobs, in the order of the request's names.
+   *
+   * @generated from field: repeated malonaz.scheduler.v1.Job jobs = 1;
+   */
+  jobs: JobValid[];
+};
+
+/**
+ * Describes the message malonaz.scheduler.scheduler_service.v1.BatchCancelJobsResponse.
+ * Use `create(BatchCancelJobsResponseSchema)` to create a new message.
+ */
+export const BatchCancelJobsResponseSchema: GenMessage<BatchCancelJobsResponse, {validType: BatchCancelJobsResponseValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 14);
+
+/**
  * Request message for SchedulerService.ReportJobProgress.
  *
  * @generated from message malonaz.scheduler.scheduler_service.v1.ReportJobProgressRequest
@@ -718,7 +790,7 @@ export type ReportJobProgressRequestValid = Message<"malonaz.scheduler.scheduler
  * Use `create(ReportJobProgressRequestSchema)` to create a new message.
  */
 export const ReportJobProgressRequestSchema: GenMessage<ReportJobProgressRequest, {validType: ReportJobProgressRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 13);
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 15);
 
 /**
  * Request message for SchedulerService.WaitJob.
@@ -781,5 +853,5 @@ export type WaitJobRequestValid = Message<"malonaz.scheduler.scheduler_service.v
  * Use `create(WaitJobRequestSchema)` to create a new message.
  */
 export const WaitJobRequestSchema: GenMessage<WaitJobRequest, {validType: WaitJobRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 14);
+  messageDesc(file_malonaz_scheduler_scheduler_service_v1_job, 16);
 

@@ -26,6 +26,7 @@ grpc_library(
         "//malonaz/codegen/aip/v1",
         "//malonaz/scheduler/v1",
         "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__type__interval",
         "//third_party/proto:validate",
     ],
 )

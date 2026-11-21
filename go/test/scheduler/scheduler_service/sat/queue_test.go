@@ -3,11 +3,13 @@ package sat
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	codepb "google.golang.org/genproto/googleapis/rpc/code"
+	intervalpb "google.golang.org/genproto/googleapis/type/interval"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -247,6 +249,171 @@ func TestQueue_Stats(t *testing.T) {
 		cancelJob(t, job.GetName())
 	}
 	grpcrequire.Equal(t, &schedulerpb.QueueStats{FailedCount: 1}, getQueue(t, queue.GetName()).GetStats())
+}
+
+func TestComputeQueueStats(t *testing.T) {
+	t.Parallel()
+	// The endpoint is dead and the policy allows one attempt: every job that
+	// starts fails after it.
+	queue := declareQueue(t, deadURL, newPolicy())
+	startTime := time.Now().Add(-time.Minute)
+	create := func(job *schedulerpb.Job) *schedulerpb.Job {
+		// No Go type exists for the fake request: the payload is built by hand.
+		job.Payload = &anypb.Any{TypeUrl: queue.GetRequestType()}
+		created, err := schedulerServiceClient.CreateJob(ctx, &schedulerservicepb.CreateJobRequest{Job: job})
+		require.NoError(t, err)
+		return created
+	}
+	failed := []*schedulerpb.Job{create(&schedulerpb.Job{}), create(&schedulerpb.Job{})}
+	cancelled := create(&schedulerpb.Job{ScheduleTime: timestamppb.New(farFuture)})
+	cancelJob(t, cancelled.GetName())
+	for _, job := range failed {
+		waitForState(t, job.GetName(), schedulerpb.JobState_JOB_STATE_FAILED)
+	}
+	interval := &intervalpb.Interval{StartTime: timestamppb.New(startTime), EndTime: timestamppb.New(time.Now().Add(time.Minute))}
+	compute := func(t *testing.T, request *schedulerservicepb.ComputeQueueStatsRequest) *schedulerservicepb.ComputeQueueStatsResponse {
+		t.Helper()
+		response, err := schedulerServiceClient.ComputeQueueStats(ctx, request)
+		require.NoError(t, err)
+		return response
+	}
+
+	t.Run("totals", func(t *testing.T) {
+		t.Parallel()
+		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: queue.GetName(), Interval: interval})
+		totals := response.GetTotals()
+		require.Equal(t, int64(0), totals.GetSucceededCount())
+		require.Equal(t, int64(2), totals.GetFailedCount())
+		require.Equal(t, int64(1), totals.GetCancelledCount())
+		// The cancelled job never started.
+		require.Equal(t, int64(2), totals.GetAttemptCount())
+		require.NotNil(t, totals.GetWaitDuration())
+		require.NotNil(t, totals.GetRunDuration())
+		require.LessOrEqual(t, totals.GetRunDuration().GetP50().AsDuration(), totals.GetRunDuration().GetMax().AsDuration())
+		require.Empty(t, response.GetBuckets())
+	})
+
+	t.Run("buckets add up to the totals", func(t *testing.T) {
+		t.Parallel()
+		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: queue.GetName(), Interval: interval, Step: durationpb.New(time.Minute)})
+		require.Equal(t, int64(2), response.GetTotals().GetFailedCount())
+		require.NotEmpty(t, response.GetBuckets())
+		var failedCount, cancelledCount int64
+		for i, bucket := range response.GetBuckets() {
+			start, end := bucket.GetInterval().GetStartTime().AsTime(), bucket.GetInterval().GetEndTime().AsTime()
+			require.Equal(t, time.Minute, end.Sub(start))
+			require.Zero(t, start.UnixNano()%int64(time.Minute), "buckets align to the epoch")
+			if i > 0 {
+				require.True(t, start.After(response.GetBuckets()[i-1].GetInterval().GetStartTime().AsTime()))
+			}
+			failedCount += bucket.GetSnapshot().GetFailedCount()
+			cancelledCount += bucket.GetSnapshot().GetCancelledCount()
+		}
+		require.Equal(t, int64(2), failedCount)
+		require.Equal(t, int64(1), cancelledCount)
+	})
+
+	t.Run("past a day reads the hourly roll-ups", func(t *testing.T) {
+		t.Parallel()
+		exact := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: queue.GetName(), Interval: interval}).GetTotals()
+		week := &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     queue.GetName(),
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+			Step:     durationpb.New(time.Hour),
+		}
+		var response *schedulerservicepb.ComputeQueueStatsResponse
+		require.Eventually(t, func() bool {
+			response = compute(t, week)
+			return response.GetTotals().GetFailedCount() == exact.GetFailedCount()
+		}, waitTimeout, 50*time.Millisecond, "the roll-up never caught up")
+		rolledUp := response.GetTotals()
+		require.Equal(t, exact.GetCancelledCount(), rolledUp.GetCancelledCount())
+		require.Equal(t, exact.GetAttemptCount(), rolledUp.GetAttemptCount())
+		// Maxima are exact; percentiles, both by nearest rank, within the histogram's 10%.
+		for _, durations := range [][2]*schedulerpb.DurationDistribution{
+			{exact.GetWaitDuration(), rolledUp.GetWaitDuration()},
+			{exact.GetRunDuration(), rolledUp.GetRunDuration()},
+		} {
+			exactDuration, rolledUpDuration := durations[0], durations[1]
+			require.Equal(t, exactDuration.GetMax().AsDuration(), rolledUpDuration.GetMax().AsDuration())
+			require.InEpsilon(t, exactDuration.GetP50().AsDuration().Seconds(), rolledUpDuration.GetP50().AsDuration().Seconds(), 0.1)
+			require.InEpsilon(t, exactDuration.GetP95().AsDuration().Seconds(), rolledUpDuration.GetP95().AsDuration().Seconds(), 0.1)
+		}
+		// The interval widens to the whole hours the roll-ups hold.
+		require.True(t, response.GetInterval().GetStartTime().AsTime().Equal(week.GetInterval().GetStartTime().AsTime().Truncate(time.Hour)))
+		var failedCount int64
+		for _, bucket := range response.GetBuckets() {
+			start, end := bucket.GetInterval().GetStartTime().AsTime(), bucket.GetInterval().GetEndTime().AsTime()
+			require.Equal(t, time.Hour, end.Sub(start))
+			require.True(t, start.Equal(start.Truncate(time.Hour)))
+			failedCount += bucket.GetSnapshot().GetFailedCount()
+		}
+		require.Equal(t, exact.GetFailedCount(), failedCount)
+
+		week.Step = durationpb.New(30 * time.Minute)
+		_, err := schedulerServiceClient.ComputeQueueStats(ctx, week)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+	})
+
+	t.Run("past a day, a queue without jobs", func(t *testing.T) {
+		t.Parallel()
+		idle := declareQueue(t, deadURL, newPolicy())
+		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     idle.GetName(),
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+			Step:     durationpb.New(time.Hour),
+		})
+		grpcrequire.Equal(t, &schedulerpb.QueueStatsSnapshot{}, response.GetTotals())
+		require.Empty(t, response.GetBuckets())
+	})
+
+	t.Run("past a day, every queue", func(t *testing.T) {
+		t.Parallel()
+		week := &schedulerservicepb.ComputeQueueStatsRequest{
+			Name:     "queues/-",
+			Interval: &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-7 * 24 * time.Hour)), EndTime: interval.GetEndTime()},
+		}
+		require.Eventually(t, func() bool {
+			totals := compute(t, week).GetTotals()
+			return totals.GetFailedCount() >= 2 && totals.GetCancelledCount() >= 1
+		}, waitTimeout, 50*time.Millisecond, "the roll-up never caught up")
+	})
+
+	t.Run("every queue", func(t *testing.T) {
+		t.Parallel()
+		response := compute(t, &schedulerservicepb.ComputeQueueStatsRequest{Name: "queues/-", Interval: interval})
+		require.GreaterOrEqual(t, response.GetTotals().GetFailedCount(), int64(2))
+		require.GreaterOrEqual(t, response.GetTotals().GetCancelledCount(), int64(1))
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		t.Parallel()
+		computeQueueStatsRequest := &schedulerservicepb.ComputeQueueStatsRequest{Name: queue.GetName(), Step: durationpb.New(time.Minute)}
+		_, err := schedulerServiceClient.ComputeQueueStats(ctx, computeQueueStatsRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+		computeQueueStatsRequest.Interval = &intervalpb.Interval{StartTime: timestamppb.New(startTime.Add(-48 * time.Hour)), EndTime: timestamppb.New(startTime)}
+		_, err = schedulerServiceClient.ComputeQueueStats(ctx, computeQueueStatsRequest)
+		grpcrequire.Error(t, codes.InvalidArgument, err)
+		computeQueueStatsRequest = &schedulerservicepb.ComputeQueueStatsRequest{Name: "queues/does-not-exist"}
+		_, err = schedulerServiceClient.ComputeQueueStats(ctx, computeQueueStatsRequest)
+		grpcrequire.Error(t, codes.NotFound, err)
+	})
+}
+
+func TestQueueHourStats_Purged(t *testing.T) {
+	t.Parallel()
+	postgresClient, err := satEnvironment.GetPostgresClient(ctx, "scheduler")
+	require.NoError(t, err)
+	queue := "queues/" + strings.ReplaceAll(uuid.MustNewV7().String(), "-", "")
+	// Past the default year of retention.
+	_, err = postgresClient.Exec(ctx, `INSERT INTO scheduler.queue_hour_stats (queue, hour, succeeded_count, failed_count, cancelled_count, attempt_count)
+VALUES ($1, $2, 1, 0, 0, 1)`, queue, time.Now().UTC().Add(-2*365*24*time.Hour).Truncate(time.Hour))
+	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		var count int
+		require.NoError(t, postgresClient.QueryRow(ctx, "SELECT count(*) FROM scheduler.queue_hour_stats WHERE queue = $1", queue).Scan(&count))
+		return count == 0
+	}, waitTimeout, 50*time.Millisecond)
 }
 
 func TestQueue_DeleteWithJobs(t *testing.T) {

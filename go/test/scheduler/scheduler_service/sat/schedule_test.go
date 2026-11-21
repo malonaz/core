@@ -356,6 +356,38 @@ func TestSchedule_RewoundTickFiresPromptly(t *testing.T) {
 	requireTickJob(t, schedule, getJob(t, schedule.GetLastJob()), tick, tick.Add(time.Hour))
 }
 
+func TestSchedule_LastJobState(t *testing.T) {
+	t.Parallel()
+	created := createSchedule(t, scheduleParents()["organization"], newSchedule(t, rareCron))
+	require.Equal(t, schedulerpb.JobState_JOB_STATE_UNSPECIFIED, created.GetLastJobState())
+	rewindSchedule(t, created.GetName(), pastTick(time.Minute))
+	schedule := waitForSchedule(t, created.GetName(), tickWait, func(schedule *schedulerpb.Schedule) bool { return schedule.GetLastJob() != "" })
+	waitForState(t, schedule.GetLastJob(), schedulerpb.JobState_JOB_STATE_SUCCEEDED)
+
+	// Every read joins the last job's state.
+	getScheduleRequest := &schedulerservicepb.GetScheduleRequest{Name: created.GetName()}
+	got, err := schedulerServiceClient.GetSchedule(ctx, getScheduleRequest)
+	require.NoError(t, err)
+	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, got.GetLastJobState())
+	batchGetSchedulesRequest := &schedulerservicepb.BatchGetSchedulesRequest{Names: []string{created.GetName()}}
+	batchGetSchedulesResponse, err := schedulerServiceClient.BatchGetSchedules(ctx, batchGetSchedulesRequest)
+	require.NoError(t, err)
+	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, batchGetSchedulesResponse.GetSchedules()[0].GetLastJobState())
+	pauseScheduleRequest := &schedulerservicepb.PauseScheduleRequest{Name: created.GetName()}
+	paused, err := schedulerServiceClient.PauseSchedule(ctx, pauseScheduleRequest)
+	require.NoError(t, err)
+	require.Equal(t, schedulerpb.JobState_JOB_STATE_SUCCEEDED, paused.GetLastJobState())
+
+	// A purged job leaves it unset.
+	deleteJobRequest := &schedulerservicepb.DeleteJobRequest{Name: schedule.GetLastJob()}
+	_, err = schedulerServiceClient.DeleteJob(ctx, deleteJobRequest)
+	require.NoError(t, err)
+	got, err = schedulerServiceClient.GetSchedule(ctx, getScheduleRequest)
+	require.NoError(t, err)
+	require.Equal(t, schedule.GetLastJob(), got.GetLastJob())
+	require.Equal(t, schedulerpb.JobState_JOB_STATE_UNSPECIFIED, got.GetLastJobState())
+}
+
 func TestSchedule_MissedTick(t *testing.T) {
 	t.Parallel()
 	declared := newSchedule(t, rareCron)
