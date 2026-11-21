@@ -1,0 +1,45 @@
+name: test
+servers:
+  - name: a-service
+    internal: true
+    grpc:
+      interceptors: [INTERCEPTOR_AUTHENTICATION]
+      services:
+        - service: a-service
+          proto: //a/v1(tools/onyx/binary/testdata/a.proto)
+          manifest: //a/a_service:manifest(tools/onyx/binary/testdata/a_service.yaml)
+  - name: a-processor
+    processor:
+      manifest: //a/a_service:manifest(tools/onyx/binary/testdata/a_service.yaml)
+  - name: b-service
+    grpc:
+      interceptors: [INTERCEPTOR_AUTHENTICATION]
+      services:
+        - service: b-service
+          proto: //a/v1(tools/onyx/binary/testdata/b.proto)
+          manifest: //b/b_service:manifest(tools/onyx/binary/testdata/b_service.yaml)
+          gateway: true
+  - name: lro-service
+    internal: true
+    grpc:
+      interceptors: [INTERCEPTOR_AUTHENTICATION]
+      services:
+        - service: lro-service
+          proto: //lro/v1(tools/onyx/binary/testdata/lro.proto)
+          manifest: //lro/lro_service:manifest(tools/onyx/binary/testdata/lro_service.yaml)
+  - name: scheduler-service
+    internal: true
+    grpc:
+      interceptors: [INTERCEPTOR_AUTHENTICATION]
+      services:
+        - service: scheduler-service
+          proto: //scheduler/v1(tools/onyx/binary/testdata/scheduler.proto)
+          manifest: //scheduler/scheduler_service:manifest(tools/onyx/binary/testdata/scheduler_service.yaml)
+  - name: d-processor
+    processor:
+      manifest: //d/d_processor:manifest(tools/onyx/binary/testdata/d_processor.yaml)
+  - name: d-http
+    port: 45329
+    http:
+      services:
+        - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)

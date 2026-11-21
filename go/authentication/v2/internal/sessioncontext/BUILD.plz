@@ -1,0 +1,6 @@
+go_library(
+    name = "sessioncontext",
+    srcs = ["sessioncontext.go"],
+    visibility = ["//go/authentication/v2/..."],
+    deps = ["//malonaz/authentication/v2"],
+)

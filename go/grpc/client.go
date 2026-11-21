@@ -99,7 +99,7 @@ func NewConnection(opts *ClientOpts, certsOpts *certs.Opts, prometheusOpts *prom
 	if err != nil {
 		return nil, err
 	}
-	client.options = append(client.options, clientTransportCredentialsOptions)
+	client.options = append(client.options, clientTransportCredentialsOptions, grpc.WithPerRPCCredentials(contextCredentials{}))
 
 	// Default interceptors.
 	client.preUnaryInterceptors = append(client.preUnaryInterceptors, middleware.UnaryClientTrailerPropagation())
@@ -219,6 +219,33 @@ func (c *Connection) WithMetadata(key, value string) *Connection {
 	})
 	return c
 }
+
+type callMetadataKey struct{}
+
+// WithCallMetadata returns a context whose outgoing calls, on any Connection, carry the metadata callMetadata returns.
+// It is called as each call is sent, credentials.RequestInfoFromContext naming the call.
+func WithCallMetadata(ctx context.Context, callMetadata func(context.Context) (map[string]string, error)) context.Context {
+	return context.WithValue(ctx, callMetadataKey{}, callMetadata)
+}
+
+// CallMetadata returns the metadata a call sent on the context carries: none unless WithCallMetadata put some on it.
+func CallMetadata(ctx context.Context) (map[string]string, error) {
+	callMetadata, ok := ctx.Value(callMetadataKey{}).(func(context.Context) (map[string]string, error))
+	if !ok {
+		return nil, nil
+	}
+	return callMetadata(ctx)
+}
+
+// contextCredentials ask each call's context for its metadata: gRPC calls them once a transport is ready, per attempt.
+type contextCredentials struct{}
+
+func (contextCredentials) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	return CallMetadata(ctx)
+}
+
+// RequireTransportSecurity is false: a binary dials its own servers over unix sockets, without TLS.
+func (contextCredentials) RequireTransportSecurity() bool { return false }
 
 // gRPC's resolver registry is not thread safe: register only at init, before any goroutine dials.
 func init() {

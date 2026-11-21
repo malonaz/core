@@ -4,12 +4,7 @@ servers:
   - name: tsunade-external
     grpc:
       interceptors:
-        - INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR
-        - INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION
-        - INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION
-        - INTERCEPTOR_PERMISSION_AUTHENTICATION
-        - INTERCEPTOR_SESSION_LOG_INJECTOR
-        - INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR
+        - INTERCEPTOR_AUTHENTICATION
       services:
         - service: ai-service
           proto: //malonaz/ai/ai_service/v1

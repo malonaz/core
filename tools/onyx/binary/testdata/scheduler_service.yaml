@@ -1,0 +1,2 @@
+name: scheduler-service
+target: //scheduler/scheduler_service
