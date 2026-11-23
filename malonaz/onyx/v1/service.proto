@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.onyx.v1;
 
 import "buf/validate/validate.proto";
+import "malonaz/onyx/v1/main.proto";
 
 option go_package = "github.com/malonaz/core/genproto/onyx/v1";
 
@@ -25,6 +26,10 @@ message ServiceManifest {
 
   // Constructor arguments, in order. Resolved by the binary hosting the service.
   repeated Dependency dependencies = 6;
+
+  // The binary running only this service, which onyx_deployment builds from this manifest. A
+  // server naming no service manifest serves this one. Validated by onyx once those are filled in.
+  MainManifest deployment = 7 [(buf.validate.field).ignore = IGNORE_ALWAYS];
 }
 
 // A generated component the Service embeds.

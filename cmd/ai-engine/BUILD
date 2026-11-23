@@ -1,23 +1,18 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_manifest(
-    name = "manifest",
-    test_only = True,
-    deps = [
+onyx_deployment(
+    name = "ai-engine",
+    manifest = "manifest.yaml",
+    manifest_deps = [
         "//go/ai/ai_engine:manifest",
         "//malonaz/ai/ai_engine/v1",
     ],
-)
-
-onyx_main_src(
-    name = "main.go",
-    manifest = ":manifest",
     test_only = True,
 )
 
 go_binary(
     name = "ai-engine",
-    srcs = [":main.go"],
+    srcs = [":ai-engine_main.go"],
     test_only = True,
     visibility = ["//go/test/ai/..."],
     deps = [

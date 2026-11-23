@@ -7,14 +7,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
 	"github.com/malonaz/core/tools/onyx/manifest"
 )
 
 func load(t *testing.T, filename string) (*Binary, error) {
 	t.Helper()
-	m := &onyxpb.MainManifest{}
-	require.NoError(t, manifest.Load("tools/onyx/binary/testdata/"+filename, m))
+	m, err := manifest.LoadMain("tools/onyx/binary/testdata/"+filename, "")
+	require.NoError(t, err)
 	return Load(m, "example.com/repo")
 }
 
@@ -75,6 +74,32 @@ func TestGenerateHTTPOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, string(source), `"github.com/malonaz/core/go/grpc"`)
 	require.Contains(t, string(source), "IHttpHTTP *http.Opts")
+}
+
+func TestGenerateDeployment(t *testing.T) {
+	// A ServiceManifest's deployment is the http_only binary serving that service.
+	m, err := manifest.LoadMain("tools/onyx/binary/testdata/i_deployment.yaml", "//i/i_service:manifest")
+	require.NoError(t, err)
+	b, err := Load(m, "example.com/repo")
+	require.NoError(t, err)
+	source, err := Generate(b)
+	require.NoError(t, err)
+
+	expected, err := load(t, "http_only.yaml")
+	require.NoError(t, err)
+	expectedSource, err := Generate(expected)
+	require.NoError(t, err)
+	require.Equal(t, string(expectedSource), string(source))
+}
+
+func TestLoadRejectsMainWithoutServiceManifest(t *testing.T) {
+	_, err := manifest.LoadMain("tools/onyx/binary/testdata/http_no_service.yaml", "")
+	require.ErrorContains(t, err, "servers[0].http.services: value must contain at least 1 item")
+}
+
+func TestLoadRejectsServiceWithoutDeployment(t *testing.T) {
+	_, err := manifest.LoadMain("tools/onyx/binary/testdata/i_service.yaml", "//i/i_service:manifest")
+	require.ErrorContains(t, err, "service i-service has no deployment")
 }
 
 func TestLoadRejectsServiceCycle(t *testing.T) {

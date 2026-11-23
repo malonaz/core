@@ -977,7 +977,7 @@ func (b0 Server_Grpc_builder) Build() *Server_Grpc {
 // An HTTP server.
 type Server_Http struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Services registering routes on this server.
+	// Services registering routes on this server. In a deployment, defaults to its service.
 	Services      []*Server_Http_Service `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1022,7 +1022,7 @@ func (x *Server_Http) SetServices(v []*Server_Http_Service) {
 type Server_Http_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Services registering routes on this server.
+	// Services registering routes on this server. In a deployment, defaults to its service.
 	Services []*Server_Http_Service
 }
 
@@ -1081,7 +1081,7 @@ func (b0 Server_GrpcWebProxy_builder) Build() *Server_GrpcWebProxy {
 // A service with no listener: started and health-checked, nothing more.
 type Server_Processor struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Please label of the ServiceManifest.
+	// Please label of the ServiceManifest. In a deployment, defaults to its service.
 	Manifest      string `protobuf:"bytes,1,opt,name=manifest,proto3" json:"manifest,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1126,7 +1126,7 @@ func (x *Server_Processor) SetManifest(v string) {
 type Server_Processor_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Please label of the ServiceManifest.
+	// Please label of the ServiceManifest. In a deployment, defaults to its service.
 	Manifest string
 }
 
@@ -1145,7 +1145,7 @@ type Server_Grpc_Service struct {
 	Proto string `protobuf:"bytes,1,opt,name=proto,proto3" json:"proto,omitempty"`
 	// Kebab-case name of the proto service.
 	Service string `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
-	// Please label of the ServiceManifest implementing it.
+	// Please label of the ServiceManifest implementing it. In a deployment, defaults to its service.
 	Manifest string `protobuf:"bytes,3,opt,name=manifest,proto3" json:"manifest,omitempty"`
 	// Also serve it over HTTP through grpc-gateway.
 	Gateway       bool `protobuf:"varint,4,opt,name=gateway,proto3" json:"gateway,omitempty"`
@@ -1229,7 +1229,7 @@ type Server_Grpc_Service_builder struct {
 	Proto string
 	// Kebab-case name of the proto service.
 	Service string
-	// Please label of the ServiceManifest implementing it.
+	// Please label of the ServiceManifest implementing it. In a deployment, defaults to its service.
 	Manifest string
 	// Also serve it over HTTP through grpc-gateway.
 	Gateway bool
@@ -1249,7 +1249,8 @@ func (b0 Server_Grpc_Service_builder) Build() *Server_Grpc_Service {
 // A service registering routes on the server.
 type Server_Http_Service struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+	// Please label of the ServiceManifest; its Service must implement RegisterRoutes. In a
+	// deployment, defaults to its service.
 	Manifest      string `protobuf:"bytes,1,opt,name=manifest,proto3" json:"manifest,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1294,7 +1295,8 @@ func (x *Server_Http_Service) SetManifest(v string) {
 type Server_Http_Service_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+	// Please label of the ServiceManifest; its Service must implement RegisterRoutes. In a
+	// deployment, defaults to its service.
 	Manifest string
 }
 

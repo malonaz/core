@@ -1,6 +1,9 @@
 {
     "explicit_sources": true,
     "gofmt": {
+        "codegen_macro_formatting": {
+            "onyx_deployment": "{{ name }}_main.go"
+        },
         "codegen_rule_formatting": {
             "go_copy": "{{ name }}",
             "go_template": "{{ name }}",

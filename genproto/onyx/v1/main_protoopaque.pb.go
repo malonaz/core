@@ -987,7 +987,7 @@ func (x *Server_Http) SetServices(v []*Server_Http_Service) {
 type Server_Http_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Services registering routes on this server.
+	// Services registering routes on this server. In a deployment, defaults to its service.
 	Services []*Server_Http_Service
 }
 
@@ -1090,7 +1090,7 @@ func (x *Server_Processor) SetManifest(v string) {
 type Server_Processor_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Please label of the ServiceManifest.
+	// Please label of the ServiceManifest. In a deployment, defaults to its service.
 	Manifest string
 }
 
@@ -1189,7 +1189,7 @@ type Server_Grpc_Service_builder struct {
 	Proto string
 	// Kebab-case name of the proto service.
 	Service string
-	// Please label of the ServiceManifest implementing it.
+	// Please label of the ServiceManifest implementing it. In a deployment, defaults to its service.
 	Manifest string
 	// Also serve it over HTTP through grpc-gateway.
 	Gateway bool
@@ -1253,7 +1253,8 @@ func (x *Server_Http_Service) SetManifest(v string) {
 type Server_Http_Service_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+	// Please label of the ServiceManifest; its Service must implement RegisterRoutes. In a
+	// deployment, defaults to its service.
 	Manifest string
 }
 

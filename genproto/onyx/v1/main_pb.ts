@@ -326,7 +326,7 @@ export type Server_Grpc_Service = Message<"malonaz.onyx.v1.Server.Grpc.Service">
   service: string;
 
   /**
-   * Please label of the ServiceManifest implementing it.
+   * Please label of the ServiceManifest implementing it. In a deployment, defaults to its service.
    *
    * @generated from field: string manifest = 3;
    */
@@ -356,7 +356,7 @@ export const Server_Grpc_ServiceSchema: GenMessage<Server_Grpc_Service, {validTy
  */
 export type Server_Http = Message<"malonaz.onyx.v1.Server.Http"> & {
   /**
-   * Services registering routes on this server.
+   * Services registering routes on this server. In a deployment, defaults to its service.
    *
    * @generated from field: repeated malonaz.onyx.v1.Server.Http.Service services = 1;
    */
@@ -379,7 +379,8 @@ export const Server_HttpSchema: GenMessage<Server_Http, {validType: Server_HttpV
  */
 export type Server_Http_Service = Message<"malonaz.onyx.v1.Server.Http.Service"> & {
   /**
-   * Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+   * Please label of the ServiceManifest; its Service must implement RegisterRoutes. In a
+   * deployment, defaults to its service.
    *
    * @generated from field: string manifest = 1;
    */
@@ -419,7 +420,7 @@ export const Server_GrpcWebProxySchema: GenMessage<Server_GrpcWebProxy, {validTy
  */
 export type Server_Processor = Message<"malonaz.onyx.v1.Server.Processor"> & {
   /**
-   * Please label of the ServiceManifest.
+   * Please label of the ServiceManifest. In a deployment, defaults to its service.
    *
    * @generated from field: string manifest = 1;
    */

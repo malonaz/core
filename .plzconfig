@@ -112,6 +112,24 @@ DefaultValue = //tools/onyx
 ConfigKey = Crane
 DefaultValue = //third_party/misc/crane
 
+[PluginConfig "onyx_base_image"]
+ConfigKey = OnyxBaseImage
+; distroless static, linux/amd64 (crane appends to a single image, not an index).
+DefaultValue = gcr.io/distroless/static-debian12@sha256:6d635b323e6ab633016668144d38e368e2894bd824500369151573225078ee03
+
+[PluginConfig "onyx_repo"]
+ConfigKey = OnyxRepo
+Optional = true
+
+[PluginConfig "onyx_image"]
+ConfigKey = OnyxImage
+Optional = true
+
+[PluginConfig "onyx_local_args"]
+ConfigKey = OnyxLocalArgs
+Repeatable = true
+Optional = true
+
 ;; JS
 [PluginConfig "protoc_gen_es"]
 ConfigKey = ProtocGenEs

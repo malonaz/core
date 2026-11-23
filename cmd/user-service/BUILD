@@ -1,23 +1,18 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_manifest(
-    name = "manifest",
-    test_only = True,
-    deps = [
+onyx_deployment(
+    name = "user-service",
+    manifest = "manifest.yaml",
+    manifest_deps = [
         "//go/test/user/user_service:manifest",
         "//malonaz/test/user/user_service/v1",
     ],
-)
-
-onyx_main_src(
-    name = "main.go",
-    manifest = ":manifest",
     test_only = True,
 )
 
 go_binary(
     name = "user-service",
-    srcs = [":main.go"],
+    srcs = [":user-service_main.go"],
     test_only = True,
     visibility = ["//go/test/user/user_service/..."],
     deps = [

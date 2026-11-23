@@ -169,7 +169,7 @@ message Server {
       // Kebab-case name of the proto service.
       string service = 2 [(buf.validate.field).string.pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"];
 
-      // Please label of the ServiceManifest implementing it.
+      // Please label of the ServiceManifest implementing it. In a deployment, defaults to its service.
       string manifest = 3 [(buf.validate.field).string.min_len = 1];
 
       // Also serve it over HTTP through grpc-gateway.
@@ -188,12 +188,13 @@ message Server {
 
   // An HTTP server.
   message Http {
-    // Services registering routes on this server.
+    // Services registering routes on this server. In a deployment, defaults to its service.
     repeated Service services = 1 [(buf.validate.field).repeated.min_items = 1];
 
     // A service registering routes on the server.
     message Service {
-      // Please label of the ServiceManifest; its Service must implement RegisterRoutes.
+      // Please label of the ServiceManifest; its Service must implement RegisterRoutes. In a
+      // deployment, defaults to its service.
       string manifest = 1 [(buf.validate.field).string.min_len = 1];
     }
   }
@@ -203,7 +204,7 @@ message Server {
 
   // A service with no listener: started and health-checked, nothing more.
   message Processor {
-    // Please label of the ServiceManifest.
+    // Please label of the ServiceManifest. In a deployment, defaults to its service.
     string manifest = 1 [(buf.validate.field).string.min_len = 1];
   }
 }

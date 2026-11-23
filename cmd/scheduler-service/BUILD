@@ -1,24 +1,19 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_manifest(
-    name = "manifest",
-    test_only = True,
-    deps = [
+onyx_deployment(
+    name = "scheduler-service",
+    manifest = "manifest.yaml",
+    manifest_deps = [
         "//go/scheduler/scheduler_dispatcher:manifest",
         "//go/scheduler/scheduler_service:manifest",
         "//malonaz/scheduler/scheduler_service/v1",
     ],
-)
-
-onyx_main_src(
-    name = "main.go",
-    manifest = ":manifest",
     test_only = True,
 )
 
 go_binary(
     name = "scheduler-service",
-    srcs = [":main.go"],
+    srcs = [":scheduler-service_main.go"],
     test_only = True,
     visibility = ["//go/test/..."],
     deps = [
