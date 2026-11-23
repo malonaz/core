@@ -210,31 +210,12 @@ message Server {
 
 // A gRPC server interceptor.
 enum Interceptor {
+  reserved 1 to 7;
+  reserved "INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR", "INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION", "INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION", "INTERCEPTOR_JWT_AUTHENTICATION", "INTERCEPTOR_PERMISSION_AUTHENTICATION", "INTERCEPTOR_SESSION_LOG_INJECTOR", "INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR";
+
   // Used to detect an unset field.
   INTERCEPTOR_UNSPECIFIED = 0;
 
-  // Gives the session manager a local context for the request.
-  INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR = 1;
-
-  // Authenticates external callers by API key.
-  INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION = 2;
-
-  // Authenticates internal services by shared secret.
-  INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION = 3;
-
-  // Authenticates callers by JWT.
-  INTERCEPTOR_JWT_AUTHENTICATION = 4;
-
-  // Authorizes the authenticated session against the method's permissions.
-  INTERCEPTOR_PERMISSION_AUTHENTICATION = 5;
-
-  // Adds the session to the request log fields.
-  INTERCEPTOR_SESSION_LOG_INJECTOR = 6;
-
-  // Propagates the session on outgoing calls.
-  INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR = 7;
-
-  // Authenticates, authorizes and carries every call (go/authentication/v2). It replaces all of the
-  // above, which a binary listing it may not list.
+  // Authenticates, authorizes and carries every call (go/authentication/v2).
   INTERCEPTOR_AUTHENTICATION = 8;
 }

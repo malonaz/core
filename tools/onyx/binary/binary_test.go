@@ -158,8 +158,6 @@ func TestGenerateAuthentication(t *testing.T) {
 	require.Equal(t, string(expected), string(source))
 
 	main := string(source)
-	require.NotContains(t, main, "sessionManager")
-	require.NotContains(t, main, "github.com/malonaz/core/go/authentication\"")
 	require.Contains(t, main, `Authentication *authentication.Opts `+"`"+`group:"Authentication" namespace:"authentication" env-namespace:"AUTHENTICATION"`+"`")
 	construct := strings.Index(main, "authentication.NewInterceptor(ctx, opts.Authentication)")
 	firstConnect := strings.Index(main, ":= connect(")
@@ -175,7 +173,7 @@ func TestGenerateAuthentication(t *testing.T) {
 		index := strings.Index(main, serve)
 		require.True(t, index >= 0 && index < firstListen, "%s, before any server listens", serve)
 	}
-	// Clients are dialed as in a v1 binary: the context of each call, not its connection, carries the session.
+	// Clients are dialed as in a binary without it: the context of each call, not its connection, carries the session.
 	require.Contains(t, main, "connect(opts.BServiceGRPC.ClientOpts())")
 	require.Contains(t, main, "connect(opts.CServiceGRPC)")
 	require.NotContains(t, main, "WithOptions(")
@@ -190,9 +188,4 @@ func TestGenerateAuthentication(t *testing.T) {
 func TestLoadRejectsServerWithoutAuthentication(t *testing.T) {
 	_, err := load(t, "authentication_partial.yaml")
 	require.ErrorContains(t, err, "server b-service does not list INTERCEPTOR_AUTHENTICATION, which every gRPC server of the binary must")
-}
-
-func TestLoadRejectsMixedInterceptors(t *testing.T) {
-	_, err := load(t, "authentication_mixed.yaml")
-	require.ErrorContains(t, err, "INTERCEPTOR_AUTHENTICATION replaces every other interceptor, but the binary also lists INTERCEPTOR_SESSION_LOG_INJECTOR")
 }

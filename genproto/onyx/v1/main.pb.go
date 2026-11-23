@@ -29,22 +29,7 @@ type Interceptor int32
 const (
 	// Used to detect an unset field.
 	Interceptor_INTERCEPTOR_UNSPECIFIED Interceptor = 0
-	// Gives the session manager a local context for the request.
-	Interceptor_INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR Interceptor = 1
-	// Authenticates external callers by API key.
-	Interceptor_INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION Interceptor = 2
-	// Authenticates internal services by shared secret.
-	Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION Interceptor = 3
-	// Authenticates callers by JWT.
-	Interceptor_INTERCEPTOR_JWT_AUTHENTICATION Interceptor = 4
-	// Authorizes the authenticated session against the method's permissions.
-	Interceptor_INTERCEPTOR_PERMISSION_AUTHENTICATION Interceptor = 5
-	// Adds the session to the request log fields.
-	Interceptor_INTERCEPTOR_SESSION_LOG_INJECTOR Interceptor = 6
-	// Propagates the session on outgoing calls.
-	Interceptor_INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR Interceptor = 7
-	// Authenticates, authorizes and carries every call (go/authentication/v2). It replaces all of the
-	// above, which a binary listing it may not list.
+	// Authenticates, authorizes and carries every call (go/authentication/v2).
 	Interceptor_INTERCEPTOR_AUTHENTICATION Interceptor = 8
 )
 
@@ -52,25 +37,11 @@ const (
 var (
 	Interceptor_name = map[int32]string{
 		0: "INTERCEPTOR_UNSPECIFIED",
-		1: "INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR",
-		2: "INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION",
-		3: "INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION",
-		4: "INTERCEPTOR_JWT_AUTHENTICATION",
-		5: "INTERCEPTOR_PERMISSION_AUTHENTICATION",
-		6: "INTERCEPTOR_SESSION_LOG_INJECTOR",
-		7: "INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR",
 		8: "INTERCEPTOR_AUTHENTICATION",
 	}
 	Interceptor_value = map[string]int32{
-		"INTERCEPTOR_UNSPECIFIED":                       0,
-		"INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR":    1,
-		"INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION":   2,
-		"INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION":   3,
-		"INTERCEPTOR_JWT_AUTHENTICATION":                4,
-		"INTERCEPTOR_PERMISSION_AUTHENTICATION":         5,
-		"INTERCEPTOR_SESSION_LOG_INJECTOR":              6,
-		"INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR": 7,
-		"INTERCEPTOR_AUTHENTICATION":                    8,
+		"INTERCEPTOR_UNSPECIFIED":    0,
+		"INTERCEPTOR_AUTHENTICATION": 8,
 	}
 )
 
@@ -1392,17 +1363,10 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\x19server.processor_listener\x12Ca processor has no listener: port, internal and public do not apply\x1aJ!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\x1af\n" +
 	"\x16server.internal_public\x12+a server cannot be both internal and public\x1a\x1f!(this.internal && this.public)\x1a\x85\x01\n" +
 	"\x19server.internal_grpc_port\x122an internal grpc server binds a socket, not a port\x1a4!(has(this.grpc) && this.internal && this.port != 0)B\r\n" +
-	"\x04kind\x12\x05\xbaH\x02\b\x01*\x84\x03\n" +
+	"\x04kind\x12\x05\xbaH\x02\b\x01*\xee\x02\n" +
 	"\vInterceptor\x12\x1b\n" +
-	"\x17INTERCEPTOR_UNSPECIFIED\x10\x00\x12.\n" +
-	"*INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR\x10\x01\x12/\n" +
-	"+INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION\x10\x02\x12/\n" +
-	"+INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION\x10\x03\x12\"\n" +
-	"\x1eINTERCEPTOR_JWT_AUTHENTICATION\x10\x04\x12)\n" +
-	"%INTERCEPTOR_PERMISSION_AUTHENTICATION\x10\x05\x12$\n" +
-	" INTERCEPTOR_SESSION_LOG_INJECTOR\x10\x06\x121\n" +
-	"-INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR\x10\a\x12\x1e\n" +
-	"\x1aINTERCEPTOR_AUTHENTICATION\x10\bB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
+	"\x17INTERCEPTOR_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aINTERCEPTOR_AUTHENTICATION\x10\b\"\x04\b\x01\x10\a**INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR*+INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION*+INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION*\x1eINTERCEPTOR_JWT_AUTHENTICATION*%INTERCEPTOR_PERMISSION_AUTHENTICATION* INTERCEPTOR_SESSION_LOG_INJECTOR*-INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTORB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
 
 var file_malonaz_onyx_v1_main_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_onyx_v1_main_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
