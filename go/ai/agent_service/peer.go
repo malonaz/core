@@ -2,16 +2,14 @@ package agent_service
 
 import (
 	"context"
-	"strings"
-
-	"google.golang.org/grpc/metadata"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
+	authentication "github.com/malonaz/core/go/authentication/v2"
 )
 
-// forwardedMetadataKey marks a call one replica forwards to the replica running the agent's turn: the receiver
-// acts on its own turn only, never forwarding it again.
-const forwardedMetadataKey = "x-agent-service-forwarded"
+// serviceAccount is the subject of the account the service runs as, which onyx names after the service. Replicas call
+// each other as it, carrying the session of the call they forward.
+const serviceAccount = "serviceAccounts/agent-service"
 
 // peerClient returns an AgentService client on the replica advertised at address.
 func (s *Service) peerClient(ctx context.Context, address string) (agentservicepb.AgentServiceClient, error) {
@@ -22,23 +20,9 @@ func (s *Service) peerClient(ctx context.Context, address string) (agentservicep
 	return agentservicepb.NewAgentServiceClient(connection.Get()), nil
 }
 
-// forwardedContext carries an incoming call's metadata, its credentials included, onto a call forwarded to another
-// replica, marked as forwarded.
-func forwardedContext(ctx context.Context) context.Context {
-	outgoingMetadata := metadata.MD{}
-	incomingMetadata, _ := metadata.FromIncomingContext(ctx)
-	for key, values := range incomingMetadata {
-		// Transport headers belong to the incoming call.
-		if strings.HasPrefix(key, ":") || strings.HasPrefix(key, "grpc-") || key == "content-type" || key == "user-agent" {
-			continue
-		}
-		outgoingMetadata[key] = values
-	}
-	outgoingMetadata.Set(forwardedMetadataKey, "true")
-	return metadata.NewOutgoingContext(ctx, outgoingMetadata)
-}
-
-// isForwarded reports whether an incoming call was forwarded by another replica.
+// isForwarded reports whether another replica forwarded the call: the receiver acts on its own turn only, never
+// forwarding it again.
 func isForwarded(ctx context.Context) bool {
-	return len(metadata.ValueFromIncomingContext(ctx, forwardedMetadataKey)) > 0
+	session, err := authentication.GetSession(ctx)
+	return err == nil && session.GetCaller().GetSubject() == serviceAccount
 }

@@ -302,7 +302,7 @@ func (a *agentStream) proxy(ctx context.Context, agent, owner string) {
 		return
 	}
 	streamAgentRequest := &agentservicepb.StreamAgentRequest{Name: agent, IncludeTranscript: a.request.IncludeTranscript}
-	stream, err := peerClient.StreamAgent(forwardedContext(ctx), streamAgentRequest)
+	stream, err := peerClient.StreamAgent(ctx, streamAgentRequest)
 	if err != nil {
 		return
 	}

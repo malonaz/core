@@ -271,9 +271,10 @@ service AgentService {
   // ===================== Schedules =====================
 
   // Wake an agent on a run of one of its schedules: queue the run's message on
-  // it, or launch its sub-agent with the run's task. Run only by the scheduler,
-  // as the job of a Schedule's tick or of a one-off: the job derives every
-  // request id, so a replayed or retried run delivers once.
+  // it, or launch its sub-agent with the run's task. Run only by the
+  // scheduler's dispatcher, its caller, as the job of a Schedule's tick or of a
+  // one-off: the job derives every request id, so a replayed or retried run
+  // delivers once.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc WakeAgent(WakeAgentRequest) returns (malonaz.ai.agent.v1.Agent) {

@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -22,8 +22,8 @@ import (
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/aip"
+	coregrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/scheduler"
 )
 
 // The scheduler's own list parsers: the fake rejects any filter the real service would.
@@ -31,9 +31,6 @@ var (
 	fakeListSchedulesRequestParser = aip.MustNewListRequestParser[*schedulerservicepb.ListSchedulesRequest, *schedulerpb.Schedule](aip.WithFilteringOpts(aip.WithFQN()))
 	fakeListJobsRequestParser      = aip.MustNewListRequestParser[*schedulerservicepb.ListJobsRequest, *schedulerpb.Job](aip.WithFilteringOpts(aip.WithFQN()))
 )
-
-// signedSessionHeader carries a caller's signed session on outgoing calls.
-const signedSessionHeader = "x-signed-session-bin"
 
 // fakeSchedulerService is an in-memory SchedulerService client of schedules and jobs. It interprets no filter: it
 // matches the AgentService's own builders, recomputed per item for the agent it is labeled with. It admits the
@@ -58,22 +55,24 @@ func newFakeSchedulerService() *fakeSchedulerService {
 	}
 }
 
-// authenticate refuses a call not made as the service, or carrying a caller's signed session besides: the real
-// scheduler's interceptors would find two sessions.
+// authenticate refuses a call not made as the service itself: the token core's gRPC client would present for it
+// must name the service's account, not the principal of a call the service serves.
 func authenticate(ctx context.Context) error {
-	outgoingMetadata, _ := metadata.FromOutgoingContext(ctx)
-	if len(outgoingMetadata.Get(testServiceAccountHeader)) != 1 {
-		return status.Errorf(codes.Unauthenticated, "not called as the service").Err()
+	callMetadata, err := coregrpc.CallMetadata(ctx)
+	if err != nil {
+		return err
 	}
-	if len(outgoingMetadata.Get(signedSessionHeader)) > 0 {
-		return status.Errorf(codes.Internal, "unexpected signed session in local context").Err()
+	token, err := jwt.ParseInsecure([]byte(callMetadata[serverTokenKey]))
+	if err != nil || token.Subject() != serviceAccount {
+		return status.Errorf(codes.Unauthenticated, "not called as the service").Err()
 	}
 	return nil
 }
 
 // asTestService returns a context calling the fake scheduler as the service.
-func asTestService() context.Context {
-	return withTestServiceAccount(context.Background())
+func asTestService(t *testing.T) context.Context {
+	t.Helper()
+	return asAccount(t, serviceAccountID)(context.Background())
 }
 
 // failCancelJobs makes every CancelJob fail with err, or succeed again with nil.
@@ -339,7 +338,7 @@ func (c *fakeSchedulerService) schedulesOf(t *testing.T, agent string) []*schedu
 	agentRn, err := agentpb.ParseAgentRn(agent)
 	require.NoError(t, err)
 	listSchedulesRequest := &schedulerservicepb.ListSchedulesRequest{Parent: agentRn.UserRn().String(), Filter: agentScheduleFilter(agentRn)}
-	listSchedulesResponse, err := c.ListSchedules(asTestService(), listSchedulesRequest)
+	listSchedulesResponse, err := c.ListSchedules(asTestService(t), listSchedulesRequest)
 	require.NoError(t, err)
 	return listSchedulesResponse.Schedules
 }
@@ -350,7 +349,7 @@ func (c *fakeSchedulerService) jobsOf(t *testing.T, agent string) []*schedulerpb
 	agentRn, err := agentpb.ParseAgentRn(agent)
 	require.NoError(t, err)
 	listJobsRequest := &schedulerservicepb.ListJobsRequest{Parent: agentRn.UserRn().String(), Filter: agentScheduleFilter(agentRn)}
-	listJobsResponse, err := c.ListJobs(asTestService(), listJobsRequest)
+	listJobsResponse, err := c.ListJobs(asTestService(t), listJobsRequest)
 	require.NoError(t, err)
 	return listJobsResponse.Jobs
 }
@@ -360,7 +359,7 @@ func (c *fakeSchedulerService) jobsOf(t *testing.T, agent string) []*schedulerpb
 func (c *fakeSchedulerService) tick(t *testing.T, scheduleName string) *schedulerpb.Job {
 	t.Helper()
 	getScheduleRequest := &schedulerservicepb.GetScheduleRequest{Name: scheduleName}
-	schedule, err := c.GetSchedule(asTestService(), getScheduleRequest)
+	schedule, err := c.GetSchedule(asTestService(t), getScheduleRequest)
 	require.NoError(t, err)
 	parent, err := scheduleParent(scheduleName)
 	require.NoError(t, err)
@@ -371,11 +370,10 @@ func (c *fakeSchedulerService) tick(t *testing.T, scheduleName string) *schedule
 	return proto.CloneOf(job)
 }
 
-// run runs a job's payload as the scheduler does: WakeAgent with the job's name in the incoming metadata.
+// run runs a job's payload as the scheduler's dispatcher does: WakeAgent with the job's name in the incoming metadata.
 func (c *fakeSchedulerService) run(t *testing.T, service *testReplica, payload *anypb.Any, jobName string) (*agentpb.Agent, error) {
 	t.Helper()
 	wakeAgentRequest := &agentservicepb.WakeAgentRequest{}
 	require.NoError(t, payload.UnmarshalTo(wakeAgentRequest))
-	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs(scheduler.JobMetadataKey, jobName))
-	return service.WakeAgent(ctx, wakeAgentRequest)
+	return service.WakeAgent(dispatcherContext(jobName), wakeAgentRequest)
 }

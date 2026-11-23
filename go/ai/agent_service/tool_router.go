@@ -80,7 +80,8 @@ func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection
 	return schema, nil
 }
 
-// invoke calls a method at an endpoint.
+// invoke calls a method at an endpoint. Tool targets get no identity until authentication can call for the agent's
+// owner with the agent as actor.
 func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
@@ -89,8 +90,12 @@ func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protore
 	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(withoutIdentity(ctx), method, request)
 }
 
-// withoutIdentity strips a call's outgoing metadata, the service's own identity included: tool targets are never
-// trusted with it. Cancellation and deadlines are kept.
+// withoutIdentity returns ctx making calls that carry no identity, neither the session ctx serves nor the service's
+// account, which core's gRPC client signs per call, and no outgoing metadata. Cancellation and deadlines are kept.
 func withoutIdentity(ctx context.Context) context.Context {
+	ctx = grpc.WithCallMetadata(ctx, noCallMetadata)
 	return metadata.NewOutgoingContext(ctx, metadata.MD{})
 }
+
+// noCallMetadata is the call metadata of a call carrying no identity.
+func noCallMetadata(context.Context) (map[string]string, error) { return nil, nil }

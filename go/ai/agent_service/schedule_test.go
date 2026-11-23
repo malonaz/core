@@ -70,7 +70,7 @@ func userOf(t *testing.T, agent *agentpb.Agent) string {
 func requireJobState(t *testing.T, service *testReplica, name string, state schedulerpb.JobState) {
 	t.Helper()
 	getJobRequest := &schedulerservicepb.GetJobRequest{Name: name}
-	job, err := service.scheduler.GetJob(asTestService(), getJobRequest)
+	job, err := service.scheduler.GetJob(asTestService(t), getJobRequest)
 	require.NoError(t, err)
 	require.Equal(t, state, job.State, name)
 }
@@ -285,7 +285,9 @@ func TestWakeAgent_RunsOnlyAsAJob(t *testing.T) {
 	agent := createTestAgent(t, service)
 	wakeAgentRequest := &agentservicepb.WakeAgentRequest{Name: agent.Name, Wake: &agentservicepb.WakeAgentRequest_Message{Message: "hi"}}
 
-	_, err := service.WakeAgent(context.Background(), wakeAgentRequest)
+	// The dispatcher, but no job.
+	ctx := sessionContext(dispatcherAccount, "", dispatcherAccount)
+	_, err := service.WakeAgent(ctx, wakeAgentRequest)
 
 	require.True(t, status.HasCode(err, codes.FailedPrecondition), err)
 	require.Empty(t, sentMessages(t, service, agent.Name))
@@ -426,21 +428,20 @@ func requireScheduled(t *testing.T, service *testReplica, agent *agentpb.Agent, 
 	requireJobState(t, service, job.Name, jobState)
 }
 
-func TestDeleteAgent_CancelsSchedulesUnderTheCallersSession(t *testing.T) {
-	service := newAuthenticatedTestService(t)
-	alice := newTestUser(t)
-	aliceCtx := service.as(t, alice, false)
-	agent, err := service.createAgent(aliceCtx, alice, nil)
-	require.NoError(t, err)
-	job := scheduleBoth(t, service.testReplica, agent)
+func TestDeleteAgent_CancelsSchedulesAsTheService(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	job := scheduleBoth(t, service, agent)
 
-	// Through the server, whose interceptors put alice's signed session on the service's outgoing calls.
+	// Through the server, whose interceptor makes the handler's outgoing calls carry its caller's session.
+	agentServiceClient, err := service.peerClient(context.Background(), service.address)
+	require.NoError(t, err)
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	_, err = service.client.DeleteAgent(aliceCtx, deleteAgentRequest)
+	_, err = agentServiceClient.DeleteAgent(asAccount(t, otherAccountID)(context.Background()), deleteAgentRequest)
 
 	require.NoError(t, err)
-	require.NotNil(t, getAgent(t, service.testReplica, agent.Name).DeleteTime)
-	requireScheduled(t, service.testReplica, agent, job, false)
+	require.NotNil(t, getAgent(t, service, agent.Name).DeleteTime)
+	requireScheduled(t, service, agent, job, false)
 }
 
 func TestDeleteAgent_ForceCancelsTheSubtreesSchedules(t *testing.T) {

@@ -66,7 +66,7 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 		if err != nil {
 			return nil, status.FromError(err, "connecting to the replica running the turn").Err()
 		}
-		if _, err := peerClient.CancelAgent(forwardedContext(ctx), request); err != nil {
+		if _, err := peerClient.CancelAgent(ctx, request); err != nil {
 			return nil, status.FromError(err, "cancelling the turn on the replica running it").Err()
 		}
 		return s.GetAgent(ctx, getAgentRequest)

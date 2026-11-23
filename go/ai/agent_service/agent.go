@@ -76,7 +76,7 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 		Chat:      &aipb.Chat{Title: agent.Title, Labels: map[string]string{agentpb.Labels.Agent.GetKey(): agentID}},
 		RequestId: uuid.NewV5(agentNamespace, requestID).String(),
 	}
-	chat, err := s.aiServiceClient.CreateChat(ctx, createChatRequest)
+	chat, err := s.aiServiceClient.CreateChat(s.asService(ctx), createChatRequest)
 	if err != nil {
 		return nil, status.FromError(err, "creating chat").Err()
 	}
@@ -338,7 +338,7 @@ func (s *Service) stopTurn(ctx context.Context, turn *cancelledTurn) {
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: turn.agent}
 	peerClient, err := s.peerClient(ctx, turn.holderAddress)
 	if err == nil {
-		_, err = peerClient.CancelAgent(forwardedContext(ctx), cancelAgentRequest)
+		_, err = peerClient.CancelAgent(ctx, cancelAgentRequest)
 	}
 	if err != nil {
 		s.log.WarnContext(ctx, "cancelling a deleted agent's turn on the replica running it", "agent", turn.agent, "address", turn.holderAddress, "error", err)

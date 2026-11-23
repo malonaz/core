@@ -2,6 +2,7 @@ package agent_service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"os"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/malonaz/core/gengo/ai/agent/store"
@@ -39,28 +39,24 @@ const (
 var testPostgresClient *postgres.Client
 
 func TestMain(m *testing.M) {
+	var err error
+	if testInterceptor, err = newTestInterceptor(); err != nil {
+		panic(fmt.Errorf("instantiating the authentication interceptor: %w", err))
+	}
 	testserver.RunWithPostgres(context.Background(), m, slog.Default(), &testPostgresClient, nil, "", os.ReadFile, agentMigrationsDirectory)
-}
-
-// testServiceAccountHeader carries the service's identity on its outgoing calls, as the internal service
-// authentication does.
-const testServiceAccountHeader = "x-internal-service-auth"
-
-// withTestServiceAccount stamps the service's identity on its outgoing calls.
-func withTestServiceAccount(ctx context.Context) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, testServiceAccountHeader, "agent-service/secret")
 }
 
 // newTestOpts returns opts with timings short enough for tests to watch leases expire.
 func newTestOpts(address string) *Opts {
 	return &Opts{
-		AdvertisedAddress:  address,
-		LeaseDuration:      time.Second,
-		HeartbeatInterval:  200 * time.Millisecond,
-		ClaimInterval:      100 * time.Millisecond,
-		MaxConcurrentTurns: 100,
-		ShutdownGrace:      time.Second,
-		StreamPollInterval: 100 * time.Millisecond,
+		AdvertisedAddress:          address,
+		LeaseDuration:              time.Second,
+		HeartbeatInterval:          200 * time.Millisecond,
+		ClaimInterval:              100 * time.Millisecond,
+		MaxConcurrentTurns:         100,
+		ShutdownGrace:              time.Second,
+		StreamPollInterval:         100 * time.Millisecond,
+		SchedulerDispatcherAccount: dispatcherAccount,
 	}
 }
 
@@ -95,7 +91,7 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	schedulerService := newFakeSchedulerService()
 	service, err := New(opts, newTestStore(), aiService, schedulerService)
 	require.NoError(t, err)
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.ChainUnaryInterceptor(testInterceptor.Unary()), grpc.ChainStreamInterceptor(testInterceptor.Stream()))
 	agentservicepb.RegisterAgentServiceServer(server, service)
 	for _, registerService := range register {
 		registerService(server)
@@ -103,7 +99,7 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 	reflection.Register(server)
 	go server.Serve(listener)
 
-	stopService, err := service.Start(context.Background(), withTestServiceAccount)
+	stopService, err := service.Start(context.Background(), asAccount(t, serviceAccountID))
 	require.NoError(t, err)
 	stopped := false
 	replica := &testReplica{Service: service, aiService: aiService, scheduler: schedulerService}
@@ -167,7 +163,7 @@ func sendText(t *testing.T, service *testReplica, agent, text string) *agentpb.A
 		Name:    agent,
 		Message: ai.NewUserMessage(ai.NewTextBlock(text)),
 	}
-	updatedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	updatedAgent, err := service.MessageAgent(ownerContext(t, agent), messageAgentRequest)
 	require.NoError(t, err)
 	return updatedAgent
 }

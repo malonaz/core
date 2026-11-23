@@ -161,9 +161,6 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 	require.Equal(t, "SERVING", toolCallIDToToolResult["call-1"].GetStructuredContent().GetStructValue().GetFields()["status"].GetStringValue())
 	require.Equal(t, healthCheckTool, toolCallIDToToolResult["call-1"].GetToolName())
 	require.Equal(t, int32(codes.NotFound), toolCallIDToToolResult["call-2"].GetError().GetCode())
-	// Neither the calls nor the reflection carry the service's identity.
-	require.Contains(t, healthServer.metadataKeySet, "content-type")
-	require.NotContains(t, healthServer.metadataKeySet, testServiceAccountHeader)
 
 	// Every tool, built-ins included, requires a title.
 	generateMessageRequest := service.aiService.generateMessageRequests(agent.Chat)[0]

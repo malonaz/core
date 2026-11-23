@@ -47,7 +47,7 @@ func crashTurn(t *testing.T, replica *testReplica, agent string) {
 func createMessage(t *testing.T, aiService *fakeAiService, chat string, message *aipb.Message) *aipb.Message {
 	t.Helper()
 	createMessageRequest := &aiservicepb.CreateMessageRequest{Parent: chat, Message: message}
-	createdMessage, err := aiService.CreateMessage(context.Background(), createMessageRequest)
+	createdMessage, err := aiService.CreateMessage(asTestService(t), createMessageRequest)
 	require.NoError(t, err)
 	return createdMessage
 }
@@ -103,7 +103,7 @@ func TestLease_DeliveryIsIdempotent(t *testing.T) {
 		Message:   ai.NewUserMessage(queuedMessages[0].Blocks...),
 		MessageId: firstMessageRn.Message,
 	}
-	_, err = aiService.CreateMessage(context.Background(), createMessageRequest)
+	_, err = aiService.CreateMessage(asTestService(t), createMessageRequest)
 	require.NoError(t, err)
 	aiService.script(agent.Chat, textGeneration("both read"))
 

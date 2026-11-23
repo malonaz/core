@@ -17,6 +17,7 @@ import (
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
+	authentication "github.com/malonaz/core/go/authentication/v2"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
@@ -26,14 +27,17 @@ import (
 var wakeNamespace = uuid.MustParse("7f550727-4cff-4528-b005-252e0434d446")
 
 // WakeAgent runs one of an agent's schedules: it queues the run's message on the agent, or launches the run's
-// sub-agent with its task.
+// sub-agent with its task. Only the scheduler's dispatcher calls it: any caller can set a job's metadata.
 func (s *Service) WakeAgent(ctx context.Context, request *agentservicepb.WakeAgentRequest) (*agentpb.Agent, error) {
+	if session, err := authentication.GetSession(ctx); err != nil || session.GetCaller().GetSubject() != s.opts.SchedulerDispatcherAccount {
+		return nil, status.Errorf(codes.PermissionDenied, "WakeAgent runs only when the scheduler dispatcher calls").Err()
+	}
 	job, ok := scheduler.JobFromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.FailedPrecondition, "WakeAgent runs only as a scheduler job").Err()
 	}
 	requestID := func(part string) string { return uuid.NewV5(wakeNamespace, job+"/"+part).String() }
-	// A run acts as the service, as turns do: the agent's tools still act as its principal.
+	// A run acts as the service, as turns do.
 	ctx = s.asService(ctx)
 
 	switch wake := request.Wake.(type) {

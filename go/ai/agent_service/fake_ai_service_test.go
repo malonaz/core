@@ -35,8 +35,8 @@ type fakeGeneration struct {
 	gate chan struct{}
 }
 
-// fakeAiService is an in-memory AiService client: chats, messages and scripted generations. Methods not
-// implemented panic.
+// fakeAiService is an in-memory AiService client: chats, messages and scripted generations. It admits the service's
+// identity alone, as the scheduler fake does. Methods not implemented panic.
 type fakeAiService struct {
 	aiservicepb.AiServiceClient
 
@@ -128,6 +128,9 @@ func (c *fakeAiService) generateMessageRequests(chat string) []*aiservicepb.Gene
 
 // CreateChat creates a chat named after its request id: replaying a request id returns the same chat.
 func (c *fakeAiService) CreateChat(ctx context.Context, request *aiservicepb.CreateChatRequest, _ ...grpc.CallOption) (*aipb.Chat, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	requestID := request.RequestId
@@ -150,6 +153,9 @@ func (c *fakeAiService) CreateChat(ctx context.Context, request *aiservicepb.Cre
 // CreateMessage appends a message to its chat: an existing message id is AlreadyExists, a replayed request id
 // returns the message it created.
 func (c *fakeAiService) CreateMessage(ctx context.Context, request *aiservicepb.CreateMessageRequest, _ ...grpc.CallOption) (*aipb.Message, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	return c.createMessage(request)
@@ -191,6 +197,9 @@ func (c *fakeAiService) createMessage(request *aiservicepb.CreateMessageRequest)
 }
 
 func (c *fakeAiService) GetMessage(ctx context.Context, request *aiservicepb.GetMessageRequest, _ ...grpc.CallOption) (*aipb.Message, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	messageRn, err := aipb.ParseMessageRn(request.Name)
@@ -208,6 +217,9 @@ func (c *fakeAiService) GetMessage(ctx context.Context, request *aiservicepb.Get
 // ListMessages pages through a chat in create_time order, ascending unless ordered "create_time desc". It knows the
 // filter the AgentService sends: the conversation history.
 func (c *fakeAiService) ListMessages(ctx context.Context, request *aiservicepb.ListMessagesRequest, _ ...grpc.CallOption) (*aiservicepb.ListMessagesResponse, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	messages, err := filterMessages(c.chatToMessages[request.Parent], request.Filter)
@@ -262,6 +274,9 @@ func filterMessages(messages []*aipb.Message, filter string) ([]*aipb.Message, e
 
 // StreamGenerateMessage plays the chat's next scripted generation, persisting its message as the AiService does.
 func (c *fakeAiService) StreamGenerateMessage(ctx context.Context, request *aiservicepb.GenerateMessageRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[aiservicepb.StreamGenerateMessageResponse], error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.generateRequests = append(c.generateRequests, proto.CloneOf(request))
