@@ -314,6 +314,11 @@ func (s *Service) CreateServiceToolSet(ctx context.Context, request *pb.CreateSe
 	}
 
 	// Validate arguments.
+	for _, methodName := range request.MethodNames {
+		if _, ok := serviceMethodNameSet[methodName]; !ok {
+			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in method_names", methodName).Err()
+		}
+	}
 	for methodName := range request.MethodNameToSchemaConfiguration {
 		if _, ok := serviceMethodNameSet[methodName]; !ok {
 			return nil, status.Errorf(codes.InvalidArgument, "unknown method name %q in method_name_to_schema_configuration", methodName).Err()

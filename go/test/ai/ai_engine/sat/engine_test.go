@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
@@ -60,6 +62,16 @@ func TestCreateServiceToolSet(t *testing.T) {
 	require.Equal(t, aip.LabelValueTrue, discoverableTool.GetAnnotations()[aipb.Annotations.DiscoverableTool.Key])
 	require.Equal(t, aitool.ToolTypeGenerateRPCRequest, discoverableTool.GetAnnotations()[aipb.Annotations.ToolType.Key])
 	require.NotNil(t, discoverableTool.GetJsonSchema())
+}
+
+func TestCreateServiceToolSetUnknownMethodName(t *testing.T) {
+	// Clients older than a method's removal still name it: their error, not ours.
+	createServiceToolSetRequest := &aienginepb.CreateServiceToolSetRequest{
+		ServiceFullName: serviceFullName,
+		MethodNames:     []string{"CreateTool", "RemovedMethod"},
+	}
+	_, err := aiEngineClient.CreateServiceToolSet(ctx, createServiceToolSetRequest)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
 }
 
 func TestParseToolCallDiscovery(t *testing.T) {
