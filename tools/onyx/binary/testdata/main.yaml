@@ -28,3 +28,5 @@ servers:
         - manifest: //h/h_service:manifest(tools/onyx/binary/testdata/h_service.yaml)
   - name: web
     grpc_web_proxy: {}
+setup_funcs:
+  - example.com/repo/sentry.Setup

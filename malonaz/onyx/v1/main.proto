@@ -47,6 +47,10 @@ message MainManifest {
 
   // Blobs whose every key the binary gets as an env var, through the External Secrets Operator.
   Secrets secrets = 8;
+
+  // Go functions `<import path>.<Func>`, each `func(context.Context) error`, called in order once
+  // logging is set up and before `setup` (e.g. wrapping the logger to report errors).
+  repeated string setup_funcs = 9 [(buf.validate.field).repeated.items.string.pattern = "^[a-z0-9.-]+(/[A-Za-z0-9._-]+)*\\.[A-Z][A-Za-z0-9_]*$"];
 }
 
 // An ExternalSecret syncing blobs into the binary's Secret, which its Deployment reads with envFrom.

@@ -208,28 +208,38 @@ Generated files carry `labels = ["codegen", "go"]`; add
 `copy_generated_code::` to mirror them into the source tree like onikisu
 does.
 
-A binary's package uses `onyx_deployment` for everything but its main and
-`go_binary`, which stay in the BUILD file so wollemi still manages their
-srcs and deps (it resolves `:main.go`'s imports only through a visible
-`onyx_main_src`, and a hidden `go_binary` would lose them):
+A binary sits beside the service it serves: its MainManifest is `main.yaml`
+next to the service's `manifest.yaml`, and `onyx_deployment` declares what
+deploys it. The binary's `onyx_main_src` and `go_binary` stay in the BUILD
+file so wollemi still manages their srcs and deps (it resolves a generated
+file's imports only through a visible `onyx_main_src`, and a hidden
+`go_binary` would lose them). Its main.go is not copied into the tree, as
+the package is the service's:
 
 ```python
-onyx_deployment(
-    name = "lender-mock",                       # the package's go_binary
-    manifest_deps = ["//financing/lender_mock:manifest"],
-    base_image = "gcr.io/distroless/static-debian12@sha256:...",   # optional: :image
-    image = "onikisu",
-    repo = "<registry>",
-    local_args = ["--logging.format=pretty"],   # optional: :local
-)
-onyx_main_src(name = "main.go", manifest = ":manifest")
-go_binary(name = "lender-mock", srcs = [":main.go"], deps = [...])
+onyx_deployment(name = "lender-mock")           # main.yaml, manifest_deps = [":manifest"]
+onyx_main_src(name = "lender-mock_main.go", manifest = ":lender-mock_manifest")
+go_binary(name = "lender-mock", srcs = [":lender-mock_main.go"], deps = [...])
 ```
 
-It makes `:manifest`, `:k8s` (`onyx_k8s`), with `base_image` `:image` (a
-`crane_image` of the binary in `/app` on it, `cmd ./<name>`, uid 10001 as
-the Deployment runs) and with `local_args` `:local` (`plz run :<name> --
-<local_args>`). One per package, as the rule names are fixed.
+It makes `:<name>_manifest`, `:<name>_k8s` (`onyx_k8s`), `:<name>_image`
+(a `crane_image` of the binary in `/app`, `cmd ./<name>`, uid 10001 as the
+Deployment runs) and `:<name>_local` (`plz run :<name> -- <args>`), the
+last two only for a binary that is not `test_only`. The image and local run
+default from the core plugin's config, set once per repo:
+
+| `[Plugin "core"]` | Default | Rule argument |
+|---|---|---|
+| `OnyxBaseImage` | distroless static, linux/amd64 | `base_image` |
+| `OnyxRepo` | none | `repo` |
+| `OnyxImage` | the binary's name | `image` |
+| `OnyxLocalArgs` (repeatable) | none | `local_args`, appended |
+
+A binary with hand-written files (`init.go`) keeps its own `cmd/<name>`
+package, passing `manifest` and `manifest_deps`. A MainManifest's
+`setup_funcs` (`<import path>.<Func>`, each `func(ctx) error`) are called
+once logging is set up, before `setup`, so a binary needs no `init.go` for
+e.g. wrapping the logger.
 
 ## Flags the generated main exposes
 
@@ -260,8 +270,9 @@ clients dial. Name servers after their service when they serve one.
 `include_runtime`) → `manifest.yaml` → `onyx_manifest` + `onyx_service_src`
 in BUILD, `:service.tmpl.go` in the `go_library` srcs → add it to a binary.
 
-**New binary**: `manifest.yaml` → `onyx_deployment` (`manifest_deps`: every service
-manifest and proto library named) + `onyx_main_src` → `go_binary` with
+**New binary**: `main.yaml` beside its service → `onyx_deployment` (`manifest_deps`
+defaults to `[":manifest"]`; set it to that plus every other service manifest and proto library named) +
+`onyx_main_src` → `go_binary` with
 `:main.go` and, when `setup: true`, a `setup(ctx) error` in the package →
 deps on every package the generated file imports (the build error lists
 them).

@@ -119,74 +119,77 @@ def onyx_k8s_external(
 
 def onyx_deployment(
         name:str,
-        manifest:str="manifest.yaml",
-        manifest_deps:list=[],
+        manifest:str="main.yaml",
+        manifest_deps:list=[":manifest"],
         base_image:str="",
         image:str="",
         repo:str="",
-        local_args:list=None,
+        local_args:list=[],
         labels:list=[],
         visibility:list=[],
         test_only:bool=False,
 ):
-    """What deploys the onyx binary `:<name>` of the package, besides its main.go and go_binary
-    (which stay in the BUILD file, for wollemi to manage):
+    """What deploys the onyx binary `:<name>`, besides its onyx_main_src and go_binary (which stay
+    in the BUILD file, for wollemi to manage). By default it sits beside the service it serves: its
+    MainManifest is `main.yaml`, naming the package's `:manifest`.
 
-      :manifest  onyx_manifest of `manifest`, which onyx_main_src reads
-      :k8s       onyx_k8s
-      :image     with `base_image`: crane_image of the binary in /app, run as uid 10001
-      :local     with `local_args`: sh_cmd running the binary with them
+      :<name>_manifest  onyx_manifest of `manifest`, which onyx_main_src reads
+      :<name>_k8s       onyx_k8s
+      :<name>_image     crane_image of the binary in /app, run as uid 10001
+      :<name>_local     sh_cmd running the binary for a laptop
+
+    The image and local run are left out of a test only binary.
 
     Args:
       name: The binary's go_binary in this package.
       manifest: The MainManifest yaml.
       manifest_deps: Labels the manifest names, as onyx_manifest's deps.
-      base_image: Image the binary is appended to: a docker_image target or a reference.
-      image: Name of the image. Defaults to the binary's.
-      repo: Registry prefix of the image.
-      local_args: Flags of `plz run :local`, running the binary on a laptop.
-      labels: Labels of :k8s and :image.
-      visibility: Visibility of :k8s and :image.
+      base_image: Image the binary is appended to. Defaults to the core plugin's OnyxBaseImage.
+      image: Name of the image. Defaults to OnyxImage, else the binary's.
+      repo: Registry prefix of the image. Defaults to OnyxRepo.
+      local_args: Flags of :<name>_local, after OnyxLocalArgs.
+      labels: Labels of :<name>_k8s and :<name>_image.
+      visibility: Visibility of :<name>_k8s and :<name>_image.
       test_only: Whether the binary is test only.
     """
-    onyx_manifest(
-        name = "manifest",
+    manifest_rule = onyx_manifest(
+        name = name + "_manifest",
         manifest = manifest,
         deps = manifest_deps,
         test_only = test_only,
     )
     onyx_k8s(
-        name = "k8s",
-        manifest = ":manifest",
+        name = name + "_k8s",
+        manifest = manifest_rule,
         labels = labels,
         visibility = visibility,
         test_only = test_only,
     )
+    if test_only:
+        return
     binary = "//" + package_name() + ":" + name
-    if base_image:
-        layer = crane_layer(
-            name = tag("image", "layer"),
-            srcs = [binary],
-            dir = "/app",
-        )
-        # uid 10001 is the user onyx_k8s's Deployment runs as.
-        crane_image(
-            name = "image",
-            base_image = base_image,
-            layers = [layer],
-            image = image or name,
-            repo = repo,
-            cmd = ["./" + name],
-            workdir = "/app",
-            user = "10001",
-            labels = labels,
-            visibility = visibility,
-        )
-    if local_args != None:
-        sh_cmd(
-            name = "local",
-            cmd = " ".join([f"plz run {binary} --"] + local_args),
-        )
+    layer = crane_layer(
+        name = tag(name, "layer"),
+        srcs = [binary],
+        dir = "/app",
+    )
+    # uid 10001 is the user onyx_k8s's Deployment runs as.
+    crane_image(
+        name = name + "_image",
+        base_image = base_image or CONFIG.CORE.ONYX_BASE_IMAGE,
+        layers = [layer],
+        image = image or CONFIG.CORE.ONYX_IMAGE or name,
+        repo = repo or CONFIG.CORE.ONYX_REPO,
+        cmd = ["./" + name],
+        workdir = "/app",
+        user = "10001",
+        labels = labels,
+        visibility = visibility,
+    )
+    sh_cmd(
+        name = name + "_local",
+        cmd = " ".join(["plz run " + binary + " --"] + CONFIG.CORE.ONYX_LOCAL_ARGS + local_args),
+    )
 
 
 def _onyx_src(name:str, mode:str, manifest:str, visibility:list, labels:list, test_only:bool):

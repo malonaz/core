@@ -2,6 +2,7 @@ subinclude("//build_defs/codegen/onyx:build_defs")
 
 onyx_deployment(
     name = "library-service",
+    manifest = "manifest.yaml",
     manifest_deps = [
         "//go/test/library/library_service:manifest",
         "//malonaz/scheduler/scheduler_service/v1",
@@ -12,7 +13,7 @@ onyx_deployment(
 
 onyx_main_src(
     name = "main.go",
-    manifest = ":manifest",
+    manifest = ":library-service_manifest",
     test_only = True,
 )
 

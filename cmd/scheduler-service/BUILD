@@ -2,6 +2,7 @@ subinclude("//build_defs/codegen/onyx:build_defs")
 
 onyx_deployment(
     name = "scheduler-service",
+    manifest = "manifest.yaml",
     manifest_deps = [
         "//go/scheduler/scheduler_dispatcher:manifest",
         "//go/scheduler/scheduler_service:manifest",
@@ -12,7 +13,7 @@ onyx_deployment(
 
 onyx_main_src(
     name = "main.go",
-    manifest = ":manifest",
+    manifest = ":scheduler-service_manifest",
     test_only = True,
 )
 

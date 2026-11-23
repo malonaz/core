@@ -2,6 +2,7 @@ subinclude("//build_defs/codegen/onyx:build_defs")
 
 onyx_deployment(
     name = "user-service",
+    manifest = "manifest.yaml",
     manifest_deps = [
         "//go/test/user/user_service:manifest",
         "//malonaz/test/user/user_service/v1",
@@ -11,7 +12,7 @@ onyx_deployment(
 
 onyx_main_src(
     name = "main.go",
-    manifest = ":manifest",
+    manifest = ":user-service_manifest",
     test_only = True,
 )
 
