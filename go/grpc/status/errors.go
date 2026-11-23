@@ -24,7 +24,7 @@ var (
 		"google.golang.org/grpc.",
 		"github.com/grpc-ecosystem/",
 		"github.com/malonaz/core/go/grpc",
-		"github.com/malonaz/core/go/authentication",
+		"github.com/malonaz/core/go/authentication/v2",
 		"buf.build/go/protovalidate.",
 		"runtime.",
 	}
