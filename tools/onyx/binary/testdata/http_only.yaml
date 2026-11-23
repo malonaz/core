@@ -1,0 +1,7 @@
+name: test
+servers:
+  - name: i-http
+    port: 45329
+    http:
+      services:
+        - manifest: //i/i_service:manifest(tools/onyx/binary/testdata/i_service.yaml)
