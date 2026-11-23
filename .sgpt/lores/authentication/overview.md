@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, why v1 still exists, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -10,10 +10,9 @@ labels:
 # Authentication v2
 
 `go/authentication/v2` (package `authentication`) with the proto
-`malonaz/authentication/v2`. It sits **beside** v1 (`go/authentication`,
-`malonaz.authentication.v1`), which is unchanged: onikisu still runs v1 and
-moves in one switch; v1 is deleted once nothing uses it. v2 never imports v1.
-Core's own `cmd/tsunade` runs v2.
+`malonaz/authentication/v2`: core's only authentication, run by `cmd/tsunade`
+and onikisu. It replaced v1 (`go/authentication`, `malonaz.authentication.v1`,
+deleted), keeping its tokens, headers and rule texts; the path keeps its `v2`.
 
 ## The session
 
@@ -153,14 +152,16 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
   dispatcher, the scheduler-run methods it delivers.
 - The client IP is X-Forwarded-For's leftmost entry, as v1 read it: the
   caller controls it.
-- v1's rule texts move unchanged: wrap each as
+- v1's rule texts run unchanged: wrap each as
   `cel.bind(claims, principal.attributes, cel.bind(subject, principal.subject, (<v1 text>)))`
-  (conditions have CEL's bindings extension). It evaluates as v1 did
-  (`TestEquivalence_Conditions`), but for `subject` when an issuer's rewrite
-  drops `sub`: v1 read `""`, v2 reads the issuer's subject.
+  (conditions have CEL's bindings extension; `TestRuleConditions`). They
+  evaluated as under v1 (proven side by side before v1's deletion), but for
+  `subject` when an issuer's rewrite drops `sub`: v1 read `""`, v2 reads the
+  issuer's subject.
 - Issuing tokens: `NewSigner(issuer, authentication.SymmetricKey(secret))`,
-  `Sign(Token{Subject, Actor, Lifetime, Claims})`; writes the claims v1's
-  minter wrote, no `kid`.
+  `Sign(Token{Subject, Actor, Lifetime, Claims})`; writes `iss`, `aud` (a
+  list), `sub`, `act`, `iat`, `nbf`, `exp` and the claims, no `kid`: the
+  tokens v1's minter wrote (`TestSigner` pins them).
 - Tests: `authenticationtest.NewContext(ctx, session)`, `KeySet`,
   `NewIssuer`. Give the configuration a rule test: every caller against
   every method (`cmd/tsunade/authentication_test.go`).
