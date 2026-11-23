@@ -25,6 +25,7 @@ go_binary(
         "//go/logging",
         "//go/postgres",
         "//go/prometheus",
+        "//go/sentry",
         "//malonaz/ai/ai_service/v1",
     ],
 )

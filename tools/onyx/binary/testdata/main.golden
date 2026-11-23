@@ -28,6 +28,7 @@ import (
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
 	"github.com/malonaz/core/go/prometheus"
+	"github.com/malonaz/core/go/sentry"
 )
 
 var opts struct {
@@ -35,6 +36,7 @@ var opts struct {
 	Health     *health.Opts     `group:"Health" namespace:"health" env-namespace:"HEALTH"`
 	Prometheus *prometheus.Opts `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
 	Certs      *certs.Opts      `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
+	Sentry     *sentry.Opts     `group:"Sentry" namespace:"sentry" env-namespace:"SENTRY"`
 
 	APostgres *postgres.Opts `group:"A Postgres" namespace:"a-postgres" env-namespace:"A_POSTGRES"`
 
@@ -77,6 +79,7 @@ func run(ctx context.Context) error {
 	if err := logging.Init(opts.Logging); err != nil {
 		return err
 	}
+	sentry.Init(opts.Sentry, "example.com/repo/")
 
 	prometheusServer := prometheus.NewServer(opts.Prometheus)
 	go prometheusServer.Start(ctx)

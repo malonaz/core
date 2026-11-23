@@ -23,6 +23,7 @@ go_binary(
         "//go/health",
         "//go/logging",
         "//go/prometheus",
+        "//go/sentry",
         "//malonaz/ai/ai_engine/v1",
         "//third_party/go:google.golang.org__grpc__reflection__grpc_reflection_v1",
     ],
