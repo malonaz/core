@@ -255,8 +255,8 @@ service AgentService {
   // ===================== Messaging =====================
 
   // Send an agent a message, queued on the agent for its turn to deliver.
-  // Wakes an idle agent. The user's message to an awaiting agent denies the
-  // calls it awaits, the user replying instead, and resumes its turn. Returns
+  // Wakes an idle agent. A client's message to an awaiting agent denies the
+  // calls it awaits, its sender replying instead, and resumes its turn. Returns
   // the agent, the message in its queue.
   //
   // See: https://google.aip.dev/136 (Custom methods).

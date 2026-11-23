@@ -7,13 +7,17 @@ import "malonaz/codegen/aip/v1/annotation.proto";
 option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "agent.ai.malonaz.com/sender"
-  description: "On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report."
+  description: "On a message sent to an agent: who sent it, stamped by the AgentService: for a client's message, the subject of the principal of its MessageAgent call; for the messages agents send through their built-in tools and schedules and for each sub-agent's turn report, the resource name of the sending agent."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "agent.ai.malonaz.com/approved-by"
-  description: "On the result of a tool call that awaited approval: the resource name of who approved it."
+  description: "On the result of a tool call that awaited approval: the subject of the principal of the call approving it."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "agent.ai.malonaz.com/denied-by"
-  description: "On the error result of a tool call that awaited approval: the resource name of who denied it, by an error result, a reply or a cancellation."
+  description: "On the error result of a tool call that awaited approval: the subject of the principal of the call denying it, by an error result, a reply or a cancellation."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "agent.ai.malonaz.com/actor"
+  description: "Beside agent.ai.malonaz.com/sender, approved-by or denied-by: the subject of the actor of the call that sent, approved or denied, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves."
 };

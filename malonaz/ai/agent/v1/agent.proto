@@ -230,8 +230,14 @@ message AwaitedToolCall {
     // Approval approves the call: the resumed turn runs it.
     message Approval {}
 
-    // Who settled the call.
+    // Who settled the call: the subject of the principal of the call that
+    // approved, resolved, replied to or cancelled it.
     string resolver = 1;
+
+    // The subject of the actor of the call that settled it, who made it for
+    // the resolver (an operator logged in as a user). Empty when the resolver
+    // made it themselves.
+    string actor = 5;
 
     // The decision.
     oneof decision {
