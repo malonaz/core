@@ -169,6 +169,16 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
   to its service and dead in a minute. A remote server on v2 under another
   secret refuses it (UNAUTHENTICATED), and one shown an API key as well sees two
   credentials: call it on a context carrying no identity.
+- To strip identity from a context that carries some (a handler's, a service's
+  `As`), replace its call metadata with a function returning none
+  (`grpc.WithCallMetadata`); clearing the outgoing gRPC metadata strips nothing,
+  as the token is minted per call. The AgentService calls its tool targets so
+  (`withoutIdentity` in `go/ai/agent_service`).
+- Who presented a call is `caller`, which only a holder of the server secret
+  can set: a handler only another server may call checks
+  `caller.subject` (`serviceAccounts/{id}`), never a header or the principal.
+  The AgentService tells a call forwarded by another replica by its own
+  account as caller, and runs WakeAgent only for the scheduler dispatcher's.
 - The grpc-gateway and the grpc-web proxy relay only the outside caller's
   credential: their connections are not core's, and their requests' contexts
   carry no identity (`TestEdgeRelaysOnlyTheOutsideCredential`).
