@@ -16,8 +16,6 @@ import (
 type Binary struct {
 	Name  string
 	Setup bool
-	// Called before setup, each `<import path>.<Func>`.
-	SetupFuncs []string
 	// Root import path of the repository's Go packages.
 	GoImportPath string
 	// In start order: a server after every server it dials in-process.
@@ -131,7 +129,7 @@ type Component struct {
 func Load(m *onyxpb.MainManifest, goImportPath string) (*Binary, error) {
 	l := &loader{
 		goImportPath: goImportPath,
-		binary:       &Binary{Name: m.GetName(), Setup: m.GetSetup(), SetupFuncs: m.GetSetupFuncs(), GoImportPath: goImportPath},
+		binary:       &Binary{Name: m.GetName(), Setup: m.GetSetup(), GoImportPath: goImportPath},
 		services:     map[string]*Service{},
 		grpcClients:  map[string]*GRPCClient{},
 		databases:    map[string]*Database{},

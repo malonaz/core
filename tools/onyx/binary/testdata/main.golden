@@ -18,7 +18,6 @@ import (
 	bservicepb "example.com/repo/genproto/b/v1"
 	cservicepb "example.com/repo/genproto/c/v1"
 	hservice "example.com/repo/h/h_service"
-	"example.com/repo/sentry"
 	"github.com/malonaz/core/go/authentication"
 	"github.com/malonaz/core/go/certs"
 	"github.com/malonaz/core/go/flags"
@@ -81,9 +80,6 @@ func run(ctx context.Context) error {
 	}
 	if err := logging.Init(opts.Logging); err != nil {
 		return err
-	}
-	if err := sentry.Setup(ctx); err != nil {
-		return fmt.Errorf("example.com/repo/sentry.Setup: %w", err)
 	}
 
 	prometheusServer := prometheus.NewServer(opts.Prometheus)

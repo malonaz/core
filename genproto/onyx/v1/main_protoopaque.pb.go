@@ -107,7 +107,6 @@ type MainManifest struct {
 	xxx_hidden_StartupSeconds  int32                  `protobuf:"varint,6,opt,name=startup_seconds,json=startupSeconds,proto3"`
 	xxx_hidden_WritableDirs    []string               `protobuf:"bytes,7,rep,name=writable_dirs,json=writableDirs,proto3"`
 	xxx_hidden_Secrets         *Secrets               `protobuf:"bytes,8,opt,name=secrets,proto3"`
-	xxx_hidden_SetupFuncs      []string               `protobuf:"bytes,9,rep,name=setup_funcs,json=setupFuncs,proto3"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -195,13 +194,6 @@ func (x *MainManifest) GetSecrets() *Secrets {
 	return nil
 }
 
-func (x *MainManifest) GetSetupFuncs() []string {
-	if x != nil {
-		return x.xxx_hidden_SetupFuncs
-	}
-	return nil
-}
-
 func (x *MainManifest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -232,10 +224,6 @@ func (x *MainManifest) SetWritableDirs(v []string) {
 
 func (x *MainManifest) SetSecrets(v *Secrets) {
 	x.xxx_hidden_Secrets = v
-}
-
-func (x *MainManifest) SetSetupFuncs(v []string) {
-	x.xxx_hidden_SetupFuncs = v
 }
 
 func (x *MainManifest) HasResources() bool {
@@ -280,9 +268,6 @@ type MainManifest_builder struct {
 	WritableDirs []string
 	// Blobs whose every key the binary gets as an env var, through the External Secrets Operator.
 	Secrets *Secrets
-	// Go functions `<import path>.<Func>`, each `func(context.Context) error`, called in order once
-	// logging is set up and before `setup` (e.g. wrapping the logger to report errors).
-	SetupFuncs []string
 }
 
 func (b0 MainManifest_builder) Build() *MainManifest {
@@ -297,7 +282,6 @@ func (b0 MainManifest_builder) Build() *MainManifest {
 	x.xxx_hidden_StartupSeconds = b.StartupSeconds
 	x.xxx_hidden_WritableDirs = b.WritableDirs
 	x.xxx_hidden_Secrets = b.Secrets
-	x.xxx_hidden_SetupFuncs = b.SetupFuncs
 	return m0
 }
 
@@ -1315,7 +1299,7 @@ var File_malonaz_onyx_v1_main_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xa0\x04\n" +
+	"\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xbd\x03\n" +
 	"\fMainManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x14\n" +
 	"\x05setup\x18\x02 \x01(\bR\x05setup\x12;\n" +
@@ -1326,9 +1310,7 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\x0fstartup_seconds\x18\x06 \x01(\x05B\r\xbaH\n" +
 	"\xd8\x01\x01\x1a\x05\x18\x90\x1c(\x05R\x0estartupSeconds\x12E\n" +
 	"\rwritable_dirs\x18\a \x03(\tB \xbaH\x1d\x92\x01\x1a\x18\x01\"\x16r\x142\x12^(/[a-z0-9._-]+)+$R\fwritableDirs\x122\n" +
-	"\asecrets\x18\b \x01(\v2\x18.malonaz.onyx.v1.SecretsR\asecrets\x12a\n" +
-	"\vsetup_funcs\x18\t \x03(\tB@\xbaH=\x92\x01:\"8r624^[a-z0-9.-]+(/[A-Za-z0-9._-]+)*\\.[A-Z][A-Za-z0-9_]*$R\n" +
-	"setupFuncs\"P\n" +
+	"\asecrets\x18\b \x01(\v2\x18.malonaz.onyx.v1.SecretsR\asecrets\"P\n" +
 	"\aSecrets\x12\x1d\n" +
 	"\x05store\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05store\x12&\n" +
 	"\x05blobs\x18\x02 \x03(\tB\x10\xbaH\r\x92\x01\n" +

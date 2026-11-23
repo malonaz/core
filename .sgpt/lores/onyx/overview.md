@@ -253,9 +253,7 @@ default from the core plugin's config, set once per repo:
 | `OnyxLocalArgs` (repeatable) | none | `local_args`, appended |
 
 A binary with hand-written files (`init.go`) keeps its own `cmd/<name>`
-package and MainManifest. `setup_funcs` (`<import path>.<Func>`, each
-`func(ctx) error`) are called once logging is set up, before `setup`, so a
-binary needs no `init.go` for e.g. wrapping the logger.
+package and MainManifest.
 
 ## Flags the generated main exposes
 

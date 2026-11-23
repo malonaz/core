@@ -139,12 +139,6 @@ func (g *generator) generate() {
 	g.P("if err := ", g.Qual(core+"/logging", "Init"), "(opts.Logging); err != nil {")
 	g.P("return err")
 	g.P("}")
-	for _, setupFunc := range g.b.SetupFuncs {
-		i := strings.LastIndex(setupFunc, ".")
-		g.P("if err := ", g.Qual(setupFunc[:i], setupFunc[i+1:]), "(ctx); err != nil {")
-		g.P("return ", fmt_, `.Errorf("`, setupFunc, `: %w", err)`)
-		g.P("}")
-	}
 	if g.b.Setup {
 		g.P("if err := setup(ctx); err != nil {")
 		g.P("return ", fmt_, `.Errorf("setup: %w", err)`)
