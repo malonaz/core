@@ -4,19 +4,50 @@ def onyx_manifest(
         name:str,
         manifest:str="manifest.yaml",
         deps:list=[],
+        binary:str="",
+        base_image:str="",
+        image:str="",
+        repo:str="",
+        local_args:list=[],
+        labels:list=[],
         visibility:list=[],
         test_only:bool=False,
 ):
-    """An onyx manifest, its labels resolved to the files they build.
+    """An onyx manifest, its labels resolved to the files they build, and with `binary`, what
+    deploys that binary.
 
     Every label in `deps` that the manifest names is rewritten to `//label(files...)`, which onyx
     reads back to find the manifests, protos and packages the label produces.
+
+    `binary` is a go_binary in this package, left in the BUILD file for wollemi to manage, with
+    `:<binary>_main.go` in its srcs (.wollemi.json's `codegen_macro_formatting` maps onyx_manifest
+    to that file). It runs the manifest: a MainManifest, or a ServiceManifest's `deployment`.
+
+      :<binary>_main.go   onyx_main_src
+      :<binary>_k8s       onyx_k8s
+      :<binary>_image     crane_image of the binary in /app, run as uid 10001
+      :<binary>_local     sh_cmd running the binary for a laptop
+
+    The image and local run are left out of a test only binary.
+
+    Args:
+      name: The manifest rule, `manifest` by convention.
+      manifest: The ServiceManifest or MainManifest yaml.
+      deps: Labels the manifest names.
+      binary: The go_binary running the manifest, to generate and deploy.
+      base_image: Image the binary is appended to. Defaults to the core plugin's OnyxBaseImage.
+      image: Name of the image. Defaults to OnyxImage, else the binary's.
+      repo: Registry prefix of the image. Defaults to OnyxRepo.
+      local_args: Flags of :<binary>_local, after OnyxLocalArgs.
+      labels: Labels of :<binary>_k8s and :<binary>_image.
+      visibility: Visibility of the manifest, :<binary>_k8s and :<binary>_image.
+      test_only: Whether the manifest and binary are test only.
     """
     cmd = ["cp $SRCS $OUT"]
     for dep in deps:
         canonical_dep = canonicalise(dep)
         cmd.append(f"sed -i 's|{dep}$|{canonical_dep}($(locations {dep}))|' $OUT")
-    return genrule(
+    rule = genrule(
         name = name,
         srcs = [manifest],
         outs = [name],
@@ -26,6 +57,9 @@ def onyx_manifest(
         visibility = visibility,
         test_only = test_only,
     )
+    if binary:
+        _onyx_binary(binary, rule, base_image, image, repo, local_args, labels, visibility, test_only)
+    return rule
 
 
 def onyx_service_src(
@@ -42,39 +76,31 @@ def onyx_service_src(
 def onyx_main_src(
         name:str,
         manifest:str,
-        deployment:bool=False,
         visibility:list=[],
         labels:list=[],
         test_only:bool=False,
 ):
-    """The main file of a MainManifest.
-
-    Args:
-      deployment: `manifest` is a ServiceManifest's onyx_manifest: generate its deployment.
-    """
-    return _onyx_src(name, "main", manifest, visibility, labels, test_only, deployment)
+    """The main file of a MainManifest, or of a ServiceManifest's deployment."""
+    return _onyx_src(name, "main", manifest, visibility, labels, test_only)
 
 
 def onyx_k8s(
         name:str,
         manifest:str,
-        deployment:bool=False,
         image:str="",
         visibility:list=[],
         labels:list=[],
         test_only:bool=False,
 ):
-    """The Kubernetes base of a MainManifest, written next to it: serviceaccount.yaml,
-    deployment.yaml, service.yaml, networkpolicy.yaml, pdb.yaml, ingress.yaml when a server is public,
+    """The Kubernetes base of a MainManifest or a ServiceManifest's deployment, written next to it:
+    serviceaccount.yaml, deployment.yaml, service.yaml, networkpolicy.yaml, pdb.yaml, ingress.yaml when a server is public,
     and the kustomization.yaml listing them.
 
     Args:
-      deployment: `manifest` is a ServiceManifest's onyx_manifest: generate its deployment.
       image: docker_image rule the Deployment runs. Defaults to the binary's name, for an overlay to set.
     """
     cmd = f"mkdir _k8s && $TOOLS --mode k8s --manifest $(location {manifest}) --output _k8s"
-    if deployment:
-        cmd += " --service-label " + canonicalise(manifest)
+    cmd += " --label " + canonicalise(manifest)
     deps = [manifest]
     if image:
         fqn = canonicalise(image) + "_fqn"
@@ -126,64 +152,15 @@ def onyx_k8s_external(
     )
 
 
-def onyx_deployment(
-        name:str,
-        service:str=":manifest",
-        manifest:str="",
-        manifest_deps:list=[],
-        base_image:str="",
-        image:str="",
-        repo:str="",
-        local_args:list=[],
-        labels:list=[],
-        visibility:list=[],
-        test_only:bool=False,
-):
-    """The generated main and what deploys the onyx binary `:<name>`, whose go_binary stays in the
-    BUILD file for wollemi to manage, with `:<name>_main.go` in its srcs (.wollemi.json's
-    `codegen_macro_formatting` maps onyx_deployment to that file). By default the binary runs one
-    service: the `deployment` of the package's `:manifest`. A binary composing several services
-    sets `manifest` to its own MainManifest instead.
-
-      :<name>_manifest  onyx_manifest of `manifest`, when set
-      :<name>_main.go   onyx_main_src
-      :<name>_k8s       onyx_k8s
-      :<name>_image     crane_image of the binary in /app, run as uid 10001
-      :<name>_local     sh_cmd running the binary for a laptop
-
-    The image and local run are left out of a test only binary.
-
-    Args:
-      name: The binary's go_binary in this package.
-      service: onyx_manifest of the ServiceManifest whose deployment the binary is.
-      manifest: A MainManifest yaml, in place of `service`.
-      manifest_deps: Labels `manifest` names, as onyx_manifest's deps.
-      base_image: Image the binary is appended to. Defaults to the core plugin's OnyxBaseImage.
-      image: Name of the image. Defaults to OnyxImage, else the binary's.
-      repo: Registry prefix of the image. Defaults to OnyxRepo.
-      local_args: Flags of :<name>_local, after OnyxLocalArgs.
-      labels: Labels of :<name>_k8s and :<name>_image.
-      visibility: Visibility of :<name>_k8s and :<name>_image.
-      test_only: Whether the binary is test only.
-    """
-    manifest_rule = service
-    if manifest:
-        manifest_rule = onyx_manifest(
-            name = name + "_manifest",
-            manifest = manifest,
-            deps = manifest_deps,
-            test_only = test_only,
-        )
+def _onyx_binary(name:str, manifest:str, base_image:str, image:str, repo:str, local_args:list, labels:list, visibility:list, test_only:bool):
     onyx_main_src(
         name = name + "_main.go",
-        manifest = manifest_rule,
-        deployment = not manifest,
+        manifest = manifest,
         test_only = test_only,
     )
     onyx_k8s(
         name = name + "_k8s",
-        manifest = manifest_rule,
-        deployment = not manifest,
+        manifest = manifest,
         labels = labels,
         visibility = visibility,
         test_only = test_only,
@@ -215,10 +192,10 @@ def onyx_deployment(
     )
 
 
-def _onyx_src(name:str, mode:str, manifest:str, visibility:list, labels:list, test_only:bool, deployment:bool=False):
+def _onyx_src(name:str, mode:str, manifest:str, visibility:list, labels:list, test_only:bool):
     cmd = f"$TOOLS --mode {mode} --manifest $(location {manifest}) --output $OUT"
-    if deployment:
-        cmd += " --service-label " + canonicalise(manifest)
+    if mode == "main":
+        cmd += " --label " + canonicalise(manifest)
     if CONFIG.GO.IMPORT_PATH:
         cmd += f" --go-import-path {CONFIG.GO.IMPORT_PATH}"
     return genrule(

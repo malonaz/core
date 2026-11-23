@@ -169,8 +169,8 @@ type ServiceManifest_builder struct {
 	Codegens []*Codegen
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
-	// The binary running only this service, which onyx_deployment builds from this manifest. A
-	// server naming no service manifest serves this one. Validated by onyx once those are filled in.
+	// The binary running only this service, which onyx_manifest builds with its `binary`. A server
+	// naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment *MainManifest
 }
 

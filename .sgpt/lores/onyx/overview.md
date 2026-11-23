@@ -193,7 +193,7 @@ onyx_manifest(
     name = "manifest",
     deps = ["//gengo/test/library/store", "//malonaz/scheduler/scheduler_service/v1"],
 )
-onyx_service_src(name = "service.tmpl.go", manifest = ":manifest")   # a binary: onyx_deployment, below
+onyx_service_src(name = "service.tmpl.go", manifest = ":manifest")   # a binary: `binary`, below
 ```
 
 `onyx_manifest` rewrites every label in `deps` that the manifest names to
@@ -209,12 +209,13 @@ does.
 
 A binary running one service is that service's `deployment`: a MainManifest
 inside its `manifest.yaml`, whose servers default to that service (`http: {}`,
-`processor: {}`, a grpc service with no `manifest`). `onyx_deployment` reads
-the package's `:manifest` and declares the binary's generated main and what
+`processor: {}`, a grpc service with no `manifest`). `binary` on the
+package's `onyx_manifest` declares the binary's generated main and what
 deploys it. Only the `go_binary` stays in the BUILD file, so wollemi manages
 its deps: `.wollemi.json`'s `codegen_macro_formatting`
-(`{"onyx_deployment": "{{ name }}_main.go"}`, read by core's wollemi patch)
-tells it the macro's hidden `:<name>_main.go` generates that file, whose
+(`{"onyx_manifest": "{{ binary }}_main.go"}`, read by core's wollemi patch;
+`{{ attr }}` is the call's argument, and a call without it generates no file)
+tells it the macro's hidden `:<binary>_main.go` generates that file, whose
 imports it reads from `plz-out/gen`:
 
 ```yaml
@@ -230,20 +231,22 @@ deployment:
 ```
 
 ```python
-onyx_manifest(name = "manifest")
-onyx_deployment(name = "lender-mock")           # the deployment of :manifest
+onyx_manifest(name = "manifest", binary = "lender-mock")   # deploys :manifest's deployment
 go_binary(name = "lender-mock", srcs = [":lender-mock_main.go"], deps = [...])
 ```
 
 A binary composing several services has its own MainManifest instead:
-`onyx_deployment(name, manifest = "manifest.yaml", manifest_deps = [...])`,
-every service manifest and proto library it names in `manifest_deps`.
+`onyx_manifest(name = "manifest", binary = <name>, deps = [...])`, every
+service manifest and proto library it names in `deps`. Onyx tells the two
+kinds apart by strict decoding: neither has the other's fields.
 
-It makes `:<name>_manifest` (with `manifest`), `:<name>_main.go` (left in plz-out),
-`:<name>_k8s` (`onyx_k8s`), `:<name>_image` (a
-`crane_image` of the binary in `/app`, `cmd ./<name>`, uid 10001 as the
-Deployment runs) and `:<name>_local` (`plz run :<name> -- <args>`), the
-last two only for a binary that is not `test_only`. The image and local run
+Without `binary`, `onyx_manifest` is only the manifest. With it, it also
+makes `:<name>_main.go` (left in plz-out), `:<name>_k8s` (`onyx_k8s`),
+`:<name>_image` (a `crane_image` of the binary in `/app`, `cmd ./<name>`,
+uid 10001 as the Deployment runs) and `:<name>_local`
+(`plz run :<name> -- <args>`), the last two only for a binary that is not
+`test_only`. `.wollemi.json` maps `onyx_manifest` to `{{ binary }}_main.go`
+so wollemi resolves the go_binary's deps. The image and local run
 default from the core plugin's config, set once per repo:
 
 | `OnyxBaseImage` | distroless static, linux/amd64 | `base_image` |
@@ -289,8 +292,9 @@ clients dial. Name servers after their service when they serve one.
 in BUILD, `:service.tmpl.go` in the `go_library` srcs → add it to a binary.
 
 **New binary**: of one service, a `deployment` in its `manifest.yaml` →
-`onyx_deployment(name)`; of several, a MainManifest → `onyx_deployment(name,
-manifest, manifest_deps)` (every service manifest and proto library named).
+`binary = <name>` on its `onyx_manifest`; of several, a MainManifest →
+`onyx_manifest(name = "manifest", binary, deps)` (every service manifest
+and proto library named).
 Then a `go_binary` with `:<name>_main.go` and, when `setup: true`, a
 `setup(ctx) error` in the package → deps on every package the generated file
 imports (wollemi adds them).

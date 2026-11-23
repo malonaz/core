@@ -38,8 +38,8 @@ type ServiceManifest struct {
 	Codegens []*Codegen `protobuf:"bytes,5,rep,name=codegens,proto3" json:"codegens,omitempty"`
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency `protobuf:"bytes,6,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-	// The binary running only this service, which onyx_deployment builds from this manifest. A
-	// server naming no service manifest serves this one. Validated by onyx once those are filled in.
+	// The binary running only this service, which onyx_manifest builds with its `binary`. A server
+	// naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment    *MainManifest `protobuf:"bytes,7,opt,name=deployment,proto3" json:"deployment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -173,8 +173,8 @@ type ServiceManifest_builder struct {
 	Codegens []*Codegen
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
-	// The binary running only this service, which onyx_deployment builds from this manifest. A
-	// server naming no service manifest serves this one. Validated by onyx once those are filled in.
+	// The binary running only this service, which onyx_manifest builds with its `binary`. A server
+	// naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment *MainManifest
 }
 

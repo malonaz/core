@@ -20,7 +20,7 @@ var opts struct {
 	Output       string `long:"output" description:"The Go file to write; for k8s, the directory." required:"true"`
 	GoImportPath string `long:"go-import-path" description:"Root import path of the repository's Go packages."`
 	Image        string `long:"image" description:"For k8s, the image the Deployment runs. Defaults to the binary's name."`
-	ServiceLabel string `long:"service-label" description:"For main and k8s, the label of the ServiceManifest --manifest is, to generate its deployment."`
+	Label        string `long:"label" description:"For main and k8s, the label of --manifest's onyx_manifest, which a ServiceManifest's deployment serves."`
 }
 
 func main() {
@@ -46,7 +46,7 @@ func run() error {
 			return err
 		}
 	case "main":
-		m, err := manifest.LoadMain(opts.Manifest, opts.ServiceLabel)
+		m, err := manifest.LoadMain(opts.Manifest, opts.Label)
 		if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func run() error {
 	case "k8s", "k8s-external":
 		var files map[string][]byte
 		if opts.Mode == "k8s" {
-			m, err := manifest.LoadMain(opts.Manifest, opts.ServiceLabel)
+			m, err := manifest.LoadMain(opts.Manifest, opts.Label)
 			if err != nil {
 				return err
 			}
