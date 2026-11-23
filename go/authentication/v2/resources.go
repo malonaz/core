@@ -45,7 +45,7 @@ func deriveResources(methodToDescriptor map[string]protoreflect.MethodDescriptor
 
 // methodResources derives the resources a method names from its AIP shape: Create, List, Search and Stream its
 // parent; Update its payload's name; BatchGet its parent and every name; BatchCreate its parent and every request's;
-// every other method, Get and Delete included, its name.
+// every other method, Get and Delete included, its name, or a collection's custom method (AIP-136) its parent.
 func methodResources(method protoreflect.MethodDescriptor) resourcesFunc {
 	// Only a stream's first message is read, and the next could name anything.
 	if method.IsStreamingClient() {
@@ -62,7 +62,10 @@ func methodResources(method protoreflect.MethodDescriptor) resourcesFunc {
 	case aip.StandardMethodTypeBatchCreate:
 		return batchCreateResources(request)
 	default:
-		return fieldResources(stringField(request, "name"))
+		if name := stringField(request, "name"); name != nil {
+			return fieldResources(name)
+		}
+		return fieldResources(stringField(request, "parent"))
 	}
 }
 

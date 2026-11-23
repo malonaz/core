@@ -79,11 +79,10 @@ so `Listen` is no `List`):
 | `Update*` | the `name` of the request's one field typed as a resource (`google.api.resource`) |
 | `BatchGet*` | every `names`, and `parent` when set |
 | `BatchCreate*` | every request's `parent` (the batch's when unset), and the batch's when set |
-| any other, `Get*`/`Delete*`/custom included | `name` |
+| any other, `Get*`/`Delete*`/custom included | `name`; with no `name` field, `parent` (a collection's custom method, AIP-136: `Import*`, `Export*`, `Compute*Stats`) |
 
 - Fails closed: a request lacking the shape's field (a `Create` with no
-  `parent`, a custom method with no `name`: `ImportBooks`, `Compute*Stats`,
-  `Connect`), and every client or bidi stream (only the first message is
+  `parent`, a custom method with neither `name` nor `parent`), and every client or bidi stream (only the first message is
   read), names nothing derivable: a scoped grant never allows it. A service
   account whose scoped grant's role lists such a method refuses to start; an
   issuer's grants are only known per call.

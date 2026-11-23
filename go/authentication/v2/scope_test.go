@@ -14,6 +14,7 @@ import (
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	librarypb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	librarymodelpb "github.com/malonaz/core/genproto/test/library/v1"
+	mockpb "github.com/malonaz/core/genproto/test/mock/v1"
 )
 
 const (
@@ -27,17 +28,19 @@ const (
 	streamGenerateMessageMethod = "/malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage"
 )
 
-// newScopedFixture returns the shared fixture with a librarian role over one method of every shape, and two whose
-// resources cannot be derived; the test issuer grants it over organizations/1.
+// newScopedFixture returns the shared fixture with a librarian role over one method of every shape, and three whose
+// resources cannot be derived; the test issuer grants it over organizations/1. No role is public, so that the
+// librarian alone decides Echo.
 func newScopedFixture(t testing.TB) *fixture {
 	t.Helper()
 	f := newFixture(t)
+	f.configuration.PublicRoles = nil
 	f.configuration.Roles = append(f.configuration.Roles, &authenticationpb.Role{
 		Id: "librarian",
 		Rules: []*authenticationpb.Rule{{Methods: []string{
 			createBookMethod, listBooksMethod, searchBooksMethod, getBookMethod, deleteBookMethod, undeleteShelfMethod,
 			updateBookMethod, batchGetBooksMethod, batchCreateShelvesMethod, streamGenerateMessageMethod,
-			importBooksMethod, echoStreamMethod, reflectionMethod,
+			importBooksMethod, echoMethod, echoStreamMethod, reflectionMethod,
 		}}},
 	})
 	f.issuer.GrantsCel = `[Grant{role: "librarian", scope: "organizations/1"}]`
@@ -90,7 +93,9 @@ func TestScopedGrantCoversTheResourcesACallNames(t *testing.T) {
 		"batch create: one request outside":          {batchCreateShelvesMethod, &librarypb.BatchCreateShelvesRequest{Requests: []*librarypb.CreateShelfRequest{createShelf("organizations/1"), createShelf("organizations/2")}}, false},
 		"batch create: a request outside its parent": {batchCreateShelvesMethod, &librarypb.BatchCreateShelvesRequest{Parent: "organizations/1", Requests: []*librarypb.CreateShelfRequest{createShelf("organizations/2")}}, false},
 		"batch create: a request with no parent":     {batchCreateShelvesMethod, &librarypb.BatchCreateShelvesRequest{Requests: []*librarypb.CreateShelfRequest{createShelf("organizations/1"), createShelf("")}}, false},
-		"a method whose resources are not derived":   {importBooksMethod, &librarypb.ImportBooksRequest{Parent: "organizations/1/shelves/1"}, false},
+		"collection custom method: its parent":       {importBooksMethod, &librarypb.ImportBooksRequest{Parent: "organizations/1/shelves/1"}, true},
+		"collection custom method: a parent outside": {importBooksMethod, &librarypb.ImportBooksRequest{Parent: "organizations/2/shelves/1"}, false},
+		"custom method with neither name nor parent": {echoMethod, &mockpb.EchoRequest{Message: "organizations/1"}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newScopedFixture(t)
@@ -146,7 +151,7 @@ func TestScopedGrantBesideConditionsAndWildcard(t *testing.T) {
 	t.Run("a grant over * on a method whose resources are not derived", func(t *testing.T) {
 		f := newScopedFixture(t)
 		f.issuer.GrantsCel = `[Grant{role: "librarian", scope: "*"}]`
-		_, err := unary(t, f.interceptor(t), importBooksMethod, bearer(f.token(t, nil)), &librarypb.ImportBooksRequest{})
+		_, err := unary(t, f.interceptor(t), echoMethod, bearer(f.token(t, nil)), &mockpb.EchoRequest{})
 		require.NoError(t, err)
 	})
 	for _, scope := range []string{"organizations/-", ""} {
