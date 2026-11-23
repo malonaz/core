@@ -832,6 +832,7 @@ func (b0 AwaitedToolCall_builder) Build() *AwaitedToolCall {
 type AwaitedToolCall_Resolution struct {
 	state                protoimpl.MessageState                `protogen:"opaque.v1"`
 	xxx_hidden_Resolver  string                                `protobuf:"bytes,1,opt,name=resolver,proto3"`
+	xxx_hidden_Actor     string                                `protobuf:"bytes,5,opt,name=actor,proto3"`
 	xxx_hidden_Decision  isAwaitedToolCall_Resolution_Decision `protobuf_oneof:"decision"`
 	xxx_hidden_StartTime *timestamppb.Timestamp                `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3"`
 	unknownFields        protoimpl.UnknownFields
@@ -870,6 +871,13 @@ func (x *AwaitedToolCall_Resolution) GetResolver() string {
 	return ""
 }
 
+func (x *AwaitedToolCall_Resolution) GetActor() string {
+	if x != nil {
+		return x.xxx_hidden_Actor
+	}
+	return ""
+}
+
 func (x *AwaitedToolCall_Resolution) GetApproval() *AwaitedToolCall_Resolution_Approval {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Decision.(*awaitedToolCall_Resolution_Approval_); ok {
@@ -897,6 +905,10 @@ func (x *AwaitedToolCall_Resolution) GetStartTime() *timestamppb.Timestamp {
 
 func (x *AwaitedToolCall_Resolution) SetResolver(v string) {
 	x.xxx_hidden_Resolver = v
+}
+
+func (x *AwaitedToolCall_Resolution) SetActor(v string) {
+	x.xxx_hidden_Actor = v
 }
 
 func (x *AwaitedToolCall_Resolution) SetApproval(v *AwaitedToolCall_Resolution_Approval) {
@@ -990,8 +1002,13 @@ func (x *AwaitedToolCall_Resolution) WhichDecision() case_AwaitedToolCall_Resolu
 type AwaitedToolCall_Resolution_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Who settled the call.
+	// Who settled the call: the subject of the principal of the call that
+	// approved, resolved, replied to or cancelled it.
 	Resolver string
+	// The subject of the actor of the call that settled it, who made it for
+	// the resolver (an operator logged in as a user). Empty when the resolver
+	// made it themselves.
+	Actor string
 	// The decision.
 
 	// Fields of oneof xxx_hidden_Decision:
@@ -1011,6 +1028,7 @@ func (b0 AwaitedToolCall_Resolution_builder) Build() *AwaitedToolCall_Resolution
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Resolver = b.Resolver
+	x.xxx_hidden_Actor = b.Actor
 	if b.Approval != nil {
 		x.xxx_hidden_Decision = &awaitedToolCall_Resolution_Approval_{b.Approval}
 	}
@@ -1160,7 +1178,7 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x13OUTCOME_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11OUTCOME_SUCCEEDED\x10\x01\x12\x12\n" +
 	"\x0eOUTCOME_FAILED\x10\x02\x12\x15\n" +
-	"\x11OUTCOME_CANCELLED\x10\x03\"\xda\x04\n" +
+	"\x11OUTCOME_CANCELLED\x10\x03\"\xf0\x04\n" +
 	"\x0fAwaitedToolCall\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x1b\n" +
@@ -1169,10 +1187,11 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x06reason\x18\x04 \x01(\x0e2+.malonaz.ai.agent.v1.AwaitedToolCall.ReasonB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06reason\x12O\n" +
 	"\n" +
 	"resolution\x18\x05 \x01(\v2/.malonaz.ai.agent.v1.AwaitedToolCall.ResolutionR\n" +
-	"resolution\x1a\x88\x02\n" +
+	"resolution\x1a\x9e\x02\n" +
 	"\n" +
 	"Resolution\x12\x1a\n" +
-	"\bresolver\x18\x01 \x01(\tR\bresolver\x12V\n" +
+	"\bresolver\x18\x01 \x01(\tR\bresolver\x12\x14\n" +
+	"\x05actor\x18\x05 \x01(\tR\x05actor\x12V\n" +
 	"\bapproval\x18\x02 \x01(\v28.malonaz.ai.agent.v1.AwaitedToolCall.Resolution.ApprovalH\x00R\bapproval\x123\n" +
 	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultH\x00R\x06result\x129\n" +
 	"\n" +

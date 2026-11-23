@@ -1544,8 +1544,9 @@ type MessageAgentRequest struct {
 	// Format: organizations/{organization}/users/{user}/agents/{agent}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The message, a USER message written by the caller. The service stamps its
-	// agent.ai.malonaz.com/sender annotation: a sender the caller set must name
-	// the user owning the agent.
+	// agent.ai.malonaz.com/sender annotation with the caller's principal, and
+	// agent.ai.malonaz.com/actor with its actor: a sender the caller set must
+	// name its principal.
 	Message *v12.Message `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	// A unique identifier for this request. Must be a UUID.
 	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
@@ -1629,8 +1630,9 @@ type MessageAgentRequest_builder struct {
 	// Format: organizations/{organization}/users/{user}/agents/{agent}
 	Name string
 	// The message, a USER message written by the caller. The service stamps its
-	// agent.ai.malonaz.com/sender annotation: a sender the caller set must name
-	// the user owning the agent.
+	// agent.ai.malonaz.com/sender annotation with the caller's principal, and
+	// agent.ai.malonaz.com/actor with its actor: a sender the caller set must
+	// name its principal.
 	Message *v12.Message
 	// A unique identifier for this request. Must be a UUID.
 	RequestId string

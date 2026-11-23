@@ -35,6 +35,7 @@ go_binary(
         "//go/health",
         "//go/logging",
         "//go/prometheus",
+        "//go/sentry",
         "//go/workspace/workspace_service",
         "//malonaz/workspace/workspace_service/v1",
     ],

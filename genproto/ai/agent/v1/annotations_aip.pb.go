@@ -8,16 +8,19 @@ import (
 )
 
 type AnnotationSet struct {
-	// On a message sent to an agent: the resource name of who sent it, stamped by the AgentService: the user owning the agent for a client's message, the sending agent for the messages agents send through their built-in tools and for each sub-agent's turn report.
+	// On a message sent to an agent: who sent it, stamped by the AgentService: for a client's message, the subject of the principal of its MessageAgent call; for the messages agents send through their built-in tools and schedules and for each sub-agent's turn report, the resource name of the sending agent.
 	Sender aip.StringAnnotation
-	// On the result of a tool call that awaited approval: the resource name of who approved it.
+	// On the result of a tool call that awaited approval: the subject of the principal of the call approving it.
 	ApprovedBy aip.StringAnnotation
-	// On the error result of a tool call that awaited approval: the resource name of who denied it, by an error result, a reply or a cancellation.
+	// On the error result of a tool call that awaited approval: the subject of the principal of the call denying it, by an error result, a reply or a cancellation.
 	DeniedBy aip.StringAnnotation
+	// Beside agent.ai.malonaz.com/sender, approved-by or denied-by: the subject of the actor of the call that sent, approved or denied, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves.
+	Actor aip.StringAnnotation
 }
 
 var Annotations = AnnotationSet{
 	Sender:     aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
 	ApprovedBy: aip.StringAnnotation{Key: "agent.ai.malonaz.com/approved-by"},
 	DeniedBy:   aip.StringAnnotation{Key: "agent.ai.malonaz.com/denied-by"},
+	Actor:      aip.StringAnnotation{Key: "agent.ai.malonaz.com/actor"},
 }

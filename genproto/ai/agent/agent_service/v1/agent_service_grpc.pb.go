@@ -163,16 +163,17 @@ type AgentServiceClient interface {
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResolveToolCall(ctx context.Context, in *ResolveToolCallRequest, opts ...grpc.CallOption) (*v1.Agent, error)
 	// Send an agent a message, queued on the agent for its turn to deliver.
-	// Wakes an idle agent. The user's message to an awaiting agent denies the
-	// calls it awaits, the user replying instead, and resumes its turn. Returns
+	// Wakes an idle agent. A client's message to an awaiting agent denies the
+	// calls it awaits, its sender replying instead, and resumes its turn. Returns
 	// the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(ctx context.Context, in *MessageAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
 	// Wake an agent on a run of one of its schedules: queue the run's message on
-	// it, or launch its sub-agent with the run's task. Run only by the scheduler,
-	// as the job of a Schedule's tick or of a one-off: the job derives every
-	// request id, so a replayed or retried run delivers once.
+	// it, or launch its sub-agent with the run's task. Run only by the
+	// scheduler's dispatcher, its caller, as the job of a Schedule's tick or of a
+	// one-off: the job derives every request id, so a replayed or retried run
+	// delivers once.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	WakeAgent(ctx context.Context, in *WakeAgentRequest, opts ...grpc.CallOption) (*v1.Agent, error)
@@ -507,16 +508,17 @@ type AgentServiceServer interface {
 	// See: https://google.aip.dev/136 (Custom methods).
 	ResolveToolCall(context.Context, *ResolveToolCallRequest) (*v1.Agent, error)
 	// Send an agent a message, queued on the agent for its turn to deliver.
-	// Wakes an idle agent. The user's message to an awaiting agent denies the
-	// calls it awaits, the user replying instead, and resumes its turn. Returns
+	// Wakes an idle agent. A client's message to an awaiting agent denies the
+	// calls it awaits, its sender replying instead, and resumes its turn. Returns
 	// the agent, the message in its queue.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	MessageAgent(context.Context, *MessageAgentRequest) (*v1.Agent, error)
 	// Wake an agent on a run of one of its schedules: queue the run's message on
-	// it, or launch its sub-agent with the run's task. Run only by the scheduler,
-	// as the job of a Schedule's tick or of a one-off: the job derives every
-	// request id, so a replayed or retried run delivers once.
+	// it, or launch its sub-agent with the run's task. Run only by the
+	// scheduler's dispatcher, its caller, as the job of a Schedule's tick or of a
+	// one-off: the job derives every request id, so a replayed or retried run
+	// delivers once.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	WakeAgent(context.Context, *WakeAgentRequest) (*v1.Agent, error)
