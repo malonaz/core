@@ -73,7 +73,7 @@ func newSymmetricKey(secret string) (jwk.Key, error) {
 }
 
 // verifyOption verifies a token against the set. Inline keys are tried whether or not the token names a `kid`, as
-// the tokens the host issues today carry none; a fetched set requires one, as v1 did.
+// the tokens the host issues today carry none; a fetched set, whose keys rotate, requires one.
 func (k *keySet) verifyOption(ctx context.Context) (jwt.ParseOption, error) {
 	if k.cache == nil {
 		return jwt.WithKeySet(k.set, jws.WithRequireKid(false)), nil

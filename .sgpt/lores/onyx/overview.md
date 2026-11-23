@@ -70,7 +70,7 @@ setup: true                      # the package defines setup(ctx) error, run fir
 servers:
   - name: twilio-service         # flag namespace `twilio-service-grpc`
     grpc:
-      interceptors: [INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR, ...]
+      interceptors: [INTERCEPTOR_AUTHENTICATION]
       descriptor_set: descriptor_set.bin   # embedded, for reflection
       services:
         - service: twilio-service
@@ -90,12 +90,11 @@ servers:
 
 Server kinds: `grpc`, `http`, `grpc_web_proxy`, `processor` (a service with
 no listener — started and health-checked). Interceptors are the
-`Interceptor` enum, outermost first. `INTERCEPTOR_AUTHENTICATION`
-(go/authentication/v2, `lores/authentication/overview`) is the whole chain on
-its own: a binary listing it lists it on every gRPC server and no other
-interceptor anywhere (generation fails otherwise), since the two forms of carrying a session between
-servers do not interoperate. v1's seven values still generate what they
-always did. **Order servers however you like: the generator starts them in
+`Interceptor` enum, outermost first. Its one value, `INTERCEPTOR_AUTHENTICATION`
+(go/authentication/v2, `lores/authentication/overview`), authenticates,
+authorizes and carries every call: a binary listing it lists it on every gRPC
+server (generation fails otherwise). v1's seven values are reserved. **Order
+servers however you like: the generator starts them in
 dependency order** (`lores/onyx/binary`).
 
 Listener fields. The generated main bakes them into its flag defaults
@@ -144,7 +143,7 @@ environment specific:
 - TLS between pods is `go/certs`: clients verify the server against
   `CA_FILE`, so a server cert names `localhost` (in-binary dials) and
   `{name}.{namespace}.svc`. Caller identity is the authentication
-  interceptor's (v1's internal-service header, or v2's server token), not mTLS.
+  interceptor's (the server token), not mTLS.
 - The Service has a port per non-internal listener, named by its flag
   namespace (`{server}-grpc`, `{server}-grpc-gateway`, ...); a grpc server's
   own port sets `appProtocol: grpc`.
@@ -216,7 +215,6 @@ Every namespace is also an env prefix (`twilio-service-grpc` →
 | Namespace | Type | For |
 |---|---|---|
 | `logging`, `health`, `prometheus`, `certs` | core opts | always |
-| `session-manager`, `{interceptor}` (`jwt-authentication`, …) | v1 authentication opts | when any grpc server has v1 interceptors / that interceptor |
 | `authentication` | `go/authentication/v2` `Opts` | when a grpc server lists `INTERCEPTOR_AUTHENTICATION` |
 | `{database}-postgres` | `postgres.Opts` | each database |
 | `nats` | `nats.Opts` | when any service depends on nats |

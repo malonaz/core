@@ -165,8 +165,8 @@ func (p *platform) as(t testing.TB, account string) context.Context {
 	return as(context.Background())
 }
 
-// The carrier rule of design section 9 holds what v1 did between servers: a session one server carries is believed,
-// whoever its principal, the anonymous one included; a service calling as itself is held to its own grants.
+// The carrier rule of design section 9: a session one server carries is believed, whoever its principal, the
+// anonymous one included; a service calling as itself is held to its own grants.
 func TestCarrier(t *testing.T) {
 	f := newFixture(t)
 	p := newPlatform(t, f)

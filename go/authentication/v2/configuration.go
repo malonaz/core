@@ -69,7 +69,7 @@ type conditionKey struct {
 // compileRoles returns, per role, the methods it allows with their conditions, the role's includes folded in.
 func compileRoles(roles []*authenticationpb.Role, methodToDescriptor map[string]protoreflect.MethodDescriptor) (map[string]methodToConditions, error) {
 	environment, err := newEnvironment(
-		// cel.bind lets a host carry v1's rule texts unchanged, binding `claims` and `subject` around them.
+		// cel.bind lets a host keep rule texts written over `claims` and `subject`, binding those names around them.
 		ext.Bindings(),
 		cel.Variable("principal", principalType),
 		cel.Variable("actor", principalType),
@@ -138,8 +138,8 @@ func (c *roleCompiler) resolve(roleID string) (methodToConditions, error) {
 	return resolved, nil
 }
 
-// expand turns method patterns into registered methods. "*" matches any run of characters, as in v1; every
-// pattern must match a registered method.
+// expand turns method patterns into registered methods. "*" matches any run of characters, dots and slashes
+// included; every pattern must match a registered method.
 func (c *roleCompiler) expand(patterns []string) ([]string, error) {
 	var methods []string
 	for _, pattern := range patterns {
@@ -168,7 +168,6 @@ func (c *roleCompiler) expand(patterns []string) ([]string, error) {
 	return methods, nil
 }
 
-// compileMethodPattern is v1's compileWildcardPermission.
 func compileMethodPattern(pattern string) (*regexp.Regexp, error) {
 	expression := strings.ReplaceAll("^"+regexp.QuoteMeta(pattern)+"$", `\*`, `.*`)
 	compiled, err := regexp.Compile(expression)

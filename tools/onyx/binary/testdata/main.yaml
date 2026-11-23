@@ -12,7 +12,6 @@ servers:
       manifest: //a/a_service:manifest(tools/onyx/binary/testdata/a_service.yaml)
   - name: b-service
     grpc:
-      interceptors: [INTERCEPTOR_SESSION_LOG_INJECTOR]
       services:
         - service: b-service
           proto: //a/v1(tools/onyx/binary/testdata/b.proto)

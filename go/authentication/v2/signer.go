@@ -42,7 +42,7 @@ func NewSigner(issuer *authenticationpb.Issuer, key string) (*Signer, error) {
 	return &Signer{issuer: issuer.GetIssuer(), audience: issuer.GetAudience(), key: signingKey}, nil
 }
 
-// Sign returns a signed token and when it expires. It writes the claims v1's minter wrote, so tokens keep their shape.
+// Sign returns a signed token and when it expires. Its claims keep the shape tokens issued earlier have.
 func (s *Signer) Sign(token Token) (string, time.Time, error) {
 	// Tokens carry whole seconds: the expiry returned is the one written.
 	now := time.Now().Truncate(time.Second)

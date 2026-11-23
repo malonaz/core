@@ -8,7 +8,7 @@ import (
 )
 
 // injectLogFields adds the authenticated call to its log: the principal, the issuer whose token proved it, actor,
-// caller, the principal's attributes (`attribute.{key}`, formatted as v1 formatted `claim.{key}`) and the client.
+// caller, the principal's attributes (`attribute.{key}`) and the client.
 func injectLogFields(ctx context.Context, call *authenticatedCall) {
 	session := call.session
 	var fields []any

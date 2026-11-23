@@ -14,7 +14,7 @@ import (
 )
 
 // mappingContainer resolves short names in mapping expressions, so that `Grant{...}` names
-// malonaz.authentication.v2.Grant. Conditions have none: names in v1's rules resolve as they did.
+// malonaz.authentication.v2.Grant. Conditions have none: a container would change how a rule's names resolve.
 const mappingContainer = "malonaz.authentication.v2"
 
 var (
@@ -28,7 +28,7 @@ const (
 	defaultActorExpression   = `has(claims.act) ? claims.act.sub : ""`
 )
 
-// newEnvironment is what every expression may use: v1's extensions, the rn.* functions and this package's types.
+// newEnvironment is what every expression may use.
 func newEnvironment(options ...cel.EnvOption) (*cel.Env, error) {
 	environmentOptions := []cel.EnvOption{
 		cel.Types(&authenticationpb.Grant{}, &authenticationpb.Principal{}),
@@ -52,7 +52,7 @@ func compileMapping(environment *cel.Env, expression string, outputKind types.Ki
 	return environment.Program(ast)
 }
 
-// compileCondition compiles a rule's condition, which must be a bool when checked, as in v1.
+// compileCondition compiles a rule's condition, which must be a bool when checked.
 func compileCondition(environment *cel.Env, expression string) (cel.Program, error) {
 	ast, issues := environment.Compile(expression)
 	if issues != nil && issues.Err() != nil {
@@ -83,7 +83,7 @@ func evaluateString(program cel.Program, activation map[string]any) (string, err
 	return result, nil
 }
 
-// evaluateStruct runs a program that must yield a map, converted the way v1 rewrote claims so attributes read the same.
+// evaluateStruct runs a program that must yield a map, converted through JSON so attributes read as the claims do.
 func evaluateStruct(program cel.Program, activation map[string]any) (*structpb.Struct, error) {
 	value, _, err := program.Eval(activation)
 	if err != nil {

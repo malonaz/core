@@ -73,10 +73,10 @@ server is bound: the interceptor reads that mapping unguarded. A server's
 `google.longrunning.Operations` is served as the in-process scheduler
 service's account. Then:
 
-- each service's `Start` receives `As("{service}")` where v1 passed the
-  internal-service `WithServiceAccount`: calls made on that context present
-  a server token as the service itself;
-- clients are dialed exactly as in a v1 binary: identity rides each call's
+- each service's `Start` receives `As("{service}")` (nil without the
+  interceptor): calls made on that context present a server token as the
+  service itself;
+- clients are dialed exactly as without it: identity rides each call's
   context (a handler's, or `As`'s) onto any `grpc.Connection`, in-process or
   remote, so nothing about a connection is generated for it. The
   grpc-gateway and the grpc-web proxy are the HTTP edge: their requests'
@@ -84,7 +84,7 @@ service's account. Then:
   or API key;
 - every gRPC server must list it (generation fails otherwise: an unlisted
   server would serve anyone yet receive server tokens), and runs
-  `Unary()`/`Stream()` where v1's chain ran,
+  `Unary()`/`Stream()` as its interceptors,
   so hooks, validation and the other POST interceptors still run after it,
   and health checks still skip it.
 

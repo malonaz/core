@@ -25,7 +25,7 @@ const (
 	metadataKeyClientTimeZone     = "x-client-timezone"
 )
 
-// newClient describes the client a call came from, read from the same headers v1 read.
+// newClient describes the client a call came from, read from its headers.
 func newClient(ctx context.Context, md metadata.MD) (*authenticationpb.Client, error) {
 	client := &authenticationpb.Client{IpAddress: clientIPAddress(ctx, md)}
 	if values := md.Get(metadataKeyGatewayUserAgent); len(values) > 0 {
@@ -51,7 +51,7 @@ func newClient(ctx context.Context, md metadata.MD) (*authenticationpb.Client, e
 	return client, nil
 }
 
-// clientIPAddress is X-Forwarded-For's leftmost entry, which the caller controls, as v1 read it; else the peer's.
+// clientIPAddress is X-Forwarded-For's leftmost entry, which the caller controls; else the peer's.
 func clientIPAddress(ctx context.Context, md metadata.MD) string {
 	if values := md.Get(metadataKeyForwardedFor); len(values) > 0 {
 		return strings.TrimSpace(strings.SplitN(values[0], ",", 2)[0])

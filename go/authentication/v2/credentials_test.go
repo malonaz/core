@@ -120,7 +120,7 @@ func TestEdge_CredentialCombinations(t *testing.T) {
 		})
 	}
 
-	t.Run("an authorization header of another scheme is no credential, as in v1", func(t *testing.T) {
+	t.Run("an authorization header of another scheme is no credential", func(t *testing.T) {
 		seen, err := unary(t, interceptor, getBookMethod, metadata.Join(metadata.Pairs("authorization", "Basic dXNlcjpwYXNz"), apiKey("key-1")), getBookRequest)
 		require.NoError(t, err)
 		require.Equal(t, "serviceAccounts/onikiri", seen.session.GetPrincipal().GetSubject())

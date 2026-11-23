@@ -82,7 +82,7 @@ func TestEdge_InvalidTokenIsUnauthenticated(t *testing.T) {
 	})
 }
 
-// Row 2: a token without exp is UNAUTHENTICATED (v1 accepted it: see TestEquivalence_TokenWithoutExpiry).
+// Row 2: a token without exp, which would be valid forever, is UNAUTHENTICATED.
 func TestEdge_TokenWithoutExpiryIsUnauthenticated(t *testing.T) {
 	f := newFixture(t)
 	token := sign(t, issuerSecret, jwa.HS256, withClaims(issuerClaims(), map[string]any{"exp": nil}))
@@ -360,6 +360,9 @@ func TestEdge_FaultyConfigurationRefusesToStart(t *testing.T) {
 			f.configuration.Roles[1].Includes = []string{"lister"}
 			f.configuration.Roles[2].Includes = []string{"reader"}
 		}, "includes itself"},
+		"condition not compiling": {func(f *fixture) {
+			f.configuration.Roles[1].Rules[0].ConditionCel = `principal.subject ==`
+		}, "Syntax error"},
 		"condition not a bool": {func(f *fixture) {
 			f.configuration.Roles[1].Rules[0].ConditionCel = `principal.subject`
 		}, "must evaluate to a bool"},

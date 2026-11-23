@@ -1,7 +1,6 @@
 package binary
 
 import (
-	"slices"
 	"strconv"
 	"strings"
 
@@ -26,42 +25,6 @@ type generator struct {
 	b *Binary
 }
 
-// interceptor is how a Server.Grpc interceptor is configured and instantiated.
-type interceptor struct {
-	// Its own opts and constructor, for authentication interceptors.
-	opts bool
-	// Takes the context, for constructors that load remote configuration.
-	ctx bool
-	// The session manager method, for the injectors.
-	method string
-}
-
-var interceptors = map[onyxpb.Interceptor]interceptor{
-	onyxpb.Interceptor_INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR:    {method: "LocalContextInjector"},
-	onyxpb.Interceptor_INTERCEPTOR_SESSION_LOG_INJECTOR:              {method: "LogInjector"},
-	onyxpb.Interceptor_INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR: {method: "OutgoingContextInjector"},
-	onyxpb.Interceptor_INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION:   {opts: true},
-	onyxpb.Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION:   {opts: true},
-	onyxpb.Interceptor_INTERCEPTOR_JWT_AUTHENTICATION:                {opts: true, ctx: true},
-	onyxpb.Interceptor_INTERCEPTOR_PERMISSION_AUTHENTICATION:         {opts: true},
-	// Built once by authenticationInterceptor(), its v2 package and constructor differing from the above.
-	onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION: {},
-}
-
-// interceptorName is the interceptor's Go name: `ExternalApiKeyAuthentication`.
-func interceptorName(i onyxpb.Interceptor) string {
-	return gen.Pascal(strings.ToLower(strings.TrimPrefix(i.String(), "INTERCEPTOR_")))
-}
-
-func (g *generator) sessionManager() bool {
-	return len(g.b.Interceptors) > 0 && !g.authentication()
-}
-
-// authentication reports whether the binary runs go/authentication/v2, which then is its only interceptor.
-func (g *generator) authentication() bool {
-	return slices.Contains(g.b.Interceptors, onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION)
-}
-
 // authenticationPackage is go/authentication/v2, imported under its package name.
 func (g *generator) authenticationPackage() string {
 	return g.ImportAs(core+"/authentication/v2", "authentication")
@@ -71,15 +34,6 @@ func (g *generator) authenticationPackage() string {
 func (g *generator) listens() bool {
 	for _, s := range g.b.Servers {
 		if s.GetProcessor() == nil {
-			return true
-		}
-	}
-	return false
-}
-
-func (g *generator) internalServiceAuthentication() bool {
-	for _, i := range g.b.Interceptors {
-		if i == onyxpb.Interceptor_INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION {
 			return true
 		}
 	}
@@ -149,11 +103,7 @@ func (g *generator) generate() {
 	g.P("go prometheusServer.Start(ctx)")
 	g.P("defer prometheusServer.Stop(ctx)")
 	g.P()
-	if g.sessionManager() {
-		g.P("sessionManager := ", g.Qual(core+"/authentication", "NewSessionManager"), "(opts.SessionManager)")
-		g.P()
-	}
-	if g.authentication() {
+	if g.b.Authentication {
 		g.authenticationInterceptor()
 	}
 	g.P("errChan := make(chan error, 1)")
@@ -173,7 +123,6 @@ func (g *generator) generate() {
 	g.postgres()
 	g.nats()
 	g.components()
-	g.interceptors()
 
 	g.P()
 	g.P("healthServer := ", g.Qual(core+"/health", "NewServer"), "(opts.Health, \"", g.b.Name, "\")")
@@ -272,19 +221,9 @@ func (g *generator) opts() {
 	g.P("Prometheus *", g.Qual(core+"/prometheus", "Opts"), " ", gen.Tag("Prometheus", "prometheus"))
 	g.P("Certs *", g.Qual(core+"/certs", "Opts"), " ", gen.Tag("Certs", "certs"))
 
-	if g.authentication() {
+	if g.b.Authentication {
 		g.P()
 		g.P("Authentication *", g.authenticationPackage(), ".Opts ", gen.Tag("Authentication", "authentication"))
-	}
-	if g.sessionManager() {
-		g.P()
-		g.P("SessionManager *", g.Qual(core+"/authentication", "SessionManagerOpts"), " ", gen.Tag("Session Manager", "session-manager"))
-		for _, i := range g.b.Interceptors {
-			if interceptors[i].opts {
-				name := interceptorName(i)
-				g.P(name, " *", g.Qual(core+"/authentication", name+"InterceptorOpts"), " ", gen.Tag(gen.Human(name), gen.Kebab(name)))
-			}
-		}
 	}
 
 	if len(g.b.Components) > 0 {
@@ -470,25 +409,6 @@ func (g *generator) components() {
 	}
 }
 
-func (g *generator) interceptors() {
-	fmt_ := g.Import("fmt")
-	for _, i := range g.b.Interceptors {
-		if !interceptors[i].opts {
-			continue
-		}
-		name := interceptorName(i)
-		args := "opts." + name + ", sessionManager"
-		if interceptors[i].ctx {
-			args = "ctx, " + args
-		}
-		g.P()
-		g.P(gen.Camel(name), "Interceptor, err := ", g.Qual(core+"/authentication", "New"+name+"Interceptor"), "(", args, ")")
-		g.P("if err != nil {")
-		g.P("return ", fmt_, `.Errorf("instantiating `, gen.Human(name), ` interceptor: %w", err)`)
-		g.P("}")
-	}
-}
-
 // authenticationInterceptor builds the binary's one interceptor before anything dials, and names the account
 // serving each gRPC service, all before any server serves: the interceptor reads those names unguarded.
 func (g *generator) authenticationInterceptor() {
@@ -508,9 +428,6 @@ func (g *generator) authenticationInterceptor() {
 		g.P("}")
 	}
 	for _, server := range g.b.Servers {
-		if !slices.Contains(server.GetGrpc().GetInterceptors(), onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION) {
-			continue
-		}
 		for _, registration := range server.GRPC {
 			serve(registration.Service.GetName(), gen.PB(g.File, registration.GRPC)+"."+registration.GRPC.GoName+"_ServiceDesc.ServiceName")
 		}
@@ -526,16 +443,9 @@ func (g *generator) service(s *Service) {
 	fmt_ := g.Import("fmt")
 	v := serviceVar(s)
 	withServiceAccount := "nil"
-	if g.authentication() {
+	if g.b.Authentication {
 		withServiceAccount = v + "WithServiceAccount"
 		g.P(withServiceAccount, ", err := authenticationInterceptor.As(\"", s.GetName(), "\")")
-		g.P("if err != nil {")
-		g.P("return ", fmt_, `.Errorf("service account of `, s.GetName(), `: %w", err)`)
-		g.P("}")
-	}
-	if g.internalServiceAuthentication() {
-		withServiceAccount = v + "WithServiceAccount"
-		g.P(withServiceAccount, ", err := opts.InternalServiceAuthentication.WithServiceAccount(\"", s.GetName(), "\")")
 		g.P("if err != nil {")
 		g.P("return ", fmt_, `.Errorf("service account of `, s.GetName(), `: %w", err)`)
 		g.P("}")
@@ -595,19 +505,12 @@ func (g *generator) grpcServer(s *Server) {
 	fmt_ := g.Import("fmt")
 	v := serverVar(s, "GRPCServer")
 	g.P(v, ", err := ", grpc, ".NewServer(", serverOpts(s, "GRPC"), ", opts.Certs, opts.Prometheus, \"", s.GetName(), "\", ", grpc, ".ServerOptions{")
-	for _, kind := range []string{"Unary", "Stream"} {
-		if len(s.GetGrpc().GetInterceptors()) == 0 {
-			break
+	if g.b.Authentication {
+		for _, kind := range []string{"Unary", "Stream"} {
+			g.P(kind, "Interceptors: []", g.Qual("google.golang.org/grpc", kind+"ServerInterceptor"), "{")
+			g.P("authenticationInterceptor.", kind, "(),")
+			g.P("},")
 		}
-		g.P(kind, "Interceptors: []", g.Qual("google.golang.org/grpc", kind+"ServerInterceptor"), "{")
-		for _, i := range s.GetGrpc().GetInterceptors() {
-			if method := interceptors[i].method; method != "" {
-				g.P("sessionManager.", kind, "Server", method, "Interceptor(),")
-			} else {
-				g.P(gen.Camel(interceptorName(i)), "Interceptor.", kind, "(),")
-			}
-		}
-		g.P("},")
 	}
 	if s.GetGrpc().GetDescriptorSet() != "" {
 		g.P("FileDescriptorSet: ", serverVar(s, "DescriptorSetBytes"), ",")
