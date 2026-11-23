@@ -4,6 +4,7 @@ go_library(
         "label.go",
         "listener.go",
         "load.go",
+        "main.go",
         "proto.go",
     ],
     visibility = ["//tools/onyx/..."],

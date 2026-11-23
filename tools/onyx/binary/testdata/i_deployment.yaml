@@ -1,0 +1,8 @@
+name: i-service
+target: //i/i_service
+deployment:
+  name: test
+  servers:
+    - name: i-http
+      port: 45329
+      http: {}

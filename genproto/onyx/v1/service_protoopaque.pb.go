@@ -32,6 +32,7 @@ type ServiceManifest struct {
 	xxx_hidden_ExportServiceFields bool                   `protobuf:"varint,4,opt,name=export_service_fields,json=exportServiceFields,proto3"`
 	xxx_hidden_Codegens            *[]*Codegen            `protobuf:"bytes,5,rep,name=codegens,proto3"`
 	xxx_hidden_Dependencies        *[]*Dependency         `protobuf:"bytes,6,rep,name=dependencies,proto3"`
+	xxx_hidden_Deployment          *MainManifest          `protobuf:"bytes,7,opt,name=deployment,proto3"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -107,6 +108,13 @@ func (x *ServiceManifest) GetDependencies() []*Dependency {
 	return nil
 }
 
+func (x *ServiceManifest) GetDeployment() *MainManifest {
+	if x != nil {
+		return x.xxx_hidden_Deployment
+	}
+	return nil
+}
+
 func (x *ServiceManifest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -131,6 +139,21 @@ func (x *ServiceManifest) SetDependencies(v []*Dependency) {
 	x.xxx_hidden_Dependencies = &v
 }
 
+func (x *ServiceManifest) SetDeployment(v *MainManifest) {
+	x.xxx_hidden_Deployment = v
+}
+
+func (x *ServiceManifest) HasDeployment() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Deployment != nil
+}
+
+func (x *ServiceManifest) ClearDeployment() {
+	x.xxx_hidden_Deployment = nil
+}
+
 type ServiceManifest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -146,6 +169,9 @@ type ServiceManifest_builder struct {
 	Codegens []*Codegen
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
+	// The binary running only this service, which onyx_deployment builds from this manifest. A
+	// server naming no service manifest serves this one.
+	Deployment *MainManifest
 }
 
 func (b0 ServiceManifest_builder) Build() *ServiceManifest {
@@ -158,6 +184,7 @@ func (b0 ServiceManifest_builder) Build() *ServiceManifest {
 	x.xxx_hidden_ExportServiceFields = b.ExportServiceFields
 	x.xxx_hidden_Codegens = &b.Codegens
 	x.xxx_hidden_Dependencies = &b.Dependencies
+	x.xxx_hidden_Deployment = b.Deployment
 	return m0
 }
 
@@ -1123,14 +1150,17 @@ var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xbb\x02\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1amalonaz/onyx/v1/main.proto\"\xfa\x02\n" +
 	"\x0fServiceManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12'\n" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\"\x8d\x02\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12=\n" +
+	"\n" +
+	"deployment\x18\a \x01(\v2\x1d.malonaz.onyx.v1.MainManifestR\n" +
+	"deployment\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
 	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +
 	"\x03Rpc\x123\n" +
@@ -1180,21 +1210,23 @@ var file_malonaz_onyx_v1_service_proto_goTypes = []any{
 	(*Dependency_PostgresClient)(nil),   // 6: malonaz.onyx.v1.Dependency.PostgresClient
 	(*Dependency_Nats)(nil),             // 7: malonaz.onyx.v1.Dependency.Nats
 	(*Dependency_Service)(nil),          // 8: malonaz.onyx.v1.Dependency.Service
+	(*MainManifest)(nil),                // 9: malonaz.onyx.v1.MainManifest
 }
 var file_malonaz_onyx_v1_service_proto_depIdxs = []int32{
 	1, // 0: malonaz.onyx.v1.ServiceManifest.codegens:type_name -> malonaz.onyx.v1.Codegen
 	2, // 1: malonaz.onyx.v1.ServiceManifest.dependencies:type_name -> malonaz.onyx.v1.Dependency
-	3, // 2: malonaz.onyx.v1.Codegen.rpc:type_name -> malonaz.onyx.v1.Codegen.Rpc
-	4, // 3: malonaz.onyx.v1.Dependency.grpc_client:type_name -> malonaz.onyx.v1.Dependency.GrpcClient
-	5, // 4: malonaz.onyx.v1.Dependency.postgres_db_client:type_name -> malonaz.onyx.v1.Dependency.PostgresDbClient
-	6, // 5: malonaz.onyx.v1.Dependency.postgres_client:type_name -> malonaz.onyx.v1.Dependency.PostgresClient
-	7, // 6: malonaz.onyx.v1.Dependency.nats:type_name -> malonaz.onyx.v1.Dependency.Nats
-	8, // 7: malonaz.onyx.v1.Dependency.service:type_name -> malonaz.onyx.v1.Dependency.Service
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	9, // 2: malonaz.onyx.v1.ServiceManifest.deployment:type_name -> malonaz.onyx.v1.MainManifest
+	3, // 3: malonaz.onyx.v1.Codegen.rpc:type_name -> malonaz.onyx.v1.Codegen.Rpc
+	4, // 4: malonaz.onyx.v1.Dependency.grpc_client:type_name -> malonaz.onyx.v1.Dependency.GrpcClient
+	5, // 5: malonaz.onyx.v1.Dependency.postgres_db_client:type_name -> malonaz.onyx.v1.Dependency.PostgresDbClient
+	6, // 6: malonaz.onyx.v1.Dependency.postgres_client:type_name -> malonaz.onyx.v1.Dependency.PostgresClient
+	7, // 7: malonaz.onyx.v1.Dependency.nats:type_name -> malonaz.onyx.v1.Dependency.Nats
+	8, // 8: malonaz.onyx.v1.Dependency.service:type_name -> malonaz.onyx.v1.Dependency.Service
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_onyx_v1_service_proto_init() }
@@ -1202,6 +1234,7 @@ func file_malonaz_onyx_v1_service_proto_init() {
 	if File_malonaz_onyx_v1_service_proto != nil {
 		return
 	}
+	file_malonaz_onyx_v1_main_proto_init()
 	file_malonaz_onyx_v1_service_proto_msgTypes[1].OneofWrappers = []any{
 		(*codegen_Rpc_)(nil),
 	}

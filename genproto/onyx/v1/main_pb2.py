@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1b\x62uf/validate/validate.proto\"\xbb\x03\n\x0cMainManifest\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\r\n\x05setup\x18\x02 \x01(\x08\x12\x32\n\x07servers\x18\x03 \x03(\x0b\x32\x17.malonaz.onyx.v1.ServerB\x08\xbaH\x05\x92\x01\x02\x08\x01\x12-\n\tresources\x18\x04 \x01(\x0b\x32\x1a.malonaz.onyx.v1.Resources\x12\'\n\x10shutdown_seconds\x18\x05 \x01(\x05\x42\r\xbaH\n\x1a\x05\x18\x90\x1c(\x01\xd8\x01\x01\x12&\n\x0fstartup_seconds\x18\x06 \x01(\x05\x42\r\xbaH\n\x1a\x05\x18\x90\x1c(\x05\xd8\x01\x01\x12\x37\n\rwritable_dirs\x18\x07 \x03(\tB \xbaH\x1d\x92\x01\x1a\x18\x01\"\x16r\x14\x32\x12^(/[a-z0-9._-]+)+$\x12)\n\x07secrets\x18\x08 \x01(\x0b\x32\x18.malonaz.onyx.v1.Secrets\x12U\n\x0bsetup_funcs\x18\t \x03(\tB@\xbaH=\x92\x01:\"8r624^[a-z0-9.-]+(/[A-Za-z0-9._-]+)*\\.[A-Z][A-Za-z0-9_]*$\"B\n\x07Secrets\x12\x16\n\x05store\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x1f\n\x05\x62lobs\x18\x02 \x03(\tB\x10\xbaH\r\x92\x01\n\x08\x01\x18\x01\"\x04r\x02\x10\x01\"\xf9\x01\n\tResources\x12\x37\n\x08requests\x18\x01 \x01(\x0b\x32%.malonaz.onyx.v1.Resources.Quantities\x12\x35\n\x06limits\x18\x02 \x01(\x0b\x32%.malonaz.onyx.v1.Resources.Quantities\x1a|\n\nQuantities\x12\x34\n\x03\x63pu\x18\x01 \x01(\tB\'\xbaH$r\x1f\x32\x1d^([0-9]+m|[0-9]+(\\.[0-9]+)?)$\xd8\x01\x01\x12\x38\n\x06memory\x18\x02 \x01(\tB(\xbaH%r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$\xd8\x01\x01\"\x8a\x0b\n\x06Server\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12,\n\x04grpc\x18\x02 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Server.GrpcH\x00\x12,\n\x04http\x18\x03 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Server.HttpH\x00\x12>\n\x0egrpc_web_proxy\x18\x04 \x01(\x0b\x32$.malonaz.onyx.v1.Server.GrpcWebProxyH\x00\x12\x36\n\tprocessor\x18\x05 \x01(\x0b\x32!.malonaz.onyx.v1.Server.ProcessorH\x00\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xbaH\x0b\x1a\x06\x18\xff\xff\x03(\x01\xd8\x01\x01\x12\x10\n\x08internal\x18\x07 \x01(\x08\x12\x0e\n\x06public\x18\x08 \x01(\x08\x1a\xdf\x03\n\x04Grpc\x12\x43\n\x0cinterceptors\x18\x01 \x03(\x0e\x32\x1c.malonaz.onyx.v1.InterceptorB\x0f\xbaH\x0c\x92\x01\t\"\x07\x82\x01\x04\x10\x01 \x00\x12\x16\n\x0e\x64\x65scriptor_set\x18\x02 \x01(\t\x12@\n\x08services\x18\x03 \x03(\x0b\x32$.malonaz.onyx.v1.Server.Grpc.ServiceB\x08\xbaH\x05\x92\x01\x02\x08\x01\x12$\n\x0cgateway_port\x18\x04 \x01(\x05\x42\x0e\xbaH\x0b\x1a\x06\x18\xff\xff\x03(\x01\xd8\x01\x01\x1a\x7f\n\x07Service\x12\x16\n\x05proto\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x07service\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x19\n\x08manifest\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x0f\n\x07gateway\x18\x04 \x01(\x08:\x90\x01\xbaH\x8c\x01\x1a\x89\x01\n\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1an\n\x04Http\x12@\n\x08services\x18\x01 \x03(\x0b\x32$.malonaz.onyx.v1.Server.Http.ServiceB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a$\n\x07Service\x12\x19\n\x08manifest\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x1a\x0e\n\x0cGrpcWebProxy\x1a&\n\tProcessor\x12\x19\n\x08manifest\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01:\xa3\x03\xbaH\x9f\x03\x1a\xac\x01\n\x19server.processor_listener\x12\x43\x61 processor has no listener: port, internal and public do not apply\x1aJ!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\x1a\x66\n\x16server.internal_public\x12+a server cannot be both internal and public\x1a\x1f!(this.internal && this.public)\x1a\x85\x01\n\x19server.internal_grpc_port\x12\x32\x61n internal grpc server binds a socket, not a port\x1a\x34!(has(this.grpc) && this.internal && this.port != 0)B\r\n\x04kind\x12\x05\xbaH\x02\x08\x01*\x84\x03\n\x0bInterceptor\x12\x1b\n\x17INTERCEPTOR_UNSPECIFIED\x10\x00\x12.\n*INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR\x10\x01\x12/\n+INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION\x10\x02\x12/\n+INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION\x10\x03\x12\"\n\x1eINTERCEPTOR_JWT_AUTHENTICATION\x10\x04\x12)\n%INTERCEPTOR_PERMISSION_AUTHENTICATION\x10\x05\x12$\n INTERCEPTOR_SESSION_LOG_INJECTOR\x10\x06\x12\x31\n-INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR\x10\x07\x12\x1e\n\x1aINTERCEPTOR_AUTHENTICATION\x10\x08\x42*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1b\x62uf/validate/validate.proto\"\xbb\x03\n\x0cMainManifest\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\r\n\x05setup\x18\x02 \x01(\x08\x12\x32\n\x07servers\x18\x03 \x03(\x0b\x32\x17.malonaz.onyx.v1.ServerB\x08\xbaH\x05\x92\x01\x02\x08\x01\x12-\n\tresources\x18\x04 \x01(\x0b\x32\x1a.malonaz.onyx.v1.Resources\x12\'\n\x10shutdown_seconds\x18\x05 \x01(\x05\x42\r\xbaH\n\x1a\x05\x18\x90\x1c(\x01\xd8\x01\x01\x12&\n\x0fstartup_seconds\x18\x06 \x01(\x05\x42\r\xbaH\n\x1a\x05\x18\x90\x1c(\x05\xd8\x01\x01\x12\x37\n\rwritable_dirs\x18\x07 \x03(\tB \xbaH\x1d\x92\x01\x1a\x18\x01\"\x16r\x14\x32\x12^(/[a-z0-9._-]+)+$\x12)\n\x07secrets\x18\x08 \x01(\x0b\x32\x18.malonaz.onyx.v1.Secrets\x12U\n\x0bsetup_funcs\x18\t \x03(\tB@\xbaH=\x92\x01:\"8r624^[a-z0-9.-]+(/[A-Za-z0-9._-]+)*\\.[A-Z][A-Za-z0-9_]*$\"B\n\x07Secrets\x12\x16\n\x05store\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x1f\n\x05\x62lobs\x18\x02 \x03(\tB\x10\xbaH\r\x92\x01\n\x08\x01\x18\x01\"\x04r\x02\x10\x01\"\xf9\x01\n\tResources\x12\x37\n\x08requests\x18\x01 \x01(\x0b\x32%.malonaz.onyx.v1.Resources.Quantities\x12\x35\n\x06limits\x18\x02 \x01(\x0b\x32%.malonaz.onyx.v1.Resources.Quantities\x1a|\n\nQuantities\x12\x34\n\x03\x63pu\x18\x01 \x01(\tB\'\xbaH$r\x1f\x32\x1d^([0-9]+m|[0-9]+(\\.[0-9]+)?)$\xd8\x01\x01\x12\x38\n\x06memory\x18\x02 \x01(\tB(\xbaH%r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$\xd8\x01\x01\"\xe5\n\n\x06Server\x12-\n\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12,\n\x04grpc\x18\x02 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Server.GrpcH\x00\x12,\n\x04http\x18\x03 \x01(\x0b\x32\x1c.malonaz.onyx.v1.Server.HttpH\x00\x12>\n\x0egrpc_web_proxy\x18\x04 \x01(\x0b\x32$.malonaz.onyx.v1.Server.GrpcWebProxyH\x00\x12\x36\n\tprocessor\x18\x05 \x01(\x0b\x32!.malonaz.onyx.v1.Server.ProcessorH\x00\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xbaH\x0b\x1a\x06\x18\xff\xff\x03(\x01\xd8\x01\x01\x12\x10\n\x08internal\x18\x07 \x01(\x08\x12\x0e\n\x06public\x18\x08 \x01(\x08\x1a\xd6\x03\n\x04Grpc\x12\x43\n\x0cinterceptors\x18\x01 \x03(\x0e\x32\x1c.malonaz.onyx.v1.InterceptorB\x0f\xbaH\x0c\x92\x01\t\"\x07\x82\x01\x04\x10\x01 \x00\x12\x16\n\x0e\x64\x65scriptor_set\x18\x02 \x01(\t\x12@\n\x08services\x18\x03 \x03(\x0b\x32$.malonaz.onyx.v1.Server.Grpc.ServiceB\x08\xbaH\x05\x92\x01\x02\x08\x01\x12$\n\x0cgateway_port\x18\x04 \x01(\x05\x42\x0e\xbaH\x0b\x1a\x06\x18\xff\xff\x03(\x01\xd8\x01\x01\x1av\n\x07Service\x12\x16\n\x05proto\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x07service\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x32\x18^[a-z0-9]+(-[a-z0-9]+)*$\x12\x10\n\x08manifest\x18\x03 \x01(\t\x12\x0f\n\x07gateway\x18\x04 \x01(\x08:\x90\x01\xbaH\x8c\x01\x1a\x89\x01\n\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1a[\n\x04Http\x12\x36\n\x08services\x18\x01 \x03(\x0b\x32$.malonaz.onyx.v1.Server.Http.Service\x1a\x1b\n\x07Service\x12\x10\n\x08manifest\x18\x01 \x01(\t\x1a\x0e\n\x0cGrpcWebProxy\x1a\x1d\n\tProcessor\x12\x10\n\x08manifest\x18\x01 \x01(\t:\xa3\x03\xbaH\x9f\x03\x1a\xac\x01\n\x19server.processor_listener\x12\x43\x61 processor has no listener: port, internal and public do not apply\x1aJ!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\x1a\x66\n\x16server.internal_public\x12+a server cannot be both internal and public\x1a\x1f!(this.internal && this.public)\x1a\x85\x01\n\x19server.internal_grpc_port\x12\x32\x61n internal grpc server binds a socket, not a port\x1a\x34!(has(this.grpc) && this.internal && this.port != 0)B\r\n\x04kind\x12\x05\xbaH\x02\x08\x01*\x84\x03\n\x0bInterceptor\x12\x1b\n\x17INTERCEPTOR_UNSPECIFIED\x10\x00\x12.\n*INTERCEPTOR_SESSION_LOCAL_CONTEXT_INJECTOR\x10\x01\x12/\n+INTERCEPTOR_EXTERNAL_API_KEY_AUTHENTICATION\x10\x02\x12/\n+INTERCEPTOR_INTERNAL_SERVICE_AUTHENTICATION\x10\x03\x12\"\n\x1eINTERCEPTOR_JWT_AUTHENTICATION\x10\x04\x12)\n%INTERCEPTOR_PERMISSION_AUTHENTICATION\x10\x05\x12$\n INTERCEPTOR_SESSION_LOG_INJECTOR\x10\x06\x12\x31\n-INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR\x10\x07\x12\x1e\n\x1aINTERCEPTOR_AUTHENTICATION\x10\x08\x42*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -57,8 +57,6 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SERVER_GRPC_SERVICE'].fields_by_name['proto']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_SERVER_GRPC_SERVICE'].fields_by_name['service']._loaded_options = None
   _globals['_SERVER_GRPC_SERVICE'].fields_by_name['service']._serialized_options = b'\272H\034r\0322\030^[a-z0-9]+(-[a-z0-9]+)*$'
-  _globals['_SERVER_GRPC_SERVICE'].fields_by_name['manifest']._loaded_options = None
-  _globals['_SERVER_GRPC_SERVICE'].fields_by_name['manifest']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_SERVER_GRPC'].fields_by_name['interceptors']._loaded_options = None
   _globals['_SERVER_GRPC'].fields_by_name['interceptors']._serialized_options = b'\272H\014\222\001\t\"\007\202\001\004\020\001 \000'
   _globals['_SERVER_GRPC'].fields_by_name['services']._loaded_options = None
@@ -67,12 +65,6 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SERVER_GRPC'].fields_by_name['gateway_port']._serialized_options = b'\272H\013\032\006\030\377\377\003(\001\330\001\001'
   _globals['_SERVER_GRPC']._loaded_options = None
   _globals['_SERVER_GRPC']._serialized_options = b'\272H\214\001\032\211\001\n\030server.grpc.gateway_port\022/gateway_port is set but no service sets gateway\032<this.gateway_port == 0 || this.services.exists(s, s.gateway)'
-  _globals['_SERVER_HTTP_SERVICE'].fields_by_name['manifest']._loaded_options = None
-  _globals['_SERVER_HTTP_SERVICE'].fields_by_name['manifest']._serialized_options = b'\272H\004r\002\020\001'
-  _globals['_SERVER_HTTP'].fields_by_name['services']._loaded_options = None
-  _globals['_SERVER_HTTP'].fields_by_name['services']._serialized_options = b'\272H\005\222\001\002\010\001'
-  _globals['_SERVER_PROCESSOR'].fields_by_name['manifest']._loaded_options = None
-  _globals['_SERVER_PROCESSOR'].fields_by_name['manifest']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_SERVER'].oneofs_by_name['kind']._loaded_options = None
   _globals['_SERVER'].oneofs_by_name['kind']._serialized_options = b'\272H\002\010\001'
   _globals['_SERVER'].fields_by_name['name']._loaded_options = None
@@ -81,8 +73,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SERVER'].fields_by_name['port']._serialized_options = b'\272H\013\032\006\030\377\377\003(\001\330\001\001'
   _globals['_SERVER']._loaded_options = None
   _globals['_SERVER']._serialized_options = b'\272H\237\003\032\254\001\n\031server.processor_listener\022Ca processor has no listener: port, internal and public do not apply\032J!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\032f\n\026server.internal_public\022+a server cannot be both internal and public\032\037!(this.internal && this.public)\032\205\001\n\031server.internal_grpc_port\0222an internal grpc server binds a socket, not a port\0324!(has(this.grpc) && this.internal && this.port != 0)'
-  _globals['_INTERCEPTOR']._serialized_start=2264
-  _globals['_INTERCEPTOR']._serialized_end=2652
+  _globals['_INTERCEPTOR']._serialized_start=2227
+  _globals['_INTERCEPTOR']._serialized_end=2615
   _globals['_MAINMANIFEST']._serialized_start=77
   _globals['_MAINMANIFEST']._serialized_end=520
   _globals['_SECRETS']._serialized_start=522
@@ -92,17 +84,17 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_RESOURCES_QUANTITIES']._serialized_start=716
   _globals['_RESOURCES_QUANTITIES']._serialized_end=840
   _globals['_SERVER']._serialized_start=843
-  _globals['_SERVER']._serialized_end=2261
+  _globals['_SERVER']._serialized_end=2224
   _globals['_SERVER_GRPC']._serialized_start=1177
-  _globals['_SERVER_GRPC']._serialized_end=1656
+  _globals['_SERVER_GRPC']._serialized_end=1647
   _globals['_SERVER_GRPC_SERVICE']._serialized_start=1382
-  _globals['_SERVER_GRPC_SERVICE']._serialized_end=1509
-  _globals['_SERVER_HTTP']._serialized_start=1658
-  _globals['_SERVER_HTTP']._serialized_end=1768
-  _globals['_SERVER_HTTP_SERVICE']._serialized_start=1732
-  _globals['_SERVER_HTTP_SERVICE']._serialized_end=1768
-  _globals['_SERVER_GRPCWEBPROXY']._serialized_start=1770
-  _globals['_SERVER_GRPCWEBPROXY']._serialized_end=1784
-  _globals['_SERVER_PROCESSOR']._serialized_start=1786
-  _globals['_SERVER_PROCESSOR']._serialized_end=1824
+  _globals['_SERVER_GRPC_SERVICE']._serialized_end=1500
+  _globals['_SERVER_HTTP']._serialized_start=1649
+  _globals['_SERVER_HTTP']._serialized_end=1740
+  _globals['_SERVER_HTTP_SERVICE']._serialized_start=1713
+  _globals['_SERVER_HTTP_SERVICE']._serialized_end=1740
+  _globals['_SERVER_GRPCWEBPROXY']._serialized_start=1742
+  _globals['_SERVER_GRPCWEBPROXY']._serialized_end=1756
+  _globals['_SERVER_PROCESSOR']._serialized_start=1758
+  _globals['_SERVER_PROCESSOR']._serialized_end=1787
 # @@protoc_insertion_point(module_scope)

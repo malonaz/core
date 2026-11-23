@@ -1,0 +1,4 @@
+name: test
+servers:
+  - name: i-http
+    http: {}
