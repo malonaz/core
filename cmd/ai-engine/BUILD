@@ -1,12 +1,12 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_manifest(
-    name = "manifest",
-    test_only = True,
-    deps = [
+onyx_deployment(
+    name = "ai-engine",
+    manifest_deps = [
         "//go/ai/ai_engine:manifest",
         "//malonaz/ai/ai_engine/v1",
     ],
+    test_only = True,
 )
 
 onyx_main_src(

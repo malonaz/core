@@ -1,23 +1,17 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_manifest(
-    name = "manifest",
-    test_only = True,
-    deps = [
+onyx_deployment(
+    name = "library-service",
+    manifest_deps = [
         "//go/test/library/library_service:manifest",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/test/library/library_service/v1",
     ],
+    test_only = True,
 )
 
 onyx_main_src(
     name = "main.go",
-    manifest = ":manifest",
-    test_only = True,
-)
-
-onyx_k8s(
-    name = "k8s",
     manifest = ":manifest",
     test_only = True,
 )

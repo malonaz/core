@@ -208,6 +208,29 @@ Generated files carry `labels = ["codegen", "go"]`; add
 `copy_generated_code::` to mirror them into the source tree like onikisu
 does.
 
+A binary's package uses `onyx_deployment` for everything but its main and
+`go_binary`, which stay in the BUILD file so wollemi still manages their
+srcs and deps (it resolves `:main.go`'s imports only through a visible
+`onyx_main_src`, and a hidden `go_binary` would lose them):
+
+```python
+onyx_deployment(
+    name = "lender-mock",                       # the package's go_binary
+    manifest_deps = ["//financing/lender_mock:manifest"],
+    base_image = "gcr.io/distroless/static-debian12@sha256:...",   # optional: :image
+    image = "onikisu",
+    repo = "<registry>",
+    local_args = ["--logging.format=pretty"],   # optional: :local
+)
+onyx_main_src(name = "main.go", manifest = ":manifest")
+go_binary(name = "lender-mock", srcs = [":main.go"], deps = [...])
+```
+
+It makes `:manifest`, `:k8s` (`onyx_k8s`), with `base_image` `:image` (a
+`crane_image` of the binary in `/app` on it, `cmd ./<name>`, uid 10001 as
+the Deployment runs) and with `local_args` `:local` (`plz run :<name> --
+<local_args>`). One per package, as the rule names are fixed.
+
 ## Flags the generated main exposes
 
 Every namespace is also an env prefix (`twilio-service-grpc` →
@@ -237,7 +260,7 @@ clients dial. Name servers after their service when they serve one.
 `include_runtime`) → `manifest.yaml` → `onyx_manifest` + `onyx_service_src`
 in BUILD, `:service.tmpl.go` in the `go_library` srcs → add it to a binary.
 
-**New binary**: `manifest.yaml` → `onyx_manifest` (deps: every service
+**New binary**: `manifest.yaml` → `onyx_deployment` (`manifest_deps`: every service
 manifest and proto library named) + `onyx_main_src` → `go_binary` with
 `:main.go` and, when `setup: true`, a `setup(ctx) error` in the package →
 deps on every package the generated file imports (the build error lists
