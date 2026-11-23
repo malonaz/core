@@ -224,27 +224,19 @@ func TestEdge_InvalidServerTokenIsUnauthenticated(t *testing.T) {
 	})
 }
 
-// Row 9: a scoped grant, and the call names no resource: that grant does not allow. No call's resources are derived
-// yet, so a grant over anything but "*" allows nothing, even over the resource the request names; and a service
-// account configured with one refuses to start.
+// Row 9: a scoped grant, and the call names no resource: that grant does not allow. Beside a grant over "*", the call
+// is allowed by that one.
 func TestEdge_ScopedGrantDoesNotAllow(t *testing.T) {
 	f := newFixture(t)
+	f.configuration.Roles[1].Rules[0].Methods = []string{batchGetBooksMethod}
 	f.issuer.GrantsCel = `[Grant{role: "reader", scope: "organizations/1"}]`
-	interceptor := f.interceptor(t)
-	_, err := unary(t, interceptor, getBookMethod, bearer(f.token(t, nil)), getBookRequest)
+	_, err := unary(t, f.interceptor(t), batchGetBooksMethod, bearer(f.token(t, nil)), &librarypb.BatchGetBooksRequest{})
 	require.True(t, status.HasCode(err, codes.PermissionDenied), "%v", err)
 
 	t.Run("beside a grant over *", func(t *testing.T) {
-		f := newFixture(t)
 		f.issuer.GrantsCel = `[Grant{role: "reader", scope: "organizations/1"}, Grant{role: "reader", scope: "*"}]`
-		_, err := unary(t, f.interceptor(t), getBookMethod, bearer(f.token(t, nil)), getBookRequest)
+		_, err := unary(t, f.interceptor(t), batchGetBooksMethod, bearer(f.token(t, nil)), &librarypb.BatchGetBooksRequest{})
 		require.NoError(t, err)
-	})
-	t.Run("a service account's scoped grant refuses to start", func(t *testing.T) {
-		f := newFixture(t)
-		f.configuration.ServiceAccounts[0].Grants[0].Scope = "organizations/1"
-		_, err := f.build(t)
-		require.ErrorContains(t, err, `scope "organizations/1"`)
 	})
 }
 

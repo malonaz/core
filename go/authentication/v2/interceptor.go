@@ -56,6 +56,7 @@ type Interceptor struct {
 	serviceAccountIDToAccount  map[string]*serviceAccount
 	roleIDToMethodToConditions map[string]methodToConditions
 	methodToDescriptor         map[string]protoreflect.MethodDescriptor
+	methodToResources          map[string]resourcesFunc
 	publicGrants               []*authenticationpb.Grant
 	serviceToAccount           map[string]*serviceAccount
 }
@@ -73,6 +74,7 @@ func NewInterceptor(ctx context.Context, opts *Opts, authenticators ...Authentic
 		serviceAccountIDToAccount: map[string]*serviceAccount{},
 		serviceToAccount:          map[string]*serviceAccount{},
 	}
+	interceptor.methodToResources = deriveResources(interceptor.methodToDescriptor)
 	if interceptor.roleIDToMethodToConditions, err = compileRoles(configuration.GetRoles(), interceptor.methodToDescriptor); err != nil {
 		return nil, err
 	}
@@ -117,12 +119,12 @@ func NewInterceptor(ctx context.Context, opts *Opts, authenticators ...Authentic
 
 func (i *Interceptor) newServiceAccount(ctx context.Context, config *authenticationpb.ServiceAccount, serverKeys *keySet, serverKey jwk.Key) (*serviceAccount, error) {
 	for _, grant := range config.GetGrants() {
-		if _, ok := i.roleIDToMethodToConditions[grant.GetRole()]; !ok {
+		methods, ok := i.roleIDToMethodToConditions[grant.GetRole()]
+		if !ok {
 			return nil, fmt.Errorf("service account %q: unknown role %q", config.GetId(), grant.GetRole())
 		}
-		// No call's resources are derived yet, so a scope other than "*" could never be honoured.
-		if grant.GetScope() != wildcardScope {
-			return nil, fmt.Errorf("service account %q: scope %q of role %q: only %q is supported", config.GetId(), grant.GetScope(), grant.GetRole(), wildcardScope)
+		if err := i.checkScope(grant, methods); err != nil {
+			return nil, fmt.Errorf("service account %q: %w", config.GetId(), err)
 		}
 	}
 	account := &serviceAccount{config: config, subject: serviceAccountPrefix + config.GetId()}
@@ -253,18 +255,29 @@ func bearerTokens(md metadata.MD) []string {
 	return tokens
 }
 
-// authorize allows the call when a grant of the presenter, or a public role, allows the method over "*" and the
-// condition of one of its rules holds, returning that grant's role. Nothing is allowed on an error.
+// authorize allows the call when a grant of the presenter, or a public role, allows the method over a scope covering
+// every resource the call names and the condition of one of its rules holds, returning that grant's role. Nothing is
+// allowed on an error.
 func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, request any) (string, error) {
 	var activation map[string]any
 	var conditionErr error
+	var resources []string
+	derived := false
 	for _, grants := range [][]*authenticationpb.Grant{call.grants, i.publicGrants} {
 		for _, grant := range grants {
-			// No call's resources are derived yet: a scoped grant allows nothing.
-			if grant.GetScope() != wildcardScope {
+			conditions := i.roleIDToMethodToConditions[grant.GetRole()][fullMethod]
+			if len(conditions) == 0 {
 				continue
 			}
-			for _, condition := range i.roleIDToMethodToConditions[grant.GetRole()][fullMethod] {
+			if scope := grant.GetScope(); scope != wildcardScope {
+				if !derived {
+					resources, derived = i.resources(fullMethod, request), true
+				}
+				if !covers(scope, resources) {
+					continue
+				}
+			}
+			for _, condition := range conditions {
 				if condition == nil {
 					return grant.GetRole(), nil
 				}
@@ -289,6 +302,16 @@ func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, requ
 		return "", status.Errorf(codes.Internal, "evaluating a condition on %s: %v", fullMethod, conditionErr).Err()
 	}
 	return "", status.Errorf(codes.PermissionDenied, "no grant allows %s", fullMethod).Err()
+}
+
+// resources returns the resources a call names, none when its method's shape is unknown.
+func (i *Interceptor) resources(fullMethod string, request any) []string {
+	derive := i.methodToResources[fullMethod]
+	message, ok := request.(proto.Message)
+	if derive == nil || !ok {
+		return nil
+	}
+	return derive(message.ProtoReflect())
 }
 
 // emptyPrincipal stands for an absent principal, actor or caller: rules read an empty subject.

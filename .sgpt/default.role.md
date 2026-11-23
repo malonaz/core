@@ -44,7 +44,7 @@ updated whenever a lore is added, renamed, or removed.
   per destination writing it out and returning its result.
 - `lores/authentication/overview` — go/authentication/v2, core's only
   authentication (v1 deleted): the Session (principal, actor, caller, grants, client), configuration, the
-  decision, every edge outcome, what each call logs, the server token between
+  decision, scoped grants (resources derived from the AIP shape, failing closed), every edge outcome, what each call logs, the server token between
   servers, adopting it through onyx, what is not built yet.
 - `lores/onyx/overview` — onyx: ServiceManifest/MainManifest (malonaz/onyx/v1),
   dependency and server kinds, build rules, generated flag namespaces,
