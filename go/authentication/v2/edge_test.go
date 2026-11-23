@@ -82,7 +82,7 @@ func TestEdge_InvalidTokenIsUnauthenticated(t *testing.T) {
 	})
 }
 
-// Row 2: a token without exp is UNAUTHENTICATED (v1 accepted it: see TestEquivalence_TokenWithoutExpiry).
+// Row 2: a token without exp, which would be valid forever, is UNAUTHENTICATED.
 func TestEdge_TokenWithoutExpiryIsUnauthenticated(t *testing.T) {
 	f := newFixture(t)
 	token := sign(t, issuerSecret, jwa.HS256, withClaims(issuerClaims(), map[string]any{"exp": nil}))

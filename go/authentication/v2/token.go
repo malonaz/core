@@ -140,7 +140,7 @@ func (a *tokenAuthenticator) match(claims *unverifiedClaims) (*issuer, error) {
 
 // session maps verified claims through the issuer's expressions.
 func (i *issuer) session(token jwt.Token) (*authenticationpb.Session, error) {
-	// Claims reach expressions as v1 gave them to claims_rewrite_cel, so rewrites evaluate identically.
+	// Through JSON, so expressions read the claims as JSON values (numbers are doubles) whatever their Go types.
 	claimsJSON, err := json.Marshal(token)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling claims: %w", err)

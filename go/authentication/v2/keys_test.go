@@ -75,7 +75,7 @@ local secret = std.native('env')('TEST_SYMMETRIC_KEY');
 	require.NoError(t, err)
 }
 
-// A key set fetched from a URL verifies tokens naming one of its keys, as v1 did for Google's.
+// A key set fetched from a URL, as Google's is, verifies tokens naming one of its keys.
 func TestRemoteKeySet(t *testing.T) {
 	jwks := authenticationtest.KeySet(`{"kty":"oct","alg":"HS256","kid":"k1","k":"` + base64.RawURLEncoding.EncodeToString([]byte(issuerSecret)) + `"}`)
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {

@@ -221,7 +221,7 @@ func (i *Interceptor) authenticate(ctx context.Context, fullMethod string) (*aut
 	return call, nil
 }
 
-// authenticateCookie reads the session cookie, through the gateway or grpc-web, as v1 did. An invalid token there is
+// authenticateCookie reads the session cookie, through the gateway or grpc-web. An invalid token there is
 // no credential: a page cannot clear an HttpOnly cookie, and rejecting it would lock the browser out of public methods.
 func (i *Interceptor) authenticateCookie(ctx context.Context) (*authenticationpb.Session, string, error) {
 	httpCookie, err := (&coregrpc.GatewayCookie{}).GetHTTPCookie(ctx, i.cookieName)
@@ -241,7 +241,7 @@ func (i *Interceptor) authenticateCookie(ctx context.Context) (*authenticationpb
 	return session, issuerID, err
 }
 
-// bearerTokens returns the bearer tokens of the authorization headers. Another scheme is no credential of ours, as in v1.
+// bearerTokens returns the bearer tokens of the authorization headers. Another scheme is no credential of ours.
 func bearerTokens(md metadata.MD) []string {
 	var tokens []string
 	for _, value := range md.Get(metadataKeyAuthorization) {
@@ -344,7 +344,7 @@ func (i *Interceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // Stream returns the stream server interceptor. It authenticates before reading anything; conditions then read the
-// stream's first request, peeked as v1 did, except on a bidirectional stream, where either side may send first.
+// stream's first request, peeked, except on a bidirectional stream, where either side may send first.
 func (i *Interceptor) Stream() grpc.StreamServerInterceptor {
 	interceptor := func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		call, err := i.authenticate(stream.Context(), info.FullMethod)

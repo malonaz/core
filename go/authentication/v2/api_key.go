@@ -20,7 +20,7 @@ type apiKeyAuthenticator struct {
 	keyDigestToAccount map[[sha256.Size]byte]*serviceAccount
 }
 
-// newAPIKeyAuthenticator parses `service_account_id:api_key` pairs, as v1 did.
+// newAPIKeyAuthenticator parses `service_account_id:api_key` pairs.
 func newAPIKeyAuthenticator(ctx context.Context, header, apiKeys string, serviceAccountIDToAccount map[string]*serviceAccount) (*apiKeyAuthenticator, error) {
 	authenticator := &apiKeyAuthenticator{
 		header:             strings.ToLower(header),
