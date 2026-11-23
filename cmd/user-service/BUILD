@@ -10,15 +10,9 @@ onyx_deployment(
     test_only = True,
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":user-service_manifest",
-    test_only = True,
-)
-
 go_binary(
     name = "user-service",
-    srcs = [":main.go"],
+    srcs = [":user-service_main.go"],
     test_only = True,
     visibility = ["//go/test/user/user_service/..."],
     deps = [

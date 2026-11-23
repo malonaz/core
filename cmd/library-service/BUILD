@@ -11,15 +11,9 @@ onyx_deployment(
     test_only = True,
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":library-service_manifest",
-    test_only = True,
-)
-
 go_binary(
     name = "library-service",
-    srcs = [":main.go"],
+    srcs = [":library-service_main.go"],
     test_only = True,
     visibility = ["//go/test/library/library_service/..."],
     deps = [

@@ -9,16 +9,11 @@ onyx_deployment(
     ],
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":tsunade_manifest",
-)
-
 go_binary(
     name = "tsunade",
     srcs = [
         "init.go",
-        ":main.go",
+        ":tsunade_main.go",
     ],
     deps = [
         "//go/ai/ai_service",

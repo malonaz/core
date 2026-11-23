@@ -516,3 +516,83 @@ index bce9462..0abd722 100644
  type gofmtCreate []string
  
  func (list *gofmtCreate) UnmarshalJSON(buf []byte) error {
+diff --git a/domain/wollemi/service.go b/domain/wollemi/service.go
+index dbfec3e..e711019 100644
+--- a/domain/wollemi/service.go
++++ b/domain/wollemi/service.go
+@@ -259,6 +259,9 @@ func (this *Service) ParseDir(buf *bytes.Buffer, dir *Directory) *Directory {
+ 				if _, ok := this.config.Gofmt.CodegenRuleFormatting[rule.Kind()]; ok {
+ 					dir.HasGoFile = true
+ 				}
++				if _, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
++					dir.HasGoFile = true
++				}
+ 			})
+ 		}
+ 
+diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
+index 287d49a..aa18d97 100644
+--- a/domain/wollemi/service_format.go
++++ b/domain/wollemi/service_format.go
+@@ -342,6 +342,11 @@ func (this *Service) parsePaths() error {
+ 							filename := strings.ReplaceAll(formatting, "{{ name }}", path)
+ 							this.goFormat.genfiles[filename] = target
+ 						}
++						if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[kind]; ok {
++							// The macro's hidden rule is named as its file.
++							file := strings.ReplaceAll(formatting, "{{ name }}", name)
++							this.goFormat.genfiles[filepath.Join(dir.Path, file)] = dir.Path + ":" + file
++						}
+ 
+ 					}
+ 				}
+@@ -1012,6 +1017,8 @@ func (this *Service) getSrcFilesFromExpr(expr please.Expr, dir *Directory) []str
+ 						rule := dir.Build.GetRule(target.Name)
+ 						if rule != nil {
+ 							srcFiles = append(srcFiles, this.getSrcFilesFromExpr(rule.Unwrap(), dir)...)
++						} else if this.isMacroFile(dir, target.Name) {
++							srcFiles = append(srcFiles, target.Name)
+ 						}
+ 					}
+ 				} else {
+@@ -1336,3 +1343,16 @@ func (fc *fileConsumer) Update(service *Service, rule please.Rule) {
+ 		fc.Rules[file] = appendUniqString(fc.Rules[file], rule.Name())
+ 	}
+ }
++
++// isMacroFile reports whether a macro call in dir generates file through a hidden rule of its name.
++func (this *Service) isMacroFile(dir *Directory, file string) bool {
++	found := false
++	dir.Build.GetRules(func(rule please.Rule) {
++		if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
++			if strings.ReplaceAll(formatting, "{{ name }}", rule.Name()) == file {
++				found = true
++			}
++		}
++	})
++	return found
++}
+diff --git a/ports/wollemi/config.go b/ports/wollemi/config.go
+index 0abd722..eed9475 100644
+--- a/ports/wollemi/config.go
++++ b/ports/wollemi/config.go
+@@ -27,6 +27,9 @@ type Gofmt struct {
+ 	Manage  gofmtManage `json:"manage,omitempty"`
+ 	Mapped  gofmtMapped `json:"mapped,omitempty"`
+ 	CodegenRuleFormatting gofmtCodegenRuleFormatting `json:"codegen_rule_formatting,omitempty"`
++	// Macros generating a Go file through a rule of their own, named as the file: the kind to the
++	// file's name, e.g. {"onyx_deployment": "{{ name }}_main.go"}.
++	CodegenMacroFormatting gofmtCodegenRuleFormatting `json:"codegen_macro_formatting,omitempty"`
+ 	ImportPathRemapping map[string]string `json:"import_path_remapping"`
+ }
+ 
+@@ -111,6 +114,9 @@ func (this Config) Merge(that Config) Config {
+ 	if v := that.Gofmt.CodegenRuleFormatting; v != nil {
+ 		merge.Gofmt.CodegenRuleFormatting = v
+ 	}
++	if v := that.Gofmt.CodegenMacroFormatting; v != nil {
++		merge.Gofmt.CodegenMacroFormatting = v
++	}
+ 	if v := that.Gofmt.ImportPathRemapping; v != nil {
+ 		merge.Gofmt.ImportPathRemapping = v
+ 	}

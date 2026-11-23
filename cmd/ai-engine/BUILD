@@ -10,15 +10,9 @@ onyx_deployment(
     test_only = True,
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":ai-engine_manifest",
-    test_only = True,
-)
-
 go_binary(
     name = "ai-engine",
-    srcs = [":main.go"],
+    srcs = [":ai-engine_main.go"],
     test_only = True,
     visibility = ["//go/test/ai/..."],
     deps = [

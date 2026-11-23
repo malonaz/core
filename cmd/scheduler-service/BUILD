@@ -11,15 +11,9 @@ onyx_deployment(
     test_only = True,
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":scheduler-service_manifest",
-    test_only = True,
-)
-
 go_binary(
     name = "scheduler-service",
-    srcs = [":main.go"],
+    srcs = [":scheduler-service_main.go"],
     test_only = True,
     visibility = ["//go/test/..."],
     deps = [
