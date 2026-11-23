@@ -216,4 +216,8 @@ enum Interceptor {
 
   // Propagates the session on outgoing calls.
   INTERCEPTOR_SESSION_OUTGOING_CONTEXT_INJECTOR = 7;
+
+  // Authenticates, authorizes and carries every call (go/authentication/v2). It replaces all of the
+  // above, which a binary listing it may not list.
+  INTERCEPTOR_AUTHENTICATION = 8;
 }

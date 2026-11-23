@@ -1,0 +1,10 @@
+go_library(
+    name = "authenticationtest",
+    srcs = ["authenticationtest.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/authentication/v2",
+        "//go/authentication/v2/internal/sessioncontext",
+        "//malonaz/authentication/v2",
+    ],
+)

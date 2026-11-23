@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package malonaz.authentication.v2;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/malonaz/core/genproto/authentication/v2";
+
+// Session is who a call is made as, on whose behalf, through which server, and with which grants.
+message Session {
+  // Who the call is made as. Unset for an anonymous caller.
+  Principal principal = 1;
+  // Who makes the call when it is not the principal itself: an operator signed in as a customer, a
+  // service working for a user. The rights are the principal's; rules and handlers may read the actor.
+  Principal actor = 2;
+  // The server presenting the call, when one server calls another. Unset when the principal's own
+  // client presents it. Inside the platform it is the caller's grants that authorize the call.
+  Principal caller = 3;
+  // What the principal's credential grants it.
+  repeated Grant grants = 4;
+  // The client the call came from.
+  Client client = 5;
+}
+
+// Principal is a stable subject and what is known about it, however it proved itself.
+message Principal {
+  // Name of the subject, the same through every credential: "organizations/1/users/2".
+  string subject = 1 [(buf.validate.field).string.min_len = 1];
+  // What rules may read about the subject: scopes, an email, a tenant.
+  google.protobuf.Struct attributes = 2;
+}
+
+// Grant is a role held over a scope. A call is allowed when a grant's role lists its method and the
+// grant's scope covers every resource the call names.
+message Grant {
+  // Identifier of the role held.
+  string role = 1 [(buf.validate.field).string.min_len = 1];
+  // Resource name the role is held over: that resource and everything beneath it
+  // ("organizations/1"), or "*" for everything.
+  string scope = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+// Client describes the software and network a call came from.
+message Client {
+  // IP address of the client.
+  string ip_address = 1;
+  // User-Agent of the client.
+  string user_agent = 2;
+  // Platform of the client application: web, ios, android.
+  string platform = 3;
+  // Version of the client application.
+  ClientVersion version = 4;
+  // IANA time zone of the client: "America/New_York".
+  string time_zone = 5;
+}
+
+// ClientVersion is the semantic version of a client application.
+message ClientVersion {
+  // Major version, incremented for incompatible changes.
+  int32 major = 1;
+  // Minor version, incremented for compatible additions.
+  int32 minor = 2;
+  // Patch version, incremented for compatible fixes.
+  int32 patch = 3;
+}
+
+// Role is a named set of rules: the methods it opens.
+message Role {
+  // Unique identifier for this role.
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  // Rules the role grants.
+  repeated Rule rules = 2;
+  // Roles whose rules this one also grants.
+  repeated string includes = 3 [(buf.validate.field).repeated.unique = true];
+}
+
+// Rule allows methods, optionally under a condition on the call.
+message Rule {
+  // Full method names ("/library.v1.LibraryService/GetBook"); "*" matches any run of characters.
+  // Each must match a registered method.
+  repeated string methods = 1 [
+    (buf.validate.field).repeated.min_items = 1,
+    (buf.validate.field).repeated.unique = true
+  ];
+  // CEL expression the call must also satisfy, for what a scope cannot say. It reads `principal`,
+  // `actor`, `caller` (the subject of each is empty when absent) and `request`, compiled against each
+  // method's request type. Must evaluate to a bool. Unset: always allowed. `request` is not declared
+  // for bidirectional streams.
+  string condition_cel = 2;
+}
+
+// Issuer is a party whose signed tokens prove a principal, and how their claims become a session.
+message Issuer {
+  // Unique identifier for this issuer.
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  // The expected `iss` claim.
+  string issuer = 2 [(buf.validate.field).string.min_len = 1];
+  // The expected `aud` claim. A token is matched to the issuer naming both its `iss` and its `aud`.
+  string audience = 3 [(buf.validate.field).string.min_len = 1];
+
+  // Keys the tokens are verified with.
+  oneof keys {
+    option (buf.validate.oneof).required = true;
+    // URL of the issuer's JSON Web Key Set.
+    string jwks_uri = 4;
+    // The JSON Web Key Set itself: public keys, or shared HMAC keys for tokens the host issues.
+    // Several keys allow rotation; each key is used only with the algorithm it names.
+    string jwks = 5;
+  }
+
+  // CEL expression over `claims` naming the principal. Unset: `claims.sub`.
+  string subject_cel = 6;
+  // CEL expression over `claims` giving the principal's attributes, a map. Unset: `claims`.
+  string attributes_cel = 7;
+  // CEL expression over `claims` naming the actor, empty when the principal acts itself.
+  // Unset: the `act.sub` claim (RFC 8693).
+  string actor_cel = 8;
+  // CEL expression listing the grants its sessions hold, over `claims` and the `subject` and
+  // `attributes` computed above: `[Grant{role: "contractor", scope: attributes.organization}]`.
+  string grants_cel = 9 [(buf.validate.field).string.min_len = 1];
+}
+
+// ServiceAccount is a principal declared here rather than by an issuer: an API client, a job, a
+// service. Its subject is "serviceAccounts/{id}"; an API key or a token it signs proves it.
+message ServiceAccount {
+  // Unique identifier for this service account.
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  // Grants its sessions hold.
+  repeated Grant grants = 2;
+  // Attributes of its principal.
+  google.protobuf.Struct attributes = 3;
+
+  // Keys its tokens are verified with. Unset: the keys every server of the platform shares.
+  oneof keys {
+    // URL of the account's JSON Web Key Set.
+    string jwks_uri = 4;
+    // The JSON Web Key Set itself.
+    string jwks = 5;
+  }
+}
+
+// Configuration is everything a server needs to tell who is calling and what they may do.
+message Configuration {
+  // Issuers whose tokens are trusted.
+  repeated Issuer issuers = 1 [
+    (buf.validate.field).cel = {
+      id: "unique_issuer_ids"
+      message: "issuer ids must be unique"
+      expression: "this.map(i, i.id).unique()"
+    },
+    (buf.validate.field).cel = {
+      id: "unique_issuer_audiences"
+      message: "no two issuers may share both issuer and audience"
+      expression: "this.map(i, i.issuer + ' ' + i.audience).unique()"
+    }
+  ];
+  // Service accounts.
+  repeated ServiceAccount service_accounts = 2 [(buf.validate.field).cel = {
+    id: "unique_service_account_ids"
+    message: "service account ids must be unique"
+    expression: "this.map(s, s.id).unique()"
+  }];
+  // Roles grants may name.
+  repeated Role roles = 3 [(buf.validate.field).cel = {
+    id: "unique_role_ids"
+    message: "role ids must be unique"
+    expression: "this.map(r, r.id).unique()"
+  }];
+  // Roles every session holds over everything, anonymous ones included: what a stranger may do.
+  repeated string public_roles = 4 [(buf.validate.field).repeated.unique = true];
+}

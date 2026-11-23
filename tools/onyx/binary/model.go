@@ -177,6 +177,13 @@ func (l *loader) load(m *onyxpb.MainManifest) (*Binary, error) {
 		}
 	}
 
+	if err := checkInterceptors(l.binary.Interceptors); err != nil {
+		return nil, err
+	}
+	if err := checkAuthenticationOnEveryServer(m.GetServers(), l.binary.Interceptors); err != nil {
+		return nil, err
+	}
+
 	for _, server := range servers {
 		var manifests []struct {
 			label string
@@ -290,6 +297,35 @@ func (l *loader) resolveLongrunning(servers []*Server) error {
 			return fmt.Errorf("server %s serves long-running methods (%s) but no service of the binary has a grpc_client on %s, which its google.longrunning.Operations server reads them through", server.GetName(), strings.Join(server.LongrunningMethods, ", "), schedulerServiceFullName)
 		}
 		server.SchedulerClient = schedulerClient
+	}
+	return nil
+}
+
+// checkInterceptors rejects a binary listing v2's interceptor beside v1's: every server of a binary carries
+// sessions to the others, and the two carry them in forms neither reads of the other.
+func checkInterceptors(interceptors []onyxpb.Interceptor) error {
+	if !slices.Contains(interceptors, onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION) || len(interceptors) == 1 {
+		return nil
+	}
+	var others []string
+	for _, interceptor := range interceptors {
+		if interceptor != onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION {
+			others = append(others, interceptor.String())
+		}
+	}
+	return fmt.Errorf("%s replaces every other interceptor, but the binary also lists %s", onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION, strings.Join(others, ", "))
+}
+
+// checkAuthenticationOnEveryServer rejects a binary on v2 with a gRPC server that does not run it: that server would
+// serve everyone, and its in-process clients would still send it the server token, the caller's session in it.
+func checkAuthenticationOnEveryServer(servers []*onyxpb.Server, interceptors []onyxpb.Interceptor) error {
+	if !slices.Contains(interceptors, onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION) {
+		return nil
+	}
+	for _, server := range servers {
+		if grpc := server.GetGrpc(); grpc != nil && !slices.Contains(grpc.GetInterceptors(), onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION) {
+			return fmt.Errorf("server %s does not list %s, which every gRPC server of the binary must", server.GetName(), onyxpb.Interceptor_INTERCEPTOR_AUTHENTICATION)
+		}
 	}
 	return nil
 }
