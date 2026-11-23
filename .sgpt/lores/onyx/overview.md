@@ -261,7 +261,7 @@ Every namespace is also an env prefix (`twilio-service-grpc` →
 
 | Namespace | Type | For |
 |---|---|---|
-| `logging`, `health`, `prometheus`, `certs` | core opts | always |
+| `logging`, `health`, `prometheus`, `certs`, `sentry` | core opts | always |
 | `authentication` | `go/authentication/v2` `Opts` | when a grpc server lists `INTERCEPTOR_AUTHENTICATION` |
 | `{database}-postgres` | `postgres.Opts` | each database |
 | `nats` | `nats.Opts` | when any service depends on nats |
@@ -270,6 +270,12 @@ Every namespace is also an env prefix (`twilio-service-grpc` →
 | `{server}-http`, `{server}-grpcwebproxy` | `http.Opts`, `grpcwebproxy.Opts` | each http / proxy server |
 | `{name}-service` | component `Opts` | each `service` dependency |
 | `{service}` | service `Opts` | each service |
+
+Every main calls `go/sentry`'s `Init` once logging is set up: with
+`SENTRY_DSN` set, ERROR logs are also reported to Sentry, frames under the
+repo's go import path in-app. The `sentry` flags name the repo's caller
+attributes and organization/user patterns, which tag each event; without a
+DSN it does nothing.
 
 A gRPC server named after the one service it serves (`name: twilio-service`
 serving `twilio-service`) therefore gets exactly one set of flags,

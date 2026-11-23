@@ -24,6 +24,7 @@ go_binary(
         "//go/nats",
         "//go/postgres",
         "//go/prometheus",
+        "//go/sentry",
         "//go/test/user/store",
         "//go/test/user/user_service",
         "//malonaz/test/user/user_service/v1",

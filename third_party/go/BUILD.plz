@@ -1299,6 +1299,156 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__getsentry__sentry-go",
+    _tag = "download",
+    module = "github.com/getsentry/sentry-go",
+    version = "v0.46.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["."],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__getsentry__sentry-go__attribute",
+        ":github.com__getsentry__sentry-go__internal__debug",
+        ":github.com__getsentry__sentry-go__internal__debuglog",
+        ":github.com__getsentry__sentry-go__internal__http",
+        ":github.com__getsentry__sentry-go__internal__otel__baggage",
+        ":github.com__getsentry__sentry-go__internal__protocol",
+        ":github.com__getsentry__sentry-go__internal__ratelimit",
+        ":github.com__getsentry__sentry-go__internal__telemetry",
+        ":github.com__getsentry__sentry-go__internal__util",
+        ":github.com__getsentry__sentry-go__report",
+        ":golang.org__x__sys__execabs",
+    ],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__attribute",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["attribute"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__debug",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/debug"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__debuglog",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/debuglog"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__http",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/http"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__getsentry__sentry-go__internal__protocol",
+        ":github.com__getsentry__sentry-go__internal__ratelimit",
+        ":github.com__getsentry__sentry-go__internal__util",
+        ":github.com__getsentry__sentry-go__report",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__debuglog",
+    ],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__otel__baggage",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/otel/baggage"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__getsentry__sentry-go__internal__otel__baggage__internal__baggage"],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__otel__baggage__internal__baggage",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/otel/baggage/internal/baggage"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__protocol",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/protocol"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__getsentry__sentry-go__internal__ratelimit"],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__ratelimit",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/ratelimit"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":golang.org__x__text__cases",
+        ":golang.org__x__text__language",
+    ],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__telemetry",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/telemetry"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__getsentry__sentry-go__report",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__debuglog",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__protocol",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__ratelimit",
+    ],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__internal__util",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["internal/util"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__getsentry__sentry-go__internal__debuglog",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__protocol",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__ratelimit",
+    ],
+)
+
+go_module(
+    name = "github.com__getsentry__sentry-go__report",
+    download = ":_github.com__getsentry__sentry-go#download",
+    install = ["report"],
+    module = "github.com/getsentry/sentry-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__getsentry__sentry-go__internal__debuglog",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__protocol",
+        "//third_party/go:github.com__getsentry__sentry-go__internal__ratelimit",
+    ],
+)
+
+go_mod_download(
     name = "github.com__go-jose__go-jose__v4",
     _tag = "download",
     module = "github.com/go-jose/go-jose/v4",
@@ -8183,6 +8333,15 @@ go_module(
     name = "golang.org__x__sys__cpu",
     download = ":_golang.org__x__sys#download",
     install = ["cpu"],
+    module = "golang.org/x/sys",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "golang.org__x__sys__execabs",
+    download = ":_golang.org__x__sys#download",
+    install = ["execabs"],
     module = "golang.org/x/sys",
     visibility = ["PUBLIC"],
     deps = [],

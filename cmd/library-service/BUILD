@@ -26,6 +26,7 @@ go_binary(
         "//go/postgres",
         "//go/prometheus",
         "//go/scheduler/longrunning",
+        "//go/sentry",
         "//go/test/library/library_service",
         "//go/test/library/store",
         "//malonaz/scheduler/scheduler_service/v1",

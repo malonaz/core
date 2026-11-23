@@ -93,6 +93,11 @@ func (g *generator) generate() {
 	g.P("if err := ", g.Qual(core+"/logging", "Init"), "(opts.Logging); err != nil {")
 	g.P("return err")
 	g.P("}")
+	module := ""
+	if g.b.GoImportPath != "" {
+		module = g.b.GoImportPath + "/"
+	}
+	g.P(g.Qual(core+"/sentry", "Init"), "(opts.Sentry, ", strconv.Quote(module), ")")
 	if g.b.Setup {
 		g.P("if err := setup(ctx); err != nil {")
 		g.P("return ", fmt_, `.Errorf("setup: %w", err)`)
@@ -220,6 +225,7 @@ func (g *generator) opts() {
 	g.P("Health *", g.Qual(core+"/health", "Opts"), " ", gen.Tag("Health", "health"))
 	g.P("Prometheus *", g.Qual(core+"/prometheus", "Opts"), " ", gen.Tag("Prometheus", "prometheus"))
 	g.P("Certs *", g.Qual(core+"/certs", "Opts"), " ", gen.Tag("Certs", "certs"))
+	g.P("Sentry *", g.Qual(core+"/sentry", "Opts"), " ", gen.Tag("Sentry", "sentry"))
 
 	if g.b.Authentication {
 		g.P()

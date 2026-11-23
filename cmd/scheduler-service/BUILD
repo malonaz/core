@@ -28,6 +28,7 @@ go_binary(
         "//go/scheduler/scheduler_dispatcher",
         "//go/scheduler/scheduler_service",
         "//go/scheduler/store",
+        "//go/sentry",
         "//malonaz/scheduler/scheduler_service/v1",
     ],
 )
