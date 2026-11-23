@@ -8,8 +8,8 @@ import (
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/malonaz/core/gengo/scheduler/model"
 	"github.com/malonaz/core/gengo/scheduler/store"
+	policypb "github.com/malonaz/core/genproto/scheduler/policy/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/scheduler/transition"
 )
@@ -38,8 +38,8 @@ func (s *Service) reapLapsedLeases(ctx context.Context) error {
 		"ORDER BY lock_time",
 		reapBatchSize,
 		[]any{int16(schedulerpb.JobState_JOB_STATE_RUNNING), now},
-		func(job *model.Job) error {
-			return transition.Mutate(job, now, func(job *schedulerpb.Job) error {
+		func(job *store.LockedJob) error {
+			return transition.Mutate(&job.Job, now, func(job *schedulerpb.Job) error {
 				transition.RecordAttempt(job, now, grpcstatus.Error(codes.Unavailable, "lease lapsed"), nil)
 				job.State = schedulerpb.JobState_JOB_STATE_PENDING
 				job.LockTime = nil
@@ -65,16 +65,14 @@ func (s *Service) reapExpiredJobs(ctx context.Context) error {
 		"ORDER BY expire_time",
 		reapBatchSize,
 		[]any{int16(schedulerpb.JobState_JOB_STATE_PENDING), now},
-		func(job *model.Job) error {
-			return transition.Mutate(job, now, func(job *schedulerpb.Job) error {
-				job.State = schedulerpb.JobState_JOB_STATE_FAILED
-				job.CompleteTime = timestamppb.New(now)
-				job.PurgeTime = transition.PurgeTime(now, s.opts.Retention)
-				job.Error = grpcstatus.New(codes.DeadlineExceeded, "expired before starting").Proto()
-				transition.Observe(job, job.State)
-				return nil
-			})
-		},
+		jobTransition(func(job *schedulerpb.Job, policy *policypb.QueuePolicy) error {
+			job.State = schedulerpb.JobState_JOB_STATE_FAILED
+			job.CompleteTime = timestamppb.New(now)
+			job.PurgeTime = transition.PurgeTime(now, policy, s.opts.Retention)
+			job.Error = grpcstatus.New(codes.DeadlineExceeded, "expired before starting").Proto()
+			transition.Observe(job, job.State)
+			return nil
+		}).apply(now),
 	)
 	if err != nil {
 		return err

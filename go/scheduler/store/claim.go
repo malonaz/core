@@ -7,7 +7,6 @@ import (
 
 	v5 "github.com/jackc/pgx/v5"
 
-	"github.com/malonaz/core/gengo/scheduler/model"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	"github.com/malonaz/core/go/postgres"
 )
@@ -21,10 +20,9 @@ const claimAdvisoryLockKey int64 = 0x7363_6865_6475_6c65
 // endpoint, response type and policy as of the claim. All are zero when the
 // queue row is gone.
 type ClaimedJob struct {
-	model.Job
+	LockedJob
 	QueueEndpoint     *string `db:"queue_endpoint"`
 	QueueResponseType *string `db:"queue_response_type"`
-	QueuePolicy       []byte  `db:"queue_policy"`
 }
 
 // jobClaimCandidatesQuery ranks due PENDING jobs within their queue and keeps

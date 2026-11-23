@@ -129,8 +129,8 @@ const (
 // A running job holds a lease that the dispatcher renews while the call is in
 // flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
 //
-// Terminal jobs are kept for the scheduler's retention and deleted at their
-// `purge_time`.
+// Terminal jobs are kept for their queue's retention, else the scheduler's,
+// and deleted at their `purge_time`.
 type SchedulerServiceClient interface {
 	// Create a queue. No two queues may share a request type. The queue starts
 	// RUNNING. Meant for the dispatcher, which creates one per method it
@@ -714,8 +714,8 @@ func (c *schedulerServiceClient) RunSchedule(ctx context.Context, in *RunSchedul
 // A running job holds a lease that the dispatcher renews while the call is in
 // flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
 //
-// Terminal jobs are kept for the scheduler's retention and deleted at their
-// `purge_time`.
+// Terminal jobs are kept for their queue's retention, else the scheduler's,
+// and deleted at their `purge_time`.
 type SchedulerServiceServer interface {
 	// Create a queue. No two queues may share a request type. The queue starts
 	// RUNNING. Meant for the dispatcher, which creates one per method it

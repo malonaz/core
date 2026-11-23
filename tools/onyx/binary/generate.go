@@ -266,7 +266,6 @@ func (g *generator) flagDefaults() bool {
 }
 
 func (g *generator) opts() {
-	grpc := g.Import(core + "/grpc")
 	g.P("var opts struct {")
 	g.P("Logging *", g.Qual(core+"/logging", "Opts"), " ", gen.Tag("Logging", "logging"))
 	g.P("Health *", g.Qual(core+"/health", "Opts"), " ", gen.Tag("Health", "health"))
@@ -317,7 +316,7 @@ func (g *generator) opts() {
 		g.P()
 		g.P("// gRPC clients of services outside this binary.")
 		for _, client := range remote {
-			g.P(gen.Pascal(client.Name), "GRPC *", grpc, ".ClientOpts ", gen.Tag(gen.Human(client.Name)+" GRPC (Client)", gen.Kebab(client.Name)+"-grpc"))
+			g.P(gen.Pascal(client.Name), "GRPC *", g.Qual(core+"/grpc", "ClientOpts"), " ", gen.Tag(gen.Human(client.Name)+" GRPC (Client)", gen.Kebab(client.Name)+"-grpc"))
 		}
 	}
 
@@ -327,10 +326,10 @@ func (g *generator) opts() {
 		name := gen.Pascal(server.GetName())
 		switch kind := server.GetKind().(type) {
 		case *onyxpb.Server_Grpc_:
-			g.P(name, "GRPC *", grpc, ".ServerOpts ", gen.Tag(name+" GRPC (Server)", server.GetName()+"-grpc"))
+			g.P(name, "GRPC *", g.Qual(core+"/grpc", "ServerOpts"), " ", gen.Tag(name+" GRPC (Server)", server.GetName()+"-grpc"))
 			for _, svc := range kind.Grpc.GetServices() {
 				if svc.GetGateway() {
-					g.P(name, "GRPCGateway *", grpc, ".GatewayOpts ", gen.Tag(name+" GRPC Gateway", server.GetName()+"-grpc-gateway"))
+					g.P(name, "GRPCGateway *", g.Qual(core+"/grpc", "GatewayOpts"), " ", gen.Tag(name+" GRPC Gateway", server.GetName()+"-grpc-gateway"))
 					break
 				}
 			}

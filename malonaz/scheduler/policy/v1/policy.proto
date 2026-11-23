@@ -39,6 +39,17 @@ message QueuePolicy {
       }
     }
   }];
+
+  // How long the queue's terminal jobs are kept. Unset follows the
+  // scheduler's retention. A change applies to jobs completing after it:
+  // completed jobs keep their `purge_time`.
+  oneof retention {
+    // Terminal jobs are deleted this long after they complete.
+    google.protobuf.Duration retention_duration = 6 [(buf.validate.field).duration.gt = {}];
+
+    // Terminal jobs are never deleted.
+    bool retain_forever = 7 [(buf.validate.field).bool.const = true];
+  }
 }
 
 // An exponential backoff: attempt n waits min(initial * multiplier^(n-1), max).

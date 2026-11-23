@@ -67,6 +67,16 @@ func TestGenerateProcessorOnly(t *testing.T) {
 	require.Contains(t, string(source), "dProcessorCleanup, err := dProcessor.Start(ctx, nil)")
 }
 
+func TestGenerateHTTPOnly(t *testing.T) {
+	// No gRPC server or client: core's grpc package would be imported and not used.
+	b, err := load(t, "http_only.yaml")
+	require.NoError(t, err)
+	source, err := Generate(b)
+	require.NoError(t, err)
+	require.NotContains(t, string(source), `"github.com/malonaz/core/go/grpc"`)
+	require.Contains(t, string(source), "IHttpHTTP *http.Opts")
+}
+
 func TestLoadRejectsServiceCycle(t *testing.T) {
 	_, err := load(t, "cyclic.yaml")
 	require.ErrorContains(t, err, "services depend on each other: a-service -> b-service -> a-service")

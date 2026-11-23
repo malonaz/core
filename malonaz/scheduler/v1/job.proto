@@ -176,7 +176,8 @@ message Job {
   ];
 
   // The time after which a terminal job is permanently deleted. Set when the
-  // job reaches a terminal state, from the scheduler's retention.
+  // job reaches a terminal state, from its queue's retention, else the
+  // scheduler's.
   google.protobuf.Timestamp purge_time = 16 [
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY

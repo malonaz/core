@@ -45,7 +45,8 @@ const (
 type ProcessorClient interface {
 	// Returns the value it was given.
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
-	// Fails the first `failures` calls sharing a key, then succeeds.
+	// Fails the first `failures` calls sharing a key, then succeeds. Its jobs
+	// are kept for three days rather than the scheduler's retention.
 	Flaky(ctx context.Context, in *FlakyRequest, opts ...grpc.CallOption) (*FlakyResponse, error)
 	// Sleeps for the given duration, or until the call is cancelled.
 	Sleep(ctx context.Context, in *SleepRequest, opts ...grpc.CallOption) (*SleepResponse, error)
@@ -57,7 +58,8 @@ type ProcessorClient interface {
 	// Same as Echo, serialised: the order jobs are claimed in is observable as
 	// the order they run in.
 	Serial(ctx context.Context, in *SerialRequest, opts ...grpc.CallOption) (*SerialResponse, error)
-	// Reports `steps` progress updates to the scheduler before returning.
+	// Reports `steps` progress updates to the scheduler before returning. Its
+	// jobs are kept forever.
 	Progress(ctx context.Context, in *ProgressRequest, opts ...grpc.CallOption) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler
@@ -213,7 +215,8 @@ func (c *processorClient) Unrouted(ctx context.Context, in *UnroutedRequest, opt
 type ProcessorServer interface {
 	// Returns the value it was given.
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
-	// Fails the first `failures` calls sharing a key, then succeeds.
+	// Fails the first `failures` calls sharing a key, then succeeds. Its jobs
+	// are kept for three days rather than the scheduler's retention.
 	Flaky(context.Context, *FlakyRequest) (*FlakyResponse, error)
 	// Sleeps for the given duration, or until the call is cancelled.
 	Sleep(context.Context, *SleepRequest) (*SleepResponse, error)
@@ -225,7 +228,8 @@ type ProcessorServer interface {
 	// Same as Echo, serialised: the order jobs are claimed in is observable as
 	// the order they run in.
 	Serial(context.Context, *SerialRequest) (*SerialResponse, error)
-	// Reports `steps` progress updates to the scheduler before returning.
+	// Reports `steps` progress updates to the scheduler before returning. Its
+	// jobs are kept forever.
 	Progress(context.Context, *ProgressRequest) (*ProgressResponse, error)
 	// Returns a long-running operation: done with an EchoResponse carrying
 	// `value`, or, when `unfinished` is set, not done, which the scheduler

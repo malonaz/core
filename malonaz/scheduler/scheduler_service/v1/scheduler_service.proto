@@ -86,8 +86,8 @@ option go_package = "github.com/malonaz/core/genproto/scheduler/scheduler_servic
 // A running job holds a lease that the dispatcher renews while the call is in
 // flight; jobs whose lease lapses (crashed dispatcher) are returned to PENDING.
 //
-// Terminal jobs are kept for the scheduler's retention and deleted at their
-// `purge_time`.
+// Terminal jobs are kept for their queue's retention, else the scheduler's,
+// and deleted at their `purge_time`.
 service SchedulerService {
   option (google.api.default_host) = "scheduler.malonaz.com";
 

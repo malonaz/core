@@ -12,7 +12,7 @@ import (
 
 type Opts struct {
 	LeaseDuration time.Duration `long:"lease-duration" env:"LEASE_DURATION" default:"60s" description:"Lease a dispatcher holds on a running job; a lapsed lease returns the job to PENDING. Must match the dispatchers'"`
-	Retention     time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs are kept; 0 keeps them forever"`
+	Retention     time.Duration `long:"retention" env:"RETENTION" default:"720h" description:"How long terminal jobs of queues declaring no retention are kept; 0 keeps them forever"`
 	SweepInterval time.Duration `long:"sweep-interval" env:"SWEEP_INTERVAL" default:"1h" description:"Interval between retention sweeps"`
 	TickInterval  time.Duration `long:"tick-interval" env:"TICK_INTERVAL" default:"1s" description:"Interval between passes materializing due schedules' jobs"`
 	// Roll-ups outlive the jobs: they are what queue stats past a day read.
@@ -52,10 +52,9 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 			WithTicker(s.opts.LeaseDuration / 2).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
 		routine.New("scheduler-roll-up", s.rollUp).
 			WithTicker(s.opts.RollUpInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
-	}
-	if s.opts.Retention > 0 {
-		routines = append(routines, routine.New("scheduler-sweep", s.sweep).
-			WithTicker(s.opts.SweepInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx))
+		// Always on: a queue's own retention purges its jobs even when the default keeps them.
+		routine.New("scheduler-sweep", s.sweep).
+			WithTicker(s.opts.SweepInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx),
 	}
 	return func() {
 		for _, backgroundRoutine := range routines {
