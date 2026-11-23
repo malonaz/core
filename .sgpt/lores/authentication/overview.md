@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -57,13 +57,46 @@ A condition not reading `request` compiles once for all methods.
 ## The decision
 
 Allowed when, for some grant **of the presenter** (or a public role), a rule
-of its role or an included role lists the method, the scope is `*`, and the
-rule's condition, if any, holds. The presenter is the principal from outside,
+of its role or an included role lists the method, the grant's scope covers
+every resource the call names (`*` covers everything, whatever the method),
+and the rule's condition, if any, holds. The presenter is the principal from outside,
 the **caller** (its configured grants) between servers. Between servers,
 onikisu reproduces v1's free carrying with one role every internal account
 holds: `methods: ['*']`, `caller.subject != "" && principal.subject !=
 caller.subject` (true for a carried anonymous call; false for a service
 calling as itself, which its own grants decide).
+
+## Scopes
+
+A scoped grant (`organizations/1`) covers the resources the call names,
+read from the request by the method's AIP shape (`resources.go`, derived once
+per registered method at startup; the verb is the method name's first word,
+so `Listen` is no `List`):
+
+| Method | Resources |
+|---|---|
+| `Create*`, `List*`, `Search*`, `Stream*` | `parent` |
+| `Update*` | the `name` of the request's one field typed as a resource (`google.api.resource`) |
+| `BatchGet*` | every `names`, and `parent` when set |
+| `BatchCreate*` | every request's `parent` (the batch's when unset), and the batch's when set |
+| any other, `Get*`/`Delete*`/custom included | `name` |
+
+- Fails closed: a request lacking the shape's field (a `Create` with no
+  `parent`, a custom method with no `name`: `ImportBooks`, `Compute*Stats`,
+  `Connect`), and every client or bidi stream (only the first message is
+  read), names nothing derivable: a scoped grant never allows it. A service
+  account whose scoped grant's role lists such a method refuses to start; an
+  issuer's grants are only known per call.
+- Covering is a literal prefix on segments: the name is the scope or starts
+  with `scope + "/"`. `organizations/1` covers `organizations/1/shelves/-`, never
+  `organizations/12` nor `organizations/-/...`; a scope holding `-`, or empty,
+  covers nothing (a service account's refuses to start). Never `rn.hasParent`,
+  which reads `-` in either argument as anything.
+- An empty value is a resource no scope covers; a call naming none is denied.
+- Batches check more than the AIP contract strictly needs (names beside the
+  parent): a hand-written handler may not hold names to their parent.
+- Resources are read before hooks run: a hook rewriting the request after the
+  decision is unchecked.
 
 ## Credentials and outcomes
 
@@ -85,10 +118,10 @@ stays). A stream is authenticated before its first message is read. The tests in
 | a mapping fails, or the subject is empty | UNAUTHENTICATED |
 | a deciding grant names an unknown role | INTERNAL |
 | server token: bad signature, expired, other `aud`, unknown account | UNAUTHENTICATED |
-| grant scope other than `*` | allows nothing (no resource derivation yet) |
+| scoped grant, call names no resource (or none derivable) | that grant does not allow |
 | nothing allows | PERMISSION_DENIED; UNAUTHENTICATED when anonymous |
 | a condition errors and nothing allows | INTERNAL (UNAUTHENTICATED when anonymous) |
-| unknown method/role/include, include cycle, non-bool condition, `request` on a bidi stream, duplicate id, service account scope other than `*`, stale public method | the server refuses to start |
+| unknown method/role/include, include cycle, non-bool condition, `request` on a bidi stream, duplicate id, service account scoped grant on a method whose resources are not derived or with a wildcard scope, stale public method | the server refuses to start |
 | API key of an account the configuration lacks | skipped with a warning naming the account: that key proves nothing |
 | key set URL unreachable during a call | INTERNAL |
 
@@ -168,8 +201,9 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
 
 ## Not built yet
 
-Scopes other than `*` (needs the derivation of the resources a call names,
-and the `resources` condition variable); `ExchangeToken`; keys per service
+A declaration of resources for methods outside the standard shapes (open:
+a request message option was recommended, not added); the `resources` condition
+variable; `ExchangeToken`; keys per service
 account that this process can sign with (an account with its own keys can be
 verified, not `As`'d or `Serve`'d); clock skew. Signer and verifier share a
 process today; once they are different machines, verification needs
