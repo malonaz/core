@@ -1363,7 +1363,7 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\n" +
 	"Quantities\x129\n" +
 	"\x03cpu\x18\x01 \x01(\tB'\xbaH$\xd8\x01\x01r\x1f2\x1d^([0-9]+m|[0-9]+(\\.[0-9]+)?)$R\x03cpu\x12@\n" +
-	"\x06memory\x18\x02 \x01(\tB(\xbaH%\xd8\x01\x01r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$R\x06memory\"\x9e\f\n" +
+	"\x06memory\x18\x02 \x01(\tB(\xbaH%\xd8\x01\x01r 2\x1e^[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T)?$R\x06memory\"\xc4\f\n" +
 	"\x06Server\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x122\n" +
 	"\x04grpc\x18\x02 \x01(\v2\x1c.malonaz.onyx.v1.Server.GrpcH\x00R\x04grpc\x122\n" +
@@ -1372,25 +1372,25 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\tprocessor\x18\x05 \x01(\v2!.malonaz.onyx.v1.Server.ProcessorH\x00R\tprocessor\x12\"\n" +
 	"\x04port\x18\x06 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\x04port\x12\x1a\n" +
 	"\binternal\x18\a \x01(\bR\binternal\x12\x16\n" +
-	"\x06public\x18\b \x01(\bR\x06public\x1a\xae\x04\n" +
+	"\x06public\x18\b \x01(\bR\x06public\x1a\xb7\x04\n" +
 	"\x04Grpc\x12Q\n" +
 	"\finterceptors\x18\x01 \x03(\x0e2\x1c.malonaz.onyx.v1.InterceptorB\x0f\xbaH\f\x92\x01\t\"\a\x82\x01\x04\x10\x01 \x00R\finterceptors\x12%\n" +
 	"\x0edescriptor_set\x18\x02 \x01(\tR\rdescriptorSet\x12J\n" +
 	"\bservices\x18\x03 \x03(\v2$.malonaz.onyx.v1.Server.Grpc.ServiceB\b\xbaH\x05\x92\x01\x02\b\x01R\bservices\x121\n" +
-	"\fgateway_port\x18\x04 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\vgatewayPort\x1a\x99\x01\n" +
+	"\fgateway_port\x18\x04 \x01(\x05B\x0e\xbaH\v\xd8\x01\x01\x1a\x06\x18\xff\xff\x03(\x01R\vgatewayPort\x1a\xa2\x01\n" +
 	"\aService\x12\x1d\n" +
 	"\x05proto\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05proto\x129\n" +
-	"\aservice\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\aservice\x12\x1a\n" +
-	"\bmanifest\x18\x03 \x01(\tR\bmanifest\x12\x18\n" +
+	"\aservice\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\aservice\x12#\n" +
+	"\bmanifest\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest\x12\x18\n" +
 	"\agateway\x18\x04 \x01(\bR\agateway:\x90\x01\xbaH\x8c\x01\x1a\x89\x01\n" +
-	"\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1ao\n" +
-	"\x04Http\x12@\n" +
-	"\bservices\x18\x01 \x03(\v2$.malonaz.onyx.v1.Server.Http.ServiceR\bservices\x1a%\n" +
-	"\aService\x12\x1a\n" +
-	"\bmanifest\x18\x01 \x01(\tR\bmanifest\x1a\x0e\n" +
-	"\fGrpcWebProxy\x1a'\n" +
-	"\tProcessor\x12\x1a\n" +
-	"\bmanifest\x18\x01 \x01(\tR\bmanifest:\xa3\x03\xbaH\x9f\x03\x1a\xac\x01\n" +
+	"\x18server.grpc.gateway_port\x12/gateway_port is set but no service sets gateway\x1a<this.gateway_port == 0 || this.services.exists(s, s.gateway)\x1a\x82\x01\n" +
+	"\x04Http\x12J\n" +
+	"\bservices\x18\x01 \x03(\v2$.malonaz.onyx.v1.Server.Http.ServiceB\b\xbaH\x05\x92\x01\x02\b\x01R\bservices\x1a.\n" +
+	"\aService\x12#\n" +
+	"\bmanifest\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest\x1a\x0e\n" +
+	"\fGrpcWebProxy\x1a0\n" +
+	"\tProcessor\x12#\n" +
+	"\bmanifest\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmanifest:\xa3\x03\xbaH\x9f\x03\x1a\xac\x01\n" +
 	"\x19server.processor_listener\x12Ca processor has no listener: port, internal and public do not apply\x1aJ!has(this.processor) || (this.port == 0 && !this.internal && !this.public)\x1af\n" +
 	"\x16server.internal_public\x12+a server cannot be both internal and public\x1a\x1f!(this.internal && this.public)\x1a\x85\x01\n" +
 	"\x19server.internal_grpc_port\x122an internal grpc server binds a socket, not a port\x1a4!(has(this.grpc) && this.internal && this.port != 0)B\r\n" +

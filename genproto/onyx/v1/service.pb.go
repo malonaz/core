@@ -39,7 +39,7 @@ type ServiceManifest struct {
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency `protobuf:"bytes,6,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
 	// The binary running only this service, which onyx_deployment builds from this manifest. A
-	// server naming no service manifest serves this one.
+	// server naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment    *MainManifest `protobuf:"bytes,7,opt,name=deployment,proto3" json:"deployment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -174,7 +174,7 @@ type ServiceManifest_builder struct {
 	// Constructor arguments, in order. Resolved by the binary hosting the service.
 	Dependencies []*Dependency
 	// The binary running only this service, which onyx_deployment builds from this manifest. A
-	// server naming no service manifest serves this one.
+	// server naming no service manifest serves this one. Validated by onyx once those are filled in.
 	Deployment *MainManifest
 }
 
@@ -1203,16 +1203,16 @@ var File_malonaz_onyx_v1_service_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1amalonaz/onyx/v1/main.proto\"\xfa\x02\n" +
+	"\x1dmalonaz/onyx/v1/service.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1amalonaz/onyx/v1/main.proto\"\x82\x03\n" +
 	"\x0fServiceManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x1f\n" +
 	"\x06target\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06target\x12'\n" +
 	"\x0finclude_runtime\x18\x03 \x01(\bR\x0eincludeRuntime\x122\n" +
 	"\x15export_service_fields\x18\x04 \x01(\bR\x13exportServiceFields\x124\n" +
 	"\bcodegens\x18\x05 \x03(\v2\x18.malonaz.onyx.v1.CodegenR\bcodegens\x12?\n" +
-	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12=\n" +
+	"\fdependencies\x18\x06 \x03(\v2\x1b.malonaz.onyx.v1.DependencyR\fdependencies\x12E\n" +
 	"\n" +
-	"deployment\x18\a \x01(\v2\x1d.malonaz.onyx.v1.MainManifestR\n" +
+	"deployment\x18\a \x01(\v2\x1d.malonaz.onyx.v1.MainManifestB\x06\xbaH\x03\xd8\x01\x03R\n" +
 	"deployment\"\x8d\x02\n" +
 	"\aCodegen\x120\n" +
 	"\x03rpc\x18\x01 \x01(\v2\x1c.malonaz.onyx.v1.Codegen.RpcH\x00R\x03rpc\x1a\xc0\x01\n" +

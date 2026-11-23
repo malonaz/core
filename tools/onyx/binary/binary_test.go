@@ -94,7 +94,7 @@ func TestGenerateDeployment(t *testing.T) {
 
 func TestLoadRejectsMainWithoutServiceManifest(t *testing.T) {
 	_, err := manifest.LoadMain("tools/onyx/binary/testdata/http_no_service.yaml", "")
-	require.ErrorContains(t, err, "server i-http names no service manifest")
+	require.ErrorContains(t, err, "servers[0].http.services: value must contain at least 1 item")
 }
 
 func TestLoadRejectsServiceWithoutDeployment(t *testing.T) {

@@ -13,6 +13,14 @@ import (
 
 // Load reads a YAML manifest into the message and validates it.
 func Load[T proto.Message](filename string, message T) error {
+	if err := decode(filename, message); err != nil {
+		return err
+	}
+	return validate(filename, message)
+}
+
+// decode reads a YAML manifest into the message.
+func decode(filename string, message proto.Message) error {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return err
@@ -29,6 +37,10 @@ func Load[T proto.Message](filename string, message T) error {
 	if err := protojson.Unmarshal(jsonBytes, message); err != nil {
 		return fmt.Errorf("%s: %w", filename, err)
 	}
+	return nil
+}
+
+func validate(filename string, message proto.Message) error {
 	if err := protovalidate.Validate(message); err != nil {
 		return fmt.Errorf("%s: %w", filename, err)
 	}

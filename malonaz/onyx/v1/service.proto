@@ -28,8 +28,8 @@ message ServiceManifest {
   repeated Dependency dependencies = 6;
 
   // The binary running only this service, which onyx_deployment builds from this manifest. A
-  // server naming no service manifest serves this one.
-  MainManifest deployment = 7;
+  // server naming no service manifest serves this one. Validated by onyx once those are filled in.
+  MainManifest deployment = 7 [(buf.validate.field).ignore = IGNORE_ALWAYS];
 }
 
 // A generated component the Service embeds.
