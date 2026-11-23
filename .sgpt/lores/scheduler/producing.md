@@ -1,6 +1,7 @@
 ---
 title: Producing scheduler jobs
-description: How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (a per-method oneof over the scheduler default: a duration or forever, never filled in).
+description: >-
+  How a producer enqueues work on the scheduler — scheduler.CreateJob(ctx, client, parent, message, options…), the parent the caller names, request_id (idempotent create, v7 by default) versus unique_key (coalescing; its two slots, not-started and started, held across retries), schedule/expire/priority/labels, what the payload type decides, retries, and retention (a per-method oneof over the scheduler default: a duration or forever, never filled in).
 labels:
     lang: go
     repo: core
