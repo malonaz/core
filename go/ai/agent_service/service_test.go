@@ -180,10 +180,21 @@ func deliveredMessages(t *testing.T, service *testReplica, agent string) []*aipb
 	return messages
 }
 
-// sentMessages returns the messages sent to an agent: delivered to its chat, then still queued.
+// sentMessages returns the messages sent to an agent: delivered to its chat, then still queued. A message being
+// delivered is in both, under one name, until its delivery commits: it counts once.
 func sentMessages(t *testing.T, service *testReplica, agent string) []*aipb.Message {
 	t.Helper()
-	return append(deliveredMessages(t, service, agent), getAgent(t, service, agent).QueuedMessages...)
+	messages := deliveredMessages(t, service, agent)
+	deliveredNameSet := map[string]struct{}{}
+	for _, message := range messages {
+		deliveredNameSet[message.GetName()] = struct{}{}
+	}
+	for _, queuedMessage := range getAgent(t, service, agent).QueuedMessages {
+		if _, ok := deliveredNameSet[queuedMessage.GetName()]; !ok {
+			messages = append(messages, queuedMessage)
+		}
+	}
+	return messages
 }
 
 // lastText returns the text of a message's last block: a delivered message opens with its sender's header.
