@@ -16,7 +16,11 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - image: web
+        - envFrom:
+            - secretRef:
+                name: web
+                optional: true
+          image: web
           livenessProbe:
             httpGet:
               path: /health

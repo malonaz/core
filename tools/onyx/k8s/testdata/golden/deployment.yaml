@@ -20,7 +20,10 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - image: test
+        - envFrom:
+            - secretRef:
+                name: test
+          image: test
           livenessProbe:
             httpGet:
               path: /liveness

@@ -19,6 +19,10 @@ spec:
         - command:
             - ./inference-server
             - --port=50051
+          envFrom:
+            - secretRef:
+                name: inference
+                optional: true
           image: inference
           livenessProbe:
             grpc:

@@ -1,7 +1,7 @@
 // Package k8s generates the Kubernetes base of a MainManifest, or of an ExternalManifest for a binary
 // onyx does not generate: the Deployment, Service,
-// ServiceAccount, NetworkPolicy, PodDisruptionBudget and Ingresses of the binary, and the
-// kustomization listing them. Nothing in it is
+// ServiceAccount, NetworkPolicy, PodDisruptionBudget, Ingresses and ExternalSecret of the binary,
+// and the kustomization listing them. Nothing in it is
 // environment specific; an overlay sets the image tag, replicas, env and hosts.
 package k8s
 
@@ -60,6 +60,8 @@ type binary struct {
 	shutdownSeconds int32
 	startupSeconds  int32
 	writableDirs    []string
+	// Synced by an ExternalSecret into the Secret named after the binary.
+	secrets *onyxpb.Secrets
 }
 
 // Generate renders the files of an onyx binary, by filename. Image is what the Deployment runs.
@@ -75,6 +77,7 @@ func Generate(m *onyxpb.MainManifest, image string) (map[string][]byte, error) {
 		shutdownSeconds: m.GetShutdownSeconds(),
 		startupSeconds:  m.GetStartupSeconds(),
 		writableDirs:    m.GetWritableDirs(),
+		secrets:         m.GetSecrets(),
 	}, image)
 }
 
@@ -230,6 +233,12 @@ func generate(b *binary, image string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// The Secret named after the binary: always referenced, so an overlay appends to envFrom rather
+	// than replacing it, and required only when an ExternalSecret syncs it.
+	secretEnv := &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: name}}
+	if b.secrets == nil {
+		secretEnv.Optional = ptr.To(true)
+	}
 	var terminationGracePeriodSeconds *int64
 	if b.shutdownSeconds != 0 {
 		terminationGracePeriodSeconds = ptr.To(int64(b.shutdownSeconds))
@@ -253,6 +262,7 @@ func generate(b *binary, image string) (map[string][]byte, error) {
 						Name:         name,
 						Image:        image,
 						Command:      b.command,
+						EnvFrom:      []corev1.EnvFromSource{{SecretRef: secretEnv}},
 						Ports:        ports,
 						VolumeMounts: volumeMounts,
 						Resources:    resources,
@@ -304,6 +314,25 @@ func generate(b *binary, image string) (map[string][]byte, error) {
 		},
 	}); err != nil {
 		return nil, err
+	}
+
+	if b.secrets != nil {
+		var dataFrom []externalSecretDataFrom
+		for _, blob := range b.secrets.GetBlobs() {
+			dataFrom = append(dataFrom, externalSecretDataFrom{Extract: externalSecretKey{Key: blob}})
+		}
+		if err := add("externalsecret.yaml", &externalSecret{
+			APIVersion: "external-secrets.io/v1",
+			Kind:       "ExternalSecret",
+			Metadata:   meta,
+			Spec: externalSecretSpec{
+				SecretStoreRef: secretStoreRef{Kind: "SecretStore", Name: b.secrets.GetStore()},
+				DataFrom:       dataFrom,
+			},
+		}); err != nil {
+			return nil, err
+		}
+		filenames = append(filenames, "externalsecret.yaml")
 	}
 
 	if len(ingresses) > 0 {
@@ -419,6 +448,34 @@ func newIngress(name string, labels map[string]string, l *manifest.Listener, b *
 			}}}},
 		}}},
 	}
+}
+
+// externalSecret is the External Secrets Operator's ExternalSecret, whose Secret takes its name;
+// the operator's own types would pull in the operator.
+type externalSecret struct {
+	APIVersion string             `json:"apiVersion"`
+	Kind       string             `json:"kind"`
+	Metadata   metav1.ObjectMeta  `json:"metadata"`
+	Spec       externalSecretSpec `json:"spec"`
+}
+
+type externalSecretSpec struct {
+	SecretStoreRef secretStoreRef           `json:"secretStoreRef"`
+	DataFrom       []externalSecretDataFrom `json:"dataFrom"`
+}
+
+type secretStoreRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+// externalSecretDataFrom sets every key of the blob.
+type externalSecretDataFrom struct {
+	Extract externalSecretKey `json:"extract"`
+}
+
+type externalSecretKey struct {
+	Key string `json:"key"`
 }
 
 // kustomization lists the base's files; kustomize's own types would pull in kustomize.

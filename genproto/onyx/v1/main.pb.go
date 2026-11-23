@@ -113,7 +113,9 @@ type MainManifest struct {
 	// Seconds the binary may take to become live, e.g. setup's migrations. Defaults to 300.
 	StartupSeconds int32 `protobuf:"varint,6,opt,name=startup_seconds,json=startupSeconds,proto3" json:"startup_seconds,omitempty"`
 	// Absolute paths the binary writes besides `/tmp`, on a read-only root filesystem.
-	WritableDirs  []string `protobuf:"bytes,7,rep,name=writable_dirs,json=writableDirs,proto3" json:"writable_dirs,omitempty"`
+	WritableDirs []string `protobuf:"bytes,7,rep,name=writable_dirs,json=writableDirs,proto3" json:"writable_dirs,omitempty"`
+	// Blobs whose every key the binary gets as an env var, through the External Secrets Operator.
+	Secrets       *Secrets `protobuf:"bytes,8,opt,name=secrets,proto3" json:"secrets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -192,6 +194,13 @@ func (x *MainManifest) GetWritableDirs() []string {
 	return nil
 }
 
+func (x *MainManifest) GetSecrets() *Secrets {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
+}
+
 func (x *MainManifest) SetName(v string) {
 	x.Name = v
 }
@@ -220,6 +229,10 @@ func (x *MainManifest) SetWritableDirs(v []string) {
 	x.WritableDirs = v
 }
 
+func (x *MainManifest) SetSecrets(v *Secrets) {
+	x.Secrets = v
+}
+
 func (x *MainManifest) HasResources() bool {
 	if x == nil {
 		return false
@@ -227,8 +240,19 @@ func (x *MainManifest) HasResources() bool {
 	return x.Resources != nil
 }
 
+func (x *MainManifest) HasSecrets() bool {
+	if x == nil {
+		return false
+	}
+	return x.Secrets != nil
+}
+
 func (x *MainManifest) ClearResources() {
 	x.Resources = nil
+}
+
+func (x *MainManifest) ClearSecrets() {
+	x.Secrets = nil
 }
 
 type MainManifest_builder struct {
@@ -249,6 +273,8 @@ type MainManifest_builder struct {
 	StartupSeconds int32
 	// Absolute paths the binary writes besides `/tmp`, on a read-only root filesystem.
 	WritableDirs []string
+	// Blobs whose every key the binary gets as an env var, through the External Secrets Operator.
+	Secrets *Secrets
 }
 
 func (b0 MainManifest_builder) Build() *MainManifest {
@@ -262,6 +288,85 @@ func (b0 MainManifest_builder) Build() *MainManifest {
 	x.ShutdownSeconds = b.ShutdownSeconds
 	x.StartupSeconds = b.StartupSeconds
 	x.WritableDirs = b.WritableDirs
+	x.Secrets = b.Secrets
+	return m0
+}
+
+// An ExternalSecret syncing blobs into the binary's Secret, which its Deployment reads with envFrom.
+type Secrets struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// SecretStore the ExternalSecret reads from, in the binary's namespace. An environment's store can
+	// prefix the keys (e.g. `staging-`).
+	Store string `protobuf:"bytes,1,opt,name=store,proto3" json:"store,omitempty"`
+	// Remote keys of the blobs, each a JSON object. A later blob wins on a shared key.
+	Blobs         []string `protobuf:"bytes,2,rep,name=blobs,proto3" json:"blobs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Secrets) Reset() {
+	*x = Secrets{}
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Secrets) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Secrets) ProtoMessage() {}
+
+func (x *Secrets) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Secrets) GetStore() string {
+	if x != nil {
+		return x.Store
+	}
+	return ""
+}
+
+func (x *Secrets) GetBlobs() []string {
+	if x != nil {
+		return x.Blobs
+	}
+	return nil
+}
+
+func (x *Secrets) SetStore(v string) {
+	x.Store = v
+}
+
+func (x *Secrets) SetBlobs(v []string) {
+	x.Blobs = v
+}
+
+type Secrets_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// SecretStore the ExternalSecret reads from, in the binary's namespace. An environment's store can
+	// prefix the keys (e.g. `staging-`).
+	Store string
+	// Remote keys of the blobs, each a JSON object. A later blob wins on a shared key.
+	Blobs []string
+}
+
+func (b0 Secrets_builder) Build() *Secrets {
+	m0 := &Secrets{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Store = b.Store
+	x.Blobs = b.Blobs
 	return m0
 }
 
@@ -278,7 +383,7 @@ type Resources struct {
 
 func (x *Resources) Reset() {
 	*x = Resources{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -290,7 +395,7 @@ func (x *Resources) String() string {
 func (*Resources) ProtoMessage() {}
 
 func (x *Resources) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[1]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -390,7 +495,7 @@ type Server struct {
 
 func (x *Server) Reset() {
 	*x = Server{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[2]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +507,7 @@ func (x *Server) String() string {
 func (*Server) ProtoMessage() {}
 
 func (x *Server) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[2]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,7 +780,7 @@ func (b0 Server_builder) Build() *Server {
 type case_Server_Kind protoreflect.FieldNumber
 
 func (x case_Server_Kind) String() string {
-	md := file_malonaz_onyx_v1_main_proto_msgTypes[2].Descriptor()
+	md := file_malonaz_onyx_v1_main_proto_msgTypes[3].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -727,7 +832,7 @@ type Resources_Quantities struct {
 
 func (x *Resources_Quantities) Reset() {
 	*x = Resources_Quantities{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[3]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -739,7 +844,7 @@ func (x *Resources_Quantities) String() string {
 func (*Resources_Quantities) ProtoMessage() {}
 
 func (x *Resources_Quantities) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[3]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -807,7 +912,7 @@ type Server_Grpc struct {
 
 func (x *Server_Grpc) Reset() {
 	*x = Server_Grpc{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[4]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -819,7 +924,7 @@ func (x *Server_Grpc) String() string {
 func (*Server_Grpc) ProtoMessage() {}
 
 func (x *Server_Grpc) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[4]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -909,7 +1014,7 @@ type Server_Http struct {
 
 func (x *Server_Http) Reset() {
 	*x = Server_Http{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[5]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -921,7 +1026,7 @@ func (x *Server_Http) String() string {
 func (*Server_Http) ProtoMessage() {}
 
 func (x *Server_Http) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[5]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -967,7 +1072,7 @@ type Server_GrpcWebProxy struct {
 
 func (x *Server_GrpcWebProxy) Reset() {
 	*x = Server_GrpcWebProxy{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[6]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -979,7 +1084,7 @@ func (x *Server_GrpcWebProxy) String() string {
 func (*Server_GrpcWebProxy) ProtoMessage() {}
 
 func (x *Server_GrpcWebProxy) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[6]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1013,7 +1118,7 @@ type Server_Processor struct {
 
 func (x *Server_Processor) Reset() {
 	*x = Server_Processor{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[7]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1025,7 +1130,7 @@ func (x *Server_Processor) String() string {
 func (*Server_Processor) ProtoMessage() {}
 
 func (x *Server_Processor) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[7]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1184,7 @@ type Server_Grpc_Service struct {
 
 func (x *Server_Grpc_Service) Reset() {
 	*x = Server_Grpc_Service{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[8]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1091,7 +1196,7 @@ func (x *Server_Grpc_Service) String() string {
 func (*Server_Grpc_Service) ProtoMessage() {}
 
 func (x *Server_Grpc_Service) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[8]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1181,7 +1286,7 @@ type Server_Http_Service struct {
 
 func (x *Server_Http_Service) Reset() {
 	*x = Server_Http_Service{}
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[9]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1193,7 +1298,7 @@ func (x *Server_Http_Service) String() string {
 func (*Server_Http_Service) ProtoMessage() {}
 
 func (x *Server_Http_Service) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[9]
+	mi := &file_malonaz_onyx_v1_main_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1234,7 +1339,7 @@ var File_malonaz_onyx_v1_main_proto protoreflect.FileDescriptor
 
 const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\x89\x03\n" +
+	"\x1amalonaz/onyx/v1/main.proto\x12\x0fmalonaz.onyx.v1\x1a\x1bbuf/validate/validate.proto\"\xbd\x03\n" +
 	"\fMainManifest\x123\n" +
 	"\x04name\x18\x01 \x01(\tB\x1f\xbaH\x1cr\x1a2\x18^[a-z0-9]+(-[a-z0-9]+)*$R\x04name\x12\x14\n" +
 	"\x05setup\x18\x02 \x01(\bR\x05setup\x12;\n" +
@@ -1244,7 +1349,12 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\xd8\x01\x01\x1a\x05\x18\x90\x1c(\x01R\x0fshutdownSeconds\x126\n" +
 	"\x0fstartup_seconds\x18\x06 \x01(\x05B\r\xbaH\n" +
 	"\xd8\x01\x01\x1a\x05\x18\x90\x1c(\x05R\x0estartupSeconds\x12E\n" +
-	"\rwritable_dirs\x18\a \x03(\tB \xbaH\x1d\x92\x01\x1a\x18\x01\"\x16r\x142\x12^(/[a-z0-9._-]+)+$R\fwritableDirs\"\x99\x02\n" +
+	"\rwritable_dirs\x18\a \x03(\tB \xbaH\x1d\x92\x01\x1a\x18\x01\"\x16r\x142\x12^(/[a-z0-9._-]+)+$R\fwritableDirs\x122\n" +
+	"\asecrets\x18\b \x01(\v2\x18.malonaz.onyx.v1.SecretsR\asecrets\"P\n" +
+	"\aSecrets\x12\x1d\n" +
+	"\x05store\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05store\x12&\n" +
+	"\x05blobs\x18\x02 \x03(\tB\x10\xbaH\r\x92\x01\n" +
+	"\b\x01\x18\x01\"\x04r\x02\x10\x01R\x05blobs\"\x99\x02\n" +
 	"\tResources\x12A\n" +
 	"\brequests\x18\x01 \x01(\v2%.malonaz.onyx.v1.Resources.QuantitiesR\brequests\x12=\n" +
 	"\x06limits\x18\x02 \x01(\v2%.malonaz.onyx.v1.Resources.QuantitiesR\x06limits\x1a\x89\x01\n" +
@@ -1295,37 +1405,39 @@ const file_malonaz_onyx_v1_main_proto_rawDesc = "" +
 	"\x1aINTERCEPTOR_AUTHENTICATION\x10\bB*Z(github.com/malonaz/core/genproto/onyx/v1b\x06proto3"
 
 var file_malonaz_onyx_v1_main_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_onyx_v1_main_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_malonaz_onyx_v1_main_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_malonaz_onyx_v1_main_proto_goTypes = []any{
 	(Interceptor)(0),             // 0: malonaz.onyx.v1.Interceptor
 	(*MainManifest)(nil),         // 1: malonaz.onyx.v1.MainManifest
-	(*Resources)(nil),            // 2: malonaz.onyx.v1.Resources
-	(*Server)(nil),               // 3: malonaz.onyx.v1.Server
-	(*Resources_Quantities)(nil), // 4: malonaz.onyx.v1.Resources.Quantities
-	(*Server_Grpc)(nil),          // 5: malonaz.onyx.v1.Server.Grpc
-	(*Server_Http)(nil),          // 6: malonaz.onyx.v1.Server.Http
-	(*Server_GrpcWebProxy)(nil),  // 7: malonaz.onyx.v1.Server.GrpcWebProxy
-	(*Server_Processor)(nil),     // 8: malonaz.onyx.v1.Server.Processor
-	(*Server_Grpc_Service)(nil),  // 9: malonaz.onyx.v1.Server.Grpc.Service
-	(*Server_Http_Service)(nil),  // 10: malonaz.onyx.v1.Server.Http.Service
+	(*Secrets)(nil),              // 2: malonaz.onyx.v1.Secrets
+	(*Resources)(nil),            // 3: malonaz.onyx.v1.Resources
+	(*Server)(nil),               // 4: malonaz.onyx.v1.Server
+	(*Resources_Quantities)(nil), // 5: malonaz.onyx.v1.Resources.Quantities
+	(*Server_Grpc)(nil),          // 6: malonaz.onyx.v1.Server.Grpc
+	(*Server_Http)(nil),          // 7: malonaz.onyx.v1.Server.Http
+	(*Server_GrpcWebProxy)(nil),  // 8: malonaz.onyx.v1.Server.GrpcWebProxy
+	(*Server_Processor)(nil),     // 9: malonaz.onyx.v1.Server.Processor
+	(*Server_Grpc_Service)(nil),  // 10: malonaz.onyx.v1.Server.Grpc.Service
+	(*Server_Http_Service)(nil),  // 11: malonaz.onyx.v1.Server.Http.Service
 }
 var file_malonaz_onyx_v1_main_proto_depIdxs = []int32{
-	3,  // 0: malonaz.onyx.v1.MainManifest.servers:type_name -> malonaz.onyx.v1.Server
-	2,  // 1: malonaz.onyx.v1.MainManifest.resources:type_name -> malonaz.onyx.v1.Resources
-	4,  // 2: malonaz.onyx.v1.Resources.requests:type_name -> malonaz.onyx.v1.Resources.Quantities
-	4,  // 3: malonaz.onyx.v1.Resources.limits:type_name -> malonaz.onyx.v1.Resources.Quantities
-	5,  // 4: malonaz.onyx.v1.Server.grpc:type_name -> malonaz.onyx.v1.Server.Grpc
-	6,  // 5: malonaz.onyx.v1.Server.http:type_name -> malonaz.onyx.v1.Server.Http
-	7,  // 6: malonaz.onyx.v1.Server.grpc_web_proxy:type_name -> malonaz.onyx.v1.Server.GrpcWebProxy
-	8,  // 7: malonaz.onyx.v1.Server.processor:type_name -> malonaz.onyx.v1.Server.Processor
-	0,  // 8: malonaz.onyx.v1.Server.Grpc.interceptors:type_name -> malonaz.onyx.v1.Interceptor
-	9,  // 9: malonaz.onyx.v1.Server.Grpc.services:type_name -> malonaz.onyx.v1.Server.Grpc.Service
-	10, // 10: malonaz.onyx.v1.Server.Http.services:type_name -> malonaz.onyx.v1.Server.Http.Service
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	4,  // 0: malonaz.onyx.v1.MainManifest.servers:type_name -> malonaz.onyx.v1.Server
+	3,  // 1: malonaz.onyx.v1.MainManifest.resources:type_name -> malonaz.onyx.v1.Resources
+	2,  // 2: malonaz.onyx.v1.MainManifest.secrets:type_name -> malonaz.onyx.v1.Secrets
+	5,  // 3: malonaz.onyx.v1.Resources.requests:type_name -> malonaz.onyx.v1.Resources.Quantities
+	5,  // 4: malonaz.onyx.v1.Resources.limits:type_name -> malonaz.onyx.v1.Resources.Quantities
+	6,  // 5: malonaz.onyx.v1.Server.grpc:type_name -> malonaz.onyx.v1.Server.Grpc
+	7,  // 6: malonaz.onyx.v1.Server.http:type_name -> malonaz.onyx.v1.Server.Http
+	8,  // 7: malonaz.onyx.v1.Server.grpc_web_proxy:type_name -> malonaz.onyx.v1.Server.GrpcWebProxy
+	9,  // 8: malonaz.onyx.v1.Server.processor:type_name -> malonaz.onyx.v1.Server.Processor
+	0,  // 9: malonaz.onyx.v1.Server.Grpc.interceptors:type_name -> malonaz.onyx.v1.Interceptor
+	10, // 10: malonaz.onyx.v1.Server.Grpc.services:type_name -> malonaz.onyx.v1.Server.Grpc.Service
+	11, // 11: malonaz.onyx.v1.Server.Http.services:type_name -> malonaz.onyx.v1.Server.Http.Service
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_onyx_v1_main_proto_init() }
@@ -1333,7 +1445,7 @@ func file_malonaz_onyx_v1_main_proto_init() {
 	if File_malonaz_onyx_v1_main_proto != nil {
 		return
 	}
-	file_malonaz_onyx_v1_main_proto_msgTypes[2].OneofWrappers = []any{
+	file_malonaz_onyx_v1_main_proto_msgTypes[3].OneofWrappers = []any{
 		(*Server_Grpc_)(nil),
 		(*Server_Http_)(nil),
 		(*Server_GrpcWebProxy_)(nil),
@@ -1345,7 +1457,7 @@ func file_malonaz_onyx_v1_main_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_onyx_v1_main_proto_rawDesc), len(file_malonaz_onyx_v1_main_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
