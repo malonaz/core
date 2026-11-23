@@ -7,4 +7,5 @@ resources:
   - service.yaml
   - networkpolicy.yaml
   - pdb.yaml
+  - externalsecret.yaml
   - ingress.yaml

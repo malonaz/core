@@ -116,13 +116,13 @@ server binds is resolved once, by `manifest.Listeners`.
 
 `onyx_k8s(name, manifest, image?)` writes the binary's base next to its
 manifest: `serviceaccount.yaml`, `deployment.yaml`, `service.yaml`,
-`networkpolicy.yaml`, `pdb.yaml` (`maxUnavailable: 1`), `ingress.yaml` (only
-with a public server) and the `kustomization.yaml` listing them. The objects
+`networkpolicy.yaml`, `pdb.yaml` (`maxUnavailable: 1`), `externalsecret.yaml`
+(only with `secrets`), `ingress.yaml` (only with a public server) and the `kustomization.yaml` listing them. The objects
 are `k8s.io/api` types (Kubernetes 1.37), written through their JSON form with the `status` and unset fields
 (`creationTimestamp: null`, `{}`) dropped, keys sorted. Nothing in it is
 environment specific:
 
-- The Deployment sets no env: the ports come from the binary's defaults.
+- The Deployment sets no env but `envFrom` its Secret (below): the ports come from the binary's defaults.
   Probes hit the `health` container port (`:4040/liveness`, `/readiness`);
   Prometheus (`:13434`) is announced by `prometheus.io/*` annotations and a
   `metrics` port.
@@ -160,6 +160,14 @@ environment specific:
   `memory`, Kubernetes quantities) become the container's resources.
 - `image` is a `docker_image` rule whose fqn is templated in; without it the
   image is the binary's name.
+- `secrets` on the MainManifest (`store`, `blobs`) become an
+  `externalsecret.yaml`: an External Secrets Operator `ExternalSecret` named
+  after the binary, extracting every key of each blob (a later blob wins) from
+  the `SecretStore` `store` into a Secret of that name. The container always
+  has `envFrom` that Secret, `optional: true` without `secrets`, so an overlay
+  appends to `envFrom` (`/envFrom/-`) instead of replacing it. The
+  environment's store sets the AWS `prefix` (e.g. `staging-`), keeping the
+  base environment agnostic.
 
 A binary onyx does not generate (e.g. a Python server) gets the same base
 from an `ExternalManifest` (`malonaz/onyx/v1/external.proto`) through

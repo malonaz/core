@@ -45,3 +45,6 @@ servers:
   - name: web
     public: true
     grpc_web_proxy: {}
+secrets:
+  store: aws
+  blobs: [test-secret, test-other-secret]
