@@ -221,8 +221,8 @@ onyx_deployment(name = "lender-mock")           # main.yaml, manifest_deps = [":
 go_binary(name = "lender-mock", srcs = [":lender-mock_main.go"], deps = [...])
 ```
 
-It makes `:<name>_manifest`, `:<name>_main.go` (checked in with
-`copy_main = True`), `:<name>_k8s` (`onyx_k8s`), `:<name>_image` (a
+It makes `:<name>_manifest`, `:<name>_main.go` (left in plz-out),
+`:<name>_k8s` (`onyx_k8s`), `:<name>_image` (a
 `crane_image` of the binary in `/app`, `cmd ./<name>`, uid 10001 as the
 Deployment runs) and `:<name>_local` (`plz run :<name> -- <args>`), the
 last two only for a binary that is not `test_only`. The image and local run

@@ -125,7 +125,6 @@ def onyx_deployment(
         image:str="",
         repo:str="",
         local_args:list=[],
-        copy_main:bool=False,
         labels:list=[],
         visibility:list=[],
         test_only:bool=False,
@@ -151,7 +150,6 @@ def onyx_deployment(
       image: Name of the image. Defaults to OnyxImage, else the binary's.
       repo: Registry prefix of the image. Defaults to OnyxRepo.
       local_args: Flags of :<name>_local, after OnyxLocalArgs.
-      copy_main: Check :<name>_main.go into the package with copy_generated_code.
       labels: Labels of :<name>_k8s and :<name>_image.
       visibility: Visibility of :<name>_k8s and :<name>_image.
       test_only: Whether the binary is test only.
@@ -165,7 +163,6 @@ def onyx_deployment(
     onyx_main_src(
         name = name + "_main.go",
         manifest = manifest_rule,
-        labels = ["copy_generated_code::"] if copy_main else [],
         test_only = test_only,
     )
     onyx_k8s(
