@@ -2,12 +2,15 @@ package authentication_test
 
 import (
 	"context"
+	"net"
 	"testing"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/proto"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
@@ -59,6 +62,13 @@ func TestMappingExpressions(t *testing.T) {
 		require.Equal(t, "users/alice", fields["sub"].GetStringValue())
 		require.Equal(t, "test", fields["iss"].GetStringValue())
 	})
+	t.Run("the subject is the token's sub when the attributes drop it", func(t *testing.T) {
+		f := newFixture(t)
+		f.issuer.AttributesCel = `{"role": "admin"}`
+		seen, err := unary(t, f.interceptor(t), getBookMethod, bearer(f.token(t, nil)), getBookRequest)
+		require.NoError(t, err)
+		require.Equal(t, "users/alice", seen.session.GetPrincipal().GetSubject())
+	})
 }
 
 func TestGetSession(t *testing.T) {
@@ -68,6 +78,66 @@ func TestGetSession(t *testing.T) {
 	got, err := authentication.GetSession(authenticationtest.NewContext(context.Background(), session))
 	require.NoError(t, err)
 	require.Same(t, session, got)
+}
+
+// The client is read from the call's headers: the IP address is X-Forwarded-For's leftmost entry, else the peer's; the
+// user agent the gateway's, else the forwarded one, else gRPC's.
+func TestClient(t *testing.T) {
+	interceptor := newFixture(t).interceptor(t)
+	call := func(ctx context.Context, md metadata.MD) (*authenticationpb.Client, error) {
+		var client *authenticationpb.Client
+		handler := func(ctx context.Context, _ any) (any, error) {
+			session, err := authentication.GetSession(ctx)
+			client = session.GetClient()
+			return nil, err
+		}
+		_, err := interceptor.Unary()(metadata.NewIncomingContext(ctx, md), nil, &grpc.UnaryServerInfo{FullMethod: echoMethod}, handler)
+		return client, err
+	}
+	peerContext := peer.NewContext(context.Background(), &peer.Peer{Addr: &net.TCPAddr{IP: net.IPv4(192, 0, 2, 1), Port: 5555}})
+	for name, test := range map[string]struct {
+		md   metadata.MD
+		want *authenticationpb.Client
+	}{
+		"no headers":            {metadata.MD{}, &authenticationpb.Client{IpAddress: "192.0.2.1:5555"}},
+		"one forwarded address": {metadata.Pairs("x-forwarded-for", "203.0.113.7"), &authenticationpb.Client{IpAddress: "203.0.113.7"}},
+		"a chain":               {metadata.Pairs("x-forwarded-for", "203.0.113.7, 10.0.0.1, 10.0.0.2"), &authenticationpb.Client{IpAddress: "203.0.113.7"}},
+		"spaces":                {metadata.Pairs("x-forwarded-for", "  203.0.113.7 ,10.0.0.1"), &authenticationpb.Client{IpAddress: "203.0.113.7"}},
+		"two headers":           {metadata.Pairs("x-forwarded-for", "203.0.113.7,10.0.0.1", "x-forwarded-for", "10.0.0.2"), &authenticationpb.Client{IpAddress: "203.0.113.7"}},
+		"gateway user agent": {
+			metadata.Pairs("grpcgateway-user-agent", "gateway", "x-forwarded-user-agent", "forwarded", "user-agent", "grpc"),
+			&authenticationpb.Client{IpAddress: "192.0.2.1:5555", UserAgent: "gateway"},
+		},
+		"forwarded user agent": {
+			metadata.Pairs("x-forwarded-user-agent", "forwarded", "user-agent", "grpc"),
+			&authenticationpb.Client{IpAddress: "192.0.2.1:5555", UserAgent: "forwarded"},
+		},
+		"user agent": {metadata.Pairs("user-agent", "grpc"), &authenticationpb.Client{IpAddress: "192.0.2.1:5555", UserAgent: "grpc"}},
+		"platform, version, time zone": {
+			metadata.Pairs("x-client-platform", "ios", "x-client-version", "3.12.1", "x-client-timezone", "America/New_York"),
+			&authenticationpb.Client{
+				IpAddress: "192.0.2.1:5555", Platform: "ios", TimeZone: "America/New_York",
+				Version: &authenticationpb.ClientVersion{Major: 3, Minor: 12, Patch: 1},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			client, err := call(peerContext, test.md)
+			require.NoError(t, err)
+			require.True(t, proto.Equal(test.want, client), "%v", client)
+		})
+	}
+	t.Run("no peer", func(t *testing.T) {
+		client, err := call(context.Background(), metadata.MD{})
+		require.NoError(t, err)
+		require.Empty(t, client.GetIpAddress())
+	})
+	for _, version := range []string{"3.x.1", "3.1"} {
+		t.Run("version "+version, func(t *testing.T) {
+			_, err := call(peerContext, metadata.Pairs("x-client-version", version))
+			require.Equal(t, codes.InvalidArgument, code(err), "%v", err)
+		})
+	}
 }
 
 func TestCompareClientVersion(t *testing.T) {

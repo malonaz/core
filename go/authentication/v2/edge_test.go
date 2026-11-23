@@ -360,6 +360,9 @@ func TestEdge_FaultyConfigurationRefusesToStart(t *testing.T) {
 			f.configuration.Roles[1].Includes = []string{"lister"}
 			f.configuration.Roles[2].Includes = []string{"reader"}
 		}, "includes itself"},
+		"condition not compiling": {func(f *fixture) {
+			f.configuration.Roles[1].Rules[0].ConditionCel = `principal.subject ==`
+		}, "Syntax error"},
 		"condition not a bool": {func(f *fixture) {
 			f.configuration.Roles[1].Rules[0].ConditionCel = `principal.subject`
 		}, "must evaluate to a bool"},
