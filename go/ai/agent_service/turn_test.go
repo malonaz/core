@@ -39,7 +39,7 @@ func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
 	agentRn, err := agentpb.ParseAgentRn(agent.Name)
 	require.NoError(t, err)
 	missingAgent := agentRn.UserRn().AgentRn("missing").String()
-	_, err = service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("hello")), missingAgent, uuid.MustNewV7().String())
+	_, err = service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("hello")), requester{principal: missingAgent}, uuid.MustNewV7().String())
 	require.NoError(t, err)
 
 	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)

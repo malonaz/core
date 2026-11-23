@@ -189,6 +189,10 @@ func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.Updat
 // DeleteAgent soft-deletes an agent, cancelling its schedules and its running turn. With force, its live descendants
 // go with it, in one transaction at one delete time, which UndeleteAgent restores as a unit. Its chat is kept.
 func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.DeleteAgentRequest) (*agentpb.Agent, error) {
+	deleter, err := requesterOf(ctx)
+	if err != nil {
+		return nil, err
+	}
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
 	agent, err := s.GetAgent(ctx, getAgentRequest)
 	if err != nil {
@@ -232,7 +236,7 @@ func (s *Service) DeleteAgent(ctx context.Context, request *agentservicepb.Delet
 			}
 			var turn *cancelledTurn
 			var err error
-			if deletedAgent, turn, err = t.deleteAgent(ctx, name, allowMissing, etag, names); err != nil {
+			if deletedAgent, turn, err = t.deleteAgent(ctx, name, allowMissing, etag, names, deleter); err != nil {
 				return err
 			}
 			if turn != nil {
@@ -278,8 +282,8 @@ type cancelledTurn struct {
 }
 
 // deleteAgent soft-deletes an agent, whose live children must all be deleted with it, ending its running turn
-// CANCELLED and dropping its lease. It returns the agent, and its cancelled turn if any.
-func (t *txn) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string, deletedWith []string) (*agentpb.Agent, *cancelledTurn, error) {
+// CANCELLED by the deleter and dropping its lease. It returns the agent, and its cancelled turn if any.
+func (t *txn) deleteAgent(ctx context.Context, name string, allowMissing bool, etag string, deletedWith []string, deleter requester) (*agentpb.Agent, *cancelledTurn, error) {
 	agentRn, err := agentpb.ParseAgentRn(name)
 	if err != nil {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
@@ -318,7 +322,7 @@ func (t *txn) deleteAgent(ctx context.Context, name string, allowMissing bool, e
 		if lease != nil && !lease.Expired && lease.Replica != t.service.replica {
 			turn.holderAddress = lease.Address
 		}
-		if err := t.cancelTurn(ctx, agent); err != nil {
+		if err := t.cancelTurn(ctx, agent, deleter); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -347,8 +351,8 @@ func (s *Service) stopTurn(ctx context.Context, turn *cancelledTurn) {
 
 // cancelTurn ends the running or awaiting turn of an agent locked by getAgent CANCELLED and drops its lease, whoever
 // holds it: a replica still running the turn stops at its next write. The calls the turn awaited are resolved as
-// cancelled, results the next turn writes.
-func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
+// cancelled by the canceller, results the next turn writes.
+func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent, canceller requester) error {
 	agentRn, err := agentpb.ParseAgentRn(agent.Name)
 	if err != nil {
 		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
@@ -363,7 +367,7 @@ func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent) error {
 	agent.LatestTurn.EndTime = timestamppb.New(t.now)
 	agent.LatestTurn.Outcome = agentpb.Turn_OUTCOME_CANCELLED
 	agent.LatestTurn.Error = nil
-	resolveAwaitedToolCalls(agent, agentRn.UserRn().String(), errToolCallCancelled)
+	resolveAwaitedToolCalls(agent, canceller, errToolCallCancelled)
 	return nil
 }
 

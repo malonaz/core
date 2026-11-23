@@ -44,7 +44,7 @@ func (s *Service) WakeAgent(ctx context.Context, request *agentservicepb.WakeAge
 	case *agentservicepb.WakeAgentRequest_Message:
 		// Sent by the agent itself, which scheduled it.
 		message := ai.NewUserMessage(ai.NewTextBlock(wake.Message))
-		return s.messageAgent(ctx, request.Name, message, request.Name, requestID("message"))
+		return s.messageAgent(ctx, request.Name, message, requester{principal: request.Name}, requestID("message"))
 	case *agentservicepb.WakeAgentRequest_SubAgent:
 		getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
 		agent, err := s.GetAgent(ctx, getAgentRequest)
@@ -81,7 +81,7 @@ func (s *Service) launchSubAgent(ctx context.Context, agent, subAgent *agentpb.A
 		return nil, err
 	}
 	message := ai.NewUserMessage(ai.NewTextBlock(task))
-	return s.messageAgent(ctx, createdAgent.GetName(), message, agent.GetName(), taskRequestID)
+	return s.messageAgent(ctx, createdAgent.GetName(), message, requester{principal: agent.GetName()}, taskRequestID)
 }
 
 // agentScheduleFilter selects the schedules and jobs waking an agent, under its user.

@@ -221,7 +221,7 @@ func TestLease_CancelLocalTurn(t *testing.T) {
 	}, waitTimeout, waitTick)
 
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
-	cancelledAgent, err := service.CancelAgent(context.Background(), cancelAgentRequest)
+	cancelledAgent, err := service.CancelAgent(ownerContext(t, cancelAgentRequest.Name), cancelAgentRequest)
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
@@ -242,8 +242,9 @@ func TestLease_CancelForwardsToTheReplicaRunningTheTurn(t *testing.T) {
 	sendText(t, replicaA, agent.Name, "go")
 	<-started
 
+	// Through B's server: its handler forwards the call with its caller's session.
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
-	cancelledAgent, err := replicaB.CancelAgent(context.Background(), cancelAgentRequest)
+	cancelledAgent, err := serverClient(t, replicaB).CancelAgent(asAccount(t, otherAccountID)(context.Background()), cancelAgentRequest)
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
@@ -256,7 +257,7 @@ func TestLease_CancelATurnNoReplicaRuns(t *testing.T) {
 	crashTurn(t, idleReplica, agent.Name)
 
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
-	cancelledAgent, err := idleReplica.CancelAgent(context.Background(), cancelAgentRequest)
+	cancelledAgent, err := idleReplica.CancelAgent(ownerContext(t, cancelAgentRequest.Name), cancelAgentRequest)
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
@@ -273,7 +274,7 @@ func TestLease_DeleteCancelsTheTurn(t *testing.T) {
 	<-started
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	deletedAgent, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	deletedAgent, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 
 	require.NoError(t, err)
 	require.NotNil(t, deletedAgent.DeleteTime)
@@ -321,8 +322,9 @@ func TestLease_DeleteCancelsTheTurnOnTheReplicaRunningIt(t *testing.T) {
 	sendText(t, replicaA, agent.Name, "go")
 	<-started
 
+	// Through B's server: its handler forwards the cancellation with its caller's session.
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	_, err := replicaB.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err := serverClient(t, replicaB).DeleteAgent(asAccount(t, otherAccountID)(context.Background()), deleteAgentRequest)
 
 	require.NoError(t, err)
 	require.Eventually(t, func() bool { return replicaA.turns.count() == 0 }, 5*time.Second, waitTick)
@@ -371,7 +373,7 @@ func TestLease_CancelWaitsOutAPreviousProcessLease(t *testing.T) {
 	}))
 
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
-	cancelledAgent, err := idleReplica.CancelAgent(context.Background(), cancelAgentRequest)
+	cancelledAgent, err := idleReplica.CancelAgent(ownerContext(t, cancelAgentRequest.Name), cancelAgentRequest)
 
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)

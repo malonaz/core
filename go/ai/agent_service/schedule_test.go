@@ -395,7 +395,7 @@ func TestDeleteAgent_CancelsSchedules(t *testing.T) {
 	require.Len(t, jobs, 2)
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 
 	require.Empty(t, service.scheduler.schedulesOf(t, agent.Name))
@@ -434,10 +434,8 @@ func TestDeleteAgent_CancelsSchedulesAsTheService(t *testing.T) {
 	job := scheduleBoth(t, service, agent)
 
 	// Through the server, whose interceptor makes the handler's outgoing calls carry its caller's session.
-	agentServiceClient, err := service.peerClient(context.Background(), service.address)
-	require.NoError(t, err)
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	_, err = agentServiceClient.DeleteAgent(asAccount(t, otherAccountID)(context.Background()), deleteAgentRequest)
+	_, err := serverClient(t, service).DeleteAgent(asAccount(t, otherAccountID)(context.Background()), deleteAgentRequest)
 
 	require.NoError(t, err)
 	require.NotNil(t, getAgent(t, service, agent.Name).DeleteTime)
@@ -457,7 +455,7 @@ func TestDeleteAgent_ForceCancelsTheSubtreesSchedules(t *testing.T) {
 	}
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
-	deletedAgent, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	deletedAgent, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 
 	for i, deletedAgent := range agents {
@@ -477,7 +475,7 @@ func TestDeleteAgent_CancellationFailureDeletesNothing(t *testing.T) {
 	service.scheduler.failCancelJobs(status.Errorf(codes.Unavailable, "scheduler down").Err())
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
-	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 
 	require.True(t, status.HasCode(err, codes.Unavailable), err)
 	for _, liveAgent := range []*agentpb.Agent{agent, subAgent} {
@@ -486,7 +484,7 @@ func TestDeleteAgent_CancellationFailureDeletesNothing(t *testing.T) {
 
 	// A retry repeats the cleanup.
 	service.scheduler.failCancelJobs(nil)
-	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err = service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 	for i, deletedAgent := range []*agentpb.Agent{agent, subAgent} {
 		require.NotNil(t, getAgent(t, service, deletedAgent.Name).DeleteTime, deletedAgent.Name)

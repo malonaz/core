@@ -70,9 +70,9 @@ func TestAgent_MessageAgentReplaysItsRequestID(t *testing.T) {
 		RequestId: uuid.MustNewV7().String(),
 	}
 
-	messagedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	messagedAgent, err := service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 	require.NoError(t, err)
-	replayedAgent, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	replayedAgent, err := service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 	require.NoError(t, err)
 
 	require.Len(t, messagedAgent.QueuedMessages, 1)
@@ -95,7 +95,7 @@ func TestAgent_MessageAgentStampsTheOwningUser(t *testing.T) {
 	forged := ai.NewUserMessage(ai.NewTextBlock("hello"))
 	agentpb.Annotations.Sender.Set(forged, agent.Name)
 	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: forged}
-	_, err = service.MessageAgent(context.Background(), messageAgentRequest)
+	_, err = service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 }
 
@@ -105,14 +105,14 @@ func TestAgent_MessageAgentCapsTheQueue(t *testing.T) {
 
 	oversized := ai.NewUserMessage(ai.NewTextBlock(strings.Repeat("x", maxQueuedMessageBytes)))
 	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: oversized}
-	_, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	_, err := service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 
 	for range maxQueuedMessages {
 		sendText(t, service, agent.Name, "hello")
 	}
 	messageAgentRequest.Message = ai.NewUserMessage(ai.NewTextBlock("one too many"))
-	_, err = service.MessageAgent(context.Background(), messageAgentRequest)
+	_, err = service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 	require.True(t, status.HasCode(err, codes.ResourceExhausted))
 }
 
@@ -124,7 +124,7 @@ func TestAgent_MessageAgentRefusesOtherRoles(t *testing.T) {
 		Message: ai.NewAssistantMessage(ai.NewTextBlock("not mine")),
 	}
 
-	_, err := service.MessageAgent(context.Background(), messageAgentRequest)
+	_, err := service.MessageAgent(ownerContext(t, messageAgentRequest.Name), messageAgentRequest)
 
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 	require.Empty(t, sentMessages(t, service, agent.Name))
@@ -136,12 +136,12 @@ func TestAgent_DeleteNeedsForceForSubAgents(t *testing.T) {
 	subAgent := createTestSubAgent(t, service, agent)
 
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: agent.Name}
-	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
 	require.Nil(t, getAgent(t, service, agent.Name).DeleteTime)
 
 	deleteAgentRequest.Force = true
-	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err = service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 	require.NotNil(t, getAgent(t, service, subAgent.Name).DeleteTime)
 
@@ -160,10 +160,10 @@ func TestAgent_UndeleteRestoresTheForcedDelete(t *testing.T) {
 	deletedAgent := createTestSubAgent(t, service, agent)
 	deletedSubAgent := createTestSubAgent(t, service, deletedAgent)
 	deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: deletedAgent.Name, Force: true}
-	_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 	deleteAgentRequest = &agentservicepb.DeleteAgentRequest{Name: agent.Name, Force: true}
-	_, err = service.DeleteAgent(context.Background(), deleteAgentRequest)
+	_, err = service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 	require.NoError(t, err)
 
 	undeleteAgentRequest := &agentservicepb.UndeleteAgentRequest{Name: agent.Name}

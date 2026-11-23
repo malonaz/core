@@ -184,7 +184,7 @@ func (s *Service) report(ctx context.Context, name string, turnEnd *turnEnd) err
 	}
 	message := ai.NewUserMessage(ai.NewTextBlock(turnEnd.report))
 	// A deleted parent awaits no report.
-	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, agent.Name, turnEnd.reportRequestID); err != nil && !status.HasCode(err, codes.NotFound) {
+	if _, err := s.messageAgent(ctx, agent.ParentAgent, message, requester{principal: agent.Name}, turnEnd.reportRequestID); err != nil && !status.HasCode(err, codes.NotFound) {
 		return status.FromError(err, "sending the turn's report").Err()
 	}
 	return nil
@@ -203,7 +203,7 @@ type turnRunner struct {
 	// The calls the turn pauses on, with errAwaiting.
 	awaitedToolCalls []*agentpb.AwaitedToolCall
 	// The approvers of the approved calls the turn runs, by tool call id: their results name them.
-	toolCallIDToApprover map[string]string
+	toolCallIDToApprover map[string]requester
 }
 
 // reportRequestID derives the request id of the turn's report from how it ended and the chat's last message it saw,
@@ -337,7 +337,7 @@ func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.Too
 	}
 	var approvedToolCalls []*aipb.ToolCall
 	var stillAwaitedToolCalls []*agentpb.AwaitedToolCall
-	r.toolCallIDToApprover = map[string]string{}
+	r.toolCallIDToApprover = map[string]requester{}
 	for _, toolCall := range unansweredToolCalls {
 		toolResult := toolCall.GetResult()
 		if awaitedToolCall, ok := toolCallIDToAwaitedToolCall[toolCall.GetId()]; ok && toolResult == nil {
@@ -350,11 +350,11 @@ func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.Too
 				toolResult = resolution.GetResult()
 			case resolution.GetStartTime() == nil:
 				approvedToolCalls = append(approvedToolCalls, toolCall)
-				r.toolCallIDToApprover[toolCall.GetId()] = resolution.GetResolver()
+				r.toolCallIDToApprover[toolCall.GetId()] = resolverOf(resolution)
 				continue
 			default:
 				toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
-				agentpb.Annotations.ApprovedBy.Set(toolResult, resolution.GetResolver())
+				resolverOf(resolution).stamp(toolResult, agentpb.Annotations.ApprovedBy)
 			}
 		}
 		if toolResult == nil {
@@ -731,7 +731,7 @@ func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolCall) e
 // result of an approved call names its approver.
 func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.ToolResult) error {
 	if approver, ok := r.toolCallIDToApprover[toolResult.GetToolCallId()]; ok {
-		agentpb.Annotations.ApprovedBy.Set(toolResult, approver)
+		approver.stamp(toolResult, agentpb.Annotations.ApprovedBy)
 	}
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    r.agent.GetChat(),

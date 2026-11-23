@@ -14,12 +14,14 @@ import (
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
+	"github.com/malonaz/core/go/ai"
 	authentication "github.com/malonaz/core/go/authentication/v2"
 	"github.com/malonaz/core/go/authentication/v2/authenticationtest"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/uuid"
 )
 
 const (
@@ -76,6 +78,14 @@ func asAccount(t *testing.T, account string) func(context.Context) context.Conte
 	as, err := testInterceptor.As(account)
 	require.NoError(t, err)
 	return as
+}
+
+// serverClient returns an AgentService client on a replica's server, through its interceptor.
+func serverClient(t *testing.T, replica *testReplica) agentservicepb.AgentServiceClient {
+	t.Helper()
+	agentServiceClient, err := replica.peerClient(context.Background(), replica.address)
+	require.NoError(t, err)
+	return agentServiceClient
 }
 
 // sessionContext returns the context of a call the interceptor let in with a session, as its handler sees it.
@@ -183,16 +193,111 @@ func TestWakeAgent_RunsOnlyForTheDispatcher(t *testing.T) {
 	require.Empty(t, sentMessages(t, service, agent.Name))
 
 	// Through the server, as the dispatcher calls.
-	agentServiceClient, err := service.peerClient(context.Background(), service.address)
-	require.NoError(t, err)
+	agentServiceClient := serverClient(t, service)
 	asJob := func(account string) context.Context {
 		return metadata.AppendToOutgoingContext(asAccount(t, account)(context.Background()), scheduler.JobMetadataKey, "jobs/"+account)
 	}
-	_, err = agentServiceClient.WakeAgent(asJob(otherAccountID), wakeAgentRequest)
+	_, err := agentServiceClient.WakeAgent(asJob(otherAccountID), wakeAgentRequest)
 	require.True(t, status.HasCode(err, codes.PermissionDenied), err)
 	_, err = agentServiceClient.WakeAgent(asJob(dispatcherAccountID), wakeAgentRequest)
 	require.NoError(t, err)
 	queuedMessages := getAgent(t, service, agent.Name).QueuedMessages
 	require.Len(t, queuedMessages, 1)
 	require.Equal(t, "hi", lastText(queuedMessages[0]))
+}
+
+// harper and operator are a caller other than the user owning an agent, and someone acting for it.
+const (
+	harper   = "serviceAccounts/harper"
+	operator = "users/operator"
+)
+
+func TestAwaited_SettledByTheCallerAndTheirActor(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
+	agent := createGatedAgent(t, service)
+	service.aiService.script(agent.Chat, toolCallGeneration(healthCheckCall("call-1", "approved"), healthCheckCall("call-2", "denied")), textGeneration("done"))
+	sendText(t, service, agent.Name, "check")
+	waitForState(t, service, agent.Name, agentpb.Agent_STATE_AWAITING)
+
+	approveToolCallRequest := &agentservicepb.ApproveToolCallRequest{Name: agent.Name, ToolCallId: "call-1"}
+	for _, ctx := range []context.Context{context.Background(), sessionContext("", "", "")} {
+		_, err := service.ApproveToolCall(ctx, approveToolCallRequest)
+		require.True(t, status.HasCode(err, codes.Unauthenticated), err)
+	}
+	approvedAgent, err := service.ApproveToolCall(sessionContext(harper, operator, ""), approveToolCallRequest)
+	require.NoError(t, err)
+	resolution := approvedAgent.GetLatestTurn().GetAwaitedToolCalls()[0].GetResolution()
+	require.Equal(t, harper, resolution.GetResolver())
+	require.Equal(t, operator, resolution.GetActor())
+	resolveToolCallRequest := &agentservicepb.ResolveToolCallRequest{
+		Name:       agent.Name,
+		ToolCallId: "call-2",
+		Result:     ai.NewErrorToolResult("", "", status.Errorf(codes.PermissionDenied, "no").Err()),
+	}
+	_, err = service.ResolveToolCall(sessionContext(harper, "", ""), resolveToolCallRequest)
+	require.NoError(t, err)
+
+	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+	toolCallIDToToolResult := toolResults(service.aiService.messages(agent.Chat))
+	approvedBy, _ := agentpb.Annotations.ApprovedBy.Get(toolCallIDToToolResult["call-1"])
+	require.Equal(t, harper, approvedBy)
+	actor, _ := agentpb.Annotations.Actor.Get(toolCallIDToToolResult["call-1"])
+	require.Equal(t, operator, actor)
+	deniedBy, _ := agentpb.Annotations.DeniedBy.Get(toolCallIDToToolResult["call-2"])
+	require.Equal(t, harper, deniedBy)
+	require.False(t, agentpb.Annotations.Actor.Has(toolCallIDToToolResult["call-2"]))
+}
+
+func TestCancelAgent_DeniesAwaitedCallsAsTheCanceller(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
+	agent := createGatedAgent(t, service)
+	service.aiService.script(agent.Chat, toolCallGeneration(healthCheckCall("call-1", "x")), textGeneration("done"))
+	sendText(t, service, agent.Name, "check")
+	waitForState(t, service, agent.Name, agentpb.Agent_STATE_AWAITING)
+
+	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
+	_, err := service.CancelAgent(context.Background(), cancelAgentRequest)
+	require.True(t, status.HasCode(err, codes.Unauthenticated), err)
+	cancelledAgent, err := service.CancelAgent(sessionContext(harper, operator, ""), cancelAgentRequest)
+	require.NoError(t, err)
+
+	resolution := cancelledAgent.GetLatestTurn().GetAwaitedToolCalls()[0].GetResolution()
+	require.Equal(t, harper, resolution.GetResolver())
+	require.Equal(t, operator, resolution.GetActor())
+	deniedBy, _ := agentpb.Annotations.DeniedBy.Get(resolution.GetResult())
+	require.Equal(t, harper, deniedBy)
+	actor, _ := agentpb.Annotations.Actor.Get(resolution.GetResult())
+	require.Equal(t, operator, actor)
+}
+
+func TestMessageAgent_SentByTheCallerAndTheirActor(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) { opts.MaxConcurrentTurns = 0 })
+	agent := createTestAgent(t, service)
+	// A client's annotations name no one: the service stamps who called.
+	message := ai.NewUserMessage(ai.NewTextBlock("hello"))
+	agentpb.Annotations.Actor.Set(message, "users/forged")
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{Name: agent.Name, Message: message}
+
+	for _, ctx := range []context.Context{context.Background(), sessionContext("", "", "")} {
+		_, err := service.MessageAgent(ctx, messageAgentRequest)
+		require.True(t, status.HasCode(err, codes.Unauthenticated), err)
+	}
+	messagedAgent, err := service.MessageAgent(sessionContext(harper, operator, ""), messageAgentRequest)
+	require.NoError(t, err)
+	messageAgentRequest.RequestId = uuid.MustNewV7().String()
+	messagedAgent, err = service.MessageAgent(sessionContext(harper, "", ""), messageAgentRequest)
+	require.NoError(t, err)
+
+	require.Len(t, messagedAgent.QueuedMessages, 2)
+	for i, wantActor := range []string{operator, ""} {
+		sender, _ := agentpb.Annotations.Sender.Get(messagedAgent.QueuedMessages[i])
+		require.Equal(t, harper, sender)
+		actor, _ := agentpb.Annotations.Actor.Get(messagedAgent.QueuedMessages[i])
+		require.Equal(t, wantActor, actor)
+	}
+	// A sender the client names must be the caller.
+	agentpb.Annotations.Sender.Set(message, userOf(t, agent))
+	messageAgentRequest.RequestId = uuid.MustNewV7().String()
+	_, err = service.MessageAgent(sessionContext(harper, "", ""), messageAgentRequest)
+	require.True(t, status.HasCode(err, codes.InvalidArgument), err)
 }

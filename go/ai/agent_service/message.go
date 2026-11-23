@@ -29,32 +29,33 @@ const (
 // message it queued, and its delivery writes the chat message of that id once.
 var queuedMessageNamespace = uuid.MustParse("4c7e2a91-58d3-4b6f-9e0a-1f3b6d8c2e57")
 
-// MessageAgent queues a message from the user owning an agent on the agent, waking it if idle.
+// MessageAgent queues a message from the caller on an agent, waking it if idle.
 func (s *Service) MessageAgent(ctx context.Context, request *agentservicepb.MessageAgentRequest) (*agentpb.Agent, error) {
-	agentRn, err := agentpb.ParseAgentRn(request.Name)
-	if err != nil {
+	if _, err := agentpb.ParseAgentRn(request.Name); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
 	}
 	if request.Message.GetRole() != aipb.Role_ROLE_USER {
 		return nil, status.Errorf(codes.InvalidArgument, "message must be a USER message").Err()
 	}
-	// The user owning the agent is the principal its authorization admits.
-	user := agentRn.UserRn().String()
-	if sender, ok := agentpb.Annotations.Sender.Get(request.Message); ok && sender != user {
-		return nil, status.Errorf(codes.InvalidArgument, "the message's sender %s is not the user owning the agent, %s", sender, user).Err()
+	sender, err := requesterOf(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal, ok := agentpb.Annotations.Sender.Get(request.Message); ok && principal != sender.principal {
+		return nil, status.Errorf(codes.InvalidArgument, "the message's sender %s is not the caller, %s", principal, sender.principal).Err()
 	}
 	requestID := request.RequestId
 	if requestID == "" {
 		requestID = uuid.MustNewV7().String()
 	}
-	return s.messageAgent(ctx, request.Name, request.Message, user, requestID)
+	return s.messageAgent(ctx, request.Name, request.Message, sender, requestID)
 }
 
 // messageAgent queues a message from a sender on an agent, claiming its turn if idle. A replayed request id finds the
 // message already queued, or already delivered, and queues nothing.
-func (s *Service) messageAgent(ctx context.Context, name string, message *aipb.Message, sender, requestID string) (*agentpb.Agent, error) {
+func (s *Service) messageAgent(ctx context.Context, name string, message *aipb.Message, sender requester, requestID string) (*agentpb.Agent, error) {
 	message = proto.CloneOf(message)
-	agentpb.Annotations.Sender.Set(message, sender)
+	sender.stamp(message, agentpb.Annotations.Sender)
 	if size := proto.Size(message); size > maxQueuedMessageBytes {
 		return nil, status.Errorf(codes.InvalidArgument, "the message is %d bytes, over the %d a message may hold: reference large data by URL instead of inlining it", size, maxQueuedMessageBytes).Err()
 	}
@@ -74,10 +75,6 @@ func (s *Service) messageAgent(ctx context.Context, name string, message *aipb.M
 // queueMessage appends a message to the queue of an agent locked by getAgent, named after the chat message its
 // delivery writes, and claims the agent's turn if idle. A message already queued is not queued again.
 func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *aipb.Message, requestID string) error {
-	agentRn, err := agentpb.ParseAgentRn(agent.Name)
-	if err != nil {
-		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
-	}
 	chatRn, err := aipb.ParseChatRn(agent.Chat)
 	if err != nil {
 		return status.Errorf(codes.Internal, "parsing chat name: %v", err).Err()
@@ -98,11 +95,11 @@ func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *a
 	}
 	message.CreateTime = timestamppb.New(t.now)
 	agent.QueuedMessages = append(agent.QueuedMessages, message)
-	switch sender, _ := agentpb.Annotations.Sender.Get(message); {
+	switch sender := senderOf(message); {
 	case agent.State == agentpb.Agent_STATE_IDLE:
 		return t.claimTurn(ctx, agent)
-	case agent.State == agentpb.Agent_STATE_AWAITING && sender == agentRn.UserRn().String():
-		// The user replied instead of settling the awaited calls: they are denied, and the turn resumes.
+	case agent.State == agentpb.Agent_STATE_AWAITING && !agentpb.MatchAgentRn(sender.principal):
+		// A client replied instead of settling the awaited calls: they are denied, and the turn resumes.
 		resolveAwaitedToolCalls(agent, sender, errUserReplied)
 		return t.resumeIfSettled(ctx, agent)
 	default:
@@ -114,6 +111,6 @@ func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *a
 
 // sendAgentMessage queues a text message from an agent on another.
 func (s *Service) sendAgentMessage(ctx context.Context, sender *agentpb.Agent, recipient, text, requestID string) error {
-	_, err := s.messageAgent(ctx, recipient, ai.NewUserMessage(ai.NewTextBlock(text)), sender.GetName(), requestID)
+	_, err := s.messageAgent(ctx, recipient, ai.NewUserMessage(ai.NewTextBlock(text)), requester{principal: sender.GetName()}, requestID)
 	return err
 }

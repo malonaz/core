@@ -288,29 +288,35 @@ func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
 }
 
 func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
-	// The replica's own AgentService serves as the tool target: MessageAgent carries a request id.
-	const messageAgentMethod = "malonaz.ai.agent.agent_service.v1.AgentService.MessageAgent"
+	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id, and needs no
+	// identity, which tool targets never get.
+	const createDefinitionMethod = "malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition"
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{"malonaz.ai.agent.agent_service.v1.AgentService": opts.AdvertisedAddress}
 	})
-	agent := createTestAgent(t, service, messageAgentMethod)
-	recipient := createTestAgent(t, service)
+	agent := createTestAgent(t, service, createDefinitionMethod)
+	userRn, err := agentpb.ParseUserRn(userOf(t, agent))
+	require.NoError(t, err)
+	organization := userRn.OrganizationRn().String()
 	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
-	tool := findTool(toolbox.tools, "AgentService_MessageAgent")
+	tool := findTool(toolbox.tools, "AgentService_CreateDefinition")
 	require.NotNil(t, tool)
 	require.NotContains(t, tool.GetJsonSchema().GetProperties(), "request_id")
 
-	toolCall := newToolCall("call-1", "AgentService_MessageAgent", map[string]any{
-		"tool_call_title": "Message",
-		"name":            recipient.Name,
-		"message":         map[string]any{"role": "ROLE_USER", "blocks": []any{map[string]any{"text": "hello"}}},
+	toolCall := newToolCall("call-1", "AgentService_CreateDefinition", map[string]any{
+		"tool_call_title": "Define",
+		"parent":          organization,
+		"definition":      map[string]any{"title": "defined", "spec": map[string]any{"model": testModel}},
 		"request_id":      "made-up",
 	})
-	// Run again, as after a crash: the same request id queues the message once.
+	// Run again, as after a crash: the same request id creates the definition once.
 	for range 2 {
 		require.Nil(t, toolbox.call(context.Background(), toolCall).GetError())
 	}
-	require.Len(t, getAgent(t, service, recipient.Name).QueuedMessages, 1)
+	listDefinitionsRequest := &agentservicepb.ListDefinitionsRequest{Parent: organization}
+	listDefinitionsResponse, err := service.ListDefinitions(context.Background(), listDefinitionsRequest)
+	require.NoError(t, err)
+	require.Len(t, listDefinitionsResponse.Definitions, 1)
 }

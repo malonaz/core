@@ -23,6 +23,10 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing agent name: %v", err).Err()
 	}
+	canceller, err := requesterOf(ctx)
+	if err != nil {
+		return nil, err
+	}
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: request.Name}
 	if done, ok := s.turns.cancel(request.Name, errTurnCancelled); ok {
 		select {
@@ -88,7 +92,7 @@ func (s *Service) CancelAgent(ctx context.Context, request *agentservicepb.Cance
 		if claimedMeanwhile = lease != nil && !lease.Expired; claimedMeanwhile {
 			return nil
 		}
-		if err := t.cancelTurn(ctx, agent); err != nil {
+		if err := t.cancelTurn(ctx, agent, canceller); err != nil {
 			return err
 		}
 		cancelled = true

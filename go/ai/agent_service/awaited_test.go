@@ -37,14 +37,16 @@ func createGatedAgent(t *testing.T, service *testReplica, extraTools ...*agentpb
 	return createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: testModel, Tools: tools, MaxSubAgentDepth: 1})
 }
 
-func approve(service *testReplica, agent, toolCallID string) (*agentpb.Agent, error) {
+func approve(t *testing.T, service *testReplica, agent, toolCallID string) (*agentpb.Agent, error) {
+	t.Helper()
 	approveToolCallRequest := &agentservicepb.ApproveToolCallRequest{Name: agent, ToolCallId: toolCallID}
-	return service.ApproveToolCall(context.Background(), approveToolCallRequest)
+	return service.ApproveToolCall(ownerContext(t, agent), approveToolCallRequest)
 }
 
-func resolve(service *testReplica, agent, toolCallID string, toolResult *aipb.ToolResult) (*agentpb.Agent, error) {
+func resolve(t *testing.T, service *testReplica, agent, toolCallID string, toolResult *aipb.ToolResult) (*agentpb.Agent, error) {
+	t.Helper()
 	resolveToolCallRequest := &agentservicepb.ResolveToolCallRequest{Name: agent, ToolCallId: toolCallID, Result: toolResult}
-	return service.ResolveToolCall(context.Background(), resolveToolCallRequest)
+	return service.ResolveToolCall(ownerContext(t, agent), resolveToolCallRequest)
 }
 
 func healthCheckCall(id, service string) *aipb.ToolCall {
@@ -78,17 +80,17 @@ func TestAwaited_ApprovalAndDenialResumeTheTurn(t *testing.T) {
 
 	// Approving twice is a no-op; denying an approved call fails.
 	for range 2 {
-		agent, err := approve(service, agent.Name, "call-1")
+		agent, err := approve(t, service, agent.Name, "call-1")
 		require.NoError(t, err)
 		require.Equal(t, agentpb.Agent_STATE_AWAITING, agent.State)
 	}
-	_, err := resolve(service, agent.Name, "call-1", ai.NewErrorToolResult("", "", status.Errorf(codes.PermissionDenied, "no").Err()))
+	_, err := resolve(t, service, agent.Name, "call-1", ai.NewErrorToolResult("", "", status.Errorf(codes.PermissionDenied, "no").Err()))
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
 	// A call awaiting approval is denied by an error result only.
-	_, err = resolve(service, agent.Name, "call-2", ai.NewToolResult("", "", "fine"))
+	_, err = resolve(t, service, agent.Name, "call-2", ai.NewToolResult("", "", "fine"))
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 
-	_, err = resolve(service, agent.Name, "call-2", ai.NewErrorToolResult("", "", status.Errorf(codes.PermissionDenied, "not that one").Err()))
+	_, err = resolve(t, service, agent.Name, "call-2", ai.NewErrorToolResult("", "", status.Errorf(codes.PermissionDenied, "not that one").Err()))
 	require.NoError(t, err)
 
 	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
@@ -147,7 +149,7 @@ func TestAwaited_ConcurrentSettlementsResumeOnce(t *testing.T) {
 	var waitGroup sync.WaitGroup
 	for _, toolCall := range toolCalls {
 		waitGroup.Go(func() {
-			_, err := approve(service, agent.Name, toolCall.Id)
+			_, err := approve(t, service, agent.Name, toolCall.Id)
 			require.NoError(t, err)
 		})
 	}
@@ -179,16 +181,16 @@ func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 	require.Len(t, agent.GetLatestTurn().GetAwaitedToolCalls(), 1)
 	require.Equal(t, agentpb.AwaitedToolCall_REASON_INPUT, agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetReason())
 
-	_, err := approve(service, agent.Name, "call-2")
+	_, err := approve(t, service, agent.Name, "call-2")
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
-	_, err = resolve(service, agent.Name, "call-2", ai.NewToolResult("", "", "the first"))
+	_, err = resolve(t, service, agent.Name, "call-2", ai.NewToolResult("", "", "the first"))
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 	wrongVariant := ai.NewToolResult("", "", "")
 	require.NoError(t, genuipb.Annotations.InputResponse.Set(wrongVariant, &genuipb.InputResponse{
 		ComponentId: "call-2",
 		Response:    &genuipb.InputResponse_Confirmation{Confirmation: &genuipb.ConfirmationResponse{Confirmed: true}},
 	}))
-	_, err = resolve(service, agent.Name, "call-2", wrongVariant)
+	_, err = resolve(t, service, agent.Name, "call-2", wrongVariant)
 	require.True(t, status.HasCode(err, codes.InvalidArgument))
 
 	answer := &aipb.ToolResult{}
@@ -196,7 +198,7 @@ func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 		ComponentId: "call-2",
 		Response:    &genuipb.InputResponse_Choice{Choice: &genuipb.ChoiceResponse{Option: "the first"}},
 	}))
-	_, err = resolve(service, agent.Name, "call-2", answer)
+	_, err = resolve(t, service, agent.Name, "call-2", answer)
 	require.NoError(t, err)
 
 	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
@@ -215,7 +217,7 @@ func TestAwaited_UserMessageDeniesAndResumes(t *testing.T) {
 	waitForState(t, service, agent.Name, agentpb.Agent_STATE_AWAITING)
 
 	// Another agent's message only queues.
-	_, err := service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("a report")), sibling.Name, uuid.MustNewV7().String())
+	_, err := service.messageAgent(context.Background(), agent.Name, ai.NewUserMessage(ai.NewTextBlock("a report")), requester{principal: sibling.Name}, uuid.MustNewV7().String())
 	require.NoError(t, err)
 	time.Sleep(3 * service.opts.ClaimInterval)
 	require.Equal(t, agentpb.Agent_STATE_AWAITING, getAgent(t, service, agent.Name).State)
@@ -255,12 +257,12 @@ func TestAwaited_CancelWhileAwaiting(t *testing.T) {
 	waitForState(t, service, agent.Name, agentpb.Agent_STATE_AWAITING)
 
 	cancelAgentRequest := &agentservicepb.CancelAgentRequest{Name: agent.Name}
-	cancelledAgent, err := service.CancelAgent(context.Background(), cancelAgentRequest)
+	cancelledAgent, err := service.CancelAgent(ownerContext(t, cancelAgentRequest.Name), cancelAgentRequest)
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, cancelledAgent.State)
 	require.Equal(t, agentpb.Turn_OUTCOME_CANCELLED, cancelledAgent.GetLatestTurn().GetOutcome())
 	// The parent hears of it once.
-	_, err = service.CancelAgent(context.Background(), cancelAgentRequest)
+	_, err = service.CancelAgent(ownerContext(t, cancelAgentRequest.Name), cancelAgentRequest)
 	require.NoError(t, err)
 	waitForState(t, service, parentAgent.Name, agentpb.Agent_STATE_IDLE)
 	reports := sentMessages(t, service, parentAgent.Name)
@@ -349,7 +351,7 @@ func TestAwaited_SettledOnAnotherReplicaResumesThere(t *testing.T) {
 
 	// Settled on a replica without room, the RUNNING agent is left to the claim scans.
 	idleReplica := newIdleReplica(t, aiService)
-	settledAgent, err := approve(idleReplica, agent.Name, "call-1")
+	settledAgent, err := approve(t, idleReplica, agent.Name, "call-1")
 	require.NoError(t, err)
 	require.Equal(t, agentpb.Agent_STATE_RUNNING, settledAgent.State)
 

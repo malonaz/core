@@ -86,7 +86,7 @@ func TestSearchAgents(t *testing.T) {
 
 	t.Run("ExcludesDeletedAgentsByDefault", func(t *testing.T) {
 		deleteAgentRequest := &agentservicepb.DeleteAgentRequest{Name: titled.Name}
-		_, err := service.DeleteAgent(context.Background(), deleteAgentRequest)
+		_, err := service.DeleteAgent(ownerContext(t, deleteAgentRequest.Name), deleteAgentRequest)
 		require.NoError(t, err)
 		searchAgentsRequest := &agentservicepb.SearchAgentsRequest{Parent: user, Query: "reconciler"}
 		require.Empty(t, searchAgents(t, service, searchAgentsRequest))
