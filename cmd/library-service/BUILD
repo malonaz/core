@@ -24,6 +24,7 @@ go_binary(
         "//go/logging",
         "//go/nats",
         "//go/postgres",
+        "//go/pprof",
         "//go/prometheus",
         "//go/scheduler/longrunning",
         "//go/sentry",

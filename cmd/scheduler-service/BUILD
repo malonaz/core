@@ -24,6 +24,7 @@ go_binary(
         "//go/lifecycle",
         "//go/logging",
         "//go/postgres",
+        "//go/pprof",
         "//go/prometheus",
         "//go/scheduler/scheduler_dispatcher",
         "//go/scheduler/scheduler_service",

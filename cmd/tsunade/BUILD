@@ -26,6 +26,7 @@ go_binary(
         "//go/health",
         "//go/logging",
         "//go/postgres",
+        "//go/pprof",
         "//go/prometheus",
         "//go/sentry",
         "//malonaz/ai/ai_service/v1",

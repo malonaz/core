@@ -108,6 +108,10 @@ func (g *generator) generate() {
 	g.P("go prometheusServer.Start(ctx)")
 	g.P("defer prometheusServer.Stop(ctx)")
 	g.P()
+	g.P("pprofServer := ", g.Qual(core+"/pprof", "NewServer"), "(opts.Pprof)")
+	g.P("go pprofServer.Start(ctx)")
+	g.P("defer pprofServer.Stop(ctx)")
+	g.P()
 	if g.b.Authentication {
 		g.authenticationInterceptor()
 	}
@@ -224,6 +228,7 @@ func (g *generator) opts() {
 	g.P("Logging *", g.Qual(core+"/logging", "Opts"), " ", gen.Tag("Logging", "logging"))
 	g.P("Health *", g.Qual(core+"/health", "Opts"), " ", gen.Tag("Health", "health"))
 	g.P("Prometheus *", g.Qual(core+"/prometheus", "Opts"), " ", gen.Tag("Prometheus", "prometheus"))
+	g.P("Pprof *", g.Qual(core+"/pprof", "Opts"), " ", gen.Tag("Pprof", "pprof"))
 	g.P("Certs *", g.Qual(core+"/certs", "Opts"), " ", gen.Tag("Certs", "certs"))
 	g.P("Sentry *", g.Qual(core+"/sentry", "Opts"), " ", gen.Tag("Sentry", "sentry"))
 
