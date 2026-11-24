@@ -27,9 +27,11 @@ import (
 )
 
 const (
-	healthService     = "grpc.health.v1.Health"
-	healthCheckMethod = "grpc.health.v1.Health.Check"
-	healthCheckTool   = "Health_Check"
+	healthService = "grpc.health.v1.Health"
+	// healthToolSet and healthCheckGrant are the Health service's tool set and its Check tool, as specs grant them.
+	healthToolSet    = "toolSets/" + healthService
+	healthCheckGrant = healthToolSet + "/tools/Check"
+	healthCheckTool  = "Health_Check"
 )
 
 // fakeHealthServer is a tool target behind the test interceptor: it records its Check requests and answers SERVING,
@@ -150,7 +152,7 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createTestAgent(t, service, healthCheckMethod)
+	agent := createTestAgent(t, service, healthCheckGrant)
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(
 			newToolCall("call-1", healthCheckTool, map[string]any{"tool_call_title": "Check the health", "service": "library"}),
@@ -180,7 +182,7 @@ func TestTools_MethodOnMappedTarget(t *testing.T) {
 func TestTools_ServiceCoHostedOnTheReplica(t *testing.T) {
 	healthServer := &fakeHealthServer{}
 	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
-	agent := createTestAgent(t, service, healthService)
+	agent := createTestAgent(t, service, healthToolSet)
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"tool_call_title": "Check the health", "service": "co-hosted"})),
 		textGeneration("checked"),
@@ -207,7 +209,7 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createTestAgent(t, service, healthService)
+	agent := createTestAgent(t, service, healthToolSet)
 	toolCall := newToolCall("call-1", "Health_Discover", map[string]any{"tools": []any{healthCheckTool}})
 	toolCall.Result = ai.NewToolResult("Health_Discover", "call-1", "discovered")
 	service.aiService.script(agent.Chat, toolCallGeneration(toolCall), textGeneration("done"))
@@ -221,11 +223,11 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 
 func TestTools_UntargetedServicesAreRefused(t *testing.T) {
 	service := newTestService(t)
-	const refusal = "no tool target configured for tool no.such.Service.Method: add --tool-target for its service"
+	const refusal = "no tool target configured for tool set no.such.Service: add --tool-target for it"
 	user := newTestUser(t)
 	userRn, err := agentpb.ParseUserRn(user)
 	require.NoError(t, err)
-	spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_Tool{{Name: "no.such.Service.Method"}}}
+	spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{toolGrant("toolSets/no.such.Service/tools/Method")}}
 
 	createAgentRequest := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: spec}}
 	_, err = service.CreateAgent(context.Background(), createAgentRequest)
@@ -257,7 +259,7 @@ func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createTestAgent(t, targetedReplica, healthCheckMethod)
+	agent := createTestAgent(t, targetedReplica, healthCheckGrant)
 	sendText(t, targetedReplica, agent.Name, "check")
 
 	// A replica configured without the target takes the turn.
@@ -270,7 +272,7 @@ func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
 	agent = getAgent(t, service, agent.Name)
 	require.Equal(t, agentpb.Agent_STATE_IDLE, agent.State)
 	require.Len(t, agent.QueuedMessages, 1)
-	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "no tool target configured for tool "+healthCheckMethod)
+	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "no tool target configured for tool set "+healthService)
 }
 
 func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
@@ -278,7 +280,7 @@ func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createTestAgent(t, service, healthCheckMethod)
+	agent := createTestAgent(t, service, healthCheckGrant)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	toolbox, err := service.newToolbox(ctx, agent)
@@ -295,7 +297,7 @@ func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
 
 func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
 	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id.
-	const createDefinitionMethod = "malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition"
+	const createDefinitionMethod = "toolSets/malonaz.ai.agent.agent_service.v1.AgentService/tools/CreateDefinition"
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{"malonaz.ai.agent.agent_service.v1.AgentService": opts.AdvertisedAddress}

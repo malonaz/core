@@ -7,6 +7,8 @@ subinclude(
 proto_descriptor_set(
     name = "descriptor_set",
     srcs = ["//malonaz/workspace/workspace_service/v1"],
+    # The agent service's tests read tool descriptions from it.
+    visibility = ["//go/ai/agent_service/..."],
     deps = ["//malonaz/workspace/workspace_service/v1"],
 )
 

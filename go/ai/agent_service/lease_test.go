@@ -209,7 +209,7 @@ func TestLease_LostLeaseIsTakenOver(t *testing.T) {
 func TestLease_CancelLocalTurn(t *testing.T) {
 	healthServer := &fakeHealthServer{}
 	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
-	agent := createTestAgent(t, service, healthCheckMethod)
+	agent := createTestAgent(t, service, healthCheckGrant)
 	service.aiService.script(agent.Chat, toolCallGeneration(
 		newToolCall("call-1", healthCheckTool, map[string]any{"service": "a"}),
 		newToolCall("call-2", healthCheckTool, map[string]any{"service": "block"}),
@@ -288,7 +288,7 @@ func TestLease_ShutdownFinishesToolCallsThenHandsTheTurnOver(t *testing.T) {
 	aiService := newFakeAiService()
 	configure := func(opts *Opts) { opts.ToolTargets = map[string]string{healthService: endpoint} }
 	replicaA := newTestReplica(t, aiService, configure)
-	agent := createTestAgent(t, replicaA, healthCheckMethod)
+	agent := createTestAgent(t, replicaA, healthCheckGrant)
 	toolCallGeneration := toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"service": "slow"}))
 	toolCallGeneration.started = make(chan struct{})
 	aiService.script(agent.Chat, toolCallGeneration, textGeneration("finished elsewhere"))

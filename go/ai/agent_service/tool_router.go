@@ -3,7 +3,6 @@ package agent_service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -11,7 +10,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -20,8 +18,7 @@ import (
 // toolSchemaTTL bounds how long a target's reflected schema is reused: a redeployed target may change its API.
 const toolSchemaTTL = 5 * time.Minute
 
-// toolRouter routes tool services to the endpoints serving them, their configured targets. A tool whose service has
-// no target is refused.
+// toolRouter routes the tool sets of gRPC services to the endpoints serving them, their configured targets.
 type toolRouter struct {
 	serviceToEndpoint map[string]string
 	connections       *connections
@@ -32,37 +29,14 @@ func newToolRouter(serviceToEndpoint map[string]string, connections *connections
 		if service == "" {
 			return nil, fmt.Errorf("tool target %q names no service", endpoint)
 		}
+		if service == genuiToolSet {
+			return nil, fmt.Errorf("tool target %q: %s is the genui components' tool set", endpoint, genuiToolSet)
+		}
 		if _, err := grpc.ParseClientOpts(endpoint); err != nil {
 			return nil, fmt.Errorf("parsing the endpoint of tool service %s: %w", service, err)
 		}
 	}
 	return &toolRouter{serviceToEndpoint: serviceToEndpoint, connections: connections}, nil
-}
-
-// endpoint returns the endpoint serving a tool: a service, or one of its methods.
-func (r *toolRouter) endpoint(tool string) (string, error) {
-	if endpoint, ok := r.serviceToEndpoint[tool]; ok {
-		return endpoint, nil
-	}
-	if i := strings.LastIndex(tool, "."); i > 0 {
-		if endpoint, ok := r.serviceToEndpoint[tool[:i]]; ok {
-			return endpoint, nil
-		}
-	}
-	return "", status.Errorf(codes.InvalidArgument, "no tool target configured for tool %s: add --tool-target for its service", tool).Err()
-}
-
-// validate checks that the service of every RPC tool of a spec has a target; genui components need none.
-func (r *toolRouter) validate(spec *agentpb.AgentSpec, genuiComponents *genuiComponents) error {
-	for _, tool := range spec.GetTools() {
-		if _, ok := genuiComponents.nameToComponent[tool.GetName()]; ok {
-			continue
-		}
-		if _, err := r.endpoint(tool.GetName()); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // schema returns the schema an endpoint serves, resolved through its gRPC server reflection on ctx.
@@ -79,11 +53,39 @@ func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection
 	return schema, nil
 }
 
-// invoke calls a method at an endpoint on ctx.
-func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
+// service returns a routed service's descriptor and the schema holding it, read from its target as ctx.
+func (r *toolRouter) service(ctx context.Context, service string) (protoreflect.ServiceDescriptor, *pbreflection.Schema, error) {
+	endpoint, ok := r.serviceToEndpoint[service]
+	if !ok {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "no tool target configured for tool set %s: add --tool-target for it", service).Err()
+	}
+	schema, err := r.schema(ctx, endpoint)
+	if err != nil {
+		return nil, nil, status.Errorf(codes.Unavailable, "reading tool set %s: %v", service, err).Err()
+	}
+	descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(service))
+	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
+	if err != nil || !ok {
+		return nil, nil, status.Errorf(codes.Unavailable, "%s serves no service %s", endpoint, service).Err()
+	}
+	return serviceDescriptor, schema, nil
+}
+
+// invoke calls a method of a routed service on ctx.
+func (r *toolRouter) invoke(ctx context.Context, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
+	endpoint := r.serviceToEndpoint[string(method.Parent().FullName())]
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
 	}
 	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(ctx, method, request)
+}
+
+// unaryMethod returns a service's method by name if it is a tool: unary.
+func unaryMethod(service protoreflect.ServiceDescriptor, name string) (protoreflect.MethodDescriptor, bool) {
+	method := service.Methods().ByName(protoreflect.Name(name))
+	if method == nil || method.IsStreamingClient() || method.IsStreamingServer() {
+		return nil, false
+	}
+	return method, true
 }

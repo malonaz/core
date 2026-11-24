@@ -176,8 +176,13 @@ func (s *Service) snapshotDefinitionSpec(ctx context.Context, agentRn *agentpb.A
 	return definition.Spec, nil
 }
 
-// UpdateAgent updates an agent's labels, annotations or title.
+// UpdateAgent updates an agent's labels, annotations, title or tool grants. New grants take effect at its next turn.
 func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.UpdateAgentRequest) (*agentpb.Agent, error) {
+	if slices.ContainsFunc(request.GetUpdateMask().GetPaths(), func(path string) bool { return path == "*" || path == "spec.tools" }) {
+		if err := s.validateTools(request.GetAgent().GetSpec()); err != nil {
+			return nil, err
+		}
+	}
 	agent, err := s.AgentServiceServer.UpdateAgent(ctx, request)
 	if err != nil {
 		return nil, err
@@ -367,7 +372,7 @@ func (t *txn) cancelTurn(ctx context.Context, agent *agentpb.Agent, canceller re
 	agent.LatestTurn.EndTime = timestamppb.New(t.now)
 	agent.LatestTurn.Outcome = agentpb.Turn_OUTCOME_CANCELLED
 	agent.LatestTurn.Error = nil
-	resolveAwaitedToolCalls(agent, canceller, errToolCallCancelled)
+	resolveAwaitedToolCalls(agent, canceller, errAwaitedToolCallCancelled)
 	return nil
 }
 

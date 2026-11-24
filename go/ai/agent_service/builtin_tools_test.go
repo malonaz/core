@@ -182,14 +182,14 @@ func TestBuiltinTools_CreateAgentsGatesDefinitions(t *testing.T) {
 
 func TestBuiltinTools_CreateAgentsRejectsToolsTheCallerLacks(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
-	agent := createTestAgent(t, service, healthCheckMethod)
+	agent := createTestAgent(t, service, healthCheckGrant)
 	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
 		"tool_call_title": "Launch",
-		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{map[string]any{"name": "other.Service"}}}},
+		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{map[string]any{"tool_set": "toolSets/other.Service"}}}},
 	})
 
 	toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
-	require.Contains(t, toolResult.GetError().GetMessage(), "you do not hold tool other.Service")
+	require.Contains(t, toolResult.GetError().GetMessage(), "you do not hold tool set toolSets/other.Service")
 	require.Empty(t, listChildAgents(t, service, agent))
 }
 

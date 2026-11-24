@@ -358,8 +358,8 @@ func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.Too
 			}
 		}
 		if toolResult == nil {
-			if reason, ok := r.toolbox.await(toolCall); ok {
-				stillAwaitedToolCalls = append(stillAwaitedToolCalls, newAwaitedToolCall(toolCall, reason))
+			if reason, tool, ok := r.toolbox.await(toolCall); ok {
+				stillAwaitedToolCalls = append(stillAwaitedToolCalls, newAwaitedToolCall(toolCall, reason, tool))
 				continue
 			}
 			toolResult = ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), errToolCallInterrupted)
@@ -414,9 +414,9 @@ func (r *turnRunner) updateAwaitedToolCalls(ctx context.Context, update func(*ag
 }
 
 // newAwaitedToolCall returns a call awaiting a user.
-func newAwaitedToolCall(toolCall *aipb.ToolCall, reason agentpb.AwaitedToolCall_Reason) *agentpb.AwaitedToolCall {
+func newAwaitedToolCall(toolCall *aipb.ToolCall, reason agentpb.AwaitedToolCall_Reason, tool string) *agentpb.AwaitedToolCall {
 	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
-	return &agentpb.AwaitedToolCall{ToolCallId: toolCall.GetId(), ToolName: toolCall.GetName(), Title: title, Reason: reason}
+	return &agentpb.AwaitedToolCall{ToolCallId: toolCall.GetId(), ToolName: toolCall.GetName(), Tool: tool, Title: title, Reason: reason}
 }
 
 // deliverMessages writes the agent's queued messages to its chat, each as its own user message named as it was queued:
@@ -647,8 +647,8 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, calls []*aipb.ToolCall
 	var awaitedToolCalls []*agentpb.AwaitedToolCall
 	for _, toolCall := range calls {
 		if toolCall.GetResult() == nil {
-			if reason, ok := r.toolbox.await(toolCall); ok {
-				awaitedToolCalls = append(awaitedToolCalls, newAwaitedToolCall(toolCall, reason))
+			if reason, tool, ok := r.toolbox.await(toolCall); ok {
+				awaitedToolCalls = append(awaitedToolCalls, newAwaitedToolCall(toolCall, reason, tool))
 				continue
 			}
 		}

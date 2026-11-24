@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	genuipb "github.com/malonaz/core/genproto/ai/genui/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -17,12 +18,18 @@ import (
 	"github.com/malonaz/core/go/pbutil"
 )
 
-// genuiComponentFile declares every genui component, through the Component envelope.
-const genuiComponentFile = "malonaz/ai/genui/v1/component.proto"
+const (
+	// genuiComponentFile declares every genui component, through the Component envelope.
+	genuiComponentFile = "malonaz/ai/genui/v1/component.proto"
+	// genuiToolSet is the id of the genui components' tool set.
+	genuiToolSet = "genui"
+)
 
 // genuiComponent is a genui component an agent may render, by calling its tool.
 type genuiComponent struct {
 	tool *aipb.Tool
+	// The component's resource name in the catalogue.
+	resourceName string
 	// The component's message full name.
 	name protoreflect.FullName
 	// Whether the component collects the user's answer: its call awaits the user.
@@ -31,7 +38,9 @@ type genuiComponent struct {
 
 // genuiComponents are the genui components agents may render, served by this binary: they need no tool target.
 type genuiComponents struct {
-	nameToComponent     map[string]*genuiComponent
+	// In declaration order.
+	components          []*genuiComponent
+	idToComponent       map[string]*genuiComponent
 	toolNameToComponent map[string]*genuiComponent
 }
 
@@ -40,7 +49,7 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 	if err != nil {
 		return nil, err
 	}
-	genuiComponents := &genuiComponents{nameToComponent: map[string]*genuiComponent{}, toolNameToComponent: map[string]*genuiComponent{}}
+	genuiComponents := &genuiComponents{idToComponent: map[string]*genuiComponent{}, toolNameToComponent: map[string]*genuiComponent{}}
 	fields := (&genuipb.Component{}).ProtoReflect().Descriptor().Oneofs().ByName("component").Fields()
 	for i := 0; i < fields.Len(); i++ {
 		message := fields.Get(i).Message()
@@ -59,19 +68,22 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 		if input {
 			tool.Description = fmt.Sprintf("Ask the user with a %s. END YOUR TURN after calling it: the user's answer arrives as this call's result.", message.Name())
 		}
-		genuiComponent := &genuiComponent{tool: tool, name: message.FullName(), input: input}
-		genuiComponents.nameToComponent[string(message.FullName())] = genuiComponent
+		resourceName := (&agentpb.ToolSetRn{ToolSet: genuiToolSet}).ToolRn(string(message.Name())).String()
+		genuiComponent := &genuiComponent{tool: tool, resourceName: resourceName, name: message.FullName(), input: input}
+		genuiComponents.components = append(genuiComponents.components, genuiComponent)
+		genuiComponents.idToComponent[string(message.Name())] = genuiComponent
 		genuiComponents.toolNameToComponent[tool.GetName()] = genuiComponent
 	}
 	return genuiComponents, nil
 }
 
 // validateInputResponse checks that a result answering an input component's call carries the component's
-// InputResponse, and fills its content with the response's canonical JSON if empty: the model reads the content.
+// InputResponse, and fills its content with the response's canonical JSON if empty: the model reads the content. An
+// error result, the call refused, carries none.
 func (c *genuiComponents) validateInputResponse(toolName, toolCallID string, toolResult *aipb.ToolResult) error {
 	component, ok := c.toolNameToComponent[toolName]
-	if !ok || !component.input {
-		return status.Errorf(codes.Internal, "tool %s is no input component", toolName).Err()
+	if !ok || !component.input || toolResult.GetError() != nil {
+		return nil
 	}
 	inputResponse, ok, err := genuipb.Annotations.InputResponse.Get(toolResult)
 	if err != nil {
@@ -90,9 +102,6 @@ func (c *genuiComponents) validateInputResponse(toolName, toolCallID string, too
 	response := inputResponse.ProtoReflect().WhichOneof(inputResponse.ProtoReflect().Descriptor().Oneofs().ByName("response"))
 	if response.Message().FullName() != component.name+"Response" {
 		return status.Errorf(codes.InvalidArgument, "a %s does not answer a %s", response.Message().Name(), component.name.Name()).Err()
-	}
-	if toolResult.GetError() != nil {
-		return status.Errorf(codes.InvalidArgument, "an input component is answered by a result, not an error").Err()
 	}
 	if toolResult.GetResult() == nil {
 		content, err := pbutil.JSONMarshal(inputResponse)

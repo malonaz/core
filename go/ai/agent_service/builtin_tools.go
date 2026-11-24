@@ -294,40 +294,85 @@ func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToo
 
 // approvalStrictness orders tool approvals from the loosest: no approval, approval of the calls with side effects,
 // approval of every call.
-var approvalStrictness = map[agentpb.AgentSpec_Tool_Approval]int{
-	agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED: 0,
-	agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED:  1,
-	agentpb.AgentSpec_Tool_APPROVAL_REQUIRED:     2,
+var approvalStrictness = map[agentpb.AgentSpec_ToolGrant_Approval]int{
+	agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED: 0,
+	agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED:  1,
+	agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED:     2,
 }
 
-// subAgentTools returns the tools of an ad-hoc sub-agent: a subset of its parent's, all of them by default, each
-// approval inheriting its parent's or tightening it, never loosening it.
-func subAgentTools(parentTools, requestedTools []*agentpb.AgentSpec_Tool) ([]*agentpb.AgentSpec_Tool, error) {
-	nameToParentTool := make(map[string]*agentpb.AgentSpec_Tool, len(parentTools))
-	parentToolNames := make([]string, 0, len(parentTools))
-	for _, parentTool := range parentTools {
-		nameToParentTool[parentTool.GetName()] = parentTool
-		parentToolNames = append(parentToolNames, parentTool.GetName())
+// stricter returns the stricter of two approvals.
+func stricter(approval, other agentpb.AgentSpec_ToolGrant_Approval) agentpb.AgentSpec_ToolGrant_Approval {
+	if approvalStrictness[other] > approvalStrictness[approval] {
+		return other
 	}
-	if len(requestedTools) == 0 {
-		requestedTools = parentTools
+	return approval
+}
+
+// subAgentTools returns the tool grants of an ad-hoc sub-agent: its parent's, all of them by default, or some of them
+// or tools of the sets its parent holds. Each approval inherits the parent's or tightens it, never loosening it, and a
+// set keeps the parent's refinements of its tools, tightened alike.
+func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant) ([]*agentpb.AgentSpec_ToolGrant, error) {
+	if len(requestedGrants) == 0 {
+		requestedGrants = parentGrants
 	}
-	tools := make([]*agentpb.AgentSpec_Tool, 0, len(requestedTools))
-	for _, requestedTool := range requestedTools {
-		parentTool, ok := nameToParentTool[requestedTool.GetName()]
-		if !ok {
-			return nil, fmt.Errorf("you do not hold tool %s (yours: %s)", requestedTool.GetName(), strings.Join(parentToolNames, ", "))
+	parent := newToolGrants(parentGrants)
+	requested := newToolGrants(requestedGrants)
+	grants := make([]*agentpb.AgentSpec_ToolGrant, 0, len(requestedGrants))
+	for _, requestedGrant := range requestedGrants {
+		parentApproval, err := heldApproval(parent, requestedGrant)
+		if err != nil {
+			return nil, err
 		}
-		tool := proto.CloneOf(parentTool)
-		if requestedTool.GetApproval() != agentpb.AgentSpec_Tool_APPROVAL_UNSPECIFIED {
-			if approvalStrictness[requestedTool.GetApproval()] < approvalStrictness[parentTool.GetApproval()] {
-				return nil, fmt.Errorf("tool %s may not loosen your approval %s to %s", tool.GetName(), parentTool.GetApproval(), requestedTool.GetApproval())
+		approval := requestedGrant.GetApproval()
+		if approval == agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED {
+			approval = parentApproval
+		} else if approvalStrictness[approval] < approvalStrictness[parentApproval] {
+			return nil, fmt.Errorf("%s may not loosen your approval %s to %s", grantName(requestedGrant), parentApproval, approval)
+		}
+		grant := proto.CloneOf(requestedGrant)
+		grant.Approval = approval
+		grants = append(grants, grant)
+		if requestedGrant.GetToolSet() == "" {
+			continue
+		}
+		for _, parentGrant := range parentGrants {
+			toolRn, err := agentpb.ParseToolRn(parentGrant.GetTool())
+			if err != nil || toolSetOf(toolRn) != requestedGrant.GetToolSet() || requested.toolToGrant[parentGrant.GetTool()] != nil {
+				continue
 			}
-			tool.Approval = requestedTool.GetApproval()
+			refinement := proto.CloneOf(parentGrant)
+			if requestedGrant.GetApproval() != agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED {
+				refinement.Approval = stricter(refinement.GetApproval(), requestedGrant.GetApproval())
+			}
+			grants = append(grants, refinement)
 		}
-		tools = append(tools, tool)
 	}
-	return tools, nil
+	return grants, nil
+}
+
+// heldApproval returns the approval under which a parent holds what a grant requests: the set itself, or the tool by
+// its own grant or its set's.
+func heldApproval(parent *toolGrants, grant *agentpb.AgentSpec_ToolGrant) (agentpb.AgentSpec_ToolGrant_Approval, error) {
+	if grant.GetToolSet() != "" {
+		parentGrant, ok := parent.toolSetToGrant[grant.GetToolSet()]
+		if !ok {
+			return 0, fmt.Errorf("you do not hold tool set %s", grant.GetToolSet())
+		}
+		return parentGrant.GetApproval(), nil
+	}
+	toolRn, err := agentpb.ParseToolRn(grant.GetTool())
+	if err != nil {
+		return 0, fmt.Errorf("parsing tool %q: %w", grant.GetTool(), err)
+	}
+	if _, ok := parent.toolToGrant[grant.GetTool()]; !ok && parent.toolSetToGrant[toolSetOf(toolRn)] == nil {
+		return 0, fmt.Errorf("you do not hold tool %s", grant.GetTool())
+	}
+	return parent.approval(toolRn), nil
+}
+
+// grantName returns what a grant grants.
+func grantName(grant *agentpb.AgentSpec_ToolGrant) string {
+	return cmp.Or(grant.GetToolSet(), grant.GetTool())
 }
 
 // =============================== message_agent ==============================

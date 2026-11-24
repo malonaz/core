@@ -212,8 +212,8 @@ func dispatcherContext(jobName string) context.Context {
 }
 
 const (
-	agentServiceName   = "malonaz.ai.agent.agent_service.v1.AgentService"
-	messageAgentMethod = agentServiceName + ".MessageAgent"
+	agentServiceName  = "malonaz.ai.agent.agent_service.v1.AgentService"
+	messageAgentGrant = "toolSets/" + agentServiceName + "/tools/MessageAgent"
 	// reflectionFullMethod is the call reading a tool target's schema.
 	reflectionFullMethod = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
 )
@@ -231,7 +231,7 @@ func TestTools_CalledAsTheOwner(t *testing.T) {
 		opts.ToolTargets = map[string]string{healthService: endpoint, agentServiceName: opts.AdvertisedAddress}
 	})
 	owner := newTestUser(t)
-	spec := &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckMethod, messageAgentMethod)}
+	spec := &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckGrant, messageAgentGrant)}
 	agent := createTestAgentWithSpec(t, service, owner, spec)
 	recipient := createTestAgentWithSpec(t, service, owner, spec)
 	toolbox, err := service.newToolbox(context.Background(), agent)
@@ -266,7 +266,7 @@ func TestTools_FailWithoutTheOwnersToken(t *testing.T) {
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
 	stranger := (&agentpb.UserRn{Organization: aip.NewSystemGeneratedBase32ResourceID(), User: strangerUserID}).String()
-	agent := createTestAgentWithSpec(t, service, stranger, &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckMethod)})
+	agent := createTestAgentWithSpec(t, service, stranger, &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckGrant)})
 	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
 
@@ -347,7 +347,7 @@ const (
 func TestAwaited_SettledByTheCallerAndTheirActor(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
 	agent := createGatedAgent(t, service)
-	service.aiService.script(agent.Chat, toolCallGeneration(healthCheckCall("call-1", "approved"), healthCheckCall("call-2", "denied")), textGeneration("done"))
+	service.aiService.script(agent.Chat, toolCallGeneration(healthCheckCall("call-1", "approved"), healthCheckCall("call-2", "refused")), textGeneration("done"))
 	sendText(t, service, agent.Name, "check")
 	waitForState(t, service, agent.Name, agentpb.Agent_STATE_AWAITING)
 
@@ -375,12 +375,12 @@ func TestAwaited_SettledByTheCallerAndTheirActor(t *testing.T) {
 	require.Equal(t, harper, approvedBy)
 	actor, _ := agentpb.Annotations.Actor.Get(toolCallIDToToolResult["call-1"])
 	require.Equal(t, operator, actor)
-	deniedBy, _ := agentpb.Annotations.DeniedBy.Get(toolCallIDToToolResult["call-2"])
-	require.Equal(t, harper, deniedBy)
+	resolvedBy, _ := agentpb.Annotations.ResolvedBy.Get(toolCallIDToToolResult["call-2"])
+	require.Equal(t, harper, resolvedBy)
 	require.False(t, agentpb.Annotations.Actor.Has(toolCallIDToToolResult["call-2"]))
 }
 
-func TestCancelAgent_DeniesAwaitedCallsAsTheCanceller(t *testing.T) {
+func TestCancelAgent_ResolvesAwaitedCallsAsTheCanceller(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), targetSelf, (&fakeHealthServer{}).register)
 	agent := createGatedAgent(t, service)
 	service.aiService.script(agent.Chat, toolCallGeneration(healthCheckCall("call-1", "x")), textGeneration("done"))
@@ -396,8 +396,9 @@ func TestCancelAgent_DeniesAwaitedCallsAsTheCanceller(t *testing.T) {
 	resolution := cancelledAgent.GetLatestTurn().GetAwaitedToolCalls()[0].GetResolution()
 	require.Equal(t, harper, resolution.GetResolver())
 	require.Equal(t, operator, resolution.GetActor())
-	deniedBy, _ := agentpb.Annotations.DeniedBy.Get(resolution.GetResult())
-	require.Equal(t, harper, deniedBy)
+	resolvedBy, _ := agentpb.Annotations.ResolvedBy.Get(resolution.GetResult())
+	require.Equal(t, harper, resolvedBy)
+	require.Equal(t, int32(codes.Canceled), resolution.GetResult().GetError().GetCode())
 	actor, _ := agentpb.Annotations.Actor.Get(resolution.GetResult())
 	require.Equal(t, operator, actor)
 }

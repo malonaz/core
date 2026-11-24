@@ -46,41 +46,112 @@ type toolbox struct {
 
 // methodTool is a tool calling a gRPC method.
 type methodTool struct {
-	endpoint      string
+	// The tool's resource name in the catalogue.
+	resourceName  string
 	method        protoreflect.MethodDescriptor
 	schemaBuilder *pbjson.SchemaBuilder
 	// Whether a call awaits the user's approval.
 	approvalRequired bool
 }
 
-// approvalRequired reports whether a call to a method awaits the user's approval: by its tool's setting, else unless
+// approvalRequired reports whether a call to a method awaits the user's approval: by its grant's setting, else unless
 // the method has no side effects.
-func approvalRequired(approval agentpb.AgentSpec_Tool_Approval, method protoreflect.MethodDescriptor) bool {
+func approvalRequired(approval agentpb.AgentSpec_ToolGrant_Approval, method protoreflect.MethodDescriptor) bool {
 	switch approval {
-	case agentpb.AgentSpec_Tool_APPROVAL_REQUIRED:
+	case agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED:
 		return true
-	case agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED:
+	case agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED:
 		return false
 	default:
-		return method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() != descriptorpb.MethodOptions_NO_SIDE_EFFECTS
+		return !readOnly(method)
 	}
 }
 
-// await reports whether a call awaits a user, and why: the approval of a gated method, or the answer to an input
-// component.
-func (b *toolbox) await(toolCall *aipb.ToolCall) (agentpb.AwaitedToolCall_Reason, bool) {
+// readOnly reports whether a method declares it has no side effects.
+func readOnly(method protoreflect.MethodDescriptor) bool {
+	return method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS
+}
+
+// await reports whether a call awaits a user, why, and the resource name of the tool called: the approval of a gated
+// method, or the answer to an input component.
+func (b *toolbox) await(toolCall *aipb.ToolCall) (agentpb.AwaitedToolCall_Reason, string, bool) {
 	if genuiComponent, ok := b.toolNameToGenuiComponent[toolCall.GetName()]; ok && genuiComponent.input {
-		return agentpb.AwaitedToolCall_REASON_INPUT, true
+		return agentpb.AwaitedToolCall_REASON_RESULT, genuiComponent.resourceName, true
 	}
 	if methodTool, ok := b.toolNameToMethodTool[toolCall.GetName()]; ok && methodTool.approvalRequired {
-		return agentpb.AwaitedToolCall_REASON_APPROVAL, true
+		return agentpb.AwaitedToolCall_REASON_APPROVAL, methodTool.resourceName, true
 	}
-	return agentpb.AwaitedToolCall_REASON_UNSPECIFIED, false
+	return agentpb.AwaitedToolCall_REASON_UNSPECIFIED, "", false
 }
 
-// newToolbox resolves the tools of the agent's turn: each spec tool naming a method becomes a tool, each naming a
-// service a tool set its methods are discovered from, each naming a genui component that component's tool. Methods'
-// schemas are reflected from the endpoints serving them.
+// toolGrants indexes a spec's grants by what they grant.
+type toolGrants struct {
+	toolSetToGrant map[string]*agentpb.AgentSpec_ToolGrant
+	toolToGrant    map[string]*agentpb.AgentSpec_ToolGrant
+}
+
+func newToolGrants(grants []*agentpb.AgentSpec_ToolGrant) *toolGrants {
+	toolGrants := &toolGrants{toolSetToGrant: map[string]*agentpb.AgentSpec_ToolGrant{}, toolToGrant: map[string]*agentpb.AgentSpec_ToolGrant{}}
+	for _, grant := range grants {
+		if grant.GetToolSet() != "" {
+			toolGrants.toolSetToGrant[grant.GetToolSet()] = grant
+		} else {
+			toolGrants.toolToGrant[grant.GetTool()] = grant
+		}
+	}
+	return toolGrants
+}
+
+// approval returns the approval governing a tool: its own grant's, else its set's.
+func (g *toolGrants) approval(toolRn *agentpb.ToolRn) agentpb.AgentSpec_ToolGrant_Approval {
+	if grant, ok := g.toolToGrant[toolRn.String()]; ok {
+		return grant.GetApproval()
+	}
+	return g.toolSetToGrant[toolSetOf(toolRn)].GetApproval()
+}
+
+// toolSetOf returns the resource name of a tool's set.
+func toolSetOf(toolRn *agentpb.ToolRn) string {
+	return (&agentpb.ToolSetRn{ToolSet: toolRn.ToolSet}).String()
+}
+
+// validateTools checks that every grant of a spec names a configured tool set, a genui component that exists, and no
+// approval for a genui component, whose calls never await one. Methods are checked when a turn reads its targets.
+func (s *Service) validateTools(spec *agentpb.AgentSpec) error {
+	for _, grant := range spec.GetTools() {
+		var toolSet, tool string
+		if grant.GetToolSet() != "" {
+			toolSetRn, err := agentpb.ParseToolSetRn(grant.GetToolSet())
+			if err != nil {
+				return status.Errorf(codes.InvalidArgument, "parsing tool set %q: %v", grant.GetToolSet(), err).Err()
+			}
+			toolSet = toolSetRn.ToolSet
+		} else {
+			toolRn, err := agentpb.ParseToolRn(grant.GetTool())
+			if err != nil {
+				return status.Errorf(codes.InvalidArgument, "parsing tool %q: %v", grant.GetTool(), err).Err()
+			}
+			toolSet, tool = toolRn.ToolSet, toolRn.Tool
+		}
+		if toolSet != genuiToolSet {
+			if _, ok := s.toolRouter.serviceToEndpoint[toolSet]; !ok {
+				return status.Errorf(codes.InvalidArgument, "no tool target configured for tool set %s: add --tool-target for it", toolSet).Err()
+			}
+			continue
+		}
+		if _, ok := s.genuiComponents.idToComponent[tool]; tool != "" && !ok {
+			return status.Errorf(codes.InvalidArgument, "%s is no genui component", grant.GetTool()).Err()
+		}
+		if grant.GetApproval() != agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED {
+			return status.Errorf(codes.InvalidArgument, "genui components never await approval: %s takes none", grant.GetToolSet()+grant.GetTool()).Err()
+		}
+	}
+	return nil
+}
+
+// newToolbox resolves the tools of the agent's turn from its grants: a granted service becomes a tool set its methods
+// are discovered from, the granted genui set each component's tool, a tool granted alone that tool. A tool granted
+// inside a granted set only refines its approval. Methods' schemas are reflected from the endpoints serving them.
 func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbox, error) {
 	toolbox := &toolbox{
 		service:                  s,
@@ -111,76 +182,91 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			return nil, err
 		}
 	}
+	addGenuiComponent := func(genuiComponent *genuiComponent) error {
+		if err := addToolName(genuiComponent.tool.GetName()); err != nil {
+			return err
+		}
+		toolbox.tools = append(toolbox.tools, genuiComponent.tool)
+		toolbox.toolNameToGenuiComponent[genuiComponent.tool.GetName()] = genuiComponent
+		return nil
+	}
 
+	grants := newToolGrants(agent.GetSpec().GetTools())
 	schemaConfiguration := aitool.NewSchemaConfiguration(aitool.WithTitle(toolCallTitleDescription))
-	for _, specTool := range agent.GetSpec().GetTools() {
-		name := specTool.GetName()
-		if genuiComponent, ok := s.genuiComponents.nameToComponent[name]; ok {
-			if err := addToolName(genuiComponent.tool.GetName()); err != nil {
-				return nil, err
+	for _, grant := range agent.GetSpec().GetTools() {
+		toolSet, toolID := grant.GetToolSet(), ""
+		if toolSet == "" {
+			toolRn, err := agentpb.ParseToolRn(grant.GetTool())
+			if err != nil {
+				return nil, status.Errorf(codes.FailedPrecondition, "parsing tool %q: %v", grant.GetTool(), err).Err()
 			}
-			toolbox.tools = append(toolbox.tools, genuiComponent.tool)
-			toolbox.toolNameToGenuiComponent[genuiComponent.tool.GetName()] = genuiComponent
+			if toolSet = toolSetOf(toolRn); grants.toolSetToGrant[toolSet] != nil {
+				continue
+			}
+			toolID = toolRn.Tool
+		}
+		toolSetRn, err := agentpb.ParseToolSetRn(toolSet)
+		if err != nil {
+			return nil, status.Errorf(codes.FailedPrecondition, "parsing tool set %q: %v", toolSet, err).Err()
+		}
+
+		if toolSetRn.ToolSet == genuiToolSet {
+			for _, genuiComponent := range s.genuiComponents.components {
+				if toolID != "" && genuiComponent.resourceName != grant.GetTool() {
+					continue
+				}
+				if err := addGenuiComponent(genuiComponent); err != nil {
+					return nil, err
+				}
+			}
 			continue
 		}
-		endpoint, err := s.toolRouter.endpoint(name)
+
+		// Schemas are the same for every owner: read as the service.
+		service, schema, err := s.toolRouter.service(s.asService(ctx), toolSetRn.ToolSet)
 		if err != nil {
 			return nil, err
 		}
-		// Schemas are the same for every owner: read as the service.
-		schema, err := s.toolRouter.schema(s.asService(ctx), endpoint)
-		if err != nil {
-			return nil, status.Errorf(codes.Unavailable, "resolving tool %s: %v", name, err).Err()
-		}
 		builder := aitool.NewBuilder(schema)
-		descriptor, err := schema.FindDescriptorByName(protoreflect.FullName(name))
-		if err != nil {
-			return nil, status.Errorf(codes.FailedPrecondition, "tool %s is served by no service at %s", name, endpoint).Err()
-		}
-
 		var tools []*aipb.Tool
-		switch descriptor := descriptor.(type) {
-		case protoreflect.MethodDescriptor:
-			if descriptor.IsStreamingClient() || descriptor.IsStreamingServer() {
-				return nil, status.Errorf(codes.FailedPrecondition, "tool %s is a streaming method: only unary methods are tools", name).Err()
+		if toolID != "" {
+			method, ok := unaryMethod(service, toolID)
+			if !ok {
+				return nil, status.Errorf(codes.FailedPrecondition, "tool %s is no unary method of %s", grant.GetTool(), service.FullName()).Err()
 			}
 			createToolRequest := &aienginepb.CreateToolRequest{
-				DescriptorReference: &aienginepb.DescriptorReference{FullName: &aienginepb.DescriptorReference_Method{Method: name}},
-				SchemaConfiguration: methodSchemaConfiguration(descriptor),
+				DescriptorReference: &aienginepb.DescriptorReference{FullName: &aienginepb.DescriptorReference_Method{Method: string(method.FullName())}},
+				SchemaConfiguration: methodSchemaConfiguration(method),
 			}
 			tool, err := builder.CreateTool(createToolRequest)
 			if err != nil {
-				return nil, status.FromError(err, "creating tool "+name).Err()
+				return nil, status.FromError(err, "creating tool "+grant.GetTool()).Err()
 			}
 			toolbox.tools = append(toolbox.tools, tool)
 			tools = append(tools, tool)
-
-		case protoreflect.ServiceDescriptor:
+		} else {
 			methodNameToSchemaConfiguration := map[string]*aienginepb.SchemaConfiguration{}
-			for i := 0; i < descriptor.Methods().Len(); i++ {
-				method := descriptor.Methods().Get(i)
+			for i := 0; i < service.Methods().Len(); i++ {
+				method := service.Methods().Get(i)
 				if requestIDField(method) != nil {
 					methodNameToSchemaConfiguration[string(method.Name())] = methodSchemaConfiguration(method)
 				}
 			}
 			createServiceToolSetRequest := &aienginepb.CreateServiceToolSetRequest{
-				ServiceFullName:                 name,
-				MethodNames:                     unaryMethodNames(descriptor),
+				ServiceFullName:                 string(service.FullName()),
+				MethodNames:                     unaryMethodNames(service),
 				SchemaConfiguration:             schemaConfiguration,
 				MethodNameToSchemaConfiguration: methodNameToSchemaConfiguration,
 			}
 			toolSet, err := builder.CreateServiceToolSet(createServiceToolSetRequest)
 			if err != nil {
-				return nil, status.FromError(err, "creating tool set "+name).Err()
+				return nil, status.FromError(err, "creating tool set "+grant.GetToolSet()).Err()
 			}
 			if err := addToolName(toolSet.GetDiscoveryTool().GetName()); err != nil {
 				return nil, err
 			}
 			toolbox.toolSets = append(toolbox.toolSets, toolSet)
 			tools = toolSet.GetTools()
-
-		default:
-			return nil, status.Errorf(codes.FailedPrecondition, "tool %s is neither a method nor a service", name).Err()
 		}
 
 		for _, tool := range tools {
@@ -193,11 +279,12 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 				return nil, status.Errorf(codes.Internal, "finding method %s: %v", methodName, err).Err()
 			}
 			method := methodDescriptor.(protoreflect.MethodDescriptor)
+			toolRn := toolSetRn.ToolRn(string(method.Name()))
 			toolbox.toolNameToMethodTool[tool.GetName()] = &methodTool{
-				endpoint:         endpoint,
+				resourceName:     toolRn.String(),
 				method:           method,
 				schemaBuilder:    builder.SchemaBuilder(),
-				approvalRequired: approvalRequired(specTool.GetApproval(), method),
+				approvalRequired: approvalRequired(grants.approval(toolRn), method),
 			}
 		}
 	}
@@ -294,7 +381,7 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 	if err != nil {
 		return nil, err
 	}
-	response, err := b.service.toolRouter.invoke(ownerCtx, methodTool.endpoint, methodTool.method, request)
+	response, err := b.service.toolRouter.invoke(ownerCtx, methodTool.method, request)
 	if err != nil {
 		return nil, err
 	}

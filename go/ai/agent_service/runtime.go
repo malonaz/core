@@ -8,7 +8,6 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -98,11 +97,6 @@ func withoutIdentity(ctx context.Context) context.Context {
 
 // noCallMetadata is the call metadata of a call carrying no identity.
 func noCallMetadata(context.Context) (map[string]string, error) { return nil, nil }
-
-// validateTools checks that every tool of a spec resolves: RPC tools need a target.
-func (s *Service) validateTools(spec *agentpb.AgentSpec) error {
-	return s.toolRouter.validate(spec, s.genuiComponents)
-}
 
 // now returns the current time at Postgres precision.
 func (s *Service) now() time.Time {

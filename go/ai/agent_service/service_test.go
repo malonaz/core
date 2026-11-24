@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -140,13 +141,23 @@ func createTestAgent(t *testing.T, service *testReplica, tools ...string) *agent
 	return createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(tools...), MaxSubAgentDepth: 2})
 }
 
-// ungatedTools returns spec tools no call to which awaits approval.
-func ungatedTools(names ...string) []*agentpb.AgentSpec_Tool {
-	tools := make([]*agentpb.AgentSpec_Tool, 0, len(names))
+// ungatedTools returns grants of tools or tool sets, by resource name, no call to which awaits approval.
+func ungatedTools(names ...string) []*agentpb.AgentSpec_ToolGrant {
+	grants := make([]*agentpb.AgentSpec_ToolGrant, 0, len(names))
 	for _, name := range names {
-		tools = append(tools, &agentpb.AgentSpec_Tool{Name: name, Approval: agentpb.AgentSpec_Tool_APPROVAL_NOT_REQUIRED})
+		grant := toolGrant(name)
+		grant.Approval = agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED
+		grants = append(grants, grant)
 	}
-	return tools
+	return grants
+}
+
+// toolGrant returns the grant of a tool or a tool set, by resource name.
+func toolGrant(name string) *agentpb.AgentSpec_ToolGrant {
+	if strings.Contains(name, "/tools/") {
+		return &agentpb.AgentSpec_ToolGrant{Grant: &agentpb.AgentSpec_ToolGrant_Tool{Tool: name}}
+	}
+	return &agentpb.AgentSpec_ToolGrant{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: name}}
 }
 
 // createTestAgentWithSpec creates an ad-hoc root agent with the given spec under a user.
