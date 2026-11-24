@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (approval, input components), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on tool calls).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on tool calls).'
 labels:
     repo: core
     topic: agent, ai
@@ -14,7 +14,8 @@ on whichever replica holds the agent's lease. A host (onikisu) serves it and rou
 ## Resources
 
 - `Definition` (`organizations/{o}/definitions/{d}`): a reusable `AgentSpec` (instructions, model, reasoning effort,
-  tools, sub-agent depth). An agent created from one snapshots its spec.
+  tool grants, sub-agent depth). An agent created from one snapshots its spec; only the agent's `spec.tools` change
+  afterwards (UpdateAgent, or an always approval).
 - `Agent` (`organizations/{o}/users/{u}/agents/{a}`): its owner is in its name; it stores no principal. It holds a
   chat (`malonaz.ai.v1`, its transcript), `state`, `latest_turn` (outcome, error, awaited tool calls),
   `queued_messages`, and `parent_agent`/`root_agent` for sub-agent trees.
@@ -28,9 +29,17 @@ on whichever replica holds the agent's lease. A host (onikisu) serves it and rou
   their leases (`runHeartbeatLoop`) and cancel the turns whose lease they lost. A replica that dies leaves its
   leases to expire; another replica takes the turns over and replays them from the chat: tool requests carry
   request ids derived from the call id, reports from the turn's last message.
-- A turn pauses AWAITING on calls only a user can settle: a gated method (`ApproveToolCall`, or `ResolveToolCall`
-  with an error result to deny) and input genui components (`ResolveToolCall` with the answer). A method awaits
-  approval unless its tool says otherwise or the method is `NO_SIDE_EFFECTS`. Replying with a message denies them.
+- A turn pauses AWAITING on calls only a user can settle, each naming its `tool` (resource name): a gated method
+  (`REASON_APPROVAL`) and input genui components (`REASON_RESULT`). Two orthogonal verbs settle them:
+  `ApproveToolCall` (the service runs it; only for approval) and `ResolveToolCall` (the caller supplies the outcome, a
+  result or an error status, for any awaited call: a refusal is a status, "I ran it myself" a result). Same outcome
+  again is a no-op, another FAILED_PRECONDITION. An input's non-error result must carry its InputResponse.
+- A reply (`MessageAgent` to an awaiting agent) or `CancelAgent` is the service's own resolve: every unsettled call
+  gets a CANCELLED status. Results carry `approved-by` or `resolved-by`, with `actor`.
+- `ApproveToolCall.always`: in the same transaction, the agent's own `spec.tools` gets (or refines) a grant of that
+  one tool with `APPROVAL_NOT_REQUIRED`, and its other calls awaiting approval for the tool are approved. Scope: this
+  agent and the ad-hoc sub-agents it launches afterwards (they inherit its grants); never the definition (org-wide)
+  nor the set. Undone by `UpdateAgent` on `spec.tools` (validated as at creation).
 - Who sent, settled or cancelled is recorded as the caller's principal and actor (annotations), never the owner.
 
 ## Built-in tools
@@ -50,9 +59,20 @@ made elsewhere.
 
 ## Tools and identity
 
-- A spec's tools are gRPC methods or whole services (a tool set with a discovery tool), resolved per turn by
-  reflection on their target: `--tool-target pkg.Service=endpoint`. A spec naming a service without one is refused.
-  Genui components need no target.
+- The catalogue: `ToolSet` (`toolSets/{id}`: a routed service by full name, or `genui`) and `Tool`
+  (`toolSets/{id}/tools/{method or component}`), derived from `--tool-target pkg.Service=endpoint` and each target's
+  reflection (read as the service, cached five minutes), never stored. `ListToolSets`/`GetToolSet`; `ListTools`
+  (parent `toolSets/-` across sets)/`GetTool`. Facts: `read_only` (NO_SIDE_EFFECTS, every component),
+  `resolved_by_client` (input components). An unreadable set carries `error`, is left out of `toolSets/-` and fails
+  its own list (UNAVAILABLE). Comments travel only when the target serves reflection from a descriptor set built with
+  source info (`cmd/workspace-server`); the Go registry's descriptors (genui) have none. Built-ins are not listed.
+- A spec grants by resource name (`AgentSpec.ToolGrant`: oneof `tool_set` | `tool`, plus `approval`). A set grant
+  reaches the model as a discovery tool set (services) or one tool per component (genui); a lone tool grant as one
+  tool; a tool grant inside a granted set only refines its approval (the tool's grant, else its set's, else
+  NO_SIDE_EFFECTS runs and anything else awaits). Validation checks the set is configured and components exist
+  (no network: a wrong method fails the first turn); genui grants take no approval.
+- Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set, approvals inherited
+  and only tightened by the model; a requested set keeps the parent's refinements inside it.
 - The service's own calls (chats, scheduler, replica to replica) go out as its account (`asService`).
 - Schemas are read as the service: they are the same for every owner (cached five minutes per endpoint).
 - Tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer` for them
