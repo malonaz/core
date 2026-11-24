@@ -12,15 +12,15 @@ type AnnotationSet struct {
 	Sender aip.StringAnnotation
 	// On the result of a tool call that awaited approval: the subject of the principal of the call approving it.
 	ApprovedBy aip.StringAnnotation
-	// On the error result of a tool call that awaited approval: the subject of the principal of the call denying it, by an error result, a reply or a cancellation.
-	DeniedBy aip.StringAnnotation
-	// Beside agent.ai.malonaz.com/sender, approved-by or denied-by: the subject of the actor of the call that sent, approved or denied, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves.
+	// On the result of a tool call that awaited a user, supplied instead of running it: the subject of the principal of the call resolving it, by ResolveToolCall, a reply or a cancellation.
+	ResolvedBy aip.StringAnnotation
+	// Beside agent.ai.malonaz.com/sender, approved-by or resolved-by: the subject of the actor of the call that sent, approved or resolved, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves.
 	Actor aip.StringAnnotation
 }
 
 var Annotations = AnnotationSet{
 	Sender:     aip.StringAnnotation{Key: "agent.ai.malonaz.com/sender"},
 	ApprovedBy: aip.StringAnnotation{Key: "agent.ai.malonaz.com/approved-by"},
-	DeniedBy:   aip.StringAnnotation{Key: "agent.ai.malonaz.com/denied-by"},
+	ResolvedBy: aip.StringAnnotation{Key: "agent.ai.malonaz.com/resolved-by"},
 	Actor:      aip.StringAnnotation{Key: "agent.ai.malonaz.com/actor"},
 }

@@ -1582,6 +1582,7 @@ type ApproveToolCallRequest struct {
 	state                 protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name       string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_ToolCallId string                 `protobuf:"bytes,2,opt,name=tool_call_id,json=toolCallId,proto3"`
+	xxx_hidden_Always     bool                   `protobuf:"varint,3,opt,name=always,proto3"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -1625,12 +1626,23 @@ func (x *ApproveToolCallRequest) GetToolCallId() string {
 	return ""
 }
 
+func (x *ApproveToolCallRequest) GetAlways() bool {
+	if x != nil {
+		return x.xxx_hidden_Always
+	}
+	return false
+}
+
 func (x *ApproveToolCallRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
 
 func (x *ApproveToolCallRequest) SetToolCallId(v string) {
 	x.xxx_hidden_ToolCallId = v
+}
+
+func (x *ApproveToolCallRequest) SetAlways(v bool) {
+	x.xxx_hidden_Always = v
 }
 
 type ApproveToolCallRequest_builder struct {
@@ -1641,6 +1653,11 @@ type ApproveToolCallRequest_builder struct {
 	Name string
 	// The id of the awaited tool call to approve.
 	ToolCallId string
+	// If true, the agent stops asking before calls to the call's tool: its spec
+	// grants the tool APPROVAL_NOT_REQUIRED, and its other calls to the tool
+	// awaiting approval are approved with this one. Undone by updating the
+	// agent's `spec.tools`.
+	Always bool
 }
 
 func (b0 ApproveToolCallRequest_builder) Build() *ApproveToolCallRequest {
@@ -1649,6 +1666,7 @@ func (b0 ApproveToolCallRequest_builder) Build() *ApproveToolCallRequest {
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_ToolCallId = b.ToolCallId
+	x.xxx_hidden_Always = b.Always
 	return m0
 }
 
@@ -1739,9 +1757,8 @@ type ResolveToolCallRequest_builder struct {
 	Name string
 	// The id of the awaited tool call to resolve.
 	ToolCallId string
-	// The call's result. For an input component, a result carrying the
-	// genui.malonaz.com/input-response annotation answering it; for a call
-	// awaiting approval, an error result denying it.
+	// The call's outcome: a result, or an error status. A result answering an
+	// input component carries the genui.malonaz.com/input-response annotation.
 	Result *v12.ToolResult
 }
 
@@ -2172,15 +2189,17 @@ const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\x1fcreate_agent.definition_or_spec\x12:exactly one of agent.definition and agent.spec must be set\x1a5(this.agent.definition != '') != has(this.agent.spec)\"O\n" +
 	"\x0fGetAgentRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\"\xfe\x01\n" +
+	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\"\x8a\x02\n" +
 	"\x12UpdateAgentRequest\x128\n" +
 	"\x05agent\x18\x01 \x01(\v2\x1a.malonaz.ai.agent.v1.AgentB\x06\xbaH\x03\xd8\x01\x03R\x05agent\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:i\xbaHE\x1aC\n" +
-	"\x13agent.name_required\x12\x16agent.name must be set\x1a\x14has(this.agent.name)\xea\x9c\xc1\x03\x1c\n" +
+	"updateMask:u\xbaHE\x1aC\n" +
+	"\x13agent.name_required\x12\x16agent.name must be set\x1a\x14has(this.agent.name)\xea\x9c\xc1\x03(\n" +
 	"\x06labels\n" +
 	"\vannotations\n" +
-	"\x05title\"\xa1\x01\n" +
+	"\x05title\n" +
+	"\n" +
+	"spec.tools\"\xa1\x01\n" +
 	"\x12DeleteAgentRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
@@ -2252,12 +2271,13 @@ const file_malonaz_ai_agent_agent_service_v1_agent_proto_rawDesc = "" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12;\n" +
 	"\amessage\x18\x02 \x01(\v2\x16.malonaz.ai.v1.MessageB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\amessage\x12*\n" +
 	"\n" +
-	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\x83\x01\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\x9b\x01\n" +
 	"\x16ApproveToolCallRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12+\n" +
 	"\ftool_call_id\x18\x02 \x01(\tB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\n" +
-	"toolCallId\"\xc1\x01\n" +
+	"toolCallId\x12\x16\n" +
+	"\x06always\x18\x03 \x01(\bR\x06always\"\xc1\x01\n" +
 	"\x16ResolveToolCallRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/Agent\xbaH\x03\xc8\x01\x01R\x04name\x12+\n" +

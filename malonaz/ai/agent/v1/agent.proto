@@ -126,9 +126,9 @@ message Agent {
   ];
 
   // The spec this agent runs: its definition's, snapshotted at creation, or
-  // the inline spec of an ad-hoc agent.
+  // the inline spec of an ad-hoc agent. Its tool grants change with
+  // UpdateAgent, and when a user approves a call always.
   AgentSpec spec = 10 [
-    (google.api.field_behavior) = IMMUTABLE,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
@@ -210,33 +210,35 @@ message Turn {
   repeated AwaitedToolCall awaited_tool_calls = 5;
 }
 
-// An AwaitedToolCall is a tool call only a user can settle: by approving it, or
-// by supplying its result.
+// An AwaitedToolCall is a tool call only a user can settle: by approving a call the agent service would run, or by
+// resolving any awaited call with its outcome.
 message AwaitedToolCall {
   // Reason is why the call awaits a user.
   enum Reason {
     // Used to detect an unset field.
     REASON_UNSPECIFIED = 0;
-    // The call needs the user's approval before it runs: ApproveToolCall runs
-    // it, ResolveToolCall with an error result denies it.
+    // The call awaits approval before the agent service runs it: ApproveToolCall runs it, ResolveToolCall supplies
+    // its outcome instead.
     REASON_APPROVAL = 1;
-    // The call renders an input component the user answers: ResolveToolCall
-    // with a result carrying the InputResponse.
-    REASON_INPUT = 2;
+    // The call awaits its result from a client, the agent service never running it: the user's answer to an input
+    // component. ResolveToolCall supplies it.
+    REASON_RESULT = 2;
   }
 
   // Resolution is how a user settled an awaited call.
   message Resolution {
     // Approval approves the call: the resumed turn runs it.
-    message Approval {}
+    message Approval {
+      // Whether the approver also stopped the agent asking before calls to the tool.
+      bool always = 1;
+    }
 
-    // Who settled the call: the subject of the principal of the call that
-    // approved, resolved, replied to or cancelled it.
+    // Who settled the call: the subject of the principal of the call that approved, resolved, replied to or
+    // cancelled it.
     string resolver = 1;
 
-    // The subject of the actor of the call that settled it, who made it for
-    // the resolver (an operator logged in as a user). Empty when the resolver
-    // made it themselves.
+    // The subject of the actor of the call that settled it, who made it for the resolver (an operator logged in as
+    // a user). Empty when the resolver made it themselves.
     string actor = 5;
 
     // The decision.
@@ -244,21 +246,25 @@ message AwaitedToolCall {
       // The call was approved.
       Approval approval = 2;
 
-      // The call's result, supplied instead of running it: an answer, a
-      // denial, or the error a cancellation or a reply left it.
+      // The call's outcome, supplied instead of running it: a client's, or the CANCELLED status a reply or a
+      // cancellation left it.
       malonaz.ai.v1.ToolResult result = 3;
     }
 
-    // When the resumed turn started running the approved call. A call found
-    // started without a result was interrupted.
+    // When the resumed turn started running the approved call. A call found started without a result was
+    // interrupted.
     google.protobuf.Timestamp start_time = 4;
   }
 
   // The id of the tool call.
   string tool_call_id = 1;
 
-  // The name of the tool called.
+  // The name of the tool called, as the model was given it.
   string tool_name = 2;
+
+  // The tool called.
+  // Format: toolSets/{tool_set}/tools/{tool}
+  string tool = 6 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Tool"];
 
   // The title the agent gave the call.
   string title = 3;

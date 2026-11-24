@@ -25,7 +25,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/v1/agent.proto.
  */
 export const file_malonaz_ai_agent_v1_agent: GenFile = /*@__PURE__*/
-  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIrsLCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI5CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCC+BBBbrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI8CgVzdGF0ZRgOIAEoDjIgLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuU3RhdGVCC+BBA7pIBYIBAhABEjsKC2xhdGVzdF90dXJuGA8gASgLMhkubWFsb25hei5haS5hZ2VudC52MS5UdXJuQgvgQQO66g8EEAEgARI6Cg9xdWV1ZWRfbWVzc2FnZXMYECADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBA7rqDwIQARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJVCgVTdGF0ZRIVChFTVEFURV9VTlNQRUNJRklFRBAAEg4KClNUQVRFX0lETEUQARIRCg1TVEFURV9SVU5OSU5HEAISEgoOU1RBVEVfQVdBSVRJTkcQAzquAupBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN5rzLS4KCQoFdGl0bGUQAQoKCgZsYWJlbHMQAgoVChFzcGVjLmluc3RydWN0aW9ucxADIu0CCgRUdXJuEi4KCnN0YXJ0X3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI8CgdvdXRjb21lGAMgASgOMiEubWFsb25hei5haS5hZ2VudC52MS5UdXJuLk91dGNvbWVCCLpIBYIBAhABEiEKBWVycm9yGAQgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMSQAoSYXdhaXRlZF90b29sX2NhbGxzGAUgAygLMiQubWFsb25hei5haS5hZ2VudC52MS5Bd2FpdGVkVG9vbENhbGwiZAoHT3V0Y29tZRIXChNPVVRDT01FX1VOU1BFQ0lGSUVEEAASFQoRT1VUQ09NRV9TVUNDRUVERUQQARISCg5PVVRDT01FX0ZBSUxFRBACEhUKEU9VVENPTUVfQ0FOQ0VMTEVEEAMikQQKD0F3YWl0ZWRUb29sQ2FsbBIUCgx0b29sX2NhbGxfaWQYASABKAkSEQoJdG9vbF9uYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJEkUKBnJlYXNvbhgEIAEoDjIrLm1hbG9uYXouYWkuYWdlbnQudjEuQXdhaXRlZFRvb2xDYWxsLlJlYXNvbkIIukgFggECEAESQwoKcmVzb2x1dGlvbhgFIAEoCzIvLm1hbG9uYXouYWkuYWdlbnQudjEuQXdhaXRlZFRvb2xDYWxsLlJlc29sdXRpb24a8AEKClJlc29sdXRpb24SEAoIcmVzb2x2ZXIYASABKAkSDQoFYWN0b3IYBSABKAkSTAoIYXBwcm92YWwYAiABKAsyOC5tYWxvbmF6LmFpLmFnZW50LnYxLkF3YWl0ZWRUb29sQ2FsbC5SZXNvbHV0aW9uLkFwcHJvdmFsSAASKwoGcmVzdWx0GAMgASgLMhkubWFsb25hei5haS52MS5Ub29sUmVzdWx0SAASLgoKc3RhcnRfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAaCgoIQXBwcm92YWxCCgoIZGVjaXNpb24iRwoGUmVhc29uEhYKElJFQVNPTl9VTlNQRUNJRklFRBAAEhMKD1JFQVNPTl9BUFBST1ZBTBABEhAKDFJFQVNPTl9JTlBVVBACQoQBWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MepBUwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch9tYWxvbmF6L2FpL2FnZW50L3YxL2FnZW50LnByb3RvEhNtYWxvbmF6LmFpLmFnZW50LnYxIrgLCgVBZ2VudBIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSOgoLZGVsZXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgngQQO66g8CIAESDAoEZXRhZxgFIAEoCRLMAQoGbGFiZWxzGAYgAygLMiYubWFsb25hei5haS5hZ2VudC52MS5BZ2VudC5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJKCgthbm5vdGF0aW9ucxgHIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuQW5ub3RhdGlvbnNFbnRyeUIIuuoPBBABIAESFwoFdGl0bGUYCCABKAlCCLpIBXIDGIAEEjsKCmRlZmluaXRpb24YCSABKAlCJ+BBBfpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbhI2CgRzcGVjGAogASgLMh4ubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWNCCLrqDwQQASABEjgKDHBhcmVudF9hZ2VudBgLIAEoCUIi4EEF+kEcChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudBI2Cgpyb290X2FnZW50GAwgASgJQiLgQQP6QRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50EikKBGNoYXQYDSABKAlCG+BBA/pBFQoTYWkubWFsb25hei5jb20vQ2hhdBI8CgVzdGF0ZRgOIAEoDjIgLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQuU3RhdGVCC+BBA7pIBYIBAhABEjsKC2xhdGVzdF90dXJuGA8gASgLMhkubWFsb25hei5haS5hZ2VudC52MS5UdXJuQgvgQQO66g8EEAEgARI6Cg9xdWV1ZWRfbWVzc2FnZXMYECADKAsyFi5tYWxvbmF6LmFpLnYxLk1lc3NhZ2VCCeBBA7rqDwIQARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJVCgVTdGF0ZRIVChFTVEFURV9VTlNQRUNJRklFRBAAEg4KClNUQVRFX0lETEUQARIRCg1TVEFURV9SVU5OSU5HEAISEgoOU1RBVEVfQVdBSVRJTkcQAzquAupBZQoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnQSOG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2FnZW50cy97YWdlbnR9KgZhZ2VudHMyBWFnZW50ukhlGmMKGGFnZW50LnNwZWNfb3JfZGVmaW5pdGlvbhIeZGVmaW5pdGlvbiBvciBzcGVjIG11c3QgYmUgc2V0Gid0aGlzLmRlZmluaXRpb24gIT0gJycgfHwgaGFzKHRoaXMuc3BlYynSpgQAgvYsJGE4ZDQwYmI2LTNmOTktNGQwMi05NWZmLTcxYjViZTQ3YjFlN5rzLS4KCQoFdGl0bGUQAQoKCgZsYWJlbHMQAgoVChFzcGVjLmluc3RydWN0aW9ucxADIu0CCgRUdXJuEi4KCnN0YXJ0X3RpbWUYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEiwKCGVuZF90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI8CgdvdXRjb21lGAMgASgOMiEubWFsb25hei5haS5hZ2VudC52MS5UdXJuLk91dGNvbWVCCLpIBYIBAhABEiEKBWVycm9yGAQgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMSQAoSYXdhaXRlZF90b29sX2NhbGxzGAUgAygLMiQubWFsb25hei5haS5hZ2VudC52MS5Bd2FpdGVkVG9vbENhbGwiZAoHT3V0Y29tZRIXChNPVVRDT01FX1VOU1BFQ0lGSUVEEAASFQoRT1VUQ09NRV9TVUNDRUVERUQQARISCg5PVVRDT01FX0ZBSUxFRBACEhUKEU9VVENPTUVfQ0FOQ0VMTEVEEAMi0AQKD0F3YWl0ZWRUb29sQ2FsbBIUCgx0b29sX2NhbGxfaWQYASABKAkSEQoJdG9vbF9uYW1lGAIgASgJEiwKBHRvb2wYBiABKAlCHvpBGwoZYWdlbnQuYWkubWFsb25hei5jb20vVG9vbBINCgV0aXRsZRgDIAEoCRJFCgZyZWFzb24YBCABKA4yKy5tYWxvbmF6LmFpLmFnZW50LnYxLkF3YWl0ZWRUb29sQ2FsbC5SZWFzb25CCLpIBYIBAhABEkMKCnJlc29sdXRpb24YBSABKAsyLy5tYWxvbmF6LmFpLmFnZW50LnYxLkF3YWl0ZWRUb29sQ2FsbC5SZXNvbHV0aW9uGoACCgpSZXNvbHV0aW9uEhAKCHJlc29sdmVyGAEgASgJEg0KBWFjdG9yGAUgASgJEkwKCGFwcHJvdmFsGAIgASgLMjgubWFsb25hei5haS5hZ2VudC52MS5Bd2FpdGVkVG9vbENhbGwuUmVzb2x1dGlvbi5BcHByb3ZhbEgAEisKBnJlc3VsdBgDIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdEgAEi4KCnN0YXJ0X3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wGhoKCEFwcHJvdmFsEg4KBmFsd2F5cxgBIAEoCEIKCghkZWNpc2lvbiJICgZSZWFzb24SFgoSUkVBU09OX1VOU1BFQ0lGSUVEEAASEwoPUkVBU09OX0FQUFJPVkFMEAESEQoNUkVBU09OX1JFU1VMVBACQoQBWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MepBUwoZYWdlbnQuYWkubWFsb25hei5jb20vVXNlchIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0qBXVzZXJzMgR1c2VyYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message, file_malonaz_ai_v1_tool, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * An Agent is a running instance of a spec: a conversation the AgentService
@@ -105,7 +105,8 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
 
   /**
    * The spec this agent runs: its definition's, snapshotted at creation, or
-   * the inline spec of an ad-hoc agent.
+   * the inline spec of an ad-hoc agent. Its tool grants change with
+   * UpdateAgent, and when a user approves a call always.
    *
    * @generated from field: malonaz.ai.agent.v1.AgentSpec spec = 10;
    */
@@ -238,7 +239,8 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
 
   /**
    * The spec this agent runs: its definition's, snapshotted at creation, or
-   * the inline spec of an ad-hoc agent.
+   * the inline spec of an ad-hoc agent. Its tool grants change with
+   * UpdateAgent, and when a user approves a call always.
    *
    * @generated from field: malonaz.ai.agent.v1.AgentSpec spec = 10;
    */
@@ -439,8 +441,8 @@ export const Turn_OutcomeSchema: GenEnum<Turn_Outcome> = /*@__PURE__*/
   enumDesc(file_malonaz_ai_agent_v1_agent, 1, 0);
 
 /**
- * An AwaitedToolCall is a tool call only a user can settle: by approving it, or
- * by supplying its result.
+ * An AwaitedToolCall is a tool call only a user can settle: by approving a call the agent service would run, or by
+ * resolving any awaited call with its outcome.
  *
  * @generated from message malonaz.ai.agent.v1.AwaitedToolCall
  */
@@ -453,11 +455,19 @@ export type AwaitedToolCall = Message<"malonaz.ai.agent.v1.AwaitedToolCall"> & {
   toolCallId: string;
 
   /**
-   * The name of the tool called.
+   * The name of the tool called, as the model was given it.
    *
    * @generated from field: string tool_name = 2;
    */
   toolName: string;
+
+  /**
+   * The tool called.
+   * Format: toolSets/{tool_set}/tools/{tool}
+   *
+   * @generated from field: string tool = 6;
+   */
+  tool: string;
 
   /**
    * The title the agent gave the call.
@@ -497,17 +507,16 @@ export const AwaitedToolCallSchema: GenMessage<AwaitedToolCall, {validType: Awai
  */
 export type AwaitedToolCall_Resolution = Message<"malonaz.ai.agent.v1.AwaitedToolCall.Resolution"> & {
   /**
-   * Who settled the call: the subject of the principal of the call that
-   * approved, resolved, replied to or cancelled it.
+   * Who settled the call: the subject of the principal of the call that approved, resolved, replied to or
+   * cancelled it.
    *
    * @generated from field: string resolver = 1;
    */
   resolver: string;
 
   /**
-   * The subject of the actor of the call that settled it, who made it for
-   * the resolver (an operator logged in as a user). Empty when the resolver
-   * made it themselves.
+   * The subject of the actor of the call that settled it, who made it for the resolver (an operator logged in as
+   * a user). Empty when the resolver made it themselves.
    *
    * @generated from field: string actor = 5;
    */
@@ -528,8 +537,8 @@ export type AwaitedToolCall_Resolution = Message<"malonaz.ai.agent.v1.AwaitedToo
     case: "approval";
   } | {
     /**
-     * The call's result, supplied instead of running it: an answer, a
-     * denial, or the error a cancellation or a reply left it.
+     * The call's outcome, supplied instead of running it: a client's, or the CANCELLED status a reply or a
+     * cancellation left it.
      *
      * @generated from field: malonaz.ai.v1.ToolResult result = 3;
      */
@@ -538,8 +547,8 @@ export type AwaitedToolCall_Resolution = Message<"malonaz.ai.agent.v1.AwaitedToo
   } | { case: undefined; value?: undefined };
 
   /**
-   * When the resumed turn started running the approved call. A call found
-   * started without a result was interrupted.
+   * When the resumed turn started running the approved call. A call found started without a result was
+   * interrupted.
    *
    * @generated from field: google.protobuf.Timestamp start_time = 4;
    */
@@ -561,6 +570,12 @@ export const AwaitedToolCall_ResolutionSchema: GenMessage<AwaitedToolCall_Resolu
  * @generated from message malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval
  */
 export type AwaitedToolCall_Resolution_Approval = Message<"malonaz.ai.agent.v1.AwaitedToolCall.Resolution.Approval"> & {
+  /**
+   * Whether the approver also stopped the agent asking before calls to the tool.
+   *
+   * @generated from field: bool always = 1;
+   */
+  always: boolean;
 };
 
 export type AwaitedToolCall_Resolution_ApprovalValid = AwaitedToolCall_Resolution_Approval;
@@ -586,20 +601,20 @@ export enum AwaitedToolCall_Reason {
   UNSPECIFIED = 0,
 
   /**
-   * The call needs the user's approval before it runs: ApproveToolCall runs
-   * it, ResolveToolCall with an error result denies it.
+   * The call awaits approval before the agent service runs it: ApproveToolCall runs it, ResolveToolCall supplies
+   * its outcome instead.
    *
    * @generated from enum value: REASON_APPROVAL = 1;
    */
   APPROVAL = 1,
 
   /**
-   * The call renders an input component the user answers: ResolveToolCall
-   * with a result carrying the InputResponse.
+   * The call awaits its result from a client, the agent service never running it: the user's answer to an input
+   * component. ResolveToolCall supplies it.
    *
-   * @generated from enum value: REASON_INPUT = 2;
+   * @generated from enum value: REASON_RESULT = 2;
    */
-  INPUT = 2,
+  RESULT = 2,
 }
 
 /**

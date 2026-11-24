@@ -7,7 +7,7 @@ import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../../../buf/validate/validate_pb";
 import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { AgentSpec_Tool, AgentSpec_ToolValid } from "../../v1/definition_pb";
+import type { AgentSpec_ToolGrant, AgentSpec_ToolGrantValid } from "../../v1/definition_pb";
 import { file_malonaz_ai_agent_v1_definition } from "../../v1/definition_pb";
 import type { ReasoningEffort } from "../../../v1/message_pb";
 import { file_malonaz_ai_v1_message } from "../../../v1/message_pb";
@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/agent_service/v1/builtin_tool.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_builtin_tool: GenFile = /*@__PURE__*/
-  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEi4gIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGuMBCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBIyCgV0b29scxgHIAMoCzIjLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2wiSwoZTWVzc2FnZUFnZW50VG9vbEFyZ3VtZW50cxIVCgVhZ2VudBgBIAEoCUIGukgDyAEBEhcKB21lc3NhZ2UYAiABKAlCBrpIA8gBASIZChdMaXN0QWdlbnRzVG9vbEFyZ3VtZW50cyKrAQoZVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cxJSCgNzZXQYASADKAsyRS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlTGFiZWxzVG9vbEFyZ3VtZW50cy5TZXRFbnRyeRIOCgZyZW1vdmUYAiADKAkaKgoIU2V0RW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKsAwoVU2NoZWR1bGVUb29sQXJndW1lbnRzEhoKBGNyb24YASABKAlCCrpIB3IFEAEYgAJIABIqCgR0aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAEjQKBWRlbGF5GAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgi6SAWqAQIqAEgAEhoKCXRpbWVfem9uZRgEIAEoCUIHukgEcgIYQBIaCgdtZXNzYWdlGAUgASgJQge6SARyAhABSAESWgoJc3ViX2FnZW50GAYgASgLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRIATpjukhgGl4KF3NjaGVkdWxlLmNyb25fdGltZV96b25lEhphIGNyb24gbmVlZHMgaXRzIHRpbWVfem9uZRonIWhhcyh0aGlzLmNyb24pIHx8IHRoaXMudGltZV96b25lICE9ICcnQg0KBHdoZW4SBbpIAggBQg0KBHdha2USBbpIAggBIhwKGkxpc3RTY2hlZHVsZXNUb29sQXJndW1lbnRzIjMKG0NhbmNlbFNjaGVkdWxlVG9vbEFyZ3VtZW50cxIUCgRuYW1lGAEgASgJQga6SAPIAQFCPFo6Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vYWkvYWdlbnQvYWdlbnRfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message]);
+  fileDesc("CjRtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYnVpbHRpbl90b29sLnByb3RvEiFtYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEi5wIKGUNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMSXwoGYWdlbnRzGAEgAygLMkUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkNyZWF0ZUFnZW50c1Rvb2xBcmd1bWVudHMuU3ViQWdlbnRCCLpIBZIBAggBGugBCghTdWJBZ2VudBIaCgV0aXRsZRgBIAEoCUILukgIcgMYgATIAQESFAoEdGFzaxgCIAEoCUIGukgDyAEBEhIKCmRlZmluaXRpb24YAyABKAkSFAoMaW5zdHJ1Y3Rpb25zGAQgASgJEg0KBW1vZGVsGAUgASgJEjgKEHJlYXNvbmluZ19lZmZvcnQYBiABKA4yHi5tYWxvbmF6LmFpLnYxLlJlYXNvbmluZ0VmZm9ydBI3CgV0b29scxgHIAMoCzIoLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2xHcmFudCJLChlNZXNzYWdlQWdlbnRUb29sQXJndW1lbnRzEhUKBWFnZW50GAEgASgJQga6SAPIAQESFwoHbWVzc2FnZRgCIAEoCUIGukgDyAEBIhkKF0xpc3RBZ2VudHNUb29sQXJndW1lbnRzIqsBChlVcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzElIKA3NldBgBIAMoCzJFLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5VcGRhdGVMYWJlbHNUb29sQXJndW1lbnRzLlNldEVudHJ5Eg4KBnJlbW92ZRgCIAMoCRoqCghTZXRFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIqwDChVTY2hlZHVsZVRvb2xBcmd1bWVudHMSGgoEY3JvbhgBIAEoCUIKukgHcgUQARiAAkgAEioKBHRpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAASNAoFZGVsYXkYAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CCLpIBaoBAioASAASGgoJdGltZV96b25lGAQgASgJQge6SARyAhhAEhoKB21lc3NhZ2UYBSABKAlCB7pIBHICEAFIARJaCglzdWJfYWdlbnQYBiABKAsyRS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlQWdlbnRzVG9vbEFyZ3VtZW50cy5TdWJBZ2VudEgBOmO6SGAaXgoXc2NoZWR1bGUuY3Jvbl90aW1lX3pvbmUSGmEgY3JvbiBuZWVkcyBpdHMgdGltZV96b25lGichaGFzKHRoaXMuY3JvbikgfHwgdGhpcy50aW1lX3pvbmUgIT0gJydCDQoEd2hlbhIFukgCCAFCDQoEd2FrZRIFukgCCAEiHAoaTGlzdFNjaGVkdWxlc1Rvb2xBcmd1bWVudHMiMwobQ2FuY2VsU2NoZWR1bGVUb29sQXJndW1lbnRzEhQKBG5hbWUYASABKAlCBrpIA8gBAUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration, file_google_protobuf_timestamp, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_v1_message]);
 
 /**
  * The arguments of the built-in create_agents tool.
@@ -106,12 +106,12 @@ export type CreateAgentsToolArguments_SubAgent = Message<"malonaz.ai.agent.agent
   reasoningEffort: ReasoningEffort;
 
   /**
-   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
-   * and may only tighten it. The built-in agent tools are always given.
+   * An ad-hoc sub-agent's tools: yours, or tools of the sets you hold. Defaults to all of yours. A tool's approval
+   * defaults to yours and may only tighten it. The built-in agent tools are always given.
    *
-   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 7;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.ToolGrant tools = 7;
    */
-  tools: AgentSpec_Tool[];
+  tools: AgentSpec_ToolGrant[];
 };
 
 /**
@@ -166,12 +166,12 @@ export type CreateAgentsToolArguments_SubAgentValid = Message<"malonaz.ai.agent.
   reasoningEffort: ReasoningEffort;
 
   /**
-   * An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
-   * and may only tighten it. The built-in agent tools are always given.
+   * An ad-hoc sub-agent's tools: yours, or tools of the sets you hold. Defaults to all of yours. A tool's approval
+   * defaults to yours and may only tighten it. The built-in agent tools are always given.
    *
-   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 7;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.ToolGrant tools = 7;
    */
-  tools: AgentSpec_ToolValid[];
+  tools: AgentSpec_ToolGrantValid[];
 };
 
 /**

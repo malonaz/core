@@ -5,6 +5,7 @@ go_library(
         "annotations_model.pb.go",
         "definition_model.pb.go",
         "labels_model.pb.go",
+        "tool_model.pb.go",
     ],
     visibility = ["//..."],
     deps = [

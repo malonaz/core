@@ -6,6 +6,7 @@ go_library(
         "agent_service_grpc.pb.go",
         "builtin_tool.pb.go",
         "definition.pb.go",
+        "tool.pb.go",
     ],
     visibility = ["//..."],
     deps = [

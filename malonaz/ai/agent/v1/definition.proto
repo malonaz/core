@@ -91,8 +91,8 @@ message Definition {
 message AgentSpec {
   option (buf.validate.message).cel = {
     id: "agent_spec.unique_tools"
-    message: "tools must be unique by name"
-    expression: "this.tools.all(tool, this.tools.filter(other, other.name == tool.name).size() == 1)"
+    message: "a tool or tool set is granted at most once"
+    expression: "this.tools.all(grant, this.tools.filter(other, other.tool_set == grant.tool_set && other.tool == grant.tool).size() == 1)"
   };
 
   // The system prompt the agent runs under.
@@ -108,9 +108,10 @@ message AgentSpec {
   // The reasoning effort the agent generates with.
   malonaz.ai.v1.ReasoningEffort reasoning_effort = 3 [(buf.validate.field).enum.defined_only = true];
 
-  // The tools the agent may call. Built-in agent tools (launching sub-agents,
-  // messaging its tree, labelling itself) are always available.
-  repeated Tool tools = 4 [(buf.validate.field).repeated.max_items = 256];
+  // The tools the agent may call, granted whole set or tool by tool. Built-in
+  // agent tools (launching sub-agents, messaging its tree, labelling itself,
+  // scheduling) are always held.
+  repeated ToolGrant tools = 4 [(buf.validate.field).repeated.max_items = 256];
 
   // The definitions this agent may launch sub-agents from. Empty allows ad-hoc
   // sub-agents only, carrying an inline spec.
@@ -127,12 +128,15 @@ message AgentSpec {
     lte: 8
   }];
 
-  // A Tool is a tool an agent may call.
-  message Tool {
-    // Approval is when a call to the tool awaits the user's approval.
+  // A ToolGrant gives the agent a tool, or every tool of a set, and says when
+  // its calls await the user's approval. A tool granted inside a granted set
+  // does not add it: it refines the set's approval for that tool.
+  message ToolGrant {
+    // Approval is when a call to a granted tool awaits the user's approval.
+    // The grant of the tool itself decides, else the grant of its set.
     enum Approval {
-      // Calls to methods without side effects (idempotency_level
-      // NO_SIDE_EFFECTS) run, any other awaits approval.
+      // Calls to read-only tools ([Tool.read_only][malonaz.ai.agent.v1.Tool.read_only])
+      // run, any other awaits approval.
       APPROVAL_UNSPECIFIED = 0;
       // Every call awaits approval.
       APPROVAL_REQUIRED = 1;
@@ -140,14 +144,30 @@ message AgentSpec {
       APPROVAL_NOT_REQUIRED = 2;
     }
 
-    // The tool: a gRPC method by full name ("pkg.Service.Method"), every method
-    // of a service ("pkg.Service"), or a genui component by message full name
-    // ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
-    // input components await the user's answer.
-    string name = 1 [(buf.validate.field).string.pattern = "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$"];
+    reserved 1;
+    reserved "name";
 
-    // When calls to the tool await the user's approval. Ignored for genui
-    // components.
+    // What is granted.
+    oneof grant {
+      option (buf.validate.oneof).required = true;
+
+      // Every tool of a set, present and future.
+      // Format: toolSets/{tool_set}
+      string tool_set = 3 [
+        (buf.validate.field).string.pattern = "^toolSets/[^/]+$",
+        (google.api.resource_reference).type = "agent.ai.malonaz.com/ToolSet"
+      ];
+
+      // One tool.
+      // Format: toolSets/{tool_set}/tools/{tool}
+      string tool = 4 [
+        (buf.validate.field).string.pattern = "^toolSets/[^/]+/tools/[^/]+$",
+        (google.api.resource_reference).type = "agent.ai.malonaz.com/Tool"
+      ];
+    }
+
+    // When calls to the granted tools await the user's approval. Must be unset
+    // for tools a client resolves.
     Approval approval = 2 [(buf.validate.field).enum.defined_only = true];
   }
 }

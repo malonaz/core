@@ -13,8 +13,10 @@ import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.ai.agent.agent_service.v1.agent_pb2
 import malonaz.ai.agent.agent_service.v1.definition_pb2
+import malonaz.ai.agent.agent_service.v1.tool_pb2
 import malonaz.ai.agent.v1.agent_pb2
 import malonaz.ai.agent.v1.definition_pb2
+import malonaz.ai.agent.v1.tool_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.ai.agent.agent_service.v1.agent_service_pb2
@@ -44,6 +46,22 @@ class AgentServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def ListDefinitions(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsRequest, malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetToolSet(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolSetRequest, malonaz.ai.agent.v1.tool_pb2.ToolSet]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListToolSets(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsRequest, malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetTool(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolRequest, malonaz.ai.agent.v1.tool_pb2.Tool]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListTools(self, stream: 'grpclib.server.Stream[malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsRequest, malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -135,6 +153,30 @@ class AgentServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsRequest,
                 malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsResponse,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/GetToolSet': grpclib.const.Handler(
+                self.GetToolSet,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolSetRequest,
+                malonaz.ai.agent.v1.tool_pb2.ToolSet,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ListToolSets': grpclib.const.Handler(
+                self.ListToolSets,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsRequest,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsResponse,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/GetTool': grpclib.const.Handler(
+                self.GetTool,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolRequest,
+                malonaz.ai.agent.v1.tool_pb2.Tool,
+            ),
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ListTools': grpclib.const.Handler(
+                self.ListTools,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsRequest,
+                malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsResponse,
             ),
             '/malonaz.ai.agent.agent_service.v1.AgentService/CreateAgent': grpclib.const.Handler(
                 self.CreateAgent,
@@ -255,6 +297,30 @@ class AgentServiceStub:
             '/malonaz.ai.agent.agent_service.v1.AgentService/ListDefinitions',
             malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsRequest,
             malonaz.ai.agent.agent_service.v1.definition_pb2.ListDefinitionsResponse,
+        )
+        self.GetToolSet = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/GetToolSet',
+            malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolSetRequest,
+            malonaz.ai.agent.v1.tool_pb2.ToolSet,
+        )
+        self.ListToolSets = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ListToolSets',
+            malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsRequest,
+            malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolSetsResponse,
+        )
+        self.GetTool = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/GetTool',
+            malonaz.ai.agent.agent_service.v1.tool_pb2.GetToolRequest,
+            malonaz.ai.agent.v1.tool_pb2.Tool,
+        )
+        self.ListTools = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.agent.agent_service.v1.AgentService/ListTools',
+            malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsRequest,
+            malonaz.ai.agent.agent_service.v1.tool_pb2.ListToolsResponse,
         )
         self.CreateAgent = grpclib.client.UnaryUnaryMethod(
             channel,

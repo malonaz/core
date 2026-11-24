@@ -14,10 +14,10 @@ option (malonaz.codegen.aip.v1.annotation) = {
   description: "On the result of a tool call that awaited approval: the subject of the principal of the call approving it."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
-  key: "agent.ai.malonaz.com/denied-by"
-  description: "On the error result of a tool call that awaited approval: the subject of the principal of the call denying it, by an error result, a reply or a cancellation."
+  key: "agent.ai.malonaz.com/resolved-by"
+  description: "On the result of a tool call that awaited a user, supplied instead of running it: the subject of the principal of the call resolving it, by ResolveToolCall, a reply or a cancellation."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "agent.ai.malonaz.com/actor"
-  description: "Beside agent.ai.malonaz.com/sender, approved-by or denied-by: the subject of the actor of the call that sent, approved or denied, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves."
+  description: "Beside agent.ai.malonaz.com/sender, approved-by or resolved-by: the subject of the actor of the call that sent, approved or resolved, who made it for the principal those name (an operator logged in as a user). Absent when the principal made the call themselves."
 };

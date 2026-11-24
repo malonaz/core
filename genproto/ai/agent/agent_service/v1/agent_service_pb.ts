@@ -10,10 +10,14 @@ import type { ApproveToolCallRequestSchema, CancelAgentRequestSchema, CreateAgen
 import { file_malonaz_ai_agent_agent_service_v1_agent } from "./agent_pb";
 import type { CreateDefinitionRequestSchema, DeleteDefinitionRequestSchema, GetDefinitionRequestSchema, ListDefinitionsRequestSchema, ListDefinitionsResponseSchema, UndeleteDefinitionRequestSchema, UpdateDefinitionRequestSchema } from "./definition_pb";
 import { file_malonaz_ai_agent_agent_service_v1_definition } from "./definition_pb";
+import type { GetToolRequestSchema, GetToolSetRequestSchema, ListToolSetsRequestSchema, ListToolSetsResponseSchema, ListToolsRequestSchema, ListToolsResponseSchema } from "./tool_pb";
+import { file_malonaz_ai_agent_agent_service_v1_tool } from "./tool_pb";
 import type { AgentSchema } from "../../v1/agent_pb";
 import { file_malonaz_ai_agent_v1_agent } from "../../v1/agent_pb";
 import type { DefinitionSchema } from "../../v1/definition_pb";
 import { file_malonaz_ai_agent_v1_definition } from "../../v1/definition_pb";
+import type { ToolSchema, ToolSetSchema } from "../../v1/tool_pb";
+import { file_malonaz_ai_agent_v1_tool } from "../../v1/tool_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../../codegen/aip/v1/aip_pb";
 import { file_malonaz_codegen_scheduler_v1_scheduler } from "../../../../codegen/scheduler/v1/scheduler_pb";
 
@@ -21,12 +25,13 @@ import { file_malonaz_codegen_scheduler_v1_scheduler } from "../../../../codegen
  * Describes the file malonaz/ai/agent/agent_service/v1/agent_service.proto.
  */
 export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@__PURE__*/
-  fileDesc("CjVtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnRfc2VydmljZS5wcm90bxIhbWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxMtgeCgxBZ2VudFNlcnZpY2US5gEKEENyZWF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iddpBEXBhcmVudCxkZWZpbml0aW9uwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCNiIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9uczoKZGVmaW5pdGlvbhLKAQoNR2V0RGVmaW5pdGlvbhI3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXREZWZpbml0aW9uUmVxdWVzdBofLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbiJfkAIB2kEEbmFtZcK0LSEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb26C0+STAioSKC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovZGVmaW5pdGlvbnMvKn0S9wEKEFVwZGF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24ihQHaQRZkZWZpbml0aW9uLHVwZGF0ZV9tYXNrwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCQTIzL3YxL3tkZWZpbml0aW9uLm5hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OgpkZWZpbml0aW9uEs0BChBEZWxldGVEZWZpbml0aW9uEjoubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkRlbGV0ZURlZmluaXRpb25SZXF1ZXN0Gh8ubWFsb25hei5haS5hZ2VudC52MS5EZWZpbml0aW9uIlzaQQRuYW1lwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKiooL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9kZWZpbml0aW9ucy8qfRLdAQoSVW5kZWxldGVEZWZpbml0aW9uEjwubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVuZGVsZXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iaNpBBG5hbWXCtC0hCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9ugtPkkwI2IjEvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OnVuZGVsZXRlOgEqEusBCg9MaXN0RGVmaW5pdGlvbnMSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdERlZmluaXRpb25zUmVxdWVzdBo6Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RGVmaW5pdGlvbnNSZXNwb25zZSJhkAIB2kEGcGFyZW50wrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKhIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9ucxLLAQoLQ3JlYXRlQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJp2kEMcGFyZW50LGFnZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjQiKy92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9hZ2VudHM6BWFnZW50ErkBCghHZXRBZ2VudBIyLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXRBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Il2QAgHaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0SKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0S1gEKC1VwZGF0ZUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVwZGF0ZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQidNpBEWFnZW50LHVwZGF0ZV9tYXNrwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjoyMS92MS97YWdlbnQubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06BWFnZW50ErwBCgtEZWxldGVBZ2VudBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5EZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50IlraQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0qKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0SzAEKDVVuZGVsZXRlQWdlbnQSNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVW5kZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImbaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjkiNC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06dW5kZWxldGU6ASoS2gEKCkxpc3RBZ2VudHMSNC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1JlcXVlc3QaNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1Jlc3BvbnNlIl+QAgHaQQZwYXJlbnTCtC0cChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudILT5JMCLRIrL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2FnZW50cxLtAQoMU2VhcmNoQWdlbnRzEjYubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlNlYXJjaEFnZW50c1JlcXVlc3QaNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU2VhcmNoQWdlbnRzUmVzcG9uc2UibJACAdpBDHBhcmVudCxxdWVyecK0LRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50gtPkkwI0EjIvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vYWdlbnRzOnNlYXJjaBKmAQoLQ2FuY2VsQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ2FuY2VsQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJE2kEEbmFtZYLT5JMCNyIyL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTpjYW5jZWw6ASoSxAEKC1N0cmVhbUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVxdWVzdBo2Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlIkSQAgHaQQRuYW1lgtPkkwI0EjIvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OnN0cmVhbTABEsQBCg9BcHByb3ZlVG9vbENhbGwSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQXBwcm92ZVRvb2xDYWxsUmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQiWtpBEW5hbWUsdG9vbF9jYWxsX2lkgtPkkwJAIjsvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OmFwcHJvdmVUb29sQ2FsbDoBKhLLAQoPUmVzb2x2ZVRvb2xDYWxsEjkubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlJlc29sdmVUb29sQ2FsbFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImHaQRhuYW1lLHRvb2xfY2FsbF9pZCxyZXN1bHSC0+STAkAiOy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06cmVzb2x2ZVRvb2xDYWxsOgEqErEBCgxNZXNzYWdlQWdlbnQSNi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTWVzc2FnZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQiTdpBDG5hbWUsbWVzc2FnZYLT5JMCOCIzL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTptZXNzYWdlOgEqEmoKCVdha2VBZ2VudBIzLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5XYWtlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCIMws8kCAoGCgIIHhAFGhfKQRRhZ2VudC5haS5tYWxvbmF6LmNvbUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_agent_agent_service_v1_agent, file_malonaz_ai_agent_agent_service_v1_definition, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_definition, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_scheduler_v1_scheduler]);
+  fileDesc("CjVtYWxvbmF6L2FpL2FnZW50L2FnZW50X3NlcnZpY2UvdjEvYWdlbnRfc2VydmljZS5wcm90bxIhbWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxMrkjCgxBZ2VudFNlcnZpY2US5gEKEENyZWF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iddpBEXBhcmVudCxkZWZpbml0aW9uwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCNiIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9uczoKZGVmaW5pdGlvbhLKAQoNR2V0RGVmaW5pdGlvbhI3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXREZWZpbml0aW9uUmVxdWVzdBofLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbiJfkAIB2kEEbmFtZcK0LSEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb26C0+STAioSKC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovZGVmaW5pdGlvbnMvKn0S9wEKEFVwZGF0ZURlZmluaXRpb24SOi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVXBkYXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24ihQHaQRZkZWZpbml0aW9uLHVwZGF0ZV9tYXNrwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCQTIzL3YxL3tkZWZpbml0aW9uLm5hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OgpkZWZpbml0aW9uEs0BChBEZWxldGVEZWZpbml0aW9uEjoubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLkRlbGV0ZURlZmluaXRpb25SZXF1ZXN0Gh8ubWFsb25hei5haS5hZ2VudC52MS5EZWZpbml0aW9uIlzaQQRuYW1lwrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKiooL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi9kZWZpbml0aW9ucy8qfRLdAQoSVW5kZWxldGVEZWZpbml0aW9uEjwubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVuZGVsZXRlRGVmaW5pdGlvblJlcXVlc3QaHy5tYWxvbmF6LmFpLmFnZW50LnYxLkRlZmluaXRpb24iaNpBBG5hbWXCtC0hCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9ugtPkkwI2IjEvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL2RlZmluaXRpb25zLyp9OnVuZGVsZXRlOgEqEusBCg9MaXN0RGVmaW5pdGlvbnMSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdERlZmluaXRpb25zUmVxdWVzdBo6Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0RGVmaW5pdGlvbnNSZXNwb25zZSJhkAIB2kEGcGFyZW50wrQtIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvboLT5JMCKhIoL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qfS9kZWZpbml0aW9ucxKJAQoKR2V0VG9vbFNldBI0Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXRUb29sU2V0UmVxdWVzdBocLm1hbG9uYXouYWkuYWdlbnQudjEuVG9vbFNldCInkAIB2kEEbmFtZYLT5JMCFxIVL3YxL3tuYW1lPXRvb2xTZXRzLyp9EpsBCgxMaXN0VG9vbFNldHMSNi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdFRvb2xTZXRzUmVxdWVzdBo3Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0VG9vbFNldHNSZXNwb25zZSIakAIB2kEAgtPkkwIOEgwvdjEvdG9vbFNldHMSiAEKB0dldFRvb2wSMS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuR2V0VG9vbFJlcXVlc3QaGS5tYWxvbmF6LmFpLmFnZW50LnYxLlRvb2wiL5ACAdpBBG5hbWWC0+STAh8SHS92MS97bmFtZT10b29sU2V0cy8qL3Rvb2xzLyp9EqkBCglMaXN0VG9vbHMSMy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdFRvb2xzUmVxdWVzdBo0Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5MaXN0VG9vbHNSZXNwb25zZSIxkAIB2kEGcGFyZW50gtPkkwIfEh0vdjEve3BhcmVudD10b29sU2V0cy8qfS90b29scxLLAQoLQ3JlYXRlQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ3JlYXRlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJp2kEMcGFyZW50LGFnZW50wrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjQiKy92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS9hZ2VudHM6BWFnZW50ErkBCghHZXRBZ2VudBIyLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5HZXRBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50Il2QAgHaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0SKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0S1gEKC1VwZGF0ZUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlVwZGF0ZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQidNpBEWFnZW50LHVwZGF0ZV9tYXNrwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjoyMS92MS97YWdlbnQubmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06BWFnZW50ErwBCgtEZWxldGVBZ2VudBI1Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5EZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50IlraQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAi0qKy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn0SzAEKDVVuZGVsZXRlQWdlbnQSNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuVW5kZWxldGVBZ2VudFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImbaQQRuYW1lwrQtHAoaYWdlbnQuYWkubWFsb25hei5jb20vQWdlbnSC0+STAjkiNC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06dW5kZWxldGU6ASoS2gEKCkxpc3RBZ2VudHMSNC5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1JlcXVlc3QaNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTGlzdEFnZW50c1Jlc3BvbnNlIl+QAgHaQQZwYXJlbnTCtC0cChphZ2VudC5haS5tYWxvbmF6LmNvbS9BZ2VudILT5JMCLRIrL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L2FnZW50cxLtAQoMU2VhcmNoQWdlbnRzEjYubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlNlYXJjaEFnZW50c1JlcXVlc3QaNy5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuU2VhcmNoQWdlbnRzUmVzcG9uc2UibJACAdpBDHBhcmVudCxxdWVyecK0LRwKGmFnZW50LmFpLm1hbG9uYXouY29tL0FnZW50gtPkkwI0EjIvdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vYWdlbnRzOnNlYXJjaBKmAQoLQ2FuY2VsQWdlbnQSNS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQ2FuY2VsQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCJE2kEEbmFtZYLT5JMCNyIyL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTpjYW5jZWw6ASoSxAEKC1N0cmVhbUFnZW50EjUubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlN0cmVhbUFnZW50UmVxdWVzdBo2Lm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5TdHJlYW1BZ2VudFJlc3BvbnNlIkSQAgHaQQRuYW1lgtPkkwI0EjIvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OnN0cmVhbTABEsQBCg9BcHByb3ZlVG9vbENhbGwSOS5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuQXBwcm92ZVRvb2xDYWxsUmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQiWtpBEW5hbWUsdG9vbF9jYWxsX2lkgtPkkwJAIjsvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovYWdlbnRzLyp9OmFwcHJvdmVUb29sQ2FsbDoBKhLLAQoPUmVzb2x2ZVRvb2xDYWxsEjkubWFsb25hei5haS5hZ2VudC5hZ2VudF9zZXJ2aWNlLnYxLlJlc29sdmVUb29sQ2FsbFJlcXVlc3QaGi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50ImHaQRhuYW1lLHRvb2xfY2FsbF9pZCxyZXN1bHSC0+STAkAiOy92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi9hZ2VudHMvKn06cmVzb2x2ZVRvb2xDYWxsOgEqErEBCgxNZXNzYWdlQWdlbnQSNi5tYWxvbmF6LmFpLmFnZW50LmFnZW50X3NlcnZpY2UudjEuTWVzc2FnZUFnZW50UmVxdWVzdBoaLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnQiTdpBDG5hbWUsbWVzc2FnZYLT5JMCOCIzL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL2FnZW50cy8qfTptZXNzYWdlOgEqEmoKCVdha2VBZ2VudBIzLm1hbG9uYXouYWkuYWdlbnQuYWdlbnRfc2VydmljZS52MS5XYWtlQWdlbnRSZXF1ZXN0GhoubWFsb25hei5haS5hZ2VudC52MS5BZ2VudCIMws8kCAoGCgIIHhAFGhfKQRRhZ2VudC5haS5tYWxvbmF6LmNvbUI8WjpnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC9hZ2VudF9zZXJ2aWNlL3YxYgZwcm90bzM", [file_google_api_annotations, file_google_api_client, file_malonaz_ai_agent_agent_service_v1_agent, file_malonaz_ai_agent_agent_service_v1_definition, file_malonaz_ai_agent_agent_service_v1_tool, file_malonaz_ai_agent_v1_agent, file_malonaz_ai_agent_v1_definition, file_malonaz_ai_agent_v1_tool, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_scheduler_v1_scheduler]);
 
 /**
- * This API stores agents and runs their turns. Every tool an agent holds is a
- * gRPC method, called on the service's behalf; built-in tools let agents
- * launch sub-agents, message their tree and label themselves.
+ * This API stores agents and runs their turns. The tools an agent holds are
+ * granted from the tool catalogue: methods of routed gRPC services, called as
+ * the agent's owner, and genui components; built-in tools let agents launch
+ * sub-agents, message their tree, label themselves and schedule wake-ups.
  *
  * # Resource model
  *
@@ -35,6 +40,10 @@ export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@
  * - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
  *   an AiService chat, its sub-agents linked by `parent_agent`.
  *   Format: organizations/{organization}/users/{user}/agents/{agent}
+ * - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
+ *   the tools an agent's spec may grant, derived from the service's
+ *   configuration and its tool targets, never stored.
+ *   Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
  *
  * # Messaging
  *
@@ -141,6 +150,55 @@ export const AgentService: GenService<{
     methodKind: "unary";
     input: typeof ListDefinitionsRequestSchema;
     output: typeof ListDefinitionsResponseSchema;
+  },
+  /**
+   * Get a tool set. NOT_FOUND unless configured; a set that cannot be read carries its error.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
+   *
+   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.GetToolSet
+   */
+  getToolSet: {
+    methodKind: "unary";
+    input: typeof GetToolSetRequestSchema;
+    output: typeof ToolSetSchema;
+  },
+  /**
+   * List the tool sets, by name. A set that cannot be read carries its error and never fails the list.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
+   *
+   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.ListToolSets
+   */
+  listToolSets: {
+    methodKind: "unary";
+    input: typeof ListToolSetsRequestSchema;
+    output: typeof ListToolSetsResponseSchema;
+  },
+  /**
+   * Get a tool. UNAVAILABLE when its set cannot be read.
+   *
+   * See: https://google.aip.dev/131 (Standard methods: Get).
+   *
+   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.GetTool
+   */
+  getTool: {
+    methodKind: "unary";
+    input: typeof GetToolRequestSchema;
+    output: typeof ToolSchema;
+  },
+  /**
+   * List the tools of a set, or of every set with the parent `toolSets/-`, by name. A set that cannot be read fails
+   * the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
+   *
+   * See: https://google.aip.dev/132 (Standard methods: List).
+   *
+   * @generated from rpc malonaz.ai.agent.agent_service.v1.AgentService.ListTools
+   */
+  listTools: {
+    methodKind: "unary";
+    input: typeof ListToolsRequestSchema;
+    output: typeof ListToolsResponseSchema;
   },
   /**
    * Create an agent.
@@ -251,9 +309,9 @@ export const AgentService: GenService<{
     output: typeof StreamAgentResponseSchema;
   },
   /**
-   * Approve a tool call the agent's turn awaits approval for. The turn resumes,
-   * running it, once its last awaited call is settled. Approving again is a
-   * no-op; approving a denied call fails.
+   * Approve a call the agent's turn awaits approval for: the turn runs it once its last awaited call is settled. With
+   * `always`, the agent stops asking before calls to the tool. Approving an approved call again only applies
+   * `always`; approving a resolved call fails.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -265,11 +323,10 @@ export const AgentService: GenService<{
     output: typeof AgentSchema;
   },
   /**
-   * Resolve a tool call the agent's turn awaits, supplying its result: an
-   * input component's answer, or an error result denying a call awaiting
-   * approval. The turn resumes, writing it, once its last awaited call is
-   * settled. Resolving again with the same result is a no-op; any other
-   * decision fails.
+   * Resolve a call the agent's turn awaits, whatever it awaits, supplying its outcome instead of the service running
+   * it: an input component's answer, the result of a call the caller ran itself, or an error status refusing it. The
+   * turn resumes, writing it, once its last awaited call is settled. Resolving again with the same result is a no-op;
+   * any other decision fails.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -282,8 +339,9 @@ export const AgentService: GenService<{
   },
   /**
    * Send an agent a message, queued on the agent for its turn to deliver.
-   * Wakes an idle agent. A client's message to an awaiting agent denies the
-   * calls it awaits, its sender replying instead, and resumes its turn. Returns
+   * Wakes an idle agent. A client's message to an awaiting agent resolves the
+   * calls it awaits with CANCELLED, its sender replying instead, and resumes
+   * its turn. Returns
    * the agent, the message in its queue.
    *
    * See: https://google.aip.dev/136 (Custom methods).

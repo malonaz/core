@@ -808,9 +808,9 @@ type CreateAgentsToolArguments_SubAgent struct {
 	Model string `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
 	// An ad-hoc sub-agent's reasoning effort. Defaults to yours.
 	ReasoningEffort v1.ReasoningEffort `protobuf:"varint,6,opt,name=reasoning_effort,json=reasoningEffort,proto3,enum=malonaz.ai.v1.ReasoningEffort" json:"reasoning_effort,omitempty"`
-	// An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
-	// and may only tighten it. The built-in agent tools are always given.
-	Tools         []*v11.AgentSpec_Tool `protobuf:"bytes,7,rep,name=tools,proto3" json:"tools,omitempty"`
+	// An ad-hoc sub-agent's tools: yours, or tools of the sets you hold. Defaults to all of yours. A tool's approval
+	// defaults to yours and may only tighten it. The built-in agent tools are always given.
+	Tools         []*v11.AgentSpec_ToolGrant `protobuf:"bytes,7,rep,name=tools,proto3" json:"tools,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -882,7 +882,7 @@ func (x *CreateAgentsToolArguments_SubAgent) GetReasoningEffort() v1.ReasoningEf
 	return v1.ReasoningEffort(0)
 }
 
-func (x *CreateAgentsToolArguments_SubAgent) GetTools() []*v11.AgentSpec_Tool {
+func (x *CreateAgentsToolArguments_SubAgent) GetTools() []*v11.AgentSpec_ToolGrant {
 	if x != nil {
 		return x.Tools
 	}
@@ -913,7 +913,7 @@ func (x *CreateAgentsToolArguments_SubAgent) SetReasoningEffort(v v1.ReasoningEf
 	x.ReasoningEffort = v
 }
 
-func (x *CreateAgentsToolArguments_SubAgent) SetTools(v []*v11.AgentSpec_Tool) {
+func (x *CreateAgentsToolArguments_SubAgent) SetTools(v []*v11.AgentSpec_ToolGrant) {
 	x.Tools = v
 }
 
@@ -935,9 +935,9 @@ type CreateAgentsToolArguments_SubAgent_builder struct {
 	Model string
 	// An ad-hoc sub-agent's reasoning effort. Defaults to yours.
 	ReasoningEffort v1.ReasoningEffort
-	// An ad-hoc sub-agent's tools, a subset of yours. Defaults to all of yours. A tool's approval defaults to yours
-	// and may only tighten it. The built-in agent tools are always given.
-	Tools []*v11.AgentSpec_Tool
+	// An ad-hoc sub-agent's tools: yours, or tools of the sets you hold. Defaults to all of yours. A tool's approval
+	// defaults to yours and may only tighten it. The built-in agent tools are always given.
+	Tools []*v11.AgentSpec_ToolGrant
 }
 
 func (b0 CreateAgentsToolArguments_SubAgent_builder) Build() *CreateAgentsToolArguments_SubAgent {
@@ -958,9 +958,9 @@ var File_malonaz_ai_agent_agent_service_v1_builtin_tool_proto protoreflect.FileD
 
 const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"\n" +
-	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xb0\x03\n" +
+	"4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xb5\x03\n" +
 	"\x19CreateAgentsToolArguments\x12g\n" +
-	"\x06agents\x18\x01 \x03(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\b\xbaH\x05\x92\x01\x02\b\x01R\x06agents\x1a\xa9\x02\n" +
+	"\x06agents\x18\x01 \x03(\v2E.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\b\xbaH\x05\x92\x01\x02\b\x01R\x06agents\x1a\xae\x02\n" +
 	"\bSubAgent\x12!\n" +
 	"\x05title\x18\x01 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x18\x80\x04R\x05title\x12\x1a\n" +
 	"\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04task\x12\x1e\n" +
@@ -969,8 +969,8 @@ const file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_rawDesc = "" +
 	"definition\x12\"\n" +
 	"\finstructions\x18\x04 \x01(\tR\finstructions\x12\x14\n" +
 	"\x05model\x18\x05 \x01(\tR\x05model\x12I\n" +
-	"\x10reasoning_effort\x18\x06 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x129\n" +
-	"\x05tools\x18\a \x03(\v2#.malonaz.ai.agent.v1.AgentSpec.ToolR\x05tools\"[\n" +
+	"\x10reasoning_effort\x18\x06 \x01(\x0e2\x1e.malonaz.ai.v1.ReasoningEffortR\x0freasoningEffort\x12>\n" +
+	"\x05tools\x18\a \x03(\v2(.malonaz.ai.agent.v1.AgentSpec.ToolGrantR\x05tools\"[\n" +
 	"\x19MessageAgentToolArguments\x12\x1c\n" +
 	"\x05agent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x05agent\x12 \n" +
 	"\amessage\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\amessage\"\x19\n" +
@@ -1006,11 +1006,11 @@ var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_goTypes = []any{
 	(*ListSchedulesToolArguments)(nil),         // 5: malonaz.ai.agent.agent_service.v1.ListSchedulesToolArguments
 	(*CancelScheduleToolArguments)(nil),        // 6: malonaz.ai.agent.agent_service.v1.CancelScheduleToolArguments
 	(*CreateAgentsToolArguments_SubAgent)(nil), // 7: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
-	nil,                           // 8: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
-	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 10: google.protobuf.Duration
-	(v1.ReasoningEffort)(0),       // 11: malonaz.ai.v1.ReasoningEffort
-	(*v11.AgentSpec_Tool)(nil),    // 12: malonaz.ai.agent.v1.AgentSpec.Tool
+	nil,                             // 8: malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry
+	(*timestamppb.Timestamp)(nil),   // 9: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),     // 10: google.protobuf.Duration
+	(v1.ReasoningEffort)(0),         // 11: malonaz.ai.v1.ReasoningEffort
+	(*v11.AgentSpec_ToolGrant)(nil), // 12: malonaz.ai.agent.v1.AgentSpec.ToolGrant
 }
 var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_depIdxs = []int32{
 	7,  // 0: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.agents:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
@@ -1019,7 +1019,7 @@ var file_malonaz_ai_agent_agent_service_v1_builtin_tool_proto_depIdxs = []int32{
 	10, // 3: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.delay:type_name -> google.protobuf.Duration
 	7,  // 4: malonaz.ai.agent.agent_service.v1.ScheduleToolArguments.sub_agent:type_name -> malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent
 	11, // 5: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.reasoning_effort:type_name -> malonaz.ai.v1.ReasoningEffort
-	12, // 6: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.Tool
+	12, // 6: malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgent.tools:type_name -> malonaz.ai.agent.v1.AgentSpec.ToolGrant
 	7,  // [7:7] is the sub-list for method output_type
 	7,  // [7:7] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name

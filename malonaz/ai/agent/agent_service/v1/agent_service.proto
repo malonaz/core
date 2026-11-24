@@ -6,16 +6,19 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/ai/agent/agent_service/v1/agent.proto";
 import "malonaz/ai/agent/agent_service/v1/definition.proto";
+import "malonaz/ai/agent/agent_service/v1/tool.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
+import "malonaz/ai/agent/v1/tool.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/scheduler/v1/scheduler.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
 
-// This API stores agents and runs their turns. Every tool an agent holds is a
-// gRPC method, called on the service's behalf; built-in tools let agents
-// launch sub-agents, message their tree and label themselves.
+// This API stores agents and runs their turns. The tools an agent holds are
+// granted from the tool catalogue: methods of routed gRPC services, called as
+// the agent's owner, and genui components; built-in tools let agents launch
+// sub-agents, message their tree, label themselves and schedule wake-ups.
 //
 // # Resource model
 //
@@ -24,6 +27,10 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //   an AiService chat, its sub-agents linked by `parent_agent`.
 //   Format: organizations/{organization}/users/{user}/agents/{agent}
+// - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
+//   the tools an agent's spec may grant, derived from the service's
+//   configuration and its tool targets, never stored.
+//   Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
 //
 // # Messaging
 //
@@ -125,6 +132,45 @@ service AgentService {
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
   }
 
+  // ===================== Tool Catalogue =====================
+
+  // Get a tool set. NOT_FOUND unless configured; a set that cannot be read carries its error.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetToolSet(GetToolSetRequest) returns (malonaz.ai.agent.v1.ToolSet) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=toolSets/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List the tool sets, by name. A set that cannot be read carries its error and never fails the list.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListToolSets(ListToolSetsRequest) returns (ListToolSetsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/toolSets"};
+    option (google.api.method_signature) = "";
+  }
+
+  // Get a tool. UNAVAILABLE when its set cannot be read.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetTool(GetToolRequest) returns (malonaz.ai.agent.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=toolSets/*/tools/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List the tools of a set, or of every set with the parent `toolSets/-`, by name. A set that cannot be read fails
+  // the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=toolSets/*}/tools"};
+    option (google.api.method_signature) = "parent";
+  }
+
   // ===================== Agent Management =====================
 
   // Create an agent.
@@ -224,9 +270,9 @@ service AgentService {
 
   // ===================== Awaited tool calls =====================
 
-  // Approve a tool call the agent's turn awaits approval for. The turn resumes,
-  // running it, once its last awaited call is settled. Approving again is a
-  // no-op; approving a denied call fails.
+  // Approve a call the agent's turn awaits approval for: the turn runs it once its last awaited call is settled. With
+  // `always`, the agent stops asking before calls to the tool. Approving an approved call again only applies
+  // `always`; approving a resolved call fails.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc ApproveToolCall(ApproveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
@@ -237,11 +283,10 @@ service AgentService {
     option (google.api.method_signature) = "name,tool_call_id";
   }
 
-  // Resolve a tool call the agent's turn awaits, supplying its result: an
-  // input component's answer, or an error result denying a call awaiting
-  // approval. The turn resumes, writing it, once its last awaited call is
-  // settled. Resolving again with the same result is a no-op; any other
-  // decision fails.
+  // Resolve a call the agent's turn awaits, whatever it awaits, supplying its outcome instead of the service running
+  // it: an input component's answer, the result of a call the caller ran itself, or an error status refusing it. The
+  // turn resumes, writing it, once its last awaited call is settled. Resolving again with the same result is a no-op;
+  // any other decision fails.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc ResolveToolCall(ResolveToolCallRequest) returns (malonaz.ai.agent.v1.Agent) {
@@ -255,8 +300,9 @@ service AgentService {
   // ===================== Messaging =====================
 
   // Send an agent a message, queued on the agent for its turn to deliver.
-  // Wakes an idle agent. A client's message to an awaiting agent denies the
-  // calls it awaits, its sender replying instead, and resumes its turn. Returns
+  // Wakes an idle agent. A client's message to an awaiting agent resolves the
+  // calls it awaits with CANCELLED, its sender replying instead, and resumes
+  // its turn. Returns
   // the agent, the message in its queue.
   //
   // See: https://google.aip.dev/136 (Custom methods).

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.v1;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/rpc/status.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/v1";
+
+// A ToolSet is a set of tools an agent's spec may grant whole or tool by tool: a gRPC service the agent service
+// routes to a tool target, whose tools are its unary methods, or the genui components. It is derived from the agent
+// service's configuration and what it reads from each target, never stored, and the same for every caller.
+message ToolSet {
+  option (google.api.resource) = {
+    type: "agent.ai.malonaz.com/ToolSet"
+    pattern: "toolSets/{tool_set}"
+    singular: "toolSet"
+    plural: "toolSets"
+  };
+
+  // The resource name of the tool set: a routed service's id is its full name, the genui components' is `genui`.
+  // Format: toolSets/{tool_set}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // What the set is for: the comment of the service or of the components' envelope, as the descriptors read carry
+  // it. Empty when they carry no source info.
+  string description = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Why the set could not be read: its target is unreachable or serves no such service. Its description is empty
+  // and ListTools leaves its tools out then.
+  google.rpc.Status error = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// A Tool is a tool an agent may call, one of its set's: a method of a routed service, or a genui component. Each turn
+// builds from the tools an agent is granted the definitions its model is given, as
+// [malonaz.ai.v1.Tool][malonaz.ai.v1.Tool].
+message Tool {
+  option (google.api.resource) = {
+    type: "agent.ai.malonaz.com/Tool"
+    pattern: "toolSets/{tool_set}/tools/{tool}"
+    singular: "tool"
+    plural: "tools"
+  };
+
+  // The resource name of the tool: a method's id is its name in its service, a component's its message name.
+  // Format: toolSets/{tool_set}/tools/{tool}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // What the tool does: the comment of the method or component message, as the descriptors read carry it. Empty when
+  // they carry no source info.
+  string description = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Whether a call changes nothing: a method declaring `idempotency_level = NO_SIDE_EFFECTS`, a genui component.
+  // Calls to a read-only tool run without approval unless the spec says otherwise.
+  bool read_only = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Whether a client resolves each call with its result, the agent service never running it: an input component,
+  // answered by the user. Its calls await that result, never an approval.
+  bool resolved_by_client = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}

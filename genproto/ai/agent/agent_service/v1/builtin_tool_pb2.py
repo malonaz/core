@@ -29,7 +29,7 @@ from malonaz.ai.agent.v1 import definition_pb2 as malonaz_dot_ai_dot_agent_dot_v
 from malonaz.ai.v1 import message_pb2 as malonaz_dot_ai_dot_v1_dot_message__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xe2\x02\n\x19\x43reateAgentsToolArguments\x12_\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xe3\x01\n\x08SubAgent\x12\x1a\n\x05title\x18\x01 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x04\xc8\x01\x01\x12\x14\n\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\ndefinition\x18\x03 \x01(\t\x12\x14\n\x0cinstructions\x18\x04 \x01(\t\x12\r\n\x05model\x18\x05 \x01(\t\x12\x38\n\x10reasoning_effort\x18\x06 \x01(\x0e\x32\x1e.malonaz.ai.v1.ReasoningEffort\x12\x32\n\x05tools\x18\x07 \x03(\x0b\x32#.malonaz.ai.agent.v1.AgentSpec.Tool\"K\n\x19MessageAgentToolArguments\x12\x15\n\x05\x61gent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07message\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x19\n\x17ListAgentsToolArguments\"\xab\x01\n\x19UpdateLabelsToolArguments\x12R\n\x03set\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry\x12\x0e\n\x06remove\x18\x02 \x03(\t\x1a*\n\x08SetEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xac\x03\n\x15ScheduleToolArguments\x12\x1a\n\x04\x63ron\x18\x01 \x01(\tB\n\xbaH\x07r\x05\x10\x01\x18\x80\x02H\x00\x12*\n\x04time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12\x34\n\x05\x64\x65lay\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\xbaH\x05\xaa\x01\x02*\x00H\x00\x12\x1a\n\ttime_zone\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x18@\x12\x1a\n\x07message\x18\x05 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x01\x12Z\n\tsub_agent\x18\x06 \x01(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentH\x01:c\xbaH`\x1a^\n\x17schedule.cron_time_zone\x12\x1a\x61 cron needs its time_zone\x1a\'!has(this.cron) || this.time_zone != \'\'B\r\n\x04when\x12\x05\xbaH\x02\x08\x01\x42\r\n\x04wake\x12\x05\xbaH\x02\x08\x01\"\x1c\n\x1aListSchedulesToolArguments\"3\n\x1b\x43\x61ncelScheduleToolArguments\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n4malonaz/ai/agent/agent_service/v1/builtin_tool.proto\x12!malonaz.ai.agent.agent_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\"\xe7\x02\n\x19\x43reateAgentsToolArguments\x12_\n\x06\x61gents\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentB\x08\xbaH\x05\x92\x01\x02\x08\x01\x1a\xe8\x01\n\x08SubAgent\x12\x1a\n\x05title\x18\x01 \x01(\tB\x0b\xbaH\x08r\x03\x18\x80\x04\xc8\x01\x01\x12\x14\n\x04task\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x12\n\ndefinition\x18\x03 \x01(\t\x12\x14\n\x0cinstructions\x18\x04 \x01(\t\x12\r\n\x05model\x18\x05 \x01(\t\x12\x38\n\x10reasoning_effort\x18\x06 \x01(\x0e\x32\x1e.malonaz.ai.v1.ReasoningEffort\x12\x37\n\x05tools\x18\x07 \x03(\x0b\x32(.malonaz.ai.agent.v1.AgentSpec.ToolGrant\"K\n\x19MessageAgentToolArguments\x12\x15\n\x05\x61gent\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07message\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x19\n\x17ListAgentsToolArguments\"\xab\x01\n\x19UpdateLabelsToolArguments\x12R\n\x03set\x18\x01 \x03(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments.SetEntry\x12\x0e\n\x06remove\x18\x02 \x03(\t\x1a*\n\x08SetEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xac\x03\n\x15ScheduleToolArguments\x12\x1a\n\x04\x63ron\x18\x01 \x01(\tB\n\xbaH\x07r\x05\x10\x01\x18\x80\x02H\x00\x12*\n\x04time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12\x34\n\x05\x64\x65lay\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\xbaH\x05\xaa\x01\x02*\x00H\x00\x12\x1a\n\ttime_zone\x18\x04 \x01(\tB\x07\xbaH\x04r\x02\x18@\x12\x1a\n\x07message\x18\x05 \x01(\tB\x07\xbaH\x04r\x02\x10\x01H\x01\x12Z\n\tsub_agent\x18\x06 \x01(\x0b\x32\x45.malonaz.ai.agent.agent_service.v1.CreateAgentsToolArguments.SubAgentH\x01:c\xbaH`\x1a^\n\x17schedule.cron_time_zone\x12\x1a\x61 cron needs its time_zone\x1a\'!has(this.cron) || this.time_zone != \'\'B\r\n\x04when\x12\x05\xbaH\x02\x08\x01\x42\r\n\x04wake\x12\x05\xbaH\x02\x08\x01\"\x1c\n\x1aListSchedulesToolArguments\"3\n\x1b\x43\x61ncelScheduleToolArguments\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x42<Z:github.com/malonaz/core/genproto/ai/agent/agent_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -66,21 +66,21 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CANCELSCHEDULETOOLARGUMENTS'].fields_by_name['name']._loaded_options = None
   _globals['_CANCELSCHEDULETOOLARGUMENTS'].fields_by_name['name']._serialized_options = b'\272H\003\310\001\001'
   _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_start=253
-  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_end=607
+  _globals['_CREATEAGENTSTOOLARGUMENTS']._serialized_end=612
   _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_start=380
-  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_end=607
-  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_start=609
-  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_end=684
-  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_start=686
-  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_end=711
-  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_start=714
-  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_end=885
-  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_start=843
-  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_end=885
-  _globals['_SCHEDULETOOLARGUMENTS']._serialized_start=888
-  _globals['_SCHEDULETOOLARGUMENTS']._serialized_end=1316
-  _globals['_LISTSCHEDULESTOOLARGUMENTS']._serialized_start=1318
-  _globals['_LISTSCHEDULESTOOLARGUMENTS']._serialized_end=1346
-  _globals['_CANCELSCHEDULETOOLARGUMENTS']._serialized_start=1348
-  _globals['_CANCELSCHEDULETOOLARGUMENTS']._serialized_end=1399
+  _globals['_CREATEAGENTSTOOLARGUMENTS_SUBAGENT']._serialized_end=612
+  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_start=614
+  _globals['_MESSAGEAGENTTOOLARGUMENTS']._serialized_end=689
+  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_start=691
+  _globals['_LISTAGENTSTOOLARGUMENTS']._serialized_end=716
+  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_start=719
+  _globals['_UPDATELABELSTOOLARGUMENTS']._serialized_end=890
+  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_start=848
+  _globals['_UPDATELABELSTOOLARGUMENTS_SETENTRY']._serialized_end=890
+  _globals['_SCHEDULETOOLARGUMENTS']._serialized_start=893
+  _globals['_SCHEDULETOOLARGUMENTS']._serialized_end=1321
+  _globals['_LISTSCHEDULESTOOLARGUMENTS']._serialized_start=1323
+  _globals['_LISTSCHEDULESTOOLARGUMENTS']._serialized_end=1351
+  _globals['_CANCELSCHEDULETOOLARGUMENTS']._serialized_start=1353
+  _globals['_CANCELSCHEDULETOOLARGUMENTS']._serialized_end=1404
 # @@protoc_insertion_point(module_scope)

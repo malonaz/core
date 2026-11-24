@@ -141,12 +141,12 @@ type AwaitedToolCall_Reason int32
 const (
 	// Used to detect an unset field.
 	AwaitedToolCall_REASON_UNSPECIFIED AwaitedToolCall_Reason = 0
-	// The call needs the user's approval before it runs: ApproveToolCall runs
-	// it, ResolveToolCall with an error result denies it.
+	// The call awaits approval before the agent service runs it: ApproveToolCall runs it, ResolveToolCall supplies
+	// its outcome instead.
 	AwaitedToolCall_REASON_APPROVAL AwaitedToolCall_Reason = 1
-	// The call renders an input component the user answers: ResolveToolCall
-	// with a result carrying the InputResponse.
-	AwaitedToolCall_REASON_INPUT AwaitedToolCall_Reason = 2
+	// The call awaits its result from a client, the agent service never running it: the user's answer to an input
+	// component. ResolveToolCall supplies it.
+	AwaitedToolCall_REASON_RESULT AwaitedToolCall_Reason = 2
 )
 
 // Enum value maps for AwaitedToolCall_Reason.
@@ -154,12 +154,12 @@ var (
 	AwaitedToolCall_Reason_name = map[int32]string{
 		0: "REASON_UNSPECIFIED",
 		1: "REASON_APPROVAL",
-		2: "REASON_INPUT",
+		2: "REASON_RESULT",
 	}
 	AwaitedToolCall_Reason_value = map[string]int32{
 		"REASON_UNSPECIFIED": 0,
 		"REASON_APPROVAL":    1,
-		"REASON_INPUT":       2,
+		"REASON_RESULT":      2,
 	}
 )
 
@@ -495,7 +495,8 @@ type Agent_builder struct {
 	// Format: organizations/{organization}/definitions/{definition}
 	Definition string
 	// The spec this agent runs: its definition's, snapshotted at creation, or
-	// the inline spec of an ad-hoc agent.
+	// the inline spec of an ad-hoc agent. Its tool grants change with
+	// UpdateAgent, and when a user approves a call always.
 	Spec *AgentSpec
 	// The agent that launched this one. Empty for a root agent.
 	// Format: organizations/{organization}/users/{user}/agents/{agent}
@@ -697,12 +698,13 @@ func (b0 Turn_builder) Build() *Turn {
 	return m0
 }
 
-// An AwaitedToolCall is a tool call only a user can settle: by approving it, or
-// by supplying its result.
+// An AwaitedToolCall is a tool call only a user can settle: by approving a call the agent service would run, or by
+// resolving any awaited call with its outcome.
 type AwaitedToolCall struct {
 	state                 protoimpl.MessageState      `protogen:"opaque.v1"`
 	xxx_hidden_ToolCallId string                      `protobuf:"bytes,1,opt,name=tool_call_id,json=toolCallId,proto3"`
 	xxx_hidden_ToolName   string                      `protobuf:"bytes,2,opt,name=tool_name,json=toolName,proto3"`
+	xxx_hidden_Tool       string                      `protobuf:"bytes,6,opt,name=tool,proto3"`
 	xxx_hidden_Title      string                      `protobuf:"bytes,3,opt,name=title,proto3"`
 	xxx_hidden_Reason     AwaitedToolCall_Reason      `protobuf:"varint,4,opt,name=reason,proto3,enum=malonaz.ai.agent.v1.AwaitedToolCall_Reason"`
 	xxx_hidden_Resolution *AwaitedToolCall_Resolution `protobuf:"bytes,5,opt,name=resolution,proto3"`
@@ -749,6 +751,13 @@ func (x *AwaitedToolCall) GetToolName() string {
 	return ""
 }
 
+func (x *AwaitedToolCall) GetTool() string {
+	if x != nil {
+		return x.xxx_hidden_Tool
+	}
+	return ""
+}
+
 func (x *AwaitedToolCall) GetTitle() string {
 	if x != nil {
 		return x.xxx_hidden_Title
@@ -776,6 +785,10 @@ func (x *AwaitedToolCall) SetToolCallId(v string) {
 
 func (x *AwaitedToolCall) SetToolName(v string) {
 	x.xxx_hidden_ToolName = v
+}
+
+func (x *AwaitedToolCall) SetTool(v string) {
+	x.xxx_hidden_Tool = v
 }
 
 func (x *AwaitedToolCall) SetTitle(v string) {
@@ -806,8 +819,11 @@ type AwaitedToolCall_builder struct {
 
 	// The id of the tool call.
 	ToolCallId string
-	// The name of the tool called.
+	// The name of the tool called, as the model was given it.
 	ToolName string
+	// The tool called.
+	// Format: toolSets/{tool_set}/tools/{tool}
+	Tool string
 	// The title the agent gave the call.
 	Title string
 	// Why the call awaits a user.
@@ -822,6 +838,7 @@ func (b0 AwaitedToolCall_builder) Build() *AwaitedToolCall {
 	_, _ = b, x
 	x.xxx_hidden_ToolCallId = b.ToolCallId
 	x.xxx_hidden_ToolName = b.ToolName
+	x.xxx_hidden_Tool = b.Tool
 	x.xxx_hidden_Title = b.Title
 	x.xxx_hidden_Reason = b.Reason
 	x.xxx_hidden_Resolution = b.Resolution
@@ -1002,24 +1019,23 @@ func (x *AwaitedToolCall_Resolution) WhichDecision() case_AwaitedToolCall_Resolu
 type AwaitedToolCall_Resolution_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Who settled the call: the subject of the principal of the call that
-	// approved, resolved, replied to or cancelled it.
+	// Who settled the call: the subject of the principal of the call that approved, resolved, replied to or
+	// cancelled it.
 	Resolver string
-	// The subject of the actor of the call that settled it, who made it for
-	// the resolver (an operator logged in as a user). Empty when the resolver
-	// made it themselves.
+	// The subject of the actor of the call that settled it, who made it for the resolver (an operator logged in as
+	// a user). Empty when the resolver made it themselves.
 	Actor string
 	// The decision.
 
 	// Fields of oneof xxx_hidden_Decision:
 	// The call was approved.
 	Approval *AwaitedToolCall_Resolution_Approval
-	// The call's result, supplied instead of running it: an answer, a
-	// denial, or the error a cancellation or a reply left it.
+	// The call's outcome, supplied instead of running it: a client's, or the CANCELLED status a reply or a
+	// cancellation left it.
 	Result *v1.ToolResult
 	// -- end of xxx_hidden_Decision
-	// When the resumed turn started running the approved call. A call found
-	// started without a result was interrupted.
+	// When the resumed turn started running the approved call. A call found started without a result was
+	// interrupted.
 	StartTime *timestamppb.Timestamp
 }
 
@@ -1059,8 +1075,8 @@ type awaitedToolCall_Resolution_Approval_ struct {
 }
 
 type awaitedToolCall_Resolution_Result struct {
-	// The call's result, supplied instead of running it: an answer, a
-	// denial, or the error a cancellation or a reply left it.
+	// The call's outcome, supplied instead of running it: a client's, or the CANCELLED status a reply or a
+	// cancellation left it.
 	Result *v1.ToolResult `protobuf:"bytes,3,opt,name=result,proto3,oneof"`
 }
 
@@ -1070,9 +1086,10 @@ func (*awaitedToolCall_Resolution_Result) isAwaitedToolCall_Resolution_Decision(
 
 // Approval approves the call: the resumed turn runs it.
 type AwaitedToolCall_Resolution_Approval struct {
-	state         protoimpl.MessageState `protogen:"opaque.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Always bool                   `protobuf:"varint,1,opt,name=always,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *AwaitedToolCall_Resolution_Approval) Reset() {
@@ -1100,15 +1117,29 @@ func (x *AwaitedToolCall_Resolution_Approval) ProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
+func (x *AwaitedToolCall_Resolution_Approval) GetAlways() bool {
+	if x != nil {
+		return x.xxx_hidden_Always
+	}
+	return false
+}
+
+func (x *AwaitedToolCall_Resolution_Approval) SetAlways(v bool) {
+	x.xxx_hidden_Always = v
+}
+
 type AwaitedToolCall_Resolution_Approval_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Whether the approver also stopped the agent asking before calls to the tool.
+	Always bool
 }
 
 func (b0 AwaitedToolCall_Resolution_Approval_builder) Build() *AwaitedToolCall_Resolution_Approval {
 	m0 := &AwaitedToolCall_Resolution_Approval{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.xxx_hidden_Always = b.Always
 	return m0
 }
 
@@ -1116,7 +1147,7 @@ var File_malonaz_ai_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf2\f\n" +
+	"\x1fmalonaz/ai/agent/v1/agent.proto\x12\x13malonaz.ai.agent.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a$malonaz/ai/agent/v1/definition.proto\x1a\x1bmalonaz/ai/v1/message.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xef\f\n" +
 	"\x05Agent\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -1132,9 +1163,9 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
 	"definition\x18\t \x01(\tB'\xe0A\x05\xfaA!\n" +
 	"\x1fagent.ai.malonaz.com/DefinitionR\n" +
-	"definition\x12?\n" +
+	"definition\x12<\n" +
 	"\x04spec\x18\n" +
-	" \x01(\v2\x1e.malonaz.ai.agent.v1.AgentSpecB\v\xe0A\x05\xba\xea\x0f\x04\x10\x01 \x01R\x04spec\x12E\n" +
+	" \x01(\v2\x1e.malonaz.ai.agent.v1.AgentSpecB\b\xba\xea\x0f\x04\x10\x01 \x01R\x04spec\x12E\n" +
 	"\fparent_agent\x18\v \x01(\tB\"\xe0A\x05\xfaA\x1c\n" +
 	"\x1aagent.ai.malonaz.com/AgentR\vparentAgent\x12A\n" +
 	"\n" +
@@ -1178,16 +1209,18 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x13OUTCOME_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11OUTCOME_SUCCEEDED\x10\x01\x12\x12\n" +
 	"\x0eOUTCOME_FAILED\x10\x02\x12\x15\n" +
-	"\x11OUTCOME_CANCELLED\x10\x03\"\xf0\x04\n" +
+	"\x11OUTCOME_CANCELLED\x10\x03\"\xbd\x05\n" +
 	"\x0fAwaitedToolCall\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x1b\n" +
-	"\ttool_name\x18\x02 \x01(\tR\btoolName\x12\x14\n" +
+	"\ttool_name\x18\x02 \x01(\tR\btoolName\x122\n" +
+	"\x04tool\x18\x06 \x01(\tB\x1e\xfaA\x1b\n" +
+	"\x19agent.ai.malonaz.com/ToolR\x04tool\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12M\n" +
 	"\x06reason\x18\x04 \x01(\x0e2+.malonaz.ai.agent.v1.AwaitedToolCall.ReasonB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06reason\x12O\n" +
 	"\n" +
 	"resolution\x18\x05 \x01(\v2/.malonaz.ai.agent.v1.AwaitedToolCall.ResolutionR\n" +
-	"resolution\x1a\x9e\x02\n" +
+	"resolution\x1a\xb6\x02\n" +
 	"\n" +
 	"Resolution\x12\x1a\n" +
 	"\bresolver\x18\x01 \x01(\tR\bresolver\x12\x14\n" +
@@ -1195,15 +1228,15 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\bapproval\x18\x02 \x01(\v28.malonaz.ai.agent.v1.AwaitedToolCall.Resolution.ApprovalH\x00R\bapproval\x123\n" +
 	"\x06result\x18\x03 \x01(\v2\x19.malonaz.ai.v1.ToolResultH\x00R\x06result\x129\n" +
 	"\n" +
-	"start_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x1a\n" +
+	"start_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x1a\"\n" +
+	"\bApproval\x12\x16\n" +
+	"\x06always\x18\x01 \x01(\bR\x06alwaysB\n" +
 	"\n" +
-	"\bApprovalB\n" +
-	"\n" +
-	"\bdecision\"G\n" +
+	"\bdecision\"H\n" +
 	"\x06Reason\x12\x16\n" +
 	"\x12REASON_UNSPECIFIED\x10\x00\x12\x13\n" +
-	"\x0fREASON_APPROVAL\x10\x01\x12\x10\n" +
-	"\fREASON_INPUT\x10\x02B\x84\x01\xeaAS\n" +
+	"\x0fREASON_APPROVAL\x10\x01\x12\x11\n" +
+	"\rREASON_RESULT\x10\x02B\x84\x01\xeaAS\n" +
 	"\x19agent.ai.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ,github.com/malonaz/core/genproto/ai/agent/v1b\x06proto3"
 
 var file_malonaz_ai_agent_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 3)

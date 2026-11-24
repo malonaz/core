@@ -19,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/agent/v1/definition.proto.
  */
 export const file_malonaz_ai_agent_v1_definition: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L2FpL2FnZW50L3YxL2RlZmluaXRpb24ucHJvdG8SE21hbG9uYXouYWkuYWdlbnQudjEi8gUKCkRlZmluaXRpb24SEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkS0QEKBmxhYmVscxgGIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIaCgV0aXRsZRgHIAEoCUILukgIcgMYgAHIAQESHQoLZGVzY3JpcHRpb24YCCABKAlCCLpIBXIDGIAQEjoKBHNwZWMYCSABKAsyHi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50U3BlY0IMukgDyAEBuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6oAHqQXEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb24SNW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vZGVmaW5pdGlvbnMve2RlZmluaXRpb259KgtkZWZpbml0aW9uczIKZGVmaW5pdGlvbtKmBACC9iwkNTJkZjY4YzMtMDQ4Yy00Yjc4LWExMmYtNjA1NjY1MGEwMTEzIt8FCglBZ2VudFNwZWMSHwoMaW5zdHJ1Y3Rpb25zGAEgASgJQgm6SAZyBBiAgBASLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESQgoQcmVhc29uaW5nX2VmZm9ydBgDIAEoDjIeLm1hbG9uYXouYWkudjEuUmVhc29uaW5nRWZmb3J0Qgi6SAWCAQIQARI9CgV0b29scxgEIAMoCzIjLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2xCCbpIBpIBAxCAAhJLChVzdWJfYWdlbnRfZGVmaW5pdGlvbnMYBSADKAlCLPpBIQofYWdlbnQuYWkubWFsb25hei5jb20vRGVmaW5pdGlvbrpIBZIBAhgBEiYKE21heF9zdWJfYWdlbnRfZGVwdGgYBiABKAVCCbpIBhoEGAgoABryAQoEVG9vbBJICgRuYW1lGAEgASgJQjq6SDdyNTIzXltBLVphLXpfXVtBLVphLXowLTlfXSooXC5bQS1aYS16X11bQS1aYS16MC05X10qKSskEkgKCGFwcHJvdmFsGAIgASgOMiwubWFsb25hei5haS5hZ2VudC52MS5BZ2VudFNwZWMuVG9vbC5BcHByb3ZhbEIIukgFggECEAEiVgoIQXBwcm92YWwSGAoUQVBQUk9WQUxfVU5TUEVDSUZJRUQQABIVChFBUFBST1ZBTF9SRVFVSVJFRBABEhkKFUFQUFJPVkFMX05PVF9SRVFVSVJFRBACOpMBukiPARqMAQoXYWdlbnRfc3BlYy51bmlxdWVfdG9vbHMSHHRvb2xzIG11c3QgYmUgdW5pcXVlIGJ5IG5hbWUaU3RoaXMudG9vbHMuYWxsKHRvb2wsIHRoaXMudG9vbHMuZmlsdGVyKG90aGVyLCBvdGhlci5uYW1lID09IHRvb2wubmFtZSkuc2l6ZSgpID09IDEpQo8BWixnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9hZ2VudC92MepBXgohYWdlbnQuYWkubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb25iBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("CiRtYWxvbmF6L2FpL2FnZW50L3YxL2RlZmluaXRpb24ucHJvdG8SE21hbG9uYXouYWkuYWdlbnQudjEi8gUKCkRlZmluaXRpb24SEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkS0QEKBmxhYmVscxgGIAMoCzIrLm1hbG9uYXouYWkuYWdlbnQudjEuRGVmaW5pdGlvbi5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARIaCgV0aXRsZRgHIAEoCUILukgIcgMYgAHIAQESHQoLZGVzY3JpcHRpb24YCCABKAlCCLpIBXIDGIAQEjoKBHNwZWMYCSABKAsyHi5tYWxvbmF6LmFpLmFnZW50LnYxLkFnZW50U3BlY0IMukgDyAEBuuoPAhABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6oAHqQXEKH2FnZW50LmFpLm1hbG9uYXouY29tL0RlZmluaXRpb24SNW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vZGVmaW5pdGlvbnMve2RlZmluaXRpb259KgtkZWZpbml0aW9uczIKZGVmaW5pdGlvbtKmBACC9iwkNTJkZjY4YzMtMDQ4Yy00Yjc4LWExMmYtNjA1NjY1MGEwMTEzIpUHCglBZ2VudFNwZWMSHwoMaW5zdHJ1Y3Rpb25zGAEgASgJQgm6SAZyBBiAgBASLgoFbW9kZWwYAiABKAlCH/pBFgoUYWkubWFsb25hei5jb20vTW9kZWy6SAPIAQESQgoQcmVhc29uaW5nX2VmZm9ydBgDIAEoDjIeLm1hbG9uYXouYWkudjEuUmVhc29uaW5nRWZmb3J0Qgi6SAWCAQIQARJCCgV0b29scxgEIAMoCzIoLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2xHcmFudEIJukgGkgEDEIACEksKFXN1Yl9hZ2VudF9kZWZpbml0aW9ucxgFIAMoCUIs+kEhCh9hZ2VudC5haS5tYWxvbmF6LmNvbS9EZWZpbml0aW9uukgFkgECGAESJgoTbWF4X3N1Yl9hZ2VudF9kZXB0aBgGIAEoBUIJukgGGgQYCCgAGu8CCglUb29sR3JhbnQSTAoIdG9vbF9zZXQYAyABKAlCOPpBHgocYWdlbnQuYWkubWFsb25hei5jb20vVG9vbFNldLpIFHISMhBedG9vbFNldHMvW14vXSskSAASUQoEdG9vbBgEIAEoCUJB+kEbChlhZ2VudC5haS5tYWxvbmF6LmNvbS9Ub29sukggch4yHF50b29sU2V0cy9bXi9dKy90b29scy9bXi9dKyRIABJNCghhcHByb3ZhbBgCIAEoDjIxLm1hbG9uYXouYWkuYWdlbnQudjEuQWdlbnRTcGVjLlRvb2xHcmFudC5BcHByb3ZhbEIIukgFggECEAEiVgoIQXBwcm92YWwSGAoUQVBQUk9WQUxfVU5TUEVDSUZJRUQQABIVChFBUFBST1ZBTF9SRVFVSVJFRBABEhkKFUFQUFJPVkFMX05PVF9SRVFVSVJFRBACQg4KBWdyYW50EgW6SAIIAUoECAEQAlIEbmFtZTrHAbpIwwEawAEKF2FnZW50X3NwZWMudW5pcXVlX3Rvb2xzEiphIHRvb2wgb3IgdG9vbCBzZXQgaXMgZ3JhbnRlZCBhdCBtb3N0IG9uY2UaeXRoaXMudG9vbHMuYWxsKGdyYW50LCB0aGlzLnRvb2xzLmZpbHRlcihvdGhlciwgb3RoZXIudG9vbF9zZXQgPT0gZ3JhbnQudG9vbF9zZXQgJiYgb3RoZXIudG9vbCA9PSBncmFudC50b29sKS5zaXplKCkgPT0gMSlCjwFaLGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL2FnZW50L3Yx6kFeCiFhZ2VudC5haS5tYWxvbmF6LmNvbS9Pcmdhbml6YXRpb24SHG9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0qDW9yZ2FuaXphdGlvbnMyDG9yZ2FuaXphdGlvbmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_ai_v1_message, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Definition is a reusable agent blueprint: what an agent is told, which
@@ -207,12 +207,13 @@ export type AgentSpec = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   reasoningEffort: ReasoningEffort;
 
   /**
-   * The tools the agent may call. Built-in agent tools (launching sub-agents,
-   * messaging its tree, labelling itself) are always available.
+   * The tools the agent may call, granted whole set or tool by tool. Built-in
+   * agent tools (launching sub-agents, messaging its tree, labelling itself,
+   * scheduling) are always held.
    *
-   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 4;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.ToolGrant tools = 4;
    */
-  tools: AgentSpec_Tool[];
+  tools: AgentSpec_ToolGrant[];
 
   /**
    * The definitions this agent may launch sub-agents from. Empty allows ad-hoc
@@ -263,12 +264,13 @@ export type AgentSpecValid = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   reasoningEffort: ReasoningEffort;
 
   /**
-   * The tools the agent may call. Built-in agent tools (launching sub-agents,
-   * messaging its tree, labelling itself) are always available.
+   * The tools the agent may call, granted whole set or tool by tool. Built-in
+   * agent tools (launching sub-agents, messaging its tree, labelling itself,
+   * scheduling) are always held.
    *
-   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.Tool tools = 4;
+   * @generated from field: repeated malonaz.ai.agent.v1.AgentSpec.ToolGrant tools = 4;
    */
-  tools: AgentSpec_ToolValid[];
+  tools: AgentSpec_ToolGrantValid[];
 
   /**
    * The definitions this agent may launch sub-agents from. Empty allows ad-hoc
@@ -296,48 +298,66 @@ export const AgentSpecSchema: GenMessage<AgentSpec, {validType: AgentSpecValid}>
   messageDesc(file_malonaz_ai_agent_v1_definition, 1);
 
 /**
- * A Tool is a tool an agent may call.
+ * A ToolGrant gives the agent a tool, or every tool of a set, and says when
+ * its calls await the user's approval. A tool granted inside a granted set
+ * does not add it: it refines the set's approval for that tool.
  *
- * @generated from message malonaz.ai.agent.v1.AgentSpec.Tool
+ * @generated from message malonaz.ai.agent.v1.AgentSpec.ToolGrant
  */
-export type AgentSpec_Tool = Message<"malonaz.ai.agent.v1.AgentSpec.Tool"> & {
+export type AgentSpec_ToolGrant = Message<"malonaz.ai.agent.v1.AgentSpec.ToolGrant"> & {
   /**
-   * The tool: a gRPC method by full name ("pkg.Service.Method"), every method
-   * of a service ("pkg.Service"), or a genui component by message full name
-   * ("malonaz.ai.genui.v1.Choice"). Display components are acknowledged,
-   * input components await the user's answer.
+   * What is granted.
    *
-   * @generated from field: string name = 1;
+   * @generated from oneof malonaz.ai.agent.v1.AgentSpec.ToolGrant.grant
    */
-  name: string;
+  grant: {
+    /**
+     * Every tool of a set, present and future.
+     * Format: toolSets/{tool_set}
+     *
+     * @generated from field: string tool_set = 3;
+     */
+    value: string;
+    case: "toolSet";
+  } | {
+    /**
+     * One tool.
+     * Format: toolSets/{tool_set}/tools/{tool}
+     *
+     * @generated from field: string tool = 4;
+     */
+    value: string;
+    case: "tool";
+  } | { case: undefined; value?: undefined };
 
   /**
-   * When calls to the tool await the user's approval. Ignored for genui
-   * components.
+   * When calls to the granted tools await the user's approval. Must be unset
+   * for tools a client resolves.
    *
-   * @generated from field: malonaz.ai.agent.v1.AgentSpec.Tool.Approval approval = 2;
+   * @generated from field: malonaz.ai.agent.v1.AgentSpec.ToolGrant.Approval approval = 2;
    */
-  approval: AgentSpec_Tool_Approval;
+  approval: AgentSpec_ToolGrant_Approval;
 };
 
-export type AgentSpec_ToolValid = AgentSpec_Tool;
+export type AgentSpec_ToolGrantValid = AgentSpec_ToolGrant;
 
 /**
- * Describes the message malonaz.ai.agent.v1.AgentSpec.Tool.
- * Use `create(AgentSpec_ToolSchema)` to create a new message.
+ * Describes the message malonaz.ai.agent.v1.AgentSpec.ToolGrant.
+ * Use `create(AgentSpec_ToolGrantSchema)` to create a new message.
  */
-export const AgentSpec_ToolSchema: GenMessage<AgentSpec_Tool, {validType: AgentSpec_ToolValid}> = /*@__PURE__*/
+export const AgentSpec_ToolGrantSchema: GenMessage<AgentSpec_ToolGrant, {validType: AgentSpec_ToolGrantValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_agent_v1_definition, 1, 0);
 
 /**
- * Approval is when a call to the tool awaits the user's approval.
+ * Approval is when a call to a granted tool awaits the user's approval.
+ * The grant of the tool itself decides, else the grant of its set.
  *
- * @generated from enum malonaz.ai.agent.v1.AgentSpec.Tool.Approval
+ * @generated from enum malonaz.ai.agent.v1.AgentSpec.ToolGrant.Approval
  */
-export enum AgentSpec_Tool_Approval {
+export enum AgentSpec_ToolGrant_Approval {
   /**
-   * Calls to methods without side effects (idempotency_level
-   * NO_SIDE_EFFECTS) run, any other awaits approval.
+   * Calls to read-only tools ([Tool.read_only][malonaz.ai.agent.v1.Tool.read_only])
+   * run, any other awaits approval.
    *
    * @generated from enum value: APPROVAL_UNSPECIFIED = 0;
    */
@@ -359,8 +379,8 @@ export enum AgentSpec_Tool_Approval {
 }
 
 /**
- * Describes the enum malonaz.ai.agent.v1.AgentSpec.Tool.Approval.
+ * Describes the enum malonaz.ai.agent.v1.AgentSpec.ToolGrant.Approval.
  */
-export const AgentSpec_Tool_ApprovalSchema: GenEnum<AgentSpec_Tool_Approval> = /*@__PURE__*/
+export const AgentSpec_ToolGrant_ApprovalSchema: GenEnum<AgentSpec_ToolGrant_Approval> = /*@__PURE__*/
   enumDesc(file_malonaz_ai_agent_v1_definition, 1, 0, 0);
 

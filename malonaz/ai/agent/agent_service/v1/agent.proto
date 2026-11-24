@@ -68,7 +68,8 @@ message UpdateAgentRequest {
     paths: [
       "labels",
       "annotations",
-      "title"
+      "title",
+      "spec.tools"
     ]
   };
   option (buf.validate.message).cel = {
@@ -352,6 +353,12 @@ message ApproveToolCallRequest {
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED
   ];
+
+  // If true, the agent stops asking before calls to the call's tool: its spec
+  // grants the tool APPROVAL_NOT_REQUIRED, and its other calls to the tool
+  // awaiting approval are approved with this one. Undone by updating the
+  // agent's `spec.tools`.
+  bool always = 3;
 }
 
 // Request message for AgentService.ResolveToolCall.
@@ -370,9 +377,8 @@ message ResolveToolCallRequest {
     (google.api.field_behavior) = REQUIRED
   ];
 
-  // The call's result. For an input component, a result carrying the
-  // genui.malonaz.com/input-response annotation answering it; for a call
-  // awaiting approval, an error result denying it.
+  // The call's outcome: a result, or an error status. A result answering an
+  // input component carries the genui.malonaz.com/input-response annotation.
   malonaz.ai.v1.ToolResult result = 3 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED
