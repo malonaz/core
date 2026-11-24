@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -66,6 +66,14 @@ made elsewhere.
   `resolved_by_client` (input components). An unreadable set carries `error`, is left out of `toolSets/-` and fails
   its own list (UNAVAILABLE). Comments travel only when the target serves reflection from a descriptor set built with
   source info (`cmd/workspace-server`); the Go registry's descriptors (genui) have none. Built-ins are not listed.
+- Reach: each caller sees the tools they could call. Per routed set the service asks its target
+  `AuthorizationService.TestMethods` (core's `lores/authentication/overview`) carrying the caller's session; tools not
+  returned are left out (GetTool NOT_FOUND), and a readable set left with none is hidden (GetToolSet and its ListTools
+  NOT_FOUND, absent from ListToolSets). A target that cannot say (serves no AuthorizationService: UNIMPLEMENTED, or
+  fails, logged) trims nothing. Each turn asks again as the owner (`toolbox.reachable`, once per set a turn, on the
+  turn's owner token): a granted set offers only the returned methods (none: no discovery tool), a lone tool grant
+  not returned is left out. Spec validation stays offline: an unreachable grant is accepted and trimmed at turn time.
+  Trimming saves context and failed calls; every call is still the target's decision.
 - A spec grants by resource name (`AgentSpec.ToolGrant`: oneof `tool_set` | `tool`, plus `approval`). A set grant
   reaches the model as a discovery tool set (services) or one tool per component (genui); a lone tool grant as one
   tool; a tool grant inside a granted set only refines its approval (the tool's grant, else its set's, else

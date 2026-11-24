@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, ExchangeToken (a token of a host issuer for a subject, made by a named actor: the host''s Subjects, the exchange lifetime, no chains, the mapping check), how a host adopts it, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, ExchangeToken (a token of a host issuer for a subject, made by a named actor: the host''s Subjects, the exchange lifetime, no chains, the mapping check), TestMethods (what a session could call: request-reading conditions and scopes reachable, session-only conditions decided, registered on every onyx server), how a host adopts it, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -99,6 +99,23 @@ so `Listen` is no `List`):
   run before the interceptor, a stream's first request included. A rewrite runs
   for every call, refused ones too, before any session exists: it only rewrites.
   An ordinary hook rewriting the request runs after the decision: unchecked.
+
+## What a session could call
+
+`AuthorizationService.TestMethods` (`authorization_service.proto`, `authorization.go`) answers, for the
+session of the call, which of the given full method names this server could allow, whatever the request
+(after IAM's TestIamPermissions). A method is returned when a grant of the session's principal
+(`session.grants`, never the presenter's: a carried call is answered for the carried principal) or a
+public role lists it, its scope is `*` or can cover something (valid, and the method's resources
+derivable), and one listing rule has no condition, a condition reading `request` (only a call decides
+it), or a condition reading only the session that holds. Methods the server does not serve
+(`grpc.Server.GetServiceInfo`) are never returned: absent means unreachable or not served, alike.
+
+- Which conditions read `request` is known at configuration load: a condition that compiles without
+  `request` declared never reads it; one that compiles only with it does (`condition.readsRequest`).
+- Served on every gRPC server of an onyx binary with the interceptor: the generated main registers
+  `interceptor.NewAuthorizationService(server.Raw)` beside the server's services. A host lists the method in
+  its public role (an ordinary rule; the interceptor makes no exception for it).
 
 ## Credentials and outcomes
 
