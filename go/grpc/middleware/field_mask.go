@@ -38,17 +38,17 @@ func WithReadMaskStrict(ctx context.Context, paths string) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, metadataKeyReadMaskStrict, paths)
 }
 
+// UnaryServerFieldMask prunes responses to the request's field and read masks. Strict masks are
+// validated against the response type before the handler runs: a write must not be performed only to
+// fail on its mask.
 func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		md, ok := metadata.FromIncomingContext(ctx)
+		masks, ok := extractResponseMasks(ctx)
 		if !ok {
 			return handler(ctx, req)
 		}
-
-		fieldMask, strict := extractFieldMask(md)
-		readMask, readMaskStrict := extractReadMask(md)
-		if fieldMask == nil && readMask == nil {
-			return handler(ctx, req)
+		if err := masks.validate(ctx, info.FullMethod); err != nil {
+			return nil, err
 		}
 
 		response, err := handler(ctx, req)
@@ -59,76 +59,103 @@ func UnaryServerFieldMask() grpc.UnaryServerInterceptor {
 		if !ok {
 			return nil, status.Errorf(codes.Internal, "response is not a protobuf message: %T", response)
 		}
-
-		if fieldMask != nil && !fieldMask.IsWildcardPath() {
-			if strict {
-				if err := fieldMask.Validate(message); err != nil {
-					return nil, status.Errorf(codes.InvalidArgument, "invalid field mask: %v", err)
-				}
-			}
-			fieldMask.Apply(message)
-		}
-
-		if readMask != nil && !readMask.IsWildcardPath() {
-			if err := applyReadMask(message, readMask, readMaskStrict); err != nil {
-				return nil, err
-			}
-		}
-
+		masks.apply(message)
 		return response, nil
 	}
 }
 
+// StreamServerFieldMask is UnaryServerFieldMask for streams: masks are validated before the handler
+// runs and applied to every message sent.
 func StreamServerFieldMask() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		md, ok := metadata.FromIncomingContext(stream.Context())
+		masks, ok := extractResponseMasks(stream.Context())
 		if !ok {
 			return handler(srv, stream)
 		}
-
-		fieldMask, fieldMaskStrict := extractFieldMask(md)
-		readMask, readMaskStrict := extractReadMask(md)
-		if fieldMask == nil && readMask == nil {
-			return handler(srv, stream)
+		if err := masks.validate(stream.Context(), info.FullMethod); err != nil {
+			return err
 		}
-
-		wrappedStream := &fieldMaskServerStream{
-			ServerStream:    stream,
-			fieldMask:       fieldMask,
-			fieldMaskStrict: fieldMaskStrict,
-			readMask:        readMask,
-			readMaskStrict:  readMaskStrict,
-		}
-		return handler(srv, wrappedStream)
+		return handler(srv, &fieldMaskServerStream{ServerStream: stream, masks: masks})
 	}
 }
 
-func extractFieldMask(md metadata.MD) (*pbfieldmask.FieldMask, bool) {
-	if values := md.Get(metadataKeyFieldMaskStrict); len(values) > 0 {
-		return pbfieldmask.FromString(values[0]), true
-	}
-	if values := md.Get(metadataKeyFieldMask); len(values) > 0 {
-		return pbfieldmask.FromString(values[0]), false
-	}
-	return nil, false
-}
-
-func extractReadMask(md metadata.MD) (*pbfieldmask.FieldMask, bool) {
-	if values := md.Get(metadataKeyReadMaskStrict); len(values) > 0 {
-		return pbfieldmask.FromString(values[0]), true
-	}
-	if values := md.Get(metadataKeyReadMask); len(values) > 0 {
-		return pbfieldmask.FromString(values[0]), false
-	}
-	return nil, false
-}
-
-type fieldMaskServerStream struct {
-	grpc.ServerStream
+// responseMasks are the masks a request sets on its response.
+type responseMasks struct {
 	fieldMask       *pbfieldmask.FieldMask
 	fieldMaskStrict bool
 	readMask        *pbfieldmask.FieldMask
 	readMaskStrict  bool
+}
+
+func extractResponseMasks(ctx context.Context) (*responseMasks, bool) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, false
+	}
+	masks := &responseMasks{}
+	masks.fieldMask, masks.fieldMaskStrict = extractMask(md, metadataKeyFieldMaskStrict, metadataKeyFieldMask)
+	masks.readMask, masks.readMaskStrict = extractMask(md, metadataKeyReadMaskStrict, metadataKeyReadMask)
+	return masks, masks.fieldMask != nil || masks.readMask != nil
+}
+
+// extractMask returns the mask set under either key, the strict one first. A wildcard masks nothing.
+func extractMask(md metadata.MD, strictKey, key string) (*pbfieldmask.FieldMask, bool) {
+	values, strict := md.Get(strictKey), true
+	if len(values) == 0 {
+		values, strict = md.Get(key), false
+	}
+	if len(values) == 0 {
+		return nil, false
+	}
+	mask := pbfieldmask.FromString(values[0])
+	if mask.IsWildcardPath() {
+		return nil, false
+	}
+	return mask, strict
+}
+
+// validate checks the strict masks against the method's response type.
+func (m *responseMasks) validate(ctx context.Context, fullMethod string) error {
+	if !m.fieldMaskStrict && !m.readMaskStrict {
+		return nil
+	}
+	methodDescriptor, ok := MethodDescriptorFromContext(ctx)
+	if !ok {
+		var err error
+		if methodDescriptor, err = resolveMethodDescriptor(fullMethod); err != nil {
+			return status.Errorf(codes.Internal, "resolving method descriptor: %v", err)
+		}
+	}
+	response := methodDescriptor.Output()
+	if m.fieldMaskStrict {
+		if err := m.fieldMask.ValidateDescriptor(response); err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid field mask: %v", err)
+		}
+	}
+	if m.readMaskStrict {
+		target := response
+		if field := readMaskTarget(response); field != nil {
+			target = field.Message()
+		}
+		if err := m.readMask.ValidateDescriptor(target); err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid read mask: %v", err)
+		}
+	}
+	return nil
+}
+
+func (m *responseMasks) apply(message proto.Message) {
+	if m.fieldMask != nil {
+		m.fieldMask.Apply(message)
+	}
+	if m.readMask != nil {
+		applyReadMask(message, m.readMask)
+	}
+}
+
+type fieldMaskServerStream struct {
+	grpc.ServerStream
+	masks *responseMasks
 }
 
 func (s *fieldMaskServerStream) SendMsg(m any) error {
@@ -136,84 +163,42 @@ func (s *fieldMaskServerStream) SendMsg(m any) error {
 	if !ok {
 		return status.Errorf(codes.Internal, "message is not a protobuf message: %T", m)
 	}
-	if s.fieldMask != nil && !s.fieldMask.IsWildcardPath() {
-		if s.fieldMaskStrict {
-			if err := s.fieldMask.Validate(message); err != nil {
-				return status.Errorf(codes.InvalidArgument, "invalid field mask: %v", err)
-			}
-		}
-		s.fieldMask.Apply(message)
-	}
-	if s.readMask != nil && !s.readMask.IsWildcardPath() {
-		if err := applyReadMask(message, s.readMask, s.readMaskStrict); err != nil {
-			return err
-		}
-	}
+	s.masks.apply(message)
 	return s.ServerStream.SendMsg(m)
 }
 
-// applyReadMask applies a read mask to the resource within the response message.
-// It first checks if the response itself has a google.api.resource annotation.
-// If not, it recurses one level deep to find a field whose message type has one.
-// If a resource field is found (repeated or singular), the mask is applied there.
-// If nothing is found, the mask is applied to the top-level response as a fallback.
+// readMaskTarget returns the field holding the resource a read mask applies to, or nil when it
+// applies to the response itself: a resource response, or one with no top-level resource field.
 // The response_read_mask tool description (go/pbutil/pbjson) mirrors this choice.
-func applyReadMask(message proto.Message, readMask *pbfieldmask.FieldMask, strict bool) error {
-	reflectMessage := message.ProtoReflect()
-	descriptor := reflectMessage.Descriptor()
-
-	// Check if the response itself is a resource.
-	if hasResourceAnnotation(descriptor) {
-		return applyReadMaskToMessage(message, readMask, strict)
-	}
-
-	// Scan fields one level deep for a resource message.
-	fields := descriptor.Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		if field.Kind() != protoreflect.MessageKind {
-			continue
-		}
-
-		targetDescriptor := field.Message()
-		if field.IsList() {
-			targetDescriptor = field.Message()
-		}
-
-		if !hasResourceAnnotation(targetDescriptor) {
-			continue
-		}
-
-		if field.IsList() {
-			list := reflectMessage.Get(field).List()
-			for j := 0; j < list.Len(); j++ {
-				element := list.Get(j).Message().Interface()
-				if err := applyReadMaskToMessage(element, readMask, strict); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-
-		if reflectMessage.Has(field) {
-			nested := reflectMessage.Get(field).Message().Interface()
-			return applyReadMaskToMessage(nested, readMask, strict)
-		}
+func readMaskTarget(response protoreflect.MessageDescriptor) protoreflect.FieldDescriptor {
+	if hasResourceAnnotation(response) {
 		return nil
 	}
-
-	// Fallback: apply to the top-level response.
-	return applyReadMaskToMessage(message, readMask, strict)
-}
-
-func applyReadMaskToMessage(message proto.Message, readMask *pbfieldmask.FieldMask, strict bool) error {
-	if strict {
-		if err := readMask.Validate(message); err != nil {
-			return status.Errorf(codes.InvalidArgument, "invalid read mask: %v", err)
+	fields := response.Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		if field.Kind() == protoreflect.MessageKind && hasResourceAnnotation(field.Message()) {
+			return field
 		}
 	}
-	readMask.Apply(message)
 	return nil
+}
+
+// applyReadMask applies a read mask to the resource(s) within the response message.
+func applyReadMask(message proto.Message, readMask *pbfieldmask.FieldMask) {
+	reflectMessage := message.ProtoReflect()
+	field := readMaskTarget(reflectMessage.Descriptor())
+	switch {
+	case field == nil:
+		readMask.Apply(message)
+	case field.IsList():
+		list := reflectMessage.Get(field).List()
+		for i := 0; i < list.Len(); i++ {
+			readMask.Apply(list.Get(i).Message().Interface())
+		}
+	case reflectMessage.Has(field):
+		readMask.Apply(reflectMessage.Get(field).Message().Interface())
+	}
 }
 
 func hasResourceAnnotation(descriptor protoreflect.MessageDescriptor) bool {

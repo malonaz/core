@@ -4,23 +4,21 @@ import (
 	"fmt"
 	"slices"
 
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // validate validates that the paths in the provided field mask are syntactically valid and
 // refer to known fields in the specified message type.
-func validate(fm *fieldmaskpb.FieldMask, m proto.Message) error {
+func validate(fm *fieldmaskpb.FieldMask, descriptor protoreflect.MessageDescriptor) error {
 	if slices.Contains(fm.GetPaths(), WildcardPath) {
 		if len(fm.GetPaths()) != 1 {
 			return fmt.Errorf("invalid field path: '*' must not be used with other paths")
 		}
 		return nil
 	}
-	md0 := m.ProtoReflect().Descriptor()
 	for _, path := range fm.GetPaths() {
-		if err := validatePath(md0, path); err != nil {
+		if err := validatePath(descriptor, path); err != nil {
 			return err
 		}
 	}
