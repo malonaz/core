@@ -212,9 +212,10 @@ func (b0 ListAgentsToolArguments_builder) Build() *ListAgentsToolArguments {
 // The arguments of the built-in update_labels tool.
 type UpdateLabelsToolArguments struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+	// Labels to set, by key. Keys carry no prefix: prefixed keys belong to the services and users that define them.
+	// Values are lowercase letters, digits, '_' and '-', at most 63 characters.
 	Set map[string]string `protobuf:"bytes,1,rep,name=set,proto3" json:"set,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// Keys of labels to remove.
+	// Keys of labels to remove, unprefixed.
 	Remove        []string `protobuf:"bytes,2,rep,name=remove,proto3" json:"remove,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -270,9 +271,10 @@ func (x *UpdateLabelsToolArguments) SetRemove(v []string) {
 type UpdateLabelsToolArguments_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+	// Labels to set, by key. Keys carry no prefix: prefixed keys belong to the services and users that define them.
+	// Values are lowercase letters, digits, '_' and '-', at most 63 characters.
 	Set map[string]string
-	// Keys of labels to remove.
+	// Keys of labels to remove, unprefixed.
 	Remove []string
 }
 

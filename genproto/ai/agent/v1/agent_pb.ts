@@ -75,7 +75,8 @@ export type Agent = Message<"malonaz.ai.agent.v1.Agent"> & {
   etag: string;
 
   /**
-   * The labels on this agent. Agents label themselves through their built-in update_labels tool.
+   * The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+   * tool; prefixed keys are their owners' and the services'.
    *
    * @generated from field: map<string, string> labels = 6;
    */
@@ -209,7 +210,8 @@ export type AgentValid = Message<"malonaz.ai.agent.v1.Agent"> & {
   etag: string;
 
   /**
-   * The labels on this agent. Agents label themselves through their built-in update_labels tool.
+   * The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+   * tool; prefixed keys are their owners' and the services'.
    *
    * @generated from field: map<string, string> labels = 6;
    */

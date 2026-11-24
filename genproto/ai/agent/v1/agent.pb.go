@@ -204,7 +204,8 @@ type Agent struct {
 	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
-	// The labels on this agent. Agents label themselves through their built-in update_labels tool.
+	// The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+	// tool; prefixed keys are their owners' and the services'.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Annotations on this agent, for tooling. Values are opaque.
 	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -509,7 +510,8 @@ type Agent_builder struct {
 	DeleteTime *timestamppb.Timestamp
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string
-	// The labels on this agent. Agents label themselves through their built-in update_labels tool.
+	// The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+	// tool; prefixed keys are their owners' and the services'.
 	Labels map[string]string
 	// Annotations on this agent, for tooling. Values are opaque.
 	Annotations map[string]string

@@ -485,7 +485,8 @@ type Agent_builder struct {
 	DeleteTime *timestamppb.Timestamp
 	// A checksum computed by the server based on the current value of the resource.
 	Etag string
-	// The labels on this agent. Agents label themselves through their built-in update_labels tool.
+	// The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+	// tool; prefixed keys are their owners' and the services'.
 	Labels map[string]string
 	// Annotations on this agent, for tooling. Values are opaque.
 	Annotations map[string]string

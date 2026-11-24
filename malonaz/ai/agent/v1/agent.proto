@@ -91,7 +91,8 @@ message Agent {
   // A checksum computed by the server based on the current value of the resource.
   string etag = 5;
 
-  // The labels on this agent. Agents label themselves through their built-in update_labels tool.
+  // The labels on this agent. Agents label themselves, with unprefixed keys, through their built-in update_labels
+  // tool; prefixed keys are their owners' and the services'.
   map<string, string> labels = 6 [
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true,

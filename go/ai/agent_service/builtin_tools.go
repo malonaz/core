@@ -436,6 +436,7 @@ func listAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall 
 
 const updateLabelsToolDescription = "Set and remove labels on yourself, e.g. to publish your progress or status to the agents and users watching you. " +
 	"`set` maps keys to values (lowercase letters, digits, '_' and '-', at most 63 characters); `remove` lists keys to drop. " +
+	"Your keys have no prefix: prefixed keys (`{domain}/{name}`) belong to the services and users that define them. " +
 	"Returns your labels after the change."
 
 func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.UpdateLabelsToolArguments) (*aipb.ToolResult, error) {
@@ -445,8 +446,8 @@ func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	// One path per key: concurrent updates of other keys survive, and the update retries on their etag races.
 	var paths []string
 	for _, key := range append(slices.Collect(maps.Keys(arguments.GetSet())), arguments.GetRemove()...) {
-		if isPlatformLabel(key) {
-			return nil, status.Errorf(codes.PermissionDenied, "label %s is reserved to the platform", key).Err()
+		if strings.Contains(key, "/") {
+			return nil, status.Errorf(codes.PermissionDenied, "label %s is prefixed: prefixed keys are not yours to write", key).Err()
 		}
 		paths = append(paths, "labels.`"+key+"`")
 	}
@@ -462,8 +463,3 @@ func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	return structuredToolResult(toolCall, updatedLabels)
 }
 
-// isPlatformLabel reports whether a label key is in a *.malonaz.com prefix, which agents may not write.
-func isPlatformLabel(key string) bool {
-	prefix, _, ok := strings.Cut(key, "/")
-	return ok && (prefix == "malonaz.com" || strings.HasSuffix(prefix, ".malonaz.com"))
-}

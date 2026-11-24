@@ -266,9 +266,10 @@ func (x *UpdateLabelsToolArguments) SetRemove(v []string) {
 type UpdateLabelsToolArguments_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+	// Labels to set, by key. Keys carry no prefix: prefixed keys belong to the services and users that define them.
+	// Values are lowercase letters, digits, '_' and '-', at most 63 characters.
 	Set map[string]string
-	// Keys of labels to remove.
+	// Keys of labels to remove, unprefixed.
 	Remove []string
 }
 

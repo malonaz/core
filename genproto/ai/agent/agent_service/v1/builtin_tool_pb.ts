@@ -256,14 +256,15 @@ export const ListAgentsToolArgumentsSchema: GenMessage<ListAgentsToolArguments, 
  */
 export type UpdateLabelsToolArguments = Message<"malonaz.ai.agent.agent_service.v1.UpdateLabelsToolArguments"> & {
   /**
-   * Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+   * Labels to set, by key. Keys carry no prefix: prefixed keys belong to the services and users that define them.
+   * Values are lowercase letters, digits, '_' and '-', at most 63 characters.
    *
    * @generated from field: map<string, string> set = 1;
    */
   set: { [key: string]: string };
 
   /**
-   * Keys of labels to remove.
+   * Keys of labels to remove, unprefixed.
    *
    * @generated from field: repeated string remove = 2;
    */

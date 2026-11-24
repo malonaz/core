@@ -265,12 +265,19 @@ func TestBuiltinTools_UpdateLabels(t *testing.T) {
 	toolResult = callBuiltinTool(t, service, agent, newToolCall("call-2", updateLabelsToolName, map[string]any{"tool_call_title": "Nothing"}))
 	require.Equal(t, int32(codes.InvalidArgument), toolResult.GetError().GetCode())
 
-	// Platform labels are not the agent's to write.
-	toolResult = callBuiltinTool(t, service, agent, newToolCall("call-3", updateLabelsToolName, map[string]any{
-		"tool_call_title": "Forge",
-		"set":             map[string]any{"agent.ai.malonaz.com/agent": "other"},
-	}))
-	require.Equal(t, int32(codes.PermissionDenied), toolResult.GetError().GetCode())
+	// Prefixed keys belong to the services and users defining them, the platform's and a host's alike.
+	for _, key := range []string{"agent.ai.malonaz.com/agent", "kantoku.example.com/archived"} {
+		toolResult = callBuiltinTool(t, service, agent, newToolCall("call-3", updateLabelsToolName, map[string]any{
+			"tool_call_title": "Forge",
+			"set":             map[string]any{key: "true"},
+		}))
+		require.Equal(t, int32(codes.PermissionDenied), toolResult.GetError().GetCode(), key)
+		toolResult = callBuiltinTool(t, service, agent, newToolCall("call-4", updateLabelsToolName, map[string]any{
+			"tool_call_title": "Clear",
+			"remove":          []any{key},
+		}))
+		require.Equal(t, int32(codes.PermissionDenied), toolResult.GetError().GetCode(), key)
+	}
 }
 
 func TestBuiltinTools_UpdateLabelsKeepsConcurrentKeys(t *testing.T) {

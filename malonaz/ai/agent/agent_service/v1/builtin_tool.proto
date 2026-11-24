@@ -62,10 +62,11 @@ message ListAgentsToolArguments {}
 
 // The arguments of the built-in update_labels tool.
 message UpdateLabelsToolArguments {
-  // Labels to set, by key. Values are lowercase letters, digits, '_' and '-', at most 63 characters.
+  // Labels to set, by key. Keys carry no prefix: prefixed keys belong to the services and users that define them.
+  // Values are lowercase letters, digits, '_' and '-', at most 63 characters.
   map<string, string> set = 1;
 
-  // Keys of labels to remove.
+  // Keys of labels to remove, unprefixed.
   repeated string remove = 2;
 }
 
