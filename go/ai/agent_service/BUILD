@@ -5,6 +5,7 @@ onyx_manifest(
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/ai/ai_service/v1",
+        "//malonaz/authentication/v2",
         "//malonaz/scheduler/scheduler_service/v1",
     ],
 )
@@ -27,6 +28,7 @@ go_library(
         "hub.go",
         "lease.go",
         "message.go",
+        "owner_token.go",
         "peer.go",
         "requester.go",
         "runtime.go",
@@ -61,6 +63,7 @@ go_library(
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/genui/v1",
         "//malonaz/ai/v1",
+        "//malonaz/authentication/v2",
         "//malonaz/scheduler/scheduler_service/v1",
         "//malonaz/scheduler/v1",
         "//third_party/go:buf.build__go__protovalidate",
@@ -133,6 +136,7 @@ go_test(
         "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__protobuf__proto",
         "//third_party/go:google.golang.org__protobuf__types__known__anypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
         "//third_party/go:google.golang.org__protobuf__types__known__structpb",

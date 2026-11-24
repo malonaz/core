@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/metadata"
+
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/uuid"
@@ -20,6 +22,7 @@ type Opts struct {
 	ShutdownGrace              time.Duration     `long:"shutdown-grace" env:"SHUTDOWN_GRACE" default:"10s" description:"How long a stopping replica lets in-flight tool calls finish before cancelling its turns and releasing their leases"`
 	StreamPollInterval         time.Duration     `long:"stream-poll-interval" env:"STREAM_POLL_INTERVAL" default:"1s" description:"How often a StreamAgent call re-reads its agents for changes made elsewhere: snapshots, turns moving between replicas, new descendants"`
 	SchedulerDispatcherAccount string            `long:"scheduler-dispatcher-account" env:"SCHEDULER_DISPATCHER_ACCOUNT" required:"true" description:"The subject of the scheduler dispatcher's service account, serviceAccounts/{id}: WakeAgent runs only when it calls"`
+	OwnerTokenIssuer           string            `long:"owner-token-issuer" env:"OWNER_TOKEN_ISSUER" required:"true" description:"The issuer whose tokens tool calls carry: exchanged for each agent's owner, the agent its actor"`
 	ToolTargets                map[string]string `long:"tool-target" env:"TOOL_TARGETS" env-delim:"," key-value-delimiter:"=" description:"Where a tool service is served, as pkg.Service=endpoint (endpoint as for advertised-address). Repeatable. Every service an agent's tools name needs one: specs naming another are refused"`
 }
 
@@ -48,6 +51,9 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	}
 	if opts.SchedulerDispatcherAccount == "" {
 		return nil, fmt.Errorf("scheduler dispatcher account is required")
+	}
+	if opts.OwnerTokenIssuer == "" {
+		return nil, fmt.Errorf("owner token issuer is required")
 	}
 	connections := newConnections()
 	toolRouter, err := newToolRouter(opts.ToolTargets, connections)
@@ -82,6 +88,16 @@ func (s *Service) asService(ctx context.Context) context.Context {
 	}
 	return s.withServiceAccount(ctx)
 }
+
+// withoutIdentity returns ctx making calls that carry no identity, neither the session ctx serves nor the service's
+// account, which core's gRPC client signs per call, and no outgoing metadata. Cancellation and deadlines are kept.
+func withoutIdentity(ctx context.Context) context.Context {
+	ctx = grpc.WithCallMetadata(ctx, noCallMetadata)
+	return metadata.NewOutgoingContext(ctx, metadata.MD{})
+}
+
+// noCallMetadata is the call metadata of a call carrying no identity.
+func noCallMetadata(context.Context) (map[string]string, error) { return nil, nil }
 
 // validateTools checks that every tool of a spec resolves: RPC tools need a target.
 func (s *Service) validateTools(spec *agentpb.AgentSpec) error {

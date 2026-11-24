@@ -9,6 +9,7 @@ import (
 	"github.com/malonaz/core/gengo/ai/agent/agent_service/rpc"
 	"github.com/malonaz/core/gengo/ai/agent/store"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
+	tokenservicepb "github.com/malonaz/core/genproto/authentication/v2"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 )
 
@@ -21,6 +22,7 @@ type Service struct {
 	agentPostgresStore     *store.Store
 	aiServiceClient        aiservicepb.AiServiceClient
 	schedulerServiceClient schedulerservicepb.SchedulerServiceClient
+	tokenServiceClient     tokenservicepb.TokenServiceClient
 }
 
 func (s *Service) WithLogger(logger *slog.Logger) *Service {
@@ -33,6 +35,7 @@ func New(
 	agentPostgresStore *store.Store,
 	aiServiceClient aiservicepb.AiServiceClient,
 	schedulerServiceClient schedulerservicepb.SchedulerServiceClient,
+	tokenServiceClient tokenservicepb.TokenServiceClient,
 ) (*Service, error) {
 	runtime, err := newRuntime(opts)
 	if err != nil {
@@ -45,6 +48,7 @@ func New(
 		agentPostgresStore:     agentPostgresStore,
 		aiServiceClient:        aiServiceClient,
 		schedulerServiceClient: schedulerServiceClient,
+		tokenServiceClient:     tokenServiceClient,
 	}
 	service.AgentServiceServer = rpc.NewAgentServiceServer(agentPostgresStore)
 	return service, nil

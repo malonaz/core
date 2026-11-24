@@ -40,8 +40,12 @@ var testPostgresClient *postgres.Client
 
 func TestMain(m *testing.M) {
 	var err error
-	if testInterceptor, err = newTestInterceptor(); err != nil {
+	configuration := newTestConfiguration()
+	if testInterceptor, err = newTestInterceptor(configuration); err != nil {
 		panic(fmt.Errorf("instantiating the authentication interceptor: %w", err))
+	}
+	if testTokenService, err = newTestTokenService(configuration); err != nil {
+		panic(fmt.Errorf("serving the token service: %w", err))
 	}
 	testserver.RunWithPostgres(context.Background(), m, slog.Default(), &testPostgresClient, nil, "", os.ReadFile, agentMigrationsDirectory)
 }
@@ -57,6 +61,7 @@ func newTestOpts(address string) *Opts {
 		ShutdownGrace:              time.Second,
 		StreamPollInterval:         100 * time.Millisecond,
 		SchedulerDispatcherAccount: dispatcherAccount,
+		OwnerTokenIssuer:           ownerTokenIssuer,
 	}
 }
 
@@ -89,7 +94,7 @@ func newTestReplica(t *testing.T, aiService *fakeAiService, configure func(*Opts
 		configure(opts)
 	}
 	schedulerService := newFakeSchedulerService()
-	service, err := New(opts, newTestStore(), aiService, schedulerService)
+	service, err := New(opts, newTestStore(), aiService, schedulerService, testTokenService)
 	require.NoError(t, err)
 	server := grpc.NewServer(grpc.ChainUnaryInterceptor(testInterceptor.Unary()), grpc.ChainStreamInterceptor(testInterceptor.Stream()))
 	agentservicepb.RegisterAgentServiceServer(server, service)

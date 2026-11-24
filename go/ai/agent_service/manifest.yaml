@@ -16,3 +16,6 @@ dependencies:
   - grpc_client:
       service: scheduler-service
       proto: //malonaz/scheduler/scheduler_service/v1
+  - grpc_client:
+      service: token-service
+      proto: //malonaz/authentication/v2

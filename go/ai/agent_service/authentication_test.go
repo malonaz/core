@@ -2,19 +2,25 @@ package agent_service
 
 import (
 	"context"
+	"net"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	grpcgo "google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	aipb "github.com/malonaz/core/genproto/ai/v1"
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/aip"
 	authentication "github.com/malonaz/core/go/authentication/v2"
 	"github.com/malonaz/core/go/authentication/v2/authenticationtest"
 	"github.com/malonaz/core/go/grpc"
@@ -35,19 +41,42 @@ const (
 	dispatcherAccount   = "serviceAccounts/" + dispatcherAccountID
 	// serverTokenKey carries the token a server presents another.
 	serverTokenKey = "x-server-token"
+	// ownerTokenIssuer issues the owners' tokens the replicas' tool calls carry.
+	ownerTokenIssuer = "owner"
 )
 
-// testInterceptor authenticates the calls to every test replica.
+// testOwnerTokenKey signs the owners' tokens.
+var testOwnerTokenKey = func() string {
+	key, err := authentication.SymmetricKey("agent-service-test-owner-token-secret-0123")
+	if err != nil {
+		panic(err)
+	}
+	return key
+}()
+
+// testInterceptor authenticates the calls to every test replica and tool target.
 var testInterceptor *authentication.Interceptor
 
-// newTestInterceptor returns the interceptor of every test replica, serving the AgentService as the service's account.
-// Anyone may call anything: the tests exercise what the service decides itself.
-func newTestInterceptor() (*authentication.Interceptor, error) {
-	configuration := &authenticationpb.Configuration{
+// newTestConfiguration lets anyone call anything, the tests exercising what the service decides itself, and trusts
+// the owners' tokens the test token service exchanges.
+func newTestConfiguration() *authenticationpb.Configuration {
+	return &authenticationpb.Configuration{
+		Issuers: []*authenticationpb.Issuer{{
+			Id:               ownerTokenIssuer,
+			Issuer:           ownerTokenIssuer,
+			Audience:         ownerTokenIssuer,
+			Keys:             &authenticationpb.Issuer_Jwks{Jwks: authenticationtest.KeySet(testOwnerTokenKey)},
+			GrantsCel:        "[]",
+			ExchangeLifetime: durationpb.New(10 * time.Minute),
+		}},
 		ServiceAccounts: []*authenticationpb.ServiceAccount{{Id: serviceAccountID}, {Id: dispatcherAccountID}, {Id: otherAccountID}},
 		Roles:           []*authenticationpb.Role{{Id: "public", Rules: []*authenticationpb.Rule{{Methods: []string{"*"}}}}},
 		PublicRoles:     []string{"public"},
 	}
+}
+
+// newTestInterceptor returns the interceptor of every test replica, serving the AgentService as the service's account.
+func newTestInterceptor(configuration *authenticationpb.Configuration) (*authentication.Interceptor, error) {
 	configurationBytes, err := pbutil.JSONMarshal(configuration)
 	if err != nil {
 		return nil, err
@@ -70,6 +99,71 @@ func newTestInterceptor() (*authentication.Interceptor, error) {
 		return nil, err
 	}
 	return interceptor, nil
+}
+
+// testTokenService exchanges the owners' tokens of every test replica.
+var testTokenService authenticationpb.TokenServiceClient
+
+// newTestTokenService serves the TokenService behind the test interceptor, on its own unix socket.
+func newTestTokenService(configuration *authenticationpb.Configuration) (authenticationpb.TokenServiceClient, error) {
+	tokenService, err := authentication.NewTokenService(context.Background(), configuration, testSubjects, map[string]string{ownerTokenIssuer: testOwnerTokenKey})
+	if err != nil {
+		return nil, err
+	}
+	socketDirectory, err := os.MkdirTemp("", "token")
+	if err != nil {
+		return nil, err
+	}
+	socketPath := filepath.Join(socketDirectory, "grpc.sock")
+	listener, err := net.Listen("unix", socketPath)
+	if err != nil {
+		return nil, err
+	}
+	server := grpcgo.NewServer(grpcgo.ChainUnaryInterceptor(testInterceptor.Unary()))
+	authenticationpb.RegisterTokenServiceServer(server, tokenService)
+	go server.Serve(listener)
+	clientOpts, err := grpc.ParseClientOpts("unix:" + socketPath)
+	if err != nil {
+		return nil, err
+	}
+	connection, err := grpc.NewConnection(clientOpts, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := connection.Connect(context.Background()); err != nil {
+		return nil, err
+	}
+	return authenticationpb.NewTokenServiceClient(connection.Get()), nil
+}
+
+// strangerUserID names the users the test token service knows nothing of.
+const strangerUserID = "stranger"
+
+// testSubjects are the owners the test token service exchanges for: every user but strangers. It counts the
+// exchanges.
+var testSubjects = &fakeSubjects{subjectToExchanges: map[string]int{}}
+
+type fakeSubjects struct {
+	mutex              sync.Mutex
+	subjectToExchanges map[string]int
+}
+
+func (s *fakeSubjects) Claims(ctx context.Context, issuer, subject string) (map[string]any, error) {
+	userRn := &agentpb.UserRn{}
+	if err := userRn.UnmarshalString(subject); err != nil || userRn.User == strangerUserID {
+		return nil, status.Errorf(codes.NotFound, "unknown user %s", subject).Err()
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.subjectToExchanges[subject]++
+	return map[string]any{}, nil
+}
+
+// exchanges returns how many tokens were exchanged for a user.
+func (s *fakeSubjects) exchanges(subject string) int {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.subjectToExchanges[subject]
 }
 
 // asAccount returns what makes calls as a service account, as onyx hands it to a service's Start.
@@ -117,31 +211,69 @@ func dispatcherContext(jobName string) context.Context {
 	return metadata.NewIncomingContext(ctx, metadata.Pairs(scheduler.JobMetadataKey, jobName))
 }
 
-func TestTools_TargetsReceiveNoIdentity(t *testing.T) {
+const (
+	agentServiceName   = "malonaz.ai.agent.agent_service.v1.AgentService"
+	messageAgentMethod = agentServiceName + ".MessageAgent"
+	// reflectionFullMethod is the call reading a tool target's schema.
+	reflectionFullMethod = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
+)
+
+// checkCall returns a call of the health tool checking a service.
+func checkCall(service string) *aipb.ToolCall {
+	return newToolCall(service, healthCheckTool, map[string]any{"tool_call_title": "Check " + service, "service": service})
+}
+
+func TestTools_CalledAsTheOwner(t *testing.T) {
+	// The replica's own AgentService is a tool target: a message records who sent it.
 	healthServer, endpoint := newTestToolTarget(t)
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
+		opts.MaxConcurrentTurns = 0
+		opts.ToolTargets = map[string]string{healthService: endpoint, agentServiceName: opts.AdvertisedAddress}
+	})
+	owner := newTestUser(t)
+	spec := &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckMethod, messageAgentMethod)}
+	agent := createTestAgentWithSpec(t, service, owner, spec)
+	recipient := createTestAgentWithSpec(t, service, owner, spec)
+	toolbox, err := service.newToolbox(context.Background(), agent)
+	require.NoError(t, err)
+
+	messageCall := newToolCall("message", "AgentService_MessageAgent", map[string]any{
+		"tool_call_title": "Say hello",
+		"name":            recipient.Name,
+		"message":         map[string]any{"role": "ROLE_USER", "blocks": []any{map[string]any{"text": "hello"}}},
+	})
+	for _, toolCall := range []*aipb.ToolCall{checkCall("library"), messageCall, checkCall("shelf")} {
+		require.Nil(t, toolbox.call(context.Background(), toolCall).GetError(), toolCall.GetId())
+	}
+
+	queuedMessages := getAgent(t, service, recipient.Name).GetQueuedMessages()
+	require.Len(t, queuedMessages, 1)
+	sender, _ := agentpb.Annotations.Sender.Get(queuedMessages[0])
+	actor, _ := agentpb.Annotations.Actor.Get(queuedMessages[0])
+	require.Equal(t, owner, sender)
+	require.Equal(t, agent.Name, actor)
+	require.Equal(t, []string{"library", "shelf"}, healthServer.checkedServices())
+	// A schema is the same for every owner: the service reads it.
+	require.Equal(t, "serviceAccounts/"+serviceAccountID, healthServer.session(reflectionFullMethod).GetPrincipal().GetSubject())
+	// One token serves the turn.
+	require.Equal(t, 1, testSubjects.exchanges(owner))
+}
+
+func TestTools_FailWithoutTheOwnersToken(t *testing.T) {
+	healthServer, endpoint := newTestToolTarget(t)
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
+		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	// Turns run as the service's account: a call on their context presents its token.
-	callMetadata, err := grpc.CallMetadata(service.runCtx)
+	stranger := (&agentpb.UserRn{Organization: aip.NewSystemGeneratedBase32ResourceID(), User: strangerUserID}).String()
+	agent := createTestAgentWithSpec(t, service, stranger, &agentpb.AgentSpec{Instructions: "Be helpful.", Model: testModel, Tools: ungatedTools(healthCheckMethod)})
+	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
-	require.Contains(t, callMetadata, serverTokenKey)
-	agent := createTestAgent(t, service, healthCheckMethod)
-	service.aiService.script(agent.Chat,
-		toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"tool_call_title": "Check the health", "service": "library"})),
-		textGeneration("checked"),
-	)
 
-	sendText(t, service, agent.Name, "check")
+	toolResult := toolbox.call(context.Background(), checkCall("library"))
 
-	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
-	require.Equal(t, []string{"library"}, healthServer.checkedServices())
-	// Neither the reflection resolving the tools nor the call carry anything but the transport's own headers.
-	transportKeySet := map[string]struct{}{":authority": {}, "content-type": {}, "user-agent": {}, "grpc-accept-encoding": {}, "grpc-timeout": {}}
-	require.NotEmpty(t, healthServer.metadataKeySet)
-	for key := range healthServer.metadataKeySet {
-		require.Contains(t, transportKeySet, key)
-	}
+	require.Equal(t, int32(codes.NotFound), toolResult.GetError().GetCode())
+	require.Empty(t, healthServer.checkedServices())
 }
 
 func TestStreamAgent_ForwardedOnlyFromAnotherReplica(t *testing.T) {

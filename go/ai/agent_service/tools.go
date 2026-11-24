@@ -41,6 +41,7 @@ type toolbox struct {
 	// annotations say.
 	toolNameToMethodTool     map[string]*methodTool
 	toolNameToGenuiComponent map[string]*genuiComponent
+	ownerToken               ownerToken
 }
 
 // methodTool is a tool calling a gRPC method.
@@ -126,7 +127,8 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		if err != nil {
 			return nil, err
 		}
-		schema, err := s.toolRouter.schema(ctx, endpoint)
+		// Schemas are the same for every owner: read as the service.
+		schema, err := s.toolRouter.schema(s.asService(ctx), endpoint)
 		if err != nil {
 			return nil, status.Errorf(codes.Unavailable, "resolving tool %s: %v", name, err).Err()
 		}
@@ -288,7 +290,11 @@ func (b *toolbox) execute(ctx context.Context, toolCall *aipb.ToolCall) (*aipb.T
 	if request, err = uniformMessage(methodTool.method.Input(), request); err != nil {
 		return nil, err
 	}
-	response, err := b.service.toolRouter.invoke(ctx, methodTool.endpoint, methodTool.method, request)
+	ownerCtx, err := b.asOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	response, err := b.service.toolRouter.invoke(ownerCtx, methodTool.endpoint, methodTool.method, request)
 	if err != nil {
 		return nil, err
 	}

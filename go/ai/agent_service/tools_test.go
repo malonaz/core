@@ -14,14 +14,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	"github.com/malonaz/core/go/ai"
+	authentication "github.com/malonaz/core/go/authentication/v2"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
@@ -31,38 +32,43 @@ const (
 	healthCheckTool   = "Health_Check"
 )
 
-// fakeHealthServer is a tool target: it records its Check requests and answers SERVING, NOT_FOUND for the service
-// "missing", after a while for "slow", and never for "block".
+// fakeHealthServer is a tool target behind the test interceptor: it records its Check requests and answers SERVING,
+// NOT_FOUND for the service "missing", after a while for "slow", and never for "block".
 type fakeHealthServer struct {
 	grpc_health_v1.UnimplementedHealthServer
 	mutex    sync.Mutex
 	services []string
-	// The metadata keys of every call the server received, reflection included.
-	metadataKeySet map[string]struct{}
+	// The session of the last call of each method, reflection included.
+	methodToSession map[string]*authenticationpb.Session
 }
 
-// recordMetadata records the metadata keys of a call.
-func (s *fakeHealthServer) recordMetadata(ctx context.Context) {
+// recordSession records the session of a call to a method.
+func (s *fakeHealthServer) recordSession(ctx context.Context, method string) {
+	session, _ := authentication.GetSession(ctx)
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	if s.metadataKeySet == nil {
-		s.metadataKeySet = map[string]struct{}{}
+	if s.methodToSession == nil {
+		s.methodToSession = map[string]*authenticationpb.Session{}
 	}
-	incomingMetadata, _ := metadata.FromIncomingContext(ctx)
-	for key := range incomingMetadata {
-		s.metadataKeySet[key] = struct{}{}
-	}
+	s.methodToSession[method] = session
 }
 
-// serverOptions record the metadata of every call.
+// session returns the session of the last call to a method.
+func (s *fakeHealthServer) session(method string) *authenticationpb.Session {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.methodToSession[method]
+}
+
+// serverOptions authenticate every call as the replicas' servers do, and record its session.
 func (s *fakeHealthServer) serverOptions() []grpc.ServerOption {
 	return []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-			s.recordMetadata(ctx)
+		grpc.ChainUnaryInterceptor(testInterceptor.Unary(), func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+			s.recordSession(ctx, info.FullMethod)
 			return handler(ctx, request)
 		}),
-		grpc.ChainStreamInterceptor(func(server any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-			s.recordMetadata(stream.Context())
+		grpc.ChainStreamInterceptor(testInterceptor.Stream(), func(server any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+			s.recordSession(stream.Context(), info.FullMethod)
 			return handler(server, stream)
 		}),
 	}
@@ -288,8 +294,7 @@ func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
 }
 
 func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
-	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id, and needs no
-	// identity, which tool targets never get.
+	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id.
 	const createDefinitionMethod = "malonaz.ai.agent.agent_service.v1.AgentService.CreateDefinition"
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0

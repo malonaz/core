@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -66,36 +65,25 @@ func (r *toolRouter) validate(spec *agentpb.AgentSpec, genuiComponents *genuiCom
 	return nil
 }
 
-// schema returns the schema an endpoint serves, resolved through its gRPC server reflection.
+// schema returns the schema an endpoint serves, resolved through its gRPC server reflection on ctx.
 func (r *toolRouter) schema(ctx context.Context, endpoint string) (*pbreflection.Schema, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
 		return nil, err
 	}
 	reflectionClient := grpc_reflection_v1.NewServerReflectionClient(connection.Get())
-	schema, err := pbreflection.ResolveSchema(withoutIdentity(ctx), reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
+	schema, err := pbreflection.ResolveSchema(ctx, reflectionClient, pbreflection.WithMemCache("agent-service-tools:"+endpoint, toolSchemaTTL))
 	if err != nil {
 		return nil, fmt.Errorf("resolving the schema served at %s: %w", endpoint, err)
 	}
 	return schema, nil
 }
 
-// invoke calls a method at an endpoint. Tool targets get no identity until authentication can call for the agent's
-// owner with the agent as actor.
+// invoke calls a method at an endpoint on ctx.
 func (r *toolRouter) invoke(ctx context.Context, endpoint string, method protoreflect.MethodDescriptor, request proto.Message) (proto.Message, error) {
 	connection, err := r.connections.get(ctx, endpoint)
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
 	}
-	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(withoutIdentity(ctx), method, request)
+	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(ctx, method, request)
 }
-
-// withoutIdentity returns ctx making calls that carry no identity, neither the session ctx serves nor the service's
-// account, which core's gRPC client signs per call, and no outgoing metadata. Cancellation and deadlines are kept.
-func withoutIdentity(ctx context.Context) context.Context {
-	ctx = grpc.WithCallMetadata(ctx, noCallMetadata)
-	return metadata.NewOutgoingContext(ctx, metadata.MD{})
-}
-
-// noCallMetadata is the call metadata of a call carrying no identity.
-func noCallMetadata(context.Context) (map[string]string, error) { return nil, nil }
