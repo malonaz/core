@@ -124,4 +124,41 @@ message Chat {
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
   ];
+
+  // The assistant message of the latest successful generation in this chat:
+  // the newest message with a `model` (a failed generation's partial message
+  // carries none). Derived by a query join, never stored.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string last_generated_message = 16 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "ai.malonaz.com/Message",
+    (malonaz.codegen.model.v1.field_opts) = {
+      nullable: true
+      join: {
+        resource_type: "ai.malonaz.com/Message"
+        field: "name"
+        query: {
+          filter: "model:*"
+          order_by: "create_time desc"
+        }
+      }
+    }
+  ];
+
+  // The model usage of `last_generated_message`. Its input tokens
+  // (`input_token`, its cache reads and writes and their image counterparts)
+  // are the context the model was sent, to set against its model's
+  // `ttt.context_token_limit`; its output joins the next generation's.
+  ModelUsage last_generated_message_model_usage = 17 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (malonaz.codegen.model.v1.field_opts) = {
+      as_json_bytes: true
+      nullable: true
+      join: {
+        resource_type: "ai.malonaz.com/Message"
+        reference: "last_generated_message"
+        field: "model_usage"
+      }
+    }
+  ];
 }

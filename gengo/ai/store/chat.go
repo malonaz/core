@@ -19,10 +19,9 @@ import (
 func (s *Store) IncrementChatMessageCount(ctx context.Context, organizationID, userID, chatID, column string, delta int32) (*model.Chat, error) {
 	incrementQuery := fmt.Sprintf(
 		`UPDATE chat SET %[1]s = %[1]s + $1, update_time = $2
-		 WHERE organization_id = $3 AND user_id = $4 AND chat_id = $5 AND delete_time IS NULL
-		 RETURNING `+strings.Join(ChatPostgresColumns, ","),
+		 WHERE organization_id = $3 AND user_id = $4 AND chat_id = $5 AND delete_time IS NULL`,
 		column,
-	)
+	) + " RETURNING " + strings.Join(ChatWritePostgresColumns, ",") + chatJoinSubqueryExpr
 	var chat *model.Chat
 	err := s.client.ExecuteTransaction(ctx, v5.ReadCommitted, func(tx v5.Tx) error {
 		rows, err := tx.Query(ctx, incrementQuery, delta, time.Now().UTC(), organizationID, userID, chatID)

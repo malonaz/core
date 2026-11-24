@@ -19,3 +19,5 @@ migrations:
     hash: 3ecec55430142bdacb23237309198037
   - path: decision/001_init.sql
     hash: 5e0608efe08fdb9719746fd62552e692
+  - path: message/003_last_generated_message_index.sql
+    hash: e9e90e851deff629cea31ff9c9ecee3d

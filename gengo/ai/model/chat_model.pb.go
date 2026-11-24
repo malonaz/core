@@ -21,23 +21,25 @@ var ErrChatHasChildren = errors.New("chat has child resources")
 var ErrChatETagChanged = errors.New("chat etag changed")
 
 type Chat struct {
-	OrganizationID        string     `db:"organization_id" schema:"public" table:"chat"`
-	UserID                string     `db:"user_id" schema:"public" table:"chat"`
-	ChatID                string     `db:"chat_id" schema:"public" table:"chat"`
-	CreateTime            time.Time  `db:"create_time" schema:"public" table:"chat"`
-	UpdateTime            time.Time  `db:"update_time" schema:"public" table:"chat"`
-	DeleteTime            *time.Time `db:"delete_time" schema:"public" table:"chat"`
-	Etag                  string     `db:"etag" schema:"public" table:"chat"`
-	Labels                []byte     `db:"labels" schema:"public" table:"chat"`
-	Annotations           []byte     `db:"annotations" schema:"public" table:"chat"`
-	Title                 string     `db:"title" schema:"public" table:"chat"`
-	Price                 float64    `db:"price" schema:"public" table:"chat"`
-	LastUserMessage       string     `db:"last_user_message" schema:"public" table:"chat"`
-	SystemMessageCount    int32      `db:"system_message_count" schema:"public" table:"chat"`
-	AssistantMessageCount int32      `db:"assistant_message_count" schema:"public" table:"chat"`
-	UserMessageCount      int32      `db:"user_message_count" schema:"public" table:"chat"`
-	ToolMessageCount      int32      `db:"tool_message_count" schema:"public" table:"chat"`
-	ModelUsages           []byte     `db:"model_usages" schema:"public" table:"chat"`
+	OrganizationID                 string     `db:"organization_id" schema:"public" table:"chat"`
+	UserID                         string     `db:"user_id" schema:"public" table:"chat"`
+	ChatID                         string     `db:"chat_id" schema:"public" table:"chat"`
+	CreateTime                     time.Time  `db:"create_time" schema:"public" table:"chat"`
+	UpdateTime                     time.Time  `db:"update_time" schema:"public" table:"chat"`
+	DeleteTime                     *time.Time `db:"delete_time" schema:"public" table:"chat"`
+	Etag                           string     `db:"etag" schema:"public" table:"chat"`
+	Labels                         []byte     `db:"labels" schema:"public" table:"chat"`
+	Annotations                    []byte     `db:"annotations" schema:"public" table:"chat"`
+	Title                          string     `db:"title" schema:"public" table:"chat"`
+	Price                          float64    `db:"price" schema:"public" table:"chat"`
+	LastUserMessage                string     `db:"last_user_message" schema:"public" table:"chat"`
+	SystemMessageCount             int32      `db:"system_message_count" schema:"public" table:"chat"`
+	AssistantMessageCount          int32      `db:"assistant_message_count" schema:"public" table:"chat"`
+	UserMessageCount               int32      `db:"user_message_count" schema:"public" table:"chat"`
+	ToolMessageCount               int32      `db:"tool_message_count" schema:"public" table:"chat"`
+	ModelUsages                    []byte     `db:"model_usages" schema:"public" table:"chat"`
+	LastGeneratedMessage           *string    `db:"last_generated_message" external:"true" join_schema:"public" join_table:"last_generated_message" join_column:"name"`
+	LastGeneratedMessageModelUsage []byte     `db:"last_generated_message_model_usage" external:"true" join_schema:"public" join_table:"last_generated_message" join_column:"model_usage"`
 }
 
 func ChatFromPb(m *v1.Chat) (*Chat, error) {
@@ -84,24 +86,38 @@ func ChatFromPb(m *v1.Chat) (*Chat, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshaling ModelUsages: %w", err)
 	}
+	var LastGeneratedMessage *string
+	if m.LastGeneratedMessage != "" {
+		LastGeneratedMessage = &m.LastGeneratedMessage
+	}
+	var LastGeneratedMessageModelUsageBytes []byte
+	if m.LastGeneratedMessageModelUsage != nil {
+		var err error
+		LastGeneratedMessageModelUsageBytes, err = pbutil.JSONMarshal(m.LastGeneratedMessageModelUsage)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling LastGeneratedMessageModelUsage: %w", err)
+		}
+	}
 	return &Chat{
-		OrganizationID:        OrganizationID,
-		UserID:                UserID,
-		ChatID:                ChatID,
-		CreateTime:            m.CreateTime.AsTime(),
-		UpdateTime:            m.UpdateTime.AsTime(),
-		DeleteTime:            DeleteTime,
-		Etag:                  m.Etag,
-		Labels:                LabelsBytes,
-		Annotations:           AnnotationsBytes,
-		Title:                 m.Title,
-		Price:                 m.Price,
-		LastUserMessage:       m.LastUserMessage,
-		SystemMessageCount:    m.SystemMessageCount,
-		AssistantMessageCount: m.AssistantMessageCount,
-		UserMessageCount:      m.UserMessageCount,
-		ToolMessageCount:      m.ToolMessageCount,
-		ModelUsages:           ModelUsagesBytes,
+		OrganizationID:                 OrganizationID,
+		UserID:                         UserID,
+		ChatID:                         ChatID,
+		CreateTime:                     m.CreateTime.AsTime(),
+		UpdateTime:                     m.UpdateTime.AsTime(),
+		DeleteTime:                     DeleteTime,
+		Etag:                           m.Etag,
+		Labels:                         LabelsBytes,
+		Annotations:                    AnnotationsBytes,
+		Title:                          m.Title,
+		Price:                          m.Price,
+		LastUserMessage:                m.LastUserMessage,
+		SystemMessageCount:             m.SystemMessageCount,
+		AssistantMessageCount:          m.AssistantMessageCount,
+		UserMessageCount:               m.UserMessageCount,
+		ToolMessageCount:               m.ToolMessageCount,
+		ModelUsages:                    ModelUsagesBytes,
+		LastGeneratedMessage:           LastGeneratedMessage,
+		LastGeneratedMessageModelUsage: LastGeneratedMessageModelUsageBytes,
 	}, nil
 }
 
@@ -141,26 +157,39 @@ func (m *Chat) ToPb() (*v1.Chat, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling ModelUsages: %w", err)
 	}
+	var LastGeneratedMessage string
+	if m.LastGeneratedMessage != nil {
+		LastGeneratedMessage = *m.LastGeneratedMessage
+	}
+	var LastGeneratedMessageModelUsage *v1.ModelUsage
+	if m.LastGeneratedMessageModelUsage != nil {
+		LastGeneratedMessageModelUsage = &v1.ModelUsage{}
+		if err := pbutil.JSONUnmarshal(m.LastGeneratedMessageModelUsage, LastGeneratedMessageModelUsage); err != nil {
+			return nil, fmt.Errorf("unmarshaling LastGeneratedMessageModelUsage: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}", m.OrganizationID, m.UserID, m.ChatID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.Chat{
-		Name:                  name,
-		CreateTime:            CreateTime,
-		UpdateTime:            UpdateTime,
-		DeleteTime:            DeleteTime,
-		Etag:                  m.Etag,
-		Labels:                Labels,
-		Annotations:           Annotations,
-		Title:                 m.Title,
-		Price:                 m.Price,
-		LastUserMessage:       m.LastUserMessage,
-		SystemMessageCount:    m.SystemMessageCount,
-		AssistantMessageCount: m.AssistantMessageCount,
-		UserMessageCount:      m.UserMessageCount,
-		ToolMessageCount:      m.ToolMessageCount,
-		ModelUsages:           ModelUsages,
+		Name:                           name,
+		CreateTime:                     CreateTime,
+		UpdateTime:                     UpdateTime,
+		DeleteTime:                     DeleteTime,
+		Etag:                           m.Etag,
+		Labels:                         Labels,
+		Annotations:                    Annotations,
+		Title:                          m.Title,
+		Price:                          m.Price,
+		LastUserMessage:                m.LastUserMessage,
+		SystemMessageCount:             m.SystemMessageCount,
+		AssistantMessageCount:          m.AssistantMessageCount,
+		UserMessageCount:               m.UserMessageCount,
+		ToolMessageCount:               m.ToolMessageCount,
+		ModelUsages:                    ModelUsages,
+		LastGeneratedMessage:           LastGeneratedMessage,
+		LastGeneratedMessageModelUsage: LastGeneratedMessageModelUsage,
 	}, nil
 }
 
