@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_model_usage`), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -46,7 +46,8 @@ on whichever replica holds the agent's lease. A host (onikisu) serves it and rou
 
 Every agent holds `create_agents` (sub-agents from a definition or ad hoc, at most `max_sub_agent_depth` deep; each
 sub-agent's turn ends by sending its report to its parent as a message that wakes it), `message_agent`,
-`list_agents`, `update_labels`, and `schedule` / `list_schedules` / `cancel_schedule` (scheduler schedules and
+`list_agents`, `update_labels` (unprefixed keys only: a prefixed key, `*.malonaz.com` or a host's such as
+`kantoku.onikisu.com/...`, belongs to whoever declares it, and refuses PERMISSION_DENIED), and `schedule` / `list_schedules` / `cancel_schedule` (scheduler schedules and
 one-offs under the owner, labelled with the agent). `WakeAgent` runs a schedule's tick: it queues its message
 or launches its sub-agent, and runs only when the caller is `--scheduler-dispatcher-account`.
 
@@ -56,6 +57,16 @@ or launches its sub-agent, and runs only when the caller is `--scheduler-dispatc
 running the turn: this one's hub, or the lease holder's `StreamAgent`, proxied (a forwarded call is told by its
 caller being the service's own account). A poll every `--stream-poll-interval` re-reads the agents for changes
 made elsewhere.
+
+## Context gauge
+
+An agent's context is its chat's: `Chat.last_model_usage` (AiService, written with `price` and `model_usages` on each
+successful generation) holds the latest generation's usage. Its input categories (`input_token`, cache read and write,
+image) sum to the context the model was sent, tools and instructions included, whatever the provider (ModelUsage's
+categories are disjoint); set it against `GetModel(usage.model).ttt.context_token_limit`. It lags one step: the
+generation's own output and the tool results and messages delivered since join the next one; a failed generation (an
+overflow among them) records nothing. Live: StreamAgent's `message` events (with `include_transcript`) carry each
+generated message's `model_usage`; snapshots do not carry the chat.
 
 ## Tools and identity
 
