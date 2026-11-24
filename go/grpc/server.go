@@ -139,8 +139,11 @@ func NewServer(opts *ServerOpts, certsOpts *certs.Opts, prometheusOpts *promethe
 	// PRE (9): Error interceptor.
 	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerErrorInfoInjector())
 	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerErrorInfoInjector())
+	// PRE (10): Rewrite hooks, before the options' interceptors: authentication decides on the request the handler runs.
+	preUnaryInterceptors = append(preUnaryInterceptors, middleware.UnaryServerRewriteHook())
+	preStreamInterceptors = append(preStreamInterceptors, middleware.StreamServerRewriteHook())
 
-	// POST (1): Hook interceptor. Used in `Post` to allow authentication middleware to take precedence.
+	// POST (1): Hook interceptor, after the options' interceptors: hooks read the session authentication set.
 	postUnaryInterceptors = append(postUnaryInterceptors, middleware.UnaryServerHook())
 	postStreamInterceptors = append(postStreamInterceptors, middleware.StreamServerHook())
 	// POST (2): Canonicalize interceptor. Set after protovalidate.

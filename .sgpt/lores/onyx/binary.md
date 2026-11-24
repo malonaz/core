@@ -85,8 +85,8 @@ service's account. Then:
 - every gRPC server must list it (generation fails otherwise: an unlisted
   server would serve anyone yet receive server tokens), and runs
   `Unary()`/`Stream()` as its interceptors,
-  so hooks, validation and the other POST interceptors still run after it,
-  and health checks still skip it.
+  so hooks, validation and the other POST interceptors still run after it
+  (rewrite hooks, `WithHookRewrite`, before it), and health checks still skip it.
 
 A `Start` calling an in-process dependency before its own server listens
 presents the `As` token to an interceptor that is already built and served:

@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Matchers receive gRPC's info.FullMethod verbatim, which is exactly the value
@@ -83,4 +86,38 @@ func TestMatchersRejectMalformedWireNames(t *testing.T) {
 		require.False(t, MatchServices("malonaz.user.v1.UserService")(context.Background(), "malformed"))
 		require.False(t, MatchFullMethods(testFullMethod)(context.Background(), "malformed"))
 	})
+}
+
+func TestRewriteHooks(t *testing.T) {
+	var rewrites int
+	rewrite := func(_ context.Context, value *wrapperspb.StringValue) error {
+		rewrites++
+		value.Value = strings.TrimPrefix(value.GetValue(), "legacy/")
+		return nil
+	}
+	require.NoError(t, RegisterHookHandler(rewrite, WithHookRewrite()))
+	var checked []string
+	check := func(_ context.Context, value *wrapperspb.StringValue) error {
+		checked = append(checked, value.GetValue())
+		return nil
+	}
+	require.NoError(t, RegisterHookHandler(check, WithHookOnRequest()))
+
+	// The server chains the rewrites, then its interceptors, then the hooks.
+	info := &grpc.UnaryServerInfo{FullMethod: testFullMethod}
+	var decided string
+	interceptors := func(ctx context.Context, request any) (any, error) {
+		decided = request.(*wrapperspb.StringValue).GetValue()
+		return UnaryServerHook()(ctx, request, info, func(context.Context, any) (any, error) { return nil, nil })
+	}
+	_, err := UnaryServerRewriteHook()(context.Background(), wrapperspb.String("legacy/books/1"), info, interceptors)
+	require.NoError(t, err)
+	require.Equal(t, "books/1", decided, "the interceptors see the rewritten request")
+	require.Equal(t, []string{"books/1"}, checked, "the hooks see it too")
+	require.Equal(t, 1, rewrites, "the hook interceptor runs no rewrite")
+}
+
+func TestRewriteHooksRewriteRequestsOnly(t *testing.T) {
+	rewrite := func(context.Context, *wrapperspb.Int64Value) error { return nil }
+	require.Error(t, RegisterHookHandler(rewrite, WithHookRewrite(), WithHookOnResponse()))
 }

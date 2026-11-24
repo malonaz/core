@@ -94,8 +94,11 @@ so `Listen` is no `List`):
 - An empty value is a resource no scope covers; a call naming none is denied.
 - Batches check more than the AIP contract strictly needs (names beside the
   parent): a hand-written handler may not hold names to their parent.
-- Resources are read before hooks run: a hook rewriting the request after the
-  decision is unchecked.
+- The decision reads the request the handler will run: a host's request
+  rewrites (`middleware.WithHookRewrite`, e.g. legacy names into current ones)
+  run before the interceptor, a stream's first request included. A rewrite runs
+  for every call, refused ones too, before any session exists: it only rewrites.
+  An ordinary hook rewriting the request runs after the decision: unchecked.
 
 ## Credentials and outcomes
 
@@ -124,8 +127,11 @@ stays). A stream is authenticated before its first message is read. The tests in
 | API key of an account the configuration lacks | skipped with a warning naming the account: that key proves nothing |
 | key set URL unreachable during a call | INTERNAL |
 
-Health checks skip the interceptor. Hooks and the other POST interceptors of
-`go/grpc/server.go` run after it, only for calls it let in.
+Health checks skip the interceptor. Rewrite hooks run before it, for every
+call; the other hooks (checks reading the session) and the other POST
+interceptors of `go/grpc/server.go` (canonicalize, validate, field masks) run
+after it, only for calls it let in: a refused call sees UNAUTHENTICATED or
+PERMISSION_DENIED, never a validation error.
 
 ## The log
 
