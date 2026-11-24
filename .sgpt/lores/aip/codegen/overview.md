@@ -187,7 +187,9 @@ registry is per package — cross-package parent/child links do not exist):
   `*rpc.{Service}Server`; define the method on `Service` to shadow it and
   delegate to `s.{Service}Server.{Method}` for the generic part.
 - **Hooks**: `middleware.RegisterHookHandler[T]` runs typed handlers on any
-  request/response message (or nested message) — see
+  request/response message (or nested message), after authentication (they
+  read the session); `WithHookRewrite` makes one a request rewrite, run before
+  authentication so its decision sees the rewritten request — see
   `go/grpc/middleware/hooks.go` and `runtime.go` in the library service.
 - **Extra store methods**: add them on a hand-written type that embeds the
   generated `store.Store`.
