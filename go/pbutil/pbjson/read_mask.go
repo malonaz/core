@@ -31,12 +31,12 @@ func buildResponseReadMaskDescription(responseDescriptor protoreflect.MessageDes
 	}
 	description += " Fields: " + paths + "."
 	if nested {
-		description += " (`f.{a,b}` stands for the paths f.a and f.b; f alone returns all of f.)"
+		description += " A message field alone returns all of its subfields."
 	}
 	return description
 }
 
-// readMaskTarget mirrors applyReadMask in go/grpc/middleware: the response if it is a resource,
+// readMaskTarget mirrors readMaskTarget in go/grpc/middleware: the response if it is a resource,
 // else its first resource-typed field, else the response itself.
 func readMaskTarget(responseDescriptor protoreflect.MessageDescriptor) (protoreflect.MessageDescriptor, string) {
 	if hasResourceAnnotation(responseDescriptor) {
@@ -56,37 +56,32 @@ func readMaskTarget(responseDescriptor protoreflect.MessageDescriptor) (protoref
 	return responseDescriptor, fmt.Sprintf("Paths are relative to the %s message.", responseDescriptor.Name())
 }
 
-// describeReadMaskPaths lists the message's fields, inlining the subfields of message-typed ones
-// as f.{a,b}, and reports whether it inlined any.
+// describeReadMaskPaths lists the message's fields, each message-typed one followed by its subfields,
+// and reports whether it listed any. Paths are spelled out: models copied a f.{a,b} shorthand verbatim.
 func describeReadMaskPaths(descriptor protoreflect.MessageDescriptor) (string, bool) {
 	fields := descriptor.Fields()
 	paths := make([]string, 0, fields.Len())
 	var nested bool
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		path := string(field.Name())
+		paths = append(paths, string(field.Name()))
 		if field.Kind() == protoreflect.MessageKind && !field.IsMap() && !isOpaqueMessage(field.Message()) {
-			if subfields := describeSubfields(field.Message()); subfields != "" {
-				path += ".{" + subfields + "}"
-				nested = true
-			}
+			subfields := describeSubfields(field)
+			paths = append(paths, subfields...)
+			nested = nested || len(subfields) > 0
 		}
-		paths = append(paths, path)
 	}
 	return strings.Join(paths, ", "), nested
 }
 
-func describeSubfields(descriptor protoreflect.MessageDescriptor) string {
-	fields := descriptor.Fields()
-	names := make([]string, 0, min(fields.Len(), maxReadMaskSubfields+1))
-	for i := 0; i < fields.Len(); i++ {
-		if i == maxReadMaskSubfields {
-			names = append(names, "...")
-			break
-		}
-		names = append(names, string(fields.Get(i).Name()))
+// describeSubfields lists the paths of a message field's first subfields; the field itself covers the rest.
+func describeSubfields(field protoreflect.FieldDescriptor) []string {
+	subfields := field.Message().Fields()
+	paths := make([]string, 0, min(subfields.Len(), maxReadMaskSubfields))
+	for i := 0; i < subfields.Len() && i < maxReadMaskSubfields; i++ {
+		paths = append(paths, string(field.Name())+"."+string(subfields.Get(i).Name()))
 	}
-	return strings.Join(names, ",")
+	return paths
 }
 
 // isOpaqueMessage reports whether a message reads as a value rather than a structure: well-known
