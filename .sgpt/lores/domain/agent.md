@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on tool calls).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -73,13 +73,20 @@ made elsewhere.
   (no network: a wrong method fails the first turn); genui grants take no approval.
 - Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set, approvals inherited
   and only tightened by the model; a requested set keeps the parent's refinements inside it.
-- The service's own calls (chats, scheduler, replica to replica) go out as its account (`asService`).
+- The service's own calls (creating chats, writing and listing their messages, scheduler, replica to replica) go out
+  as its account (`asService`).
 - Schemas are read as the service: they are the same for every owner (cached five minutes per endpoint).
-- Tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer` for them
+- Generations and tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer`
   (`TokenService.ExchangeToken`, subject the owner, actor the agent's name), reused until a minute before it
   expires, and calls with it as the only credential (`asOwner`, `owner_token.go`). The owner's own grants decide
-  each call; a refused exchange fails the call, not the turn. The host serves the TokenService and decides who
-  exchanges for whom (core's `lores/authentication/overview`, Exchange). The token goes to every tool target.
+  each call; a refused exchange fails a tool call (its result), and a generation's turn. The host serves the
+  TokenService and decides who exchanges for whom (core's `lores/authentication/overview`, Exchange). The token goes
+  to every tool target.
+- Which models an owner's agents use is the host's rule on `AiService.StreamGenerateMessage` (a condition on
+  `request.model`), decided per generation: a refused model fails the turn with the AiService's PERMISSION_DENIED
+  ("generating message with {model} as the agent's owner: ..."). Nothing checks the model earlier: CreateAgent,
+  CreateDefinition and `create_agents` accept it, and a sub-agent on a refused model fails its first turn, whose
+  report ("My turn failed: ...") tells its parent, free to launch it again on another model.
 
 ## Deletion and cancellation
 
