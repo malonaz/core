@@ -149,6 +149,15 @@ func WithHookOnResponse() HookOption {
 	}
 }
 
+// WithHookRewrite makes the hook a request rewrite. Rewrites run before the server's interceptors, so
+// authentication decides on the request the handler will run. They run for every call, refused ones
+// included, and before any session exists: a check reading the session is an ordinary request hook.
+func WithHookRewrite() HookOption {
+	return func(r *hookRegistration) {
+		r.rewrite = true
+	}
+}
+
 // hookRegistration stores a single hook handler along with its optional matcher
 // and direction flags. The handler accepts a generic proto.Message since the
 // type-specific wrapper is created at registration time via RegisterHookHandler.
@@ -157,6 +166,7 @@ type hookRegistration struct {
 	matchers   []HookMatcher
 	onRequest  bool
 	onResponse bool
+	rewrite    bool
 }
 
 // hookRegistry is a thread-safe registry mapping message full names to their registered handlers.
@@ -201,15 +211,18 @@ func (r *hookRegistry) hasMatchingRegistrations(ctx context.Context, methodFullN
 	return hasRequest, hasResponse
 }
 
-// globalHookRegistry is the singleton registry used by all hook interceptors.
-// Handlers are registered at init time via RegisterHookHandler and looked up at request time.
-var globalHookRegistry = &hookRegistry{
-	fullNameToRegistrations: make(map[string][]*hookRegistration),
-}
+// The registries of the hook interceptors: rewrites, run before the server's interceptors, and every
+// other hook, run after them. Handlers are registered at init time via RegisterHookHandler and looked up
+// at request time.
+var (
+	globalRewriteHookRegistry = &hookRegistry{fullNameToRegistrations: make(map[string][]*hookRegistration)}
+	globalHookRegistry        = &hookRegistry{fullNameToRegistrations: make(map[string][]*hookRegistration)}
+)
 
 // RegisterHookHandler registers a typed hook handler for the proto message type T.
-// The lookup key is derived from T's proto descriptor full name. At least one of
-// WithOnRequest or WithOnResponse must be provided to specify when the hook is invoked.
+// The lookup key is derived from T's proto descriptor full name. WithHookOnRequest and
+// WithHookOnResponse say when the hook is invoked (both when neither is given); a rewrite
+// (WithHookRewrite) is invoked on requests only.
 // The generic type parameter T ensures type safety: the handler will only be called
 // with messages of the correct type. This function is typically called during init().
 func RegisterHookHandler[T proto.Message](handler HookHandler[T], opts ...HookOption) error {
@@ -227,13 +240,21 @@ func RegisterHookHandler[T proto.Message](handler HookHandler[T], opts ...HookOp
 	for _, opt := range opts {
 		opt(registration)
 	}
+	registry := globalHookRegistry
+	if registration.rewrite {
+		if registration.onResponse {
+			return fmt.Errorf("registering a rewrite hook on %s: rewrites run on requests only", fullName)
+		}
+		registration.onRequest = true
+		registry = globalRewriteHookRegistry
+	}
 	if !registration.onRequest && !registration.onResponse {
 		registration.onRequest = true
 		registration.onResponse = true
 	}
-	globalHookRegistry.mu.Lock()
-	defer globalHookRegistry.mu.Unlock()
-	globalHookRegistry.fullNameToRegistrations[fullName] = append(globalHookRegistry.fullNameToRegistrations[fullName], registration)
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	registry.fullNameToRegistrations[fullName] = append(registry.fullNameToRegistrations[fullName], registration)
 	return nil
 }
 
@@ -241,8 +262,17 @@ func RegisterHookHandler[T proto.Message](handler HookHandler[T], opts ...HookOp
 // For requests, hooks registered with WithOnRequest are invoked before the handler.
 // For responses, hooks registered with WithOnResponse are invoked after the handler succeeds.
 // Matchers are evaluated once per RPC; if no registrations match for a direction, the
-// message tree walk is skipped entirely for that direction.
+// message tree walk is skipped entirely for that direction. Rewrites (WithHookRewrite) are UnaryServerRewriteHook's.
 func UnaryServerHook() grpc.UnaryServerInterceptor {
+	return globalHookRegistry.unaryServerInterceptor()
+}
+
+// UnaryServerRewriteHook returns a unary server interceptor that invokes the rewrites (WithHookRewrite).
+func UnaryServerRewriteHook() grpc.UnaryServerInterceptor {
+	return globalRewriteHookRegistry.unaryServerInterceptor()
+}
+
+func (r *hookRegistry) unaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// gRPC's own method name is used directly: it needs no descriptor
 		// lookup and equals the generated *_FullMethodName constants that
@@ -250,12 +280,12 @@ func UnaryServerHook() grpc.UnaryServerInterceptor {
 		methodFullName := info.FullMethod
 
 		// Pre-check whether any registrations match to avoid unnecessary tree walks.
-		hasRequest, hasResponse := globalHookRegistry.hasMatchingRegistrations(ctx, methodFullName)
+		hasRequest, hasResponse := r.hasMatchingRegistrations(ctx, methodFullName)
 
 		// Invoke request hooks before calling the handler.
 		if hasRequest {
 			if message, ok := req.(proto.Message); ok {
-				if err := invokeHooks(ctx, methodFullName, message, true); err != nil {
+				if err := r.invokeHooks(ctx, methodFullName, message, true); err != nil {
 					return nil, err
 				}
 			}
@@ -269,7 +299,7 @@ func UnaryServerHook() grpc.UnaryServerInterceptor {
 		// Invoke response hooks after the handler succeeds.
 		if hasResponse {
 			if message, ok := response.(proto.Message); ok {
-				if err := invokeHooks(ctx, methodFullName, message, false); err != nil {
+				if err := r.invokeHooks(ctx, methodFullName, message, false); err != nil {
 					return nil, err
 				}
 			}
@@ -281,17 +311,29 @@ func UnaryServerHook() grpc.UnaryServerInterceptor {
 // StreamServerHook returns a stream server interceptor that invokes hooks on streamed messages.
 // Request hooks are invoked on received messages; response hooks are invoked on sent messages.
 // If no registrations match the stream's method, the stream is passed through unwrapped.
+// Rewrites (WithHookRewrite) are StreamServerRewriteHook's.
 func StreamServerHook() grpc.StreamServerInterceptor {
+	return globalHookRegistry.streamServerInterceptor()
+}
+
+// StreamServerRewriteHook returns a stream server interceptor that invokes the rewrites (WithHookRewrite)
+// on received messages.
+func StreamServerRewriteHook() grpc.StreamServerInterceptor {
+	return globalRewriteHookRegistry.streamServerInterceptor()
+}
+
+func (r *hookRegistry) streamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		methodFullName := info.FullMethod
 
 		// Pre-check whether any registrations match; skip wrapping if nothing matches.
-		hasRequest, hasResponse := globalHookRegistry.hasMatchingRegistrations(stream.Context(), methodFullName)
+		hasRequest, hasResponse := r.hasMatchingRegistrations(stream.Context(), methodFullName)
 		if !hasRequest && !hasResponse {
 			return handler(srv, stream)
 		}
 		return handler(srv, &hookServerStream{
 			ServerStream:   stream,
+			registry:       r,
 			methodFullName: methodFullName,
 			hasRequest:     hasRequest,
 			hasResponse:    hasResponse,
@@ -304,6 +346,7 @@ func StreamServerHook() grpc.StreamServerInterceptor {
 // are pre-computed from matcher evaluation to avoid redundant checks per message.
 type hookServerStream struct {
 	grpc.ServerStream
+	registry       *hookRegistry
 	methodFullName string
 	hasRequest     bool
 	hasResponse    bool
@@ -313,7 +356,7 @@ type hookServerStream struct {
 func (s *hookServerStream) SendMsg(m any) error {
 	if s.hasResponse {
 		if message, ok := m.(proto.Message); ok {
-			if err := invokeHooks(s.Context(), s.methodFullName, message, false); err != nil {
+			if err := s.registry.invokeHooks(s.Context(), s.methodFullName, message, false); err != nil {
 				return err
 			}
 		}
@@ -328,7 +371,7 @@ func (s *hookServerStream) RecvMsg(m any) error {
 	}
 	if s.hasRequest {
 		if message, ok := m.(proto.Message); ok {
-			if err := invokeHooks(s.Context(), s.methodFullName, message, true); err != nil {
+			if err := s.registry.invokeHooks(s.Context(), s.methodFullName, message, true); err != nil {
 				return err
 			}
 		}
@@ -337,13 +380,13 @@ func (s *hookServerStream) RecvMsg(m any) error {
 }
 
 // invokeHooks walks the proto message tree using protorange and invokes registered hooks
-// for any message whose full name has registrations in the global hook registry.
+// for any message whose full name has registrations in the registry.
 //
 // The walk visits every message field (including nested messages, list elements, and map values).
 // For each message encountered, it checks the registry for handlers registered against that
 // message's full name. Handlers are filtered by direction (request vs response) and matchers
 // against the method full name.
-func invokeHooks(ctx context.Context, methodFullName string, message proto.Message, isRequest bool) error {
+func (r *hookRegistry) invokeHooks(ctx context.Context, methodFullName string, message proto.Message, isRequest bool) error {
 	// hookErr captures the first error from a hook handler, since protorange.Break
 	// only stops iteration but doesn't propagate the error.
 	var hookErr error
@@ -408,7 +451,7 @@ func invokeHooks(ctx context.Context, methodFullName string, message proto.Messa
 
 		// Look up registrations by message full name and invoke matching handlers.
 		fullName := string(reflectMessage.Descriptor().FullName())
-		if err := invokeRegistrations(ctx, methodFullName, fullName, isRequest, reflectMessage.Interface()); err != nil {
+		if err := r.invokeRegistrations(ctx, methodFullName, fullName, isRequest, reflectMessage.Interface()); err != nil {
 			hookErr = err
 			return protorange.Terminate
 		}
@@ -423,10 +466,10 @@ func invokeHooks(ctx context.Context, methodFullName string, message proto.Messa
 // invokeRegistrations looks up all handlers registered for the given message full name
 // and invokes them in order, filtered by direction and matchers. Handlers whose direction
 // doesn't match or whose matcher rejects the current RPC are skipped.
-func invokeRegistrations(ctx context.Context, methodFullName string, fullName string, isRequest bool, message proto.Message) error {
-	globalHookRegistry.mu.RLock()
-	registrations := globalHookRegistry.fullNameToRegistrations[fullName]
-	globalHookRegistry.mu.RUnlock()
+func (r *hookRegistry) invokeRegistrations(ctx context.Context, methodFullName string, fullName string, isRequest bool, message proto.Message) error {
+	r.mu.RLock()
+	registrations := r.fullNameToRegistrations[fullName]
+	r.mu.RUnlock()
 	for _, registration := range registrations {
 		// Skip this handler if the direction doesn't match.
 		if isRequest && !registration.onRequest {
