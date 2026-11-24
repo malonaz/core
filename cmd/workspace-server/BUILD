@@ -12,20 +12,16 @@ proto_descriptor_set(
 
 onyx_manifest(
     name = "manifest",
+    binary = "workspace-server",
     deps = [
         "//go/workspace/workspace_service:manifest",
         "//malonaz/workspace/workspace_service/v1",
     ],
 )
 
-onyx_main_src(
-    name = "main.go",
-    manifest = ":manifest",
-)
-
 go_binary(
     name = "workspace-server",
-    srcs = [":main.go"],
+    srcs = [":workspace-server_main.go"],
     resources = [":descriptor_set"],
     visibility = ["PUBLIC"],
     deps = [
@@ -34,6 +30,7 @@ go_binary(
         "//go/grpc",
         "//go/health",
         "//go/logging",
+        "//go/pprof",
         "//go/prometheus",
         "//go/sentry",
         "//go/workspace/workspace_service",
