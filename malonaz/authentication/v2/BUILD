@@ -1,6 +1,9 @@
-proto_library(
+grpc_library(
     name = "v2",
-    srcs = ["authentication.proto"],
+    srcs = [
+        "authentication.proto",
+        "token_service.proto",
+    ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/authentication/v2",
     },

@@ -42,8 +42,26 @@ func NewSigner(issuer *authenticationpb.Issuer, key string) (*Signer, error) {
 	return &Signer{issuer: issuer.GetIssuer(), audience: issuer.GetAudience(), key: signingKey}, nil
 }
 
+// signerClaims are the claims Sign writes from the token's fields.
+var signerClaims = []string{
+	jwt.IssuerKey, jwt.AudienceKey, jwt.SubjectKey, actorClaim, jwt.IssuedAtKey, jwt.NotBeforeKey, jwt.ExpirationKey,
+}
+
 // Sign returns a signed token and when it expires. Its claims keep the shape tokens issued earlier have.
 func (s *Signer) Sign(token Token) (string, time.Time, error) {
+	built, expireTime, err := s.build(token)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	signed, err := signToken(built, s.key)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return signed, expireTime, nil
+}
+
+// build returns the token Sign signs, and when it expires.
+func (s *Signer) build(token Token) (jwt.Token, time.Time, error) {
 	// Tokens carry whole seconds: the expiry returned is the one written.
 	now := time.Now().Truncate(time.Second)
 	expireTime := now.Add(token.Lifetime)
@@ -64,11 +82,7 @@ func (s *Signer) Sign(token Token) (string, time.Time, error) {
 	}
 	built, err := builder.Build()
 	if err != nil {
-		return "", time.Time{}, fmt.Errorf("building token: %w", err)
+		return nil, time.Time{}, fmt.Errorf("building token: %w", err)
 	}
-	signed, err := signToken(built, s.key)
-	if err != nil {
-		return "", time.Time{}, err
-	}
-	return signed, expireTime, nil
+	return built, expireTime, nil
 }
