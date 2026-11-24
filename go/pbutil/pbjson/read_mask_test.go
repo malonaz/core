@@ -93,8 +93,11 @@ func readMaskTestMessage(t *testing.T, name protoreflect.Name) protoreflect.Mess
 	return message
 }
 
-const thingFields = " Fields: name, create_time, labels, metadata.{color,update_time}, parts.{title,url}, wide.{f01,f02,f03,f04,f05,f06,f07,f08,f09,f10,f11,f12,...}." +
-	" (`f.{a,b}` stands for the paths f.a and f.b; f alone returns all of f.)"
+const (
+	thingFields = " Fields: name, create_time, labels, metadata, metadata.color, metadata.update_time, parts, parts.title, parts.url," +
+		" wide, wide.f01, wide.f02, wide.f03, wide.f04, wide.f05, wide.f06, wide.f07, wide.f08, wide.f09, wide.f10, wide.f11, wide.f12." + nestedNote
+	nestedNote = " A message field alone returns all of its subfields."
+)
 
 func TestBuildResponseReadMaskDescription(t *testing.T) {
 	tests := []struct {
@@ -120,8 +123,7 @@ func TestBuildResponseReadMaskDescription(t *testing.T) {
 		{
 			name:     "non-resource response",
 			response: "SearchResponse",
-			expected: responseReadMaskBaseDescription + " Paths are relative to the SearchResponse message. Fields: results.{title,url}, query." +
-				" (`f.{a,b}` stands for the paths f.a and f.b; f alone returns all of f.)",
+			expected: responseReadMaskBaseDescription + " Paths are relative to the SearchResponse message. Fields: results, results.title, results.url, query." + nestedNote,
 		},
 		{
 			name:     "message without fields",
@@ -145,19 +147,7 @@ func TestDescribeReadMaskPathsAreValid(t *testing.T) {
 	for _, name := range []protoreflect.Name{"Thing", "SearchResponse"} {
 		message := readMaskTestMessage(t, name)
 		listed, _ := describeReadMaskPaths(message)
-		var paths []string
-		for _, path := range strings.Split(listed, ", ") {
-			field, subfields, nested := strings.Cut(path, ".{")
-			paths = append(paths, field)
-			if !nested {
-				continue
-			}
-			for _, subfield := range strings.Split(strings.TrimSuffix(subfields, "}"), ",") {
-				if subfield != "..." {
-					paths = append(paths, field+"."+subfield)
-				}
-			}
-		}
+		paths := strings.Split(listed, ", ")
 		require.NoError(t, pbfieldmask.FromPaths(paths...).Validate(dynamicpb.NewMessage(message)), name)
 	}
 }

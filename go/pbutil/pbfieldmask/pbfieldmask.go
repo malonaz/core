@@ -150,7 +150,12 @@ func (m *FieldMask) Contains(path string) bool {
 // Validate checks that every path in the mask corresponds to a valid field
 // on the given proto message type.
 func (m *FieldMask) Validate(message proto.Message) error {
-	return validate(m.pb, message)
+	return validate(m.pb, message.ProtoReflect().Descriptor())
+}
+
+// ValidateDescriptor is Validate against a message type, for when no instance exists yet.
+func (m *FieldMask) ValidateDescriptor(descriptor protoreflect.MessageDescriptor) error {
+	return validate(m.pb, descriptor)
 }
 
 // MustValidate is like Validate but panics on error. Returns the mask for chaining.

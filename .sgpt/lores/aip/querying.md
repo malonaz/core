@@ -99,7 +99,8 @@ comparison — the common non-zero equality stays a plain, index-friendly
 - Use dot notation for nested fields (e.g. `metadata.company_name`).
 - Paths are relative to the **resource**, not the response envelope — for List, and BatchGet RPCs, the mask applies to each resource in the list.
 - A response with no resource (neither itself nor a top-level field) takes the mask on the response message itself (e.g. `results.title`).
-- The parameter's description lists every valid top-level path, plus one level of `f.{a,b}` subfields (meaning `f.a,f.b`): pick paths from it, never guess — strict masks reject unknown paths with `invalid read mask`.
-- Maintainers: that description (`go/pbutil/pbjson/read_mask.go`) mirrors the target choice of `applyReadMask` in `go/grpc/middleware/field_mask.go`; change both together.
+- The parameter's description lists every valid path, top-level fields and one level of subfields, each spelled out (`metadata, metadata.color`; a message field alone returns all of it): pick paths from it, never guess — strict masks reject unknown paths with `invalid read mask`. Never write brace groups (`metadata.{a,b}`): the server splits on commas and rejects them.
+- Strict masks are validated against the method's response type before the handler runs, so an invalid mask fails a write with INVALID_ARGUMENT before any side effect (it used to run the write, then error).
+- Maintainers: that description (`go/pbutil/pbjson/read_mask.go`) mirrors `readMaskTarget` in `go/grpc/middleware/field_mask.go`; change both together.
 - Always set `response_read_mask` to only the fields you need to minimize response size and improve clarity.
 - Use `*` to return all fields only if necessary.
