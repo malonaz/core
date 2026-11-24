@@ -75,9 +75,11 @@ func (s *TokenService) ExchangeToken(ctx context.Context, request *authenticatio
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "the token service is served without the authentication interceptor").Err()
 	}
-	// Every exchanged token has an actor: refusing calls made by one refuses chains.
-	if actor := session.GetActor().GetSubject(); actor != "" {
-		return nil, status.Errorf(codes.PermissionDenied, "%s acts for %s: a call made by an actor never exchanges", actor, session.GetPrincipal().GetSubject()).Err()
+	// Only a service calling as itself: never a session carried for another principal, an outside credential, or an
+	// actor, which every exchanged token has (no chains).
+	principal, actor, caller := session.GetPrincipal().GetSubject(), session.GetActor().GetSubject(), session.GetCaller().GetSubject()
+	if caller == "" || principal != caller || actor != "" {
+		return nil, status.Errorf(codes.PermissionDenied, "only a service calling as itself exchanges, not principal %q acted for by %q through caller %q", principal, actor, caller).Err()
 	}
 	exchange, ok := s.issuerIDToExchange[request.GetIssuer()]
 	if !ok {

@@ -124,8 +124,10 @@ func TestExchangeToken(t *testing.T) {
 	withExchange(f)
 	interceptor := f.interceptor(t)
 	service := newTokenService(t, f, host)
+	// The worker calling as itself, as As makes it.
 	worker := authenticationtest.NewContext(context.Background(), &authenticationpb.Session{
 		Principal: &authenticationpb.Principal{Subject: "serviceAccounts/worker"},
+		Caller:    &authenticationpb.Principal{Subject: "serviceAccounts/worker"},
 	})
 	requireExpiresIn := func(t *testing.T, lifetime time.Duration, response *authenticationpb.ExchangeTokenResponse) {
 		t.Helper()
@@ -200,14 +202,29 @@ func TestExchangeToken(t *testing.T) {
 		require.True(t, status.HasCode(err, codes.Internal), "%v", err)
 		require.ErrorContains(t, err, `acted for by ""`)
 	})
-	t.Run("a call made by an actor", func(t *testing.T) {
-		ctx := authenticationtest.NewContext(context.Background(), &authenticationpb.Session{
-			Principal: &authenticationpb.Principal{Subject: bob},
+	for name, session := range map[string]*authenticationpb.Session{
+		"a carried user session": {
+			Principal: &authenticationpb.Principal{Subject: alice},
+			Caller:    &authenticationpb.Principal{Subject: "serviceAccounts/gateway"},
+		},
+		"a carried anonymous session": {
+			Caller: &authenticationpb.Principal{Subject: "serviceAccounts/gateway"},
+		},
+		"a session with an actor": {
+			Principal: &authenticationpb.Principal{Subject: "serviceAccounts/worker"},
 			Actor:     &authenticationpb.Principal{Subject: "agents/1"},
+			Caller:    &authenticationpb.Principal{Subject: "serviceAccounts/worker"},
+		},
+		"a session with no caller": {
+			Principal: &authenticationpb.Principal{Subject: "serviceAccounts/worker"},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := service.ExchangeToken(authenticationtest.NewContext(context.Background(), session), exchangeRequest(alice))
+			require.True(t, status.HasCode(err, codes.PermissionDenied), "%v", err)
+			require.ErrorContains(t, err, "only a service calling as itself exchanges")
 		})
-		_, err := service.ExchangeToken(ctx, exchangeRequest(alice))
-		require.True(t, status.HasCode(err, codes.PermissionDenied), "%v", err)
-	})
+	}
 	t.Run("a call no interceptor authenticated", func(t *testing.T) {
 		_, err := service.ExchangeToken(context.Background(), exchangeRequest(alice))
 		require.True(t, status.HasCode(err, codes.Internal), "%v", err)
@@ -253,6 +270,13 @@ func TestExchangeTokenOverThePlatform(t *testing.T) {
 		ctx := metadata.NewOutgoingContext(context.Background(), bearer(response.GetAccessToken()))
 		_, err = tokenService.ExchangeToken(ctx, exchangeRequest(alice))
 		require.True(t, status.HasCode(err, codes.PermissionDenied), "%v", err)
-		require.ErrorContains(t, err, "never exchanges")
+		require.ErrorContains(t, err, "only a service calling as itself exchanges")
+	})
+	t.Run("an API key of an account allowed to exchange", func(t *testing.T) {
+		// The rule allows the worker however it proves itself; the service refuses a credential from outside.
+		ctx := metadata.NewOutgoingContext(context.Background(), apiKey("key-3"))
+		_, err := tokenService.ExchangeToken(ctx, exchangeRequest(alice))
+		require.True(t, status.HasCode(err, codes.PermissionDenied), "%v", err)
+		require.ErrorContains(t, err, "only a service calling as itself exchanges")
 	})
 }

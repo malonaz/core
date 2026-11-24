@@ -192,9 +192,9 @@ the exchanging service's).
   the requested subject and actor, INTERNAL. An issuer whose `actor_cel` ignores `act` (kenji's
   reads an `impersonator` claim) or whose `subject_cel` does not yield the request's subject
   cannot be exchanged for as is.
-- No chains: a call whose session has an actor is refused (PERMISSION_DENIED), and every
-  exchanged token has one; a carried call keeps its actor, so a server handling an exchanged
-  token's call cannot exchange either. A missing session (no interceptor): INTERNAL.
+- Only a service calling as itself (`As`: caller present, principal = caller, no actor) exchanges; a carried
+  session (anonymous included), an outside credential or an actor (every exchanged token has one: no chains) is
+  PERMISSION_DENIED, whatever the rules allow (`carrier` included). A missing session (no interceptor): INTERNAL.
 - Keys: `NewTokenService(ctx, configuration, subjects, issuerIDToKey)`, each key a JWK as
   `NewSigner` takes; exactly the issuers with `exchange_lifetime` get one, or it fails.
 - Hosting it: onyx registers a service's `Service`, built from its manifest's dependencies, and
