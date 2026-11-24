@@ -24,5 +24,8 @@ local grants(roles) = [{ role: role, scope: '*' } for role in roles];
     { id: 'ai:speech_to_text', rules: [{ methods: ai(['SpeechToText', 'SpeechToTextStream']) }] },
     { id: 'ai:text_to_text', rules: [{ methods: ai(['TextToText', 'TextToTextStream']) }] },
     { id: 'ai:model:reader', rules: [{ methods: ai(['ListModels']) }] },
+    // Anyone asks what they could call.
+    { id: 'public', rules: [{ methods: ['/malonaz.authentication.v2.AuthorizationService/TestMethods'] }] },
   ],
+  public_roles: ['public'],
 }

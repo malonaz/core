@@ -2,6 +2,7 @@ go_library(
     name = "v2",
     srcs = [
         "api_key.go",
+        "authorization.go",
         "cel.go",
         "cel_resourcename.go",
         "client.go",
@@ -54,6 +55,7 @@ go_library(
 go_test(
     name = "test",
     srcs = [
+        "authorization_test.go",
         "benchmark_test.go",
         "carrier_test.go",
         "credentials_test.go",

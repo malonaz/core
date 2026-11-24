@@ -285,7 +285,7 @@ func (i *Interceptor) authorize(fullMethod string, call *authenticatedCall, requ
 				if activation == nil {
 					activation = conditionActivation(call.session, request)
 				}
-				allowed, err := evaluateCondition(condition, activation)
+				allowed, err := evaluateCondition(condition.program, activation)
 				if err != nil {
 					conditionErr = err
 					continue

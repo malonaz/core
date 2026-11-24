@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package malonaz.authentication.v2;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/malonaz/core/genproto/authentication/v2";
+
+// AuthorizationService tells a caller what a server could let them call. Every server running the authentication
+// interceptor serves it, answering from its own configuration for the session of the call. It has no HTTP binding:
+// its callers are the platform's services.
+service AuthorizationService {
+  // Returns the subset of the given methods the server could allow the calling session, whatever the request: those
+  // a grant of the session or a public role lists, unless every listing rule's condition reads only the session and
+  // is false. A method allowed only over a scope, or under a condition reading the request, is returned: a call to it
+  // may still be refused. Methods the server does not serve are never returned.
+  // See: https://google.aip.dev/136 (Custom methods), after google.iam.v1.IAMPolicy.TestIamPermissions.
+  rpc TestMethods(TestMethodsRequest) returns (TestMethodsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+// Request message for AuthorizationService.TestMethods.
+message TestMethodsRequest {
+  // Full names of the methods to test, as rules name them.
+  // Format: /{package}.{Service}/{Method}
+  repeated string methods = 1 [(buf.validate.field).repeated = {
+    max_items: 1000
+    items: {
+      string: {pattern: "^/[^/]+/[^/]+$"}
+    }
+  }];
+}
+
+// Response message for AuthorizationService.TestMethods.
+message TestMethodsResponse {
+  // The requested methods the session could call, in the order requested.
+  repeated string methods = 1;
+}

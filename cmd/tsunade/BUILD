@@ -30,6 +30,7 @@ go_binary(
         "//go/prometheus",
         "//go/sentry",
         "//malonaz/ai/ai_service/v1",
+        "//malonaz/authentication/v2",
         "//third_party/go:google.golang.org__grpc",
     ],
 )

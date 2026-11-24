@@ -530,6 +530,10 @@ func (g *generator) grpcServer(s *Server) {
 	for _, registration := range s.GRPC {
 		g.P(gen.PB(g.File, registration.GRPC), ".Register", registration.GRPC.GoName, "Server(server.Raw, ", serviceVar(registration.Service), ")")
 	}
+	if g.b.Authentication {
+		g.P("// What the interceptor could let a caller call here, answered from its configuration.")
+		g.P(g.ImportAs("github.com/malonaz/core/genproto/authentication/v2", "authenticationpb")+".RegisterAuthorizationServiceServer", "(server.Raw, authenticationInterceptor.NewAuthorizationService(server.Raw))")
+	}
 	if len(s.LongrunningMethods) > 0 {
 		g.P("// AIP-151: the long-running methods served here are exposed as google.longrunning.Operations.")
 		g.P(g.Qual("cloud.google.com/go/longrunning/autogen/longrunningpb", "RegisterOperationsServer"), "(server.Raw, ", g.Qual(core+"/scheduler/longrunning", "NewServer"), "(", clientVar(s.SchedulerClient), ", []string{")
