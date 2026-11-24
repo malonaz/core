@@ -26,6 +26,11 @@ anything else is a codegen error. The matching lives in `aip.ParseStandardMethod
 is onyx (`malonaz/onyx/v1` manifests, `tools/onyx`, `build_defs/codegen/onyx`); the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
 
+Core commits `genproto/` and `gengo/`, and importers (onikisu) compile those, not core's protos: after any proto
+change run `plz run //scripts:copy_generated_code` and commit its output with the change. Core's own tests build from
+the protos and stay green without it, while an importer's store then panics on the new column
+(`No field with the tag ...`).
+
 ## Resource tree semantics
 
 The `resource` package resolves every pattern in a **proto package** (the
