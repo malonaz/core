@@ -3,6 +3,7 @@ syntax = "proto3";
 package malonaz.authentication.v2;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 option go_package = "github.com/malonaz/core/genproto/authentication/v2";
@@ -119,6 +120,9 @@ message Issuer {
   // CEL expression listing the grants its sessions hold, over `claims` and the `subject` and
   // `attributes` computed above: `[Grant{role: "contractor", scope: attributes.organization}]`.
   string grants_cel = 9 [(buf.validate.field).string.min_len = 1];
+  // Lifetime of the tokens TokenService.ExchangeToken issues of this issuer, and the longest a request
+  // may ask for. Unset: none are issued.
+  google.protobuf.Duration exchange_lifetime = 10 [(buf.validate.field).duration.gt = {}];
 }
 
 // ServiceAccount is a principal declared here rather than by an issuer: an API client, a job, a

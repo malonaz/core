@@ -23,10 +23,11 @@ _sym_db = _symbol_database.Default()
 
 
 from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
+from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n.malonaz/authentication/v2/authentication.proto\x12\x19malonaz.authentication.v2\x1a\x1b\x62uf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x92\x02\n\x07Session\x12\x37\n\tprincipal\x18\x01 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x33\n\x05\x61\x63tor\x18\x02 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x34\n\x06\x63\x61ller\x18\x03 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x30\n\x06grants\x18\x04 \x03(\x0b\x32 .malonaz.authentication.v2.Grant\x12\x31\n\x06\x63lient\x18\x05 \x01(\x0b\x32!.malonaz.authentication.v2.Client\"R\n\tPrincipal\x12\x18\n\x07subject\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12+\n\nattributes\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct\"6\n\x05Grant\x12\x15\n\x04role\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x16\n\x05scope\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\"\x90\x01\n\x06\x43lient\x12\x12\n\nip_address\x18\x01 \x01(\t\x12\x12\n\nuser_agent\x18\x02 \x01(\t\x12\x10\n\x08platform\x18\x03 \x01(\t\x12\x39\n\x07version\x18\x04 \x01(\x0b\x32(.malonaz.authentication.v2.ClientVersion\x12\x11\n\ttime_zone\x18\x05 \x01(\t\"<\n\rClientVersion\x12\r\n\x05major\x18\x01 \x01(\x05\x12\r\n\x05minor\x18\x02 \x01(\x05\x12\r\n\x05patch\x18\x03 \x01(\x05\"g\n\x04Role\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12.\n\x05rules\x18\x02 \x03(\x0b\x32\x1f.malonaz.authentication.v2.Rule\x12\x1a\n\x08includes\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\":\n\x04Rule\x12\x1b\n\x07methods\x18\x01 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x01\x18\x01\x12\x15\n\rcondition_cel\x18\x02 \x01(\t\"\xe1\x01\n\x06Issuer\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x17\n\x06issuer\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x19\n\x08\x61udience\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x12\n\x08jwks_uri\x18\x04 \x01(\tH\x00\x12\x0e\n\x04jwks\x18\x05 \x01(\tH\x00\x12\x13\n\x0bsubject_cel\x18\x06 \x01(\t\x12\x16\n\x0e\x61ttributes_cel\x18\x07 \x01(\t\x12\x11\n\tactor_cel\x18\x08 \x01(\t\x12\x1b\n\ngrants_cel\x18\t \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x42\r\n\x04keys\x12\x05\xbaH\x02\x08\x01\"\xb0\x01\n\x0eServiceAccount\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x06grants\x18\x02 \x03(\x0b\x32 .malonaz.authentication.v2.Grant\x12+\n\nattributes\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x12\n\x08jwks_uri\x18\x04 \x01(\tH\x00\x12\x0e\n\x04jwks\x18\x05 \x01(\tH\x00\x42\x06\n\x04keys\"\xe2\x04\n\rConfiguration\x12\x88\x02\n\x07issuers\x18\x01 \x03(\x0b\x32!.malonaz.authentication.v2.IssuerB\xd3\x01\xbaH\xcf\x01\xba\x01J\n\x11unique_issuer_ids\x12\x19issuer ids must be unique\x1a\x1athis.map(i, i.id).unique()\xba\x01\x7f\n\x17unique_issuer_audiences\x12\x31no two issuers may share both issuer and audience\x1a\x31this.map(i, i.issuer + \' \' + i.audience).unique()\x12\xa7\x01\n\x10service_accounts\x18\x02 \x03(\x0b\x32).malonaz.authentication.v2.ServiceAccountBb\xbaH_\xba\x01\\\n\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1athis.map(s, s.id).unique()\x12|\n\x05roles\x18\x03 \x03(\x0b\x32\x1f.malonaz.authentication.v2.RoleBL\xbaHI\xba\x01\x46\n\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\x12\x1e\n\x0cpublic_roles\x18\x04 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x42\x34Z2github.com/malonaz/core/genproto/authentication/v2b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n.malonaz/authentication/v2/authentication.proto\x12\x19malonaz.authentication.v2\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x92\x02\n\x07Session\x12\x37\n\tprincipal\x18\x01 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x33\n\x05\x61\x63tor\x18\x02 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x34\n\x06\x63\x61ller\x18\x03 \x01(\x0b\x32$.malonaz.authentication.v2.Principal\x12\x30\n\x06grants\x18\x04 \x03(\x0b\x32 .malonaz.authentication.v2.Grant\x12\x31\n\x06\x63lient\x18\x05 \x01(\x0b\x32!.malonaz.authentication.v2.Client\"R\n\tPrincipal\x12\x18\n\x07subject\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12+\n\nattributes\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct\"6\n\x05Grant\x12\x15\n\x04role\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x16\n\x05scope\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\"\x90\x01\n\x06\x43lient\x12\x12\n\nip_address\x18\x01 \x01(\t\x12\x12\n\nuser_agent\x18\x02 \x01(\t\x12\x10\n\x08platform\x18\x03 \x01(\t\x12\x39\n\x07version\x18\x04 \x01(\x0b\x32(.malonaz.authentication.v2.ClientVersion\x12\x11\n\ttime_zone\x18\x05 \x01(\t\"<\n\rClientVersion\x12\r\n\x05major\x18\x01 \x01(\x05\x12\r\n\x05minor\x18\x02 \x01(\x05\x12\r\n\x05patch\x18\x03 \x01(\x05\"g\n\x04Role\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12.\n\x05rules\x18\x02 \x03(\x0b\x32\x1f.malonaz.authentication.v2.Rule\x12\x1a\n\x08includes\x18\x03 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\":\n\x04Rule\x12\x1b\n\x07methods\x18\x01 \x03(\tB\n\xbaH\x07\x92\x01\x04\x08\x01\x18\x01\x12\x15\n\rcondition_cel\x18\x02 \x01(\t\"\xa1\x02\n\x06Issuer\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x17\n\x06issuer\x18\x02 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x19\n\x08\x61udience\x18\x03 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x12\n\x08jwks_uri\x18\x04 \x01(\tH\x00\x12\x0e\n\x04jwks\x18\x05 \x01(\tH\x00\x12\x13\n\x0bsubject_cel\x18\x06 \x01(\t\x12\x16\n\x0e\x61ttributes_cel\x18\x07 \x01(\t\x12\x11\n\tactor_cel\x18\x08 \x01(\t\x12\x1b\n\ngrants_cel\x18\t \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12>\n\x11\x65xchange_lifetime\x18\n \x01(\x0b\x32\x19.google.protobuf.DurationB\x08\xbaH\x05\xaa\x01\x02*\x00\x42\r\n\x04keys\x12\x05\xbaH\x02\x08\x01\"\xb0\x01\n\x0eServiceAccount\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xbaH\x04r\x02\x10\x01\x12\x30\n\x06grants\x18\x02 \x03(\x0b\x32 .malonaz.authentication.v2.Grant\x12+\n\nattributes\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\x12\x12\n\x08jwks_uri\x18\x04 \x01(\tH\x00\x12\x0e\n\x04jwks\x18\x05 \x01(\tH\x00\x42\x06\n\x04keys\"\xe2\x04\n\rConfiguration\x12\x88\x02\n\x07issuers\x18\x01 \x03(\x0b\x32!.malonaz.authentication.v2.IssuerB\xd3\x01\xbaH\xcf\x01\xba\x01J\n\x11unique_issuer_ids\x12\x19issuer ids must be unique\x1a\x1athis.map(i, i.id).unique()\xba\x01\x7f\n\x17unique_issuer_audiences\x12\x31no two issuers may share both issuer and audience\x1a\x31this.map(i, i.issuer + \' \' + i.audience).unique()\x12\xa7\x01\n\x10service_accounts\x18\x02 \x03(\x0b\x32).malonaz.authentication.v2.ServiceAccountBb\xbaH_\xba\x01\\\n\x1aunique_service_account_ids\x12\"service account ids must be unique\x1a\x1athis.map(s, s.id).unique()\x12|\n\x05roles\x18\x03 \x03(\x0b\x32\x1f.malonaz.authentication.v2.RoleBL\xbaHI\xba\x01\x46\n\x0funique_role_ids\x12\x17role ids must be unique\x1a\x1athis.map(r, r.id).unique()\x12\x1e\n\x0cpublic_roles\x18\x04 \x03(\tB\x08\xbaH\x05\x92\x01\x02\x18\x01\x42\x34Z2github.com/malonaz/core/genproto/authentication/v2b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -56,6 +57,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_ISSUER'].fields_by_name['audience']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_ISSUER'].fields_by_name['grants_cel']._loaded_options = None
   _globals['_ISSUER'].fields_by_name['grants_cel']._serialized_options = b'\272H\004r\002\020\001'
+  _globals['_ISSUER'].fields_by_name['exchange_lifetime']._loaded_options = None
+  _globals['_ISSUER'].fields_by_name['exchange_lifetime']._serialized_options = b'\272H\005\252\001\002*\000'
   _globals['_SERVICEACCOUNT'].fields_by_name['id']._loaded_options = None
   _globals['_SERVICEACCOUNT'].fields_by_name['id']._serialized_options = b'\272H\004r\002\020\001'
   _globals['_CONFIGURATION'].fields_by_name['issuers']._loaded_options = None
@@ -66,24 +69,24 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CONFIGURATION'].fields_by_name['roles']._serialized_options = b'\272HI\272\001F\n\017unique_role_ids\022\027role ids must be unique\032\032this.map(r, r.id).unique()'
   _globals['_CONFIGURATION'].fields_by_name['public_roles']._loaded_options = None
   _globals['_CONFIGURATION'].fields_by_name['public_roles']._serialized_options = b'\272H\005\222\001\002\030\001'
-  _globals['_SESSION']._serialized_start=137
-  _globals['_SESSION']._serialized_end=411
-  _globals['_PRINCIPAL']._serialized_start=413
-  _globals['_PRINCIPAL']._serialized_end=495
-  _globals['_GRANT']._serialized_start=497
-  _globals['_GRANT']._serialized_end=551
-  _globals['_CLIENT']._serialized_start=554
-  _globals['_CLIENT']._serialized_end=698
-  _globals['_CLIENTVERSION']._serialized_start=700
-  _globals['_CLIENTVERSION']._serialized_end=760
-  _globals['_ROLE']._serialized_start=762
-  _globals['_ROLE']._serialized_end=865
-  _globals['_RULE']._serialized_start=867
-  _globals['_RULE']._serialized_end=925
-  _globals['_ISSUER']._serialized_start=928
-  _globals['_ISSUER']._serialized_end=1153
-  _globals['_SERVICEACCOUNT']._serialized_start=1156
-  _globals['_SERVICEACCOUNT']._serialized_end=1332
-  _globals['_CONFIGURATION']._serialized_start=1335
-  _globals['_CONFIGURATION']._serialized_end=1945
+  _globals['_SESSION']._serialized_start=169
+  _globals['_SESSION']._serialized_end=443
+  _globals['_PRINCIPAL']._serialized_start=445
+  _globals['_PRINCIPAL']._serialized_end=527
+  _globals['_GRANT']._serialized_start=529
+  _globals['_GRANT']._serialized_end=583
+  _globals['_CLIENT']._serialized_start=586
+  _globals['_CLIENT']._serialized_end=730
+  _globals['_CLIENTVERSION']._serialized_start=732
+  _globals['_CLIENTVERSION']._serialized_end=792
+  _globals['_ROLE']._serialized_start=794
+  _globals['_ROLE']._serialized_end=897
+  _globals['_RULE']._serialized_start=899
+  _globals['_RULE']._serialized_end=957
+  _globals['_ISSUER']._serialized_start=960
+  _globals['_ISSUER']._serialized_end=1249
+  _globals['_SERVICEACCOUNT']._serialized_start=1252
+  _globals['_SERVICEACCOUNT']._serialized_end=1428
+  _globals['_CONFIGURATION']._serialized_start=1431
+  _globals['_CONFIGURATION']._serialized_end=2041
 # @@protoc_insertion_point(module_scope)

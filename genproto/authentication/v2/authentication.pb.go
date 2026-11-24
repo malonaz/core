@@ -12,6 +12,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -790,9 +791,12 @@ type Issuer struct {
 	ActorCel string `protobuf:"bytes,8,opt,name=actor_cel,json=actorCel,proto3" json:"actor_cel,omitempty"`
 	// CEL expression listing the grants its sessions hold, over `claims` and the `subject` and
 	// `attributes` computed above: `[Grant{role: "contractor", scope: attributes.organization}]`.
-	GrantsCel     string `protobuf:"bytes,9,opt,name=grants_cel,json=grantsCel,proto3" json:"grants_cel,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	GrantsCel string `protobuf:"bytes,9,opt,name=grants_cel,json=grantsCel,proto3" json:"grants_cel,omitempty"`
+	// Lifetime of the tokens TokenService.ExchangeToken issues of this issuer, and the longest a request
+	// may ask for. Unset: none are issued.
+	ExchangeLifetime *durationpb.Duration `protobuf:"bytes,10,opt,name=exchange_lifetime,json=exchangeLifetime,proto3" json:"exchange_lifetime,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Issuer) Reset() {
@@ -894,6 +898,13 @@ func (x *Issuer) GetGrantsCel() string {
 	return ""
 }
 
+func (x *Issuer) GetExchangeLifetime() *durationpb.Duration {
+	if x != nil {
+		return x.ExchangeLifetime
+	}
+	return nil
+}
+
 func (x *Issuer) SetId(v string) {
 	x.Id = v
 }
@@ -930,6 +941,10 @@ func (x *Issuer) SetGrantsCel(v string) {
 	x.GrantsCel = v
 }
 
+func (x *Issuer) SetExchangeLifetime(v *durationpb.Duration) {
+	x.ExchangeLifetime = v
+}
+
 func (x *Issuer) HasKeys() bool {
 	if x == nil {
 		return false
@@ -953,6 +968,13 @@ func (x *Issuer) HasJwks() bool {
 	return ok
 }
 
+func (x *Issuer) HasExchangeLifetime() bool {
+	if x == nil {
+		return false
+	}
+	return x.ExchangeLifetime != nil
+}
+
 func (x *Issuer) ClearKeys() {
 	x.Keys = nil
 }
@@ -967,6 +989,10 @@ func (x *Issuer) ClearJwks() {
 	if _, ok := x.Keys.(*Issuer_Jwks); ok {
 		x.Keys = nil
 	}
+}
+
+func (x *Issuer) ClearExchangeLifetime() {
+	x.ExchangeLifetime = nil
 }
 
 const Issuer_Keys_not_set_case case_Issuer_Keys = 0
@@ -1015,6 +1041,9 @@ type Issuer_builder struct {
 	// CEL expression listing the grants its sessions hold, over `claims` and the `subject` and
 	// `attributes` computed above: `[Grant{role: "contractor", scope: attributes.organization}]`.
 	GrantsCel string
+	// Lifetime of the tokens TokenService.ExchangeToken issues of this issuer, and the longest a request
+	// may ask for. Unset: none are issued.
+	ExchangeLifetime *durationpb.Duration
 }
 
 func (b0 Issuer_builder) Build() *Issuer {
@@ -1034,6 +1063,7 @@ func (b0 Issuer_builder) Build() *Issuer {
 	x.AttributesCel = b.AttributesCel
 	x.ActorCel = b.ActorCel
 	x.GrantsCel = b.GrantsCel
+	x.ExchangeLifetime = b.ExchangeLifetime
 	return m0
 }
 
@@ -1421,7 +1451,7 @@ var File_malonaz_authentication_v2_authentication_proto protoreflect.FileDescrip
 
 const file_malonaz_authentication_v2_authentication_proto_rawDesc = "" +
 	"\n" +
-	".malonaz/authentication/v2/authentication.proto\x12\x19malonaz.authentication.v2\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xbc\x02\n" +
+	".malonaz/authentication/v2/authentication.proto\x12\x19malonaz.authentication.v2\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xbc\x02\n" +
 	"\aSession\x12B\n" +
 	"\tprincipal\x18\x01 \x01(\v2$.malonaz.authentication.v2.PrincipalR\tprincipal\x12:\n" +
 	"\x05actor\x18\x02 \x01(\v2$.malonaz.authentication.v2.PrincipalR\x05actor\x12<\n" +
@@ -1455,7 +1485,7 @@ const file_malonaz_authentication_v2_authentication_proto_rawDesc = "" +
 	"\x04Rule\x12$\n" +
 	"\amethods\x18\x01 \x03(\tB\n" +
 	"\xbaH\a\x92\x01\x04\b\x01\x18\x01R\amethods\x12#\n" +
-	"\rcondition_cel\x18\x02 \x01(\tR\fconditionCel\"\xb6\x02\n" +
+	"\rcondition_cel\x18\x02 \x01(\tR\fconditionCel\"\x88\x03\n" +
 	"\x06Issuer\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x1f\n" +
 	"\x06issuer\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x06issuer\x12#\n" +
@@ -1467,7 +1497,9 @@ const file_malonaz_authentication_v2_authentication_proto_rawDesc = "" +
 	"\x0eattributes_cel\x18\a \x01(\tR\rattributesCel\x12\x1b\n" +
 	"\tactor_cel\x18\b \x01(\tR\bactorCel\x12&\n" +
 	"\n" +
-	"grants_cel\x18\t \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tgrantsCelB\r\n" +
+	"grants_cel\x18\t \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tgrantsCel\x12P\n" +
+	"\x11exchange_lifetime\x18\n" +
+	" \x01(\v2\x19.google.protobuf.DurationB\b\xbaH\x05\xaa\x01\x02*\x00R\x10exchangeLifetimeB\r\n" +
 	"\x04keys\x12\x05\xbaH\x02\b\x01\"\xd7\x01\n" +
 	"\x0eServiceAccount\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x128\n" +
@@ -1490,17 +1522,18 @@ const file_malonaz_authentication_v2_authentication_proto_rawDesc = "" +
 
 var file_malonaz_authentication_v2_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_malonaz_authentication_v2_authentication_proto_goTypes = []any{
-	(*Session)(nil),         // 0: malonaz.authentication.v2.Session
-	(*Principal)(nil),       // 1: malonaz.authentication.v2.Principal
-	(*Grant)(nil),           // 2: malonaz.authentication.v2.Grant
-	(*Client)(nil),          // 3: malonaz.authentication.v2.Client
-	(*ClientVersion)(nil),   // 4: malonaz.authentication.v2.ClientVersion
-	(*Role)(nil),            // 5: malonaz.authentication.v2.Role
-	(*Rule)(nil),            // 6: malonaz.authentication.v2.Rule
-	(*Issuer)(nil),          // 7: malonaz.authentication.v2.Issuer
-	(*ServiceAccount)(nil),  // 8: malonaz.authentication.v2.ServiceAccount
-	(*Configuration)(nil),   // 9: malonaz.authentication.v2.Configuration
-	(*structpb.Struct)(nil), // 10: google.protobuf.Struct
+	(*Session)(nil),             // 0: malonaz.authentication.v2.Session
+	(*Principal)(nil),           // 1: malonaz.authentication.v2.Principal
+	(*Grant)(nil),               // 2: malonaz.authentication.v2.Grant
+	(*Client)(nil),              // 3: malonaz.authentication.v2.Client
+	(*ClientVersion)(nil),       // 4: malonaz.authentication.v2.ClientVersion
+	(*Role)(nil),                // 5: malonaz.authentication.v2.Role
+	(*Rule)(nil),                // 6: malonaz.authentication.v2.Rule
+	(*Issuer)(nil),              // 7: malonaz.authentication.v2.Issuer
+	(*ServiceAccount)(nil),      // 8: malonaz.authentication.v2.ServiceAccount
+	(*Configuration)(nil),       // 9: malonaz.authentication.v2.Configuration
+	(*structpb.Struct)(nil),     // 10: google.protobuf.Struct
+	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
 var file_malonaz_authentication_v2_authentication_proto_depIdxs = []int32{
 	1,  // 0: malonaz.authentication.v2.Session.principal:type_name -> malonaz.authentication.v2.Principal
@@ -1511,16 +1544,17 @@ var file_malonaz_authentication_v2_authentication_proto_depIdxs = []int32{
 	10, // 5: malonaz.authentication.v2.Principal.attributes:type_name -> google.protobuf.Struct
 	4,  // 6: malonaz.authentication.v2.Client.version:type_name -> malonaz.authentication.v2.ClientVersion
 	6,  // 7: malonaz.authentication.v2.Role.rules:type_name -> malonaz.authentication.v2.Rule
-	2,  // 8: malonaz.authentication.v2.ServiceAccount.grants:type_name -> malonaz.authentication.v2.Grant
-	10, // 9: malonaz.authentication.v2.ServiceAccount.attributes:type_name -> google.protobuf.Struct
-	7,  // 10: malonaz.authentication.v2.Configuration.issuers:type_name -> malonaz.authentication.v2.Issuer
-	8,  // 11: malonaz.authentication.v2.Configuration.service_accounts:type_name -> malonaz.authentication.v2.ServiceAccount
-	5,  // 12: malonaz.authentication.v2.Configuration.roles:type_name -> malonaz.authentication.v2.Role
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	11, // 8: malonaz.authentication.v2.Issuer.exchange_lifetime:type_name -> google.protobuf.Duration
+	2,  // 9: malonaz.authentication.v2.ServiceAccount.grants:type_name -> malonaz.authentication.v2.Grant
+	10, // 10: malonaz.authentication.v2.ServiceAccount.attributes:type_name -> google.protobuf.Struct
+	7,  // 11: malonaz.authentication.v2.Configuration.issuers:type_name -> malonaz.authentication.v2.Issuer
+	8,  // 12: malonaz.authentication.v2.Configuration.service_accounts:type_name -> malonaz.authentication.v2.ServiceAccount
+	5,  // 13: malonaz.authentication.v2.Configuration.roles:type_name -> malonaz.authentication.v2.Role
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_authentication_v2_authentication_proto_init() }

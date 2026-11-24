@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package malonaz.authentication.v2;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/malonaz/core/genproto/authentication/v2";
+
+// TokenService issues tokens of the host's issuers to the platform's services. It has no HTTP binding: no
+// one outside the platform has a use for it.
+service TokenService {
+  // Issues a short-lived token of one of the host's issuers for a subject, made by the actor the caller
+  // names: how a service working for a user calls the platform as them while they are away. The token
+  // carries the subject's claims as the host knows them now, so the subject's own grants decide every
+  // call made with it. A call made by an actor never exchanges: no token obtained by exchange is
+  // exchanged again.
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc ExchangeToken(ExchangeTokenRequest) returns (ExchangeTokenResponse);
+}
+
+// Request message for TokenService.ExchangeToken.
+message ExchangeTokenRequest {
+  // Identifier of the issuer whose token is issued: one with an `exchange_lifetime`.
+  string issuer = 1 [(buf.validate.field).string.min_len = 1];
+  // Subject the token is for: the principal of the calls made with it.
+  string subject = 2 [(buf.validate.field).string.min_len = 1];
+  // Subject making the calls for the principal: their actor.
+  string actor = 3 [(buf.validate.field).string.min_len = 1];
+  // How long the token is valid, at most the issuer's `exchange_lifetime`. Unset: that lifetime.
+  google.protobuf.Duration lifetime = 4 [(buf.validate.field).duration.gt = {}];
+}
+
+// Response message for TokenService.ExchangeToken.
+message ExchangeTokenResponse {
+  // The token, presented as `authorization: Bearer`.
+  string access_token = 1;
+  // When the token expires.
+  google.protobuf.Timestamp expire_time = 2;
+}
