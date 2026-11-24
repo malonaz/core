@@ -1,6 +1,6 @@
 ---
 title: 'ai: Vertex streamed tool-call arguments (partial args) and tool schemas'
-description: 'What Vertex sends when stream_partial_tool_calls is on (opening chunk, partialArgs by JSON path, closing empty functionCall), how it aborts a call (MALFORMED_FUNCTION_CALL, no closing chunk), the unquoted dotted map keys, the measured abort rate, and why tool schemas go out through ai.JSONSchemaMarshal.'
+description: 'What Vertex sends when stream_partial_tool_calls is on (opening chunk, partialArgs by JSON path, closing empty functionCall), how it aborts a call (MALFORMED_FUNCTION_CALL, no closing chunk), the unquoted dotted map keys, the measured abort rate, tool choice NONE enforced by the service, and why tool schemas go out through ai.JSONSchemaMarshal.'
 labels:
     repo: core
     tags: ai,google,vertex,gemini,tool-calls,json-schema
@@ -54,3 +54,12 @@ what a map holds. Anything sending a schema to a provider goes through `ai.JSONS
 they are stored history and must replay byte for byte (`lores/ai/replay-determinism`).
 gemini-4-hydrogen (2026-11-13): a ~13 KB nested-JSON call aborted in 2 of 5 streamed generations,
 none with partial args off; small, parallel and text-then-call cases never aborted.
+
+## Tool choice NONE
+
+Gemini treats `TOOL_CHOICE_MODE_NONE` as advice: forced on 40 bench points, gemini-4-hydrogen still
+called tools on 18 and returned nothing on 6 (gemini-3.8-flash: 21 of 32, plus 8 aborts). So
+`StreamGenerateMessage` enforces it for every provider: the provider-bound history (never the stored
+one) ends with a user notice that tools are unavailable, any call the model makes anyway is dropped
+before it reaches the caller or the accumulator, and the Google provider never streams partial calls
+under NONE. A model that only called tools still ends with an empty message.

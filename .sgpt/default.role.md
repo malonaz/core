@@ -85,7 +85,7 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/ai/vertex-streamed-tool-calls` — Vertex's streamed tool-call arguments:
   the chunk sequence (the last call may end at STOP unclosed), calls aborted with
   MALFORMED_FUNCTION_CALL (failed, never emitted), unquoted dotted map keys resolved against the tool schema, the abort
-  rate, and `ai.JSONSchemaMarshal` for every schema sent to a provider.
+  rate, tool choice NONE enforced by the service (Gemini ignores it), and `ai.JSONSchemaMarshal` for every schema sent to a provider.
 - `lores/tasks/search-json-fields` — task: support JSONB (as_json_bytes)
   paths in the Search framework.
 
