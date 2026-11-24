@@ -54,3 +54,20 @@ the generation with `FailedPrecondition`.
   `parent` (same tenant) before returning a URL a model will read.
 - `CreateFile` knows the parent and nothing else: metadata a caller cares about
   (labels, titles) is set by that caller afterwards, on the file the block names.
+
+## Which providers fetch a URL (measured 2026-11-24)
+A resolved file reaches the provider as a URL that 302-redirects to presigned S3 (onikisu's
+`download_url`; it answers HEAD with 501). Measured with real keys, 5 runs per cell, PNG, JPEG, PDF:
+
+| Provider (core path) | Images by URL | PDFs by URL | Notes |
+|---|---|---|---|
+| anthropic | passed through, fetched, redirect OK | passed through, fetched | ~1-2s |
+| openai (Responses) | `image_url`, redirect OK | `file_url`, redirect OK | |
+| google, google-vertex | core downloads and inlines | core downloads and inlines | Go's client follows the redirect. Sent as `fileUri` instead, the Gemini API fetches fine but Vertex takes 20-120s and often fails `URL_REJECTED` on the redirect: keep inlining |
+| xai (Chat Completions) | passed through, redirect OK | **fails**: no file parts on chat completions | |
+| groq (Chat Completions) | passed through, **fails on the redirect** ("received status code: 302"); a direct presigned URL works | **fails**: no file parts | |
+| cerebras (Chat Completions) | **fails**: "Remote image URLs are not supported; send images as data URIs" | **fails**: no file parts | |
+| baseten, moonshot | not measured (no working key) | | |
+
+So a provider that cannot fetch must be sent inline data, downloaded by core, as the google
+provider already does.
