@@ -3,6 +3,7 @@ package agent_service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -10,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -79,6 +81,30 @@ func (r *toolRouter) invoke(ctx context.Context, method protoreflect.MethodDescr
 		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
 	}
 	return pbreflection.NewMethodInvoker(connection.Get()).Invoke(ctx, method, request)
+}
+
+// testMethods asks a routed service's target which of the named methods of the service the session ctx carries could
+// call (AuthorizationService.TestMethods), returning their names.
+func (r *toolRouter) testMethods(ctx context.Context, service protoreflect.ServiceDescriptor, names []string) ([]string, error) {
+	endpoint := r.serviceToEndpoint[string(service.FullName())]
+	connection, err := r.connections.get(ctx, endpoint)
+	if err != nil {
+		return nil, status.Errorf(codes.Unavailable, "connecting to %s: %v", endpoint, err).Err()
+	}
+	prefix := "/" + string(service.FullName()) + "/"
+	testMethodsRequest := &authenticationpb.TestMethodsRequest{}
+	for _, name := range names {
+		testMethodsRequest.Methods = append(testMethodsRequest.Methods, prefix+name)
+	}
+	testMethodsResponse, err := authenticationpb.NewAuthorizationServiceClient(connection.Get()).TestMethods(ctx, testMethodsRequest)
+	if err != nil {
+		return nil, err
+	}
+	reachable := make([]string, 0, len(testMethodsResponse.GetMethods()))
+	for _, method := range testMethodsResponse.GetMethods() {
+		reachable = append(reachable, strings.TrimPrefix(method, prefix))
+	}
+	return reachable, nil
 }
 
 // unaryMethod returns a service's method by name if it is a tool: unary.

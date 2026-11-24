@@ -42,6 +42,8 @@ type toolbox struct {
 	toolNameToMethodTool     map[string]*methodTool
 	toolNameToGenuiComponent map[string]*genuiComponent
 	ownerToken               ownerToken
+	// toolSetToReachable holds the names of each granted service's methods its owner could call, asked once a turn.
+	toolSetToReachable map[string][]string
 }
 
 // methodTool is a tool calling a gRPC method.
@@ -151,7 +153,8 @@ func (s *Service) validateTools(spec *agentpb.AgentSpec) error {
 
 // newToolbox resolves the tools of the agent's turn from its grants: a granted service becomes a tool set its methods
 // are discovered from, the granted genui set each component's tool, a tool granted alone that tool. A tool granted
-// inside a granted set only refines its approval. Methods' schemas are reflected from the endpoints serving them.
+// inside a granted set only refines its approval. Methods' schemas are reflected from the endpoints serving them, and
+// only the methods the owner could call are offered.
 func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbox, error) {
 	toolbox := &toolbox{
 		service:                  s,
@@ -159,6 +162,7 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		tools:                    slices.Clone(s.builtinTools.tools),
 		toolNameToMethodTool:     map[string]*methodTool{},
 		toolNameToGenuiComponent: map[string]*genuiComponent{},
+		toolSetToReachable:       map[string][]string{},
 	}
 	if definitions := agent.GetSpec().GetSubAgentDefinitions(); len(definitions) > 0 {
 		for i, tool := range toolbox.tools {
@@ -234,6 +238,10 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			if !ok {
 				return nil, status.Errorf(codes.FailedPrecondition, "tool %s is no unary method of %s", grant.GetTool(), service.FullName()).Err()
 			}
+			// The model is offered only what its owner could call.
+			if !slices.Contains(toolbox.reachable(ctx, service), toolID) {
+				continue
+			}
 			createToolRequest := &aienginepb.CreateToolRequest{
 				DescriptorReference: &aienginepb.DescriptorReference{FullName: &aienginepb.DescriptorReference_Method{Method: string(method.FullName())}},
 				SchemaConfiguration: methodSchemaConfiguration(method),
@@ -245,6 +253,10 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			toolbox.tools = append(toolbox.tools, tool)
 			tools = append(tools, tool)
 		} else {
+			methodNames := toolbox.reachable(ctx, service)
+			if len(methodNames) == 0 {
+				continue
+			}
 			methodNameToSchemaConfiguration := map[string]*aienginepb.SchemaConfiguration{}
 			for i := 0; i < service.Methods().Len(); i++ {
 				method := service.Methods().Get(i)
@@ -254,7 +266,7 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 			}
 			createServiceToolSetRequest := &aienginepb.CreateServiceToolSetRequest{
 				ServiceFullName:                 string(service.FullName()),
-				MethodNames:                     unaryMethodNames(service),
+				MethodNames:                     methodNames,
 				SchemaConfiguration:             schemaConfiguration,
 				MethodNameToSchemaConfiguration: methodNameToSchemaConfiguration,
 			}
@@ -289,6 +301,36 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		}
 	}
 	return toolbox, nil
+}
+
+// reachable returns the names of a service's unary methods the owner could call, asked of its target once a turn.
+func (b *toolbox) reachable(ctx context.Context, service protoreflect.ServiceDescriptor) []string {
+	id := string(service.FullName())
+	if names, ok := b.toolSetToReachable[id]; ok {
+		return names
+	}
+	names := unaryMethodNames(service)
+	// Without the owner's token the target cannot be asked, nor called: its calls fail with that error.
+	if ownerCtx, err := b.asOwner(ctx); err == nil {
+		names = b.service.reachableMethodNames(ownerCtx, service)
+	}
+	b.toolSetToReachable[id] = names
+	return names
+}
+
+// reachableMethodNames returns the names of a routed service's unary methods the session ctx carries could call, as
+// its target answers. A target that cannot say (it serves no AuthorizationService, or fails) keeps them all: its own
+// rules still decide every call.
+func (s *Service) reachableMethodNames(ctx context.Context, service protoreflect.ServiceDescriptor) []string {
+	names := unaryMethodNames(service)
+	reachable, err := s.toolRouter.testMethods(ctx, service, names)
+	if err != nil {
+		if !status.HasCode(err, codes.Unimplemented) {
+			s.log.Warn("testing the methods of a tool set", "tool_set", service.FullName(), "error", err)
+		}
+		return names
+	}
+	return reachable
 }
 
 // requestIDField returns the request_id field of a method's request, if any: the service seeds it from the call's

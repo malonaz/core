@@ -30,9 +30,9 @@ export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@
 /**
  * This API stores agents and runs their turns, generating as each agent's
  * owner. The tools an agent holds are granted from the tool catalogue: methods
- * of routed gRPC services, called as the agent's owner, and genui components;
- * built-in tools let agents launch sub-agents, message their tree, label
- * themselves and schedule wake-ups.
+ * of routed gRPC services, offered when its owner could call them and called as
+ * the owner, and genui components; built-in tools let agents launch sub-agents,
+ * message their tree, label themselves and schedule wake-ups.
  *
  * # Resource model
  *
@@ -43,7 +43,8 @@ export const file_malonaz_ai_agent_agent_service_v1_agent_service: GenFile = /*@
  *   Format: organizations/{organization}/users/{user}/agents/{agent}
  * - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
  *   the tools an agent's spec may grant, derived from the service's
- *   configuration and its tool targets, never stored.
+ *   configuration and its tool targets, never stored, each caller seeing
+ *   those they could call.
  *   Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
  *
  * # Messaging
@@ -153,7 +154,8 @@ export const AgentService: GenService<{
     output: typeof ListDefinitionsResponseSchema;
   },
   /**
-   * Get a tool set. NOT_FOUND unless configured; a set that cannot be read carries its error.
+   * Get a tool set. NOT_FOUND unless configured and holding a tool the caller could call; a set that cannot be read
+   * carries its error.
    *
    * See: https://google.aip.dev/131 (Standard methods: Get).
    *
@@ -165,7 +167,8 @@ export const AgentService: GenService<{
     output: typeof ToolSetSchema;
   },
   /**
-   * List the tool sets, by name. A set that cannot be read carries its error and never fails the list.
+   * List the tool sets holding a tool the caller could call, by name. A set that cannot be read carries its error and
+   * never fails the list.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *
@@ -177,7 +180,7 @@ export const AgentService: GenService<{
     output: typeof ListToolSetsResponseSchema;
   },
   /**
-   * Get a tool. UNAVAILABLE when its set cannot be read.
+   * Get a tool. NOT_FOUND unless the caller could call it; UNAVAILABLE when its set cannot be read.
    *
    * See: https://google.aip.dev/131 (Standard methods: Get).
    *
@@ -189,8 +192,8 @@ export const AgentService: GenService<{
     output: typeof ToolSchema;
   },
   /**
-   * List the tools of a set, or of every set with the parent `toolSets/-`, by name. A set that cannot be read fails
-   * the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
+   * List the tools the caller could call of a set, or of every set with the parent `toolSets/-`, by name. A set that
+   * cannot be read fails the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
    *
    * See: https://google.aip.dev/132 (Standard methods: List).
    *

@@ -26,7 +26,9 @@ const (
 
 // A ToolSet is a set of tools an agent's spec may grant whole or tool by tool: a gRPC service the agent service
 // routes to a tool target, whose tools are its unary methods, or the genui components. It is derived from the agent
-// service's configuration and what it reads from each target, never stored, and the same for every caller.
+// service's configuration and what it reads from each target, never stored. Each caller sees the tools they could
+// call, as each target answers for their session (malonaz.authentication.v2.AuthorizationService.TestMethods), and
+// the sets holding any: a target that cannot say keeps them all.
 type ToolSet struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
