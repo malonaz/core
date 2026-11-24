@@ -6,19 +6,21 @@ import (
 	onyxpb "github.com/malonaz/core/genproto/onyx/v1"
 )
 
-// LoadMain loads a MainManifest, or with a label, the deployment of the ServiceManifest that label
-// builds: its servers naming no service manifest serve that service.
+// LoadMain loads a MainManifest, or the deployment of a ServiceManifest: label is the onyx_manifest
+// building filename, and the deployment's servers naming no service manifest serve that service.
 func LoadMain(filename, label string) (*onyxpb.MainManifest, error) {
-	if label == "" {
-		m := &onyxpb.MainManifest{}
-		if err := Load(filename, m); err != nil {
+	main := &onyxpb.MainManifest{}
+	mainErr := decode(filename, main)
+	if mainErr == nil {
+		if err := validate(filename, main); err != nil {
 			return nil, err
 		}
-		return m, nil
+		return main, nil
 	}
+	// Strict decoding tells the two apart: neither has the other's fields.
 	service := &onyxpb.ServiceManifest{}
 	if err := Load(filename, service); err != nil {
-		return nil, err
+		return nil, mainErr
 	}
 	m := service.GetDeployment()
 	if m == nil {

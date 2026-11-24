@@ -1,9 +1,9 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_deployment(
-    name = "tsunade",
-    manifest = "manifest.yaml",
-    manifest_deps = [
+onyx_manifest(
+    name = "manifest",
+    binary = "tsunade",
+    deps = [
         "//go/ai/ai_service:manifest",
         "//malonaz/ai/ai_service/v1",
     ],

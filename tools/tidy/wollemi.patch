@@ -1,5 +1,5 @@
 diff --git a/domain/wollemi/service.go b/domain/wollemi/service.go
-index d9bce4d..dbfec3e 100644
+index d9bce4d..e711019 100644
 --- a/domain/wollemi/service.go
 +++ b/domain/wollemi/service.go
 @@ -136,7 +136,6 @@ func (this *Service) ReadDir(path string) (*Directory, error) {
@@ -10,7 +10,7 @@ index d9bce4d..dbfec3e 100644
  		dir.Files[name] = info
  
  		if info.IsDir() {
-@@ -255,6 +254,13 @@ func (this *Service) ParseDir(buf *bytes.Buffer, dir *Directory) *Directory {
+@@ -255,6 +254,16 @@ func (this *Service) ParseDir(buf *bytes.Buffer, dir *Directory) *Directory {
  
  			return dir
  		}
@@ -19,16 +19,23 @@ index d9bce4d..dbfec3e 100644
 +				if _, ok := this.config.Gofmt.CodegenRuleFormatting[rule.Kind()]; ok {
 +					dir.HasGoFile = true
 +				}
++				if _, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
++					dir.HasGoFile = true
++				}
 +			})
 +		}
  
  		dir.Build = build
  	}
 diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 331b925..287d49a 100644
+index 331b925..a2cdf79 100644
 --- a/domain/wollemi/service_format.go
 +++ b/domain/wollemi/service_format.go
-@@ -8,6 +8,7 @@ import (
+@@ -5,9 +5,11 @@ import (
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
++	"regexp"
  	"runtime"
  	"sort"
  	"strings"
@@ -36,7 +43,7 @@ index 331b925..287d49a 100644
  
  	"github.com/tcncloud/wollemi/domain/optional"
  	"github.com/tcncloud/wollemi/ports/logging"
-@@ -28,9 +29,24 @@ func newGoFormat(paths []string) *goFormat {
+@@ -28,9 +30,24 @@ func newGoFormat(paths []string) *goFormat {
  		external:       map[string][]string{},
  		internal:       map[string]string{},
  		genfiles:       map[string]string{},
@@ -61,7 +68,7 @@ index 331b925..287d49a 100644
  // goFormat contains all the state for formatting go rules i.e. the import path to target mapping, and the rules in the
  // targeted Please packages.
  type goFormat struct {
-@@ -52,8 +68,13 @@ type goFormat struct {
+@@ -52,8 +69,13 @@ type goFormat struct {
  	// internal is a map of this projects imports paths to targets
  	internal map[string]string
  
@@ -76,7 +83,7 @@ index 331b925..287d49a 100644
  }
  
  // getTarget gets the target for an import path or generated file
-@@ -66,6 +87,16 @@ func (this *Service) getTarget(config wollemi.Config, p string, isFile bool) str
+@@ -66,6 +88,16 @@ func (this *Service) getTarget(config wollemi.Config, p string, isFile bool) str
  }
  
  func (this *Service) getTargetInternal(config wollemi.Config, path string, isFile bool, depth int) (string, string) {
@@ -93,7 +100,7 @@ index 331b925..287d49a 100644
  	if target, ok := config.KnownDependency[path]; ok {
  		return target, path
  	}
-@@ -181,20 +212,11 @@ func (this *Service) parsePaths() error {
+@@ -181,20 +213,11 @@ func (this *Service) parsePaths() error {
  				} {
  				Imports:
  					for _, godep := range imports {
@@ -116,7 +123,7 @@ index 331b925..287d49a 100644
  						if this.isInternal(path) {
  							path = strings.TrimPrefix(path, this.gopkg+"/")
  						} else {
-@@ -316,19 +338,81 @@ func (this *Service) parsePaths() error {
+@@ -316,19 +339,87 @@ func (this *Service) parsePaths() error {
  					case kind != "go_test":
  						this.goFormat.internal[filepath.Join(this.gopkg, path)] = "//" + target
  
@@ -126,6 +133,12 @@ index 331b925..287d49a 100644
 +							filename := strings.ReplaceAll(formatting, "{{ name }}", path)
 +							this.goFormat.genfiles[filename] = target
  						}
++						if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[kind]; ok {
++							// The macro's hidden rule is named as its file.
++							if file := macroFile(formatting, rule); file != "" {
++								this.goFormat.genfiles[filepath.Join(dir.Path, file)] = dir.Path + ":" + file
++							}
++						}
 +
  					}
  				}
@@ -200,7 +213,7 @@ index 331b925..287d49a 100644
  // formatDirs updated the BUILD file in the directories that were in the original paths
  func (this *Service) formatDirs() {
  	limiter := NewChanFunc(runtime.NumCPU()-1, 0)
-@@ -341,7 +425,6 @@ func (this *Service) formatDirs() {
+@@ -341,7 +432,6 @@ func (this *Service) formatDirs() {
  
  		log := this.log.WithField("path", filepath.Join("/", path))
  		dir := dir
@@ -208,7 +221,7 @@ index 331b925..287d49a 100644
  		limiter.Run(func() {
  			this.formatDir(log, dir)
  
-@@ -392,7 +475,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
+@@ -392,7 +482,7 @@ func (this *Service) GoFormat(config wollemi.Config, paths []string) error {
  	this.goFormat = newGoFormat(this.normalizePaths(paths))
  	defer this.goFormat.resolveLimiter.Close()
  
@@ -217,7 +230,7 @@ index 331b925..287d49a 100644
  
  	log := this.log.WithField("rewrite", this.config.Gofmt.GetRewrite())
  
-@@ -422,9 +505,8 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+@@ -422,9 +512,8 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
  			path := filepath.Join("plz-out/gen", dir.Path)
  			gopkg, err := this.golang.ImportDir(path, []string{name})
  			if err != nil {
@@ -228,7 +241,7 @@ index 331b925..287d49a 100644
  			fileImports, _ = gopkg.GoFileImports[name]
  		}
  
-@@ -433,7 +515,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
+@@ -433,7 +522,7 @@ func (this *Service) getRuleDeps(files []string, config wollemi.Config, dir *Dir
  		}
  
  		for _, path := range imports {
@@ -237,7 +250,7 @@ index 331b925..287d49a 100644
  				continue
  			}
  
-@@ -478,7 +560,6 @@ func (this *Service) getRuleSrcs(dir *Directory, config wollemi.Config, srcFiles
+@@ -478,7 +567,6 @@ func (this *Service) getRuleSrcs(dir *Directory, config wollemi.Config, srcFiles
  
  	for _, name := range srcFiles {
  		relpath := filepath.Join(dir.Path, name)
@@ -245,7 +258,7 @@ index 331b925..287d49a 100644
  		targetPath := this.getTarget(config, relpath, true)
  		if targetPath == "" {
  			info, ok := dir.Files[name]
-@@ -526,7 +607,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
+@@ -526,7 +614,7 @@ func (this *Service) formatDir(log logging.Logger, dir *Directory) {
  			managed = append(managed, rule)
  		}
  
@@ -254,7 +267,7 @@ index 331b925..287d49a 100644
  	})
  
  	sortManagedRules(config, managed)
-@@ -632,7 +713,7 @@ ManageRules:
+@@ -632,7 +720,7 @@ ManageRules:
  				log.WithField("reason", "no source files").Warn("removed")
  
  				rule.DelAttr("srcs")
@@ -263,7 +276,7 @@ index 331b925..287d49a 100644
  
  				dir.Build.DelRule(rule.Name())
  
-@@ -728,7 +809,7 @@ ManageRules:
+@@ -728,7 +816,7 @@ ManageRules:
  
  			log.Debug("managed")
  
@@ -272,7 +285,7 @@ index 331b925..287d49a 100644
  		}
  
  		break
-@@ -890,7 +971,7 @@ CreateRules:
+@@ -890,7 +978,7 @@ CreateRules:
  			rule.SetAttr("deps", please.Strings(resolved...))
  		}
  
@@ -281,7 +294,7 @@ index 331b925..287d49a 100644
  
  		dir.Build.SetRule(rule)
  
-@@ -917,7 +998,7 @@ CreateRules:
+@@ -917,7 +1005,7 @@ CreateRules:
  	}
  }
  
@@ -290,7 +303,7 @@ index 331b925..287d49a 100644
  	var srcFiles []string
  
  	switch expr := expr.(type) {
-@@ -927,11 +1008,10 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -927,11 +1015,12 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  			case *please.StringExpr:
  				if strings.HasPrefix(s.Value, ":") || strings.HasPrefix(s.Value, "//") {
  					target := please.Split(s.Value)
@@ -300,10 +313,12 @@ index 331b925..287d49a 100644
  						if rule != nil {
 -							srcFiles = append(srcFiles, getSrcFilesFromExpr(rule.Unwrap(), dir)...)
 +							srcFiles = append(srcFiles, this.getSrcFilesFromExpr(rule.Unwrap(), dir)...)
++						} else if this.isMacroFile(dir, target.Name) {
++							srcFiles = append(srcFiles, target.Name)
  						}
  					}
  				} else {
-@@ -941,8 +1021,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -941,8 +1030,8 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  	case *please.BinaryExpr:
  		if expr.Op == "+" {
@@ -314,14 +329,10 @@ index 331b925..287d49a 100644
  		}
  	case *please.CallExpr:
  		var kind string
-@@ -953,13 +1033,84 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -953,13 +1042,84 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  		}
  
  		switch kind {
--		case "genrule":
--			outs := please.Attr(expr, "outs")
--			srcFiles = append(srcFiles, getSrcFilesFromExpr(outs, dir)...)
--		case "go_copy":
 +		case "go_protoc_gen_core":
 +			// Build the rule key to look up in the map
 +			name := please.AttrString(expr, "name")
@@ -391,20 +402,24 @@ index 331b925..287d49a 100644
 +				}
 +			}
 +		default:
- 			if name := please.AttrString(expr, "name"); name != "" {
--				srcFiles = append(srcFiles, name+".cp.go")
++			if name := please.AttrString(expr, "name"); name != "" {
 +				if formatting, ok := this.config.Gofmt.CodegenRuleFormatting[kind]; ok {
 +					filename := strings.ReplaceAll(formatting, "{{ name }}", name)
 +					srcFiles = append(srcFiles, filename)
 +				}
- 			}
-+		case "genrule":
-+			outs := please.Attr(expr, "outs")
++			}
+ 		case "genrule":
+ 			outs := please.Attr(expr, "outs")
+-			srcFiles = append(srcFiles, getSrcFilesFromExpr(outs, dir)...)
+-		case "go_copy":
+-			if name := please.AttrString(expr, "name"); name != "" {
+-				srcFiles = append(srcFiles, name+".cp.go")
+-			}
 +			srcFiles = append(srcFiles, this.getSrcFilesFromExpr(outs, dir)...)
  		case "glob":
  			var include []string
  			var exclude []string
-@@ -1011,7 +1162,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
+@@ -1011,7 +1171,7 @@ func getSrcFilesFromExpr(expr please.Expr, dir *Directory) []string {
  			}
  		case "filegroup":
  			srcs := please.Attr(expr, "srcs")
@@ -413,7 +428,7 @@ index 331b925..287d49a 100644
  		}
  	}
  
-@@ -1143,17 +1294,19 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
+@@ -1143,17 +1303,19 @@ func (fc *fileConsumer) GetRule(files ...string) please.Rule {
  	return rule
  }
  
@@ -436,7 +451,7 @@ index 331b925..287d49a 100644
  
  		switch {
  		case filepath.Ext(name) != ".go":
-@@ -1164,19 +1317,19 @@ func (fc *fileConsumer) Update(rule please.Rule) {
+@@ -1164,22 +1326,54 @@ func (fc *fileConsumer) Update(rule please.Rule) {
  		// Ignore please rule targets
  		default:
  			if _, ok := fc.Dir.Files[name]; !ok {
@@ -464,25 +479,67 @@ index 331b925..287d49a 100644
  	fc.Files[rule.Name()] = files
  
  	for _, file := range files {
+ 		fc.Rules[file] = appendUniqString(fc.Rules[file], rule.Name())
+ 	}
+ }
++
++// isMacroFile reports whether a macro call in dir generates file through a hidden rule of its name.
++func (this *Service) isMacroFile(dir *Directory, file string) bool {
++	found := false
++	dir.Build.GetRules(func(rule please.Rule) {
++		if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
++			if macroFile(formatting, rule) == file {
++				found = true
++			}
++		}
++	})
++	return found
++}
++
++var macroAttr = regexp.MustCompile(`{{ (\w+) }}`)
++
++// macroFile is the file a macro call generates: formatting with each {{ attr }} replaced by the
++// call's argument, or "" when an argument is unset and the call generates no file.
++func macroFile(formatting string, rule please.Rule) string {
++	unset := false
++	file := macroAttr.ReplaceAllStringFunc(formatting, func(match string) string {
++		value := rule.AttrString(macroAttr.FindStringSubmatch(match)[1])
++		if value == "" {
++			unset = true
++		}
++		return value
++	})
++	if unset {
++		return ""
++	}
++	return file
++}
 diff --git a/ports/wollemi/config.go b/ports/wollemi/config.go
-index bce9462..0abd722 100644
+index bce9462..3521cfe 100644
 --- a/ports/wollemi/config.go
 +++ b/ports/wollemi/config.go
-@@ -26,6 +26,8 @@ type Gofmt struct {
+@@ -26,6 +26,12 @@ type Gofmt struct {
  	Create  gofmtCreate `json:"create,omitempty"`
  	Manage  gofmtManage `json:"manage,omitempty"`
  	Mapped  gofmtMapped `json:"mapped,omitempty"`
 +	CodegenRuleFormatting gofmtCodegenRuleFormatting `json:"codegen_rule_formatting,omitempty"`
++	// Macros generating a Go file through a rule of their own, named as the file: the kind to the
++	// file's name, where {{ attr }} is the call's argument, e.g. {"onyx_manifest": "{{ binary }}_main.go"}.
++	// A call leaving an argument unset generates no file.
++	CodegenMacroFormatting gofmtCodegenRuleFormatting `json:"codegen_macro_formatting,omitempty"`
 +	ImportPathRemapping map[string]string `json:"import_path_remapping"`
  }
  
  func (gofmt *Gofmt) GetRewrite() bool {
-@@ -106,6 +108,12 @@ func (this Config) Merge(that Config) Config {
+@@ -106,6 +112,15 @@ func (this Config) Merge(that Config) Config {
  		merge.ExplicitSources = v
  	}
  
 +	if v := that.Gofmt.CodegenRuleFormatting; v != nil {
 +		merge.Gofmt.CodegenRuleFormatting = v
++	}
++	if v := that.Gofmt.CodegenMacroFormatting; v != nil {
++		merge.Gofmt.CodegenMacroFormatting = v
 +	}
 +	if v := that.Gofmt.ImportPathRemapping; v != nil {
 +		merge.Gofmt.ImportPathRemapping = v
@@ -490,7 +547,7 @@ index bce9462..0abd722 100644
  	if v := that.Gofmt.Rewrite; v != nil {
  		merge.Gofmt.Rewrite = v
  	}
-@@ -125,6 +133,25 @@ func (this Config) Merge(that Config) Config {
+@@ -125,6 +140,25 @@ func (this Config) Merge(that Config) Config {
  	return merge
  }
  
@@ -516,83 +573,3 @@ index bce9462..0abd722 100644
  type gofmtCreate []string
  
  func (list *gofmtCreate) UnmarshalJSON(buf []byte) error {
-diff --git a/domain/wollemi/service.go b/domain/wollemi/service.go
-index dbfec3e..e711019 100644
---- a/domain/wollemi/service.go
-+++ b/domain/wollemi/service.go
-@@ -259,6 +259,9 @@ func (this *Service) ParseDir(buf *bytes.Buffer, dir *Directory) *Directory {
- 				if _, ok := this.config.Gofmt.CodegenRuleFormatting[rule.Kind()]; ok {
- 					dir.HasGoFile = true
- 				}
-+				if _, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
-+					dir.HasGoFile = true
-+				}
- 			})
- 		}
- 
-diff --git a/domain/wollemi/service_format.go b/domain/wollemi/service_format.go
-index 287d49a..aa18d97 100644
---- a/domain/wollemi/service_format.go
-+++ b/domain/wollemi/service_format.go
-@@ -342,6 +342,11 @@ func (this *Service) parsePaths() error {
- 							filename := strings.ReplaceAll(formatting, "{{ name }}", path)
- 							this.goFormat.genfiles[filename] = target
- 						}
-+						if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[kind]; ok {
-+							// The macro's hidden rule is named as its file.
-+							file := strings.ReplaceAll(formatting, "{{ name }}", name)
-+							this.goFormat.genfiles[filepath.Join(dir.Path, file)] = dir.Path + ":" + file
-+						}
- 
- 					}
- 				}
-@@ -1012,6 +1017,8 @@ func (this *Service) getSrcFilesFromExpr(expr please.Expr, dir *Directory) []str
- 						rule := dir.Build.GetRule(target.Name)
- 						if rule != nil {
- 							srcFiles = append(srcFiles, this.getSrcFilesFromExpr(rule.Unwrap(), dir)...)
-+						} else if this.isMacroFile(dir, target.Name) {
-+							srcFiles = append(srcFiles, target.Name)
- 						}
- 					}
- 				} else {
-@@ -1336,3 +1343,16 @@ func (fc *fileConsumer) Update(service *Service, rule please.Rule) {
- 		fc.Rules[file] = appendUniqString(fc.Rules[file], rule.Name())
- 	}
- }
-+
-+// isMacroFile reports whether a macro call in dir generates file through a hidden rule of its name.
-+func (this *Service) isMacroFile(dir *Directory, file string) bool {
-+	found := false
-+	dir.Build.GetRules(func(rule please.Rule) {
-+		if formatting, ok := this.config.Gofmt.CodegenMacroFormatting[rule.Kind()]; ok {
-+			if strings.ReplaceAll(formatting, "{{ name }}", rule.Name()) == file {
-+				found = true
-+			}
-+		}
-+	})
-+	return found
-+}
-diff --git a/ports/wollemi/config.go b/ports/wollemi/config.go
-index 0abd722..eed9475 100644
---- a/ports/wollemi/config.go
-+++ b/ports/wollemi/config.go
-@@ -27,6 +27,9 @@ type Gofmt struct {
- 	Manage  gofmtManage `json:"manage,omitempty"`
- 	Mapped  gofmtMapped `json:"mapped,omitempty"`
- 	CodegenRuleFormatting gofmtCodegenRuleFormatting `json:"codegen_rule_formatting,omitempty"`
-+	// Macros generating a Go file through a rule of their own, named as the file: the kind to the
-+	// file's name, e.g. {"onyx_deployment": "{{ name }}_main.go"}.
-+	CodegenMacroFormatting gofmtCodegenRuleFormatting `json:"codegen_macro_formatting,omitempty"`
- 	ImportPathRemapping map[string]string `json:"import_path_remapping"`
- }
- 
-@@ -111,6 +114,9 @@ func (this Config) Merge(that Config) Config {
- 	if v := that.Gofmt.CodegenRuleFormatting; v != nil {
- 		merge.Gofmt.CodegenRuleFormatting = v
- 	}
-+	if v := that.Gofmt.CodegenMacroFormatting; v != nil {
-+		merge.Gofmt.CodegenMacroFormatting = v
-+	}
- 	if v := that.Gofmt.ImportPathRemapping; v != nil {
- 		merge.Gofmt.ImportPathRemapping = v
- 	}

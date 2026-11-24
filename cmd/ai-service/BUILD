@@ -1,13 +1,13 @@
 subinclude("//build_defs/codegen/onyx:build_defs")
 
-onyx_deployment(
-    name = "ai-service",
-    manifest = "manifest.yaml",
-    manifest_deps = [
+onyx_manifest(
+    name = "manifest",
+    binary = "ai-service",
+    test_only = True,
+    deps = [
         "//go/ai/ai_service:manifest",
         "//malonaz/ai/ai_service/v1",
     ],
-    test_only = True,
 )
 
 go_binary(

@@ -97,6 +97,12 @@ func TestLoadRejectsMainWithoutServiceManifest(t *testing.T) {
 	require.ErrorContains(t, err, "servers[0].http.services: value must contain at least 1 item")
 }
 
+func TestLoadRejectsNeitherManifest(t *testing.T) {
+	// A file that is neither reports why it is no MainManifest.
+	_, err := manifest.LoadMain("tools/onyx/binary/testdata/neither.yaml", "//i/i_service:manifest")
+	require.ErrorContains(t, err, `unknown field "codegen"`)
+}
+
 func TestLoadRejectsServiceWithoutDeployment(t *testing.T) {
 	_, err := manifest.LoadMain("tools/onyx/binary/testdata/i_service.yaml", "//i/i_service:manifest")
 	require.ErrorContains(t, err, "service i-service has no deployment")
