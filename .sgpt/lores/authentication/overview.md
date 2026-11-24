@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, how a host adopts it, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, ExchangeToken (a token of a host issuer for a subject, made by a named actor: the host''s Subjects, the exchange lifetime, no chains, the mapping check), how a host adopts it, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -170,6 +170,40 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
   `grpcinproc` and pbreflection's in-process client call the handler with the
   caller's context, so it reads the caller's session and passes no interceptor.
 
+## Exchange
+
+`TokenService.ExchangeToken` (`token_service.proto`, `exchange.go`) lets a service call the
+platform as a user while they are away: it issues a token of one of the host's issuers with
+`sub` = `request.subject`, `act.sub` = `request.actor`, and the claims the host gives for the
+subject **now**. The token is then presented as `authorization: Bearer`, like any client's, and
+the issuer's mappings turn it into the session: the subject's own grants decide every call (never
+the exchanging service's).
+
+- Who exchanges is an ordinary rule on the method; conditions may read `request.issuer`,
+  `request.subject`, `request.actor`. The request names no resource: only a grant over `*`
+  allows it.
+- An issuer is exchanged for when it sets `exchange_lifetime`: the lifetime of its exchanged
+  tokens and the most a request may ask for (a longer one is capped; none gets it).
+- The host answers claims through `Subjects.Claims(ctx, issuer, subject)`; its error refuses with
+  its code (NotFound for a subject it does not know). Core never knows where they come from.
+  Claims naming one the signer writes (`iss`, `aud`, `sub`, `act`, `iat`, `nbf`, `exp`):
+  INTERNAL.
+- Before signing, the token is mapped through the issuer's expressions: unless they give exactly
+  the requested subject and actor, INTERNAL. An issuer whose `actor_cel` ignores `act` (kenji's
+  reads an `impersonator` claim) or whose `subject_cel` does not yield the request's subject
+  cannot be exchanged for as is.
+- No chains: a call whose session has an actor is refused (PERMISSION_DENIED), and every
+  exchanged token has one; a carried call keeps its actor, so a server handling an exchanged
+  token's call cannot exchange either. A missing session (no interceptor): INTERNAL.
+- Keys: `NewTokenService(ctx, configuration, subjects, issuerIDToKey)`, each key a JWK as
+  `NewSigner` takes; exactly the issuers with `exchange_lifetime` get one, or it fails.
+- Hosting it: onyx registers a service's `Service`, built from its manifest's dependencies, and
+  has no kind for a host's Go value. The host writes a small onyx service of its own (Opts
+  naming the configuration and the keys, a runtime embedding `*authentication.TokenService`,
+  its `Subjects`) and serves it with `proto` the authentication v2 library; like every onyx
+  service it needs a service account of its name, with no grants (the handler calls no one). Service accounts are not exchanged for: their
+  grants live in the configuration, which no issuer's `grants_cel` reads.
+
 ## Adopting it
 
 - onyx: `interceptors: [INTERCEPTOR_AUTHENTICATION]` (`lores/onyx/binary`);
@@ -202,7 +236,7 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
 
 A declaration of resources for methods outside the standard shapes (open:
 a request message option was recommended, not added); the `resources` condition
-variable; `ExchangeToken`; keys per service
+variable; narrowing an exchange to fewer grants than the subject holds; keys per service
 account that this process can sign with (an account with its own keys can be
 verified, not `As`'d or `Serve`'d); clock skew. Signer and verifier share a
 process today; once they are different machines, verification needs
