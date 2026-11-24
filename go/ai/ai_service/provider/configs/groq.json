@@ -102,6 +102,22 @@ local p = "providers/groq/models/";
       }
     },
     {
+      "name":  p + "qwen3.8-27b",
+      "provider_model_id":  "qwen/qwen3.8-27b",
+      "description":  "Qwen 3.8 27B is a 27-billion-parameter multimodal model from Alibaba's Qwen series, delivering frontier-level agentic coding, reasoning, and long-horizon task performance. It accepts text and image inputs and supports switching between thinking mode (complex reasoning, math, coding) and instruct mode (efficient general-purpose dialogue) within a single model, with strong multilingual support.",
+      "ttt":  {
+        "reasoning":  true,
+        "tool_call":  true,
+        "strict_tool_names":  true,
+        "context_token_limit":  131072,
+        "output_token_limit":  16384,
+        "pricing":  {
+          "input_token_price_per_million":  0.8,
+          "output_token_price_per_million":  4
+        }
+      }
+    },
+    {
       "name":  p + "gpt-oss-20b",
       "provider_model_id":  "openai/gpt-oss-20b",
       "description":  "GPT OSS 20B is OpenAI's compact open-weight Mixture-of-Experts (MoE) model with 20 billion total parameters. Optimized for cost-efficient deployment and agentic workflows, it supports long-context reasoning, tool use, and function calling in a small memory footprint. This model offers an excellent balance of performance and efficiency, making it ideal for applications requiring capable AI at reduced computational costs.",
