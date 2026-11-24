@@ -32,6 +32,7 @@ import (
 	"github.com/malonaz/core/go/lifecycle"
 	"github.com/malonaz/core/go/logging"
 	"github.com/malonaz/core/go/postgres"
+	"github.com/malonaz/core/go/pprof"
 	"github.com/malonaz/core/go/prometheus"
 	"github.com/malonaz/core/go/scheduler/longrunning"
 	"github.com/malonaz/core/go/sentry"
@@ -42,6 +43,7 @@ var opts struct {
 	Logging    *logging.Opts    `group:"Logging" namespace:"logging" env-namespace:"LOGGING"`
 	Health     *health.Opts     `group:"Health" namespace:"health" env-namespace:"HEALTH"`
 	Prometheus *prometheus.Opts `group:"Prometheus" namespace:"prometheus" env-namespace:"PROMETHEUS"`
+	Pprof      *pprof.Opts      `group:"Pprof" namespace:"pprof" env-namespace:"PPROF"`
 	Certs      *certs.Opts      `group:"Certs" namespace:"certs" env-namespace:"CERTS"`
 	Sentry     *sentry.Opts     `group:"Sentry" namespace:"sentry" env-namespace:"SENTRY"`
 
@@ -100,6 +102,10 @@ func run(ctx context.Context) error {
 	prometheusServer := prometheus.NewServer(opts.Prometheus)
 	go prometheusServer.Start(ctx)
 	defer prometheusServer.Stop(ctx)
+
+	pprofServer := pprof.NewServer(opts.Pprof)
+	go pprofServer.Start(ctx)
+	defer pprofServer.Stop(ctx)
 
 	authenticationInterceptor, err := authentication.NewInterceptor(ctx, opts.Authentication)
 	if err != nil {

@@ -23,6 +23,7 @@ go_binary(
         "//go/logging",
         "//go/nats",
         "//go/postgres",
+        "//go/pprof",
         "//go/prometheus",
         "//go/sentry",
         "//go/test/user/store",

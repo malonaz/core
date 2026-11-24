@@ -22,6 +22,7 @@ go_binary(
         "//go/grpc",
         "//go/health",
         "//go/logging",
+        "//go/pprof",
         "//go/prometheus",
         "//go/sentry",
         "//malonaz/ai/ai_engine/v1",
