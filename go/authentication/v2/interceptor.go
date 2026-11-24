@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
@@ -377,7 +378,7 @@ func (i *Interceptor) Stream() grpc.StreamServerInterceptor {
 		peeked := &peekedServerStream{ServerStream: stream}
 		var request proto.Message
 		if !(info.IsClientStream && info.IsServerStream) {
-			request = dynamicpb.NewMessage(i.methodToDescriptor[info.FullMethod].Input())
+			request = newRequest(i.methodToDescriptor[info.FullMethod].Input())
 			if err := stream.RecvMsg(request); err != nil {
 				return err
 			}
@@ -392,6 +393,16 @@ func (i *Interceptor) Stream() grpc.StreamServerInterceptor {
 		return handler(srv, peeked)
 	}
 	return grpc_selector.StreamServerInterceptor(interceptor, middleware.AllButHealth)
+}
+
+// newRequest returns an empty request of its Go type, which the rewrites wrapping the stream are registered for; a
+// dynamic one when the process has no such type.
+func newRequest(descriptor protoreflect.MessageDescriptor) proto.Message {
+	messageType, err := protoregistry.GlobalTypes.FindMessageByName(descriptor.FullName())
+	if err != nil {
+		return dynamicpb.NewMessage(descriptor)
+	}
+	return messageType.New().Interface()
 }
 
 // peekedServerStream gives the handler its context, and replays the request peeked for authorization to its first
