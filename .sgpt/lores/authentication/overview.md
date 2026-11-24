@@ -172,8 +172,10 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
 - To strip identity from a context that carries some (a handler's, a service's
   `As`), replace its call metadata with a function returning none
   (`grpc.WithCallMetadata`); clearing the outgoing gRPC metadata strips nothing,
-  as the token is minted per call. The AgentService calls its tool targets so
-  (`withoutIdentity` in `go/ai/agent_service`).
+  as the token is minted per call. To call with another credential, replace it
+  with a function returning that credential alone: the AgentService calls its tool
+  targets with a token exchanged for the agent's owner so (`asOwner` in
+  `go/ai/agent_service`).
 - Who presented a call is `caller`, which only a holder of the server secret
   can set: a handler only another server may call checks
   `caller.subject` (`serviceAccounts/{id}`), never a header or the principal.
