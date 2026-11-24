@@ -506,8 +506,8 @@ func (r *turnRunner) senderHeader(ctx context.Context, message *aipb.Message, se
 	return header, nil
 }
 
-// generate streams one assistant message, which the AiService persists, publishing its deltas and announcing its
-// tool calls. A stopping replica cuts its generations short.
+// generate streams one assistant message as the agent's owner, which the AiService persists, publishing its deltas
+// and announcing its tool calls. A stopping replica cuts its generations short.
 func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Message, error) {
 	select {
 	case <-r.service.turns.draining:
@@ -531,7 +531,7 @@ func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Mess
 			StreamPartialToolCalls: true,
 		},
 	}
-	generatedMessage, streamed, err := r.streamGeneration(ctx, generateMessageRequest)
+	generatedMessage, streamed, err := r.streamGeneration(ctx, toolbox, generateMessageRequest)
 	if err == nil {
 		return generatedMessage, nil
 	}
@@ -544,13 +544,18 @@ func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Mess
 	case <-r.service.turns.draining:
 		return nil, errShuttingDown
 	default:
-		return nil, status.FromError(err, "generating message").Err()
+		return nil, status.FromError(err, "generating message with %s as the agent's owner", spec.GetModel()).Err()
 	}
 }
 
 // streamGeneration streams a generation, reporting whether any of its deltas were published.
-func (r *turnRunner) streamGeneration(ctx context.Context, request *aiservicepb.GenerateMessageRequest) (*aipb.Message, bool, error) {
-	stream, err := r.service.aiServiceClient.StreamGenerateMessage(ctx, request)
+func (r *turnRunner) streamGeneration(ctx context.Context, toolbox *toolbox, request *aiservicepb.GenerateMessageRequest) (*aipb.Message, bool, error) {
+	// The owner's grants decide which models their agents may use.
+	ownerCtx, err := toolbox.asOwner(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	stream, err := r.service.aiServiceClient.StreamGenerateMessage(ownerCtx, request)
 	if err != nil {
 		return nil, false, err
 	}

@@ -98,7 +98,8 @@ message AgentSpec {
   // The system prompt the agent runs under.
   string instructions = 1 [(buf.validate.field).string.max_len = 262144];
 
-  // The model the agent generates with.
+  // The model the agent generates with, as its owner: a model the owner may not
+  // use fails the agent's turns.
   // Format: providers/{provider}/models/{model}
   string model = 2 [
     (buf.validate.field).required = true,

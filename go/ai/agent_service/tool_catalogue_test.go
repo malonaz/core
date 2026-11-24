@@ -52,7 +52,6 @@ func newTestWorkspaceTarget(t *testing.T) string {
 	return "unix:" + serverOpts.SocketPath
 }
 
-
 func TestToolCatalogue_SetsListedByNameEachCarryingItsError(t *testing.T) {
 	_, healthEndpoint := newTestToolTarget(t)
 	const unreachable = "test.Unreachable"

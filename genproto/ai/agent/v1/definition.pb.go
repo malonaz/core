@@ -322,7 +322,8 @@ type AgentSpec struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The system prompt the agent runs under.
 	Instructions string `protobuf:"bytes,1,opt,name=instructions,proto3" json:"instructions,omitempty"`
-	// The model the agent generates with.
+	// The model the agent generates with, as its owner: a model the owner may not
+	// use fails the agent's turns.
 	// Format: providers/{provider}/models/{model}
 	Model string `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
 	// The reasoning effort the agent generates with.
@@ -438,7 +439,8 @@ type AgentSpec_builder struct {
 
 	// The system prompt the agent runs under.
 	Instructions string
-	// The model the agent generates with.
+	// The model the agent generates with, as its owner: a model the owner may not
+	// use fails the agent's turns.
 	// Format: providers/{provider}/models/{model}
 	Model string
 	// The reasoning effort the agent generates with.

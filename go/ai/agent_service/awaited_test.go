@@ -152,7 +152,11 @@ func TestAwaited_ApproveAlwaysStopsTheAgentAsking(t *testing.T) {
 	require.Equal(t, healthCheckGrant, refinement.GetTool())
 	require.Equal(t, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED, refinement.GetApproval())
 	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
-	require.Equal(t, []string{"first", "second", "third"}, healthServer.checkedServices())
+	// A round's calls run concurrently.
+	checkedServices := healthServer.checkedServices()
+	require.Len(t, checkedServices, 3)
+	require.ElementsMatch(t, []string{"first", "second"}, checkedServices[:2])
+	require.Equal(t, "third", checkedServices[2])
 
 	// Sub-agents launched afterwards inherit it.
 	tools, err := subAgentTools(agent.GetSpec().GetTools(), nil)

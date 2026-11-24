@@ -17,7 +17,7 @@ import (
 // about to lapse.
 const ownerTokenRenewal = time.Minute
 
-// ownerToken is the token a turn's tool calls carry: exchanged for the agent's owner, the agent its actor, so the
+// ownerToken is the token a turn's generations and tool calls carry: exchanged for the agent's owner, the agent its actor, so the
 // owner's own grants decide each call.
 type ownerToken struct {
 	mutex       sync.Mutex

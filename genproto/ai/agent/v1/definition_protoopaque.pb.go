@@ -418,7 +418,8 @@ type AgentSpec_builder struct {
 
 	// The system prompt the agent runs under.
 	Instructions string
-	// The model the agent generates with.
+	// The model the agent generates with, as its owner: a model the owner may not
+	// use fails the agent's turns.
 	// Format: providers/{provider}/models/{model}
 	Model string
 	// The reasoning effort the agent generates with.

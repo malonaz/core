@@ -5,9 +5,11 @@ import (
 	"io"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -18,6 +20,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
+	coregrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -36,7 +39,8 @@ type fakeGeneration struct {
 }
 
 // fakeAiService is an in-memory AiService client: chats, messages and scripted generations. It admits the service's
-// identity alone, as the scheduler fake does. Methods not implemented panic.
+// identity alone, as the scheduler fake does, but on generations: the chat's owner's, an agent of theirs its actor.
+// Methods not implemented panic.
 type fakeAiService struct {
 	aiservicepb.AiServiceClient
 
@@ -51,6 +55,33 @@ type fakeAiService struct {
 	lastCreateTime    time.Time
 	// defaultGeneration, if set, plays when a chat has no scripted generation left.
 	defaultGeneration *fakeGeneration
+}
+
+// refusedModel is a model no owner may generate with: the fake refuses it as a host's rule on the model would.
+const refusedModel = "providers/test/models/refused"
+
+// authenticateOwner refuses a generation not made as the chat's owner with an agent of theirs as actor: the token a
+// turn exchanges, never the service's.
+func authenticateOwner(ctx context.Context, chat string) error {
+	callMetadata, err := coregrpc.CallMetadata(ctx)
+	if err != nil {
+		return err
+	}
+	chatRn := &aipb.ChatRn{}
+	if err := chatRn.UnmarshalString(chat); err != nil {
+		return status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
+	}
+	owner := chatRn.UserRn().String()
+	token, err := jwt.ParseInsecure([]byte(strings.TrimPrefix(callMetadata["authorization"], "Bearer ")))
+	if err != nil || token.Subject() != owner {
+		return status.Errorf(codes.Unauthenticated, "not called as the chat's owner").Err()
+	}
+	act, _ := token.Get("act")
+	actor, _ := act.(map[string]any)["sub"].(string)
+	if !strings.HasPrefix(actor, owner+"/agents/") {
+		return status.Errorf(codes.Unauthenticated, "not called by an agent of the chat's owner").Err()
+	}
+	return nil
 }
 
 func newFakeAiService() *fakeAiService {
@@ -274,8 +305,11 @@ func filterMessages(messages []*aipb.Message, filter string) ([]*aipb.Message, e
 
 // StreamGenerateMessage plays the chat's next scripted generation, persisting its message as the AiService does.
 func (c *fakeAiService) StreamGenerateMessage(ctx context.Context, request *aiservicepb.GenerateMessageRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[aiservicepb.StreamGenerateMessageResponse], error) {
-	if err := authenticate(ctx); err != nil {
+	if err := authenticateOwner(ctx, request.Parent); err != nil {
 		return nil, err
+	}
+	if request.Model == refusedModel {
+		return nil, status.Errorf(codes.PermissionDenied, "no grant allows /malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage").Err()
 	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

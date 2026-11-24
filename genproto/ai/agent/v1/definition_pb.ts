@@ -192,7 +192,8 @@ export type AgentSpec = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   instructions: string;
 
   /**
-   * The model the agent generates with.
+   * The model the agent generates with, as its owner: a model the owner may not
+   * use fails the agent's turns.
    * Format: providers/{provider}/models/{model}
    *
    * @generated from field: string model = 2;
@@ -249,7 +250,8 @@ export type AgentSpecValid = Message<"malonaz.ai.agent.v1.AgentSpec"> & {
   instructions: string;
 
   /**
-   * The model the agent generates with.
+   * The model the agent generates with, as its owner: a model the owner may not
+   * use fails the agent's turns.
    * Format: providers/{provider}/models/{model}
    *
    * @generated from field: string model = 2;

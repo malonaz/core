@@ -15,10 +15,11 @@ import "malonaz/codegen/scheduler/v1/scheduler.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
 
-// This API stores agents and runs their turns. The tools an agent holds are
-// granted from the tool catalogue: methods of routed gRPC services, called as
-// the agent's owner, and genui components; built-in tools let agents launch
-// sub-agents, message their tree, label themselves and schedule wake-ups.
+// This API stores agents and runs their turns, generating as each agent's
+// owner. The tools an agent holds are granted from the tool catalogue: methods
+// of routed gRPC services, called as the agent's owner, and genui components;
+// built-in tools let agents launch sub-agents, message their tree, label
+// themselves and schedule wake-ups.
 //
 // # Resource model
 //

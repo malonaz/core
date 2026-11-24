@@ -49,10 +49,11 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// This API stores agents and runs their turns. The tools an agent holds are
-// granted from the tool catalogue: methods of routed gRPC services, called as
-// the agent's owner, and genui components; built-in tools let agents launch
-// sub-agents, message their tree, label themselves and schedule wake-ups.
+// This API stores agents and runs their turns, generating as each agent's
+// owner. The tools an agent holds are granted from the tool catalogue: methods
+// of routed gRPC services, called as the agent's owner, and genui components;
+// built-in tools let agents launch sub-agents, message their tree, label
+// themselves and schedule wake-ups.
 //
 // # Resource model
 //
@@ -456,10 +457,11 @@ func (c *agentServiceClient) WakeAgent(ctx context.Context, in *WakeAgentRequest
 // All implementations should embed UnimplementedAgentServiceServer
 // for forward compatibility.
 //
-// This API stores agents and runs their turns. The tools an agent holds are
-// granted from the tool catalogue: methods of routed gRPC services, called as
-// the agent's owner, and genui components; built-in tools let agents launch
-// sub-agents, message their tree, label themselves and schedule wake-ups.
+// This API stores agents and runs their turns, generating as each agent's
+// owner. The tools an agent holds are granted from the tool catalogue: methods
+// of routed gRPC services, called as the agent's owner, and genui components;
+// built-in tools let agents launch sub-agents, message their tree, label
+// themselves and schedule wake-ups.
 //
 // # Resource model
 //

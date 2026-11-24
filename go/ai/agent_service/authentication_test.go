@@ -276,6 +276,58 @@ func TestTools_FailWithoutTheOwnersToken(t *testing.T) {
 	require.Empty(t, healthServer.checkedServices())
 }
 
+// A turn generates as the agent's owner (the fake AiService admits no one else), on the token its tool calls carry.
+func TestTurn_GeneratesAsTheOwner(t *testing.T) {
+	_, endpoint := newTestToolTarget(t)
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
+		opts.ToolTargets = map[string]string{healthService: endpoint}
+	})
+	owner := newTestUser(t)
+	agent := createTestAgentWithSpec(t, service, owner, &agentpb.AgentSpec{Model: testModel, Tools: ungatedTools(healthCheckGrant)})
+	service.aiService.script(agent.Chat, toolCallGeneration(checkCall("library")), textGeneration("checked"))
+
+	sendText(t, service, agent.Name, "check")
+
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
+	require.Equal(t, 1, testSubjects.exchanges(owner))
+}
+
+// A model the owner may not use fails the turn with the AiService's refusal, naming the model.
+func TestTurn_FailsOnAModelTheOwnerMayNotUse(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: refusedModel})
+
+	sendText(t, service, agent.Name, "hello")
+
+	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_FAILED)
+	require.Equal(t, int32(codes.PermissionDenied), agent.GetLatestTurn().GetError().GetCode())
+	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "generating message with "+refusedModel+" as the agent's owner")
+	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "no grant allows /malonaz.ai.ai_service.v1.AiService/StreamGenerateMessage")
+}
+
+// A sub-agent launched on a model the owner may not use is created, and its failed turn reports the refusal to its
+// parent, which may launch it again on another.
+func TestBuiltinTools_CreateAgentsOnAModelTheOwnerMayNotUse(t *testing.T) {
+	service := newTestService(t)
+	service.aiService.setDefaultGeneration(textGeneration("noted"))
+	agent := createTestAgent(t, service)
+	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
+		"tool_call_title": "Launch a researcher",
+		"agents":          []any{map[string]any{"title": "researcher", "task": "research things", "instructions": "You research.", "model": refusedModel}},
+	})
+	service.aiService.script(agent.Chat, toolCallGeneration(createAgentsCall), textGeneration("waiting for the researcher"))
+
+	sendText(t, service, agent.Name, "launch")
+
+	require.Eventually(t, func() bool { return len(deliveredMessages(t, service, agent.Name)) == 2 }, waitTimeout, waitTick)
+	subAgent := listChildAgents(t, service, agent)[0]
+	require.Equal(t, agentpb.Turn_OUTCOME_FAILED, subAgent.GetLatestTurn().GetOutcome())
+	require.Equal(t, int32(codes.PermissionDenied), subAgent.GetLatestTurn().GetError().GetCode())
+	reportTexts := deliveredTexts(t, service, agent.Chat, deliveredMessages(t, service, agent.Name)[1].Name)
+	require.Contains(t, reportTexts[1], "My turn failed: generating message with "+refusedModel+" as the agent's owner")
+}
+
 func TestStreamAgent_ForwardedOnlyFromAnotherReplica(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) { opts.MaxConcurrentTurns = 0 })
 	agent := createTestAgent(t, service)
