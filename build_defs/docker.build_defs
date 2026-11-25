@@ -71,10 +71,8 @@ def docker_image(
             "fqn": [fqn],
             "dockerfile": [dockerfile],
         },
-        deps = [
-            base_image,
-            tarball,
-        ],
+        # data, not deps: a remote `plz run` downloads only a script's data.
+        data = [base_image, tarball] if base_image else [tarball],
         visibility = visibility,
         labels = labels + ["docker-build"],
     )
@@ -92,7 +90,7 @@ def docker_image(
         name = name + "_run",
         cmd = "./$(out_location %s) && docker run -it %s `cat $SRCS`" % (docker_build, run_args),
         srcs = [fqn],
-        deps = [docker_build],
+        data = [docker_build],
         visibility = visibility,
         labels = labels,
     )
@@ -104,7 +102,7 @@ def docker_image(
             "./$(out_location %s) && docker push `cat $SRCS`;" % docker_build,
         ],
         srcs = [fqn],
-        deps = [docker_build],
+        data = [docker_build],
         visibility = visibility,
         labels = labels,
     )
@@ -254,7 +252,8 @@ def crane_image(
     srcs = {"fqn": [fqn]}
     if base_is_target:
         srcs["base"] = [base_image + "_fqn"]
-    deps = [CONFIG.CORE.CRANE] + layers + ([base_image + "_push"] if base_is_target else [])
+    # data, not deps: a remote `plz run` downloads only a script's data.
+    data = [CONFIG.CORE.CRANE] + layers + ([base_image + "_push"] if base_is_target else [])
     push_base = ["./$(out_location %s_push)" % base_image] if base_is_target else []
 
     # crane mutate pushes the result.
@@ -262,7 +261,7 @@ def crane_image(
         name = name + "_push",
         cmd = push_base + [mutate],
         srcs = srcs,
-        deps = deps,
+        data = data,
         visibility = visibility,
         labels = labels,
     )
@@ -273,7 +272,7 @@ def crane_image(
         name = name,
         cmd = push_base + [mutate + " --output " + tar, "docker load -i " + tar, "rm -f " + tar],
         srcs = srcs,
-        deps = deps,
+        data = data,
         visibility = visibility,
         labels = labels + ["docker-build"],
     )
@@ -282,7 +281,7 @@ def crane_image(
         name = name + "_run",
         cmd = "./$(out_location %s) && docker run -it `cat $SRCS`" % crane_load,
         srcs = [fqn],
-        deps = [crane_load],
+        data = [crane_load],
         visibility = visibility,
         labels = labels,
     )
