@@ -258,10 +258,10 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		if grant.GetToolSet() == nil || len(tools) == 0 {
 			continue
 		}
-		// A mirrored set is one service's: its discovery tool is named and described after it.
+		// A mirrored set is one service's: its discovery tool is named after it, and lists the set's tools.
 		method, _, _ := aipb.Annotations.Method.Get(tools[0])
 		serviceName := method.GetService()[strings.LastIndex(method.GetService(), ".")+1:]
-		toolSet := aitool.NewToolSet(selectorKey(grant.GetToolSet()).String(), serviceName+"_Discover", method.GetServiceDescription(), tools)
+		toolSet := aitool.NewToolSet(selectorKey(grant.GetToolSet()).String(), serviceName+"_Discover", "", tools)
 		if err := addToolName(toolSet.GetDiscoveryTool().GetName()); err != nil {
 			return nil, err
 		}

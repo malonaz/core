@@ -69,8 +69,8 @@ func (r *toolRouter) invoke(ctx, ownerCtx context.Context, toolMethod *aipb.Tool
 	if err != nil {
 		return nil, err
 	}
-	if toolMethod.GetRequestId() {
-		request.ProtoReflect().Set(method.Input().Fields().ByName("request_id"), protoreflect.ValueOfString(requestID))
+	if field := method.Input().Fields().ByName("request_id"); field != nil && field.Kind() == protoreflect.StringKind && !field.IsList() {
+		request.ProtoReflect().Set(field, protoreflect.ValueOfString(requestID))
 	}
 	// The builder sets generated well-known types on the dynamic request: validation walks one descriptor set.
 	if request, err = uniformMessage(method.Input(), request); err != nil {
