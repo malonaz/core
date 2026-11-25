@@ -83,7 +83,8 @@ _lint_cmds = [
 sh_cmd(
     name = "lint",
     cmd = _lint_cmds,
-    deps = [
+    # data, not deps: a remote `plz run` downloads only a script's data.
+    data = [
         ":buf",
         ":buf.yaml",
         ":wollemi",
@@ -100,7 +101,7 @@ sh_cmd(
         echo_message("Running 'go deps'"),
         "$(out_exe :quiet_symlink_warnings) $(out_exe :godeps) -dir third_party/go -builtin -wollemi -arm",
     ] + _lint_cmds,
-    deps = [
+    data = [
         ":buf",
         ":buf.yaml",
         ":godeps",
