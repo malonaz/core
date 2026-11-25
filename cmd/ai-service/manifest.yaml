@@ -6,3 +6,7 @@ servers:
         - service: ai-service
           proto: //malonaz/ai/ai_service/v1
           manifest: //go/ai/ai_service:manifest
+  # Mirrors the services it is configured with into platform tools, the ai service itself in the sat.
+  - name: ai-processor
+    processor:
+      manifest: //go/ai/ai_processor:manifest
