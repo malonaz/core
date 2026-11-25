@@ -60,7 +60,7 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 			return nil, err
 		}
 	}
-	if err := s.validateTools(agent.Spec); err != nil {
+	if err := s.validateTools(agentRn.OrganizationRn().String(), agent.Spec); err != nil {
 		return nil, err
 	}
 	if agent.Spec != nil {
@@ -194,7 +194,7 @@ func (s *Service) snapshotDefinitionSpec(ctx context.Context, agentRn *agentpb.A
 // UpdateAgent updates an agent's labels, annotations, title or tool grants. New grants take effect at its next turn.
 func (s *Service) UpdateAgent(ctx context.Context, request *agentservicepb.UpdateAgentRequest) (*agentpb.Agent, error) {
 	if slices.ContainsFunc(request.GetUpdateMask().GetPaths(), func(path string) bool { return path == "*" || path == "spec.tools" }) {
-		if err := s.validateTools(request.GetAgent().GetSpec()); err != nil {
+		if err := s.validateTools(agentOrganization(request.GetAgent().GetName()), request.GetAgent().GetSpec()); err != nil {
 			return nil, err
 		}
 	}

@@ -6,19 +6,17 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/ai/agent/agent_service/v1/agent.proto";
 import "malonaz/ai/agent/agent_service/v1/definition.proto";
-import "malonaz/ai/agent/agent_service/v1/tool.proto";
 import "malonaz/ai/agent/v1/agent.proto";
 import "malonaz/ai/agent/v1/definition.proto";
-import "malonaz/ai/agent/v1/tool.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/scheduler/v1/scheduler.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
 
 // This API stores agents and runs their turns, generating as each agent's
-// owner. The tools an agent holds are granted from the tool catalogue: methods
-// of routed gRPC services, offered when its owner could call them and called as
-// the owner, and genui components; built-in tools let agents launch sub-agents,
+// owner. The tools an agent holds are granted from the AiService's stored
+// tools: methods of routed gRPC services, offered when its owner could call
+// them and called as the owner, and genui components; built-in tools let agents launch sub-agents,
 // message their tree, label themselves and schedule wake-ups.
 //
 // # Resource model
@@ -28,11 +26,6 @@ option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 // - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //   an AiService chat, its sub-agents linked by `parent_agent`.
 //   Format: organizations/{organization}/users/{user}/agents/{agent}
-// - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
-//   the tools an agent's spec may grant, derived from the service's
-//   configuration and its tool targets, never stored, each caller seeing
-//   those they could call.
-//   Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
 //
 // # Messaging
 //
@@ -132,47 +125,6 @@ service AgentService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*}/definitions"};
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "agent.ai.malonaz.com/Definition";
-  }
-
-  // ===================== Tool Catalogue =====================
-
-  // Get a tool set. NOT_FOUND unless configured and holding a tool the caller could call; a set that cannot be read
-  // carries its error.
-  //
-  // See: https://google.aip.dev/131 (Standard methods: Get).
-  rpc GetToolSet(GetToolSetRequest) returns (malonaz.ai.agent.v1.ToolSet) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{name=toolSets/*}"};
-    option (google.api.method_signature) = "name";
-  }
-
-  // List the tool sets holding a tool the caller could call, by name. A set that cannot be read carries its error and
-  // never fails the list.
-  //
-  // See: https://google.aip.dev/132 (Standard methods: List).
-  rpc ListToolSets(ListToolSetsRequest) returns (ListToolSetsResponse) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/toolSets"};
-    option (google.api.method_signature) = "";
-  }
-
-  // Get a tool. NOT_FOUND unless the caller could call it; UNAVAILABLE when its set cannot be read.
-  //
-  // See: https://google.aip.dev/131 (Standard methods: Get).
-  rpc GetTool(GetToolRequest) returns (malonaz.ai.agent.v1.Tool) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{name=toolSets/*/tools/*}"};
-    option (google.api.method_signature) = "name";
-  }
-
-  // List the tools the caller could call of a set, or of every set with the parent `toolSets/-`, by name. A set that
-  // cannot be read fails the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
-  //
-  // See: https://google.aip.dev/132 (Standard methods: List).
-  rpc ListTools(ListToolsRequest) returns (ListToolsResponse) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-    option (google.api.http) = {get: "/v1/{parent=toolSets/*}/tools"};
-    option (google.api.method_signature) = "parent";
   }
 
   // ===================== Agent Management =====================

@@ -20,6 +20,7 @@ import (
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	aitool "github.com/malonaz/core/go/ai/tool"
@@ -62,7 +63,7 @@ type builtinTools struct {
 // builtinTool is a built-in tool: its arguments are a message of builtinToolFile.
 type builtinTool struct {
 	tool    *aipb.Tool
-	execute func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall) (*aipb.ToolResult, error)
+	execute func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse) (*aipb.ToolResult, error)
 }
 
 // newInProcessBuilder returns a tool builder over this binary's own descriptors of the given proto files: built-in
@@ -133,17 +134,17 @@ func newBuiltinTools(ctx context.Context) (*builtinTools, error) {
 func newBuiltinTool[T proto.Message](
 	builder *aitool.Builder,
 	name, description string,
-	run func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments T) (*aipb.ToolResult, error),
+	run func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments T) (*aipb.ToolResult, error),
 ) (*builtinTool, error) {
 	var arguments T
-	tool, err := builder.CreateTool(aitool.MessageToolRequest(arguments, aitool.WithTitle(toolCallTitleDescription)))
+	tool, err := builder.CreateTool(aitool.MessageToolRequest(arguments, aitool.WithTitle(aitool.TitleDescription)))
 	if err != nil {
 		return nil, fmt.Errorf("creating built-in tool %s: %w", name, err)
 	}
 	tool.Name = name
 	tool.Description = description
 	messageDescriptor := arguments.ProtoReflect().Descriptor()
-	execute := func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall) (*aipb.ToolResult, error) {
+	execute := func(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse) (*aipb.ToolResult, error) {
 		dynamicArguments, err := buildToolCallMessage(builder.SchemaBuilder(), messageDescriptor, toolCall)
 		if err != nil {
 			return nil, err
@@ -166,12 +167,12 @@ func newBuiltinTool[T proto.Message](
 }
 
 // builtinRequestID derives the request id of something a built-in tool call creates.
-func builtinRequestID(agent *agentpb.Agent, toolCall *aipb.ToolCall, parts ...string) string {
+func builtinRequestID(agent *agentpb.Agent, toolCall *aipb.ToolUse, parts ...string) string {
 	return uuid.NewV5(builtinToolNamespace, strings.Join(append([]string{agent.GetName(), toolCall.GetId()}, parts...), "/")).String()
 }
 
 // structuredToolResult renders a message as a tool call's structured result.
-func structuredToolResult(toolCall *aipb.ToolCall, message proto.Message) (*aipb.ToolResult, error) {
+func structuredToolResult(toolCall *aipb.ToolUse, message proto.Message) (*aipb.ToolResult, error) {
 	content, err := pbutil.MarshalToStruct(message)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "marshaling result: %v", err).Err()
@@ -190,7 +191,7 @@ const createAgentsToolDescription = "Launch one or more sub-agents, each working
 	"After launching, END YOUR TURN: each time a sub-agent ends a turn, its report arrives as a new message that wakes you, naming the sub-agent. " +
 	"Never poll for reports with list_agents. Use message_agent to follow up with a sub-agent."
 
-func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.CreateAgentsToolArguments) (*aipb.ToolResult, error) {
+func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments *agentservicepb.CreateAgentsToolArguments) (*aipb.ToolResult, error) {
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
@@ -201,9 +202,9 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	// Validate every launch first, so an invalid one launches none.
 	subAgents := make([]*agentpb.Agent, 0, len(arguments.GetAgents()))
 	for i, subAgentArguments := range arguments.GetAgents() {
-		subAgent, err := newSubAgent(agent, subAgentArguments)
+		subAgent, err := s.newSubAgent(ctx, agent, subAgentArguments)
 		if err == nil {
-			err = s.validateTools(subAgent.GetSpec())
+			err = s.validateTools(agentOrganization(agent.GetName()), subAgent.GetSpec())
 		}
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "agent %d (%q): %v", i+1, subAgentArguments.GetTitle(), err).Err()
@@ -254,7 +255,7 @@ func mayLaunchSubAgents(agent *agentpb.Agent) error {
 
 // newSubAgent validates a launch against what the caller may delegate: only its own definitions and tools. Ad-hoc
 // settings default to the caller's.
-func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToolArguments_SubAgent) (*agentpb.Agent, error) {
+func (s *Service) newSubAgent(ctx context.Context, agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToolArguments_SubAgent) (*agentpb.Agent, error) {
 	spec := agent.GetSpec()
 	subAgent := &agentpb.Agent{
 		Title:       arguments.GetTitle(),
@@ -279,7 +280,7 @@ func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToo
 	if strings.TrimSpace(arguments.GetInstructions()) == "" {
 		return nil, fmt.Errorf("no instructions: add `instructions`, its system prompt, which every sub-agent without a definition needs, and launch again")
 	}
-	tools, err := subAgentTools(spec.GetTools(), arguments.GetTools())
+	tools, err := subAgentTools(spec.GetTools(), arguments.GetTools(), s.toolSetOf(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -310,9 +311,9 @@ func stricter(approval, other agentpb.AgentSpec_ToolGrant_Approval) agentpb.Agen
 }
 
 // subAgentTools returns the tool grants of an ad-hoc sub-agent: its parent's, all of them by default, or some of them
-// or tools of the sets its parent holds. Each approval inherits the parent's or tightens it, never loosening it, and a
-// set keeps the parent's refinements of its tools, tightened alike.
-func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant) ([]*agentpb.AgentSpec_ToolGrant, error) {
+// or tools of the sets its parent holds, each tool's set read by toolSetOf. Each approval inherits the parent's or
+// tightens it, never loosening it, and a set keeps the parent's refinements of its tools, tightened alike.
+func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant, toolSetOf func(tool string) (toolSetKey, error)) ([]*agentpb.AgentSpec_ToolGrant, error) {
 	if len(requestedGrants) == 0 {
 		requestedGrants = parentGrants
 	}
@@ -320,7 +321,7 @@ func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant)
 	requested := newToolGrants(requestedGrants)
 	grants := make([]*agentpb.AgentSpec_ToolGrant, 0, len(requestedGrants))
 	for _, requestedGrant := range requestedGrants {
-		parentApproval, err := heldApproval(parent, requestedGrant)
+		parentApproval, err := heldApproval(parent, requestedGrant, toolSetOf)
 		if err != nil {
 			return nil, err
 		}
@@ -333,12 +334,14 @@ func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant)
 		grant := proto.CloneOf(requestedGrant)
 		grant.Approval = approval
 		grants = append(grants, grant)
-		if requestedGrant.GetToolSet() == "" {
+		if requestedGrant.GetToolSet() == nil {
 			continue
 		}
 		for _, parentGrant := range parentGrants {
-			toolRn, err := agentpb.ParseToolRn(parentGrant.GetTool())
-			if err != nil || toolSetOf(toolRn) != requestedGrant.GetToolSet() || requested.toolToGrant[parentGrant.GetTool()] != nil {
+			if parentGrant.GetTool() == "" || requested.toolToGrant[parentGrant.GetTool()] != nil {
+				continue
+			}
+			if toolSet, err := toolSetOf(parentGrant.GetTool()); err != nil || toolSet != selectorKey(requestedGrant.GetToolSet()) {
 				continue
 			}
 			refinement := proto.CloneOf(parentGrant)
@@ -353,27 +356,36 @@ func subAgentTools(parentGrants, requestedGrants []*agentpb.AgentSpec_ToolGrant)
 
 // heldApproval returns the approval under which a parent holds what a grant requests: the set itself, or the tool by
 // its own grant or its set's.
-func heldApproval(parent *toolGrants, grant *agentpb.AgentSpec_ToolGrant) (agentpb.AgentSpec_ToolGrant_Approval, error) {
-	if grant.GetToolSet() != "" {
-		parentGrant, ok := parent.toolSetToGrant[grant.GetToolSet()]
+func heldApproval(parent *toolGrants, grant *agentpb.AgentSpec_ToolGrant, toolSetOf func(tool string) (toolSetKey, error)) (agentpb.AgentSpec_ToolGrant_Approval, error) {
+	if grant.GetToolSet() != nil {
+		parentGrant, ok := parent.toolSetToGrant[selectorKey(grant.GetToolSet())]
 		if !ok {
-			return 0, fmt.Errorf("you do not hold tool set %s", grant.GetToolSet())
+			return 0, fmt.Errorf("you do not hold %s", grantName(grant))
 		}
 		return parentGrant.GetApproval(), nil
 	}
-	toolRn, err := agentpb.ParseToolRn(grant.GetTool())
-	if err != nil {
-		return 0, fmt.Errorf("parsing tool %q: %w", grant.GetTool(), err)
+	if parentGrant, ok := parent.toolToGrant[grant.GetTool()]; ok {
+		return parentGrant.GetApproval(), nil
 	}
-	if _, ok := parent.toolToGrant[grant.GetTool()]; !ok && parent.toolSetToGrant[toolSetOf(toolRn)] == nil {
+	toolSet, err := toolSetOf(grant.GetTool())
+	if err != nil || parent.toolSetToGrant[toolSet] == nil {
 		return 0, fmt.Errorf("you do not hold tool %s", grant.GetTool())
 	}
-	return parent.approval(toolRn), nil
+	return parent.toolSetToGrant[toolSet].GetApproval(), nil
 }
 
-// grantName returns what a grant grants.
-func grantName(grant *agentpb.AgentSpec_ToolGrant) string {
-	return cmp.Or(grant.GetToolSet(), grant.GetTool())
+// toolSetOf returns a function reading the set of a stored tool as the service: a genui component's is the genui set.
+func (s *Service) toolSetOf(ctx context.Context) func(tool string) (toolSetKey, error) {
+	return func(name string) (toolSetKey, error) {
+		if _, ok := s.genuiComponents.resourceNameToComponent[name]; ok {
+			return genuiToolSetKey, nil
+		}
+		tool, err := s.aiServiceClient.GetTool(s.asService(ctx), &aiservicepb.GetToolRequest{Name: name})
+		if err != nil {
+			return toolSetKey{}, err
+		}
+		return toolSetKeyOf(tool), nil
+	}
 }
 
 // =============================== message_agent ==============================
@@ -382,7 +394,7 @@ const messageAgentToolDescription = "Send a message to another agent in your tre
 	"Sending never blocks and returns no reply: the recipient reads the message on its next turn. " +
 	"After sending, END YOUR TURN: a sub-agent's next turn report arrives later as a new message that wakes you. Never poll for it."
 
-func messageAgent(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.MessageAgentToolArguments) (*aipb.ToolResult, error) {
+func messageAgent(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments *agentservicepb.MessageAgentToolArguments) (*aipb.ToolResult, error) {
 	if _, err := agentpb.ParseAgentRn(arguments.GetAgent()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid agent %q: %v", arguments.GetAgent(), err).Err()
 	}
@@ -411,7 +423,7 @@ const listAgentsToolDescription = "List your sub-agents: their name, title, stat
 
 var subAgentSummaryMask = pbfieldmask.FromPaths("name", "title", "state", "latest_turn", "labels").MustValidate(&agentpb.Agent{})
 
-func listAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, _ *agentservicepb.ListAgentsToolArguments) (*aipb.ToolResult, error) {
+func listAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, _ *agentservicepb.ListAgentsToolArguments) (*aipb.ToolResult, error) {
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
@@ -440,7 +452,7 @@ const updateLabelsToolDescription = "Set and remove labels on yourself, e.g. to 
 	"Your keys have no prefix: prefixed keys (`{domain}/{name}`) belong to the services and users that define them. " +
 	"Returns your labels after the change."
 
-func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.UpdateLabelsToolArguments) (*aipb.ToolResult, error) {
+func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments *agentservicepb.UpdateLabelsToolArguments) (*aipb.ToolResult, error) {
 	if len(arguments.GetSet()) == 0 && len(arguments.GetRemove()) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "nothing to set or remove").Err()
 	}
@@ -463,4 +475,3 @@ func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	updatedLabels := &agentpb.Agent{Labels: updatedAgent.GetLabels()}
 	return structuredToolResult(toolCall, updatedLabels)
 }
-

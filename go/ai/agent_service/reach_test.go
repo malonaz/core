@@ -7,31 +7,26 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 
-	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	authenticationpb "github.com/malonaz/core/genproto/authentication/v2"
 	librarypb "github.com/malonaz/core/genproto/test/library/library_service/v1"
 	mockpb "github.com/malonaz/core/genproto/test/mock/v1"
 	"github.com/malonaz/core/go/authentication/v2/authenticationtest"
-	"github.com/malonaz/core/go/grpc/status"
 )
 
 const (
 	libraryService = "malonaz.test.library.library_service.v1.LibraryService"
 	mockService    = "malonaz.test.mock.v1.MockService"
-	libraryToolSet = "toolSets/" + libraryService
-	mockToolSet    = "toolSets/" + mockService
+	libraryToolSet = "malonaz-test-library-library_service-v1-libraryservice"
 )
 
 // libraryTool names a tool of the library tool set.
-func libraryTool(method string) string { return libraryToolSet + "/tools/" + method }
+func libraryTool(method string) string { return "tools/LibraryService_" + method }
 
 // newTestReachTarget serves the library and mock services behind an interceptor of their own, with its
 // AuthorizationService: anyone may call GetBook; an agent's owner also ListBooks, under a condition reading the
@@ -88,40 +83,11 @@ func newTestReachReplica(t *testing.T) *testReplica {
 	})
 }
 
-// The catalogue lists what its caller could call, as each target answers for the caller's session: an anonymous
-// caller here, whom the target lets call GetBook alone, though the agent service itself may call every method.
-func TestReach_CatalogueListsWhatTheCallerCouldCall(t *testing.T) {
-	service := newTestReachReplica(t)
-	client := serverClient(t, service)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	listToolsResponse, err := client.ListTools(ctx, &agentservicepb.ListToolsRequest{Parent: libraryToolSet})
-	require.NoError(t, err)
-	require.Equal(t, []string{libraryTool("GetBook")}, toolNames(listToolsResponse.GetTools()))
-	_, err = client.GetTool(ctx, &agentservicepb.GetToolRequest{Name: libraryTool("DeleteBook")})
-	require.True(t, status.HasCode(err, codes.NotFound), "%v", err)
-
-	// A set none of whose tools the caller could call is not theirs to see.
-	_, err = client.GetToolSet(ctx, &agentservicepb.GetToolSetRequest{Name: mockToolSet})
-	require.True(t, status.HasCode(err, codes.NotFound), "%v", err)
-	_, err = client.ListTools(ctx, &agentservicepb.ListToolsRequest{Parent: mockToolSet})
-	require.True(t, status.HasCode(err, codes.NotFound), "%v", err)
-	listToolSetsResponse, err := client.ListToolSets(ctx, &agentservicepb.ListToolSetsRequest{})
-	require.NoError(t, err)
-	require.Equal(t, []string{"toolSets/genui", healthToolSet, libraryToolSet}, toolSetNames(listToolSetsResponse.GetToolSets()))
-
-	// A target serving no AuthorizationService trims nothing: its own rules decide every call.
-	listToolsResponse, err = client.ListTools(ctx, &agentservicepb.ListToolsRequest{Parent: healthToolSet})
-	require.NoError(t, err)
-	require.Equal(t, []string{healthCheckGrant, healthToolSet + "/tools/List"}, toolNames(listToolsResponse.GetTools()))
-}
-
 // A turn offers the model what the agent's owner could call, as each target answers for the owner: GetBook, and
 // ListBooks, whose condition only a call decides; never a granted tool the owner could not call.
 func TestReach_ToolboxOffersWhatTheOwnerCouldCall(t *testing.T) {
 	service := newTestReachReplica(t)
-	spec := &agentpb.AgentSpec{Model: testModel, Tools: ungatedTools(libraryToolSet, mockToolSet+"/tools/Echo", healthToolSet)}
+	spec := &agentpb.AgentSpec{Model: testModel, Tools: ungatedTools(libraryToolSet, "tools/MockService_Echo", healthToolSet)}
 	agent := createTestAgentWithSpec(t, service, newTestUser(t), spec)
 
 	toolbox, err := service.newToolbox(context.Background(), agent)
@@ -132,5 +98,5 @@ func TestReach_ToolboxOffersWhatTheOwnerCouldCall(t *testing.T) {
 		resourceNames = append(resourceNames, methodTool.resourceName)
 	}
 	slices.Sort(resourceNames)
-	require.Equal(t, []string{healthCheckGrant, healthToolSet + "/tools/List", libraryTool("GetBook"), libraryTool("ListBooks")}, resourceNames)
+	require.Equal(t, []string{healthCheckGrant, "tools/Health_List", libraryTool("GetBook"), libraryTool("ListBooks")}, resourceNames)
 }

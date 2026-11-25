@@ -156,12 +156,12 @@ func ungatedTools(names ...string) []*agentpb.AgentSpec_ToolGrant {
 	return grants
 }
 
-// toolGrant returns the grant of a tool or a tool set, by resource name.
+// toolGrant returns the grant of a tool by resource name, or of a platform tool set by id.
 func toolGrant(name string) *agentpb.AgentSpec_ToolGrant {
-	if strings.Contains(name, "/tools/") {
+	if strings.Contains(name, "tools/") {
 		return &agentpb.AgentSpec_ToolGrant{Grant: &agentpb.AgentSpec_ToolGrant_Tool{Tool: name}}
 	}
-	return &agentpb.AgentSpec_ToolGrant{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: name}}
+	return &agentpb.AgentSpec_ToolGrant{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: &agentpb.ToolSetSelector{Id: name}}}
 }
 
 // createTestAgentWithSpec creates an ad-hoc root agent with the given spec under a user.

@@ -17,7 +17,7 @@ import (
 )
 
 // callBuiltinTool runs a built-in tool call of an agent as its turn would.
-func callBuiltinTool(t *testing.T, service *testReplica, agent *agentpb.Agent, toolCall *aipb.ToolCall) *aipb.ToolResult {
+func callBuiltinTool(t *testing.T, service *testReplica, agent *agentpb.Agent, toolCall *aipb.ToolUse) *aipb.ToolResult {
 	t.Helper()
 	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
@@ -215,11 +215,11 @@ func TestBuiltinTools_CreateAgentsRejectsToolsTheCallerLacks(t *testing.T) {
 	agent := createTestAgent(t, service, healthCheckGrant)
 	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
 		"tool_call_title": "Launch",
-		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{map[string]any{"tool_set": "toolSets/other.Service"}}}},
+		"agents":          []any{map[string]any{"title": "one", "task": "task", "instructions": "One.", "tools": []any{map[string]any{"tool_set": map[string]any{"id": "other"}}}}},
 	})
 
 	toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
-	require.Contains(t, toolResult.GetError().GetMessage(), "you do not hold tool set toolSets/other.Service")
+	require.Contains(t, toolResult.GetError().GetMessage(), "you do not hold tool set other")
 	require.Empty(t, listChildAgents(t, service, agent))
 }
 
@@ -229,7 +229,7 @@ func TestBuiltinTools_MessageAgentStaysInTheTree(t *testing.T) {
 	agent := createTestAgent(t, service)
 	subAgent := createTestSubAgent(t, service, agent)
 	strangerAgent := createTestAgent(t, service)
-	messageAgentCall := func(recipient string) *aipb.ToolCall {
+	messageAgentCall := func(recipient string) *aipb.ToolUse {
 		return newToolCall("call-"+recipient, messageAgentToolName, map[string]any{"tool_call_title": "Follow up", "agent": recipient, "message": "carry on"})
 	}
 

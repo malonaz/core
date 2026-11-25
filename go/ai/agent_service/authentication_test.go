@@ -213,13 +213,13 @@ func dispatcherContext(jobName string) context.Context {
 
 const (
 	agentServiceName  = "malonaz.ai.agent.agent_service.v1.AgentService"
-	messageAgentGrant = "toolSets/" + agentServiceName + "/tools/MessageAgent"
+	messageAgentGrant = "tools/AgentService_MessageAgent"
 	// reflectionFullMethod is the call reading a tool target's schema.
 	reflectionFullMethod = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
 )
 
 // checkCall returns a call of the health tool checking a service.
-func checkCall(service string) *aipb.ToolCall {
+func checkCall(service string) *aipb.ToolUse {
 	return newToolCall(service, healthCheckTool, map[string]any{"tool_call_title": "Check " + service, "service": service})
 }
 
@@ -242,7 +242,7 @@ func TestTools_CalledAsTheOwner(t *testing.T) {
 		"name":            recipient.Name,
 		"message":         map[string]any{"role": "ROLE_USER", "blocks": []any{map[string]any{"text": "hello"}}},
 	})
-	for _, toolCall := range []*aipb.ToolCall{checkCall("library"), messageCall, checkCall("shelf")} {
+	for _, toolCall := range []*aipb.ToolUse{checkCall("library"), messageCall, checkCall("shelf")} {
 		require.Nil(t, toolbox.call(context.Background(), toolCall).GetError(), toolCall.GetId())
 	}
 

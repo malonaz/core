@@ -52,7 +52,7 @@ func (s *Service) WakeAgent(ctx context.Context, request *agentservicepb.WakeAge
 			return nil, err
 		}
 		// Validated again at each run: the payload is only a request, whoever created it.
-		subAgent, err := s.validateSubAgent(agent, wake.SubAgent)
+		subAgent, err := s.validateSubAgent(ctx, agent, wake.SubAgent)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +144,7 @@ const scheduleToolDescription = "Schedule yourself to be woken later: recurring 
 	"for your future self: what to do, and for whom. Returns the schedule's name, for cancel_schedule. " +
 	"The runs arrive by themselves: end your turn after scheduling."
 
-func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.ScheduleToolArguments) (*aipb.ToolResult, error) {
+func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments *agentservicepb.ScheduleToolArguments) (*aipb.ToolResult, error) {
 	// The service owns every agent's schedules, labeling each with its agent.
 	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
@@ -158,7 +158,7 @@ func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolC
 		wakeAgentRequest.Wake = &agentservicepb.WakeAgentRequest_Message{Message: argumentsWake.Message}
 	case *agentservicepb.ScheduleToolArguments_SubAgent:
 		// Checked now, so a launch that would fail fails here rather than at every run.
-		if _, err := s.validateSubAgent(agent, argumentsWake.SubAgent); err != nil {
+		if _, err := s.validateSubAgent(ctx, agent, argumentsWake.SubAgent); err != nil {
 			return nil, err
 		}
 		wakeAgentRequest.Wake = &agentservicepb.WakeAgentRequest_SubAgent{SubAgent: argumentsWake.SubAgent}
@@ -212,13 +212,13 @@ func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolC
 }
 
 // validateSubAgent validates the launch of a sub-agent by an agent, as create_agents does.
-func (s *Service) validateSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToolArguments_SubAgent) (*agentpb.Agent, error) {
+func (s *Service) validateSubAgent(ctx context.Context, agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToolArguments_SubAgent) (*agentpb.Agent, error) {
 	if err := mayLaunchSubAgents(agent); err != nil {
 		return nil, err
 	}
-	subAgent, err := newSubAgent(agent, arguments)
+	subAgent, err := s.newSubAgent(ctx, agent, arguments)
 	if err == nil {
-		err = s.validateTools(subAgent.GetSpec())
+		err = s.validateTools(agentOrganization(agent.GetName()), subAgent.GetSpec())
 	}
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "sub_agent: %v", err).Err()
@@ -231,7 +231,7 @@ func (s *Service) validateSubAgent(agent *agentpb.Agent, arguments *agentservice
 const listSchedulesToolDescription = "List your schedules: the recurring ones and the one-off runs still to come, " +
 	"each with its name, when it runs and what it does."
 
-func listSchedules(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, _ *agentservicepb.ListSchedulesToolArguments) (*aipb.ToolResult, error) {
+func listSchedules(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, _ *agentservicepb.ListSchedulesToolArguments) (*aipb.ToolResult, error) {
 	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {
@@ -292,7 +292,7 @@ func describeWake(payload *anypb.Any) string {
 const cancelScheduleToolDescription = "Cancel one of your schedules by the name schedule or list_schedules gave: " +
 	"a recurring schedule stops for good, a one-off run never happens."
 
-func cancelSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolCall, arguments *agentservicepb.CancelScheduleToolArguments) (*aipb.ToolResult, error) {
+func cancelSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolCall *aipb.ToolUse, arguments *agentservicepb.CancelScheduleToolArguments) (*aipb.ToolResult, error) {
 	ctx = s.asService(ctx)
 	agentRn, err := agentpb.ParseAgentRn(agent.GetName())
 	if err != nil {

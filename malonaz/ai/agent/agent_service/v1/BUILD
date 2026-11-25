@@ -5,7 +5,6 @@ filegroup(
         "agent_service.proto",
         "builtin_tool.proto",
         "definition.proto",
-        "tool.proto",
     ],
     visibility = ["PUBLIC"],
 )
@@ -17,7 +16,6 @@ grpc_library(
         "agent_service.proto",
         "builtin_tool.proto",
         "definition.proto",
-        "tool.proto",
     ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/ai/agent/agent_service/v1",

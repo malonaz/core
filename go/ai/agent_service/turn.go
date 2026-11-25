@@ -301,7 +301,7 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 
 // refuseToolCalls answers the calls of a turn past its rounds of tool calls without running them, telling the model
 // to answer.
-func (r *turnRunner) refuseToolCalls(ctx context.Context, calls []*aipb.ToolCall, maxToolRounds int) error {
+func (r *turnRunner) refuseToolCalls(ctx context.Context, calls []*aipb.ToolUse, maxToolRounds int) error {
 	refusal := status.Errorf(codes.ResourceExhausted, "not run: this turn ran its %d rounds of tool calls. Answer now without calling tools; "+
 		"the next message starts a new turn", maxToolRounds).Err()
 	for _, toolCall := range calls {
@@ -375,7 +375,7 @@ func (r *turnRunner) resume(ctx context.Context) error {
 			toolCallIDSet[block.GetToolResult().GetToolCallId()] = struct{}{}
 		}
 	}
-	var unansweredToolCalls []*aipb.ToolCall
+	var unansweredToolCalls []*aipb.ToolUse
 	for _, toolCall := range toolCalls(assistantMessage) {
 		if _, ok := toolCallIDSet[toolCall.GetId()]; !ok {
 			unansweredToolCalls = append(unansweredToolCalls, toolCall)
@@ -388,12 +388,12 @@ func (r *turnRunner) resume(ctx context.Context) error {
 // the approved calls, run now, for the calls the turn awaited; for the others, the turn's policy again, which awaits
 // gated calls and answers the rest as interrupted. A call approved and started before was interrupted too. The turn
 // pauses again if calls still await a user.
-func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.ToolCall) error {
+func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.ToolUse) error {
 	toolCallIDToAwaitedToolCall := map[string]*agentpb.AwaitedToolCall{}
 	for _, awaitedToolCall := range r.agent.GetLatestTurn().GetAwaitedToolCalls() {
 		toolCallIDToAwaitedToolCall[awaitedToolCall.GetToolCallId()] = awaitedToolCall
 	}
-	var approvedToolCalls []*aipb.ToolCall
+	var approvedToolCalls []*aipb.ToolUse
 	var stillAwaitedToolCalls []*agentpb.AwaitedToolCall
 	r.toolCallIDToApprover = map[string]requester{}
 	for _, toolCall := range unansweredToolCalls {
@@ -472,7 +472,7 @@ func (r *turnRunner) updateAwaitedToolCalls(ctx context.Context, update func(*ag
 }
 
 // newAwaitedToolCall returns a call awaiting a user.
-func newAwaitedToolCall(toolCall *aipb.ToolCall, reason agentpb.AwaitedToolCall_Reason, tool string) *agentpb.AwaitedToolCall {
+func newAwaitedToolCall(toolCall *aipb.ToolUse, reason agentpb.AwaitedToolCall_Reason, tool string) *agentpb.AwaitedToolCall {
 	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
 	return &agentpb.AwaitedToolCall{ToolCallId: toolCall.GetId(), ToolName: toolCall.GetName(), Tool: tool, Title: title, Reason: reason}
 }
@@ -668,7 +668,7 @@ func newToolCallAnnouncer() *toolCallAnnouncer {
 }
 
 // complete returns the block's tool call the first time its title is complete, nil otherwise.
-func (a *toolCallAnnouncer) complete(block *aipb.Block) *aipb.ToolCall {
+func (a *toolCallAnnouncer) complete(block *aipb.Block) *aipb.ToolUse {
 	toolCall := block.GetToolCall()
 	if toolCall == nil {
 		toolCall = block.GetPartialToolCall()
@@ -684,7 +684,7 @@ func (a *toolCallAnnouncer) complete(block *aipb.Block) *aipb.ToolCall {
 }
 
 // partialTitleComplete reports whether a partial call's title is complete: a later argument streamed after it.
-func (a *toolCallAnnouncer) partialTitleComplete(toolCall *aipb.ToolCall) bool {
+func (a *toolCallAnnouncer) partialTitleComplete(toolCall *aipb.ToolUse) bool {
 	fieldCount := len(toolCall.GetArguments().GetFields())
 	if _, ok := pbjson.GetTitle(toolCall.GetArguments().AsMap()); !ok {
 		return false
@@ -698,7 +698,7 @@ func (a *toolCallAnnouncer) partialTitleComplete(toolCall *aipb.ToolCall) bool {
 }
 
 // announceToolCall announces a tool call with its title.
-func (r *turnRunner) announceToolCall(toolCall *aipb.ToolCall) {
+func (r *turnRunner) announceToolCall(toolCall *aipb.ToolUse) {
 	title, _ := pbjson.GetTitle(toolCall.GetArguments().AsMap())
 	r.publish(&agentservicepb.StreamAgentResponse{
 		Content: &agentservicepb.StreamAgentResponse_ToolCall_{ToolCall: &agentservicepb.StreamAgentResponse_ToolCall{
@@ -711,8 +711,8 @@ func (r *turnRunner) announceToolCall(toolCall *aipb.ToolCall) {
 
 // answerToolCalls answers a generation's tool calls: the calls the AiService answered with their results, the calls
 // only a user can settle by pausing the turn on them, once every other call ran.
-func (r *turnRunner) answerToolCalls(ctx context.Context, calls []*aipb.ToolCall) error {
-	var runnableToolCalls []*aipb.ToolCall
+func (r *turnRunner) answerToolCalls(ctx context.Context, calls []*aipb.ToolUse) error {
+	var runnableToolCalls []*aipb.ToolUse
 	var awaitedToolCalls []*agentpb.AwaitedToolCall
 	for _, toolCall := range calls {
 		if toolCall.GetResult() == nil {
@@ -736,7 +736,7 @@ func (r *turnRunner) answerToolCalls(ctx context.Context, calls []*aipb.ToolCall
 // runToolCalls runs tool calls concurrently, persisting each result as soon as its call returns, one write at a
 // time. Calls the AiService answered are fed back verbatim. A cancelled turn answers its unfinished calls as
 // cancelled; a stopped one leaves them to its next replica.
-func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolCall) error {
+func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolUse) error {
 	type indexedToolResult struct {
 		index      int
 		toolResult *aipb.ToolResult
@@ -854,8 +854,8 @@ func (s *Service) onDraining(fn func()) func() {
 }
 
 // toolCalls returns the tool calls of a message.
-func toolCalls(message *aipb.Message) []*aipb.ToolCall {
-	var calls []*aipb.ToolCall
+func toolCalls(message *aipb.Message) []*aipb.ToolUse {
+	var calls []*aipb.ToolUse
 	for _, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
 		calls = append(calls, block.GetToolCall())
 	}

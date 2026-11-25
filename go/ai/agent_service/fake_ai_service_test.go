@@ -3,6 +3,7 @@ package agent_service
 import (
 	"context"
 	"io"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,12 +14,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
 	coregrpc "github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/grpc/status"
@@ -55,6 +59,8 @@ type fakeAiService struct {
 	lastCreateTime    time.Time
 	// defaultGeneration, if set, plays when a chat has no scripted generation left.
 	defaultGeneration *fakeGeneration
+	// The stored tools: the platform tools of the tests' targets, as the ai processor mirrors them.
+	tools []*aipb.Tool
 }
 
 // refusedModel is a model no owner may generate with: the fake refuses it as a host's rule on the model would.
@@ -90,7 +96,78 @@ func newFakeAiService() *fakeAiService {
 		chatToMessages:     map[string][]*aipb.Message{},
 		requestIDToMessage: map[string]*aipb.Message{},
 		chatToGenerations:  map[string][]*fakeGeneration{},
+		tools:              mirroredTools,
 	}
+}
+
+// mirroredTools are the platform tools of the services the tests route, as the ai processor mirrors them.
+var mirroredTools = func() []*aipb.Tool {
+	files := map[string]string{
+		healthService:    "grpc/health/v1/health.proto",
+		agentServiceName: "malonaz/ai/agent/agent_service/v1/agent_service.proto",
+		libraryService:   "malonaz/test/library/library_service/v1/library_service.proto",
+		mockService:      "malonaz/test/mock/v1/mock_service.proto",
+	}
+	var tools []*aipb.Tool
+	for service, file := range files {
+		builder, err := newInProcessBuilder(context.Background(), file)
+		if err != nil {
+			panic(err)
+		}
+		descriptor, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(service))
+		if err != nil {
+			panic(err)
+		}
+		methods := descriptor.(protoreflect.ServiceDescriptor).Methods()
+		for i := 0; i < methods.Len(); i++ {
+			method := methods.Get(i)
+			if method.IsStreamingClient() || method.IsStreamingServer() {
+				continue
+			}
+			tool, err := builder.CreateTool(aitool.NewMethodToolRequest(method))
+			if err != nil {
+				panic(err)
+			}
+			tool.Name = "tools/" + tool.GetName()
+			tool.Labels = map[string]string{aipb.Labels.ToolSet.GetKey(): strings.ReplaceAll(strings.ToLower(service), ".", "-")}
+			tools = append(tools, tool)
+		}
+	}
+	return tools
+}()
+
+// toolSetFilter matches the filter the AgentService lists a tool set's tools with.
+var toolSetFilter = regexp.MustCompile(`^labels\."ai\.malonaz\.com/tool-set" = "([^"]+)"$`)
+
+// ListTools lists the stored platform tools of a set, in one page.
+func (c *fakeAiService) ListTools(ctx context.Context, request *aiservicepb.ListToolsRequest, _ ...grpc.CallOption) (*aiservicepb.ListToolsResponse, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
+	match := toolSetFilter.FindStringSubmatch(request.Filter)
+	if match == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "unsupported filter %q", request.Filter).Err()
+	}
+	listToolsResponse := &aiservicepb.ListToolsResponse{}
+	for _, tool := range c.tools {
+		if request.Parent == "" && tool.GetLabels()[aipb.Labels.ToolSet.GetKey()] == match[1] {
+			listToolsResponse.Tools = append(listToolsResponse.Tools, proto.CloneOf(tool))
+		}
+	}
+	return listToolsResponse, nil
+}
+
+// GetTool returns a stored tool.
+func (c *fakeAiService) GetTool(ctx context.Context, request *aiservicepb.GetToolRequest, _ ...grpc.CallOption) (*aipb.Tool, error) {
+	if err := authenticate(ctx); err != nil {
+		return nil, err
+	}
+	for _, tool := range c.tools {
+		if tool.GetName() == request.Name {
+			return proto.CloneOf(tool), nil
+		}
+	}
+	return nil, status.Errorf(codes.NotFound, "tool %s not found", request.Name).Err()
 }
 
 // script queues generations for a chat, played in order by its StreamGenerateMessage calls.
@@ -384,7 +461,7 @@ func textGeneration(text string) *fakeGeneration {
 }
 
 // toolCallGeneration scripts an assistant message calling tools.
-func toolCallGeneration(toolCalls ...*aipb.ToolCall) *fakeGeneration {
+func toolCallGeneration(toolCalls ...*aipb.ToolUse) *fakeGeneration {
 	blocks := make([]*aipb.Block, 0, len(toolCalls))
 	for _, toolCall := range toolCalls {
 		blocks = append(blocks, ai.NewToolCallBlock(toolCall))
@@ -393,10 +470,10 @@ func toolCallGeneration(toolCalls ...*aipb.ToolCall) *fakeGeneration {
 }
 
 // newToolCall returns a tool call with the given arguments, which must convert to a Struct.
-func newToolCall(id, name string, arguments map[string]any) *aipb.ToolCall {
+func newToolCall(id, name string, arguments map[string]any) *aipb.ToolUse {
 	argumentsStruct, err := structpb.NewStruct(arguments)
 	if err != nil {
 		panic(err)
 	}
-	return &aipb.ToolCall{Id: id, Name: name, Arguments: argumentsStruct}
+	return &aipb.ToolUse{Id: id, Name: name, Arguments: argumentsStruct}
 }

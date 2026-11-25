@@ -19,13 +19,13 @@ import (
 )
 
 // scheduleCall returns a call of the schedule tool.
-func scheduleCall(id string, arguments map[string]any) *aipb.ToolCall {
+func scheduleCall(id string, arguments map[string]any) *aipb.ToolUse {
 	arguments["tool_call_title"] = "Schedule"
 	return newToolCall(id, scheduleToolName, arguments)
 }
 
 // cancelScheduleCall returns a call of the cancel_schedule tool.
-func cancelScheduleCall(id, name string) *aipb.ToolCall {
+func cancelScheduleCall(id, name string) *aipb.ToolUse {
 	return newToolCall(id, cancelScheduleToolName, map[string]any{"tool_call_title": "Cancel", "name": name})
 }
 

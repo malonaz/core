@@ -2,6 +2,7 @@ package agent_service
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -56,7 +57,7 @@ func resolve(t *testing.T, service *testReplica, agent, toolCallID string, toolR
 	return service.ResolveToolCall(ownerContext(t, agent), resolveToolCallRequest)
 }
 
-func healthCheckCall(id, service string) *aipb.ToolCall {
+func healthCheckCall(id, service string) *aipb.ToolUse {
 	return newToolCall(id, healthCheckTool, map[string]any{"tool_call_title": "Check " + service, "service": service})
 }
 
@@ -130,7 +131,7 @@ func TestAwaited_ApproveAlwaysStopsTheAgentAsking(t *testing.T) {
 	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
 	// The set is granted whole: always refines it for the one tool.
 	agent := createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: testModel, MaxSubAgentDepth: 1, Tools: []*agentpb.AgentSpec_ToolGrant{
-		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: healthToolSet}, Approval: agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED},
+		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: &agentpb.ToolSetSelector{Id: healthToolSet}}, Approval: agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED},
 	}})
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(healthCheckCall("call-1", "first"), healthCheckCall("call-2", "second")),
@@ -159,7 +160,7 @@ func TestAwaited_ApproveAlwaysStopsTheAgentAsking(t *testing.T) {
 	require.Equal(t, "third", checkedServices[2])
 
 	// Sub-agents launched afterwards inherit it.
-	tools, err := subAgentTools(agent.GetSpec().GetTools(), nil)
+	tools, err := subAgentTools(agent.GetSpec().GetTools(), nil, service.toolSetOf(context.Background()))
 	require.NoError(t, err)
 	require.True(t, proto.Equal(refinement, tools[1]))
 
@@ -172,7 +173,7 @@ func TestAwaited_ApproveAlwaysStopsTheAgentAsking(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, agent.GetSpec().GetTools(), 1)
 	require.Equal(t, testModel, agent.GetSpec().GetModel())
-	updateAgentRequest.Agent.Spec.Tools = []*agentpb.AgentSpec_ToolGrant{toolGrant("toolSets/no.such.Service")}
+	updateAgentRequest.Agent.Spec.Tools = []*agentpb.AgentSpec_ToolGrant{toolGrant("organizations/other/tools/Health_Check")}
 	_, err = service.UpdateAgent(ownerContext(t, agent.Name), updateAgentRequest)
 	require.True(t, status.HasCode(err, codes.InvalidArgument), "%v", err)
 }
@@ -204,7 +205,7 @@ func TestAwaited_ApprovalPolicies(t *testing.T) {
 
 	// A tool granted inside a granted set refines its approval, without adding the tool twice.
 	agent = createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{
-		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: healthToolSet}, Approval: agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED},
+		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: &agentpb.ToolSetSelector{Id: healthToolSet}}, Approval: agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED},
 		{Grant: &agentpb.AgentSpec_ToolGrant_Tool{Tool: healthCheckGrant}, Approval: agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED},
 	}})
 	toolbox, err = service.newToolbox(context.Background(), agent)
@@ -218,7 +219,7 @@ func TestAwaited_ConcurrentSettlementsResumeOnce(t *testing.T) {
 	healthServer := &fakeHealthServer{}
 	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)
 	agent := createGatedAgent(t, service)
-	toolCalls := []*aipb.ToolCall{}
+	toolCalls := []*aipb.ToolUse{}
 	for _, id := range []string{"call-1", "call-2", "call-3", "call-4"} {
 		toolCalls = append(toolCalls, healthCheckCall(id, id))
 	}
@@ -243,8 +244,8 @@ func TestAwaited_ConcurrentSettlementsResumeOnce(t *testing.T) {
 func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{
-		toolGrant("toolSets/genui/tools/KeyValueList"),
-		toolGrant("toolSets/genui/tools/Choice"),
+		toolGrant("tools/Generate_KeyValueList"),
+		toolGrant("tools/Generate_Choice"),
 	}})
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(
@@ -261,7 +262,7 @@ func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 	require.Equal(t, "ok", toolResults(service.aiService.messages(agent.Chat))["call-1"].GetContent())
 	require.Len(t, agent.GetLatestTurn().GetAwaitedToolCalls(), 2)
 	require.Equal(t, agentpb.AwaitedToolCall_REASON_RESULT, agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetReason())
-	require.Equal(t, "toolSets/genui/tools/Choice", agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetTool())
+	require.Equal(t, "tools/Generate_Choice", agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetTool())
 
 	_, err := approve(t, service, agent.Name, "call-2")
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
@@ -453,47 +454,52 @@ func TestAwaited_SubAgentsTightenApprovalsOnly(t *testing.T) {
 		return grant
 	}
 	const (
-		loose  = "toolSets/pkg.Loose/tools/Call"
-		policy = "toolSets/pkg.Policy/tools/Call"
-		strict = "toolSets/pkg.Strict/tools/Call"
-		set    = "toolSets/pkg.Set"
+		loose   = "tools/Loose_Call"
+		policy  = "tools/Policy_Call"
+		strict  = "tools/Strict_Call"
+		set     = "set"
+		setRead = "tools/Set_Read"
 	)
+	// Each tool is of the set its name starts with.
+	toolSetOf := func(tool string) (toolSetKey, error) {
+		return toolSetKey{id: strings.ToLower(strings.TrimPrefix(strings.Split(tool, "_")[0], "tools/"))}, nil
+	}
 	parentTools := []*agentpb.AgentSpec_ToolGrant{
 		grant(loose, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED),
 		grant(policy, agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED),
 		grant(strict, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED),
 		grant(set, agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED),
-		grant(set+"/tools/Read", agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED),
+		grant(setRead, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED),
 	}
 
-	tools, err := subAgentTools(parentTools, nil)
+	tools, err := subAgentTools(parentTools, nil, toolSetOf)
 	require.NoError(t, err)
 	require.Len(t, tools, 5)
 
 	tools, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{
 		grant(loose, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED),
 		grant(strict, agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED),
-	})
+	}, toolSetOf)
 	require.NoError(t, err)
 	require.Equal(t, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED, tools[0].GetApproval())
 	require.Equal(t, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED, tools[1].GetApproval())
 
 	// One tool of a held set, under the parent's approval for it.
-	tools, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(set+"/tools/Read", agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED)})
+	tools, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(setRead, agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED)}, toolSetOf)
 	require.NoError(t, err)
 	require.Equal(t, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED, tools[0].GetApproval())
 	// A held set keeps the parent's refinements, tightened with it.
-	tools, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(set, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED)})
+	tools, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(set, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED)}, toolSetOf)
 	require.NoError(t, err)
 	require.Len(t, tools, 2)
-	require.Equal(t, set+"/tools/Read", tools[1].GetTool())
+	require.Equal(t, setRead, tools[1].GetTool())
 	require.Equal(t, agentpb.AgentSpec_ToolGrant_APPROVAL_REQUIRED, tools[1].GetApproval())
 
-	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(policy, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED)})
+	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(policy, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED)}, toolSetOf)
 	require.ErrorContains(t, err, "may not loosen")
-	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(strict, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED)})
+	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant(strict, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED)}, toolSetOf)
 	require.ErrorContains(t, err, "may not loosen")
-	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant("toolSets/pkg.Loose", agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED)})
+	_, err = subAgentTools(parentTools, []*agentpb.AgentSpec_ToolGrant{grant("loose", agentpb.AgentSpec_ToolGrant_APPROVAL_UNSPECIFIED)}, toolSetOf)
 	require.ErrorContains(t, err, "you do not hold tool set")
 }
 

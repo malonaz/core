@@ -2,6 +2,7 @@ package agent_service
 
 import (
 	"context"
+	"maps"
 	"net"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/proto"
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
@@ -29,8 +30,8 @@ import (
 const (
 	healthService = "grpc.health.v1.Health"
 	// healthToolSet and healthCheckGrant are the Health service's tool set and its Check tool, as specs grant them.
-	healthToolSet    = "toolSets/" + healthService
-	healthCheckGrant = healthToolSet + "/tools/Check"
+	healthToolSet    = "grpc-health-v1-health"
+	healthCheckGrant = "tools/Health_Check"
 	healthCheckTool  = "Health_Check"
 )
 
@@ -194,7 +195,7 @@ func TestTools_ServiceCoHostedOnTheReplica(t *testing.T) {
 	require.Equal(t, []string{"co-hosted"}, healthServer.checkedServices())
 	toolSets := service.aiService.generateMessageRequests(agent.Chat)[0].GetToolSets()
 	require.Len(t, toolSets, 1)
-	require.Equal(t, healthService, toolSets[0].GetName())
+	require.Equal(t, healthToolSet, toolSets[0].GetName())
 	require.Equal(t, "Health_Discover", toolSets[0].GetDiscoveryTool().GetName())
 	// Watch streams: only unary methods are tools.
 	var toolNames []string
@@ -221,83 +222,60 @@ func TestTools_AnsweredCallsAreFedBackVerbatim(t *testing.T) {
 	require.Equal(t, "discovered", toolResults(service.aiService.messages(agent.Chat))["call-1"].GetContent())
 }
 
-func TestTools_UntargetedServicesAreRefused(t *testing.T) {
+func TestTools_OtherOrganizationsToolsAreRefused(t *testing.T) {
 	service := newTestService(t)
-	const refusal = "no tool target configured for tool set no.such.Service: add --tool-target for it"
+	const refusal = "may be granted only platform tools or its organization's"
 	user := newTestUser(t)
 	userRn, err := agentpb.ParseUserRn(user)
 	require.NoError(t, err)
-	spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{toolGrant("toolSets/no.such.Service/tools/Method")}}
-
-	createAgentRequest := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: spec}}
-	_, err = service.CreateAgent(context.Background(), createAgentRequest)
-	require.True(t, status.HasCode(err, codes.InvalidArgument))
-	require.ErrorContains(t, err, refusal)
-
-	createDefinitionRequest := &agentservicepb.CreateDefinitionRequest{
-		Parent:     userRn.OrganizationRn().String(),
-		Definition: &agentpb.Definition{Title: "untargeted", Spec: spec},
+	for _, grant := range []*agentpb.AgentSpec_ToolGrant{
+		toolGrant("organizations/other/tools/Health_Check"),
+		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: &agentpb.ToolSetSelector{Parent: "organizations/other", Id: healthToolSet}}},
+	} {
+		spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{grant}}
+		createAgentRequest := &agentservicepb.CreateAgentRequest{Parent: user, Agent: &agentpb.Agent{Spec: spec}}
+		_, err = service.CreateAgent(context.Background(), createAgentRequest)
+		require.True(t, status.HasCode(err, codes.InvalidArgument))
+		require.ErrorContains(t, err, refusal)
+		createDefinitionRequest := &agentservicepb.CreateDefinitionRequest{
+			Parent:     userRn.OrganizationRn().String(),
+			Definition: &agentpb.Definition{Title: "foreign", Spec: spec},
+		}
+		_, err = service.CreateDefinition(context.Background(), createDefinitionRequest)
+		require.ErrorContains(t, err, refusal)
 	}
-	_, err = service.CreateDefinition(context.Background(), createDefinitionRequest)
-	require.ErrorContains(t, err, refusal)
-
-	createDefinitionRequest.Definition.Spec = &agentpb.AgentSpec{Model: testModel}
-	definition, err := service.CreateDefinition(context.Background(), createDefinitionRequest)
-	require.NoError(t, err)
-	updateDefinitionRequest := &agentservicepb.UpdateDefinitionRequest{
-		Definition: &agentpb.Definition{Name: definition.Name, Spec: spec},
-		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"spec"}},
-	}
-	_, err = service.UpdateDefinition(context.Background(), updateDefinitionRequest)
-	require.ErrorContains(t, err, refusal)
 }
 
-func TestTools_TurnFailsOnceATargetIsGone(t *testing.T) {
+// A granted set offers its stored tools as they are at each turn, those added since included; a tool calling a method
+// of a service with no target is left out; read_only, from the tool's method annotation, runs without approval.
+func TestTools_ToolboxReadsStoredTools(t *testing.T) {
 	aiService := newFakeAiService()
+	added := proto.CloneOf(findTool(aiService.tools, healthCheckGrant))
+	added.Name = "tools/Health_Added"
+	method, _, err := aipb.Annotations.Method.Get(added)
+	require.NoError(t, err)
+	method.Method, method.ReadOnly = "grpc.health.v1.Health.Added", true
+	require.NoError(t, aipb.Annotations.Method.Set(added, method))
+	aiService.tools = append(slices.Clip(aiService.tools), added)
 	_, endpoint := newTestToolTarget(t)
-	targetedReplica := newTestReplica(t, aiService, func(opts *Opts) {
+	service := newTestReplica(t, aiService, func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createTestAgent(t, targetedReplica, healthCheckGrant)
-	sendText(t, targetedReplica, agent.Name, "check")
+	agent := createGatedAgent(t, service, toolGrant(healthToolSet), toolGrant("tools/LibraryService_GetBook"))
 
-	// A replica configured without the target takes the turn.
-	service := newTestReplica(t, aiService, nil)
-
-	agent = waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_FAILED)
-	require.Equal(t, int32(codes.InvalidArgument), agent.GetLatestTurn().GetError().GetCode())
-	// Failed before delivering, the turn stays idle with its message queued: only a new message wakes it.
-	time.Sleep(3 * service.opts.ClaimInterval)
-	agent = getAgent(t, service, agent.Name)
-	require.Equal(t, agentpb.Agent_STATE_IDLE, agent.State)
-	require.Len(t, agent.QueuedMessages, 1)
-	require.Contains(t, agent.GetLatestTurn().GetError().GetMessage(), "no tool target configured for tool set "+healthService)
-}
-
-func TestTools_TitleIsStrippedFromTheRequest(t *testing.T) {
-	_, endpoint := newTestToolTarget(t)
-	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
-		opts.ToolTargets = map[string]string{healthService: endpoint}
-	})
-	agent := createTestAgent(t, service, healthCheckGrant)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	toolbox, err := service.newToolbox(ctx, agent)
+	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
-	methodTool := toolbox.toolNameToMethodTool[healthCheckTool]
-	require.NotNil(t, methodTool)
-
-	toolCall := newToolCall("call-1", healthCheckTool, map[string]any{"tool_call_title": "Check", "service": "library"})
-	request, err := buildToolCallMessage(methodTool.schemaBuilder, methodTool.method.Input(), toolCall)
-	require.NoError(t, err)
-	require.Equal(t, "library", request.ProtoReflect().Get(request.ProtoReflect().Descriptor().Fields().ByName("service")).String())
-	require.Empty(t, request.ProtoReflect().GetUnknown())
+	require.ElementsMatch(t, []string{healthCheckTool, "Health_List", "Health_Added"}, slices.Collect(maps.Keys(toolbox.toolNameToMethodTool)))
+	_, _, awaits := toolbox.await(newToolCall("call-1", "Health_Added", nil))
+	require.False(t, awaits)
+	_, _, awaits = toolbox.await(healthCheckCall("call-2", "x"))
+	require.True(t, awaits)
 }
 
 func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
 	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id.
-	const createDefinitionMethod = "toolSets/malonaz.ai.agent.agent_service.v1.AgentService/tools/CreateDefinition"
+	const createDefinitionMethod = "tools/AgentService_CreateDefinition"
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{"malonaz.ai.agent.agent_service.v1.AgentService": opts.AdvertisedAddress}

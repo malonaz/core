@@ -129,15 +129,16 @@ message AgentSpec {
     lte: 8
   }];
 
-  // A ToolGrant gives the agent a tool, or every tool of a set, and says when
-  // its calls await the user's approval. A tool granted inside a granted set
-  // does not add it: it refines the set's approval for that tool.
+  // A ToolGrant gives the agent a stored tool
+  // ([malonaz.ai.v1.Tool][malonaz.ai.v1.Tool]), or every tool of a set, and
+  // says when its calls await the user's approval. A tool granted inside a
+  // granted set does not add it: it refines the set's approval for that tool.
   message ToolGrant {
     // Approval is when a call to a granted tool awaits the user's approval.
     // The grant of the tool itself decides, else the grant of its set.
     enum Approval {
-      // Calls to read-only tools ([Tool.read_only][malonaz.ai.agent.v1.Tool.read_only])
-      // run, any other awaits approval.
+      // Calls to read-only tools (`read_only` in their
+      // [ToolMethod][malonaz.ai.v1.ToolMethod]) run, any other awaits approval.
       APPROVAL_UNSPECIFIED = 0;
       // Every call awaits approval.
       APPROVAL_REQUIRED = 1;
@@ -145,30 +146,40 @@ message AgentSpec {
       APPROVAL_NOT_REQUIRED = 2;
     }
 
-    reserved 1;
+    reserved 1, 3;
     reserved "name";
 
     // What is granted.
     oneof grant {
       option (buf.validate.oneof).required = true;
 
-      // Every tool of a set, present and future.
-      // Format: toolSets/{tool_set}
-      string tool_set = 3 [
-        (buf.validate.field).string.pattern = "^toolSets/[^/]+$",
-        (google.api.resource_reference).type = "agent.ai.malonaz.com/ToolSet"
+      // One tool: a platform tool, or one of the agent's organization.
+      // Format: tools/{tool}
+      // Format: organizations/{organization}/tools/{tool}
+      string tool = 4 [
+        (buf.validate.field).string.pattern = "^(organizations/[^/]+/)?tools/[^/]+$",
+        (google.api.resource_reference).type = "ai.malonaz.com/Tool"
       ];
 
-      // One tool.
-      // Format: toolSets/{tool_set}/tools/{tool}
-      string tool = 4 [
-        (buf.validate.field).string.pattern = "^toolSets/[^/]+/tools/[^/]+$",
-        (google.api.resource_reference).type = "agent.ai.malonaz.com/Tool"
-      ];
+      // Every tool of a set, present and future.
+      ToolSetSelector tool_set = 5;
     }
 
     // When calls to the granted tools await the user's approval. Must be unset
     // for tools a client resolves.
     Approval approval = 2 [(buf.validate.field).enum.defined_only = true];
   }
+}
+
+// A ToolSetSelector selects a set of stored tools: those under a parent
+// sharing the label `ai.malonaz.com/tool-set`, a set having no resource of its
+// own. The `genui` platform set holds the genui components.
+message ToolSetSelector {
+  // The parent of the set's tools: empty for platform tools, else the agent's
+  // organization.
+  // Format: organizations/{organization}
+  string parent = 1 [(buf.validate.field).string.pattern = "^(organizations/[^/]+)?$"];
+
+  // The set's `ai.malonaz.com/tool-set` label value.
+  string id = 2 [(buf.validate.field).string.pattern = "^[a-z0-9_-]{1,63}$"];
 }

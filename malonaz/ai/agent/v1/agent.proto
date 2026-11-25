@@ -264,8 +264,9 @@ message AwaitedToolCall {
   string tool_name = 2;
 
   // The tool called.
-  // Format: toolSets/{tool_set}/tools/{tool}
-  string tool = 6 [(google.api.resource_reference).type = "agent.ai.malonaz.com/Tool"];
+  // Format: tools/{tool}
+  // Format: organizations/{organization}/tools/{tool}
+  string tool = 6 [(google.api.resource_reference).type = "ai.malonaz.com/Tool"];
 
   // The title the agent gave the call.
   string title = 3;

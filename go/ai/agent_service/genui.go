@@ -9,7 +9,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	genuipb "github.com/malonaz/core/genproto/ai/genui/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -21,14 +20,15 @@ import (
 const (
 	// genuiComponentFile declares every genui component, through the Component envelope.
 	genuiComponentFile = "malonaz/ai/genui/v1/component.proto"
-	// genuiToolSet is the id of the genui components' tool set.
+	// genuiToolSet is the tool-set label value of the genui components, platform tools named after their tools. Until
+	// the ai processor mirrors them, this binary serves them itself.
 	genuiToolSet = "genui"
 )
 
 // genuiComponent is a genui component an agent may render, by calling its tool.
 type genuiComponent struct {
 	tool *aipb.Tool
-	// The component's resource name in the catalogue.
+	// The component's resource name as a platform tool.
 	resourceName string
 	// The component's message full name.
 	name protoreflect.FullName
@@ -39,9 +39,9 @@ type genuiComponent struct {
 // genuiComponents are the genui components agents may render, served by this binary: they need no tool target.
 type genuiComponents struct {
 	// In declaration order.
-	components          []*genuiComponent
-	idToComponent       map[string]*genuiComponent
-	toolNameToComponent map[string]*genuiComponent
+	components              []*genuiComponent
+	resourceNameToComponent map[string]*genuiComponent
+	toolNameToComponent     map[string]*genuiComponent
 }
 
 func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
@@ -49,7 +49,7 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 	if err != nil {
 		return nil, err
 	}
-	genuiComponents := &genuiComponents{idToComponent: map[string]*genuiComponent{}, toolNameToComponent: map[string]*genuiComponent{}}
+	genuiComponents := &genuiComponents{resourceNameToComponent: map[string]*genuiComponent{}, toolNameToComponent: map[string]*genuiComponent{}}
 	fields := (&genuipb.Component{}).ProtoReflect().Descriptor().Oneofs().ByName("component").Fields()
 	for i := 0; i < fields.Len(); i++ {
 		message := fields.Get(i).Message()
@@ -58,7 +58,7 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 			DescriptorReference: &aienginepb.DescriptorReference{
 				FullName: &aienginepb.DescriptorReference_Message{Message: string(message.FullName())},
 			},
-			SchemaConfiguration: aitool.NewSchemaConfiguration(aitool.WithTitle(toolCallTitleDescription)),
+			SchemaConfiguration: aitool.NewSchemaConfiguration(aitool.WithTitle(aitool.TitleDescription)),
 		}
 		tool, err := builder.CreateTool(createToolRequest)
 		if err != nil {
@@ -68,10 +68,10 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 		if input {
 			tool.Description = fmt.Sprintf("Ask the user with a %s. END YOUR TURN after calling it: the user's answer arrives as this call's result.", message.Name())
 		}
-		resourceName := (&agentpb.ToolSetRn{ToolSet: genuiToolSet}).ToolRn(string(message.Name())).String()
+		resourceName := (&aipb.RootToolRn{Tool: tool.GetName()}).String()
 		genuiComponent := &genuiComponent{tool: tool, resourceName: resourceName, name: message.FullName(), input: input}
 		genuiComponents.components = append(genuiComponents.components, genuiComponent)
-		genuiComponents.idToComponent[string(message.Name())] = genuiComponent
+		genuiComponents.resourceNameToComponent[resourceName] = genuiComponent
 		genuiComponents.toolNameToComponent[tool.GetName()] = genuiComponent
 	}
 	return genuiComponents, nil
