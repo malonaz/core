@@ -192,21 +192,6 @@ func (s *Schema) GetStandardMethodType(methodFullName protoreflect.FullName) (St
 	return s.methodFullNameToStandardMethodType[protoreflect.FullName(opts.GetProxy())], nil
 }
 
-// GetStandardMethodResourceDescriptor returns the descriptor of the resource a standard method acts on, followed
-// through a gateway's proxy like GetStandardMethodType.
-func (s *Schema) GetStandardMethodResourceDescriptor(methodFullName protoreflect.FullName) (*annotations.ResourceDescriptor, bool) {
-	opts, err := pbutil.GetMethodOption[*gatewaypb.HandlerOpts](string(methodFullName), gatewaypb.E_Opts, pbutil.WithRegistry(s.files))
-	if err == nil && opts.GetProxy() != "" {
-		methodFullName = protoreflect.FullName(opts.GetProxy())
-	}
-	resourceMessageDescriptor, ok := s.methodFullNameToResourceMessageDescriptor[methodFullName]
-	if !ok {
-		return nil, false
-	}
-	resourceDescriptor, err := pbutil.GetExtension[*annotations.ResourceDescriptor](resourceMessageDescriptor.Options(), annotations.E_Resource)
-	return resourceDescriptor, err == nil
-}
-
 func (s *Schema) GetResourceDescriptor(resourceType string) (*annotations.ResourceDescriptor, bool) {
 	resourceDescriptor, ok := s.resourceTypeToResourceDescriptor[resourceType]
 	return resourceDescriptor, ok

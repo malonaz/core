@@ -21,20 +21,21 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/v1/tool.proto.
  */
 export const file_malonaz_ai_v1_tool: GenFile = /*@__PURE__*/
-  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEi5QUKBFRvb2wSEQoEbmFtZRgBIAEoCUID4EEIEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESNgoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hQgi66g8EEAEgARJDCgthbm5vdGF0aW9ucxgEIAMoCzIkLm1hbG9uYXouYWkudjEuVG9vbC5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARI0CgtjcmVhdGVfdGltZRgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAcgASgJEsUBCgZsYWJlbHMYCCADKAsyHy5tYWxvbmF6LmFpLnYxLlRvb2wuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAE6igHqQVsKE2FpLm1hbG9uYXouY29tL1Rvb2wSDHRvb2xzL3t0b29sfRIpb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS90b29scy97dG9vbH0qBXRvb2xzMgR0b29s0qYEAIL2LCQ1YjBjN2QyZS04YTQxLTRmNmItOWUzZC0yYzcxYThmMGI5NDYimwQKClRvb2xNZXRob2QSDwoHc2VydmljZRgBIAEoCRIbChNzZXJ2aWNlX2Rlc2NyaXB0aW9uGAIgASgJEg4KBm1ldGhvZBgDIAEoCRI2CgRraW5kGAQgASgOMh4ubWFsb25hei5haS52MS5Ub29sTWV0aG9kLktpbmRCCLpIBYIBAhABEhUKDXJlc291cmNlX3R5cGUYBSABKAkSGQoRcmVzb3VyY2VfcGF0dGVybnMYBiADKAkSEQoJcmVhZF9vbmx5GAcgASgIEhQKDGxvbmdfcnVubmluZxgIIAEoCBISCgpyZXF1ZXN0X2lkGAkgASgIEhIKCnBhZ2luYXRpb24YCiABKAgSDgoGZmlsdGVyGAsgASgIEhMKC3VwZGF0ZV9tYXNrGAwgASgIIu4BCgRLaW5kEhQKEEtJTkRfVU5TUEVDSUZJRUQQABIMCghLSU5EX0dFVBABEhIKDktJTkRfQkFUQ0hfR0VUEAISDQoJS0lORF9MSVNUEAMSDwoLS0lORF9TRUFSQ0gQBBIPCgtLSU5EX0NSRUFURRAFEhUKEUtJTkRfQkFUQ0hfQ1JFQVRFEAYSDwoLS0lORF9VUERBVEUQBxIPCgtLSU5EX0RFTEVURRAIEhEKDUtJTkRfVU5ERUxFVEUQCRIPCgtLSU5EX0lNUE9SVBAKEg8KC0tJTkRfRVhQT1JUEAsSDwoLS0lORF9DVVNUT00QDCLEAgoHVG9vbFVzZRISCgJpZBgBIAEoCUIGukgDyAEBEhQKBG5hbWUYAiABKAlCBrpIA8gBARIyCglhcmd1bWVudHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0Qga6SAPIAQESLQoMZXh0cmFfZmllbGRzGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI8Cgthbm5vdGF0aW9ucxgFIAMoCzInLm1hbG9uYXouYWkudjEuVG9vbFVzZS5Bbm5vdGF0aW9uc0VudHJ5Eg8KB3BhcnRpYWwYBiABKAgSKQoGcmVzdWx0GAcgASgLMhkubWFsb25hei5haS52MS5Ub29sUmVzdWx0GjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKpAgoKVG9vbFJlc3VsdBIRCgl0b29sX25hbWUYASABKAkSFAoMdG9vbF9jYWxsX2lkGAIgASgJEj8KC2Fubm90YXRpb25zGAYgAygLMioubWFsb25hei5haS52MS5Ub29sUmVzdWx0LkFubm90YXRpb25zRW50cnkSEQoHY29udGVudBgDIAEoCUgAEjQKEnN0cnVjdHVyZWRfY29udGVudBgEIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5WYWx1ZUgAEiMKBWVycm9yGAUgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXNIABoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFCDwoGcmVzdWx0EgW6SAIIASLpAQoKVG9vbENob2ljZRI3CgRtb2RlGAEgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2hvaWNlTW9kZUIIukgFggECEAFIABITCgl0b29sX25hbWUYAiABKAlIADp8ukh5GncKJWFpLnYxLlRvb2xDaG9pY2UubW9kZV9ub3RfdW5zcGVjaWZpZWQSK21vZGUgY2Fubm90IGJlIFRPT0xfQ0hPSUNFX01PREVfVU5TUEVDSUZJRUQaISFoYXModGhpcy5tb2RlKSB8fCB0aGlzLm1vZGUgIT0gMEIPCgZjaG9pY2USBbpIAggBIngKB1Rvb2xTZXQSDAoEbmFtZRgBIAEoCRIzCg5kaXNjb3ZlcnlfdG9vbBgCIAEoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBEioKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sQga6SAPIAQEifgoRVG9vbENhbGxEaXNjb3ZlcnkSFQoNdG9vbF9zZXRfbmFtZRgBIAEoCRISCgp0b29sX25hbWVzGAIgAygJEiIKBXRvb2xzGAMgAygLMhMubWFsb25hei5haS52MS5Ub29sEhoKEnVua25vd25fdG9vbF9uYW1lcxgEIAMoCSJYCg9Ub29sQ2FsbEV4ZWN1dGUSGQoJdG9vbF9uYW1lGAEgASgJQga6SAPIAQESKgoJYXJndW1lbnRzGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCKbAQoLVG9vbENhbGxScGMSGQoRc2VydmljZV9mdWxsX25hbWUYASABKAkSGAoQbWV0aG9kX2Z1bGxfbmFtZRgCIAEoCRIoCgdyZXF1ZXN0GAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBItCglyZWFkX21hc2sYBCABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrKocBCg5Ub29sQ2hvaWNlTW9kZRIgChxUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEEAASGQoVVE9PTF9DSE9JQ0VfTU9ERV9OT05FEAESGQoVVE9PTF9DSE9JQ0VfTU9ERV9BVVRPEAISHQoZVE9PTF9DSE9JQ0VfTU9ERV9SRVFVSVJFRBADQihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_json_v1_schema]);
+  fileDesc("ChhtYWxvbmF6L2FpL3YxL3Rvb2wucHJvdG8SDW1hbG9uYXouYWkudjEinQYKBFRvb2wSEQoEbmFtZRgBIAEoCUID4EEIEhsKC2Rlc2NyaXB0aW9uGAIgASgJQga6SAPIAQESNgoLanNvbl9zY2hlbWEYAyABKAsyFy5tYWxvbmF6Lmpzb24udjEuU2NoZW1hQgi66g8EEAEgARJDCgthbm5vdGF0aW9ucxgEIAMoCzIkLm1hbG9uYXouYWkudjEuVG9vbC5Bbm5vdGF0aW9uc0VudHJ5Qgi66g8EEAEgARI0CgtjcmVhdGVfdGltZRgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxI0Cgt1cGRhdGVfdGltZRgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxIMCgRldGFnGAcgASgJEsUBCgZsYWJlbHMYCCADKAsyHy5tYWxvbmF6LmFpLnYxLlRvb2wuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESNgoFdGl0bGUYCSABKAlCJ7pIJHIfMh1eW0EtWmEtel1bQS1aYS16MC05Xy1dezAsNjN9JNgBARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ATqKAepBWwoTYWkubWFsb25hei5jb20vVG9vbBIMdG9vbHMve3Rvb2x9Eilvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3Rvb2xzL3t0b29sfSoFdG9vbHMyBHRvb2zSpgQAgvYsJDViMGM3ZDJlLThhNDEtNGY2Yi05ZTNkLTJjNzFhOGYwYjk0NiJxCgpUb29sTWV0aG9kEg8KB3NlcnZpY2UYASABKAkSGwoTc2VydmljZV9kZXNjcmlwdGlvbhgCIAEoCRIOCgZtZXRob2QYAyABKAkSEQoJcmVhZF9vbmx5GAQgASgIEhIKCnJlcXVlc3RfaWQYBSABKAgixAIKB1Rvb2xVc2USEgoCaWQYASABKAlCBrpIA8gBARIUCgRuYW1lGAIgASgJQga6SAPIAQESMgoJYXJndW1lbnRzGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdEIGukgDyAEBEi0KDGV4dHJhX2ZpZWxkcxgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSPAoLYW5ub3RhdGlvbnMYBSADKAsyJy5tYWxvbmF6LmFpLnYxLlRvb2xVc2UuQW5ub3RhdGlvbnNFbnRyeRIPCgdwYXJ0aWFsGAYgASgIEikKBnJlc3VsdBgHIAEoCzIZLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdBoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiqQIKClRvb2xSZXN1bHQSEQoJdG9vbF9uYW1lGAEgASgJEhQKDHRvb2xfY2FsbF9pZBgCIAEoCRI/Cgthbm5vdGF0aW9ucxgGIAMoCzIqLm1hbG9uYXouYWkudjEuVG9vbFJlc3VsdC5Bbm5vdGF0aW9uc0VudHJ5EhEKB2NvbnRlbnQYAyABKAlIABI0ChJzdHJ1Y3R1cmVkX2NvbnRlbnQYBCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWVIABIjCgVlcnJvchgFIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzSAAaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBQg8KBnJlc3VsdBIFukgCCAEi6QEKClRvb2xDaG9pY2USNwoEbW9kZRgBIAEoDjIdLm1hbG9uYXouYWkudjEuVG9vbENob2ljZU1vZGVCCLpIBYIBAhABSAASEwoJdG9vbF9uYW1lGAIgASgJSAA6fLpIeRp3CiVhaS52MS5Ub29sQ2hvaWNlLm1vZGVfbm90X3Vuc3BlY2lmaWVkEittb2RlIGNhbm5vdCBiZSBUT09MX0NIT0lDRV9NT0RFX1VOU1BFQ0lGSUVEGiEhaGFzKHRoaXMubW9kZSkgfHwgdGhpcy5tb2RlICE9IDBCDwoGY2hvaWNlEgW6SAIIASJ4CgdUb29sU2V0EgwKBG5hbWUYASABKAkSMwoOZGlzY292ZXJ5X3Rvb2wYAiABKAsyEy5tYWxvbmF6LmFpLnYxLlRvb2xCBrpIA8gBARIqCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbEIGukgDyAEBIn4KEVRvb2xDYWxsRGlzY292ZXJ5EhUKDXRvb2xfc2V0X25hbWUYASABKAkSEgoKdG9vbF9uYW1lcxgCIAMoCRIiCgV0b29scxgDIAMoCzITLm1hbG9uYXouYWkudjEuVG9vbBIaChJ1bmtub3duX3Rvb2xfbmFtZXMYBCADKAkiWAoPVG9vbENhbGxFeGVjdXRlEhkKCXRvb2xfbmFtZRgBIAEoCUIGukgDyAEBEioKCWFyZ3VtZW50cxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QimwEKC1Rvb2xDYWxsUnBjEhkKEXNlcnZpY2VfZnVsbF9uYW1lGAEgASgJEhgKEG1ldGhvZF9mdWxsX25hbWUYAiABKAkSKAoHcmVxdWVzdBgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSLQoJcmVhZF9tYXNrGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayqHAQoOVG9vbENob2ljZU1vZGUSIAocVE9PTF9DSE9JQ0VfTU9ERV9VTlNQRUNJRklFRBAAEhkKFVRPT0xfQ0hPSUNFX01PREVfTk9ORRABEhkKFVRPT0xfQ0hPSUNFX01PREVfQVVUTxACEh0KGVRPT0xfQ0hPSUNFX01PREVfUkVRVUlSRUQQA0IoWiZnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_google_protobuf_struct, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_json_v1_schema]);
 
 /**
  * A Tool is a tool a model may be given. Platform tools (`tools/{tool}`) are mirrored from gRPC services by the ai
  * processor and written by nothing else; an organization's tools (`organizations/{organization}/tools/{tool}`) are
- * written by its clients. A model is given a tool under its id, the last segment of its name, so the tools offered
- * together have distinct ids; a tool passed inline to a generation, never stored, carries its bare id as its name.
- * A tool describes: what happens when it is called is its caller's business.
+ * written by its clients. A model calls a stored tool by its `title`: a consumer giving it to a generation passes it
+ * inline under that name. A tool passed inline is never stored, and its `name` is the name the model calls it by.
+ * Names given to one generation must be distinct, which is the consumer's concern. A tool describes: what happens
+ * when it is called is its caller's business.
  *
  * @generated from message malonaz.ai.v1.Tool
  */
 export type Tool = Message<"malonaz.ai.v1.Tool"> & {
   /**
-   * The resource name of the tool, or an inline tool's bare id. Its id is the name the model calls it by.
+   * The resource name of a stored tool, or the name the model calls an inline tool by.
    * Format: tools/{tool}
    * Format: organizations/{organization}/tools/{tool}
    *
@@ -92,20 +93,28 @@ export type Tool = Message<"malonaz.ai.v1.Tool"> & {
    * @generated from field: map<string, string> labels = 8;
    */
   labels: { [key: string]: string };
+
+  /**
+   * The name a model calls a stored tool by. Empty on an inline tool, whose `name` is.
+   *
+   * @generated from field: string title = 9;
+   */
+  title: string;
 };
 
 /**
  * A Tool is a tool a model may be given. Platform tools (`tools/{tool}`) are mirrored from gRPC services by the ai
  * processor and written by nothing else; an organization's tools (`organizations/{organization}/tools/{tool}`) are
- * written by its clients. A model is given a tool under its id, the last segment of its name, so the tools offered
- * together have distinct ids; a tool passed inline to a generation, never stored, carries its bare id as its name.
- * A tool describes: what happens when it is called is its caller's business.
+ * written by its clients. A model calls a stored tool by its `title`: a consumer giving it to a generation passes it
+ * inline under that name. A tool passed inline is never stored, and its `name` is the name the model calls it by.
+ * Names given to one generation must be distinct, which is the consumer's concern. A tool describes: what happens
+ * when it is called is its caller's business.
  *
  * @generated from message malonaz.ai.v1.Tool
  */
 export type ToolValid = Message<"malonaz.ai.v1.Tool"> & {
   /**
-   * The resource name of the tool, or an inline tool's bare id. Its id is the name the model calls it by.
+   * The resource name of a stored tool, or the name the model calls an inline tool by.
    * Format: tools/{tool}
    * Format: organizations/{organization}/tools/{tool}
    *
@@ -163,6 +172,13 @@ export type ToolValid = Message<"malonaz.ai.v1.Tool"> & {
    * @generated from field: map<string, string> labels = 8;
    */
   labels: { [key: string]: string };
+
+  /**
+   * The name a model calls a stored tool by. Empty on an inline tool, whose `name` is.
+   *
+   * @generated from field: string title = 9;
+   */
+  title: string;
 };
 
 /**
@@ -180,90 +196,39 @@ export const ToolSchema: GenMessage<Tool, {validType: ToolValid}> = /*@__PURE__*
  */
 export type ToolMethod = Message<"malonaz.ai.v1.ToolMethod"> & {
   /**
-   * The service's full name.
+   * The service's full name: which service to call.
    *
    * @generated from field: string service = 1;
    */
   service: string;
 
   /**
-   * The service's comment.
+   * The service's comment: the description of the discovery tool a consumer builds over its tools.
    *
    * @generated from field: string service_description = 2;
    */
   serviceDescription: string;
 
   /**
-   * The method's full name.
+   * The method's full name: which method to call.
    *
    * @generated from field: string method = 3;
    */
   method: string;
 
   /**
-   * The method's AIP kind: a standard method by its `standard_method` option, followed through a gateway's proxy;
-   * else custom.
-   *
-   * @generated from field: malonaz.ai.v1.ToolMethod.Kind kind = 4;
-   */
-  kind: ToolMethod_Kind;
-
-  /**
-   * The type of the resource the method acts on: a standard method's, else the type the request's `name` (or
-   * `parent`) references. Empty for a method on no declared resource.
-   *
-   * @generated from field: string resource_type = 5;
-   */
-  resourceType: string;
-
-  /**
-   * The patterns of `resource_type`.
-   *
-   * @generated from field: repeated string resource_patterns = 6;
-   */
-  resourcePatterns: string[];
-
-  /**
    * Whether the method declares `idempotency_level = NO_SIDE_EFFECTS`.
    *
-   * @generated from field: bool read_only = 7;
+   * @generated from field: bool read_only = 4;
    */
   readOnly: boolean;
 
   /**
-   * Whether the method returns a google.longrunning.Operation.
-   *
-   * @generated from field: bool long_running = 8;
-   */
-  longRunning: boolean;
-
-  /**
    * Whether the request has a `request_id`: a caller derives it from the call, so a retried call is not repeated.
    *
-   * @generated from field: bool request_id = 9;
+   * @generated from field: bool request_id = 5;
    */
   requestId: boolean;
-
-  /**
-   * Whether the request pages (`page_size`, `page_token`).
-   *
-   * @generated from field: bool pagination = 10;
-   */
-  pagination: boolean;
-
-  /**
-   * Whether the request takes a `filter`.
-   *
-   * @generated from field: bool filter = 11;
-   */
-  filter: boolean;
-
-  /**
-   * Whether the request takes an `update_mask`.
-   *
-   * @generated from field: bool update_mask = 12;
-   */
-  updateMask: boolean;
 };
 
 export type ToolMethodValid = ToolMethod;
@@ -274,110 +239,6 @@ export type ToolMethodValid = ToolMethod;
  */
 export const ToolMethodSchema: GenMessage<ToolMethod, {validType: ToolMethodValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_tool, 1);
-
-/**
- * Kind is the method's AIP kind.
- *
- * @generated from enum malonaz.ai.v1.ToolMethod.Kind
- */
-export enum ToolMethod_Kind {
-  /**
-   * Used to detect an unset field.
-   *
-   * @generated from enum value: KIND_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * A standard Get (AIP-131).
-   *
-   * @generated from enum value: KIND_GET = 1;
-   */
-  GET = 1,
-
-  /**
-   * A batch Get (AIP-231).
-   *
-   * @generated from enum value: KIND_BATCH_GET = 2;
-   */
-  BATCH_GET = 2,
-
-  /**
-   * A standard List (AIP-132).
-   *
-   * @generated from enum value: KIND_LIST = 3;
-   */
-  LIST = 3,
-
-  /**
-   * A Search.
-   *
-   * @generated from enum value: KIND_SEARCH = 4;
-   */
-  SEARCH = 4,
-
-  /**
-   * A standard Create (AIP-133).
-   *
-   * @generated from enum value: KIND_CREATE = 5;
-   */
-  CREATE = 5,
-
-  /**
-   * A batch Create (AIP-233).
-   *
-   * @generated from enum value: KIND_BATCH_CREATE = 6;
-   */
-  BATCH_CREATE = 6,
-
-  /**
-   * A standard Update (AIP-134).
-   *
-   * @generated from enum value: KIND_UPDATE = 7;
-   */
-  UPDATE = 7,
-
-  /**
-   * A standard Delete (AIP-135).
-   *
-   * @generated from enum value: KIND_DELETE = 8;
-   */
-  DELETE = 8,
-
-  /**
-   * An Undelete (AIP-164).
-   *
-   * @generated from enum value: KIND_UNDELETE = 9;
-   */
-  UNDELETE = 9,
-
-  /**
-   * An Import.
-   *
-   * @generated from enum value: KIND_IMPORT = 10;
-   */
-  IMPORT = 10,
-
-  /**
-   * An Export.
-   *
-   * @generated from enum value: KIND_EXPORT = 11;
-   */
-  EXPORT = 11,
-
-  /**
-   * Any other method (AIP-136).
-   *
-   * @generated from enum value: KIND_CUSTOM = 12;
-   */
-  CUSTOM = 12,
-}
-
-/**
- * Describes the enum malonaz.ai.v1.ToolMethod.Kind.
- */
-export const ToolMethod_KindSchema: GenEnum<ToolMethod_Kind> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_v1_tool, 1, 0);
 
 /**
  * A ToolUse is a model's request to call a tool, as a message carries it in its

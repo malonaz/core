@@ -83,99 +83,12 @@ func (x ToolChoiceMode) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Kind is the method's AIP kind.
-type ToolMethod_Kind int32
-
-const (
-	// Used to detect an unset field.
-	ToolMethod_KIND_UNSPECIFIED ToolMethod_Kind = 0
-	// A standard Get (AIP-131).
-	ToolMethod_KIND_GET ToolMethod_Kind = 1
-	// A batch Get (AIP-231).
-	ToolMethod_KIND_BATCH_GET ToolMethod_Kind = 2
-	// A standard List (AIP-132).
-	ToolMethod_KIND_LIST ToolMethod_Kind = 3
-	// A Search.
-	ToolMethod_KIND_SEARCH ToolMethod_Kind = 4
-	// A standard Create (AIP-133).
-	ToolMethod_KIND_CREATE ToolMethod_Kind = 5
-	// A batch Create (AIP-233).
-	ToolMethod_KIND_BATCH_CREATE ToolMethod_Kind = 6
-	// A standard Update (AIP-134).
-	ToolMethod_KIND_UPDATE ToolMethod_Kind = 7
-	// A standard Delete (AIP-135).
-	ToolMethod_KIND_DELETE ToolMethod_Kind = 8
-	// An Undelete (AIP-164).
-	ToolMethod_KIND_UNDELETE ToolMethod_Kind = 9
-	// An Import.
-	ToolMethod_KIND_IMPORT ToolMethod_Kind = 10
-	// An Export.
-	ToolMethod_KIND_EXPORT ToolMethod_Kind = 11
-	// Any other method (AIP-136).
-	ToolMethod_KIND_CUSTOM ToolMethod_Kind = 12
-)
-
-// Enum value maps for ToolMethod_Kind.
-var (
-	ToolMethod_Kind_name = map[int32]string{
-		0:  "KIND_UNSPECIFIED",
-		1:  "KIND_GET",
-		2:  "KIND_BATCH_GET",
-		3:  "KIND_LIST",
-		4:  "KIND_SEARCH",
-		5:  "KIND_CREATE",
-		6:  "KIND_BATCH_CREATE",
-		7:  "KIND_UPDATE",
-		8:  "KIND_DELETE",
-		9:  "KIND_UNDELETE",
-		10: "KIND_IMPORT",
-		11: "KIND_EXPORT",
-		12: "KIND_CUSTOM",
-	}
-	ToolMethod_Kind_value = map[string]int32{
-		"KIND_UNSPECIFIED":  0,
-		"KIND_GET":          1,
-		"KIND_BATCH_GET":    2,
-		"KIND_LIST":         3,
-		"KIND_SEARCH":       4,
-		"KIND_CREATE":       5,
-		"KIND_BATCH_CREATE": 6,
-		"KIND_UPDATE":       7,
-		"KIND_DELETE":       8,
-		"KIND_UNDELETE":     9,
-		"KIND_IMPORT":       10,
-		"KIND_EXPORT":       11,
-		"KIND_CUSTOM":       12,
-	}
-)
-
-func (x ToolMethod_Kind) Enum() *ToolMethod_Kind {
-	p := new(ToolMethod_Kind)
-	*p = x
-	return p
-}
-
-func (x ToolMethod_Kind) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ToolMethod_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_tool_proto_enumTypes[1].Descriptor()
-}
-
-func (ToolMethod_Kind) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_tool_proto_enumTypes[1]
-}
-
-func (x ToolMethod_Kind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
 // A Tool is a tool a model may be given. Platform tools (`tools/{tool}`) are mirrored from gRPC services by the ai
 // processor and written by nothing else; an organization's tools (`organizations/{organization}/tools/{tool}`) are
-// written by its clients. A model is given a tool under its id, the last segment of its name, so the tools offered
-// together have distinct ids; a tool passed inline to a generation, never stored, carries its bare id as its name.
-// A tool describes: what happens when it is called is its caller's business.
+// written by its clients. A model calls a stored tool by its `title`: a consumer giving it to a generation passes it
+// inline under that name. A tool passed inline is never stored, and its `name` is the name the model calls it by.
+// Names given to one generation must be distinct, which is the consumer's concern. A tool describes: what happens
+// when it is called is its caller's business.
 type Tool struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -186,6 +99,7 @@ type Tool struct {
 	xxx_hidden_UpdateTime  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=update_time,json=updateTime,proto3"`
 	xxx_hidden_Etag        string                 `protobuf:"bytes,7,opt,name=etag,proto3"`
 	xxx_hidden_Labels      map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	xxx_hidden_Title       string                 `protobuf:"bytes,9,opt,name=title,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -271,6 +185,13 @@ func (x *Tool) GetLabels() map[string]string {
 	return nil
 }
 
+func (x *Tool) GetTitle() string {
+	if x != nil {
+		return x.xxx_hidden_Title
+	}
+	return ""
+}
+
 func (x *Tool) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -301,6 +222,10 @@ func (x *Tool) SetEtag(v string) {
 
 func (x *Tool) SetLabels(v map[string]string) {
 	x.xxx_hidden_Labels = v
+}
+
+func (x *Tool) SetTitle(v string) {
+	x.xxx_hidden_Title = v
 }
 
 func (x *Tool) HasJsonSchema() bool {
@@ -339,7 +264,7 @@ func (x *Tool) ClearUpdateTime() {
 type Tool_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The resource name of the tool, or an inline tool's bare id. Its id is the name the model calls it by.
+	// The resource name of a stored tool, or the name the model calls an inline tool by.
 	// Format: tools/{tool}
 	// Format: organizations/{organization}/tools/{tool}
 	Name string
@@ -359,6 +284,8 @@ type Tool_builder struct {
 	Etag string
 	// The labels on this tool: `ai.malonaz.com/tool-set` groups tools into sets.
 	Labels map[string]string
+	// The name a model calls a stored tool by. Empty on an inline tool, whose `name` is.
+	Title string
 }
 
 func (b0 Tool_builder) Build() *Tool {
@@ -373,6 +300,7 @@ func (b0 Tool_builder) Build() *Tool {
 	x.xxx_hidden_UpdateTime = b.UpdateTime
 	x.xxx_hidden_Etag = b.Etag
 	x.xxx_hidden_Labels = b.Labels
+	x.xxx_hidden_Title = b.Title
 	return m0
 }
 
@@ -383,15 +311,8 @@ type ToolMethod struct {
 	xxx_hidden_Service            string                 `protobuf:"bytes,1,opt,name=service,proto3"`
 	xxx_hidden_ServiceDescription string                 `protobuf:"bytes,2,opt,name=service_description,json=serviceDescription,proto3"`
 	xxx_hidden_Method             string                 `protobuf:"bytes,3,opt,name=method,proto3"`
-	xxx_hidden_Kind               ToolMethod_Kind        `protobuf:"varint,4,opt,name=kind,proto3,enum=malonaz.ai.v1.ToolMethod_Kind"`
-	xxx_hidden_ResourceType       string                 `protobuf:"bytes,5,opt,name=resource_type,json=resourceType,proto3"`
-	xxx_hidden_ResourcePatterns   []string               `protobuf:"bytes,6,rep,name=resource_patterns,json=resourcePatterns,proto3"`
-	xxx_hidden_ReadOnly           bool                   `protobuf:"varint,7,opt,name=read_only,json=readOnly,proto3"`
-	xxx_hidden_LongRunning        bool                   `protobuf:"varint,8,opt,name=long_running,json=longRunning,proto3"`
-	xxx_hidden_RequestId          bool                   `protobuf:"varint,9,opt,name=request_id,json=requestId,proto3"`
-	xxx_hidden_Pagination         bool                   `protobuf:"varint,10,opt,name=pagination,proto3"`
-	xxx_hidden_Filter             bool                   `protobuf:"varint,11,opt,name=filter,proto3"`
-	xxx_hidden_UpdateMask         bool                   `protobuf:"varint,12,opt,name=update_mask,json=updateMask,proto3"`
+	xxx_hidden_ReadOnly           bool                   `protobuf:"varint,4,opt,name=read_only,json=readOnly,proto3"`
+	xxx_hidden_RequestId          bool                   `protobuf:"varint,5,opt,name=request_id,json=requestId,proto3"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
@@ -442,27 +363,6 @@ func (x *ToolMethod) GetMethod() string {
 	return ""
 }
 
-func (x *ToolMethod) GetKind() ToolMethod_Kind {
-	if x != nil {
-		return x.xxx_hidden_Kind
-	}
-	return ToolMethod_KIND_UNSPECIFIED
-}
-
-func (x *ToolMethod) GetResourceType() string {
-	if x != nil {
-		return x.xxx_hidden_ResourceType
-	}
-	return ""
-}
-
-func (x *ToolMethod) GetResourcePatterns() []string {
-	if x != nil {
-		return x.xxx_hidden_ResourcePatterns
-	}
-	return nil
-}
-
 func (x *ToolMethod) GetReadOnly() bool {
 	if x != nil {
 		return x.xxx_hidden_ReadOnly
@@ -470,37 +370,9 @@ func (x *ToolMethod) GetReadOnly() bool {
 	return false
 }
 
-func (x *ToolMethod) GetLongRunning() bool {
-	if x != nil {
-		return x.xxx_hidden_LongRunning
-	}
-	return false
-}
-
 func (x *ToolMethod) GetRequestId() bool {
 	if x != nil {
 		return x.xxx_hidden_RequestId
-	}
-	return false
-}
-
-func (x *ToolMethod) GetPagination() bool {
-	if x != nil {
-		return x.xxx_hidden_Pagination
-	}
-	return false
-}
-
-func (x *ToolMethod) GetFilter() bool {
-	if x != nil {
-		return x.xxx_hidden_Filter
-	}
-	return false
-}
-
-func (x *ToolMethod) GetUpdateMask() bool {
-	if x != nil {
-		return x.xxx_hidden_UpdateMask
 	}
 	return false
 }
@@ -517,71 +389,27 @@ func (x *ToolMethod) SetMethod(v string) {
 	x.xxx_hidden_Method = v
 }
 
-func (x *ToolMethod) SetKind(v ToolMethod_Kind) {
-	x.xxx_hidden_Kind = v
-}
-
-func (x *ToolMethod) SetResourceType(v string) {
-	x.xxx_hidden_ResourceType = v
-}
-
-func (x *ToolMethod) SetResourcePatterns(v []string) {
-	x.xxx_hidden_ResourcePatterns = v
-}
-
 func (x *ToolMethod) SetReadOnly(v bool) {
 	x.xxx_hidden_ReadOnly = v
-}
-
-func (x *ToolMethod) SetLongRunning(v bool) {
-	x.xxx_hidden_LongRunning = v
 }
 
 func (x *ToolMethod) SetRequestId(v bool) {
 	x.xxx_hidden_RequestId = v
 }
 
-func (x *ToolMethod) SetPagination(v bool) {
-	x.xxx_hidden_Pagination = v
-}
-
-func (x *ToolMethod) SetFilter(v bool) {
-	x.xxx_hidden_Filter = v
-}
-
-func (x *ToolMethod) SetUpdateMask(v bool) {
-	x.xxx_hidden_UpdateMask = v
-}
-
 type ToolMethod_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The service's full name.
+	// The service's full name: which service to call.
 	Service string
-	// The service's comment.
+	// The service's comment: the description of the discovery tool a consumer builds over its tools.
 	ServiceDescription string
-	// The method's full name.
+	// The method's full name: which method to call.
 	Method string
-	// The method's AIP kind: a standard method by its `standard_method` option, followed through a gateway's proxy;
-	// else custom.
-	Kind ToolMethod_Kind
-	// The type of the resource the method acts on: a standard method's, else the type the request's `name` (or
-	// `parent`) references. Empty for a method on no declared resource.
-	ResourceType string
-	// The patterns of `resource_type`.
-	ResourcePatterns []string
 	// Whether the method declares `idempotency_level = NO_SIDE_EFFECTS`.
 	ReadOnly bool
-	// Whether the method returns a google.longrunning.Operation.
-	LongRunning bool
 	// Whether the request has a `request_id`: a caller derives it from the call, so a retried call is not repeated.
 	RequestId bool
-	// Whether the request pages (`page_size`, `page_token`).
-	Pagination bool
-	// Whether the request takes a `filter`.
-	Filter bool
-	// Whether the request takes an `update_mask`.
-	UpdateMask bool
 }
 
 func (b0 ToolMethod_builder) Build() *ToolMethod {
@@ -591,15 +419,8 @@ func (b0 ToolMethod_builder) Build() *ToolMethod {
 	x.xxx_hidden_Service = b.Service
 	x.xxx_hidden_ServiceDescription = b.ServiceDescription
 	x.xxx_hidden_Method = b.Method
-	x.xxx_hidden_Kind = b.Kind
-	x.xxx_hidden_ResourceType = b.ResourceType
-	x.xxx_hidden_ResourcePatterns = b.ResourcePatterns
 	x.xxx_hidden_ReadOnly = b.ReadOnly
-	x.xxx_hidden_LongRunning = b.LongRunning
 	x.xxx_hidden_RequestId = b.RequestId
-	x.xxx_hidden_Pagination = b.Pagination
-	x.xxx_hidden_Filter = b.Filter
-	x.xxx_hidden_UpdateMask = b.UpdateMask
 	return m0
 }
 
@@ -1653,7 +1474,7 @@ var File_malonaz_ai_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\x1cmalonaz/json/v1/schema.proto\"\xcf\x06\n" +
+	"\x18malonaz/ai/v1/tool.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a\x1cmalonaz/json/v1/schema.proto\"\x8e\a\n" +
 	"\x04Tool\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12(\n" +
 	"\vdescription\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\vdescription\x12B\n" +
@@ -1665,48 +1486,23 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12\x12\n" +
 	"\x04etag\x18\a \x01(\tR\x04etag\x12\xcd\x01\n" +
-	"\x06labels\x18\b \x03(\v2\x1f.malonaz.ai.v1.Tool.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x1a>\n" +
+	"\x06labels\x18\b \x03(\v2\x1f.malonaz.ai.v1.Tool.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12=\n" +
+	"\x05title\x18\t \x01(\tB'\xbaH$\xd8\x01\x01r\x1f2\x1d^[A-Za-z][A-Za-z0-9_-]{0,63}$R\x05title\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x8a\x01\xeaA[\n" +
-	"\x13ai.malonaz.com/Tool\x12\ftools/{tool}\x12)organizations/{organization}/tools/{tool}*\x05tools2\x04toolҦ\x04\x00\x82\xf6,$5b0c7d2e-8a41-4f6b-9e3d-2c71a8f0b946\"\xa8\x05\n" +
+	"\x13ai.malonaz.com/Tool\x12\ftools/{tool}\x12)organizations/{organization}/tools/{tool}*\x05tools2\x04toolҦ\x04\x00\x82\xf6,$5b0c7d2e-8a41-4f6b-9e3d-2c71a8f0b946\"\xab\x01\n" +
 	"\n" +
 	"ToolMethod\x12\x18\n" +
 	"\aservice\x18\x01 \x01(\tR\aservice\x12/\n" +
 	"\x13service_description\x18\x02 \x01(\tR\x12serviceDescription\x12\x16\n" +
-	"\x06method\x18\x03 \x01(\tR\x06method\x12<\n" +
-	"\x04kind\x18\x04 \x01(\x0e2\x1e.malonaz.ai.v1.ToolMethod.KindB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04kind\x12#\n" +
-	"\rresource_type\x18\x05 \x01(\tR\fresourceType\x12+\n" +
-	"\x11resource_patterns\x18\x06 \x03(\tR\x10resourcePatterns\x12\x1b\n" +
-	"\tread_only\x18\a \x01(\bR\breadOnly\x12!\n" +
-	"\flong_running\x18\b \x01(\bR\vlongRunning\x12\x1d\n" +
+	"\x06method\x18\x03 \x01(\tR\x06method\x12\x1b\n" +
+	"\tread_only\x18\x04 \x01(\bR\breadOnly\x12\x1d\n" +
 	"\n" +
-	"request_id\x18\t \x01(\bR\trequestId\x12\x1e\n" +
-	"\n" +
-	"pagination\x18\n" +
-	" \x01(\bR\n" +
-	"pagination\x12\x16\n" +
-	"\x06filter\x18\v \x01(\bR\x06filter\x12\x1f\n" +
-	"\vupdate_mask\x18\f \x01(\bR\n" +
-	"updateMask\"\xee\x01\n" +
-	"\x04Kind\x12\x14\n" +
-	"\x10KIND_UNSPECIFIED\x10\x00\x12\f\n" +
-	"\bKIND_GET\x10\x01\x12\x12\n" +
-	"\x0eKIND_BATCH_GET\x10\x02\x12\r\n" +
-	"\tKIND_LIST\x10\x03\x12\x0f\n" +
-	"\vKIND_SEARCH\x10\x04\x12\x0f\n" +
-	"\vKIND_CREATE\x10\x05\x12\x15\n" +
-	"\x11KIND_BATCH_CREATE\x10\x06\x12\x0f\n" +
-	"\vKIND_UPDATE\x10\a\x12\x0f\n" +
-	"\vKIND_DELETE\x10\b\x12\x11\n" +
-	"\rKIND_UNDELETE\x10\t\x12\x0f\n" +
-	"\vKIND_IMPORT\x10\n" +
-	"\x12\x0f\n" +
-	"\vKIND_EXPORT\x10\v\x12\x0f\n" +
-	"\vKIND_CUSTOM\x10\f\"\x90\x03\n" +
+	"request_id\x18\x05 \x01(\bR\trequestId\"\x90\x03\n" +
 	"\aToolUse\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
@@ -1761,57 +1557,55 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\x15TOOL_CHOICE_MODE_AUTO\x10\x02\x12\x1d\n" +
 	"\x19TOOL_CHOICE_MODE_REQUIRED\x10\x03B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_malonaz_ai_v1_tool_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_ai_v1_tool_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolChoiceMode)(0),           // 0: malonaz.ai.v1.ToolChoiceMode
-	(ToolMethod_Kind)(0),          // 1: malonaz.ai.v1.ToolMethod.Kind
-	(*Tool)(nil),                  // 2: malonaz.ai.v1.Tool
-	(*ToolMethod)(nil),            // 3: malonaz.ai.v1.ToolMethod
-	(*ToolUse)(nil),               // 4: malonaz.ai.v1.ToolUse
-	(*ToolResult)(nil),            // 5: malonaz.ai.v1.ToolResult
-	(*ToolChoice)(nil),            // 6: malonaz.ai.v1.ToolChoice
-	(*ToolSet)(nil),               // 7: malonaz.ai.v1.ToolSet
-	(*ToolCallDiscovery)(nil),     // 8: malonaz.ai.v1.ToolCallDiscovery
-	(*ToolCallExecute)(nil),       // 9: malonaz.ai.v1.ToolCallExecute
-	(*ToolCallRpc)(nil),           // 10: malonaz.ai.v1.ToolCallRpc
-	nil,                           // 11: malonaz.ai.v1.Tool.AnnotationsEntry
-	nil,                           // 12: malonaz.ai.v1.Tool.LabelsEntry
-	nil,                           // 13: malonaz.ai.v1.ToolUse.AnnotationsEntry
-	nil,                           // 14: malonaz.ai.v1.ToolResult.AnnotationsEntry
-	(*v1.Schema)(nil),             // 15: malonaz.json.v1.Schema
-	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 17: google.protobuf.Struct
-	(*structpb.Value)(nil),        // 18: google.protobuf.Value
-	(*status.Status)(nil),         // 19: google.rpc.Status
-	(*fieldmaskpb.FieldMask)(nil), // 20: google.protobuf.FieldMask
+	(*Tool)(nil),                  // 1: malonaz.ai.v1.Tool
+	(*ToolMethod)(nil),            // 2: malonaz.ai.v1.ToolMethod
+	(*ToolUse)(nil),               // 3: malonaz.ai.v1.ToolUse
+	(*ToolResult)(nil),            // 4: malonaz.ai.v1.ToolResult
+	(*ToolChoice)(nil),            // 5: malonaz.ai.v1.ToolChoice
+	(*ToolSet)(nil),               // 6: malonaz.ai.v1.ToolSet
+	(*ToolCallDiscovery)(nil),     // 7: malonaz.ai.v1.ToolCallDiscovery
+	(*ToolCallExecute)(nil),       // 8: malonaz.ai.v1.ToolCallExecute
+	(*ToolCallRpc)(nil),           // 9: malonaz.ai.v1.ToolCallRpc
+	nil,                           // 10: malonaz.ai.v1.Tool.AnnotationsEntry
+	nil,                           // 11: malonaz.ai.v1.Tool.LabelsEntry
+	nil,                           // 12: malonaz.ai.v1.ToolUse.AnnotationsEntry
+	nil,                           // 13: malonaz.ai.v1.ToolResult.AnnotationsEntry
+	(*v1.Schema)(nil),             // 14: malonaz.json.v1.Schema
+	(*timestamppb.Timestamp)(nil), // 15: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 16: google.protobuf.Struct
+	(*structpb.Value)(nil),        // 17: google.protobuf.Value
+	(*status.Status)(nil),         // 18: google.rpc.Status
+	(*fieldmaskpb.FieldMask)(nil), // 19: google.protobuf.FieldMask
 }
 var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
-	15, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
-	11, // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
-	16, // 2: malonaz.ai.v1.Tool.create_time:type_name -> google.protobuf.Timestamp
-	16, // 3: malonaz.ai.v1.Tool.update_time:type_name -> google.protobuf.Timestamp
-	12, // 4: malonaz.ai.v1.Tool.labels:type_name -> malonaz.ai.v1.Tool.LabelsEntry
-	1,  // 5: malonaz.ai.v1.ToolMethod.kind:type_name -> malonaz.ai.v1.ToolMethod.Kind
-	17, // 6: malonaz.ai.v1.ToolUse.arguments:type_name -> google.protobuf.Struct
-	17, // 7: malonaz.ai.v1.ToolUse.extra_fields:type_name -> google.protobuf.Struct
-	13, // 8: malonaz.ai.v1.ToolUse.annotations:type_name -> malonaz.ai.v1.ToolUse.AnnotationsEntry
-	5,  // 9: malonaz.ai.v1.ToolUse.result:type_name -> malonaz.ai.v1.ToolResult
-	14, // 10: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
-	18, // 11: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
-	19, // 12: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
-	0,  // 13: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
-	2,  // 14: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
-	2,  // 15: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
-	2,  // 16: malonaz.ai.v1.ToolCallDiscovery.tools:type_name -> malonaz.ai.v1.Tool
-	17, // 17: malonaz.ai.v1.ToolCallExecute.arguments:type_name -> google.protobuf.Struct
-	17, // 18: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
-	20, // 19: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	14, // 0: malonaz.ai.v1.Tool.json_schema:type_name -> malonaz.json.v1.Schema
+	10, // 1: malonaz.ai.v1.Tool.annotations:type_name -> malonaz.ai.v1.Tool.AnnotationsEntry
+	15, // 2: malonaz.ai.v1.Tool.create_time:type_name -> google.protobuf.Timestamp
+	15, // 3: malonaz.ai.v1.Tool.update_time:type_name -> google.protobuf.Timestamp
+	11, // 4: malonaz.ai.v1.Tool.labels:type_name -> malonaz.ai.v1.Tool.LabelsEntry
+	16, // 5: malonaz.ai.v1.ToolUse.arguments:type_name -> google.protobuf.Struct
+	16, // 6: malonaz.ai.v1.ToolUse.extra_fields:type_name -> google.protobuf.Struct
+	12, // 7: malonaz.ai.v1.ToolUse.annotations:type_name -> malonaz.ai.v1.ToolUse.AnnotationsEntry
+	4,  // 8: malonaz.ai.v1.ToolUse.result:type_name -> malonaz.ai.v1.ToolResult
+	13, // 9: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
+	17, // 10: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
+	18, // 11: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status
+	0,  // 12: malonaz.ai.v1.ToolChoice.mode:type_name -> malonaz.ai.v1.ToolChoiceMode
+	1,  // 13: malonaz.ai.v1.ToolSet.discovery_tool:type_name -> malonaz.ai.v1.Tool
+	1,  // 14: malonaz.ai.v1.ToolSet.tools:type_name -> malonaz.ai.v1.Tool
+	1,  // 15: malonaz.ai.v1.ToolCallDiscovery.tools:type_name -> malonaz.ai.v1.Tool
+	16, // 16: malonaz.ai.v1.ToolCallExecute.arguments:type_name -> google.protobuf.Struct
+	16, // 17: malonaz.ai.v1.ToolCallRpc.request:type_name -> google.protobuf.Struct
+	19, // 18: malonaz.ai.v1.ToolCallRpc.read_mask:type_name -> google.protobuf.FieldMask
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_tool_proto_init() }
@@ -1833,7 +1627,7 @@ func file_malonaz_ai_v1_tool_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_proto_rawDesc), len(file_malonaz_ai_v1_tool_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      1,
 			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,

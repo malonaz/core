@@ -3,7 +3,6 @@ package tool
 import (
 	"fmt"
 
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -13,7 +12,6 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
@@ -132,71 +130,16 @@ func (b *Builder) CreateTool(request *pb.CreateToolRequest) (*aipb.Tool, error) 
 	}, nil
 }
 
-// ToolMethod returns the facts a method's descriptors declare about it.
+// ToolMethod returns the facts a method's descriptors declare about it that its callers act on.
 func (b *Builder) ToolMethod(method protoreflect.MethodDescriptor) *aipb.ToolMethod {
 	service := method.Parent().(protoreflect.ServiceDescriptor)
-	input := method.Input()
-	toolMethod := &aipb.ToolMethod{
+	return &aipb.ToolMethod{
 		Service:            string(service.FullName()),
 		ServiceDescription: b.schema.GetComment(service.FullName(), pbreflection.CommentStyleMultiline),
 		Method:             string(method.FullName()),
-		Kind:               aipb.ToolMethod_KIND_CUSTOM,
 		ReadOnly:           method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS,
-		LongRunning:        method.Output().FullName() == "google.longrunning.Operation",
-		RequestId:          input.Fields().ByName("request_id") != nil,
-		Pagination:         input.Fields().ByName("page_token") != nil,
-		Filter:             input.Fields().ByName("filter") != nil,
-		UpdateMask:         input.Fields().ByName("update_mask") != nil,
+		RequestId:          method.Input().Fields().ByName("request_id") != nil,
 	}
-	if standardMethodType, err := b.schema.GetStandardMethodType(method.FullName()); err == nil && standardMethodType != pbreflection.StandardMethodTypeUnspecified {
-		toolMethod.Kind = standardMethodTypeToKind[standardMethodType]
-	}
-	resourceDescriptor, ok := b.schema.GetStandardMethodResourceDescriptor(method.FullName())
-	if !ok {
-		resourceDescriptor, ok = b.referencedResourceDescriptor(input)
-	}
-	if ok {
-		toolMethod.ResourceType = resourceDescriptor.GetType()
-		toolMethod.ResourcePatterns = resourceDescriptor.GetPattern()
-	}
-	return toolMethod
-}
-
-// referencedResourceDescriptor returns the descriptor of the resource a request's `name` references, else the child
-// type its `parent` references.
-func (b *Builder) referencedResourceDescriptor(input protoreflect.MessageDescriptor) (*annotations.ResourceDescriptor, bool) {
-	for _, fieldName := range []protoreflect.Name{"name", "parent"} {
-		field := input.Fields().ByName(fieldName)
-		if field == nil {
-			continue
-		}
-		resourceReference, err := pbutil.GetExtension[*annotations.ResourceReference](field.Options(), annotations.E_ResourceReference)
-		if err != nil {
-			continue
-		}
-		resourceType := resourceReference.GetType()
-		if resourceType == "" {
-			resourceType = resourceReference.GetChildType()
-		}
-		if resourceDescriptor, ok := b.schema.GetResourceDescriptor(resourceType); ok {
-			return resourceDescriptor, true
-		}
-	}
-	return nil, false
-}
-
-var standardMethodTypeToKind = map[pbreflection.StandardMethodType]aipb.ToolMethod_Kind{
-	pbreflection.StandardMethodTypeGet:         aipb.ToolMethod_KIND_GET,
-	pbreflection.StandardMethodTypeBatchGet:    aipb.ToolMethod_KIND_BATCH_GET,
-	pbreflection.StandardMethodTypeList:        aipb.ToolMethod_KIND_LIST,
-	pbreflection.StandardMethodTypeSearch:      aipb.ToolMethod_KIND_SEARCH,
-	pbreflection.StandardMethodTypeCreate:      aipb.ToolMethod_KIND_CREATE,
-	pbreflection.StandardMethodTypeBatchCreate: aipb.ToolMethod_KIND_BATCH_CREATE,
-	pbreflection.StandardMethodTypeUpdate:      aipb.ToolMethod_KIND_UPDATE,
-	pbreflection.StandardMethodTypeDelete:      aipb.ToolMethod_KIND_DELETE,
-	pbreflection.StandardMethodTypeUndelete:    aipb.ToolMethod_KIND_UNDELETE,
-	pbreflection.StandardMethodTypeImport:      aipb.ToolMethod_KIND_IMPORT,
-	pbreflection.StandardMethodTypeExport:      aipb.ToolMethod_KIND_EXPORT,
 }
 
 // CreateServiceToolSet builds the tool set of a service: one tool per method, discovered through the set's

@@ -31,6 +31,7 @@ type Tool struct {
 	UpdateTime     time.Time `db:"update_time" schema:"public" table:"tool"`
 	Etag           string    `db:"etag" schema:"public" table:"tool"`
 	Labels         []byte    `db:"labels" schema:"public" table:"tool"`
+	Title          string    `db:"title" schema:"public" table:"tool"`
 }
 
 func ToolFromPb(m *v1.Tool) (*Tool, error) {
@@ -87,6 +88,7 @@ func ToolFromPb(m *v1.Tool) (*Tool, error) {
 		UpdateTime:     m.UpdateTime.AsTime(),
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
+		Title:          m.Title,
 	}, nil
 }
 
@@ -141,6 +143,7 @@ func (m *Tool) ToPb() (*v1.Tool, error) {
 		UpdateTime:  UpdateTime,
 		Etag:        m.Etag,
 		Labels:      Labels,
+		Title:       m.Title,
 	}, nil
 }
 

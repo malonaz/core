@@ -126,7 +126,10 @@ type CreateToolRequest_builder struct {
 	Parent string
 	// The tool to create.
 	Tool *v1.Tool
-	// The tool's id: the name the model calls it by.
+	// The ID to use for the resource, which will become the final component of
+	// the resource name.
+	// This value should be 1-63 characters, and valid characters
+	// are /[a-z][0-9]-/.
 	ToolId string
 	// A unique identifier for this request. Must be a UUID. Repeating a request
 	// with the same ID returns the tool it created instead of creating another.
@@ -731,13 +734,14 @@ var File_malonaz_ai_ai_service_v1_tool_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_ai_service_v1_tool_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/ai/ai_service/v1/tool.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xe7\x01\n" +
+	"#malonaz/ai/ai_service/v1/tool.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a malonaz/codegen/aip/v1/aip.proto\"\xd4\x02\n" +
 	"\x11CreateToolRequest\x120\n" +
 	"\x06parent\x18\x01 \x01(\tB\x18\xfaA\x15\x12\x13ai.malonaz.com/ToolR\x06parent\x122\n" +
-	"\x04tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x04tool\x12@\n" +
-	"\atool_id\x18\x03 \x01(\tB'\xe0A\x02\xbaH!r\x1f2\x1d^[A-Za-z][A-Za-z0-9_-]{0,63}$R\x06toolId\x12*\n" +
+	"\x04tool\x18\x02 \x01(\v2\x13.malonaz.ai.v1.ToolB\t\xe0A\x02\xbaH\x03\xc8\x01\x01R\x04tool\x12>\n" +
+	"\atool_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\x06toolId\x12*\n" +
 	"\n" +
-	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"G\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId:m\xbaHj\x1ah\n" +
+	"\x13tool.title_required\x12:tool.title must be set: the name a model calls the tool by\x1a\x15this.tool.title != ''\"G\n" +
 	"\x0eGetToolRequest\x125\n" +
 	"\x04name\x18\x01 \x01(\tB!\xe0A\x02\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Tool\xbaH\x03\xc8\x01\x01R\x04name\"\x8b\x01\n" +
@@ -746,12 +750,13 @@ const file_malonaz_ai_ai_service_v1_tool_proto_rawDesc = "" +
 	"\x05names\x18\x02 \x03(\tB+\xfaA\x15\n" +
 	"\x13ai.malonaz.com/Tool\xbaH\x10\x92\x01\r\b\x01\x10\xe8\a\x18\x01\"\x04r\x02\x10\x01R\x05names\"B\n" +
 	"\x15BatchGetToolsResponse\x12)\n" +
-	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x84\x02\n" +
+	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x8c\x02\n" +
 	"\x11UpdateToolRequest\x12/\n" +
 	"\x04tool\x18\x01 \x01(\v2\x13.malonaz.ai.v1.ToolB\x06\xbaH\x03\xd8\x01\x03R\x04tool\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
-	"updateMask:y\xbaHB\x1a@\n" +
-	"\x12tool.name_required\x12\x15tool.name must be set\x1a\x13has(this.tool.name)\xea\x9c\xc1\x03/\n" +
+	"updateMask:\x80\x01\xbaHB\x1a@\n" +
+	"\x12tool.name_required\x12\x15tool.name must be set\x1a\x13has(this.tool.name)\xea\x9c\xc1\x036\n" +
+	"\x05title\n" +
 	"\vdescription\n" +
 	"\vjson_schema\n" +
 	"\vannotations\n" +

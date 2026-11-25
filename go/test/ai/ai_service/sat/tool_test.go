@@ -16,6 +16,7 @@ import (
 // newSetTool returns a tool in the set named setID.
 func newSetTool(setID string) *aipb.Tool {
 	return &aipb.Tool{
+		Title:       "Quotes_List",
 		Description: "Lists the quotes.",
 		JsonSchema:  &jsonpb.Schema{Type: "object"},
 		Labels:      map[string]string{aipb.Labels.ToolSet.GetKey(): setID},
@@ -26,7 +27,7 @@ func newSetTool(setID string) *aipb.Tool {
 func TestTool_PlatformAndOrganizationTools(t *testing.T) {
 	t.Parallel()
 	setID := "set-" + uuid.MustNewV7().String()[:8]
-	toolID := "Tools_" + uuid.MustNewV7().String()[:8]
+	toolID := "tools-" + uuid.MustNewV7().String()[:8]
 	organization := "organizations/" + uuid.MustNewV7().String()
 
 	createToolRequest := &aiservicepb.CreateToolRequest{Tool: newSetTool(setID), ToolId: toolID}
@@ -53,10 +54,16 @@ func TestTool_PlatformAndOrganizationTools(t *testing.T) {
 	require.Equal(t, organizationTool.GetName(), listToolsResponse.GetTools()[0].GetName())
 }
 
-// A tool's id is the name a model calls it by: provider-legal, never system-generated.
-func TestTool_IDIsTheModelFacingName(t *testing.T) {
+// A stored tool's id follows the house convention; the name a model calls it by is its title, which it must have.
+func TestTool_TitleIsTheModelFacingName(t *testing.T) {
 	t.Parallel()
-	createToolRequest := &aiservicepb.CreateToolRequest{Tool: newSetTool("set"), ToolId: "not.a.tool.name"}
+	createToolRequest := &aiservicepb.CreateToolRequest{Tool: newSetTool("set"), ToolId: "Quotes_List"}
 	_, err := aiServiceClient.CreateTool(ctx, createToolRequest)
+	grpcrequire.Error(t, codes.InvalidArgument, err)
+
+	untitled := newSetTool("set")
+	untitled.Title = ""
+	createToolRequest = &aiservicepb.CreateToolRequest{Tool: untitled}
+	_, err = aiServiceClient.CreateTool(ctx, createToolRequest)
 	grpcrequire.Error(t, codes.InvalidArgument, err)
 }

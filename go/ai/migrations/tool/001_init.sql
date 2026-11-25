@@ -10,6 +10,7 @@ CREATE TABLE tool (
     annotations JSONB,
     description TEXT NOT NULL,
     json_schema JSONB,
+    title TEXT NOT NULL,
     -- Conflict target of the generated insert.
     CONSTRAINT tool_identity_unique UNIQUE NULLS NOT DISTINCT (organization_id, tool_id),
     CONSTRAINT tool_request_id_unique UNIQUE (request_id)
