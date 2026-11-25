@@ -97,14 +97,14 @@ snapshots do not carry the chat.
   `ToolMethod.read_only` runs and anything else awaits).
 - Each turn (`newToolbox`) reads the granted tools as the service (one ListTools per set grant, GetTool per lone grant,
   a vanished one left out), keeps those whose `ToolMethod` names a service with a `--tool-target`, asks each target
-  `AuthorizationService.TestMethods` once as the owner (cannot say: keeps all) and offers the rest under their ids: a set
+  `AuthorizationService.TestMethods` once as the owner (cannot say: keeps all) and offers the rest under their `title` (calls resolve back by it): a set
   as a discovery tool set named after its service (`Health_Discover`), a lone tool directly. Nothing written in a tool
   routes a call: the target is the configuration's.
 - Invocation (`toolRouter.invoke`, the one place that reflects): the method's descriptors are read from its target as
   the service (cached five minutes per endpoint), the arguments built with `pbjson` (the schemas' model-friendly JSON:
   money, snake_case masks, durations, intervals; a JSON gRPC codec could not read them without descriptors), the
   request id derived from the call, then called as the owner.
-- Genui components are still served by this binary as the platform set `genui` (`tools/Generate_{Component}`), until
+- Genui components are still served by this binary as the platform set `genui` (`tools/generate-{component}` in kebab case, `aitool.KebabCase`), until
   the ai processor mirrors them; they take no approval. Built-ins are not stored.
 - Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set (its set read with
   GetTool), approvals inherited and only tightened by the model; a requested set keeps the parent's refinements in it.
