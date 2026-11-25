@@ -1,0 +1,6 @@
+name: ai-processor
+target: //go/ai/ai_processor
+dependencies:
+  - grpc_client:
+      service: ai-service
+      proto: //malonaz/ai/ai_service/v1

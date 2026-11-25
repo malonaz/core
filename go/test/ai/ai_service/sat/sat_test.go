@@ -79,7 +79,11 @@ func run(ctx context.Context) (func(), error) {
 				Args: []string{
 					"--ai-service-external-grpc.port", strconv.Itoa(aiServicePort),
 					"--ai-service-external-grpc.disable-tls",
+					"--ai-service-external-grpc.enable-reflection",
 					"--ai-service.mock-provider",
+					// The processor mirrors the ai service itself into platform tools.
+					"--ai-processor.target", "malonaz.ai.ai_service.v1.AiService=http://localhost:" + strconv.Itoa(aiServicePort),
+					"--ai-processor.interval", "1s",
 				},
 			},
 		},
