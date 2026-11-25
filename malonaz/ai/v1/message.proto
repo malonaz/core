@@ -165,10 +165,10 @@ message Block {
     string text = 5;
 
     // Tool call block.
-    ToolCall tool_call = 6;
+    ToolUse tool_call = 6;
 
     // Partial tool call block.
-    ToolCall partial_tool_call = 7;
+    ToolUse partial_tool_call = 7;
 
     // Tool result block.
     ToolResult tool_result = 8;

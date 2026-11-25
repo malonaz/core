@@ -153,8 +153,10 @@ message ToolMethod {
   bool update_mask = 12;
 }
 
-// A tool call that the model wants to invoke.
-message ToolCall {
+// A ToolUse is a model's request to call a tool, as a message carries it in its
+// `tool_call` block. Its stored resource is the [ToolCall][malonaz.ai.v1.ToolCall]
+// at `{message}/toolCalls/{n}`, n its position among the message's tool calls.
+message ToolUse {
   // The id of this tool call.
   string id = 1 [(buf.validate.field).required = true];
 

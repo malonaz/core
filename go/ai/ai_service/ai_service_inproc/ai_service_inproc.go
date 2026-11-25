@@ -444,6 +444,42 @@ func (c *Client) ListTools(
 	return c.server.ListTools(ctx, request)
 }
 
+// GetToolCall retrieves a tool call by its resource name.
+func (c *Client) GetToolCall(
+	ctx context.Context,
+	request *aiservicepb.GetToolCallRequest,
+	opts ...grpc.CallOption,
+) (*aipb.ToolCall, error) {
+	return c.server.GetToolCall(ctx, request)
+}
+
+// BatchGetToolCalls retrieves several tool calls.
+func (c *Client) BatchGetToolCalls(
+	ctx context.Context,
+	request *aiservicepb.BatchGetToolCallsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetToolCallsResponse, error) {
+	return c.server.BatchGetToolCalls(ctx, request)
+}
+
+// UpdateToolCall updates a tool call's labels.
+func (c *Client) UpdateToolCall(
+	ctx context.Context,
+	request *aiservicepb.UpdateToolCallRequest,
+	opts ...grpc.CallOption,
+) (*aipb.ToolCall, error) {
+	return c.server.UpdateToolCall(ctx, request)
+}
+
+// ListToolCalls lists tool calls.
+func (c *Client) ListToolCalls(
+	ctx context.Context,
+	request *aiservicepb.ListToolCallsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListToolCallsResponse, error) {
+	return c.server.ListToolCalls(ctx, request)
+}
+
 // Verify interface compliance at compile time.
 var (
 	_ aiservicepb.AiServiceClient = (*Client)(nil)

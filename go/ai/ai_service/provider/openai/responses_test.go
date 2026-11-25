@@ -31,7 +31,7 @@ func TestNewResponseParams(t *testing.T) {
 	require.NoError(t, err)
 	structuredContent, err := structpb.NewValue(map[string]any{"temperature": 21})
 	require.NoError(t, err)
-	toolCall := &aipb.ToolCall{Id: "call_1", Name: "get_weather", Arguments: arguments}
+	toolCall := &aipb.ToolUse{Id: "call_1", Name: "get_weather", Arguments: arguments}
 	messages := []*aipb.Message{
 		ai.NewSystemMessage(ai.NewTextBlock("You are terse."), ai.NewTextBlock("Answer in French.")),
 		ai.NewUserMessage(
@@ -232,8 +232,8 @@ func TestResponseReader(t *testing.T) {
 		Blocks: []*aipb.Block{
 			{Index: 0, Signature: "encrypted-reasoning", ExtraFields: newExtraFields(extraFieldID, "rs_1"), Content: &aipb.Block_Thought{Thought: "Looking up Paris.\n\nThen Tokyo."}},
 			{Index: 1, ExtraFields: newExtraFields(extraFieldPhase, "commentary"), Content: &aipb.Block_Text{Text: "Let me check."}},
-			{Index: 2, Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolCall{Id: "call_1", Name: "get_weather", Arguments: parisArguments}}},
-			{Index: 3, Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolCall{Id: "call_2", Name: "get_weather", Arguments: tokyoArguments}}},
+			{Index: 2, Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolUse{Id: "call_1", Name: "get_weather", Arguments: parisArguments}}},
+			{Index: 3, Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolUse{Id: "call_2", Name: "get_weather", Arguments: tokyoArguments}}},
 		},
 	}, accumulator.Message)
 	require.Equal(t, aiservicepb.StopReason_STOP_REASON_TOOL_CALL, accumulator.StopReason)

@@ -12,6 +12,7 @@ import (
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
+	"github.com/malonaz/core/go/uuid"
 )
 
 // mutateChatMaxAttempts bounds the optimistic-lock retries of mutateChat.
@@ -24,11 +25,30 @@ var roleToMessageCountColumn = map[aipb.Role]string{
 	aipb.Role_ROLE_TOOL:      "tool_message_count",
 }
 
-// CreateMessage keeps the parent chat's per-role live message count in step.
+// CreateMessage persists a message with its tool calls, and keeps the parent chat's per-role live message count in
+// step. The generated create prepares it (its validate_only answer is the message as it would be stored).
 func (s *Service) CreateMessage(ctx context.Context, request *pb.CreateMessageRequest) (*aipb.Message, error) {
-	message, err := s.AiServiceServer.CreateMessage(ctx, request)
-	if err != nil || request.GetValidateOnly() {
-		return message, err
+	if request.GetValidateOnly() {
+		return s.AiServiceServer.CreateMessage(ctx, request)
+	}
+	// The same message: callers read the name and timestamps the generated create stamps on it.
+	prepareRequest := &pb.CreateMessageRequest{
+		Parent:       request.GetParent(),
+		Message:      request.GetMessage(),
+		MessageId:    request.GetMessageId(),
+		RequestId:    request.GetRequestId(),
+		ValidateOnly: true,
+	}
+	if prepareRequest.RequestId == "" {
+		prepareRequest.RequestId = uuid.MustNewV7().String()
+	}
+	prepared, err := s.AiServiceServer.CreateMessage(ctx, prepareRequest)
+	if err != nil {
+		return nil, err
+	}
+	message, err := s.insertMessage(ctx, prepareRequest.RequestId, prepared)
+	if err != nil {
+		return nil, err
 	}
 	return message, s.incrementChatMessageCount(ctx, message, 1)
 }

@@ -92,7 +92,7 @@ func newAssistantToolCall(t *testing.T, id, name string, arguments map[string]an
 	return &aipb.Message{
 		Role: aipb.Role_ROLE_ASSISTANT,
 		Blocks: []*aipb.Block{{
-			Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolCall{Id: id, Name: name, Arguments: argumentsStruct}},
+			Content: &aipb.Block_ToolCall{ToolCall: &aipb.ToolUse{Id: id, Name: name, Arguments: argumentsStruct}},
 		}},
 	}
 }

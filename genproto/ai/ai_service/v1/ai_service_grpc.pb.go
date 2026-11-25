@@ -61,6 +61,10 @@ const (
 	AiService_UpdateTool_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/UpdateTool"
 	AiService_DeleteTool_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/DeleteTool"
 	AiService_ListTools_FullMethodName             = "/malonaz.ai.ai_service.v1.AiService/ListTools"
+	AiService_GetToolCall_FullMethodName           = "/malonaz.ai.ai_service.v1.AiService/GetToolCall"
+	AiService_BatchGetToolCalls_FullMethodName     = "/malonaz.ai.ai_service.v1.AiService/BatchGetToolCalls"
+	AiService_UpdateToolCall_FullMethodName        = "/malonaz.ai.ai_service.v1.AiService/UpdateToolCall"
+	AiService_ListToolCalls_FullMethodName         = "/malonaz.ai.ai_service.v1.AiService/ListToolCalls"
 	AiService_ComputeStats_FullMethodName          = "/malonaz.ai.ai_service.v1.AiService/ComputeStats"
 	AiService_TextToText_FullMethodName            = "/malonaz.ai.ai_service.v1.AiService/TextToText"
 	AiService_TextToTextStream_FullMethodName      = "/malonaz.ai.ai_service.v1.AiService/TextToTextStream"
@@ -76,6 +80,8 @@ const (
 //
 //   - Tools: [Tool][malonaz.ai.v1.Tool] resources are what a model may be given:
 //     platform tools mirrored from gRPC services, an organization's own.
+//   - Tool calls: [ToolCall][malonaz.ai.v1.ToolCall] resources list the calls
+//     generations make, each settled by the message holding its result.
 //   - Model management: [Model][malonaz.ai.v1.Model] resources describe the
 //     generation models available per provider (STT, TTT, TTS), including
 //     pricing and provider-specific settings.
@@ -305,6 +311,22 @@ type AiServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
+	// Get a tool call.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetToolCall(ctx context.Context, in *GetToolCallRequest, opts ...grpc.CallOption) (*v1.ToolCall, error)
+	// Get several tool calls.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetToolCalls(ctx context.Context, in *BatchGetToolCallsRequest, opts ...grpc.CallOption) (*BatchGetToolCallsResponse, error)
+	// Update a tool call's labels. Everything else is the service's, written with the messages.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateToolCall(ctx context.Context, in *UpdateToolCallRequest, opts ...grpc.CallOption) (*v1.ToolCall, error)
+	// List tool calls: a message's, or across chats and messages with `-`.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListToolCalls(ctx context.Context, in *ListToolCallsRequest, opts ...grpc.CallOption) (*ListToolCallsResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -755,6 +777,46 @@ func (c *aiServiceClient) ListTools(ctx context.Context, in *ListToolsRequest, o
 	return out, nil
 }
 
+func (c *aiServiceClient) GetToolCall(ctx context.Context, in *GetToolCallRequest, opts ...grpc.CallOption) (*v1.ToolCall, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.ToolCall)
+	err := c.cc.Invoke(ctx, AiService_GetToolCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) BatchGetToolCalls(ctx context.Context, in *BatchGetToolCallsRequest, opts ...grpc.CallOption) (*BatchGetToolCallsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetToolCallsResponse)
+	err := c.cc.Invoke(ctx, AiService_BatchGetToolCalls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateToolCall(ctx context.Context, in *UpdateToolCallRequest, opts ...grpc.CallOption) (*v1.ToolCall, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.ToolCall)
+	err := c.cc.Invoke(ctx, AiService_UpdateToolCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListToolCalls(ctx context.Context, in *ListToolCallsRequest, opts ...grpc.CallOption) (*ListToolCallsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListToolCallsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListToolCalls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiServiceClient) ComputeStats(ctx context.Context, in *ComputeStatsRequest, opts ...grpc.CallOption) (*ComputeStatsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ComputeStatsResponse)
@@ -806,6 +868,8 @@ type AiService_TextToTextStreamClient = grpc.ServerStreamingClient[TextToTextStr
 //
 //   - Tools: [Tool][malonaz.ai.v1.Tool] resources are what a model may be given:
 //     platform tools mirrored from gRPC services, an organization's own.
+//   - Tool calls: [ToolCall][malonaz.ai.v1.ToolCall] resources list the calls
+//     generations make, each settled by the message holding its result.
 //   - Model management: [Model][malonaz.ai.v1.Model] resources describe the
 //     generation models available per provider (STT, TTT, TTS), including
 //     pricing and provider-specific settings.
@@ -1035,6 +1099,22 @@ type AiServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error)
+	// Get a tool call.
+	//
+	// See: https://google.aip.dev/131 (Standard methods: Get).
+	GetToolCall(context.Context, *GetToolCallRequest) (*v1.ToolCall, error)
+	// Get several tool calls.
+	//
+	// See: https://google.aip.dev/231 (Batch methods: Get).
+	BatchGetToolCalls(context.Context, *BatchGetToolCallsRequest) (*BatchGetToolCallsResponse, error)
+	// Update a tool call's labels. Everything else is the service's, written with the messages.
+	//
+	// See: https://google.aip.dev/134 (Standard methods: Update).
+	UpdateToolCall(context.Context, *UpdateToolCallRequest) (*v1.ToolCall, error)
+	// List tool calls: a message's, or across chats and messages with `-`.
+	//
+	// See: https://google.aip.dev/132 (Standard methods: List).
+	ListToolCalls(context.Context, *ListToolCallsRequest) (*ListToolCallsResponse, error)
 	// Compute AI consumption stats for a user or an organization.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -1179,6 +1259,18 @@ func (UnimplementedAiServiceServer) DeleteTool(context.Context, *DeleteToolReque
 }
 func (UnimplementedAiServiceServer) ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTools not implemented")
+}
+func (UnimplementedAiServiceServer) GetToolCall(context.Context, *GetToolCallRequest) (*v1.ToolCall, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetToolCall not implemented")
+}
+func (UnimplementedAiServiceServer) BatchGetToolCalls(context.Context, *BatchGetToolCallsRequest) (*BatchGetToolCallsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetToolCalls not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateToolCall(context.Context, *UpdateToolCallRequest) (*v1.ToolCall, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateToolCall not implemented")
+}
+func (UnimplementedAiServiceServer) ListToolCalls(context.Context, *ListToolCallsRequest) (*ListToolCallsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListToolCalls not implemented")
 }
 func (UnimplementedAiServiceServer) ComputeStats(context.Context, *ComputeStatsRequest) (*ComputeStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ComputeStats not implemented")
@@ -1893,6 +1985,78 @@ func _AiService_ListTools_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_GetToolCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetToolCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetToolCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetToolCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetToolCall(ctx, req.(*GetToolCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_BatchGetToolCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetToolCallsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).BatchGetToolCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_BatchGetToolCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).BatchGetToolCalls(ctx, req.(*BatchGetToolCallsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateToolCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateToolCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateToolCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UpdateToolCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateToolCall(ctx, req.(*UpdateToolCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListToolCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListToolCallsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListToolCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListToolCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListToolCalls(ctx, req.(*ListToolCallsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_ComputeStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ComputeStatsRequest)
 	if err := dec(in); err != nil {
@@ -2090,6 +2254,22 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTools",
 			Handler:    _AiService_ListTools_Handler,
+		},
+		{
+			MethodName: "GetToolCall",
+			Handler:    _AiService_GetToolCall_Handler,
+		},
+		{
+			MethodName: "BatchGetToolCalls",
+			Handler:    _AiService_BatchGetToolCalls_Handler,
+		},
+		{
+			MethodName: "UpdateToolCall",
+			Handler:    _AiService_UpdateToolCall_Handler,
+		},
+		{
+			MethodName: "ListToolCalls",
+			Handler:    _AiService_ListToolCalls_Handler,
 		},
 		{
 			MethodName: "ComputeStats",

@@ -17,6 +17,8 @@ go_library(
         "stats.pb.go",
         "tool.pb.go",
         "tool_aip.pb.go",
+        "tool_call.pb.go",
+        "tool_call_aip.pb.go",
         "voice.pb.go",
         "voice_aip.pb.go",
     ],

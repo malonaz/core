@@ -56,7 +56,7 @@ func NewThoughtBlock(thought string) *aipb.Block {
 	return &aipb.Block{Content: &aipb.Block_Thought{Thought: thought}}
 }
 
-func NewToolCallBlock(toolCall *aipb.ToolCall) *aipb.Block {
+func NewToolCallBlock(toolCall *aipb.ToolUse) *aipb.Block {
 	return &aipb.Block{Content: &aipb.Block_ToolCall{ToolCall: toolCall}}
 }
 
