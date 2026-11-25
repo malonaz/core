@@ -206,6 +206,46 @@ func TestLease_LostLeaseIsTakenOver(t *testing.T) {
 	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
 }
 
+func TestLease_ALostLeaseFencesTheTurn(t *testing.T) {
+	healthServer, endpoint := newTestToolTarget(t)
+	aiService := newFakeAiService()
+	configure := func(opts *Opts) { opts.ToolTargets = map[string]string{healthService: endpoint} }
+	// A's heartbeats never notice the lost lease, and it has no room to claim the turn back.
+	replicaA := newTestReplica(t, aiService, func(opts *Opts) {
+		configure(opts)
+		opts.HeartbeatInterval = time.Minute
+		opts.LeaseDuration = 3 * time.Minute
+		opts.MaxConcurrentTurns = 1
+	})
+	replicaB := newTestReplica(t, aiService, configure)
+	agent := createTestAgent(t, replicaA, healthCheckGrant)
+	staleGeneration := toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"service": "a"}))
+	staleGeneration.started = make(chan struct{})
+	staleGeneration.gate = make(chan struct{})
+	aiService.script(agent.Chat, staleGeneration, textGeneration("taken over"))
+	sendText(t, replicaA, agent.Name, "go")
+	<-staleGeneration.started
+
+	// A stalls past its lease mid-generation: B takes the turn over and ends it.
+	agentRn, err := agentpb.ParseAgentRn(agent.Name)
+	require.NoError(t, err)
+	require.NoError(t, replicaA.transact(context.Background(), func(ctx context.Context, tx *txn) error {
+		if err := tx.DeleteLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent); err != nil {
+			return err
+		}
+		_, err := tx.ClaimLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, uuid.MustNewV7().String(), "unix:/stalled.sock", time.Microsecond)
+		return err
+	}))
+	waitForIdle(t, replicaB, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+	close(staleGeneration.gate)
+
+	// A's generation returns a tool call A never runs: A stops at its next write.
+	require.Eventually(t, func() bool { return replicaA.turns.count() == 0 }, waitTimeout, waitTick)
+	require.Empty(t, healthServer.checkedServices())
+	require.NotContains(t, toolResults(aiService.messages(agent.Chat)), "call-1")
+	require.Equal(t, agentpb.Turn_OUTCOME_SUCCEEDED, getAgent(t, replicaA, agent.Name).GetLatestTurn().GetOutcome())
+}
+
 func TestLease_CancelLocalTurn(t *testing.T) {
 	healthServer := &fakeHealthServer{}
 	service := newTestReplica(t, newFakeAiService(), targetSelf, healthServer.register)

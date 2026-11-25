@@ -47,6 +47,18 @@ func (t *Tx) ClaimLease(ctx context.Context, organizationID, userID, agentID, re
 	return commandTag.RowsAffected() > 0, nil
 }
 
+// RenewLease extends by duration an agent's lease if the replica holds it, expired or not: no other replica claimed it
+// meanwhile. It reports whether it did.
+func (t *Tx) RenewLease(ctx context.Context, organizationID, userID, agentID, replica string, duration time.Duration) (bool, error) {
+	query := `UPDATE agent_lease SET expire_time = ` + now + ` + $5::BIGINT * INTERVAL '1 microsecond'
+		WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3 AND replica = $4`
+	commandTag, err := t.tx.Exec(ctx, query, organizationID, userID, agentID, replica, duration.Microseconds())
+	if err != nil {
+		return false, fmt.Errorf("renewing lease: %w", err)
+	}
+	return commandTag.RowsAffected() > 0, nil
+}
+
 // ReleaseLease drops an agent's lease if the replica holds it. It reports whether it did.
 func (t *Tx) ReleaseLease(ctx context.Context, organizationID, userID, agentID, replica string) (bool, error) {
 	query := "DELETE FROM agent_lease WHERE organization_id = $1 AND user_id = $2 AND agent_id = $3 AND replica = $4"

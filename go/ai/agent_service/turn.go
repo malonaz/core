@@ -68,7 +68,7 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 	ctx := turn.ctx
 	getAgentRequest := &agentservicepb.GetAgentRequest{Name: turn.agent}
 	agent, err := s.GetAgent(ctx, getAgentRequest)
-	runner := &turnRunner{service: s, agent: agent}
+	runner := &turnRunner{service: s, agent: agent, turn: turn}
 	var finalMessage *aipb.Message
 	if err == nil {
 		finalMessage, err = runner.run(ctx)
@@ -109,6 +109,10 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		return false, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
 	if turnEnd.awaitedToolCalls == nil {
+		// A replica that lost the lease reports nothing: the lease's holder does.
+		if err := s.transact(ctx, func(ctx context.Context, t *txn) error { return t.holdLease(ctx, name) }); err != nil {
+			return false, err
+		}
 		if err := s.report(ctx, name, turnEnd); err != nil {
 			return false, err
 		}
@@ -120,12 +124,8 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 		if err != nil {
 			return err
 		}
-		lease, err := t.GetLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent)
-		if err != nil {
-			return fmt.Errorf("getting lease: %w", err)
-		}
-		if lease == nil || lease.Replica != s.replica {
-			return errLeaseLost
+		if err := t.holdLease(ctx, name); err != nil {
+			return err
 		}
 		if agent.DeleteTime != nil {
 			if _, err := t.ReleaseLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, s.replica); err != nil {
@@ -196,6 +196,7 @@ var errAwaiting = errors.New("the turn awaits a user")
 // turnRunner runs one turn of an agent.
 type turnRunner struct {
 	service *Service
+	turn    *turn
 	agent   *agentpb.Agent
 	toolbox *toolbox
 	// The chat's last message the turn saw or wrote.
@@ -217,9 +218,32 @@ func (r *turnRunner) reportRequestID(outcome agentpb.Turn_Outcome) string {
 	return uuid.NewV5(reportNamespace, outcome.String()+"/"+key).String()
 }
 
+// transact runs fn in a transaction under the agent's lease, stopping the turn if this replica lost it.
+func (r *turnRunner) transact(ctx context.Context, fn func(ctx context.Context, t *txn) error) error {
+	err := r.service.transact(ctx, func(ctx context.Context, t *txn) error {
+		if err := fn(ctx, t); err != nil {
+			return err
+		}
+		return t.holdLease(ctx, r.agent.GetName())
+	})
+	if errors.Is(err, errLeaseLost) {
+		r.turn.cancel(errLeaseLost)
+	}
+	return err
+}
+
+// fence holds the agent's lease before a write outside its row (a message, a generation, a tool call), stopping the
+// turn if this replica lost it: no other replica can take the turn over until the renewed lease expires.
+func (r *turnRunner) fence(ctx context.Context) error {
+	return r.transact(ctx, func(context.Context, *txn) error { return nil })
+}
+
 // run runs the turn until the model answers without calling tools, and returns that final message: nil when the
 // chat holds nothing to answer.
 func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
+	if err := r.fence(ctx); err != nil {
+		return nil, err
+	}
 	if err := r.ensureInstructions(ctx); err != nil {
 		return nil, err
 	}
@@ -395,7 +419,7 @@ func (r *turnRunner) settle(ctx context.Context, unansweredToolCalls []*aipb.Too
 // updateAwaitedToolCalls updates the awaited calls of the agent's latest turn under its lock: each by update, or all
 // cleared without one.
 func (r *turnRunner) updateAwaitedToolCalls(ctx context.Context, update func(*agentpb.AwaitedToolCall)) error {
-	return r.service.transact(ctx, func(ctx context.Context, t *txn) error {
+	return r.transact(ctx, func(ctx context.Context, t *txn) error {
 		agent, err := t.getAgent(ctx, r.agent.GetName())
 		if err != nil {
 			return err
@@ -430,6 +454,9 @@ func (r *turnRunner) deliverMessages(ctx context.Context) error {
 	if len(agent.QueuedMessages) == 0 {
 		return nil
 	}
+	if err := r.fence(ctx); err != nil {
+		return err
+	}
 	deliveredMessageNameSet := map[string]struct{}{}
 	senderToHeader := map[string]string{}
 	for _, queuedMessage := range agent.QueuedMessages {
@@ -462,7 +489,7 @@ func (r *turnRunner) deliverMessages(ctx context.Context) error {
 		}
 		deliveredMessageNameSet[queuedMessage.GetName()] = struct{}{}
 	}
-	return r.service.transact(ctx, func(ctx context.Context, t *txn) error {
+	return r.transact(ctx, func(ctx context.Context, t *txn) error {
 		agent, err := t.getAgent(ctx, r.agent.GetName())
 		if err != nil {
 			return err
@@ -513,6 +540,9 @@ func (r *turnRunner) generate(ctx context.Context, toolbox *toolbox) (*aipb.Mess
 	case <-r.service.turns.draining:
 		return nil, errShuttingDown
 	default:
+	}
+	if err := r.fence(ctx); err != nil {
+		return nil, err
 	}
 	// The stream is left once the generated message arrives: cancel it then.
 	ctx, cancel := context.WithCancel(ctx)
@@ -677,6 +707,9 @@ func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolCall) e
 		index      int
 		toolResult *aipb.ToolResult
 	}
+	if err := r.fence(ctx); err != nil {
+		return err
+	}
 	// Buffered so calls returning after the turn stopped never block.
 	indexedToolResults := make(chan indexedToolResult, len(calls))
 	for i, toolCall := range calls {
@@ -737,6 +770,9 @@ func (r *turnRunner) runToolCalls(ctx context.Context, calls []*aipb.ToolCall) e
 func (r *turnRunner) persistToolResult(ctx context.Context, toolResult *aipb.ToolResult) error {
 	if approver, ok := r.toolCallIDToApprover[toolResult.GetToolCallId()]; ok {
 		approver.stamp(toolResult, agentpb.Annotations.ApprovedBy)
+	}
+	if err := r.fence(ctx); err != nil {
+		return err
 	}
 	createMessageRequest := &aiservicepb.CreateMessageRequest{
 		Parent:    r.agent.GetChat(),

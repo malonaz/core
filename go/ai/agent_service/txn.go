@@ -39,7 +39,7 @@ func (s *Service) transact(ctx context.Context, fn func(ctx context.Context, t *
 		t = &txn{Tx: tx, service: s, now: time.Now().UTC().Truncate(time.Microsecond)}
 		return fn(ctx, t)
 	}); err != nil {
-		if _, ok := grpcstatus.FromError(err); ok {
+		if _, ok := grpcstatus.FromError(err); ok || errors.Is(err, errLeaseLost) {
 			return err
 		}
 		return status.FromError(err, "running transaction").Err()
@@ -130,6 +130,23 @@ func (t *txn) claimTurn(ctx context.Context, agent *agentpb.Agent) error {
 	}
 	if claimed {
 		t.claimedTurns = append(t.claimedTurns, agent.Name)
+	}
+	return nil
+}
+
+// holdLease renews the agent's lease, or fails with errLeaseLost if this replica no longer holds it: a turn writes
+// only under its lease, so a replica that lost it writes nothing. Take it after the agent's lock, as claims do.
+func (t *txn) holdLease(ctx context.Context, name string) error {
+	agentRn, err := agentpb.ParseAgentRn(name)
+	if err != nil {
+		return status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
+	}
+	held, err := t.RenewLease(ctx, agentRn.Organization, agentRn.User, agentRn.Agent, t.service.replica, t.service.opts.LeaseDuration)
+	if err != nil {
+		return fmt.Errorf("renewing lease: %w", err)
+	}
+	if !held {
+		return errLeaseLost
 	}
 	return nil
 }
