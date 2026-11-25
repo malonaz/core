@@ -26,7 +26,8 @@ on whichever replica holds the agent's lease. A host (onikisu) serves it and rou
   and repeats until the model answers without calling tools. Queued messages are delivered at its start and
   between tool rounds; messages queued meanwhile run another turn, however this one ended (a failed or cancelled
   turn goes on only for messages queued after its start: one it failed to deliver would fail again). A replayed
-  `MessageAgent` (same request id) queues nothing once delivered: queueMessage looks the message up in the chat.
+  `MessageAgent` (same request id) queues nothing once delivered: queueMessage looks the message up in the chat
+  (`AiService.GetMessage` as the service: hosts grant it, as onikisu's `agent-service` account does).
 - Replicas claim RUNNING agents without a live lease (`runClaimLoop`, up to `--max-concurrent-turns`), renew
   their leases (`runHeartbeatLoop`) and cancel the turns whose lease they lost. A replica that dies leaves its
   leases to expire; another replica takes the turns over and replays them from the chat: tool requests carry
@@ -108,7 +109,7 @@ snapshots do not carry the chat.
   (no network: a wrong method fails the first turn); genui grants take no approval.
 - Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set, approvals inherited
   and only tightened by the model; a requested set keeps the parent's refinements inside it.
-- The service's own calls (creating chats, writing and listing their messages, scheduler, replica to replica) go out
+- The service's own calls (creating chats, writing, reading and listing their messages, scheduler, replica to replica) go out
   as its account (`asService`).
 - Schemas are read as the service: they are the same for every owner (cached five minutes per endpoint).
 - Generations and tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer`
