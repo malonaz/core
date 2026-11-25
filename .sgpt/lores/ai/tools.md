@@ -21,9 +21,8 @@ labels:
 - Sets are not resources: tools sharing the label `ai.malonaz.com/tool-set` under one parent (a mirrored service's
   full name lowercased, dots as dashes); a consumer builds the model-facing `ai.v1.ToolSet` and its discovery tool.
 - Rich facts ride as one typed annotation, `ai-engine.malonaz.com/method` = `ToolMethod` (base64 proto, read with
-  `aipb.Annotations.Method.Get`), only what callers act on: `service` and `method` (what to call: the parser, the
-  agent service), `service_description` (the discovery tool over the set), `read_only` (approval defaults, the
-  deprecated string), `request_id` (the caller derives it). Add a fact when a consumer reads it, not before. The builder
+  `aipb.Annotations.Method.Get`): `service`, `method` (what to call) and `read_only`, nothing more. A consumer
+  needing another fact reads the tool or works it out itself: the annotation carries nothing for one consumer. The builder
   (`go/ai/tool`) writes it on every method tool. `grpc-method` and `no-side-effect` strings are still stamped beside
   it, deprecated, because shipped kenji/kanshi bundles (`app/core/agent/executor.ts`) route and gate on them: remove
   them with kenji's version floor. New code reads only `ToolMethod`. Anything to filter on is a label, not an annotation.

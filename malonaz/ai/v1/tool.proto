@@ -94,17 +94,11 @@ message ToolMethod {
   // The service's full name: which service to call.
   string service = 1;
 
-  // The service's comment: the description of the discovery tool a consumer builds over its tools.
-  string service_description = 2;
-
   // The method's full name: which method to call.
-  string method = 3;
+  string method = 2;
 
   // Whether the method declares `idempotency_level = NO_SIDE_EFFECTS`.
-  bool read_only = 4;
-
-  // Whether the request has a `request_id`: a caller derives it from the call, so a retried call is not repeated.
-  bool request_id = 5;
+  bool read_only = 3;
 }
 
 // A ToolUse is a model's request to call a tool, as a message carries it in its
