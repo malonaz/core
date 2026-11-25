@@ -128,7 +128,8 @@ var mirroredTools = func() []*aipb.Tool {
 			if err != nil {
 				panic(err)
 			}
-			tool.Name = "tools/" + tool.GetName()
+			tool.Title = tool.GetName()
+			tool.Name = "tools/" + aitool.MethodToolID(method)
 			tool.Labels = map[string]string{aipb.Labels.ToolSet.GetKey(): strings.ReplaceAll(strings.ToLower(service), ".", "-")}
 			tools = append(tools, tool)
 		}

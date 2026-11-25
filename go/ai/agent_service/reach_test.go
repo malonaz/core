@@ -26,7 +26,7 @@ const (
 )
 
 // libraryTool names a tool of the library tool set.
-func libraryTool(method string) string { return "tools/LibraryService_" + method }
+func libraryTool(method string) string { return "tools/library-service-" + method }
 
 // newTestReachTarget serves the library and mock services behind an interceptor of their own, with its
 // AuthorizationService: anyone may call GetBook; an agent's owner also ListBooks, under a condition reading the
@@ -87,7 +87,7 @@ func newTestReachReplica(t *testing.T) *testReplica {
 // ListBooks, whose condition only a call decides; never a granted tool the owner could not call.
 func TestReach_ToolboxOffersWhatTheOwnerCouldCall(t *testing.T) {
 	service := newTestReachReplica(t)
-	spec := &agentpb.AgentSpec{Model: testModel, Tools: ungatedTools(libraryToolSet, "tools/MockService_Echo", healthToolSet)}
+	spec := &agentpb.AgentSpec{Model: testModel, Tools: ungatedTools(libraryToolSet, "tools/mock-service-echo", healthToolSet)}
 	agent := createTestAgentWithSpec(t, service, newTestUser(t), spec)
 
 	toolbox, err := service.newToolbox(context.Background(), agent)
@@ -98,5 +98,5 @@ func TestReach_ToolboxOffersWhatTheOwnerCouldCall(t *testing.T) {
 		resourceNames = append(resourceNames, methodTool.resourceName)
 	}
 	slices.Sort(resourceNames)
-	require.Equal(t, []string{healthCheckGrant, "tools/Health_List", libraryTool("GetBook"), libraryTool("ListBooks")}, resourceNames)
+	require.Equal(t, []string{healthCheckGrant, "tools/health-list", libraryTool("get-book"), libraryTool("list-books")}, resourceNames)
 }

@@ -2,6 +2,7 @@ package tool
 
 import (
 	"strings"
+	"unicode"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -137,4 +138,28 @@ func NewMethodToolRequest(method protoreflect.MethodDescriptor) *pb.CreateToolRe
 		options = append(options, WithFieldMask(pbfieldmask.FromPaths(paths...)))
 	}
 	return MethodToolRequest(NewMethod(string(method.FullName())), options...)
+}
+
+// MethodToolID returns the id of a method's platform tool: its service's and its own names in kebab case
+// (ProjectGateway.ListQuotes is project-gateway-list-quotes).
+func MethodToolID(method protoreflect.MethodDescriptor) string {
+	return KebabCase(string(method.Parent().Name())) + "-" + KebabCase(string(method.Name()))
+}
+
+// KebabCase lowercases a CamelCase name, a dash before each word: AIService is ai-service.
+func KebabCase(name string) string {
+	var builder strings.Builder
+	runes := []rune(name)
+	for i, r := range runes {
+		if r == '_' {
+			r = '-'
+		}
+		startsWord := i > 0 && unicode.IsUpper(r) &&
+			(!unicode.IsUpper(runes[i-1]) || i+1 < len(runes) && unicode.IsLower(runes[i+1]))
+		if startsWord && runes[i-1] != '_' {
+			builder.WriteRune('-')
+		}
+		builder.WriteRune(unicode.ToLower(r))
+	}
+	return builder.String()
 }

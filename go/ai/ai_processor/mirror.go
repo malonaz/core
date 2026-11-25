@@ -6,7 +6,6 @@ import (
 	"maps"
 	"regexp"
 	"strings"
-	"unicode"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -41,30 +40,6 @@ func toolSetID(service string) (string, error) {
 		return "", fmt.Errorf("service %s makes no tool-set label value: %q exceeds 63 characters of [a-z0-9_-]", service, id)
 	}
 	return id, nil
-}
-
-// toolID returns the id of a method's platform tool: its service's and its own names in kebab case
-// (ProjectGateway.ListQuotes is project-gateway-list-quotes).
-func toolID(method protoreflect.MethodDescriptor) string {
-	return kebabCase(string(method.Parent().Name())) + "-" + kebabCase(string(method.Name()))
-}
-
-// kebabCase lowercases a CamelCase name, a dash before each word: AIService is ai-service.
-func kebabCase(name string) string {
-	var builder strings.Builder
-	runes := []rune(name)
-	for i, r := range runes {
-		if r == '_' {
-			r = '-'
-		}
-		startsWord := i > 0 && unicode.IsUpper(r) &&
-			(!unicode.IsUpper(runes[i-1]) || i+1 < len(runes) && unicode.IsLower(runes[i+1]))
-		if startsWord && runes[i-1] != '_' {
-			builder.WriteRune('-')
-		}
-		builder.WriteRune(unicode.ToLower(r))
-	}
-	return builder.String()
 }
 
 // mirror mirrors every target, each on its own: one failing leaves the others mirrored.
@@ -122,7 +97,7 @@ func (s *Service) mirrorTarget(ctx context.Context, target target, nameToService
 		tool.Labels = map[string]string{aipb.Labels.ToolSet.GetKey(): setID}
 		// The builder names the tool as a model calls it: its title.
 		tool.Title = tool.GetName()
-		name := "tools/" + toolID(method)
+		name := "tools/" + aitool.MethodToolID(method)
 		if service, ok := nameToService[name]; ok && service != target.service {
 			return fmt.Errorf("%s of %s is %s's already", name, method.FullName(), service)
 		}

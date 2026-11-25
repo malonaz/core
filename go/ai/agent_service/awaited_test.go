@@ -173,7 +173,7 @@ func TestAwaited_ApproveAlwaysStopsTheAgentAsking(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, agent.GetSpec().GetTools(), 1)
 	require.Equal(t, testModel, agent.GetSpec().GetModel())
-	updateAgentRequest.Agent.Spec.Tools = []*agentpb.AgentSpec_ToolGrant{toolGrant("organizations/other/tools/Health_Check")}
+	updateAgentRequest.Agent.Spec.Tools = []*agentpb.AgentSpec_ToolGrant{toolGrant("organizations/other/tools/health-check")}
 	_, err = service.UpdateAgent(ownerContext(t, agent.Name), updateAgentRequest)
 	require.True(t, status.HasCode(err, codes.InvalidArgument), "%v", err)
 }
@@ -244,8 +244,8 @@ func TestAwaited_ConcurrentSettlementsResumeOnce(t *testing.T) {
 func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgentWithSpec(t, service, newTestUser(t), &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{
-		toolGrant("tools/Generate_KeyValueList"),
-		toolGrant("tools/Generate_Choice"),
+		toolGrant("tools/generate-key-value-list"),
+		toolGrant("tools/generate-choice"),
 	}})
 	service.aiService.script(agent.Chat,
 		toolCallGeneration(
@@ -262,7 +262,7 @@ func TestAwaited_GenuiDisplayAndInput(t *testing.T) {
 	require.Equal(t, "ok", toolResults(service.aiService.messages(agent.Chat))["call-1"].GetContent())
 	require.Len(t, agent.GetLatestTurn().GetAwaitedToolCalls(), 2)
 	require.Equal(t, agentpb.AwaitedToolCall_REASON_RESULT, agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetReason())
-	require.Equal(t, "tools/Generate_Choice", agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetTool())
+	require.Equal(t, "tools/generate-choice", agent.GetLatestTurn().GetAwaitedToolCalls()[0].GetTool())
 
 	_, err := approve(t, service, agent.Name, "call-2")
 	require.True(t, status.HasCode(err, codes.FailedPrecondition))
@@ -454,15 +454,15 @@ func TestAwaited_SubAgentsTightenApprovalsOnly(t *testing.T) {
 		return grant
 	}
 	const (
-		loose   = "tools/Loose_Call"
-		policy  = "tools/Policy_Call"
-		strict  = "tools/Strict_Call"
+		loose   = "tools/loose-call"
+		policy  = "tools/policy-call"
+		strict  = "tools/strict-call"
 		set     = "set"
-		setRead = "tools/Set_Read"
+		setRead = "tools/set-read"
 	)
 	// Each tool is of the set its name starts with.
 	toolSetOf := func(tool string) (toolSetKey, error) {
-		return toolSetKey{id: strings.ToLower(strings.TrimPrefix(strings.Split(tool, "_")[0], "tools/"))}, nil
+		return toolSetKey{id: strings.TrimPrefix(strings.Split(tool, "-")[0], "tools/")}, nil
 	}
 	parentTools := []*agentpb.AgentSpec_ToolGrant{
 		grant(loose, agentpb.AgentSpec_ToolGrant_APPROVAL_NOT_REQUIRED),

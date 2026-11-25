@@ -213,7 +213,7 @@ func dispatcherContext(jobName string) context.Context {
 
 const (
 	agentServiceName  = "malonaz.ai.agent.agent_service.v1.AgentService"
-	messageAgentGrant = "tools/AgentService_MessageAgent"
+	messageAgentGrant = "tools/agent-service-message-agent"
 	// reflectionFullMethod is the call reading a tool target's schema.
 	reflectionFullMethod = "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo"
 )

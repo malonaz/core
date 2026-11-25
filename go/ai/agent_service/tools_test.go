@@ -31,7 +31,7 @@ const (
 	healthService = "grpc.health.v1.Health"
 	// healthToolSet and healthCheckGrant are the Health service's tool set and its Check tool, as specs grant them.
 	healthToolSet    = "grpc-health-v1-health"
-	healthCheckGrant = "tools/Health_Check"
+	healthCheckGrant = "tools/health-check"
 	healthCheckTool  = "Health_Check"
 )
 
@@ -229,7 +229,7 @@ func TestTools_OtherOrganizationsToolsAreRefused(t *testing.T) {
 	userRn, err := agentpb.ParseUserRn(user)
 	require.NoError(t, err)
 	for _, grant := range []*agentpb.AgentSpec_ToolGrant{
-		toolGrant("organizations/other/tools/Health_Check"),
+		toolGrant("organizations/other/tools/health-check"),
 		{Grant: &agentpb.AgentSpec_ToolGrant_ToolSet{ToolSet: &agentpb.ToolSetSelector{Parent: "organizations/other", Id: healthToolSet}}},
 	} {
 		spec := &agentpb.AgentSpec{Model: testModel, Tools: []*agentpb.AgentSpec_ToolGrant{grant}}
@@ -251,7 +251,7 @@ func TestTools_OtherOrganizationsToolsAreRefused(t *testing.T) {
 func TestTools_ToolboxReadsStoredTools(t *testing.T) {
 	aiService := newFakeAiService()
 	added := proto.CloneOf(findTool(aiService.tools, healthCheckGrant))
-	added.Name = "tools/Health_Added"
+	added.Name, added.Title = "tools/health-added", "Health_Added"
 	method, _, err := aipb.Annotations.Method.Get(added)
 	require.NoError(t, err)
 	method.Method, method.ReadOnly = "grpc.health.v1.Health.Added", true
@@ -262,7 +262,7 @@ func TestTools_ToolboxReadsStoredTools(t *testing.T) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{healthService: endpoint}
 	})
-	agent := createGatedAgent(t, service, toolGrant(healthToolSet), toolGrant("tools/LibraryService_GetBook"))
+	agent := createGatedAgent(t, service, toolGrant(healthToolSet), toolGrant("tools/library-service-get-book"))
 
 	toolbox, err := service.newToolbox(context.Background(), agent)
 	require.NoError(t, err)
@@ -275,7 +275,7 @@ func TestTools_ToolboxReadsStoredTools(t *testing.T) {
 
 func TestTools_RequestIDsDeriveFromTheCall(t *testing.T) {
 	// The replica's own AgentService serves as the tool target: CreateDefinition carries a request id.
-	const createDefinitionMethod = "tools/AgentService_CreateDefinition"
+	const createDefinitionMethod = "tools/agent-service-create-definition"
 	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
 		opts.MaxConcurrentTurns = 0
 		opts.ToolTargets = map[string]string{"malonaz.ai.agent.agent_service.v1.AgentService": opts.AdvertisedAddress}

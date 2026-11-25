@@ -68,7 +68,7 @@ func newGenuiComponents(ctx context.Context) (*genuiComponents, error) {
 		if input {
 			tool.Description = fmt.Sprintf("Ask the user with a %s. END YOUR TURN after calling it: the user's answer arrives as this call's result.", message.Name())
 		}
-		resourceName := (&aipb.RootToolRn{Tool: tool.GetName()}).String()
+		resourceName := (&aipb.RootToolRn{Tool: aitool.KebabCase(tool.GetName())}).String()
 		genuiComponent := &genuiComponent{tool: tool, resourceName: resourceName, name: message.FullName(), input: input}
 		genuiComponents.components = append(genuiComponents.components, genuiComponent)
 		genuiComponents.resourceNameToComponent[resourceName] = genuiComponent

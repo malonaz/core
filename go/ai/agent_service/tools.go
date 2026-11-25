@@ -236,13 +236,9 @@ func (s *Service) newToolbox(ctx context.Context, agent *agentpb.Agent) (*toolbo
 		if !reachable[grantedTool.method.GetMethod()] {
 			continue
 		}
-		rn, err := aipb.ParseToolRn(grantedTool.tool.GetName())
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "parsing tool name %q: %v", grantedTool.tool.GetName(), err).Err()
-		}
-		// The model is given a stored tool under its id.
+		// The model is given a stored tool under its title, and calls it by it.
 		tool := proto.CloneOf(grantedTool.tool)
-		tool.Name = rn.ID()
+		tool.Name = tool.GetTitle()
 		if err := addToolName(tool.GetName()); err != nil {
 			return nil, err
 		}
