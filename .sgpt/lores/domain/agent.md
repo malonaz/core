@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres (every write fenced on the lease), the caps on tool rounds, sub-agents, depth and schedules, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -24,11 +24,25 @@ on whichever replica holds the agent's lease. A host (onikisu) serves it and rou
 
 - A turn generates on the agent's chat (`AiService.StreamGenerateMessage`), runs the tool calls concurrently,
   and repeats until the model answers without calling tools. Queued messages are delivered at its start and
-  between tool rounds; messages queued meanwhile run another turn.
+  between tool rounds; messages queued meanwhile run another turn, however this one ended (a failed or cancelled
+  turn goes on only for messages queued after its start: one it failed to deliver would fail again). A replayed
+  `MessageAgent` (same request id) queues nothing once delivered: queueMessage looks the message up in the chat.
 - Replicas claim RUNNING agents without a live lease (`runClaimLoop`, up to `--max-concurrent-turns`), renew
   their leases (`runHeartbeatLoop`) and cancel the turns whose lease they lost. A replica that dies leaves its
   leases to expire; another replica takes the turns over and replays them from the chat: tool requests carry
   request ids derived from the call id, reports from the turn's last message.
+- Fencing: every write of a turn holds its lease first (`turnRunner.transact`/`fence`, `txn.holdLease`: a conditional
+  renewal, `UPDATE agent_lease ... WHERE replica = $me`, taken after the agent's lock). Agent-row writes check it in
+  their transaction; messages, generations, tool calls and reports renew it just before. A replica that lost the lease
+  cancels the turn with `errLeaseLost` and stops without ending it. The holder is the replica (per process), not the
+  claim: a replica re-claiming an agent its stale run still runs lets that run go on (one run per replica anyway). A
+  generation already streaming when the lease is lost still lands its message.
+- Caps (service options): `--max-tool-rounds` (100: the next round's calls are refused as ResourceExhausted
+  results telling the model to answer, a round after that fails the turn; counted per run, a takeover restarts it),
+  `--max-sub-agents` (20 live children, checked in `createAgent` after the insert under the parent's lock so replays
+  pass; create_agents reports it per sub-agent), `--max-sub-agent-depth` (3: CreateAgent clamps every agent's
+  `spec.max_sub_agent_depth`, the refusal is then create_agents' "you may not launch sub-agents"),
+  `--max-schedules` (20 schedules + pending one-offs per agent; a replayed schedule call at the cap is refused).
 - A turn pauses AWAITING on calls only a user can settle, each naming its `tool` (resource name): a gated method
   (`REASON_APPROVAL`) and input genui components (`REASON_RESULT`). Two orthogonal verbs settle them:
   `ApproveToolCall` (the service runs it; only for approval) and `ResolveToolCall` (the caller supplies the outcome, a
@@ -114,8 +128,7 @@ snapshots do not carry the chat.
 `CancelAgent` ends the running turn wherever it runs. `DeleteAgent` soft-deletes, cancels the turn and the agent's
 schedules (force takes its live descendants in one transaction, restored together by `UndeleteAgent`); chats stay.
 
-## Known gaps (2026-11 audit, not re-verified)
+## Known gaps (2026-11 audit)
 
-A replica that lost its lease is not fenced and may run a turn twice; a message queued during a failed or cancelled
-turn is stranded; no caps on tool rounds, fan-out or schedules; nothing compacts a chat that outgrows the model's
-context; the workspace server (`cmd/workspace-server`) is unauthenticated.
+Nothing compacts a chat that outgrows the model's context; the workspace server (`cmd/workspace-server`) is
+unauthenticated. Fencing, stranded queued messages, replayed MessageAgent and the caps were fixed 2026-11-24.
