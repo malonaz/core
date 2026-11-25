@@ -1,79 +1,135 @@
 ---
-title: 'agent: Agent/Task/Memory ontology, durable runners, wake model'
-description: 'Agent domain design: Agent (durable actor), Task (terminal work unit, the queue), Memory (lore-shaped long-term memory), chat compaction, wake-by-append model. Postgres SKIP LOCKED queue; streaming/runner deferred.'
+title: 'agent: the AgentService (go/ai/agent_service)'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres (every write fenced on the lease), the caps on tool rounds, sub-agents, depth and schedules, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
-    status: in-progress
-    tags: idea,ai
-    topic: agent
+    topic: agent, ai
 ---
 
-Agent is a server-side resource (agent.v1) that moves the agentic loop out of the browser. An Agent owns a backing AI Chat (malonaz.ai.v1) holding its whole conversation, so any surface renders an agent's transcript with ordinary ListMessages. Design: the loop that lives in the client today (app/core/agent/loop.ts) becomes a durable state machine on the resource — every park point is a state transition, every resumption is a re-claim.
+# The AgentService
 
-## Resource shape
-Pattern organizations/{organization}/users/{user}/agents/{agent}. Immutable inputs: task (self-contained brief), model, tools (AgentTools: service tool sets + allow_sub_agents/max_sub_agents/max_depth). OUTPUT_ONLY projections maintained by the runner: state, chat, report, error_message, root_agent, metadata (turn_count, pending_approvals, awaited_agents), runner. parent_agent references the spawner (empty = root/orchestrator); root_agent makes the whole tree one ListAgents filter and gives CancelAgent its cascade.
+`go/ai/agent_service` serves `malonaz.ai.agent.agent_service.v1.AgentService` and runs every agent's turns itself,
+on whichever replica holds the agent's lease. A host (onikisu) serves it and routes its tool targets.
 
-AgentState: PENDING (awaiting pickup) -> RUNNING -> {AWAITING_APPROVAL, AWAITING_AGENTS} -> SUCCEEDED | FAILED | CANCELLED.
+## Resources
 
-Service: standard Create/Get/List/Delete plus custom CancelAgent, ResolveApproval, and the streaming StreamAgent. CreateAgent only persists a PENDING row — it never blocks on execution.
+- `Definition` (`organizations/{o}/definitions/{d}`): a reusable `AgentSpec` (instructions, model, reasoning effort,
+  tool grants, sub-agent depth). An agent created from one snapshots its spec; only the agent's `spec.tools` change
+  afterwards (UpdateAgent, or an always approval).
+- `Agent` (`organizations/{o}/users/{u}/agents/{a}`): its owner is in its name; it stores no principal. It holds a
+  chat (`malonaz.ai.v1`, its transcript), `state`, `latest_turn` (outcome, error, awaited tool calls),
+  `queued_messages`, and `parent_agent`/`root_agent` for sub-agent trees.
 
-## Execution policy (ported from the browser loop)
-Per turn: StreamGenerateMessage on the backing chat; RPC tools declared NO_SIDE_EFFECTS auto-execute concurrently. Anything side-effecting parks the agent in AWAITING_APPROVAL with the calls in metadata.pending_approvals; ResolveApproval executes or declines each, and the last resolution resumes the turn. A turn always resolves into a single tool message in original block order — the model never sees a dangling tool call. No tool calls -> final text becomes report, state SUCCEEDED.
+## Turns and leases
 
-## Orchestration via sub-agents
-The runner injects a built-in Agent_Spawn tool (task, model?, tools? clamped to a subset of the spawner's own; depth/fan-out enforced by max_depth/max_sub_agents) which is just CreateAgent with parent_agent = self. The spawn call does not resolve inline: like an interactive genui component, it defers the turn — the orchestrator parks in AWAITING_AGENTS with metadata.awaited_agents mapping spawn tool-call id -> child agent name. Several children may be spawned in one turn (free parallelism). Each child's terminal transition writes its report (or error_message) as that spawn call's tool result and, when every awaited child is terminal, resumes the parent. Take SELECT ... FOR UPDATE on the parent row so two children finishing at once can't double-resume it.
+- A turn generates on the agent's chat (`AiService.StreamGenerateMessage`), runs the tool calls concurrently,
+  and repeats until the model answers without calling tools. Queued messages are delivered at its start and
+  between tool rounds; messages queued meanwhile run another turn, however this one ended (a failed or cancelled
+  turn goes on only for messages queued after its start: one it failed to deliver would fail again). A replayed
+  `MessageAgent` (same request id) queues nothing once delivered: queueMessage looks the message up in the chat
+  (`AiService.GetMessage` as the service: hosts grant it, as onikisu's `agent-service` account does).
+- Replicas claim RUNNING agents without a live lease (`runClaimLoop`, up to `--max-concurrent-turns`), renew
+  their leases (`runHeartbeatLoop`) and cancel the turns whose lease they lost. A replica that dies leaves its
+  leases to expire; another replica takes the turns over and replays them from the chat: tool requests carry
+  request ids derived from the call id, reports from the turn's last message.
+- Fencing: every write of a turn holds its lease first (`turnRunner.transact`/`fence`, `txn.holdLease`: a conditional
+  renewal, `UPDATE agent_lease ... WHERE replica = $me`, taken after the agent's lock). Agent-row writes check it in
+  their transaction; messages, generations, tool calls and reports renew it just before. A replica that lost the lease
+  cancels the turn with `errLeaseLost` and stops without ending it. The holder is the replica (per process), not the
+  claim: a replica re-claiming an agent its stale run still runs lets that run go on (one run per replica anyway). A
+  generation already streaming when the lease is lost still lands its message.
+- Caps (service options): `--max-tool-rounds` (100: the next round's calls are refused as ResourceExhausted
+  results telling the model to answer, a round after that fails the turn; counted per run, a takeover restarts it),
+  `--max-sub-agents` (20 live children, checked in `createAgent` after the insert under the parent's lock so replays
+  pass; create_agents reports it per sub-agent), `--max-sub-agent-depth` (3: CreateAgent clamps every agent's
+  `spec.max_sub_agent_depth`, the refusal is then create_agents' "you may not launch sub-agents"),
+  `--max-schedules` (20 schedules + pending one-offs per agent; a replayed schedule call at the cap is refused).
+- A turn pauses AWAITING on calls only a user can settle, each naming its `tool` (resource name): a gated method
+  (`REASON_APPROVAL`) and input genui components (`REASON_RESULT`). Two orthogonal verbs settle them:
+  `ApproveToolCall` (the service runs it; only for approval) and `ResolveToolCall` (the caller supplies the outcome, a
+  result or an error status, for any awaited call: a refusal is a status, "I ran it myself" a result). Same outcome
+  again is a no-op, another FAILED_PRECONDITION. An input's non-error result must carry its InputResponse.
+- A reply (`MessageAgent` to an awaiting agent) or `CancelAgent` is the service's own resolve: every unsettled call
+  gets a CANCELLED status. Results carry `approved-by` or `resolved-by`, with `actor`.
+- `ApproveToolCall.always`: in the same transaction, the agent's own `spec.tools` gets (or refines) a grant of that
+  one tool with `APPROVAL_NOT_REQUIRED`, and its other calls awaiting approval for the tool are approved. Scope: this
+  agent and the ad-hoc sub-agents it launches afterwards (they inherit its grants); never the definition (org-wide)
+  nor the set. Undone by `UpdateAgent` on `spec.tools` (validated as at creation).
+- Who sent, settled or cancelled is recorded as the caller's principal and actor (annotations), never the owner.
 
-## Durable queue without NATS
-The agent table is the work queue — no broker, no outbox. Runners claim with `SELECT name FROM agent.agent WHERE state = 'PENDING' AND delete_time IS NULL ORDER BY create_time LIMIT 1 FOR UPDATE SKIP LOCKED`; SKIP LOCKED gives competing consumers for free (no visibility timeouts, no acks). Claiming flips state to RUNNING and stamps runner{id, address, lease_expire_time}; the runner heartbeats the lease each turn and a reaper re-queues RUNNING agents whose lease expired. Crash recovery is free because the pending turn is already persisted (dangling tool calls in the chat, held results in metadata) — the client-side restorePendingTurn logic moved server-side.
+## Built-in tools
 
-Latency: enqueue and every resuming transition NOTIFY agent_work in the same transaction as the insert/update; runners LISTEN and treat a notification purely as a hint to run the claim query, never as the work itself (NOTIFY is fire-and-forget, lost on disconnect). A 5-10s fallback poll stays the source of truth. Because enqueue and state change share one transaction, the publish-after-commit hazard NATS had disappears. Trade-off: no external subscribers (add an outbox table if ever needed) and no pub/sub fan-out for live UIs.
+Every agent holds `create_agents` (sub-agents from a definition or ad hoc, at most `max_sub_agent_depth` deep; each
+sub-agent's turn ends by sending its report to its parent as a message that wakes it), `message_agent`,
+`list_agents`, `update_labels` (unprefixed keys only: a prefixed key, `*.malonaz.com` or a host's such as
+`kantoku.onikisu.com/...`, belongs to whoever declares it, and refuses PERMISSION_DENIED), and `schedule` / `list_schedules` / `cancel_schedule` (scheduler schedules and
+one-offs under the owner, labelled with the agent). `WakeAgent` runs a schedule's tick: it queues its message
+or launches its sub-agent, and runs only when the caller is `--scheduler-dispatcher-account`.
 
-## Streaming: the row is the service registry
-Queue dispatch alone would lose token-level streaming, so streaming is a property of who drives the loop, not of the queue.
-- Interactive turns: StreamAgent (server-streaming, AgentEvent = oneof {block, message, agent}) claims the agent with the same SKIP LOCKED + lease mechanics and runs the loop in-process, teeing chunks to the caller. Disconnect does not cancel: the lease lapses and a background runner takes over.
-- Reattach: StreamAgent on an already-claimed agent proxies to the owning replica's internal attach endpoint, dialing agent.runner.address (plain replica-to-replica gRPC; the row already names the owner).
-- Background / sub-agents: per-message granularity via ListMessages polling or a server-side polling watch — the right granularity for progress chips.
+## Streaming
 
-Rule: the address is a hint, the lease is the truth, polling is the floor. Every attach degrades one tier down (proxy -> poll) without surfacing an error. Failure matrix: task killed but row stale -> dial fails, reaper re-queues on lease expiry; IP recycled by a new task -> attach carries agent name + runner.id, the new runner answers NotFound; lease expired but process alive (GC pause, netsplit) -> proxy checks lease_expire_time before dialing and treats it as unowned; runner released mid-attach -> internal stream ends with the terminal state, client switches to GetAgent.
+`StreamAgent` sends snapshots and, if asked, the transcript's live activity. Activity comes from the replica
+running the turn: this one's hub, or the lease holder's `StreamAgent`, proxied (a forwarded call is told by its
+caller being the service's own account). A poll every `--stream-poll-interval` re-reads the agents for changes
+made elsewhere.
 
-## Runner self-addressing on ECS
-Runners need their own reachable address to register in Agent.runner. Requires awsvpc network mode (always the case on Fargate): each task gets its own ENI and private IP, so a fixed listen port works with no port conflicts. The task reads its own IP from the metadata endpoint ECS injects, ECS_CONTAINER_METADATA_URI_V4 + "/task" -> Containers[].Networks[].IPv4Addresses[0], then advertises ip:port. Boot order: resolve address -> start internal gRPC server -> start claiming; each claim writes runner{id, address, lease}. runner.id is a fresh UUID per boot so a recycled IP is never mistaken for the same runner.
+## Context gauge
 
-Security group: the runner SG allows the internal port only from the API/gateway SG. Private task IPs are not browser-reachable, which is exactly why proxying through StreamAgent is load-bearing rather than optional. Do not use Service Connect / Cloud Map DNS for this — those resolve to any healthy task, while attach needs one specific task. EC2 + bridge mode works but is strictly worse: containers share the host IP and the container port is NAT-mapped to a random host port, so you must advertise hostIP:hostPort read from Containers[].Ports[].HostPort, and one host running many runners multiplies the stale-address surface.
+An agent's context is its chat's: `Chat.last_generated_message_model_usage` (AiService) is the usage of
+`Chat.last_generated_message`, the chat's newest message with a `model` (a failed generation's partial message has none;
+soft-deleted ones count), both joined from the message table at read, never stored (index
+`message_last_generated_idx`). Its input categories (`input_token`, cache read and write, image) sum to the context the
+model was sent, tools and instructions included, whatever the provider (ModelUsage's categories are disjoint); set it
+against `GetModel(usage.model).ttt.context_token_limit`. It lags one step: the generation's own output and the tool
+results and messages delivered since join the next one; a failed generation (an overflow among them) changes nothing.
+Live: StreamAgent's `message` events (with `include_transcript`) carry each generated message's `model_usage`;
+snapshots do not carry the chat.
 
-## Key files
-- app/core/agent/loop.ts — the browser loop this design ports server-side (turn deferral, resolvePendingTurn, restorePendingTurn).
-- app/core/agent/executor.ts — NO_SIDE_EFFECTS classification driving the approval policy.
-- app/core/agent/useAgentChat.ts — shrinks to CreateAgent + StreamAgent + ResolveApproval.
-- cmd/shared/container_service/ecs.tf — ECS/Fargate service module (awsvpc, security groups).
+## Tools and identity
 
-## Implementation status / revisions (2026-08)
-- Landed: agent.v1 protos, agent.agent table + SKIP LOCKED claim index, model/store/rpc codegen, go/agent/agent_service scaffold (CancelAgent/ResolveApproval stubbed), cmd/agent-service.
-- AgentTools was folded into AgentMetadata (tool_sets, allow_sub_agents, max_sub_agents, max_depth alongside runner bookkeeping); metadata is no longer OUTPUT_ONLY.
-- Agent.runner and StreamAgent/AgentEvent are deferred: no streaming for now, so no runner self-addressing either. Attach/proxy design above stays as future reference.
-- Open design: split a long-lived AgentDefinition (persona: instructions, model, tools, optional input/output json schemas) from the Agent run. A definition with schemas is exposable as a malonaz.ai.v1.Tool; sub-agent spawn becomes invoking a definition with args.
+- The catalogue: `ToolSet` (`toolSets/{id}`: a routed service by full name, or `genui`) and `Tool`
+  (`toolSets/{id}/tools/{method or component}`), derived from `--tool-target pkg.Service=endpoint` and each target's
+  reflection (read as the service, cached five minutes), never stored. `ListToolSets`/`GetToolSet`; `ListTools`
+  (parent `toolSets/-` across sets)/`GetTool`. Facts: `read_only` (NO_SIDE_EFFECTS, every component),
+  `resolved_by_client` (input components). An unreadable set carries `error`, is left out of `toolSets/-` and fails
+  its own list (UNAVAILABLE). Comments travel only when the target serves reflection from a descriptor set built with
+  source info (`cmd/workspace-server`); the Go registry's descriptors (genui) have none. Built-ins are not listed.
+- Reach: each caller sees the tools they could call. Per routed set the service asks its target
+  `AuthorizationService.TestMethods` (core's `lores/authentication/overview`) carrying the caller's session; tools not
+  returned are left out (GetTool NOT_FOUND), and a readable set left with none is hidden (GetToolSet and its ListTools
+  NOT_FOUND, absent from ListToolSets). A target that cannot say (serves no AuthorizationService: UNIMPLEMENTED, or
+  fails, logged) trims nothing. Each turn asks again as the owner (`toolbox.reachable`, once per set a turn, on the
+  turn's owner token): a granted set offers only the returned methods (none: no discovery tool), a lone tool grant
+  not returned is left out. Spec validation stays offline: an unreachable grant is accepted and trimmed at turn time.
+  Trimming saves context and failed calls; every call is still the target's decision.
+- A spec grants by resource name (`AgentSpec.ToolGrant`: oneof `tool_set` | `tool`, plus `approval`). A set grant
+  reaches the model as a discovery tool set (services) or one tool per component (genui); a lone tool grant as one
+  tool; a tool grant inside a granted set only refines its approval (the tool's grant, else its set's, else
+  NO_SIDE_EFFECTS runs and anything else awaits). Validation checks the set is configured and components exist
+  (no network: a wrong method fails the first turn); genui grants take no approval.
+- Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set, approvals inherited
+  and only tightened by the model; a requested set keeps the parent's refinements inside it.
+- The service's own calls (creating chats, writing, reading and listing their messages, scheduler, replica to replica) go out
+  as its account (`asService`).
+- Schemas are read as the service: they are the same for every owner (cached five minutes per endpoint).
+- Generations and tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer`
+  (`TokenService.ExchangeToken`, subject the owner, actor the agent's name), reused until a minute before it
+  expires, and calls with it as the only credential (`asOwner`, `owner_token.go`). The owner's own grants decide
+  each call; a refused exchange fails a tool call (its result), and a generation's turn. The host serves the
+  TokenService and decides who exchanges for whom (core's `lores/authentication/overview`, Exchange). The token goes
+  to every tool target.
+- Which models an owner's agents use is the host's rule on `AiService.StreamGenerateMessage` (a condition on
+  `request.model`), decided per generation: a refused model fails the turn with the AiService's PERMISSION_DENIED
+  ("generating message with {model} as the agent's owner: ..."). Nothing checks the model earlier: CreateAgent,
+  CreateDefinition and `create_agents` accept it, and a sub-agent on a refused model fails its first turn, whose
+  report ("My turn failed: ...") tells its parent, free to launch it again on another model.
 
-## Settled ontology (2026-08-16 discussion)
-Three primitives:
-- Agent `organizations/{org}/users/{user}/agents/{agent}`: durable actor, never terminal (IDLE/ACTIVE/SUSPENDED, heals via lease reaper). Persona: display_name, instructions, model, tool config. `chat` = CURRENT chat; conversation is backed by N chats over its lifetime.
-- Task `.../agents/{agent}/tasks/{task}`: terminal work unit (PENDING->...->SUCCEEDED/FAILED/CANCELLED); what was scaffolded as agent.v1.Agent, to be renamed. Nesting = assignment: the task executes with that agent's persona/tools in a FRESH chat. Tree via parent_task/root_task; the table is the queue. Tasks never compact.
-- Memory `.../agents/{agent}/memories/{memory}`: lore-shaped (title/description as the search surface, content as google.protobuf.Value, labels over enums — see ~/sgpt/sgpt/v1/lore.proto), plus source_chat/source_task provenance; embeddings later.
+## Deletion and cancellation
 
-Unifying rule: everything an agent hears is a message appended to its chat, and every append is a wake. Flows:
-1. User->Agent: message append -> wake -> turns -> reply -> idle.
-2. Agent delegates: Task_Create tool call -> turn defers (awaited_tasks) -> idle; task terminal report written as that tool call's result -> append wakes agent -> resume exact turn (the AWAITING_AGENTS machinery).
-3. Task->subtask: same, parent parked AWAITING_TASKS.
-4. User->Task directly under an agent: report via task.report to creator; optional courtesy message into agent chat.
-5. Agent->Agent: chat message = flow 1; delegating work = task under the other agent (flow 4, creator awaits like flow 2).
+`CancelAgent` ends the running turn wherever it runs. `DeleteAgent` soft-deletes, cancels the turn and the agent's
+schedules (force takes its live descendants in one transaction, restored together by `UndeleteAgent`); chats stay.
 
-Compaction (agent chats only): lazily at wake-time, never mid-turn (pending turns must resolve in their own chat). Over threshold + no pending turn -> extraction turn on old chat emits Memory_Create/updates (revise/merge, not append-only) -> new chat seeded with persona + top-N memories + last K messages verbatim -> atomic agent.chat swap, old chat sealed. Memory retrieval: seed-time top-N for v1; Memory_Search tool later.
+## Known gaps (2026-11 audit)
 
-Wake triggers v1: user/agent message appends + task terminal transitions. Later: schedules ("wake me at 9am"), watched events.
-
-Implemented (2026-08-16): full domain landed and SAT-tested.
-- Protos: agent.v1.{Agent,Task,Memory} + AgentService (Agent CRUD+SendAgentMessage, Task CRUD+CancelTask+ResolveApproval, Memory CRUD). AgentState gained PROCESSING=4 as the claim marker (ACTIVE = queued wake).
-- Storage: one agent schema/db, tables agent.{agent,task,memory}; task_claim_idx/agent_claim_idx partial indexes; update_time doubles as runner heartbeat, reaper re-queues stale RUNNING/PROCESSING rows.
-- Runner (go/agent/agent_service): pollLoop workers claim via FOR UPDATE SKIP LOCKED (queue.go); task loop (task_loop.go) seeds persona+goal chat, executes built-in tools (create_task/create_memory), parks AWAITING_TASKS, final text -> report; terminal.go writes reports back as awaited tool results under row locks and re-queues/wakes the awaiter; agent loop (agent_loop.go) defers turns on create_task, idles via locked last-processed-message recheck; compaction.go rolls chats over (extraction turns -> memories, digest+summary+tail seed, atomic swap).
-- Custom RPCs (agent.go): SendAgentMessage (first-contact chat creation, append-then-wake), CancelTask (recursive-CTE subtree cascade + awaiter notification), ResolveApproval (FailedPrecondition/Unimplemented: no external tool executor server-side yet). CreateAgent/CreateTask wrap codegen to initialize OUTPUT_ONLY lifecycle fields.
-- SAT: go/test/agent/agent_service/sat, both services against one db, scripted mock provider drives the full loop (memory -> delegation -> task terminal report -> resume -> idle).
-Deferred: tool_sets/external tool execution + approvals, streaming/attach, wake schedules, Memory_Search, NOTIFY hints (polling only).
+Nothing compacts a chat that outgrows the model's context; the workspace server (`cmd/workspace-server`) is
+unauthenticated. Fencing, stranded queued messages, replayed MessageAgent and the caps were fixed 2026-11-24.

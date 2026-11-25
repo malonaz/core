@@ -2,6 +2,7 @@ grpc_library(
     name = "v2",
     srcs = [
         "authentication.proto",
+        "authorization_service.proto",
         "token_service.proto",
     ],
     additional_context = {

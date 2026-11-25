@@ -47,7 +47,14 @@ func LoadConfiguration(path string) (*authenticationpb.Configuration, error) {
 }
 
 // methodToConditions is what a role allows: per method, its rules' conditions, nil for a rule without one.
-type methodToConditions map[string][]cel.Program
+type methodToConditions map[string][]*condition
+
+// condition is a rule's compiled condition.
+type condition struct {
+	program cel.Program
+	// readsRequest is whether it reads `request`, which only a call can decide.
+	readsRequest bool
+}
 
 // roleCompiler compiles roles into the methods they allow, resolving includes and method patterns against the
 // registered methods.
@@ -57,7 +64,7 @@ type roleCompiler struct {
 	resolving                  map[string]bool
 	methodToDescriptor         map[string]protoreflect.MethodDescriptor
 	environment                *cel.Env
-	conditionToProgram         map[conditionKey]cel.Program
+	keyToCondition             map[conditionKey]*condition
 }
 
 // conditionKey is a condition compiled against a request type, or against none when it does not read `request`.
@@ -84,7 +91,7 @@ func compileRoles(roles []*authenticationpb.Role, methodToDescriptor map[string]
 		resolving:                  map[string]bool{},
 		methodToDescriptor:         methodToDescriptor,
 		environment:                environment,
-		conditionToProgram:         map[conditionKey]cel.Program{},
+		keyToCondition:             map[conditionKey]*condition{},
 	}
 	for _, role := range roles {
 		compiler.roleIDToRole[role.GetId()] = role
@@ -118,11 +125,11 @@ func (c *roleCompiler) resolve(roleID string) (methodToConditions, error) {
 			return nil, fmt.Errorf("role %q: %w", roleID, err)
 		}
 		for _, method := range methods {
-			program, err := c.condition(rule.GetConditionCel(), c.methodToDescriptor[method])
+			condition, err := c.condition(rule.GetConditionCel(), c.methodToDescriptor[method])
 			if err != nil {
 				return nil, fmt.Errorf("role %q: condition on %s: %w", roleID, method, err)
 			}
-			resolved[method] = append(resolved[method], program)
+			resolved[method] = append(resolved[method], condition)
 		}
 	}
 	for _, includedRoleID := range role.GetIncludes() {
@@ -130,8 +137,8 @@ func (c *roleCompiler) resolve(roleID string) (methodToConditions, error) {
 		if err != nil {
 			return nil, fmt.Errorf("role %q includes %w", roleID, err)
 		}
-		for method, programs := range included {
-			resolved[method] = append(resolved[method], programs...)
+		for method, conditions := range included {
+			resolved[method] = append(resolved[method], conditions...)
 		}
 	}
 	c.roleIDToMethodToConditions[roleID] = resolved
@@ -178,22 +185,22 @@ func compileMethodPattern(pattern string) (*regexp.Regexp, error) {
 }
 
 // condition compiles a condition for a method. Most conditions do not read `request`: compiled without it, they
-// compile once for all methods instead of once per request type.
-func (c *roleCompiler) condition(expression string, method protoreflect.MethodDescriptor) (cel.Program, error) {
+// compile once for all methods instead of once per request type. One that compiles only with it reads it.
+func (c *roleCompiler) condition(expression string, method protoreflect.MethodDescriptor) (*condition, error) {
 	if expression == "" {
 		return nil, nil
 	}
 	withoutRequest := conditionKey{expression: expression}
 	withRequest := conditionKey{expression: expression, input: method.Input().FullName()}
 	for _, key := range []conditionKey{withoutRequest, withRequest} {
-		if program, ok := c.conditionToProgram[key]; ok {
-			return program, nil
+		if condition, ok := c.keyToCondition[key]; ok {
+			return condition, nil
 		}
 	}
 	program, err := compileCondition(c.environment, expression)
 	if err == nil {
-		c.conditionToProgram[withoutRequest] = program
-		return program, nil
+		c.keyToCondition[withoutRequest] = &condition{program: program}
+		return c.keyToCondition[withoutRequest], nil
 	}
 	if method.IsStreamingClient() && method.IsStreamingServer() {
 		return nil, fmt.Errorf("%w (`request` is not declared for a bidirectional stream)", err)
@@ -208,8 +215,8 @@ func (c *roleCompiler) condition(expression string, method protoreflect.MethodDe
 	if program, err = compileCondition(environment, expression); err != nil {
 		return nil, err
 	}
-	c.conditionToProgram[withRequest] = program
-	return program, nil
+	c.keyToCondition[withRequest] = &condition{program: program, readsRequest: true}
+	return c.keyToCondition[withRequest], nil
 }
 
 // registeredMethods returns every method of every service registered in the process.

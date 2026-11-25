@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package malonaz.ai.agent.agent_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "malonaz/ai/agent/v1/tool.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/agent/agent_service/v1";
+
+// Request message for AgentService.GetToolSet.
+message GetToolSetRequest {
+  // The tool set to retrieve.
+  // Format: toolSets/{tool_set}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/ToolSet"
+  ];
+}
+
+// Request message for AgentService.ListToolSets.
+message ListToolSetsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+
+  // Requested page size. Server may return fewer tool sets than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 1 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListToolSetsResponse.next_page_token][malonaz.ai.agent.agent_service.v1.ListToolSetsResponse.next_page_token]
+  // returned by a previous call.
+  string page_token = 2;
+}
+
+// Response message for AgentService.ListToolSets.
+message ListToolSetsResponse {
+  // The tool sets, ordered by name.
+  repeated malonaz.ai.agent.v1.ToolSet tool_sets = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  string next_page_token = 2;
+}
+
+// Request message for AgentService.GetTool.
+message GetToolRequest {
+  // The tool to retrieve.
+  // Format: toolSets/{tool_set}/tools/{tool}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "agent.ai.malonaz.com/Tool"
+  ];
+}
+
+// Request message for AgentService.ListTools.
+message ListToolsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+
+  // The tool set whose tools to list, or `toolSets/-` for the tools of every set.
+  // Format: toolSets/{tool_set}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "agent.ai.malonaz.com/Tool"
+  ];
+
+  // Requested page size. Server may return fewer tools than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListToolsResponse.next_page_token][malonaz.ai.agent.agent_service.v1.ListToolsResponse.next_page_token]
+  // returned by a previous call.
+  string page_token = 3;
+}
+
+// Response message for AgentService.ListTools.
+message ListToolsResponse {
+  // The tools, ordered by name.
+  repeated malonaz.ai.agent.v1.Tool tools = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  string next_page_token = 2;
+}

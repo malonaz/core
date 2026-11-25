@@ -1,6 +1,7 @@
 package sat
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,6 +9,8 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	grpcrequire "github.com/malonaz/core/go/grpc/require"
+	"github.com/malonaz/core/go/uuid"
 )
 
 func getChat(t *testing.T, name string) *aipb.Chat {
@@ -76,4 +79,52 @@ func TestChatRollup(t *testing.T) {
 	_, err = aiServiceClient.UndeleteMessage(ctx, &aiservicepb.UndeleteMessageRequest{Name: deletedMessage.GetName()})
 	require.NoError(t, err)
 	require.Equal(t, int32(2), getChat(t, parent).GetAssistantMessageCount())
+}
+
+// A chat reads its latest successful generation's message and usage, joined
+// from its messages: failed generations and later user messages leave it be.
+func TestChatLastGeneratedMessage(t *testing.T) {
+	t.Parallel()
+	parent := newChatParent()
+	userParent := parent[:strings.LastIndex(parent, "/chats/")]
+
+	// Two successful generations, then a third failing on the exhausted script.
+	_, err := generate(t, parent, newToolSet(), newScriptedUserMessage(t, newAssistantText("one"), newAssistantText("two")))
+	require.NoError(t, err)
+	second, err := generate(t, parent, newToolSet(), &aipb.Message{Role: aipb.Role_ROLE_USER, Blocks: []*aipb.Block{{Content: &aipb.Block_Text{Text: "again"}}}})
+	require.NoError(t, err)
+	_, err = generate(t, parent, newToolSet(), &aipb.Message{Role: aipb.Role_ROLE_USER, Blocks: []*aipb.Block{{Content: &aipb.Block_Text{Text: "fail"}}}})
+	require.Error(t, err)
+	_, err = aiServiceClient.CreateMessage(ctx, &aiservicepb.CreateMessageRequest{
+		Parent:  parent,
+		Message: &aipb.Message{Role: aipb.Role_ROLE_USER, Blocks: []*aipb.Block{{Content: &aipb.Block_Text{Text: "later"}}}},
+	})
+	require.NoError(t, err)
+	generated := second.GetGeneratedMessage()
+	require.NotZero(t, generated.GetModelUsage().GetInputToken().GetQuantity())
+
+	// A chat whose only generation failed has none.
+	failedParent := userParent + "/chats/" + uuid.MustNewV7().String()
+	_, err = generate(t, failedParent, newToolSet(), newScriptedUserMessage(t))
+	require.Error(t, err)
+
+	requireLastGeneration := func(t *testing.T, chats ...*aipb.Chat) {
+		t.Helper()
+		byName := map[string]*aipb.Chat{}
+		for _, chat := range chats {
+			byName[chat.GetName()] = chat
+		}
+		require.Equal(t, generated.GetName(), byName[parent].GetLastGeneratedMessage())
+		grpcrequire.Equal(t, generated.GetModelUsage(), byName[parent].GetLastGeneratedMessageModelUsage())
+		require.Empty(t, byName[failedParent].GetLastGeneratedMessage())
+		require.Nil(t, byName[failedParent].GetLastGeneratedMessageModelUsage())
+	}
+	requireLastGeneration(t, getChat(t, parent), getChat(t, failedParent))
+	batchGetChatsResponse, err := aiServiceClient.BatchGetChats(ctx, &aiservicepb.BatchGetChatsRequest{Parent: userParent, Names: []string{parent, failedParent}})
+	require.NoError(t, err)
+	requireLastGeneration(t, batchGetChatsResponse.GetChats()...)
+	listChatsResponse, err := aiServiceClient.ListChats(ctx, &aiservicepb.ListChatsRequest{Parent: userParent})
+	require.NoError(t, err)
+	require.Len(t, listChatsResponse.GetChats(), 2)
+	requireLastGeneration(t, listChatsResponse.GetChats()...)
 }

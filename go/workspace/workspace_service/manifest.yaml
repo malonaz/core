@@ -1,0 +1,2 @@
+name: workspace-service
+target: //go/workspace/workspace_service

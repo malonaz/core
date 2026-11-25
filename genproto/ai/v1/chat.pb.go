@@ -73,9 +73,19 @@ type Chat struct {
 	// entry per model, ordered by model resource name. Like `price`, this is
 	// append-only spend: deleting a message does not subtract its usage, and
 	// failed generations are not counted. `price` equals the sum of these.
-	ModelUsages   []*ModelUsage `protobuf:"bytes,15,rep,name=model_usages,json=modelUsages,proto3" json:"model_usages,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ModelUsages []*ModelUsage `protobuf:"bytes,15,rep,name=model_usages,json=modelUsages,proto3" json:"model_usages,omitempty"`
+	// The assistant message of the latest successful generation in this chat:
+	// the newest message with a `model` (a failed generation's partial message
+	// carries none). Derived by a query join, never stored.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	LastGeneratedMessage string `protobuf:"bytes,16,opt,name=last_generated_message,json=lastGeneratedMessage,proto3" json:"last_generated_message,omitempty"`
+	// The model usage of `last_generated_message`. Its input tokens
+	// (`input_token`, its cache reads and writes and their image counterparts)
+	// are the context the model was sent, to set against its model's
+	// `ttt.context_token_limit`; its output joins the next generation's.
+	LastGeneratedMessageModelUsage *ModelUsage `protobuf:"bytes,17,opt,name=last_generated_message_model_usage,json=lastGeneratedMessageModelUsage,proto3" json:"last_generated_message_model_usage,omitempty"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *Chat) Reset() {
@@ -208,6 +218,20 @@ func (x *Chat) GetModelUsages() []*ModelUsage {
 	return nil
 }
 
+func (x *Chat) GetLastGeneratedMessage() string {
+	if x != nil {
+		return x.LastGeneratedMessage
+	}
+	return ""
+}
+
+func (x *Chat) GetLastGeneratedMessageModelUsage() *ModelUsage {
+	if x != nil {
+		return x.LastGeneratedMessageModelUsage
+	}
+	return nil
+}
+
 func (x *Chat) SetName(v string) {
 	x.Name = v
 }
@@ -268,6 +292,14 @@ func (x *Chat) SetModelUsages(v []*ModelUsage) {
 	x.ModelUsages = v
 }
 
+func (x *Chat) SetLastGeneratedMessage(v string) {
+	x.LastGeneratedMessage = v
+}
+
+func (x *Chat) SetLastGeneratedMessageModelUsage(v *ModelUsage) {
+	x.LastGeneratedMessageModelUsage = v
+}
+
 func (x *Chat) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -289,6 +321,13 @@ func (x *Chat) HasDeleteTime() bool {
 	return x.DeleteTime != nil
 }
 
+func (x *Chat) HasLastGeneratedMessageModelUsage() bool {
+	if x == nil {
+		return false
+	}
+	return x.LastGeneratedMessageModelUsage != nil
+}
+
 func (x *Chat) ClearCreateTime() {
 	x.CreateTime = nil
 }
@@ -299,6 +338,10 @@ func (x *Chat) ClearUpdateTime() {
 
 func (x *Chat) ClearDeleteTime() {
 	x.DeleteTime = nil
+}
+
+func (x *Chat) ClearLastGeneratedMessageModelUsage() {
+	x.LastGeneratedMessageModelUsage = nil
 }
 
 type Chat_builder struct {
@@ -345,6 +388,16 @@ type Chat_builder struct {
 	// append-only spend: deleting a message does not subtract its usage, and
 	// failed generations are not counted. `price` equals the sum of these.
 	ModelUsages []*ModelUsage
+	// The assistant message of the latest successful generation in this chat:
+	// the newest message with a `model` (a failed generation's partial message
+	// carries none). Derived by a query join, never stored.
+	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+	LastGeneratedMessage string
+	// The model usage of `last_generated_message`. Its input tokens
+	// (`input_token`, its cache reads and writes and their image counterparts)
+	// are the context the model was sent, to set against its model's
+	// `ttt.context_token_limit`; its output joins the next generation's.
+	LastGeneratedMessageModelUsage *ModelUsage
 }
 
 func (b0 Chat_builder) Build() *Chat {
@@ -366,6 +419,8 @@ func (b0 Chat_builder) Build() *Chat {
 	x.UserMessageCount = b.UserMessageCount
 	x.ToolMessageCount = b.ToolMessageCount
 	x.ModelUsages = b.ModelUsages
+	x.LastGeneratedMessage = b.LastGeneratedMessage
+	x.LastGeneratedMessageModelUsage = b.LastGeneratedMessageModelUsage
 	return m0
 }
 
@@ -373,7 +428,7 @@ var File_malonaz_ai_v1_chat_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd2\t\n" +
+	"\x18malonaz/ai/v1/chat.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xa0\f\n" +
 	"\x04Chat\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -394,7 +449,13 @@ const file_malonaz_ai_v1_chat_proto_rawDesc = "" +
 	"\x17assistant_message_count\x18\f \x01(\x05B\x03\xe0A\x03R\x15assistantMessageCount\x121\n" +
 	"\x12user_message_count\x18\r \x01(\x05B\x03\xe0A\x03R\x10userMessageCount\x121\n" +
 	"\x12tool_message_count\x18\x0e \x01(\x05B\x03\xe0A\x03R\x10toolMessageCount\x12G\n" +
-	"\fmodel_usages\x18\x0f \x03(\v2\x19.malonaz.ai.v1.ModelUsageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\vmodelUsages\x1a9\n" +
+	"\fmodel_usages\x18\x0f \x03(\v2\x19.malonaz.ai.v1.ModelUsageB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\vmodelUsages\x12\x97\x01\n" +
+	"\x16last_generated_message\x18\x10 \x01(\tBa\xe0A\x03\xfaA\x18\n" +
+	"\x16ai.malonaz.com/Message\xba\xea\x0f? \x01B;\n" +
+	"\x16ai.malonaz.com/Message\x12\x04name\"\x1b\n" +
+	"\amodel:*\x12\x10create_time descR\x14lastGeneratedMessage\x12\xb1\x01\n" +
+	"\"last_generated_message_model_usage\x18\x11 \x01(\v2\x19.malonaz.ai.v1.ModelUsageBJ\xe0A\x03\xba\xea\x0fC\x10\x01 \x01B=\n" +
+	"\x16ai.malonaz.com/Message\x12\vmodel_usage\x1a\x16last_generated_messageR\x1elastGeneratedMessageModelUsage\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
@@ -420,11 +481,12 @@ var file_malonaz_ai_v1_chat_proto_depIdxs = []int32{
 	1, // 3: malonaz.ai.v1.Chat.labels:type_name -> malonaz.ai.v1.Chat.LabelsEntry
 	2, // 4: malonaz.ai.v1.Chat.annotations:type_name -> malonaz.ai.v1.Chat.AnnotationsEntry
 	4, // 5: malonaz.ai.v1.Chat.model_usages:type_name -> malonaz.ai.v1.ModelUsage
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	4, // 6: malonaz.ai.v1.Chat.last_generated_message_model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_v1_chat_proto_init() }

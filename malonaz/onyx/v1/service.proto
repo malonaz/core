@@ -30,6 +30,11 @@ message ServiceManifest {
   // The binary running only this service, which onyx_manifest builds with its `binary`. A server
   // naming no service manifest serves this one. Validated by onyx once those are filled in.
   MainManifest deployment = 7 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // Stop the service in the binary's graceful chain ahead of every server, with the processors,
+  // rather than after the servers' graceful stops: for a service whose stop releases work that
+  // still needs the servers, or ends streams that would hold their graceful stop.
+  bool stop_before_servers = 8;
 }
 
 // A generated component the Service embeds.

@@ -30,8 +30,13 @@ type querier interface {
 }
 
 var (
-	ChatPostgresColumns = postgres.GetDBColumns(model.Chat{})
+	ChatPostgresColumns      = postgres.GetDBColumns(model.Chat{})
+	ChatWritePostgresColumns = postgres.GetDBColumns(model.Chat{}, postgres.ExceptColumns("last_generated_message", "last_generated_message_model_usage"))
 )
+
+var chatJoinSubqueryExpr = `,(SELECT 'organizations/' || message.organization_id || '/users/' || message.user_id || '/chats/' || message.chat_id || '/messages/' || message.message_id FROM message AS message WHERE message.organization_id = chat.organization_id AND message.user_id = chat.user_id AND message.chat_id = chat.chat_id AND (message.model IS NOT NULL AND message.model != '') ORDER BY message.create_time DESC NULLS LAST, message.message_id LIMIT 1) AS last_generated_message,(SELECT message.model_usage FROM message AS message WHERE message.organization_id = chat.organization_id AND message.user_id = chat.user_id AND message.chat_id = chat.chat_id AND (message.model IS NOT NULL AND message.model != '') ORDER BY message.create_time DESC NULLS LAST, message.message_id LIMIT 1) AS last_generated_message_model_usage`
+var chatJoinSelectExprs = `,last_generated_message.name AS last_generated_message,last_generated_message.model_usage AS last_generated_message_model_usage`
+var chatJoinClause = `LEFT JOIN LATERAL (SELECT message.*, 'organizations/' || message.organization_id || '/users/' || message.user_id || '/chats/' || message.chat_id || '/messages/' || message.message_id AS name FROM message AS message WHERE message.organization_id = chat.organization_id AND message.user_id = chat.user_id AND message.chat_id = chat.chat_id AND (message.model IS NOT NULL AND message.model != '') ORDER BY message.create_time DESC NULLS LAST, message.message_id LIMIT 1) AS last_generated_message ON TRUE`
 
 func (s *Store) probeChat(ctx context.Context, q querier, organizationId, userId, chatId string) (bool, string, error) {
 	query := `SELECT delete_time IS NULL, etag FROM chat WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`
@@ -53,10 +58,11 @@ type ChatWithRequestID struct {
 }
 
 var (
-	ChatWithRequestIDPostgresColumns = postgres.GetDBColumns(ChatWithRequestID{})
-	chatInsertPostgresQuery          = `INSERT INTO chat %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id) DO UPDATE SET chat_id = EXCLUDED.chat_id`
-	chatInsertReturningClause        = ` RETURNING ` + strings.Join(ChatWithRequestIDPostgresColumns, ",")
-	chatGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(ChatWithRequestIDPostgresColumns, "chat") + " FROM chat" + ` WHERE chat.request_id = ANY($1)`
+	ChatWithRequestIDPostgresColumns      = postgres.GetDBColumns(ChatWithRequestID{})
+	ChatWithRequestIDWritePostgresColumns = postgres.GetDBColumns(ChatWithRequestID{}, postgres.ExceptColumns("last_generated_message", "last_generated_message_model_usage"))
+	chatInsertPostgresQuery               = `INSERT INTO chat %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id) DO UPDATE SET chat_id = EXCLUDED.chat_id`
+	chatInsertReturningClause             = ` RETURNING ` + strings.Join(ChatWithRequestIDWritePostgresColumns, ",") + chatJoinSubqueryExpr
+	chatGetByRequestIDsQuery              = "SELECT " + postgres.QualifyColumns(ChatWithRequestIDWritePostgresColumns, "chat") + chatJoinSelectExprs + " FROM chat " + chatJoinClause + ` WHERE chat.request_id = ANY($1)`
 )
 
 func orderChatsByRequestID(requestIDs []string, rows []*ChatWithRequestID) ([]*model.Chat, error) {
@@ -94,7 +100,7 @@ func (s *Store) BatchInsertChats(ctx context.Context, requestIDs []string, chats
 	for i, _chat := range chats {
 		withRequestIDs[i] = &ChatWithRequestID{RequestID: requestIDs[i], Chat: *_chat}
 	}
-	query, params := postgres.BatchInsertQuery(chatInsertPostgresQuery, withRequestIDs, ChatWithRequestIDPostgresColumns...)
+	query, params := postgres.BatchInsertQuery(chatInsertPostgresQuery, withRequestIDs, ChatWithRequestIDWritePostgresColumns...)
 	query += chatInsertReturningClause
 
 	var inserted []*model.Chat
@@ -140,7 +146,7 @@ func (s *Store) BatchInsertChats(ctx context.Context, requestIDs []string, chats
 }
 
 var updateChatPostgresQuery = `UPDATE chat SET #update_clause# WHERE #where_clause# RETURNING ` +
-	strings.Join(ChatPostgresColumns, ",")
+	strings.Join(ChatWritePostgresColumns, ",") + chatJoinSubqueryExpr
 
 func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause string, updateColumns []string, etag string) (*model.Chat, error) {
 	updateParams := postgres.GetParams(_chat, updateColumns...)
@@ -186,7 +192,7 @@ func (s *Store) UpdateChat(ctx context.Context, _chat *model.Chat, updateClause 
 }
 
 var softDeleteChatPostgresQuery = `UPDATE chat SET delete_time = $4, etag = $5 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND delete_time IS NULL RETURNING ` +
-	strings.Join(ChatPostgresColumns, ",")
+	strings.Join(ChatWritePostgresColumns, ",") + chatJoinSubqueryExpr
 
 func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Chat, error) {
 	query := softDeleteChatPostgresQuery
@@ -243,7 +249,7 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 }
 
 var undeleteChatPostgresQuery = `UPDATE chat SET delete_time = NULL, etag = $4 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND delete_time IS NOT NULL RETURNING ` +
-	strings.Join(ChatPostgresColumns, ",")
+	strings.Join(ChatWritePostgresColumns, ",") + chatJoinSubqueryExpr
 
 func (s *Store) UndeleteChat(ctx context.Context, organizationId, userId, chatId string, etag, newEtag string) (*model.Chat, error) {
 	query := undeleteChatPostgresQuery
@@ -277,7 +283,7 @@ func (s *Store) UndeleteChat(ctx context.Context, organizationId, userId, chatId
 }
 
 func (s *Store) GetChat(ctx context.Context, organizationId, userId, chatId string) (*model.Chat, error) {
-	query := "SELECT " + postgres.QualifyColumns(ChatPostgresColumns, "chat") + " FROM chat" + ` WHERE chat.organization_id = $1 AND chat.user_id = $2 AND chat.chat_id = $3`
+	query := "SELECT " + postgres.QualifyColumns(ChatWritePostgresColumns, "chat") + chatJoinSelectExprs + " FROM chat " + chatJoinClause + ` WHERE chat.organization_id = $1 AND chat.user_id = $2 AND chat.chat_id = $3`
 	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId)
 	if err != nil {
 		return nil, fmt.Errorf("getting chat: %w", err)
@@ -319,7 +325,7 @@ func (s *Store) BatchGetChats(ctx context.Context, organizationIds []string, use
 	}
 	whereClause := "WHERE " + strings.Join(orClauses, " OR ")
 
-	query := "SELECT " + postgres.QualifyColumns(ChatPostgresColumns, "chat") + " FROM chat" + " " + whereClause
+	query := "SELECT " + postgres.QualifyColumns(ChatWritePostgresColumns, "chat") + chatJoinSelectExprs + " FROM chat " + chatJoinClause + " " + whereClause
 
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
@@ -330,7 +336,7 @@ func (s *Store) BatchGetChats(ctx context.Context, organizationIds []string, use
 
 func (s *Store) ListChats(ctx context.Context, organizationId, userId string, showDeleted bool, whereClause, orderByClause, paginationClause string, columns []string, params ...any) ([]*model.Chat, error) {
 	if columns == nil {
-		columns = ChatPostgresColumns
+		columns = ChatWritePostgresColumns
 	}
 
 	if organizationId != "-" && organizationId != "" {
@@ -346,7 +352,7 @@ func (s *Store) ListChats(ctx context.Context, organizationId, userId string, sh
 		whereClause = postgres.AddToWhereClause(whereClause, "chat.delete_time IS NULL")
 	}
 
-	query := "SELECT " + postgres.QualifyColumns(columns, "chat") + " FROM chat" + " " + whereClause + " " + orderByClause + " " + paginationClause
+	query := "SELECT " + postgres.QualifyColumns(columns, "chat") + chatJoinSelectExprs + " FROM chat " + chatJoinClause + " " + whereClause + " " + orderByClause + " " + paginationClause
 	rows, err := s.client.Query(ctx, query, params...)
 	if err != nil {
 		return nil, fmt.Errorf("selecting chats: %w", err)

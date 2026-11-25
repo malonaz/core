@@ -26,6 +26,11 @@ anything else is a codegen error. The matching lives in `aip.ParseStandardMethod
 is onyx (`malonaz/onyx/v1` manifests, `tools/onyx`, `build_defs/codegen/onyx`); the reference implementation for every
 feature is `malonaz/test/library` + `go/test/library/library_service/sat`.
 
+Core commits `genproto/` and `gengo/`, and importers (onikisu) compile those, not core's protos: after any proto
+change run `plz run //scripts:copy_generated_code` and commit its output with the change. Core's own tests build from
+the protos and stay green without it, while an importer's store then panics on the new column
+(`No field with the tag ...`).
+
 ## Resource tree semantics
 
 The `resource` package resolves every pattern in a **proto package** (the
@@ -88,6 +93,13 @@ registry is per package — cross-package parent/child links do not exist):
 - **Query joins are total**: `ORDER BY <order_by>, <child id>` so `LIMIT 1`
   picks the same row in the lateral join (Get/List) and in each RETURNING
   subquery (Create/Update), or chained fields could name different rows.
+- **Joins cost every read**: the lateral joins are in every Get/BatchGet/List whatever the read mask asks, one
+  correlated probe per row and query join, so index the descendant on its parent columns + the join's `order_by`
+  (partial on its filter). Join filters address stored scalar columns only: no presence test on a JSONB
+  (`as_json_bytes`) field, so select on a scalar that carries the same meaning (`Chat.last_generated_message` filters
+  `model:*`, not `model_usage:*`). A hand-written query returning a joined resource must append the generated
+  `{resource}JoinSubqueryExpr` to `{Resource}WritePostgresColumns` in its RETURNING (`{Resource}PostgresColumns` names
+  the joined fields as columns: `column ... does not exist`); reference: `go/ai/store/chat.go`.
 - **Aggregate joins** (`join.aggregate`: `SUM`/`COUNT`/`MIN`/`MAX` over a
   descendant) are one correlated subquery per field — `LEFT JOIN LATERAL
   (SELECT SUM(book.page_count) AS value FROM … WHERE <correlation> AND

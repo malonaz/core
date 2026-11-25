@@ -1,6 +1,6 @@
 ---
 title: Authentication v2 — the session, the decision, the server token
-description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, ExchangeToken (a token of a host issuer for a subject, made by a named actor: the host''s Subjects, the exchange lifetime, no chains, the mapping check), how a host adopts it, what is not built yet.'
+description: 'go/authentication/v2 and malonaz.authentication.v2: one interceptor per binary, the Session (principal, actor, caller, grants, client), the configuration (issuers, service accounts, roles, public roles), the decision over grants, scopes (the resources a call names by its AIP shape, segment covering, failing closed), every edge outcome, what each call logs, the token one server presents to another, ExchangeToken (a token of a host issuer for a subject, made by a named actor: the host''s Subjects, the exchange lifetime, no chains, the mapping check), TestMethods (what a session could call: request-reading conditions and scopes reachable, session-only conditions decided, registered on every onyx server), how a host adopts it, what is not built yet.'
 labels:
     lang: go, protobuf
     repo: core
@@ -100,6 +100,23 @@ so `Listen` is no `List`):
   for every call, refused ones too, before any session exists: it only rewrites.
   An ordinary hook rewriting the request runs after the decision: unchecked.
 
+## What a session could call
+
+`AuthorizationService.TestMethods` (`authorization_service.proto`, `authorization.go`) answers, for the
+session of the call, which of the given full method names this server could allow, whatever the request
+(after IAM's TestIamPermissions). A method is returned when a grant of the session's principal
+(`session.grants`, never the presenter's: a carried call is answered for the carried principal) or a
+public role lists it, its scope is `*` or can cover something (valid, and the method's resources
+derivable), and one listing rule has no condition, a condition reading `request` (only a call decides
+it), or a condition reading only the session that holds. Methods the server does not serve
+(`grpc.Server.GetServiceInfo`) are never returned: absent means unreachable or not served, alike.
+
+- Which conditions read `request` is known at configuration load: a condition that compiles without
+  `request` declared never reads it; one that compiles only with it does (`condition.readsRequest`).
+- Served on every gRPC server of an onyx binary with the interceptor: the generated main registers
+  `interceptor.NewAuthorizationService(server.Raw)` beside the server's services. A host lists the method in
+  its public role (an ordinary rule; the interceptor makes no exception for it).
+
 ## Credentials and outcomes
 
 A call carries exactly one explicit credential: `authorization: Bearer`, the
@@ -169,6 +186,18 @@ about 21 µs to sign and 39 µs to verify and decide (`plz run
   to its service and dead in a minute. A remote server on v2 under another
   secret refuses it (UNAUTHENTICATED), and one shown an API key as well sees two
   credentials: call it on a context carrying no identity.
+- To strip identity from a context that carries some (a handler's, a service's
+  `As`), replace its call metadata with a function returning none
+  (`grpc.WithCallMetadata`); clearing the outgoing gRPC metadata strips nothing,
+  as the token is minted per call. To call with another credential, replace it
+  with a function returning that credential alone: the AgentService makes its generations and tool
+  calls with a token exchanged for the agent's owner so (`asOwner` in
+  `go/ai/agent_service`).
+- Who presented a call is `caller`, which only a holder of the server secret
+  can set: a handler only another server may call checks
+  `caller.subject` (`serviceAccounts/{id}`), never a header or the principal.
+  The AgentService tells a call forwarded by another replica by its own
+  account as caller, and runs WakeAgent only for the scheduler dispatcher's.
 - The grpc-gateway and the grpc-web proxy relay only the outside caller's
   credential: their connections are not core's, and their requests' contexts
   carry no identity (`TestEdgeRelaysOnlyTheOutsideCredential`).

@@ -2,6 +2,8 @@ go_library(
     name = "v2",
     srcs = [
         "authentication.pb.go",
+        "authorization_service.pb.go",
+        "authorization_service_grpc.pb.go",
         "token_service.pb.go",
         "token_service_grpc.pb.go",
     ],

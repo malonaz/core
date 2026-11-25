@@ -1,0 +1,149 @@
+package agent_service
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+
+	"google.golang.org/grpc/metadata"
+
+	"github.com/malonaz/core/go/grpc"
+	"github.com/malonaz/core/go/uuid"
+)
+
+type Opts struct {
+	AdvertisedAddress          string            `long:"advertised-address" env:"ADVERTISED_ADDRESS" required:"true" description:"Where the other replicas reach this replica's gRPC server, to cancel and stream the turns it runs: http://host:port (plaintext), https://host:port or host:port (TLS), or unix:path"`
+	LeaseDuration              time.Duration     `long:"lease-duration" env:"LEASE_DURATION" default:"15s" description:"How long a turn's lease outlives its replica's last heartbeat before another replica takes the turn over"`
+	HeartbeatInterval          time.Duration     `long:"heartbeat-interval" env:"HEARTBEAT_INTERVAL" default:"5s" description:"How often a replica renews the leases of the turns it runs"`
+	ClaimInterval              time.Duration     `long:"claim-interval" env:"CLAIM_INTERVAL" default:"2s" description:"How often a replica claims the turns needing one: running agents without a live lease"`
+	MaxConcurrentTurns         int               `long:"max-concurrent-turns" env:"MAX_CONCURRENT_TURNS" default:"100" description:"How many turns a replica runs at once"`
+	MaxToolRounds              int               `long:"max-tool-rounds" env:"MAX_TOOL_ROUNDS" default:"100" description:"How many rounds of tool calls a turn runs: the next round's calls are refused, telling the model to answer, and a round after that fails the turn"`
+	MaxSubAgents               int               `long:"max-sub-agents" env:"MAX_SUB_AGENTS" default:"20" description:"How many live sub-agents an agent may have: launching another is refused"`
+	MaxSubAgentDepth           int               `long:"max-sub-agent-depth" env:"MAX_SUB_AGENT_DEPTH" default:"3" description:"How many levels of sub-agents below it any agent may launch, whatever its spec allows"`
+	MaxSchedules               int               `long:"max-schedules" env:"MAX_SCHEDULES" default:"20" description:"How many schedules and pending one-off runs an agent may have: scheduling another is refused"`
+	ShutdownGrace              time.Duration     `long:"shutdown-grace" env:"SHUTDOWN_GRACE" default:"10s" description:"How long a stopping replica lets in-flight tool calls finish before cancelling its turns and releasing their leases"`
+	StreamPollInterval         time.Duration     `long:"stream-poll-interval" env:"STREAM_POLL_INTERVAL" default:"1s" description:"How often a StreamAgent call re-reads its agents for changes made elsewhere: snapshots, turns moving between replicas, new descendants"`
+	SchedulerDispatcherAccount string            `long:"scheduler-dispatcher-account" env:"SCHEDULER_DISPATCHER_ACCOUNT" required:"true" description:"The subject of the scheduler dispatcher's service account, serviceAccounts/{id}: WakeAgent runs only when it calls"`
+	OwnerTokenIssuer           string            `long:"owner-token-issuer" env:"OWNER_TOKEN_ISSUER" required:"true" description:"The issuer whose tokens tool calls carry: exchanged for each agent's owner, the agent its actor"`
+	ToolTargets                map[string]string `long:"tool-target" env:"TOOL_TARGETS" env-delim:"," key-value-delimiter:"=" description:"Where a tool service is served, as pkg.Service=endpoint (endpoint as for advertised-address). Repeatable. Every service an agent's tools name needs one: specs naming another are refused"`
+}
+
+type runtime struct {
+	// replica identifies this process in the leases it holds.
+	replica string
+	// address is this replica's advertised address.
+	address     string
+	connections *connections
+	toolRouter  *toolRouter
+	// builtinTools are the tools every agent holds, genuiComponents those an agent may render.
+	builtinTools    *builtinTools
+	genuiComponents *genuiComponents
+	hub             *hub
+	turns           *turns
+	// runCtx spans the replica's life, with the service's identity: turns run on it.
+	runCtx context.Context
+}
+
+func newRuntime(opts *Opts) (*runtime, error) {
+	if opts.AdvertisedAddress == "" {
+		return nil, fmt.Errorf("advertised address is required")
+	}
+	if _, err := grpc.ParseClientOpts(opts.AdvertisedAddress); err != nil {
+		return nil, fmt.Errorf("parsing advertised address: %w", err)
+	}
+	if opts.SchedulerDispatcherAccount == "" {
+		return nil, fmt.Errorf("scheduler dispatcher account is required")
+	}
+	if opts.OwnerTokenIssuer == "" {
+		return nil, fmt.Errorf("owner token issuer is required")
+	}
+	connections := newConnections()
+	toolRouter, err := newToolRouter(opts.ToolTargets, connections)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating tool router: %w", err)
+	}
+	builtinTools, err := newBuiltinTools(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("instantiating built-in tools: %w", err)
+	}
+	genuiComponents, err := newGenuiComponents(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("instantiating genui components: %w", err)
+	}
+	return &runtime{
+		replica:         uuid.MustNewV7().String(),
+		builtinTools:    builtinTools,
+		genuiComponents: genuiComponents,
+		address:         opts.AdvertisedAddress,
+		connections:     connections,
+		toolRouter:      toolRouter,
+		hub:             newHub(),
+		turns:           newTurns(),
+	}, nil
+}
+
+// asService returns ctx making calls as the service's own account, never carrying the session of the call it serves.
+func (s *Service) asService(ctx context.Context) context.Context {
+	ctx = withoutIdentity(ctx)
+	if s.withServiceAccount == nil {
+		return ctx
+	}
+	return s.withServiceAccount(ctx)
+}
+
+// withoutIdentity returns ctx making calls that carry no identity, neither the session ctx serves nor the service's
+// account, which core's gRPC client signs per call, and no outgoing metadata. Cancellation and deadlines are kept.
+func withoutIdentity(ctx context.Context) context.Context {
+	ctx = grpc.WithCallMetadata(ctx, noCallMetadata)
+	return metadata.NewOutgoingContext(ctx, metadata.MD{})
+}
+
+// noCallMetadata is the call metadata of a call carrying no identity.
+func noCallMetadata(context.Context) (map[string]string, error) { return nil, nil }
+
+// now returns the current time at Postgres precision.
+func (s *Service) now() time.Time {
+	return time.Now().UTC().Truncate(time.Microsecond)
+}
+
+// connections holds one gRPC connection per endpoint: tool targets and peer replicas.
+type connections struct {
+	mutex                sync.Mutex
+	endpointToConnection map[string]*grpc.Connection
+}
+
+func newConnections() *connections {
+	return &connections{endpointToConnection: map[string]*grpc.Connection{}}
+}
+
+// get returns the connection to an endpoint, dialing it lazily on first use.
+func (c *connections) get(ctx context.Context, endpoint string) (*grpc.Connection, error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if connection, ok := c.endpointToConnection[endpoint]; ok {
+		return connection, nil
+	}
+	clientOpts, err := grpc.ParseClientOpts(endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("parsing endpoint %q: %w", endpoint, err)
+	}
+	connection, err := grpc.NewConnection(clientOpts, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating connection to %q: %w", endpoint, err)
+	}
+	if err := connection.Connect(ctx); err != nil {
+		return nil, fmt.Errorf("connecting to %q: %w", endpoint, err)
+	}
+	c.endpointToConnection[endpoint] = connection
+	return connection, nil
+}
+
+func (c *connections) close() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	for endpoint, connection := range c.endpointToConnection {
+		connection.Close()
+		delete(c.endpointToConnection, endpoint)
+	}
+}

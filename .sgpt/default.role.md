@@ -67,8 +67,9 @@ updated whenever a lore is added, renamed, or removed.
 - `lores/scheduler/schedules` — recurring jobs: the Schedule resource (cron +
   payload template), what a tick materializes, run window / missed ticks /
   no catch-up, pause/resume, RunSchedule (manual runs), idempotent replay, how the sats avoid minute waits.
-- `lores/domain/agent` — Agent/Task/Memory ontology, durable runners,
-  wake-by-append model, Postgres SKIP LOCKED queue.
+- `lores/domain/agent` — the AgentService: definitions and agents, leased turns, queued messages, awaited
+  calls, sub-agents and reports, schedules, StreamAgent across replicas, tool targets, and whose identity each
+  call carries (the service's own; the owner's exchanged token on tool calls).
 - `lores/domain/genui` — generative-UI protocol: proto components exposed as AI
   tools, streamed as tool calls, rendered by client surfaces.
 - `lores/ai/replay-determinism` — chat replay must be byte-stable: Anthropic
