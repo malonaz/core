@@ -164,6 +164,13 @@ func createSchedule(ctx context.Context, s *Service, agent *agentpb.Agent, toolC
 		wakeAgentRequest.Wake = &agentservicepb.WakeAgentRequest_SubAgent{SubAgent: argumentsWake.SubAgent}
 		wake = agentpb.Labels.Wake.SubAgent
 	}
+	schedules, jobs, err := s.listAgentSchedules(ctx, agentRn)
+	if err != nil {
+		return nil, err
+	}
+	if maxSchedules := s.opts.MaxSchedules; len(schedules)+len(jobs) >= maxSchedules {
+		return nil, status.Errorf(codes.ResourceExhausted, "you already have the %d schedules an agent may have: cancel one with cancel_schedule first", maxSchedules).Err()
+	}
 	labels := map[string]string{agentpb.Labels.Agent.GetKey(): agentRn.Agent, agentpb.Labels.Wake.GetKey(): wake}
 	parent := agentRn.UserRn().String()
 	requestID := builtinRequestID(agent, toolCall)
@@ -230,14 +237,7 @@ func listSchedules(ctx context.Context, s *Service, agent *agentpb.Agent, toolCa
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parsing agent name: %v", err).Err()
 	}
-	parent := agentRn.UserRn().String()
-	listSchedulesRequest := &schedulerservicepb.ListSchedulesRequest{Parent: parent, Filter: agentScheduleFilter(agentRn), OrderBy: "create_time"}
-	schedules, err := aip.Paginate[*schedulerpb.Schedule](ctx, listSchedulesRequest, s.schedulerServiceClient.ListSchedules)
-	if err != nil {
-		return nil, err
-	}
-	listJobsRequest := &schedulerservicepb.ListJobsRequest{Parent: parent, Filter: pendingOneOffFilter(agentRn), OrderBy: "schedule_time"}
-	jobs, err := aip.Paginate[*schedulerpb.Job](ctx, listJobsRequest, s.schedulerServiceClient.ListJobs)
+	schedules, jobs, err := s.listAgentSchedules(ctx, agentRn)
 	if err != nil {
 		return nil, err
 	}
@@ -257,6 +257,22 @@ func listSchedules(ctx context.Context, s *Service, agent *agentpb.Agent, toolCa
 		return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), "You have no schedules."), nil
 	}
 	return ai.NewToolResult(toolCall.GetName(), toolCall.GetId(), strings.Join(lines, "\n")), nil
+}
+
+// listAgentSchedules lists an agent's schedules and its pending one-off runs.
+func (s *Service) listAgentSchedules(ctx context.Context, agentRn *agentpb.AgentRn) ([]*schedulerpb.Schedule, []*schedulerpb.Job, error) {
+	parent := agentRn.UserRn().String()
+	listSchedulesRequest := &schedulerservicepb.ListSchedulesRequest{Parent: parent, Filter: agentScheduleFilter(agentRn), OrderBy: "create_time"}
+	schedules, err := aip.Paginate[*schedulerpb.Schedule](ctx, listSchedulesRequest, s.schedulerServiceClient.ListSchedules)
+	if err != nil {
+		return nil, nil, err
+	}
+	listJobsRequest := &schedulerservicepb.ListJobsRequest{Parent: parent, Filter: pendingOneOffFilter(agentRn), OrderBy: "schedule_time"}
+	jobs, err := aip.Paginate[*schedulerpb.Job](ctx, listJobsRequest, s.schedulerServiceClient.ListJobs)
+	if err != nil {
+		return nil, nil, err
+	}
+	return schedules, jobs, nil
 }
 
 // describeWake describes what a run of a schedule does.

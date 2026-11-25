@@ -264,6 +264,8 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 	if err := r.resume(ctx); err != nil {
 		return nil, err
 	}
+	maxToolRounds := r.service.opts.MaxToolRounds
+	var toolRounds int
 	for {
 		if err := r.deliverMessages(ctx); err != nil {
 			return nil, err
@@ -279,12 +281,35 @@ func (r *turnRunner) run(ctx context.Context) (*aipb.Message, error) {
 			return nil, err
 		}
 		r.last = generatedMessage
-		if calls := toolCalls(generatedMessage); len(calls) > 0 {
-			if err := r.answerToolCalls(ctx, calls); err != nil {
-				return nil, err
-			}
+		calls := toolCalls(generatedMessage)
+		if len(calls) == 0 {
+			continue
+		}
+		switch toolRounds++; {
+		case toolRounds <= maxToolRounds:
+			err = r.answerToolCalls(ctx, calls)
+		case toolRounds == maxToolRounds+1:
+			err = r.refuseToolCalls(ctx, calls, maxToolRounds)
+		default:
+			err = status.Errorf(codes.ResourceExhausted, "the model kept calling tools after the turn's %d rounds of tool calls", maxToolRounds).Err()
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
+}
+
+// refuseToolCalls answers the calls of a turn past its rounds of tool calls without running them, telling the model
+// to answer.
+func (r *turnRunner) refuseToolCalls(ctx context.Context, calls []*aipb.ToolCall, maxToolRounds int) error {
+	refusal := status.Errorf(codes.ResourceExhausted, "not run: this turn ran its %d rounds of tool calls. Answer now without calling tools; "+
+		"the next message starts a new turn", maxToolRounds).Err()
+	for _, toolCall := range calls {
+		if err := r.persistToolResult(ctx, ai.NewErrorToolResult(toolCall.GetName(), toolCall.GetId(), refusal)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ensureInstructions persists the spec's instructions as the chat's system message, once.

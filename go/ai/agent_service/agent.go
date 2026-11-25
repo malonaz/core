@@ -63,10 +63,14 @@ func (s *Service) CreateAgent(ctx context.Context, request *agentservicepb.Creat
 	if err := s.validateTools(agent.Spec); err != nil {
 		return nil, err
 	}
-	if parentAgent != nil {
-		// A sub-agent launches sub-agents one level less deep than its parent may.
+	if agent.Spec != nil {
+		// The service bounds every tree's depth, and a sub-agent launches sub-agents one level less deep than its parent may.
 		agent.Spec = proto.CloneOf(agent.Spec)
-		agent.Spec.MaxSubAgentDepth = max(0, min(agent.Spec.GetMaxSubAgentDepth(), parentAgent.GetSpec().GetMaxSubAgentDepth()-1))
+		depth := min(agent.Spec.GetMaxSubAgentDepth(), int32(s.opts.MaxSubAgentDepth))
+		if parentAgent != nil {
+			depth = min(depth, parentAgent.GetSpec().GetMaxSubAgentDepth()-1)
+		}
+		agent.Spec.MaxSubAgentDepth = max(0, depth)
 	}
 
 	// The chat is created outside the transaction, which may be retried; its request id makes replays reuse it. Agent
@@ -126,6 +130,17 @@ func (t *txn) createAgent(ctx context.Context, requestID string, agent *agentpb.
 	}
 	if agent, err = agentModel.ToPb(); err != nil {
 		return nil, status.Errorf(codes.Internal, "converting agent from model to pb: %v", err).Err()
+	}
+	if inserted && agent.ParentAgent != "" {
+		// Counted after the insert, so a replay is never refused, and under the parent's lock: siblings wait for it.
+		childAgents, err := t.service.agentPostgresStore.ListChildAgents(ctx, agent.ParentAgent)
+		if err != nil {
+			return nil, fmt.Errorf("listing child agents: %w", err)
+		}
+		if maxSubAgents := t.service.opts.MaxSubAgents; len(childAgents) >= maxSubAgents {
+			return nil, status.Errorf(codes.ResourceExhausted, "agent %s already has the %d live sub-agents an agent may have: give the task to one of them with message_agent",
+				agent.ParentAgent, maxSubAgents).Err()
+		}
 	}
 	if inserted {
 		t.snapshots = append(t.snapshots, proto.CloneOf(agent))

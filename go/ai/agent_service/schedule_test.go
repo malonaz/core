@@ -180,6 +180,18 @@ func TestSchedule_InvalidArguments(t *testing.T) {
 	}
 }
 
+func TestSchedule_RefusesSchedulesPastTheMost(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) { opts.MaxSchedules = 1 })
+	agent := createTestAgent(t, service)
+	mustSchedule(t, service, agent, "call-1", map[string]any{"delay": "3600s", "message": "first"})
+
+	toolResult := callBuiltinTool(t, service, agent, scheduleCall("call-2", map[string]any{"cron": "0 9 * * *", "time_zone": "UTC", "message": "second"}))
+
+	require.Equal(t, int32(codes.ResourceExhausted), toolResult.GetError().GetCode())
+	require.Contains(t, toolResult.GetError().GetMessage(), "cancel one with cancel_schedule first")
+	require.Empty(t, service.scheduler.schedulesOf(t, agent.Name))
+}
+
 func TestListSchedules_ListsOnlyTheAgentsOwn(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgent(t, service)

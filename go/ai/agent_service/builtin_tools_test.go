@@ -131,6 +131,21 @@ func TestBuiltinTools_CreateAgentsRequiresInstructionsWithoutADefinition(t *test
 	require.Empty(t, listChildAgents(t, service, agent))
 }
 
+func TestBuiltinTools_CreateAgentsRefusesSubAgentsPastTheMost(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) { opts.MaxSubAgents = 1 })
+	agent := createTestAgent(t, service)
+	createTestSubAgent(t, service, agent)
+	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
+		"tool_call_title": "Launch",
+		"agents":          []any{map[string]any{"title": "researcher", "task": "research things", "instructions": "You research."}},
+	})
+
+	toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
+
+	require.Contains(t, toolResult.GetContent(), "already has the 1 live sub-agents an agent may have: give the task to one of them with message_agent")
+	require.Len(t, listChildAgents(t, service, agent), 1)
+}
+
 func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
 	service := newTestService(t)
 	service.aiService.setDefaultGeneration(textGeneration("done"))

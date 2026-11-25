@@ -73,6 +73,28 @@ func TestTurn_AReplayedMessageIsDeliveredOnce(t *testing.T) {
 	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 1)
 }
 
+func TestTurn_CallsPastTheToolRoundsAreRefused(t *testing.T) {
+	healthServer, endpoint := newTestToolTarget(t)
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) {
+		opts.ToolTargets = map[string]string{healthService: endpoint}
+		opts.MaxToolRounds = 1
+	})
+	agent := createTestAgent(t, service, healthCheckGrant)
+	service.aiService.script(agent.Chat,
+		toolCallGeneration(newToolCall("call-1", healthCheckTool, map[string]any{"service": "a"})),
+		toolCallGeneration(newToolCall("call-2", healthCheckTool, map[string]any{"service": "b"})),
+		textGeneration("answered"),
+	)
+
+	sendText(t, service, agent.Name, "go")
+
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+	require.Equal(t, []string{"a"}, healthServer.checkedServices())
+	refusal := toolResults(service.aiService.messages(agent.Chat))["call-2"].GetError()
+	require.Equal(t, int32(codes.ResourceExhausted), refusal.GetCode())
+	require.Contains(t, refusal.GetMessage(), "Answer now without calling tools")
+}
+
 func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {
 	service := newTestService(t)
 	agent := createTestAgent(t, service)

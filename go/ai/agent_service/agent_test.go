@@ -17,6 +17,15 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
+func TestAgent_TheServiceBoundsTheSubAgentDepth(t *testing.T) {
+	service := newTestReplica(t, newFakeAiService(), func(opts *Opts) { opts.MaxSubAgentDepth = 1 })
+
+	agent := createTestAgent(t, service)
+
+	require.Equal(t, int32(1), agent.GetSpec().GetMaxSubAgentDepth())
+	require.Zero(t, createTestSubAgent(t, service, agent).GetSpec().GetMaxSubAgentDepth())
+}
+
 func TestAgent_CreateFromADefinitionSnapshotsItsSpec(t *testing.T) {
 	service := newTestService(t)
 	user := newTestUser(t)
