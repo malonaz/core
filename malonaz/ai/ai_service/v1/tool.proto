@@ -13,6 +13,12 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
 // Request message for AiService.CreateTool.
 message CreateToolRequest {
+  option (buf.validate.message).cel = {
+    id: "tool.title_required"
+    message: "tool.title must be set: the name a model calls the tool by"
+    expression: "this.tool.title != ''"
+  };
+
   // The parent of the tool: empty for a platform tool, else its organization.
   // Format: organizations/{organization}
   string parent = 1 [(google.api.resource_reference).child_type = "ai.malonaz.com/Tool"];
@@ -23,10 +29,17 @@ message CreateToolRequest {
     (google.api.field_behavior) = REQUIRED
   ];
 
-  // The tool's id: the name the model calls it by.
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
   string tool_id = 3 [
-    (buf.validate.field).string.pattern = "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
-    (google.api.field_behavior) = REQUIRED
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
   // A unique identifier for this request. Must be a UUID. Repeating a request
@@ -79,6 +92,7 @@ message BatchGetToolsResponse {
 message UpdateToolRequest {
   option (malonaz.codegen.aip.v1.update) = {
     paths: [
+      "title",
       "description",
       "json_schema",
       "annotations",

@@ -6,6 +6,7 @@ import (
 	"maps"
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -42,10 +43,36 @@ func toolSetID(service string) (string, error) {
 	return id, nil
 }
 
+// toolID returns the id of a method's platform tool: its service's and its own names in kebab case
+// (ProjectGateway.ListQuotes is project-gateway-list-quotes).
+func toolID(method protoreflect.MethodDescriptor) string {
+	return kebabCase(string(method.Parent().Name())) + "-" + kebabCase(string(method.Name()))
+}
+
+// kebabCase lowercases a CamelCase name, a dash before each word: AIService is ai-service.
+func kebabCase(name string) string {
+	var builder strings.Builder
+	runes := []rune(name)
+	for i, r := range runes {
+		if r == '_' {
+			r = '-'
+		}
+		startsWord := i > 0 && unicode.IsUpper(r) &&
+			(!unicode.IsUpper(runes[i-1]) || i+1 < len(runes) && unicode.IsLower(runes[i+1]))
+		if startsWord && runes[i-1] != '_' {
+			builder.WriteRune('-')
+		}
+		builder.WriteRune(unicode.ToLower(r))
+	}
+	return builder.String()
+}
+
 // mirror mirrors every target, each on its own: one failing leaves the others mirrored.
 func (s *Service) mirror(ctx context.Context) error {
+	// Two services may share a short name: a tool id taken by an earlier target fails the later one.
+	nameToService := map[string]string{}
 	for _, target := range s.targets {
-		if err := s.mirrorTarget(ctx, target); err != nil {
+		if err := s.mirrorTarget(ctx, target, nameToService); err != nil {
 			targetErrors.WithLabelValues(target.service).Inc()
 			s.log.WarnContext(ctx, "mirroring a tool target", "target", target.service, "endpoint", target.endpoint, "error", err)
 		}
@@ -54,7 +81,7 @@ func (s *Service) mirror(ctx context.Context) error {
 }
 
 // mirrorTarget makes the platform tools of a target's set its unary methods' tools, as its reflection reads now.
-func (s *Service) mirrorTarget(ctx context.Context, target target) error {
+func (s *Service) mirrorTarget(ctx context.Context, target target, nameToService map[string]string) error {
 	connection, err := s.connection(ctx, target.endpoint)
 	if err != nil {
 		return err
@@ -93,7 +120,13 @@ func (s *Service) mirrorTarget(ctx context.Context, target target) error {
 			tool.Description = string(method.FullName())
 		}
 		tool.Labels = map[string]string{aipb.Labels.ToolSet.GetKey(): setID}
-		name := "tools/" + tool.GetName()
+		// The builder names the tool as a model calls it: its title.
+		tool.Title = tool.GetName()
+		name := "tools/" + toolID(method)
+		if service, ok := nameToService[name]; ok && service != target.service {
+			return fmt.Errorf("%s of %s is %s's already", name, method.FullName(), service)
+		}
+		nameToService[name] = target.service
 		if err := s.converge(ctx, name, tool); err != nil {
 			return err
 		}
@@ -102,12 +135,12 @@ func (s *Service) mirrorTarget(ctx context.Context, target target) error {
 	return s.deleteStale(ctx, setID, nameSet)
 }
 
-// converge writes a mirrored tool, built under its model-facing name, as the platform tool of that name: created if
-// absent, its differing fields updated, untouched if equal.
+// converge writes a mirrored tool as the platform tool of a name: created if absent, its differing fields updated,
+// untouched if equal.
 func (s *Service) converge(ctx context.Context, name string, tool *aipb.Tool) error {
 	createToolRequest := &aiservicepb.CreateToolRequest{
 		Tool:      tool,
-		ToolId:    tool.GetName(),
+		ToolId:    strings.TrimPrefix(name, "tools/"),
 		RequestId: uuid.NewV5(toolRequestIDNamespace, name).String(),
 	}
 	stored, err := s.aiServiceClient.CreateTool(ctx, createToolRequest)
@@ -115,6 +148,9 @@ func (s *Service) converge(ctx context.Context, name string, tool *aipb.Tool) er
 		return fmt.Errorf("creating %s: %w", name, err)
 	}
 	var paths []string
+	if stored.GetTitle() != tool.GetTitle() {
+		paths = append(paths, "title")
+	}
 	if stored.GetDescription() != tool.GetDescription() {
 		paths = append(paths, "description")
 	}

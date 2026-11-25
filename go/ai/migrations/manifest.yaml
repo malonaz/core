@@ -22,6 +22,6 @@ migrations:
   - path: message/003_last_generated_message_index.sql
     hash: e9e90e851deff629cea31ff9c9ecee3d
   - path: tool/001_init.sql
-    hash: b5db788b767d3ce7deef0b1b8573520c
+    hash: 529d87b4daabed777ec0bbde209b7193
   - path: tool_call/001_init.sql
     hash: 7f47c222e5b76465ddcda40972f336e2
