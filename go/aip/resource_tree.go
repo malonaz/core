@@ -503,6 +503,10 @@ func (t *Tree) exploreMessage(node *Node, fieldPath string, fieldDesc protorefle
 	nestedFieldsDescriptor := fieldDesc.Message().Fields()
 	for i := 0; i < nestedFieldsDescriptor.Len(); i++ {
 		nestedFieldDesc := nestedFieldsDescriptor.Get(i)
+		// A field of its own message's type (a JSON schema's items) recurses without end: paths stop at it.
+		if nestedFieldDesc.Message() != nil && nestedFieldDesc.Message().FullName() == fieldDesc.Message().FullName() {
+			continue
+		}
 		nestedFieldPath := fieldPath + "." + nestedFieldDesc.TextName()
 		if err := t.Explore(nestedFieldPath, nestedFieldDesc, depth+1); err != nil {
 			return fmt.Errorf("%s: %v", nestedFieldPath, err)

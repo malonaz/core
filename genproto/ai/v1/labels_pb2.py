@@ -25,12 +25,12 @@ _sym_db = _symbol_database.Default()
 from malonaz.codegen.aip.v1 import label_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_label__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xe2\x01Z&github.com/malonaz/core/genproto/ai/v1\x92\x95\x15\xb5\x01\n\x19\x61i.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xf1\x03Z&github.com/malonaz/core/genproto/ai/v1\x92\x95\x15\xb5\x01\n\x19\x61i.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\x92\x95\x15\x8a\x02\n\x17\x61i.malonaz.com/tool-set\x1a\xee\x01The set a tool is listed and granted with, under its parent: a mirrored method\'s service, its full name lowercased with dots as dashes (gateway-project-v1-projectgateway); genui for the genui components; a client\'s own name for its tools.b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.ai.v1.labels_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z&github.com/malonaz/core/genproto/ai/v1\222\225\025\265\001\n\031ai.malonaz.com/superseded\032\227\001Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.'
+  _globals['DESCRIPTOR']._serialized_options = b'Z&github.com/malonaz/core/genproto/ai/v1\222\225\025\265\001\n\031ai.malonaz.com/superseded\032\227\001Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\222\225\025\212\002\n\027ai.malonaz.com/tool-set\032\356\001The set a tool is listed and granted with, under its parent: a mirrored method\'s service, its full name lowercased with dots as dashes (gateway-project-v1-projectgateway); genui for the genui components; a client\'s own name for its tools.'
 # @@protoc_insertion_point(module_scope)

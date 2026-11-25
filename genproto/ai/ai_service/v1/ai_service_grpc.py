@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import google.api.annotations_pb2
 import google.api.client_pb2
+import google.protobuf.empty_pb2
 import malonaz.ai.ai_service.v1.chat_pb2
 import malonaz.ai.ai_service.v1.decision_pb2
 import malonaz.ai.ai_service.v1.message_pb2
@@ -19,11 +20,13 @@ import malonaz.ai.ai_service.v1.speech_to_text_pb2
 import malonaz.ai.ai_service.v1.stats_pb2
 import malonaz.ai.ai_service.v1.text_to_speech_pb2
 import malonaz.ai.ai_service.v1.text_to_text_pb2
+import malonaz.ai.ai_service.v1.tool_pb2
 import malonaz.ai.ai_service.v1.voice_pb2
 import malonaz.ai.v1.chat_pb2
 import malonaz.ai.v1.decision_pb2
 import malonaz.ai.v1.message_pb2
 import malonaz.ai.v1.model_pb2
+import malonaz.ai.v1.tool_pb2
 import malonaz.ai.v1.voice_pb2
 import malonaz.codegen.aip.v1.aip_pb2
 import malonaz.ai.ai_service.v1.ai_service_pb2
@@ -165,6 +168,30 @@ class AiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def BatchGetDecisions(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest, malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def CreateTool(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.CreateToolRequest, malonaz.ai.v1.tool_pb2.Tool]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def GetTool(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.GetToolRequest, malonaz.ai.v1.tool_pb2.Tool]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def BatchGetTools(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsRequest, malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsResponse]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateTool(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.UpdateToolRequest, malonaz.ai.v1.tool_pb2.Tool]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def DeleteTool(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.DeleteToolRequest, google.protobuf.empty_pb2.Empty]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def ListTools(self, stream: 'grpclib.server.Stream[malonaz.ai.ai_service.v1.tool_pb2.ListToolsRequest, malonaz.ai.ai_service.v1.tool_pb2.ListToolsResponse]') -> None:
         pass
 
     @abc.abstractmethod
@@ -384,6 +411,42 @@ class AiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest,
                 malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/CreateTool': grpclib.const.Handler(
+                self.CreateTool,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.CreateToolRequest,
+                malonaz.ai.v1.tool_pb2.Tool,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/GetTool': grpclib.const.Handler(
+                self.GetTool,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.GetToolRequest,
+                malonaz.ai.v1.tool_pb2.Tool,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetTools': grpclib.const.Handler(
+                self.BatchGetTools,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsRequest,
+                malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsResponse,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/UpdateTool': grpclib.const.Handler(
+                self.UpdateTool,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.UpdateToolRequest,
+                malonaz.ai.v1.tool_pb2.Tool,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/DeleteTool': grpclib.const.Handler(
+                self.DeleteTool,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.DeleteToolRequest,
+                google.protobuf.empty_pb2.Empty,
+            ),
+            '/malonaz.ai.ai_service.v1.AiService/ListTools': grpclib.const.Handler(
+                self.ListTools,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                malonaz.ai.ai_service.v1.tool_pb2.ListToolsRequest,
+                malonaz.ai.ai_service.v1.tool_pb2.ListToolsResponse,
             ),
             '/malonaz.ai.ai_service.v1.AiService/ComputeStats': grpclib.const.Handler(
                 self.ComputeStats,
@@ -612,6 +675,42 @@ class AiServiceStub:
             '/malonaz.ai.ai_service.v1.AiService/BatchGetDecisions',
             malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsRequest,
             malonaz.ai.ai_service.v1.decision_pb2.BatchGetDecisionsResponse,
+        )
+        self.CreateTool = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/CreateTool',
+            malonaz.ai.ai_service.v1.tool_pb2.CreateToolRequest,
+            malonaz.ai.v1.tool_pb2.Tool,
+        )
+        self.GetTool = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/GetTool',
+            malonaz.ai.ai_service.v1.tool_pb2.GetToolRequest,
+            malonaz.ai.v1.tool_pb2.Tool,
+        )
+        self.BatchGetTools = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/BatchGetTools',
+            malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsRequest,
+            malonaz.ai.ai_service.v1.tool_pb2.BatchGetToolsResponse,
+        )
+        self.UpdateTool = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/UpdateTool',
+            malonaz.ai.ai_service.v1.tool_pb2.UpdateToolRequest,
+            malonaz.ai.v1.tool_pb2.Tool,
+        )
+        self.DeleteTool = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/DeleteTool',
+            malonaz.ai.ai_service.v1.tool_pb2.DeleteToolRequest,
+            google.protobuf.empty_pb2.Empty,
+        )
+        self.ListTools = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/malonaz.ai.ai_service.v1.AiService/ListTools',
+            malonaz.ai.ai_service.v1.tool_pb2.ListToolsRequest,
+            malonaz.ai.ai_service.v1.tool_pb2.ListToolsResponse,
         )
         self.ComputeStats = grpclib.client.UnaryUnaryMethod(
             channel,

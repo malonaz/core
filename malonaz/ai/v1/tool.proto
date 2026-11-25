@@ -3,28 +3,154 @@ syntax = "proto3";
 package malonaz.ai.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
 import "malonaz/json/v1/schema.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
 
-// Represents a tool that can be called by the AI model.
+// A Tool is a tool a model may be given. Platform tools (`tools/{tool}`) are mirrored from gRPC services by the ai
+// processor and written by nothing else; an organization's tools (`organizations/{organization}/tools/{tool}`) are
+// written by its clients. A model is given a tool under its id, the last segment of its name, so the tools offered
+// together have distinct ids; a tool passed inline to a generation, never stored, carries its bare id as its name.
+// A tool describes: what happens when it is called is its caller's business.
 message Tool {
-  // A unique name for this tool.
-  string name = 1 [(buf.validate.field).required = true];
+  option (google.api.resource) = {
+    type: "ai.malonaz.com/Tool"
+    pattern: "tools/{tool}"
+    pattern: "organizations/{organization}/tools/{tool}"
+    singular: "tool"
+    plural: "tools"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "5b0c7d2e-8a41-4f6b-9e3d-2c71a8f0b946";
 
-  // A description of what the tool does.
+  // The resource name of the tool, or an inline tool's bare id. Its id is the name the model calls it by.
+  // Format: tools/{tool}
+  // Format: organizations/{organization}/tools/{tool}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // A description of what the tool does, as the model reads it.
   string description = 2 [(buf.validate.field).required = true];
 
-  // The json schema of the expected object to be returned.
-  malonaz.json.v1.Schema json_schema = 3;
+  // The JSON schema of the tool's arguments: generated from a proto by whoever writes the tool, again at each of its
+  // writes; written by hand only when no proto describes them.
+  malonaz.json.v1.Schema json_schema = 3 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
 
-  // Annotations about this tool (not transmitted to the ai provider).
-  // This should be used by tooling.
+  // Annotations about this tool (not transmitted to the ai provider), for tooling.
   // All annotations are inherited by any tool call created by this tool.
-  map<string, string> annotations = 4;
+  map<string, string> annotations = 4 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+
+  // The creation timestamp of a stored tool.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of a stored tool.
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 7;
+
+  // The labels on this tool: `ai.malonaz.com/tool-set` groups tools into sets.
+  map<string, string> labels = 8 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+}
+
+// ToolMethod is the gRPC method a tool stands for, as its descriptors declare it: facts, never policy. It is the value
+// of the `ai-engine.malonaz.com/method` annotation.
+message ToolMethod {
+  // Kind is the method's AIP kind.
+  enum Kind {
+    // Used to detect an unset field.
+    KIND_UNSPECIFIED = 0;
+    // A standard Get (AIP-131).
+    KIND_GET = 1;
+    // A batch Get (AIP-231).
+    KIND_BATCH_GET = 2;
+    // A standard List (AIP-132).
+    KIND_LIST = 3;
+    // A Search.
+    KIND_SEARCH = 4;
+    // A standard Create (AIP-133).
+    KIND_CREATE = 5;
+    // A batch Create (AIP-233).
+    KIND_BATCH_CREATE = 6;
+    // A standard Update (AIP-134).
+    KIND_UPDATE = 7;
+    // A standard Delete (AIP-135).
+    KIND_DELETE = 8;
+    // An Undelete (AIP-164).
+    KIND_UNDELETE = 9;
+    // An Import.
+    KIND_IMPORT = 10;
+    // An Export.
+    KIND_EXPORT = 11;
+    // Any other method (AIP-136).
+    KIND_CUSTOM = 12;
+  }
+
+  // The service's full name.
+  string service = 1;
+
+  // The service's comment.
+  string service_description = 2;
+
+  // The method's full name.
+  string method = 3;
+
+  // The method's AIP kind: a standard method by its `standard_method` option, followed through a gateway's proxy;
+  // else custom.
+  Kind kind = 4 [(buf.validate.field).enum.defined_only = true];
+
+  // The type of the resource the method acts on: a standard method's, else the type the request's `name` (or
+  // `parent`) references. Empty for a method on no declared resource.
+  string resource_type = 5;
+
+  // The patterns of `resource_type`.
+  repeated string resource_patterns = 6;
+
+  // Whether the method declares `idempotency_level = NO_SIDE_EFFECTS`.
+  bool read_only = 7;
+
+  // Whether the method returns a google.longrunning.Operation.
+  bool long_running = 8;
+
+  // Whether the request has a `request_id`: a caller derives it from the call, so a retried call is not repeated.
+  bool request_id = 9;
+
+  // Whether the request pages (`page_size`, `page_token`).
+  bool pagination = 10;
+
+  // Whether the request takes a `filter`.
+  bool filter = 11;
+
+  // Whether the request takes an `update_mask`.
+  bool update_mask = 12;
 }
 
 // A tool call that the model wants to invoke.

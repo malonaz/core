@@ -6,6 +6,7 @@ go_test(
         "generate_message_test.go",
         "sat_test.go",
         "stats_test.go",
+        "tool_test.go",
     ],
     data = [
         "//cmd/ai-service",

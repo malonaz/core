@@ -11,6 +11,7 @@ go_library(
         "stats.pb.go",
         "text_to_speech.pb.go",
         "text_to_text.pb.go",
+        "tool.pb.go",
         "voice.pb.go",
     ],
     visibility = ["//..."],

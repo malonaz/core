@@ -98,14 +98,9 @@ func parseDiscoveryToolCall(toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (
 }
 
 func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
-	toolType, _ := aipb.Annotations.ToolType.Get(toolCall)
-	methodFullName, ok := aipb.Annotations.GrpcMethod.Get(toolCall)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcMethod.Key).Err()
-	}
-	serviceFullName, ok := aipb.Annotations.GrpcService.Get(toolCall)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcService.Key).Err()
+	toolMethod, ok, err := aipb.Annotations.Method.Get(toolCall)
+	if err != nil || !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "tool call %q missing a readable %s annotation: %v", toolCall.GetName(), aipb.Annotations.Method.Key, err).Err()
 	}
 
 	if aipb.Annotations.DiscoverableTool.Has(toolCall) {
@@ -133,8 +128,8 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 	return &pb.ParseToolCallResponse{
 		Result: &pb.ParseToolCallResponse_Rpc{
 			Rpc: &aipb.ToolCallRpc{
-				ServiceFullName: serviceFullName,
-				MethodFullName:  methodFullName,
+				ServiceFullName: toolMethod.GetService(),
+				MethodFullName:  toolMethod.GetMethod(),
 				Request:         request,
 				ReadMask:        readMask,
 			},

@@ -16,6 +16,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
 	proto "google.golang.org/protobuf/proto"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -24,12 +25,14 @@ type aiServiceStore interface {
 	aiService_ChatStore
 	aiService_MessageStore
 	aiService_DecisionStore
+	aiService_ToolStore
 }
 
 type AiServiceServer struct {
 	*aiService_ChatServer
 	*aiService_MessageServer
 	*aiService_DecisionServer
+	*aiService_ToolServer
 }
 
 func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
@@ -37,6 +40,7 @@ func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 		aiService_ChatServer:     newAiService_ChatServer(store),
 		aiService_MessageServer:  newAiService_MessageServer(store),
 		aiService_DecisionServer: newAiService_DecisionServer(store),
+		aiService_ToolServer:     newAiService_ToolServer(store),
 	}
 }
 
@@ -1346,5 +1350,372 @@ func (s *aiService_DecisionServer) BatchGetDecisions(ctx context.Context, reques
 
 	return &v1.BatchGetDecisionsResponse{
 		Decisions: decisions,
+	}, nil
+}
+
+type aiService_ToolStore interface {
+	BatchInsertTools(ctx context.Context, requestIDs []string, tools []*model.Tool) ([]*model.Tool, error)
+	UpdateTool(ctx context.Context, tool *model.Tool, updateClause string, columns []string, etag string) (*model.Tool, error)
+	DeleteTool(ctx context.Context, organizationId, toolId string, etag string) (*model.Tool, error)
+	GetTool(ctx context.Context, organizationId, toolId string) (*model.Tool, error)
+	BatchGetTools(ctx context.Context, organizationIds []string, toolIds []string) ([]*model.Tool, error)
+	ListTools(ctx context.Context, organizationId string, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.Tool, error)
+}
+
+type aiService_ToolServer struct {
+	store aiService_ToolStore
+}
+
+func newAiService_ToolServer(store aiService_ToolStore) *aiService_ToolServer {
+	return &aiService_ToolServer{
+		store: store,
+	}
+}
+
+func (s *aiService_ToolServer) prepareCreateTool(ctx context.Context, request *v1.CreateToolRequest, importing bool) (*model.Tool, error) {
+	// STEP 1: Set identifiers.
+	if request.RequestId == "" { // We always set a request id
+		request.RequestId = uuid.MustNewV7().String()
+	}
+	toolId := request.ToolId
+	if toolId == "" {
+		toolId = aip.NewSystemGeneratedBase32ResourceID()
+	}
+
+	var organizationId string
+	if resourcename.ContainsWildcard(request.Parent) {
+		return nil, status.Errorf(codes.InvalidArgument, "parent cannot contain wildcard").Err()
+	}
+	switch {
+	case request.Parent == "":
+		request.Tool.Name = resourcename.Sprint("tools/{tool}", toolId)
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+		request.Tool.Name = resourcename.Sprint("organizations/{organization}/tools/{tool}", organizationId, toolId)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// STEP 2: Instantiate timestamps. An import keeps the ones it is given; a create sets
+	// them, unless the x-migration-request header vouches for the client's.
+	if values := metadata.ValueFromIncomingContext(ctx, "x-migration-request"); !importing && len(values) > 0 {
+		if request.Tool.CreateTime == nil {
+			return nil, status.Errorf(codes.InvalidArgument, "x-migration-request used without setting a create_time").Err()
+		}
+	} else if !importing || request.Tool.CreateTime == nil {
+		request.Tool.CreateTime = timestamppb.Now()
+	}
+	if !importing || request.Tool.UpdateTime == nil {
+		request.Tool.UpdateTime = request.Tool.CreateTime
+	}
+
+	{ // Capture the Etag.
+		var err error
+		request.Tool.Etag, err = aip.ComputeETag(request.Tool)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing etag: %v", err).Err()
+		}
+	}
+
+	// STEP 3: Convert the resource to the database representation.
+	toolModel, err := model.ToolFromPb(request.Tool)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tool from pb to model: %v", err).Err()
+	}
+
+	return toolModel, nil
+}
+
+func (s *aiService_ToolServer) CreateTool(ctx context.Context, request *v1.CreateToolRequest) (*v11.Tool, error) {
+	toolModel, err := s.prepareCreateTool(ctx, request, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// STEP 4: Insert the resource.
+	dbTools, err := s.store.BatchInsertTools(ctx, []string{request.RequestId}, []*model.Tool{toolModel})
+	if err != nil {
+		if errors.Is(err, model.ErrToolAlreadyExists) {
+			return nil, status.Errorf(codes.AlreadyExists, "tool already exists").Err()
+		}
+		return nil, status.FromError(err, "inserting tools").Err()
+	}
+	if len(dbTools) != 1 {
+		return nil, status.Errorf(codes.Internal, "expected 1 inserted tool, got %d", len(dbTools)).Err()
+	}
+
+	tool, err := dbTools[0].ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tool from model to pb: %v", err).Err()
+	}
+
+	return tool, nil
+}
+
+func (s *aiService_ToolServer) GetTool(ctx context.Context, request *v1.GetToolRequest) (*v11.Tool, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, toolId, err := model.ParseToolName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbToolModel, err := s.store.GetTool(ctx, organizationId, toolId)
+	if err != nil {
+		if errors.Is(err, model.ErrToolNotExist) {
+			return nil, status.Errorf(codes.NotFound, "tool does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting tool").Err()
+	}
+
+	tool, err := dbToolModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tool from model to pb: %v", err).Err()
+	}
+	return tool, nil
+}
+
+func (s *aiService_ToolServer) BatchGetTools(ctx context.Context, request *v1.BatchGetToolsRequest) (*v1.BatchGetToolsResponse, error) {
+	var parentPatternValue string
+	if request.Parent != "" {
+		switch {
+		case resourcename.Match("organizations/{organization}", request.Parent):
+			parentPatternValue = "organizations/{organization}/tools/{tool}"
+		default:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	toolIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" {
+			if !resourcename.HasParent(name, request.Parent) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+			}
+			if !resourcename.Match(parentPatternValue, name) {
+				return nil, status.Errorf(codes.InvalidArgument, "name %q is not a direct child of parent %q", name, request.Parent).Err()
+			}
+		}
+		organizationId, toolId, err := model.ParseToolName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		toolIds[i] = toolId
+	}
+
+	dbTools, err := s.store.BatchGetTools(ctx, organizationIds, toolIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting tool").Err()
+	}
+	if len(dbTools) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d tools, found %d", len(request.Names), len(dbTools)).Err()
+	}
+
+	toolNameToTool := make(map[string]*v11.Tool, len(request.Names))
+	for _, dbToolModel := range dbTools {
+		tool, err := dbToolModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting tool from model to pb: %v", err).Err()
+		}
+		toolNameToTool[tool.Name] = tool
+	}
+
+	tools := make([]*v11.Tool, 0, len(dbTools))
+	for _, name := range request.Names {
+		tool, ok := toolNameToTool[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		tools = append(tools, tool)
+	}
+
+	return &v1.BatchGetToolsResponse{
+		Tools: tools,
+	}, nil
+}
+
+var updateToolRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateToolRequest, *v11.Tool]()
+
+func (s *aiService_ToolServer) UpdateTool(ctx context.Context, request *v1.UpdateToolRequest) (*v11.Tool, error) {
+	for {
+		response, err := s.updateTool(ctx, request)
+		if err != nil {
+			if request.GetTool().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *aiService_ToolServer) updateTool(ctx context.Context, request *v1.UpdateToolRequest) (*v11.Tool, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.Tool.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateToolRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getToolRequest := &v1.GetToolRequest{Name: request.Tool.Name}
+	existingTool, err := s.GetTool(ctx, getToolRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetTool().GetEtag()
+	if etag == "" {
+		etag = existingTool.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedTool := proto.CloneOf(existingTool)
+	parsedRequest.ApplyFieldMask(patchedTool, request.Tool)
+	if err := protovalidate.Validate(patchedTool); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedTool.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedTool.Etag, err = aip.ComputeETag(patchedTool)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	toolModel, err := model.ToolFromPb(patchedTool)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tool from pb to model: %v", err).Err()
+	}
+	dbToolModel, err := s.store.UpdateTool(ctx, toolModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrToolNotExist) {
+			return nil, status.Errorf(codes.NotFound, "tool does not exist").Err()
+		}
+		if errors.Is(err, model.ErrToolETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating tool").Err()
+	}
+
+	tool, err := dbToolModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tool from model to pb: %v", err).Err()
+	}
+
+	return tool, nil
+}
+
+func (s *aiService_ToolServer) DeleteTool(ctx context.Context, request *v1.DeleteToolRequest) (*emptypb.Empty, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse resource name.
+	organizationId, toolId, err := model.ParseToolName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// STEP 2: Hard delete the resource.
+	_, err = s.store.DeleteTool(ctx, organizationId, toolId, request.GetEtag())
+	if err != nil {
+		if errors.Is(err, model.ErrToolNotExist) {
+			if request.AllowMissing {
+				return &emptypb.Empty{}, nil
+			}
+			return nil, status.Errorf(codes.NotFound, "tool does not exist").Err()
+		}
+		if errors.Is(err, model.ErrToolETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "deleting tool").Err()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+var listToolsRequestParser = aip.MustNewListRequestParser[*v1.ListToolsRequest, *v11.Tool](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *aiService_ToolServer) ListTools(ctx context.Context, request *v1.ListToolsRequest) (*v1.ListToolsResponse, error) {
+	// Parse parent names
+	var organizationId string
+	switch {
+	case request.Parent == "":
+	case resourcename.Match("organizations/{organization}", request.Parent):
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}", &organizationId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name %q", request.Parent).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listToolsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbTools, err := s.store.ListTools(ctx, organizationId, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing tools").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbTools))
+	if nextPageToken != "" {
+		dbTools = dbTools[:len(dbTools)-1]
+	}
+
+	// Convert back to proto.
+	tools := make([]*v11.Tool, 0, len(dbTools))
+	for _, dbTool := range dbTools {
+		tool, err := dbTool.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.Tool to Tool: %v", err).Err()
+		}
+		tools = append(tools, tool)
+	}
+
+	// Create and return response.
+	return &v1.ListToolsResponse{
+		Tools:         tools,
+		NextPageToken: nextPageToken,
 	}, nil
 }

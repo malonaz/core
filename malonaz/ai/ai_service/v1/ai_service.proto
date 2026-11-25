@@ -4,6 +4,7 @@ package malonaz.ai.ai_service.v1;
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
+import "google/protobuf/empty.proto";
 import "malonaz/ai/ai_service/v1/chat.proto";
 import "malonaz/ai/ai_service/v1/decision.proto";
 import "malonaz/ai/ai_service/v1/message.proto";
@@ -12,11 +13,13 @@ import "malonaz/ai/ai_service/v1/speech_to_text.proto";
 import "malonaz/ai/ai_service/v1/stats.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
 import "malonaz/ai/ai_service/v1/text_to_text.proto";
+import "malonaz/ai/ai_service/v1/tool.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
 import "malonaz/ai/v1/decision.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/model.proto";
+import "malonaz/ai/v1/tool.proto";
 import "malonaz/ai/v1/voice.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
@@ -26,6 +29,8 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 //
 // # Capabilities
 //
+// - Tools: [Tool][malonaz.ai.v1.Tool] resources are what a model may be given:
+//   platform tools mirrored from gRPC services, an organization's own.
 // - Model management: [Model][malonaz.ai.v1.Model] resources describe the
 //   generation models available per provider (STT, TTT, TTS), including
 //   pricing and provider-specific settings.
@@ -448,6 +453,91 @@ service AiService {
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/decisions:batchGet"};
     option (google.api.method_signature) = "parent,names";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Decision";
+  }
+
+  // ===================== Tool Management =====================
+
+  // Create a tool. A platform tool (empty parent) is the ai processor's alone.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateTool(CreateToolRequest) returns (ai.v1.Tool) {
+    option (google.api.http) = {
+      post: "/v1/tools"
+      body: "tool"
+      additional_bindings: {
+        post: "/v1/{parent=organizations/*}/tools"
+        body: "tool"
+      }
+    };
+    option (google.api.method_signature) = "parent,tool,tool_id";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // Get a tool.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetTool(GetToolRequest) returns (ai.v1.Tool) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/{name=tools/*}"
+      additional_bindings: {get: "/v1/{name=organizations/*/tools/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // Get several tools.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetTools(BatchGetToolsRequest) returns (BatchGetToolsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/tools:batchGet"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/tools:batchGet"}
+    };
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // Update a tool.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateTool(UpdateToolRequest) returns (ai.v1.Tool) {
+    option (google.api.http) = {
+      patch: "/v1/{tool.name=tools/*}"
+      body: "tool"
+      additional_bindings: {
+        patch: "/v1/{tool.name=organizations/*/tools/*}"
+        body: "tool"
+      }
+    };
+    option (google.api.method_signature) = "tool,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // Delete a tool.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteTool(DeleteToolRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/{name=tools/*}"
+      additional_bindings: {delete: "/v1/{name=organizations/*/tools/*}"}
+    };
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // List tools: the platform's (empty parent) or an organization's.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {
+      get: "/v1/tools"
+      additional_bindings: {get: "/v1/{parent=organizations/*}/tools"}
+    };
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
   }
 
   // ===================== Stats =====================

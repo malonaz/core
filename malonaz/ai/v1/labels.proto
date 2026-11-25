@@ -9,3 +9,7 @@ option (malonaz.codegen.aip.v1.label) = {
   key: "ai.malonaz.com/superseded"
   description: "Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history."
 };
+option (malonaz.codegen.aip.v1.label) = {
+  key: "ai.malonaz.com/tool-set"
+  description: "The set a tool is listed and granted with, under its parent: a mirrored method's service, its full name lowercased with dots as dashes (gateway-project-v1-projectgateway); genui for the genui components; a client's own name for its tools."
+};

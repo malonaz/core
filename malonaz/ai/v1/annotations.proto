@@ -5,28 +5,30 @@ package malonaz.ai.v1;
 import "malonaz/codegen/aip/v1/annotation.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
-// Stamped on tools by the ai engine and inherited by their tool calls. Values
-// stay plain strings: clients read grpc-method, no-side-effect and
-// proto-message straight off the map.
+// Stamped on tools by the ai engine and inherited by their tool calls.
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "ai-engine.malonaz.com/tool-type"
   description: "The kind of tool: discovery, generate-message or generate-rpc-request."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
-  key: "ai-engine.malonaz.com/grpc-service"
-  description: "Fully-qualified name of the gRPC service backing the tool."
+  key: "ai-engine.malonaz.com/method"
+  description: "On a tool standing for a gRPC method, and the calls made to it: the method as its descriptors declare it."
+  value_type: "ToolMethod"
 };
+// Deprecated: superseded by ai-engine.malonaz.com/method, still stamped because shipped clients read them
+// (onikisu app/core/agent executor.ts routes on grpc-method and gates on no-side-effect). Remove with kenji's
+// version floor; new code reads the method annotation.
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "ai-engine.malonaz.com/grpc-method"
-  description: "Fully-qualified name of the gRPC method backing the tool."
+  description: "Deprecated: the method annotation's `method`. Fully-qualified name of the gRPC method backing the tool."
+};
+option (malonaz.codegen.aip.v1.annotation) = {
+  key: "ai-engine.malonaz.com/no-side-effect"
+  description: "Deprecated: the method annotation's `read_only`. \"true\" when the tool is safe to call speculatively."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "ai-engine.malonaz.com/proto-message"
   description: "Fully-qualified name of the message the tool's arguments build."
-};
-option (malonaz.codegen.aip.v1.annotation) = {
-  key: "ai-engine.malonaz.com/no-side-effect"
-  description: "\"true\" when the tool is safe to call speculatively."
 };
 option (malonaz.codegen.aip.v1.annotation) = {
   key: "ai-engine.malonaz.com/generation-field-mask"

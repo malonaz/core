@@ -10,14 +10,14 @@ import (
 type AnnotationSet struct {
 	// The kind of tool: discovery, generate-message or generate-rpc-request.
 	ToolType aip.StringAnnotation
-	// Fully-qualified name of the gRPC service backing the tool.
-	GrpcService aip.StringAnnotation
-	// Fully-qualified name of the gRPC method backing the tool.
+	// On a tool standing for a gRPC method, and the calls made to it: the method as its descriptors declare it.
+	Method aip.TypedAnnotation[*ToolMethod]
+	// Deprecated: the method annotation's `method`. Fully-qualified name of the gRPC method backing the tool.
 	GrpcMethod aip.StringAnnotation
+	// Deprecated: the method annotation's `read_only`. "true" when the tool is safe to call speculatively.
+	NoSideEffect aip.StringAnnotation
 	// Fully-qualified name of the message the tool's arguments build.
 	ProtoMessage aip.StringAnnotation
-	// "true" when the tool is safe to call speculatively.
-	NoSideEffect aip.StringAnnotation
 	// Comma-separated field mask restricting which fields the model may populate.
 	GenerationFieldMask aip.StringAnnotation
 	// The tool set the tool belongs to; routes discovery tool calls.
@@ -34,10 +34,10 @@ type AnnotationSet struct {
 
 var Annotations = AnnotationSet{
 	ToolType:            aip.StringAnnotation{Key: "ai-engine.malonaz.com/tool-type"},
-	GrpcService:         aip.StringAnnotation{Key: "ai-engine.malonaz.com/grpc-service"},
+	Method:              aip.TypedAnnotation[*ToolMethod]{Key: "ai-engine.malonaz.com/method"},
 	GrpcMethod:          aip.StringAnnotation{Key: "ai-engine.malonaz.com/grpc-method"},
-	ProtoMessage:        aip.StringAnnotation{Key: "ai-engine.malonaz.com/proto-message"},
 	NoSideEffect:        aip.StringAnnotation{Key: "ai-engine.malonaz.com/no-side-effect"},
+	ProtoMessage:        aip.StringAnnotation{Key: "ai-engine.malonaz.com/proto-message"},
 	GenerationFieldMask: aip.StringAnnotation{Key: "ai-engine.malonaz.com/generation-field-mask"},
 	ToolSetName:         aip.StringAnnotation{Key: "ai-engine.malonaz.com/tool-set-name"},
 	DiscoverableTool:    aip.StringAnnotation{Key: "ai-engine.malonaz.com/discoverable-tool"},
