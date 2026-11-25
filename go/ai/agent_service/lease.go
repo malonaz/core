@@ -103,6 +103,13 @@ func (t *turns) finish(ctx context.Context, finished *turn) *turn {
 	return t.register(ctx, finished.agent)
 }
 
+// rerun has a run go on in a fresh one once it finishes.
+func (t *turns) rerun(running *turn) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	running.rerun = true
+}
+
 // cancel cancels the agent's running turn, if any, returning its done channel.
 func (t *turns) cancel(agent string, cause error) (<-chan struct{}, bool) {
 	t.mutex.Lock()

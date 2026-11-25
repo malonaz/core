@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
 
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
+	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -30,6 +32,22 @@ func TestTurn_InputStartsATurnThatEndsIdle(t *testing.T) {
 	require.Equal(t, agentRn.UserRn().String(), sender)
 	require.Equal(t, []string{"hello"}, deliveredTexts(t, service, agent.Chat, messages[1].Name))
 	require.Empty(t, getAgent(t, service, agent.Name).QueuedMessages)
+}
+
+func TestTurn_AMessageQueuedDuringAFailedTurnRunsTheNextTurn(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	failedGeneration := &fakeGeneration{err: status.Errorf(codes.Unavailable, "the model is down").Err(), started: make(chan struct{}), gate: make(chan struct{})}
+	service.aiService.script(agent.Chat, failedGeneration, textGeneration("read both"))
+	sendText(t, service, agent.Name, "first")
+	<-failedGeneration.started
+
+	sendText(t, service, agent.Name, "second")
+	close(failedGeneration.gate)
+
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+	require.Len(t, deliveredMessages(t, service, agent.Name), 2)
+	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
 }
 
 func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {

@@ -59,6 +59,11 @@ func (s *Service) runTurns(turn *turn) {
 		if !next {
 			return
 		}
+		if turn.ctx.Err() != nil {
+			// A cancelled turn's context ends with it: the next turn runs in a fresh run.
+			s.turns.rerun(turn)
+			return
+		}
 	}
 }
 
@@ -99,8 +104,9 @@ func (s *Service) runTurn(turn *turn) *turnEnd {
 }
 
 // endTurn sends the turn's report to the agent's parent, if any, then records how the turn ended under the
-// agent's lock. A turn paused on calls only a user can settle leaves the agent AWAITING, reporting nothing. If messages were queued since the turn's latest delivery, a succeeded turn keeps the agent RUNNING
-// and returns true: the next turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
+// agent's lock. A turn paused on calls only a user can settle leaves the agent AWAITING, reporting nothing. If messages
+// were queued since the turn's latest delivery, however it ended, the agent stays RUNNING and it returns true: the next
+// turn follows. Otherwise the agent goes IDLE and its lease is released. The report goes first:
 // a turn ended without its report would leave the parent waiting, while a report sent again is deduped by its request
 // id, derived from the turn's final message.
 func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (bool, error) {
@@ -148,8 +154,11 @@ func (s *Service) endTurn(ctx context.Context, name string, turnEnd *turnEnd) (b
 			if turnEnd.err != nil {
 				latestTurn.Error = grpcstatus.Convert(turnEnd.err).Proto()
 			}
-			// A failed or cancelled turn stays idle until the next message wakes it: retrying would fail again.
-			next = turnEnd.outcome == agentpb.Turn_OUTCOME_SUCCEEDED && len(agent.QueuedMessages) > 0
+			// A failed or cancelled turn goes on only for the messages queued while it ran: one it failed to deliver
+			// would fail again.
+			next = slices.ContainsFunc(agent.QueuedMessages, func(queuedMessage *aipb.Message) bool {
+				return turnEnd.outcome == agentpb.Turn_OUTCOME_SUCCEEDED || queuedMessage.GetCreateTime().AsTime().After(latestTurn.GetStartTime().AsTime())
+			})
 		}
 		if next {
 			agent.LatestTurn = &agentpb.Turn{StartTime: timestamppb.New(t.now)}
