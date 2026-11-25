@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 
+	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
@@ -48,6 +49,28 @@ func TestTurn_AMessageQueuedDuringAFailedTurnRunsTheNextTurn(t *testing.T) {
 	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
 	require.Len(t, deliveredMessages(t, service, agent.Name), 2)
 	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 2)
+}
+
+func TestTurn_AReplayedMessageIsDeliveredOnce(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	service.aiService.setDefaultGeneration(textGeneration("noted"))
+	messageAgentRequest := &agentservicepb.MessageAgentRequest{
+		Name:      agent.Name,
+		Message:   ai.NewUserMessage(ai.NewTextBlock("hello")),
+		RequestId: uuid.MustNewV7().String(),
+	}
+	_, err := service.MessageAgent(ownerContext(t, agent.Name), messageAgentRequest)
+	require.NoError(t, err)
+	waitForIdle(t, service, agent.Name, agentpb.Turn_OUTCOME_SUCCEEDED)
+
+	replayedAgent, err := service.MessageAgent(ownerContext(t, agent.Name), messageAgentRequest)
+
+	require.NoError(t, err)
+	require.Equal(t, agentpb.Agent_STATE_IDLE, replayedAgent.State)
+	require.Empty(t, replayedAgent.QueuedMessages)
+	require.Len(t, deliveredMessages(t, service, agent.Name), 1)
+	require.Len(t, service.aiService.generateMessageRequests(agent.Chat), 1)
 }
 
 func TestTurn_DeliveryNamesAMissingSenderAgent(t *testing.T) {

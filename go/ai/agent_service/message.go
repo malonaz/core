@@ -10,6 +10,7 @@ import (
 
 	agentservicepb "github.com/malonaz/core/genproto/ai/agent/agent_service/v1"
 	agentpb "github.com/malonaz/core/genproto/ai/agent/v1"
+	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
@@ -73,7 +74,7 @@ func (s *Service) messageAgent(ctx context.Context, name string, message *aipb.M
 }
 
 // queueMessage appends a message to the queue of an agent locked by getAgent, named after the chat message its
-// delivery writes, and claims the agent's turn if idle. A message already queued is not queued again.
+// delivery writes, and claims the agent's turn if idle. A message already queued, or delivered, is not queued again.
 func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *aipb.Message, requestID string) error {
 	chatRn, err := aipb.ParseChatRn(agent.Chat)
 	if err != nil {
@@ -82,6 +83,15 @@ func (t *txn) queueMessage(ctx context.Context, agent *agentpb.Agent, message *a
 	message.Name = chatRn.MessageRn(aip.NewDeterministicBase32ResourceID(queuedMessageNamespace, requestID)).String()
 	if slices.ContainsFunc(agent.QueuedMessages, func(queuedMessage *aipb.Message) bool { return queuedMessage.Name == message.Name }) {
 		return nil
+	}
+	// A delivery writes the chat message before leaving the queue under this lock: unqueued, it is in the chat if delivered.
+	getMessageRequest := &aiservicepb.GetMessageRequest{Name: message.Name}
+	_, err = t.service.aiServiceClient.GetMessage(t.service.asService(ctx), getMessageRequest)
+	if err == nil {
+		return nil
+	}
+	if !status.HasCode(err, codes.NotFound) {
+		return status.FromError(err, "getting message %s", message.Name).Err()
 	}
 	if len(agent.QueuedMessages) >= maxQueuedMessages {
 		return status.Errorf(codes.ResourceExhausted, "agent %s already queues %d messages: wait for its turn to deliver them", agent.Name, len(agent.QueuedMessages)).Err()
