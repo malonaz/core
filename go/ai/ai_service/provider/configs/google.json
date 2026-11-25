@@ -273,6 +273,34 @@ local p = "providers/google/models/";
     },
 
     {
+      "name": p + "gemini-nano-banana-2.1",
+      "provider_model_id": "gemini-nano-banana-2.1",
+      "description": "Nano Banana 2.1: the update to Nano Banana 2 (Gemini 3.1 Flash Image) and the primary high-efficiency image generation and conversational editing model. Flash-level speed and cost with improved visual quality, text rendering, multi-turn consistency and Google Search grounding, at 1K, 2K and 4K resolutions.",
+      "ttt": {
+        "reasoning": true,
+        "tool_call": false,
+        "context_token_limit": 131072,
+        "output_token_limit": 32768,
+        "pricing": {
+          "input_token_price_per_million": 1.5,
+          "output_token_price_per_million": 7.5,
+          "input_image_token_price_per_million": 1.5,
+          "output_image_token_price_per_million": 30
+        }
+      },
+      "provider_settings": {
+        "thinking_config_key": "thinking_level",
+        "REASONING_EFFORT_UNSPECIFIED": "MINIMAL",
+        "REASONING_EFFORT_DEFAULT": "MEDIUM",
+        "REASONING_EFFORT_LOW": "MINIMAL",
+        "REASONING_EFFORT_MEDIUM": "MEDIUM",
+        "REASONING_EFFORT_HIGH": "HIGH",
+        "REASONING_EFFORT_XHIGH": "HIGH",
+        "REASONING_EFFORT_MAX": "HIGH"
+      }
+    },
+
+    {
       "name": p + "gemini-3.1-flash-lite-image",
       "provider_model_id": "gemini-3.1-flash-lite-image",
       "description": "Nano Banana 2 Lite: the efficiency specialist of the image generation family, offering ultra-low latency (sub-2s) and cost-effective image generation and editing. Interleaved text and image output, fast multi-turn local edits. Optimized for 1K resolution only (2K and 4K unsupported).",
@@ -310,9 +338,9 @@ local p = "providers/google/models/";
         "context_token_limit": 131072,
         "output_token_limit": 32768,
         "pricing": {
-          "input_token_price_per_million": 0.25,
-          "output_token_price_per_million": 1.5,
-          "input_image_token_price_per_million": 0.25,
+          "input_token_price_per_million": 0.5,
+          "output_token_price_per_million": 3,
+          "input_image_token_price_per_million": 0.5,
           "output_image_token_price_per_million": 60
         }
       },
