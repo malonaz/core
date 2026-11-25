@@ -65,7 +65,7 @@ func (b *Builder) CreateTool(request *pb.CreateToolRequest) (*aipb.Tool, error) 
 		toolName = string(methodDescriptor.Parent().Name()) + "_" + string(methodDescriptor.Name())
 		toolDescription = b.schema.GetComment(methodDescriptor.FullName(), pbreflection.CommentStyleMultiline)
 		annotations[aipb.Annotations.ToolType.Key] = ToolTypeGenerateRPCRequest
-		toolMethod := b.ToolMethod(methodDescriptor)
+		toolMethod := ToolMethod(methodDescriptor)
 		methodTool := &aipb.Tool{Annotations: annotations}
 		if err := aipb.Annotations.Method.Set(methodTool, toolMethod); err != nil {
 			return nil, status.Errorf(codes.Internal, "annotating method %s: %v", methodDescriptor.FullName(), err).Err()
@@ -130,15 +130,12 @@ func (b *Builder) CreateTool(request *pb.CreateToolRequest) (*aipb.Tool, error) 
 	}, nil
 }
 
-// ToolMethod returns the facts a method's descriptors declare about it that its callers act on.
-func (b *Builder) ToolMethod(method protoreflect.MethodDescriptor) *aipb.ToolMethod {
-	service := method.Parent().(protoreflect.ServiceDescriptor)
+// ToolMethod returns what a method's tool says of it: which method to call, and whether it changes anything.
+func ToolMethod(method protoreflect.MethodDescriptor) *aipb.ToolMethod {
 	return &aipb.ToolMethod{
-		Service:            string(service.FullName()),
-		ServiceDescription: b.schema.GetComment(service.FullName(), pbreflection.CommentStyleMultiline),
-		Method:             string(method.FullName()),
-		ReadOnly:           method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS,
-		RequestId:          method.Input().Fields().ByName("request_id") != nil,
+		Service:  string(method.Parent().FullName()),
+		Method:   string(method.FullName()),
+		ReadOnly: method.Options().(*descriptorpb.MethodOptions).GetIdempotencyLevel() == descriptorpb.MethodOptions_NO_SIDE_EFFECTS,
 	}
 }
 

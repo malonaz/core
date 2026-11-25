@@ -39,11 +39,9 @@ go_test(
     deps = [
         ":tool",
         "//go/pbutil/pbfieldmask",
-        "//go/pbutil/pbreflection",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
         "//third_party/go:github.com__stretchr__testify__require",
-        "//third_party/go:google.golang.org__grpc__reflection",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__reflect__protoregistry",
         "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",

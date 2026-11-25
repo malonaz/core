@@ -307,14 +307,12 @@ func (b0 Tool_builder) Build() *Tool {
 // ToolMethod is the gRPC method a tool stands for, as its descriptors declare it: facts, never policy. It is the value
 // of the `ai-engine.malonaz.com/method` annotation.
 type ToolMethod struct {
-	state                         protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Service            string                 `protobuf:"bytes,1,opt,name=service,proto3"`
-	xxx_hidden_ServiceDescription string                 `protobuf:"bytes,2,opt,name=service_description,json=serviceDescription,proto3"`
-	xxx_hidden_Method             string                 `protobuf:"bytes,3,opt,name=method,proto3"`
-	xxx_hidden_ReadOnly           bool                   `protobuf:"varint,4,opt,name=read_only,json=readOnly,proto3"`
-	xxx_hidden_RequestId          bool                   `protobuf:"varint,5,opt,name=request_id,json=requestId,proto3"`
-	unknownFields                 protoimpl.UnknownFields
-	sizeCache                     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Service  string                 `protobuf:"bytes,1,opt,name=service,proto3"`
+	xxx_hidden_Method   string                 `protobuf:"bytes,2,opt,name=method,proto3"`
+	xxx_hidden_ReadOnly bool                   `protobuf:"varint,3,opt,name=read_only,json=readOnly,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *ToolMethod) Reset() {
@@ -349,13 +347,6 @@ func (x *ToolMethod) GetService() string {
 	return ""
 }
 
-func (x *ToolMethod) GetServiceDescription() string {
-	if x != nil {
-		return x.xxx_hidden_ServiceDescription
-	}
-	return ""
-}
-
 func (x *ToolMethod) GetMethod() string {
 	if x != nil {
 		return x.xxx_hidden_Method
@@ -370,19 +361,8 @@ func (x *ToolMethod) GetReadOnly() bool {
 	return false
 }
 
-func (x *ToolMethod) GetRequestId() bool {
-	if x != nil {
-		return x.xxx_hidden_RequestId
-	}
-	return false
-}
-
 func (x *ToolMethod) SetService(v string) {
 	x.xxx_hidden_Service = v
-}
-
-func (x *ToolMethod) SetServiceDescription(v string) {
-	x.xxx_hidden_ServiceDescription = v
 }
 
 func (x *ToolMethod) SetMethod(v string) {
@@ -393,23 +373,15 @@ func (x *ToolMethod) SetReadOnly(v bool) {
 	x.xxx_hidden_ReadOnly = v
 }
 
-func (x *ToolMethod) SetRequestId(v bool) {
-	x.xxx_hidden_RequestId = v
-}
-
 type ToolMethod_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The service's full name: which service to call.
 	Service string
-	// The service's comment: the description of the discovery tool a consumer builds over its tools.
-	ServiceDescription string
 	// The method's full name: which method to call.
 	Method string
 	// Whether the method declares `idempotency_level = NO_SIDE_EFFECTS`.
 	ReadOnly bool
-	// Whether the request has a `request_id`: a caller derives it from the call, so a retried call is not repeated.
-	RequestId bool
 }
 
 func (b0 ToolMethod_builder) Build() *ToolMethod {
@@ -417,10 +389,8 @@ func (b0 ToolMethod_builder) Build() *ToolMethod {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Service = b.Service
-	x.xxx_hidden_ServiceDescription = b.ServiceDescription
 	x.xxx_hidden_Method = b.Method
 	x.xxx_hidden_ReadOnly = b.ReadOnly
-	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -1494,15 +1464,12 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x8a\x01\xeaA[\n" +
-	"\x13ai.malonaz.com/Tool\x12\ftools/{tool}\x12)organizations/{organization}/tools/{tool}*\x05tools2\x04toolҦ\x04\x00\x82\xf6,$5b0c7d2e-8a41-4f6b-9e3d-2c71a8f0b946\"\xab\x01\n" +
+	"\x13ai.malonaz.com/Tool\x12\ftools/{tool}\x12)organizations/{organization}/tools/{tool}*\x05tools2\x04toolҦ\x04\x00\x82\xf6,$5b0c7d2e-8a41-4f6b-9e3d-2c71a8f0b946\"[\n" +
 	"\n" +
 	"ToolMethod\x12\x18\n" +
-	"\aservice\x18\x01 \x01(\tR\aservice\x12/\n" +
-	"\x13service_description\x18\x02 \x01(\tR\x12serviceDescription\x12\x16\n" +
-	"\x06method\x18\x03 \x01(\tR\x06method\x12\x1b\n" +
-	"\tread_only\x18\x04 \x01(\bR\breadOnly\x12\x1d\n" +
-	"\n" +
-	"request_id\x18\x05 \x01(\bR\trequestId\"\x90\x03\n" +
+	"\aservice\x18\x01 \x01(\tR\aservice\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12\x1b\n" +
+	"\tread_only\x18\x03 \x01(\bR\breadOnly\"\x90\x03\n" +
 	"\aToolUse\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
