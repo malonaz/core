@@ -29,7 +29,10 @@ labels:
 
 ## The ai processor (`go/ai/ai_processor`)
 
-- The only thing that reflects. `--ai-processor.target pkg.Service=endpoint` (repeatable; `http://` for plaintext),
+- Mirrored tools are built by `aitool.NewMethodToolRequest` (titled with `aitool.TitleDescription`, request_id masked
+  out); a consumer offers a set as `aitool.NewToolSet` (its discovery tool). The agent service reads them per turn
+  (`lores/domain/agent`), and still reflects to invoke: the schemas' JSON needs the descriptors to become a request.
+- The only thing that reflects to mirror. `--ai-processor.target pkg.Service=endpoint` (repeatable; `http://` for plaintext),
   `--ai-processor.interval` (5m). Each pass, per target: reflect, build each unary method's tool (request_id masked out;
   description = the method's full name when reflection carries no comments), converge it (Create with request id
   `uuidv5(ns, name)` returns the stored tool, then Update only the differing paths, pinned to its etag), then delete the

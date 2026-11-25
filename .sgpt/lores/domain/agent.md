@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres (every write fenced on the lease), the caps on tool rounds, sub-agents, depth and schedules, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres (every write fenced on the lease), the caps on tool rounds, sub-agents, depth and schedules, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the toolbox read from the AiService''s stored tools (malonaz.ai.v1.Tool, granted by name or tool-set selector, trimmed to what the owner could call as targets answer TestMethods, invoked through the target''s reflection), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -87,31 +87,29 @@ snapshots do not carry the chat.
 
 ## Tools and identity
 
-- The catalogue: `ToolSet` (`toolSets/{id}`: a routed service by full name, or `genui`) and `Tool`
-  (`toolSets/{id}/tools/{method or component}`), derived from `--tool-target pkg.Service=endpoint` and each target's
-  reflection (read as the service, cached five minutes), never stored. `ListToolSets`/`GetToolSet`; `ListTools`
-  (parent `toolSets/-` across sets)/`GetTool`. Facts: `read_only` (NO_SIDE_EFFECTS, every component),
-  `resolved_by_client` (input components). An unreadable set carries `error`, is left out of `toolSets/-` and fails
-  its own list (UNAVAILABLE). Comments travel only when the target serves reflection from a descriptor set built with
-  source info (`cmd/workspace-server`); the Go registry's descriptors (genui) have none. Built-ins are not listed.
-- Reach: each caller sees the tools they could call. Per routed set the service asks its target
-  `AuthorizationService.TestMethods` (core's `lores/authentication/overview`) carrying the caller's session; tools not
-  returned are left out (GetTool NOT_FOUND), and a readable set left with none is hidden (GetToolSet and its ListTools
-  NOT_FOUND, absent from ListToolSets). A target that cannot say (serves no AuthorizationService: UNIMPLEMENTED, or
-  fails, logged) trims nothing. Each turn asks again as the owner (`toolbox.reachable`, once per set a turn, on the
-  turn's owner token): a granted set offers only the returned methods (none: no discovery tool), a lone tool grant
-  not returned is left out. Spec validation stays offline: an unreachable grant is accepted and trimmed at turn time.
-  Trimming saves context and failed calls; every call is still the target's decision.
-- A spec grants by resource name (`AgentSpec.ToolGrant`: oneof `tool_set` | `tool`, plus `approval`). A set grant
-  reaches the model as a discovery tool set (services) or one tool per component (genui); a lone tool grant as one
-  tool; a tool grant inside a granted set only refines its approval (the tool's grant, else its set's, else
-  NO_SIDE_EFFECTS runs and anything else awaits). Validation checks the set is configured and components exist
-  (no network: a wrong method fails the first turn); genui grants take no approval.
-- Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set, approvals inherited
-  and only tightened by the model; a requested set keeps the parent's refinements inside it.
+- Tools are the AiService's stored tools (core's `lores/ai/tools`): platform tools `tools/{t}` mirrored by the ai
+  processor, an organization's `organizations/{o}/tools/{t}`. The agent service keeps no catalogue of its own; clients
+  pick tools with `AiService.ListTools`.
+- A spec grants (`AgentSpec.ToolGrant`: oneof `tool` (a Tool's name) | `tool_set` (`ToolSetSelector{parent, id}`: the
+  tools under `parent`, empty = platform, labelled `ai.malonaz.com/tool-set` = `id`, present and future), plus
+  `approval`). Only platform tools or the agent's own organization's (validated offline; existence is read per turn).
+  A tool grant inside a granted set only refines its approval (the tool's grant, else its set's, else
+  `ToolMethod.read_only` runs and anything else awaits).
+- Each turn (`newToolbox`) reads the granted tools as the service (one ListTools per set grant, GetTool per lone grant,
+  a vanished one left out), keeps those whose `ToolMethod` names a service with a `--tool-target`, asks each target
+  `AuthorizationService.TestMethods` once as the owner (cannot say: keeps all) and offers the rest under their ids: a set
+  as a discovery tool set named after its service (`Health_Discover`), a lone tool directly. Nothing written in a tool
+  routes a call: the target is the configuration's.
+- Invocation (`toolRouter.invoke`, the one place that reflects): the method's descriptors are read from its target as
+  the service (cached five minutes per endpoint), the arguments built with `pbjson` (the schemas' model-friendly JSON:
+  money, snake_case masks, durations, intervals; a JSON gRPC codec could not read them without descriptors), the
+  request id derived from the call, then called as the owner.
+- Genui components are still served by this binary as the platform set `genui` (`tools/Generate_{Component}`), until
+  the ai processor mirrors them; they take no approval. Built-ins are not stored.
+- Ad-hoc sub-agents get the parent's grants, or a subset: a held grant or a tool of a held set (its set read with
+  GetTool), approvals inherited and only tightened by the model; a requested set keeps the parent's refinements in it.
 - The service's own calls (creating chats, writing, reading and listing their messages, scheduler, replica to replica) go out
   as its account (`asService`).
-- Schemas are read as the service: they are the same for every owner (cached five minutes per endpoint).
 - Generations and tool calls are made as the agent's owner: the turn exchanges a token of `--owner-token-issuer`
   (`TokenService.ExchangeToken`, subject the owner, actor the agent's name), reused until a minute before it
   expires, and calls with it as the only credential (`asOwner`, `owner_token.go`). The owner's own grants decide
