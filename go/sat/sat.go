@@ -83,6 +83,7 @@ type SAT struct {
 	PostgresServer *postgrestestserver.Server
 	natsServer     *natsserver.Server
 	natsOptions    *natsserver.Options
+	natsStoreDir   string
 	natsClient     *nats.Client
 	natsClientOnce sync.Once
 
@@ -177,9 +178,17 @@ func (s *SAT) Start(ctx context.Context) error {
 
 	if s.config.Nats {
 		s.log.InfoContext(ctx, "starting nats server")
-		s.natsOptions = &natstestserver.DefaultTestOptions
-		s.natsOptions.NoLog = false
-		s.natsOptions.JetStream = true
+		natsOptions := natstestserver.DefaultTestOptions
+		natsOptions.NoLog = false
+		natsOptions.JetStream = true
+		// A store of its own: runs sharing a host's TempDir (remote execution) clobber each other's streams.
+		storeDir, err := os.MkdirTemp("", "sat-nats-")
+		if err != nil {
+			return fmt.Errorf("creating nats store directory: %w", err)
+		}
+		s.natsStoreDir = storeDir
+		natsOptions.StoreDir = storeDir
+		s.natsOptions = &natsOptions
 		s.natsServer = natstestserver.RunServer(s.natsOptions)
 		environmentVariables["NATS_HOST"] = s.natsOptions.Host
 		environmentVariables["NATS_PORT"] = strconv.Itoa(s.natsOptions.Port)
@@ -275,5 +284,8 @@ func (s *SAT) Cleanup() {
 	}
 	if s.natsServer != nil {
 		s.natsServer.Shutdown()
+	}
+	if s.natsStoreDir != "" {
+		os.RemoveAll(s.natsStoreDir)
 	}
 }
