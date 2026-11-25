@@ -9,7 +9,7 @@ import (
 	v1 "github.com/malonaz/core/genproto/ai/v1"
 	pbutil "github.com/malonaz/core/go/pbutil"
 	resourcename "go.einride.tech/aip/resourcename"
-	status "google.golang.org/genproto/googleapis/rpc/status"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 )
@@ -26,19 +26,17 @@ type ToolCall struct {
 	UserID         string     `db:"user_id" schema:"public" table:"tool_call"`
 	ChatID         string     `db:"chat_id" schema:"public" table:"tool_call"`
 	MessageID      string     `db:"message_id" schema:"public" table:"tool_call"`
-	ToolCallID     string     `db:"tool_call_id" schema:"public" table:"tool_call"`
+	ToolCallID     string     `db:"position" schema:"public" table:"tool_call"`
 	CreateTime     time.Time  `db:"create_time" schema:"public" table:"tool_call"`
 	UpdateTime     time.Time  `db:"update_time" schema:"public" table:"tool_call"`
 	DeleteTime     *time.Time `db:"delete_time" schema:"public" table:"tool_call"`
 	Etag           string     `db:"etag" schema:"public" table:"tool_call"`
 	Labels         []byte     `db:"labels" schema:"public" table:"tool_call"`
 	Annotations    []byte     `db:"annotations" schema:"public" table:"tool_call"`
-	CallId         string     `db:"call_id" schema:"public" table:"tool_call"`
 	ToolName       string     `db:"tool_name" schema:"public" table:"tool_call"`
-	Title          string     `db:"title" schema:"public" table:"tool_call"`
-	State          int16      `db:"state" schema:"public" table:"tool_call"`
-	Error          []byte     `db:"error" schema:"public" table:"tool_call"`
-	ResultMessage  string     `db:"result_message" schema:"public" table:"tool_call"`
+	ToolCallId     string     `db:"tool_call_id" schema:"public" table:"tool_call"`
+	Arguments      []byte     `db:"arguments" schema:"public" table:"tool_call"`
+	Result         []byte     `db:"result" schema:"public" table:"tool_call"`
 }
 
 func ToolCallFromPb(m *v1.ToolCall) (*ToolCall, error) {
@@ -81,12 +79,19 @@ func ToolCallFromPb(m *v1.ToolCall) (*ToolCall, error) {
 			return nil, fmt.Errorf("marshaling Annotations: %w", err)
 		}
 	}
-	var ErrorBytes []byte
-	if m.Error != nil {
+	if m.Arguments == nil {
+		return nil, fmt.Errorf("Arguments cannot be nil")
+	}
+	ArgumentsBytes, err := pbutil.JSONMarshal(m.Arguments)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling Arguments: %w", err)
+	}
+	var ResultBytes []byte
+	if m.Result != nil {
 		var err error
-		ErrorBytes, err = pbutil.JSONMarshal(m.Error)
+		ResultBytes, err = pbutil.JSONMarshal(m.Result)
 		if err != nil {
-			return nil, fmt.Errorf("marshaling Error: %w", err)
+			return nil, fmt.Errorf("marshaling Result: %w", err)
 		}
 	}
 	return &ToolCall{
@@ -101,12 +106,10 @@ func ToolCallFromPb(m *v1.ToolCall) (*ToolCall, error) {
 		Etag:           m.Etag,
 		Labels:         LabelsBytes,
 		Annotations:    AnnotationsBytes,
-		CallId:         m.CallId,
 		ToolName:       m.ToolName,
-		Title:          m.Title,
-		State:          int16(m.State),
-		Error:          ErrorBytes,
-		ResultMessage:  m.ResultMessage,
+		ToolCallId:     m.ToolCallId,
+		Arguments:      ArgumentsBytes,
+		Result:         ResultBytes,
 	}, nil
 }
 
@@ -142,11 +145,15 @@ func (m *ToolCall) ToPb() (*v1.ToolCall, error) {
 			return nil, fmt.Errorf("unmarshaling Annotations: %w", err)
 		}
 	}
-	var Error *status.Status
-	if m.Error != nil {
-		Error = &status.Status{}
-		if err := pbutil.JSONUnmarshal(m.Error, Error); err != nil {
-			return nil, fmt.Errorf("unmarshaling Error: %w", err)
+	Arguments := &structpb.Struct{}
+	if err := pbutil.JSONUnmarshal(m.Arguments, Arguments); err != nil {
+		return nil, fmt.Errorf("unmarshaling Arguments: %w", err)
+	}
+	var Result *v1.ToolResult
+	if m.Result != nil {
+		Result = &v1.ToolResult{}
+		if err := pbutil.JSONUnmarshal(m.Result, Result); err != nil {
+			return nil, fmt.Errorf("unmarshaling Result: %w", err)
 		}
 	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}", m.OrganizationID, m.UserID, m.ChatID, m.MessageID, m.ToolCallID)
@@ -154,19 +161,17 @@ func (m *ToolCall) ToPb() (*v1.ToolCall, error) {
 		return nil, fmt.Errorf("validating resource name: %w", err)
 	}
 	return &v1.ToolCall{
-		Name:          name,
-		CreateTime:    CreateTime,
-		UpdateTime:    UpdateTime,
-		DeleteTime:    DeleteTime,
-		Etag:          m.Etag,
-		Labels:        Labels,
-		Annotations:   Annotations,
-		CallId:        m.CallId,
-		ToolName:      m.ToolName,
-		Title:         m.Title,
-		State:         v1.ToolCall_State(m.State),
-		Error:         Error,
-		ResultMessage: m.ResultMessage,
+		Name:        name,
+		CreateTime:  CreateTime,
+		UpdateTime:  UpdateTime,
+		DeleteTime:  DeleteTime,
+		Etag:        m.Etag,
+		Labels:      Labels,
+		Annotations: Annotations,
+		ToolName:    m.ToolName,
+		ToolCallId:  m.ToolCallId,
+		Arguments:   Arguments,
+		Result:      Result,
 	}, nil
 }
 

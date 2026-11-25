@@ -26,12 +26,13 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
-from google.rpc import status_pb2 as google_dot_rpc_dot_status__pb2
+from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
+from malonaz.ai.v1 import tool_pb2 as malonaz_dot_ai_dot_v1_dot_tool__pb2
 from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dmalonaz/ai/v1/tool_call.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xcf\x08\n\x08ToolCall\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x0c\n\x04\x65tag\x18\x05 \x01(\t\x12\xc9\x01\n\x06labels\x18\x06 \x03(\x0b\x32#.malonaz.ai.v1.ToolCall.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12J\n\x0b\x61nnotations\x18\x07 \x03(\x0b\x32(.malonaz.ai.v1.ToolCall.AnnotationsEntryB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x12\x14\n\x07\x63\x61ll_id\x18\x08 \x01(\tB\x03\xe0\x41\x03\x12\x16\n\ttool_name\x18\t \x01(\tB\x03\xe0\x41\x03\x12\x12\n\x05title\x18\n \x01(\tB\x03\xe0\x41\x03\x12\x39\n\x05state\x18\x0b \x01(\x0e\x32\x1d.malonaz.ai.v1.ToolCall.StateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12.\n\x05\x65rror\x18\x0c \x01(\x0b\x32\x12.google.rpc.StatusB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x12\x36\n\x0eresult_message\x18\r \x01(\tB\x1e\xe0\x41\x03\xfa\x41\x18\n\x16\x61i.malonaz.com/Message\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"X\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n\rSTATE_PENDING\x10\x01\x12\x13\n\x0fSTATE_SUCCEEDED\x10\x02\x12\x10\n\x0cSTATE_FAILED\x10\x03:\xbf\x01\xea\x41\x8f\x01\n\x17\x61i.malonaz.com/ToolCall\x12_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\x08toolCall\xd2\xa6\x04\x00\x82\xf6,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dmalonaz/ai/v1/tool_call.proto\x12\rmalonaz.ai.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xbc\x07\n\x08ToolCall\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12:\n\x0b\x64\x65lete_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x12\x0c\n\x04\x65tag\x18\x05 \x01(\t\x12\xc9\x01\n\x06labels\x18\x06 \x03(\x0b\x32#.malonaz.ai.v1.ToolCall.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12J\n\x0b\x61nnotations\x18\x07 \x03(\x0b\x32(.malonaz.ai.v1.ToolCall.AnnotationsEntryB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x12\x16\n\ttool_name\x18\x08 \x01(\tB\x03\xe0\x41\x03\x12\x19\n\x0ctool_call_id\x18\t \x01(\tB\x03\xe0\x41\x03\x12\x35\n\targuments\x18\n \x01(\x0b\x32\x17.google.protobuf.StructB\t\xe0\x41\x03\xba\xea\x0f\x02\x10\x01\x12\x36\n\x06result\x18\x0b \x01(\x0b\x32\x19.malonaz.ai.v1.ToolResultB\x0b\xe0\x41\x03\xba\xea\x0f\x04\x10\x01 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x32\n\x10\x41nnotationsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01:\xc9\x01\xea\x41\x8f\x01\n\x17\x61i.malonaz.com/ToolCall\x12_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\x08toolCall\xd2\xa6\x04\n\x1a\x08position\x82\xf6,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -55,26 +56,20 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TOOLCALL'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$\272\352\017\004\020\001 \001'
   _globals['_TOOLCALL'].fields_by_name['annotations']._loaded_options = None
   _globals['_TOOLCALL'].fields_by_name['annotations']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
-  _globals['_TOOLCALL'].fields_by_name['call_id']._loaded_options = None
-  _globals['_TOOLCALL'].fields_by_name['call_id']._serialized_options = b'\340A\003'
   _globals['_TOOLCALL'].fields_by_name['tool_name']._loaded_options = None
   _globals['_TOOLCALL'].fields_by_name['tool_name']._serialized_options = b'\340A\003'
-  _globals['_TOOLCALL'].fields_by_name['title']._loaded_options = None
-  _globals['_TOOLCALL'].fields_by_name['title']._serialized_options = b'\340A\003'
-  _globals['_TOOLCALL'].fields_by_name['state']._loaded_options = None
-  _globals['_TOOLCALL'].fields_by_name['state']._serialized_options = b'\340A\003\272H\005\202\001\002\020\001'
-  _globals['_TOOLCALL'].fields_by_name['error']._loaded_options = None
-  _globals['_TOOLCALL'].fields_by_name['error']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
-  _globals['_TOOLCALL'].fields_by_name['result_message']._loaded_options = None
-  _globals['_TOOLCALL'].fields_by_name['result_message']._serialized_options = b'\340A\003\372A\030\n\026ai.malonaz.com/Message'
+  _globals['_TOOLCALL'].fields_by_name['tool_call_id']._loaded_options = None
+  _globals['_TOOLCALL'].fields_by_name['tool_call_id']._serialized_options = b'\340A\003'
+  _globals['_TOOLCALL'].fields_by_name['arguments']._loaded_options = None
+  _globals['_TOOLCALL'].fields_by_name['arguments']._serialized_options = b'\340A\003\272\352\017\002\020\001'
+  _globals['_TOOLCALL'].fields_by_name['result']._loaded_options = None
+  _globals['_TOOLCALL'].fields_by_name['result']._serialized_options = b'\340A\003\272\352\017\004\020\001 \001'
   _globals['_TOOLCALL']._loaded_options = None
-  _globals['_TOOLCALL']._serialized_options = b'\352A\217\001\n\027ai.malonaz.com/ToolCall\022_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\010toolCall\322\246\004\000\202\366,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204'
-  _globals['_TOOLCALL']._serialized_start=268
-  _globals['_TOOLCALL']._serialized_end=1371
-  _globals['_TOOLCALL_LABELSENTRY']._serialized_start=990
-  _globals['_TOOLCALL_LABELSENTRY']._serialized_end=1035
-  _globals['_TOOLCALL_ANNOTATIONSENTRY']._serialized_start=1037
-  _globals['_TOOLCALL_ANNOTATIONSENTRY']._serialized_end=1087
-  _globals['_TOOLCALL_STATE']._serialized_start=1089
-  _globals['_TOOLCALL_STATE']._serialized_end=1177
+  _globals['_TOOLCALL']._serialized_options = b'\352A\217\001\n\027ai.malonaz.com/ToolCall\022_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\010toolCall\322\246\004\n\032\010position\202\366,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204'
+  _globals['_TOOLCALL']._serialized_start=299
+  _globals['_TOOLCALL']._serialized_end=1255
+  _globals['_TOOLCALL_LABELSENTRY']._serialized_start=954
+  _globals['_TOOLCALL_LABELSENTRY']._serialized_end=999
+  _globals['_TOOLCALL_ANNOTATIONSENTRY']._serialized_start=1001
+  _globals['_TOOLCALL_ANNOTATIONSENTRY']._serialized_end=1051
 # @@protoc_insertion_point(module_scope)

@@ -17,7 +17,7 @@ var (
 )
 
 func (s *Store) probeToolCall(ctx context.Context, q querier, organizationId, userId, chatId, messageId, toolCallId string) (bool, string, error) {
-	query := `SELECT delete_time IS NULL, etag FROM tool_call WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND tool_call_id = $5`
+	query := `SELECT delete_time IS NULL, etag FROM tool_call WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND position = $5`
 	params := []any{organizationId, userId, chatId, messageId, toolCallId}
 	var live bool
 	var currentEtag string
@@ -37,7 +37,7 @@ type ToolCallWithRequestID struct {
 
 var (
 	ToolCallWithRequestIDPostgresColumns = postgres.GetDBColumns(ToolCallWithRequestID{})
-	toolCallInsertPostgresQuery          = `INSERT INTO tool_call %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id, tool_call_id) DO UPDATE SET tool_call_id = EXCLUDED.tool_call_id`
+	toolCallInsertPostgresQuery          = `INSERT INTO tool_call %s VALUES %s ON CONFLICT(organization_id, user_id, chat_id, message_id, position) DO UPDATE SET position = EXCLUDED.position`
 	toolCallInsertReturningClause        = ` RETURNING ` + strings.Join(ToolCallWithRequestIDPostgresColumns, ",")
 	toolCallGetByRequestIDsQuery         = "SELECT " + postgres.QualifyColumns(ToolCallWithRequestIDPostgresColumns, "tool_call") + " FROM tool_call" + ` WHERE tool_call.request_id = ANY($1)`
 )
@@ -130,7 +130,7 @@ func (s *Store) UpdateToolCall(ctx context.Context, _toolCall *model.ToolCall, u
 
 	query := strings.Replace(updateToolCallPostgresQuery, "#update_clause#", updateClause, 1)
 	numUpdateParams := len(updateParams)
-	whereClause := fmt.Sprintf("organization_id = $%d AND user_id = $%d AND chat_id = $%d AND message_id = $%d AND tool_call_id = $%d", numUpdateParams+1, numUpdateParams+2, numUpdateParams+3, numUpdateParams+4, numUpdateParams+5)
+	whereClause := fmt.Sprintf("organization_id = $%d AND user_id = $%d AND chat_id = $%d AND message_id = $%d AND position = $%d", numUpdateParams+1, numUpdateParams+2, numUpdateParams+3, numUpdateParams+4, numUpdateParams+5)
 	query = strings.Replace(query, "#where_clause#", whereClause, 1)
 
 	params := append(updateParams,
@@ -170,7 +170,7 @@ func (s *Store) UpdateToolCall(ctx context.Context, _toolCall *model.ToolCall, u
 	return row, nil
 }
 
-var softDeleteToolCallPostgresQuery = `UPDATE tool_call SET delete_time = $6, etag = $7 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND tool_call_id = $5 AND delete_time IS NULL RETURNING ` +
+var softDeleteToolCallPostgresQuery = `UPDATE tool_call SET delete_time = $6, etag = $7 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND position = $5 AND delete_time IS NULL RETURNING ` +
 	strings.Join(ToolCallPostgresColumns, ",")
 
 func (s *Store) SoftDeleteToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string, etag, newEtag string, deleteTime time.Time) (*model.ToolCall, error) {
@@ -204,7 +204,7 @@ func (s *Store) SoftDeleteToolCall(ctx context.Context, organizationId, userId, 
 	return row, nil
 }
 
-var undeleteToolCallPostgresQuery = `UPDATE tool_call SET delete_time = NULL, etag = $6 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND tool_call_id = $5 AND delete_time IS NOT NULL RETURNING ` +
+var undeleteToolCallPostgresQuery = `UPDATE tool_call SET delete_time = NULL, etag = $6 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND position = $5 AND delete_time IS NOT NULL RETURNING ` +
 	strings.Join(ToolCallPostgresColumns, ",")
 
 func (s *Store) UndeleteToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string, etag, newEtag string) (*model.ToolCall, error) {
@@ -239,7 +239,7 @@ func (s *Store) UndeleteToolCall(ctx context.Context, organizationId, userId, ch
 }
 
 func (s *Store) GetToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string) (*model.ToolCall, error) {
-	query := "SELECT " + postgres.QualifyColumns(ToolCallPostgresColumns, "tool_call") + " FROM tool_call" + ` WHERE tool_call.organization_id = $1 AND tool_call.user_id = $2 AND tool_call.chat_id = $3 AND tool_call.message_id = $4 AND tool_call.tool_call_id = $5`
+	query := "SELECT " + postgres.QualifyColumns(ToolCallPostgresColumns, "tool_call") + " FROM tool_call" + ` WHERE tool_call.organization_id = $1 AND tool_call.user_id = $2 AND tool_call.chat_id = $3 AND tool_call.message_id = $4 AND tool_call.position = $5`
 	rows, err := s.client.Query(ctx, query, organizationId, userId, chatId, messageId, toolCallId)
 	if err != nil {
 		return nil, fmt.Errorf("getting toolCall: %w", err)
@@ -281,7 +281,7 @@ func (s *Store) BatchGetToolCalls(ctx context.Context, organizationIds []string,
 		conditions[1] = fmt.Sprintf("tool_call.user_id = $%d", base+2)
 		conditions[2] = fmt.Sprintf("tool_call.chat_id = $%d", base+3)
 		conditions[3] = fmt.Sprintf("tool_call.message_id = $%d", base+4)
-		conditions[4] = fmt.Sprintf("tool_call.tool_call_id = $%d", base+5)
+		conditions[4] = fmt.Sprintf("tool_call.position = $%d", base+5)
 		params = append(params, organizationIds[i])
 		params = append(params, userIds[i])
 		params = append(params, chatIds[i])

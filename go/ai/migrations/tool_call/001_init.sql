@@ -4,25 +4,24 @@ CREATE TABLE tool_call (
     user_id TEXT NOT NULL,
     chat_id TEXT NOT NULL,
     message_id TEXT NOT NULL,
-    -- The call's position among its message's tool calls, from 1.
-    tool_call_id TEXT NOT NULL,
+    -- The resource id: the call's position among its message's tool calls, from 1.
+    position TEXT NOT NULL,
     create_time TIMESTAMP NOT NULL,
     update_time TIMESTAMP NOT NULL,
     delete_time TIMESTAMP,
     etag TEXT NOT NULL,
     labels JSONB,
     annotations JSONB,
-    call_id TEXT NOT NULL,
     tool_name TEXT NOT NULL,
-    title TEXT NOT NULL,
-    state SMALLINT NOT NULL,
-    error JSONB,
-    result_message TEXT NOT NULL,
-    PRIMARY KEY (organization_id, user_id, chat_id, message_id, tool_call_id),
+    tool_call_id TEXT NOT NULL,
+    arguments JSONB NOT NULL,
+    -- NULL while the call is pending.
+    result JSONB,
+    PRIMARY KEY (organization_id, user_id, chat_id, message_id, position),
     CONSTRAINT tool_call_request_id_unique UNIQUE (request_id)
 );
 
--- A user's calls by state, newest first: the attention queue across chats.
-CREATE INDEX tool_call_user_state_idx ON tool_call (organization_id, user_id, state, create_time DESC);
+-- A user's pending calls, newest first: the attention queue across chats.
 -- Settling a call by the id its result names.
-CREATE INDEX tool_call_chat_call_id_idx ON tool_call (organization_id, user_id, chat_id, call_id);
+CREATE INDEX tool_call_chat_tool_call_id_idx ON tool_call (organization_id, user_id, chat_id, tool_call_id);
+CREATE INDEX tool_call_user_pending_idx ON tool_call (organization_id, user_id, create_time DESC) WHERE result IS NULL;

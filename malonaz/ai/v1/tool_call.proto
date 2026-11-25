@@ -5,16 +5,17 @@ package malonaz.ai.v1;
 import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "google/rpc/status.proto";
+import "malonaz/ai/v1/tool.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/ai/v1";
 
-// A ToolCall is a call a generation made to a tool, from the message carrying it to its result. Its id is its
-// position among the message's tool calls, from 1. The message holds the call and a tool message its result, as the
-// model sees them; the ToolCall lists them. Written by the AI service alone, with the messages.
+// A ToolCall is a call a generation made to a tool: what was called, with what, and its result once a message brings
+// it. Its id is its position among its message's tool calls, from 1. Written by the AI service alone, with the message
+// making the call, and settled with the message bringing its result. Pending calls are `NOT result:*`.
 message ToolCall {
   option (google.api.resource) = {
     type: "ai.malonaz.com/ToolCall"
@@ -22,20 +23,9 @@ message ToolCall {
     singular: "toolCall"
     plural: "toolCalls"
   };
-  option (malonaz.codegen.model.v1.model_opts) = {};
+  // The resource id is the call's position; `tool_call_id` is the provider's id, as ToolResult names it.
+  option (malonaz.codegen.model.v1.model_opts) = {id_column_name: "position"};
   option (malonaz.codegen.aip.v1.uuid_namespace) = "2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204";
-
-  // State is where a call is: awaiting its result, or settled by it.
-  enum State {
-    // Used to detect an unset field.
-    STATE_UNSPECIFIED = 0;
-    // The call has no result yet.
-    STATE_PENDING = 1;
-    // The call's result is a success.
-    STATE_SUCCEEDED = 2;
-    // The call's result is an error, held in `error`.
-    STATE_FAILED = 3;
-  }
 
   // The resource name of the tool call.
   // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}
@@ -74,40 +64,30 @@ message ToolCall {
     }
   ];
 
-  // The annotations the call inherited from its tool (the method it stands for, among them).
+  // Annotations populated from the tool that created this tool call.
   map<string, string> annotations = 7 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
   ];
 
-  // The id the provider gave the call, which its result names.
-  string call_id = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Name of the tool called.
+  string tool_name = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The name of the tool called, as the model was given it.
-  string tool_name = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // ID of the tool call, as the provider gave it: its result names it.
+  string tool_call_id = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The title the model gave the call (its `tool_call_title` argument), if any.
-  string title = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Where the call is.
-  State state = 11 [
+  // The arguments the tool was called with.
+  google.protobuf.Struct arguments = 10 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (buf.validate.field).enum.defined_only = true
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true
   ];
 
-  // The error the call failed with. Set only when it failed.
-  google.rpc.Status error = 12 [
+  // The result of the call: unset while pending. A call the generation answered itself (a discovery, an unknown
+  // tool) has it from the start.
+  ToolResult result = 11 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
     (malonaz.codegen.model.v1.field_opts).nullable = true
-  ];
-
-  // The tool message holding the call's result. Empty while pending, and for a call the generation answered
-  // itself (a discovery, an unknown tool): its result is in the call's own block.
-  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-  string result_message = 13 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.resource_reference).type = "ai.malonaz.com/Message"
   ];
 }

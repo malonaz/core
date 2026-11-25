@@ -13,7 +13,6 @@ import (
 	"github.com/malonaz/core/go/ai"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
-	"github.com/malonaz/core/go/pbutil/pbjson"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -53,7 +52,7 @@ func (s *Service) insertMessage(ctx context.Context, requestID string, message *
 			if err != nil {
 				return nil, err
 			}
-			settleToolCall(toolCall, callIDToResult[toolCall.GetCallId()], message.GetName())
+			toolCall.Result = proto.CloneOf(callIDToResult[toolCall.GetToolCallId()])
 			toolCall.UpdateTime = message.GetCreateTime()
 			if toolCall.Etag, err = aip.ComputeETag(toolCall); err != nil {
 				return nil, err
@@ -90,20 +89,16 @@ func toolCallsOf(message *aipb.Message) ([]*aipb.ToolCall, error) {
 	var toolCalls []*aipb.ToolCall
 	for i, block := range ai.FilterBlocks(message.GetBlocks(), ai.BlockTypeToolCall) {
 		toolUse := block.GetToolCall()
-		title, _ := pbjson.GetTitle(toolUse.GetArguments().AsMap())
 		toolCall := &aipb.ToolCall{
 			Name:        message.GetName() + "/toolCalls/" + strconv.Itoa(i+1),
 			CreateTime:  message.GetCreateTime(),
 			UpdateTime:  message.GetCreateTime(),
 			Annotations: toolUse.GetAnnotations(),
-			CallId:      toolUse.GetId(),
 			ToolName:    toolUse.GetName(),
-			Title:       title,
-			State:       aipb.ToolCall_STATE_PENDING,
-		}
-		// A call the generation answered itself (a discovery, an unknown tool) is settled by its own block.
-		if toolUse.GetResult() != nil {
-			settleToolCall(toolCall, toolUse.GetResult(), "")
+			ToolCallId:  toolUse.GetId(),
+			Arguments:   toolUse.GetArguments(),
+			// A call the generation answered itself (a discovery, an unknown tool) carries its result already.
+			Result: toolUse.GetResult(),
 		}
 		etag, err := aip.ComputeETag(toolCall)
 		if err != nil {
@@ -113,14 +108,4 @@ func toolCallsOf(message *aipb.Message) ([]*aipb.ToolCall, error) {
 		toolCalls = append(toolCalls, toolCall)
 	}
 	return toolCalls, nil
-}
-
-// settleToolCall settles a tool call by its result, held in a tool message (empty for a result in the call's block).
-func settleToolCall(toolCall *aipb.ToolCall, toolResult *aipb.ToolResult, resultMessage string) {
-	toolCall.ResultMessage = resultMessage
-	toolCall.State = aipb.ToolCall_STATE_SUCCEEDED
-	if toolResult.GetError() != nil {
-		toolCall.State = aipb.ToolCall_STATE_FAILED
-		toolCall.Error = proto.CloneOf(toolResult.GetError())
-	}
 }

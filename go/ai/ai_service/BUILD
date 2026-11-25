@@ -47,7 +47,6 @@ go_library(
         "//go/grpc/status",
         "//go/pbutil",
         "//go/pbutil/pbfieldmask",
-        "//go/pbutil/pbjson",
         "//go/uuid",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",

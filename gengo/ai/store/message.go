@@ -10,15 +10,15 @@ import (
 )
 
 // toolCallSettlementColumns are the columns settling a tool call writes.
-var toolCallSettlementColumns = []string{"state", "error", "result_message", "update_time", "etag"}
+var toolCallSettlementColumns = []string{"result", "update_time", "etag"}
 
-// pendingToolCallsQuery selects a chat's live pending tool calls named by the ids their results answer.
+// pendingToolCallsQuery selects a chat's live pending tool calls by the ids their results name.
 var pendingToolCallsQuery = "SELECT " + postgres.QualifyColumns(ToolCallPostgresColumns, "tool_call") + ` FROM tool_call
-	WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND call_id = ANY($4) AND state = 1 AND delete_time IS NULL`
+	WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND tool_call_id = ANY($4) AND result IS NULL AND delete_time IS NULL`
 
-// settleToolCallQuery writes a settlement over a pending tool call.
-var settleToolCallQuery = `UPDATE tool_call SET state = $1, error = $2, result_message = $3, update_time = $4, etag = $5
-	WHERE organization_id = $6 AND user_id = $7 AND chat_id = $8 AND message_id = $9 AND tool_call_id = $10 AND state = 1`
+// settleToolCallQuery writes the result of a pending tool call.
+var settleToolCallQuery = `UPDATE tool_call SET result = $1, update_time = $2, etag = $3
+	WHERE organization_id = $4 AND user_id = $5 AND chat_id = $6 AND message_id = $7 AND position = $8 AND result IS NULL`
 
 // InsertMessage inserts a message with the tool calls it makes, and settles the pending tool calls of its chat that
 // the results it carries answer, in one transaction: a message never exists without its calls, nor a result beside

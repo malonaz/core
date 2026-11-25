@@ -48,31 +48,39 @@ func TestToolCalls_PersistedWithTheirMessageAndSettledByResults(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, listToolCallsResponse.GetToolCalls(), 2)
 	first, second := listToolCallsResponse.GetToolCalls()[0], listToolCallsResponse.GetToolCalls()[1]
-	if first.GetCallId() != "call_a" {
+	if first.GetToolCallId() != "call_a" {
 		first, second = second, first
 	}
+	// What was called, with what: the block's own types.
 	require.Equal(t, created.GetName()+"/toolCalls/1", first.GetName())
-	require.Equal(t, aipb.ToolCall_STATE_PENDING, first.GetState())
-	require.Equal(t, "Look call_a up", first.GetTitle())
+	require.Equal(t, "Search", first.GetToolName())
+	require.Equal(t, "Look call_a up", first.GetArguments().GetFields()["tool_call_title"].GetStringValue())
+	require.Nil(t, first.GetResult())
+	// A call the generation answered itself has its result from the start.
 	require.Equal(t, created.GetName()+"/toolCalls/2", second.GetName())
-	require.Equal(t, aipb.ToolCall_STATE_SUCCEEDED, second.GetState())
+	require.Equal(t, "ok", second.GetResult().GetContent())
 
-	// The pending call shows across the user's chats.
-	pendingRequest := &aiservicepb.ListToolCallsRequest{Parent: userParent + "/chats/-/messages/-", Filter: "state = STATE_PENDING"}
+	// Pending calls show across the user's chats.
+	pendingRequest := &aiservicepb.ListToolCallsRequest{Parent: userParent + "/chats/-/messages/-", Filter: "NOT result:*"}
 	pendingResponse, err := aiServiceClient.ListToolCalls(ctx, pendingRequest)
 	require.NoError(t, err)
 	require.Len(t, pendingResponse.GetToolCalls(), 1)
 	require.Equal(t, first.GetName(), pendingResponse.GetToolCalls()[0].GetName())
 
+	// The message bringing the result settles the call with it.
 	toolResult := ai.NewErrorToolResult("Search", "call_a", grpcstatus.Error(codes.PermissionDenied, "denied"))
 	toolMessage := ai.NewToolMessage(ai.NewToolResultBlock(toolResult))
-	resultMessage, err := aiServiceClient.CreateMessage(ctx, &aiservicepb.CreateMessageRequest{Parent: chat.GetName(), Message: toolMessage})
+	_, err = aiServiceClient.CreateMessage(ctx, &aiservicepb.CreateMessageRequest{Parent: chat.GetName(), Message: toolMessage})
 	require.NoError(t, err)
 	settled, err := aiServiceClient.GetToolCall(ctx, &aiservicepb.GetToolCallRequest{Name: first.GetName()})
 	require.NoError(t, err)
-	require.Equal(t, aipb.ToolCall_STATE_FAILED, settled.GetState())
-	require.Equal(t, int32(codes.PermissionDenied), settled.GetError().GetCode())
-	require.Equal(t, resultMessage.GetName(), settled.GetResultMessage())
+	require.Equal(t, int32(codes.PermissionDenied), settled.GetResult().GetError().GetCode())
+
+	failedRequest := &aiservicepb.ListToolCallsRequest{Parent: userParent + "/chats/-/messages/-", Filter: "result.error:*"}
+	failedResponse, err := aiServiceClient.ListToolCalls(ctx, failedRequest)
+	require.NoError(t, err)
+	require.Len(t, failedResponse.GetToolCalls(), 1)
+	require.Equal(t, first.GetName(), failedResponse.GetToolCalls()[0].GetName())
 
 	// A message with tool calls is deleted only with them.
 	_, err = aiServiceClient.DeleteMessage(ctx, &aiservicepb.DeleteMessageRequest{Name: created.GetName()})

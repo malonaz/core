@@ -22,4 +22,4 @@ migrations:
   - path: tool/001_init.sql
     hash: 529d87b4daabed777ec0bbde209b7193
   - path: tool_call/001_init.sql
-    hash: 7f47c222e5b76465ddcda40972f336e2
+    hash: ae2f49b37d693cc4d301102c2a8a0019

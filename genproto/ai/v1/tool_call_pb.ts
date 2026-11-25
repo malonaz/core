@@ -2,29 +2,29 @@
 // @generated from file malonaz/ai/v1/tool_call.proto (package malonaz.ai.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import { file_google_api_field_behavior } from "../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Status } from "../../../google/rpc/status_pb";
-import { file_google_rpc_status } from "../../../google/rpc/status_pb";
+import { file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
+import type { ToolResult } from "./tool_pb";
+import { file_malonaz_ai_v1_tool } from "./tool_pb";
 import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
-import type { Message } from "@bufbuild/protobuf";
+import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/ai/v1/tool_call.proto.
  */
 export const file_malonaz_ai_v1_tool_call: GenFile = /*@__PURE__*/
-  fileDesc("Ch1tYWxvbmF6L2FpL3YxL3Rvb2xfY2FsbC5wcm90bxINbWFsb25hei5haS52MSLPCAoIVG9vbENhbGwSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSyQEKBmxhYmVscxgGIAMoCzIjLm1hbG9uYXouYWkudjEuVG9vbENhbGwuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESSgoLYW5ub3RhdGlvbnMYByADKAsyKC5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsLkFubm90YXRpb25zRW50cnlCC+BBA7rqDwQQASABEhQKB2NhbGxfaWQYCCABKAlCA+BBAxIWCgl0b29sX25hbWUYCSABKAlCA+BBAxISCgV0aXRsZRgKIAEoCUID4EEDEjkKBXN0YXRlGAsgASgOMh0ubWFsb25hei5haS52MS5Ub29sQ2FsbC5TdGF0ZUIL4EEDukgFggECEAESLgoFZXJyb3IYDCABKAsyEi5nb29nbGUucnBjLlN0YXR1c0IL4EEDuuoPBBABIAESNgoOcmVzdWx0X21lc3NhZ2UYDSABKAlCHuBBA/pBGAoWYWkubWFsb25hei5jb20vTWVzc2FnZRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGjIKEEFubm90YXRpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJYCgVTdGF0ZRIVChFTVEFURV9VTlNQRUNJRklFRBAAEhEKDVNUQVRFX1BFTkRJTkcQARITCg9TVEFURV9TVUNDRUVERUQQAhIQCgxTVEFURV9GQUlMRUQQAzq/AepBjwEKF2FpLm1hbG9uYXouY29tL1Rvb2xDYWxsEl9vcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9jaGF0cy97Y2hhdH0vbWVzc2FnZXMve21lc3NhZ2V9L3Rvb2xDYWxscy97dG9vbF9jYWxsfSoJdG9vbENhbGxzMgh0b29sQ2FsbNKmBACC9iwkMmQ4ZTRiNzEtOWMzNS00YTBmLThlNmItNWYxYTM3YzlkMjA0QihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_rpc_status, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
+  fileDesc("Ch1tYWxvbmF6L2FpL3YxL3Rvb2xfY2FsbC5wcm90bxINbWFsb25hei5haS52MSK8BwoIVG9vbENhbGwSEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjoKC2RlbGV0ZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABEgwKBGV0YWcYBSABKAkSyQEKBmxhYmVscxgGIAMoCzIjLm1hbG9uYXouYWkudjEuVG9vbENhbGwuTGFiZWxzRW50cnlCkwG6SIcBmgGDARBAImRyYjJgXihbYS16QS1aMC05XShbYS16QS1aMC05Li1dezAsMjUxfVthLXpBLVowLTldKT8vKT9bYS16QS1aMC05XShbYS16QS1aMC05Xy4tXXswLDYxfVthLXpBLVowLTldKT8kKhlyFxg/MhNeW2EtejAtOV9cLVxwe0x9XSokuuoPBBABIAESSgoLYW5ub3RhdGlvbnMYByADKAsyKC5tYWxvbmF6LmFpLnYxLlRvb2xDYWxsLkFubm90YXRpb25zRW50cnlCC+BBA7rqDwQQASABEhYKCXRvb2xfbmFtZRgIIAEoCUID4EEDEhkKDHRvb2xfY2FsbF9pZBgJIAEoCUID4EEDEjUKCWFyZ3VtZW50cxgKIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCCeBBA7rqDwIQARI2CgZyZXN1bHQYCyABKAsyGS5tYWxvbmF6LmFpLnYxLlRvb2xSZXN1bHRCC+BBA7rqDwQQASABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaMgoQQW5ub3RhdGlvbnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBOskB6kGPAQoXYWkubWFsb25hei5jb20vVG9vbENhbGwSX29yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9L2NoYXRzL3tjaGF0fS9tZXNzYWdlcy97bWVzc2FnZX0vdG9vbENhbGxzL3t0b29sX2NhbGx9Kgl0b29sQ2FsbHMyCHRvb2xDYWxs0qYEChoIcG9zaXRpb26C9iwkMmQ4ZTRiNzEtOWMzNS00YTBmLThlNmItNWYxYTM3YzlkMjA0QihaJmdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2FpL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_google_protobuf_struct, file_malonaz_codegen_aip_v1_aip, file_malonaz_ai_v1_tool, file_malonaz_codegen_model_v1_model]);
 
 /**
- * A ToolCall is a call a generation made to a tool, from the message carrying it to its result. Its id is its
- * position among the message's tool calls, from 1. The message holds the call and a tool message its result, as the
- * model sees them; the ToolCall lists them. Written by the AI service alone, with the messages.
+ * A ToolCall is a call a generation made to a tool: what was called, with what, and its result once a message brings
+ * it. Its id is its position among its message's tool calls, from 1. Written by the AI service alone, with the message
+ * making the call, and settled with the message bringing its result. Pending calls are `NOT result:*`.
  *
  * @generated from message malonaz.ai.v1.ToolCall
  */
@@ -73,55 +73,40 @@ export type ToolCall = Message<"malonaz.ai.v1.ToolCall"> & {
   labels: { [key: string]: string };
 
   /**
-   * The annotations the call inherited from its tool (the method it stands for, among them).
+   * Annotations populated from the tool that created this tool call.
    *
    * @generated from field: map<string, string> annotations = 7;
    */
   annotations: { [key: string]: string };
 
   /**
-   * The id the provider gave the call, which its result names.
+   * Name of the tool called.
    *
-   * @generated from field: string call_id = 8;
-   */
-  callId: string;
-
-  /**
-   * The name of the tool called, as the model was given it.
-   *
-   * @generated from field: string tool_name = 9;
+   * @generated from field: string tool_name = 8;
    */
   toolName: string;
 
   /**
-   * The title the model gave the call (its `tool_call_title` argument), if any.
+   * ID of the tool call, as the provider gave it: its result names it.
    *
-   * @generated from field: string title = 10;
+   * @generated from field: string tool_call_id = 9;
    */
-  title: string;
+  toolCallId: string;
 
   /**
-   * Where the call is.
+   * The arguments the tool was called with.
    *
-   * @generated from field: malonaz.ai.v1.ToolCall.State state = 11;
+   * @generated from field: google.protobuf.Struct arguments = 10;
    */
-  state: ToolCall_State;
+  arguments?: JsonObject;
 
   /**
-   * The error the call failed with. Set only when it failed.
+   * The result of the call: unset while pending. A call the generation answered itself (a discovery, an unknown
+   * tool) has it from the start.
    *
-   * @generated from field: google.rpc.Status error = 12;
+   * @generated from field: malonaz.ai.v1.ToolResult result = 11;
    */
-  error?: Status;
-
-  /**
-   * The tool message holding the call's result. Empty while pending, and for a call the generation answered
-   * itself (a discovery, an unknown tool): its result is in the call's own block.
-   * Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-   *
-   * @generated from field: string result_message = 13;
-   */
-  resultMessage: string;
+  result?: ToolResult;
 };
 
 export type ToolCallValid = ToolCall;
@@ -132,45 +117,4 @@ export type ToolCallValid = ToolCall;
  */
 export const ToolCallSchema: GenMessage<ToolCall, {validType: ToolCallValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_v1_tool_call, 0);
-
-/**
- * State is where a call is: awaiting its result, or settled by it.
- *
- * @generated from enum malonaz.ai.v1.ToolCall.State
- */
-export enum ToolCall_State {
-  /**
-   * Used to detect an unset field.
-   *
-   * @generated from enum value: STATE_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * The call has no result yet.
-   *
-   * @generated from enum value: STATE_PENDING = 1;
-   */
-  PENDING = 1,
-
-  /**
-   * The call's result is a success.
-   *
-   * @generated from enum value: STATE_SUCCEEDED = 2;
-   */
-  SUCCEEDED = 2,
-
-  /**
-   * The call's result is an error, held in `error`.
-   *
-   * @generated from enum value: STATE_FAILED = 3;
-   */
-  FAILED = 3,
-}
-
-/**
- * Describes the enum malonaz.ai.v1.ToolCall.State.
- */
-export const ToolCall_StateSchema: GenEnum<ToolCall_State> = /*@__PURE__*/
-  enumDesc(file_malonaz_ai_v1_tool_call, 0, 0);
 

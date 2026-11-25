@@ -13,9 +13,9 @@ import (
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
-	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
@@ -28,61 +28,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// State is where a call is: awaiting its result, or settled by it.
-type ToolCall_State int32
-
-const (
-	// Used to detect an unset field.
-	ToolCall_STATE_UNSPECIFIED ToolCall_State = 0
-	// The call has no result yet.
-	ToolCall_STATE_PENDING ToolCall_State = 1
-	// The call's result is a success.
-	ToolCall_STATE_SUCCEEDED ToolCall_State = 2
-	// The call's result is an error, held in `error`.
-	ToolCall_STATE_FAILED ToolCall_State = 3
-)
-
-// Enum value maps for ToolCall_State.
-var (
-	ToolCall_State_name = map[int32]string{
-		0: "STATE_UNSPECIFIED",
-		1: "STATE_PENDING",
-		2: "STATE_SUCCEEDED",
-		3: "STATE_FAILED",
-	}
-	ToolCall_State_value = map[string]int32{
-		"STATE_UNSPECIFIED": 0,
-		"STATE_PENDING":     1,
-		"STATE_SUCCEEDED":   2,
-		"STATE_FAILED":      3,
-	}
-)
-
-func (x ToolCall_State) Enum() *ToolCall_State {
-	p := new(ToolCall_State)
-	*p = x
-	return p
-}
-
-func (x ToolCall_State) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ToolCall_State) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_ai_v1_tool_call_proto_enumTypes[0].Descriptor()
-}
-
-func (ToolCall_State) Type() protoreflect.EnumType {
-	return &file_malonaz_ai_v1_tool_call_proto_enumTypes[0]
-}
-
-func (x ToolCall_State) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// A ToolCall is a call a generation made to a tool, from the message carrying it to its result. Its id is its
-// position among the message's tool calls, from 1. The message holds the call and a tool message its result, as the
-// model sees them; the ToolCall lists them. Written by the AI service alone, with the messages.
+// A ToolCall is a call a generation made to a tool: what was called, with what, and its result once a message brings
+// it. Its id is its position among its message's tool calls, from 1. Written by the AI service alone, with the message
+// making the call, and settled with the message bringing its result. Pending calls are `NOT result:*`.
 type ToolCall struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The resource name of the tool call.
@@ -98,22 +46,17 @@ type ToolCall struct {
 	Etag string `protobuf:"bytes,5,opt,name=etag,proto3" json:"etag,omitempty"`
 	// The labels on this tool call.
 	Labels map[string]string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// The annotations the call inherited from its tool (the method it stands for, among them).
+	// Annotations populated from the tool that created this tool call.
 	Annotations map[string]string `protobuf:"bytes,7,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// The id the provider gave the call, which its result names.
-	CallId string `protobuf:"bytes,8,opt,name=call_id,json=callId,proto3" json:"call_id,omitempty"`
-	// The name of the tool called, as the model was given it.
-	ToolName string `protobuf:"bytes,9,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
-	// The title the model gave the call (its `tool_call_title` argument), if any.
-	Title string `protobuf:"bytes,10,opt,name=title,proto3" json:"title,omitempty"`
-	// Where the call is.
-	State ToolCall_State `protobuf:"varint,11,opt,name=state,proto3,enum=malonaz.ai.v1.ToolCall_State" json:"state,omitempty"`
-	// The error the call failed with. Set only when it failed.
-	Error *status.Status `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`
-	// The tool message holding the call's result. Empty while pending, and for a call the generation answered
-	// itself (a discovery, an unknown tool): its result is in the call's own block.
-	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-	ResultMessage string `protobuf:"bytes,13,opt,name=result_message,json=resultMessage,proto3" json:"result_message,omitempty"`
+	// Name of the tool called.
+	ToolName string `protobuf:"bytes,8,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	// ID of the tool call, as the provider gave it: its result names it.
+	ToolCallId string `protobuf:"bytes,9,opt,name=tool_call_id,json=toolCallId,proto3" json:"tool_call_id,omitempty"`
+	// The arguments the tool was called with.
+	Arguments *structpb.Struct `protobuf:"bytes,10,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	// The result of the call: unset while pending. A call the generation answered itself (a discovery, an unknown
+	// tool) has it from the start.
+	Result        *ToolResult `protobuf:"bytes,11,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -192,13 +135,6 @@ func (x *ToolCall) GetAnnotations() map[string]string {
 	return nil
 }
 
-func (x *ToolCall) GetCallId() string {
-	if x != nil {
-		return x.CallId
-	}
-	return ""
-}
-
 func (x *ToolCall) GetToolName() string {
 	if x != nil {
 		return x.ToolName
@@ -206,32 +142,25 @@ func (x *ToolCall) GetToolName() string {
 	return ""
 }
 
-func (x *ToolCall) GetTitle() string {
+func (x *ToolCall) GetToolCallId() string {
 	if x != nil {
-		return x.Title
+		return x.ToolCallId
 	}
 	return ""
 }
 
-func (x *ToolCall) GetState() ToolCall_State {
+func (x *ToolCall) GetArguments() *structpb.Struct {
 	if x != nil {
-		return x.State
-	}
-	return ToolCall_STATE_UNSPECIFIED
-}
-
-func (x *ToolCall) GetError() *status.Status {
-	if x != nil {
-		return x.Error
+		return x.Arguments
 	}
 	return nil
 }
 
-func (x *ToolCall) GetResultMessage() string {
+func (x *ToolCall) GetResult() *ToolResult {
 	if x != nil {
-		return x.ResultMessage
+		return x.Result
 	}
-	return ""
+	return nil
 }
 
 func (x *ToolCall) SetName(v string) {
@@ -262,28 +191,20 @@ func (x *ToolCall) SetAnnotations(v map[string]string) {
 	x.Annotations = v
 }
 
-func (x *ToolCall) SetCallId(v string) {
-	x.CallId = v
-}
-
 func (x *ToolCall) SetToolName(v string) {
 	x.ToolName = v
 }
 
-func (x *ToolCall) SetTitle(v string) {
-	x.Title = v
+func (x *ToolCall) SetToolCallId(v string) {
+	x.ToolCallId = v
 }
 
-func (x *ToolCall) SetState(v ToolCall_State) {
-	x.State = v
+func (x *ToolCall) SetArguments(v *structpb.Struct) {
+	x.Arguments = v
 }
 
-func (x *ToolCall) SetError(v *status.Status) {
-	x.Error = v
-}
-
-func (x *ToolCall) SetResultMessage(v string) {
-	x.ResultMessage = v
+func (x *ToolCall) SetResult(v *ToolResult) {
+	x.Result = v
 }
 
 func (x *ToolCall) HasCreateTime() bool {
@@ -307,11 +228,18 @@ func (x *ToolCall) HasDeleteTime() bool {
 	return x.DeleteTime != nil
 }
 
-func (x *ToolCall) HasError() bool {
+func (x *ToolCall) HasArguments() bool {
 	if x == nil {
 		return false
 	}
-	return x.Error != nil
+	return x.Arguments != nil
+}
+
+func (x *ToolCall) HasResult() bool {
+	if x == nil {
+		return false
+	}
+	return x.Result != nil
 }
 
 func (x *ToolCall) ClearCreateTime() {
@@ -326,8 +254,12 @@ func (x *ToolCall) ClearDeleteTime() {
 	x.DeleteTime = nil
 }
 
-func (x *ToolCall) ClearError() {
-	x.Error = nil
+func (x *ToolCall) ClearArguments() {
+	x.Arguments = nil
+}
+
+func (x *ToolCall) ClearResult() {
+	x.Result = nil
 }
 
 type ToolCall_builder struct {
@@ -346,22 +278,17 @@ type ToolCall_builder struct {
 	Etag string
 	// The labels on this tool call.
 	Labels map[string]string
-	// The annotations the call inherited from its tool (the method it stands for, among them).
+	// Annotations populated from the tool that created this tool call.
 	Annotations map[string]string
-	// The id the provider gave the call, which its result names.
-	CallId string
-	// The name of the tool called, as the model was given it.
+	// Name of the tool called.
 	ToolName string
-	// The title the model gave the call (its `tool_call_title` argument), if any.
-	Title string
-	// Where the call is.
-	State ToolCall_State
-	// The error the call failed with. Set only when it failed.
-	Error *status.Status
-	// The tool message holding the call's result. Empty while pending, and for a call the generation answered
-	// itself (a discovery, an unknown tool): its result is in the call's own block.
-	// Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
-	ResultMessage string
+	// ID of the tool call, as the provider gave it: its result names it.
+	ToolCallId string
+	// The arguments the tool was called with.
+	Arguments *structpb.Struct
+	// The result of the call: unset while pending. A call the generation answered itself (a discovery, an unknown
+	// tool) has it from the start.
+	Result *ToolResult
 }
 
 func (b0 ToolCall_builder) Build() *ToolCall {
@@ -375,12 +302,10 @@ func (b0 ToolCall_builder) Build() *ToolCall {
 	x.Etag = b.Etag
 	x.Labels = b.Labels
 	x.Annotations = b.Annotations
-	x.CallId = b.CallId
 	x.ToolName = b.ToolName
-	x.Title = b.Title
-	x.State = b.State
-	x.Error = b.Error
-	x.ResultMessage = b.ResultMessage
+	x.ToolCallId = b.ToolCallId
+	x.Arguments = b.Arguments
+	x.Result = b.Result
 	return m0
 }
 
@@ -388,7 +313,7 @@ var File_malonaz_ai_v1_tool_call_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_tool_call_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmalonaz/ai/v1/tool_call.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xe2\t\n" +
+	"\x1dmalonaz/ai/v1/tool_call.proto\x12\rmalonaz.ai.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a\x18malonaz/ai/v1/tool.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xc2\b\n" +
 	"\bToolCall\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -399,46 +324,39 @@ const file_malonaz_ai_v1_tool_call_proto_rawDesc = "" +
 	"deleteTime\x12\x12\n" +
 	"\x04etag\x18\x05 \x01(\tR\x04etag\x12\xd1\x01\n" +
 	"\x06labels\x18\x06 \x03(\v2#.malonaz.ai.v1.ToolCall.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12W\n" +
-	"\vannotations\x18\a \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12\x1c\n" +
-	"\acall_id\x18\b \x01(\tB\x03\xe0A\x03R\x06callId\x12 \n" +
-	"\ttool_name\x18\t \x01(\tB\x03\xe0A\x03R\btoolName\x12\x19\n" +
-	"\x05title\x18\n" +
-	" \x01(\tB\x03\xe0A\x03R\x05title\x12@\n" +
-	"\x05state\x18\v \x01(\x0e2\x1d.malonaz.ai.v1.ToolCall.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x125\n" +
-	"\x05error\x18\f \x01(\v2\x12.google.rpc.StatusB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x05error\x12E\n" +
-	"\x0eresult_message\x18\r \x01(\tB\x1e\xe0A\x03\xfaA\x18\n" +
-	"\x16ai.malonaz.com/MessageR\rresultMessage\x1a9\n" +
+	"\vannotations\x18\a \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\vannotations\x12 \n" +
+	"\ttool_name\x18\b \x01(\tB\x03\xe0A\x03R\btoolName\x12%\n" +
+	"\ftool_call_id\x18\t \x01(\tB\x03\xe0A\x03R\n" +
+	"toolCallId\x12@\n" +
+	"\targuments\x18\n" +
+	" \x01(\v2\x17.google.protobuf.StructB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\targuments\x12>\n" +
+	"\x06result\x18\v \x01(\v2\x19.malonaz.ai.v1.ToolResultB\v\xe0A\x03\xba\xea\x0f\x04\x10\x01 \x01R\x06result\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"X\n" +
-	"\x05State\x12\x15\n" +
-	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
-	"\rSTATE_PENDING\x10\x01\x12\x13\n" +
-	"\x0fSTATE_SUCCEEDED\x10\x02\x12\x10\n" +
-	"\fSTATE_FAILED\x10\x03:\xbf\x01\xeaA\x8f\x01\n" +
-	"\x17ai.malonaz.com/ToolCall\x12_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\btoolCallҦ\x04\x00\x82\xf6,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\xc9\x01\xeaA\x8f\x01\n" +
+	"\x17ai.malonaz.com/ToolCall\x12_organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}*\ttoolCalls2\btoolCallҦ\x04\n" +
+	"\x1a\bposition\x82\xf6,$2d8e4b71-9c35-4a0f-8e6b-5f1a37c9d204B(Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
-var file_malonaz_ai_v1_tool_call_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_ai_v1_tool_call_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_ai_v1_tool_call_proto_goTypes = []any{
-	(ToolCall_State)(0),           // 0: malonaz.ai.v1.ToolCall.State
-	(*ToolCall)(nil),              // 1: malonaz.ai.v1.ToolCall
-	nil,                           // 2: malonaz.ai.v1.ToolCall.LabelsEntry
-	nil,                           // 3: malonaz.ai.v1.ToolCall.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*status.Status)(nil),         // 5: google.rpc.Status
+	(*ToolCall)(nil),              // 0: malonaz.ai.v1.ToolCall
+	nil,                           // 1: malonaz.ai.v1.ToolCall.LabelsEntry
+	nil,                           // 2: malonaz.ai.v1.ToolCall.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),       // 4: google.protobuf.Struct
+	(*ToolResult)(nil),            // 5: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_tool_call_proto_depIdxs = []int32{
-	4, // 0: malonaz.ai.v1.ToolCall.create_time:type_name -> google.protobuf.Timestamp
-	4, // 1: malonaz.ai.v1.ToolCall.update_time:type_name -> google.protobuf.Timestamp
-	4, // 2: malonaz.ai.v1.ToolCall.delete_time:type_name -> google.protobuf.Timestamp
-	2, // 3: malonaz.ai.v1.ToolCall.labels:type_name -> malonaz.ai.v1.ToolCall.LabelsEntry
-	3, // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
-	0, // 5: malonaz.ai.v1.ToolCall.state:type_name -> malonaz.ai.v1.ToolCall.State
-	5, // 6: malonaz.ai.v1.ToolCall.error:type_name -> google.rpc.Status
+	3, // 0: malonaz.ai.v1.ToolCall.create_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.ai.v1.ToolCall.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.ai.v1.ToolCall.delete_time:type_name -> google.protobuf.Timestamp
+	1, // 3: malonaz.ai.v1.ToolCall.labels:type_name -> malonaz.ai.v1.ToolCall.LabelsEntry
+	2, // 4: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
+	4, // 5: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
+	5, // 6: malonaz.ai.v1.ToolCall.result:type_name -> malonaz.ai.v1.ToolResult
 	7, // [7:7] is the sub-list for method output_type
 	7, // [7:7] is the sub-list for method input_type
 	7, // [7:7] is the sub-list for extension type_name
@@ -451,19 +369,19 @@ func file_malonaz_ai_v1_tool_call_proto_init() {
 	if File_malonaz_ai_v1_tool_call_proto != nil {
 		return
 	}
+	file_malonaz_ai_v1_tool_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_v1_tool_call_proto_rawDesc), len(file_malonaz_ai_v1_tool_call_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_ai_v1_tool_call_proto_goTypes,
 		DependencyIndexes: file_malonaz_ai_v1_tool_call_proto_depIdxs,
-		EnumInfos:         file_malonaz_ai_v1_tool_call_proto_enumTypes,
 		MessageInfos:      file_malonaz_ai_v1_tool_call_proto_msgTypes,
 	}.Build()
 	File_malonaz_ai_v1_tool_call_proto = out.File

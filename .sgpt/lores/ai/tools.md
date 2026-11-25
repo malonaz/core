@@ -1,6 +1,6 @@
 ---
 title: 'ai: tools and tool calls as resources (Tool, ToolMethod, the ai processor, ToolCall)'
-description: 'malonaz.ai.v1.Tool as a resource (platform tools/{t} mirrored by the ai processor, organizations/{o}/tools/{t} written by clients; kebab-case ids, the title is the name the model calls a stored tool by; inline tools keep a bare name), the typed ai-engine.malonaz.com/method annotation (ToolMethod) and the deprecated strings still stamped for shipped clients, the ai.malonaz.com/tool-set label, go/ai/ai_processor (the only reflector: converge, stale deletion, unreadable targets), ToolUse (the block value) vs ToolCall (the resource …/messages/{m}/toolCalls/{n}, written with its message in one transaction and settled by the results that follow), DeleteMessage force, and the resource tree stopping at self-typed fields.'
+description: 'malonaz.ai.v1.Tool as a resource (platform tools/{t} mirrored by the ai processor, organizations/{o}/tools/{t} written by clients; kebab-case ids, the title is the name the model calls a stored tool by; inline tools keep a bare name), the typed ai-engine.malonaz.com/method annotation (ToolMethod) and the deprecated strings still stamped for shipped clients, the ai.malonaz.com/tool-set label, go/ai/ai_processor (the only reflector: converge, stale deletion, unreadable targets), ToolUse (the block value) vs ToolCall (the resource …/messages/{m}/toolCalls/{n}: tool_name, tool_call_id, arguments, a typed ToolResult result; written with its message in one transaction and settled by the message bringing the result; pending = NOT result:*), DeleteMessage force, and the resource tree stopping at self-typed fields.'
 labels:
     repo: core
     topic: ai
@@ -46,13 +46,17 @@ labels:
 - The block value is `ToolUse` (renamed from `ToolCall`: fields, numbers and `Block.tool_call` unchanged, so stored
   messages and the wire are byte-identical). The resource `ToolCall` is
   `organizations/{o}/users/{u}/chats/{c}/messages/{m}/toolCalls/{n}`, n the call's position among the message's tool
-  calls from 1 (derived, so no provider id shape leaks in); `call_id` is the provider's id, which results name.
+  calls from 1 (column `position`: `tool_call_id` is taken by the provider's id).
+- It speaks the API's own types and names: `tool_name`, `tool_call_id` (as `ToolResult` names them), `arguments`
+  (`Struct`), the inherited `annotations`, and `ToolResult result`, unset while pending. No state: pending is
+  `NOT result:*`, failed `result.error:*` (both filter on the JSONB column; a partial index serves pending). The
+  messages keep their copies until they stop embedding calls.
 - Written only by the AI service, inside `CreateMessage`, in the message's own transaction (`store.InsertMessage`,
   hand-written beside the generated SQL): the generated create prepares the message (its `validate_only` answer,
-  stamped in place on the caller's message), then one transaction inserts the message, its assistant tool calls
-  (PENDING, or settled at once when the generation answered the call in its block) and settles the chat's pending
-  calls its tool results answer (SUCCEEDED/FAILED + `error`, `result_message`). A failed generation's partial
-  message makes no calls. Rows derive at creation only: an UpdateMessage rewriting blocks leaves them as created.
-- `ListToolCalls` across chats: parent `organizations/{o}/users/{u}/chats/-/messages/-`, e.g. `state = STATE_PENDING`.
+  stamped in place on the caller's message), then one transaction inserts the message, its assistant tool calls (a
+  call the generation answered itself, discovery or unknown tool, with its result) and writes the result into the
+  chat's pending calls its tool results answer. A failed generation's partial message makes no calls. Rows derive at
+  creation only: an UpdateMessage rewriting blocks leaves them as created.
+- `ListToolCalls` across chats: parent `organizations/{o}/users/{u}/chats/-/messages/-`.
 - A message with tool calls is deleted only with `force` (`DeleteMessageRequest.force`); its calls are tombstoned
   with it.
