@@ -1,6 +1,6 @@
 ---
 title: 'agent: the AgentService (go/ai/agent_service)'
-description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_model_usage`), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
+description: 'The server-side agent framework: definitions and agents (malonaz.ai.agent.v1), turns run by leased replicas over Postgres, queued messages, awaited calls (ApproveToolCall with always, ResolveToolCall total), the tool catalogue (ToolSet/Tool, derived, trimmed to what each caller could call as targets answer TestMethods, the toolbox to what the owner could) and specs granting tools by resource name (ToolGrant), sub-agents and their reports, schedules woken by the scheduler dispatcher, StreamAgent across replicas, the context gauge (`Chat.last_generated_message_model_usage`, joined), tool targets, and whose identity each call carries (the service''s own, the owner''s exchanged token on generations and tool calls, models gated by the host''s generation rule).'
 labels:
     repo: core
     topic: agent, ai
@@ -60,13 +60,15 @@ made elsewhere.
 
 ## Context gauge
 
-An agent's context is its chat's: `Chat.last_model_usage` (AiService, written with `price` and `model_usages` on each
-successful generation) holds the latest generation's usage. Its input categories (`input_token`, cache read and write,
-image) sum to the context the model was sent, tools and instructions included, whatever the provider (ModelUsage's
-categories are disjoint); set it against `GetModel(usage.model).ttt.context_token_limit`. It lags one step: the
-generation's own output and the tool results and messages delivered since join the next one; a failed generation (an
-overflow among them) records nothing. Live: StreamAgent's `message` events (with `include_transcript`) carry each
-generated message's `model_usage`; snapshots do not carry the chat.
+An agent's context is its chat's: `Chat.last_generated_message_model_usage` (AiService) is the usage of
+`Chat.last_generated_message`, the chat's newest message with a `model` (a failed generation's partial message has none;
+soft-deleted ones count), both joined from the message table at read, never stored (index
+`message_last_generated_idx`). Its input categories (`input_token`, cache read and write, image) sum to the context the
+model was sent, tools and instructions included, whatever the provider (ModelUsage's categories are disjoint); set it
+against `GetModel(usage.model).ttt.context_token_limit`. It lags one step: the generation's own output and the tool
+results and messages delivered since join the next one; a failed generation (an overflow among them) changes nothing.
+Live: StreamAgent's `message` events (with `include_transcript`) carry each generated message's `model_usage`;
+snapshots do not carry the chat.
 
 ## Tools and identity
 

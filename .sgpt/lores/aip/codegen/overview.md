@@ -93,6 +93,13 @@ registry is per package — cross-package parent/child links do not exist):
 - **Query joins are total**: `ORDER BY <order_by>, <child id>` so `LIMIT 1`
   picks the same row in the lateral join (Get/List) and in each RETURNING
   subquery (Create/Update), or chained fields could name different rows.
+- **Joins cost every read**: the lateral joins are in every Get/BatchGet/List whatever the read mask asks, one
+  correlated probe per row and query join, so index the descendant on its parent columns + the join's `order_by`
+  (partial on its filter). Join filters address stored scalar columns only: no presence test on a JSONB
+  (`as_json_bytes`) field, so select on a scalar that carries the same meaning (`Chat.last_generated_message` filters
+  `model:*`, not `model_usage:*`). A hand-written query returning a joined resource must append the generated
+  `{resource}JoinSubqueryExpr` to `{Resource}WritePostgresColumns` in its RETURNING (`{Resource}PostgresColumns` names
+  the joined fields as columns: `column ... does not exist`); reference: `go/ai/store/chat.go`.
 - **Aggregate joins** (`join.aggregate`: `SUM`/`COUNT`/`MIN`/`MAX` over a
   descendant) are one correlated subquery per field — `LEFT JOIN LATERAL
   (SELECT SUM(book.page_count) AS value FROM … WHERE <correlation> AND
