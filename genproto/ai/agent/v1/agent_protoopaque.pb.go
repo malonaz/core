@@ -823,7 +823,8 @@ type AwaitedToolCall_builder struct {
 	// The name of the tool called, as the model was given it.
 	ToolName string
 	// The tool called.
-	// Format: toolSets/{tool_set}/tools/{tool}
+	// Format: tools/{tool}
+	// Format: organizations/{organization}/tools/{tool}
 	Tool string
 	// The title the agent gave the call.
 	Title string
@@ -1210,13 +1211,13 @@ const file_malonaz_ai_agent_v1_agent_proto_rawDesc = "" +
 	"\x13OUTCOME_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11OUTCOME_SUCCEEDED\x10\x01\x12\x12\n" +
 	"\x0eOUTCOME_FAILED\x10\x02\x12\x15\n" +
-	"\x11OUTCOME_CANCELLED\x10\x03\"\xbd\x05\n" +
+	"\x11OUTCOME_CANCELLED\x10\x03\"\xb7\x05\n" +
 	"\x0fAwaitedToolCall\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x1b\n" +
-	"\ttool_name\x18\x02 \x01(\tR\btoolName\x122\n" +
-	"\x04tool\x18\x06 \x01(\tB\x1e\xfaA\x1b\n" +
-	"\x19agent.ai.malonaz.com/ToolR\x04tool\x12\x14\n" +
+	"\ttool_name\x18\x02 \x01(\tR\btoolName\x12,\n" +
+	"\x04tool\x18\x06 \x01(\tB\x18\xfaA\x15\n" +
+	"\x13ai.malonaz.com/ToolR\x04tool\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12M\n" +
 	"\x06reason\x18\x04 \x01(\x0e2+.malonaz.ai.agent.v1.AwaitedToolCall.ReasonB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06reason\x12O\n" +
 	"\n" +

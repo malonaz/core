@@ -4,10 +4,15 @@ import (
 	"strings"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 )
+
+// TitleDescription documents the title a tool call carries, shown to the users following it.
+const TitleDescription = "A short user-facing title for this call, shown in place of its arguments: " +
+	"what it does and why, at most 8 words, sentence case, no trailing period (e.g. 'Find where pendingReview is used')."
 
 // Method identifies a gRPC method to build a tool from.
 type Method struct {
@@ -115,4 +120,21 @@ func MethodToolRequest(method Method, options ...Option) *pb.CreateToolRequest {
 		},
 		SchemaConfiguration: NewSchemaConfiguration(options...),
 	}
+}
+
+// NewMethodToolRequest returns the request building the tool a method stands for, as the ai processor mirrors it:
+// titled, its schema every field but the request_id its caller derives.
+func NewMethodToolRequest(method protoreflect.MethodDescriptor) *pb.CreateToolRequest {
+	options := []Option{WithTitle(TitleDescription)}
+	if method.Input().Fields().ByName("request_id") != nil {
+		var paths []string
+		fields := method.Input().Fields()
+		for i := 0; i < fields.Len(); i++ {
+			if field := fields.Get(i); field.Name() != "request_id" {
+				paths = append(paths, string(field.Name()))
+			}
+		}
+		options = append(options, WithFieldMask(pbfieldmask.FromPaths(paths...)))
+	}
+	return MethodToolRequest(NewMethod(string(method.FullName())), options...)
 }

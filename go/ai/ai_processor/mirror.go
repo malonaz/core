@@ -14,12 +14,10 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	aienginepb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	aitool "github.com/malonaz/core/go/ai/tool"
 	"github.com/malonaz/core/go/aip"
-	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/pbutil/pbreflection"
 	"github.com/malonaz/core/go/uuid"
 )
@@ -86,7 +84,7 @@ func (s *Service) mirrorTarget(ctx context.Context, target target) error {
 		if method.IsStreamingClient() || method.IsStreamingServer() {
 			continue
 		}
-		tool, err := builder.CreateTool(methodToolRequest(method))
+		tool, err := builder.CreateTool(aitool.NewMethodToolRequest(method))
 		if err != nil {
 			return fmt.Errorf("building the tool of %s: %w", method.FullName(), err)
 		}
@@ -102,22 +100,6 @@ func (s *Service) mirrorTarget(ctx context.Context, target target) error {
 		nameSet[name] = struct{}{}
 	}
 	return s.deleteStale(ctx, setID, nameSet)
-}
-
-// methodToolRequest returns the request building a method's tool: every field but the request_id its caller derives.
-func methodToolRequest(method protoreflect.MethodDescriptor) *aienginepb.CreateToolRequest {
-	var options []aitool.Option
-	if method.Input().Fields().ByName("request_id") != nil {
-		var paths []string
-		fields := method.Input().Fields()
-		for i := 0; i < fields.Len(); i++ {
-			if field := fields.Get(i); field.Name() != "request_id" {
-				paths = append(paths, string(field.Name()))
-			}
-		}
-		options = append(options, aitool.WithFieldMask(pbfieldmask.FromPaths(paths...)))
-	}
-	return aitool.MethodToolRequest(aitool.NewMethod(string(method.FullName())), options...)
 }
 
 // converge writes a mirrored tool, built under its model-facing name, as the platform tool of that name: created if

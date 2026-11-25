@@ -3,6 +3,8 @@ package tool
 import (
 	"strings"
 
+	"github.com/malonaz/core/go/aip"
+
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	jsonpb "github.com/malonaz/core/genproto/json/v1"
 )
@@ -52,4 +54,16 @@ func CreateDiscoveryTool(request *CreateDiscoveryToolRequest) *aipb.Tool {
 			aipb.Annotations.NoSideEffect.Key: "true",
 		},
 	}
+}
+
+// NewToolSet returns the set a model discovers tools through: each tool annotated as discoverable in it, and its
+// discovery tool listing them.
+func NewToolSet(name, discoveryToolName, description string, tools []*aipb.Tool) *aipb.ToolSet {
+	for _, tool := range tools {
+		aipb.Annotations.ToolSetName.Set(tool, name)
+		aipb.Annotations.DiscoverableTool.Set(tool, aip.LabelValueTrue)
+	}
+	discoveryTool := CreateDiscoveryTool(&CreateDiscoveryToolRequest{Name: discoveryToolName, Description: description, Tools: tools})
+	aipb.Annotations.ToolSetName.Set(discoveryTool, name)
+	return &aipb.ToolSet{Name: name, DiscoveryTool: discoveryTool, Tools: tools}
 }

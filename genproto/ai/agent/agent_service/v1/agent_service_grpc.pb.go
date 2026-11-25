@@ -26,10 +26,6 @@ const (
 	AgentService_DeleteDefinition_FullMethodName   = "/malonaz.ai.agent.agent_service.v1.AgentService/DeleteDefinition"
 	AgentService_UndeleteDefinition_FullMethodName = "/malonaz.ai.agent.agent_service.v1.AgentService/UndeleteDefinition"
 	AgentService_ListDefinitions_FullMethodName    = "/malonaz.ai.agent.agent_service.v1.AgentService/ListDefinitions"
-	AgentService_GetToolSet_FullMethodName         = "/malonaz.ai.agent.agent_service.v1.AgentService/GetToolSet"
-	AgentService_ListToolSets_FullMethodName       = "/malonaz.ai.agent.agent_service.v1.AgentService/ListToolSets"
-	AgentService_GetTool_FullMethodName            = "/malonaz.ai.agent.agent_service.v1.AgentService/GetTool"
-	AgentService_ListTools_FullMethodName          = "/malonaz.ai.agent.agent_service.v1.AgentService/ListTools"
 	AgentService_CreateAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/CreateAgent"
 	AgentService_GetAgent_FullMethodName           = "/malonaz.ai.agent.agent_service.v1.AgentService/GetAgent"
 	AgentService_UpdateAgent_FullMethodName        = "/malonaz.ai.agent.agent_service.v1.AgentService/UpdateAgent"
@@ -50,9 +46,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // This API stores agents and runs their turns, generating as each agent's
-// owner. The tools an agent holds are granted from the tool catalogue: methods
-// of routed gRPC services, offered when its owner could call them and called as
-// the owner, and genui components; built-in tools let agents launch sub-agents,
+// owner. The tools an agent holds are granted from the AiService's stored
+// tools: methods of routed gRPC services, offered when its owner could call
+// them and called as the owner, and genui components; built-in tools let agents launch sub-agents,
 // message their tree, label themselves and schedule wake-ups.
 //
 // # Resource model
@@ -62,11 +58,6 @@ const (
 //   - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //     an AiService chat, its sub-agents linked by `parent_agent`.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
-//   - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
-//     the tools an agent's spec may grant, derived from the service's
-//     configuration and its tool targets, never stored, each caller seeing
-//     those they could call.
-//     Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
 //
 // # Messaging
 //
@@ -123,25 +114,6 @@ type AgentServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListDefinitions(ctx context.Context, in *ListDefinitionsRequest, opts ...grpc.CallOption) (*ListDefinitionsResponse, error)
-	// Get a tool set. NOT_FOUND unless configured and holding a tool the caller could call; a set that cannot be read
-	// carries its error.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetToolSet(ctx context.Context, in *GetToolSetRequest, opts ...grpc.CallOption) (*v1.ToolSet, error)
-	// List the tool sets holding a tool the caller could call, by name. A set that cannot be read carries its error and
-	// never fails the list.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListToolSets(ctx context.Context, in *ListToolSetsRequest, opts ...grpc.CallOption) (*ListToolSetsResponse, error)
-	// Get a tool. NOT_FOUND unless the caller could call it; UNAVAILABLE when its set cannot be read.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetTool(ctx context.Context, in *GetToolRequest, opts ...grpc.CallOption) (*v1.Tool, error)
-	// List the tools the caller could call of a set, or of every set with the parent `toolSets/-`, by name. A set that
-	// cannot be read fails the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 	// Create an agent.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
@@ -271,46 +243,6 @@ func (c *agentServiceClient) ListDefinitions(ctx context.Context, in *ListDefini
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListDefinitionsResponse)
 	err := c.cc.Invoke(ctx, AgentService_ListDefinitions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) GetToolSet(ctx context.Context, in *GetToolSetRequest, opts ...grpc.CallOption) (*v1.ToolSet, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.ToolSet)
-	err := c.cc.Invoke(ctx, AgentService_GetToolSet_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) ListToolSets(ctx context.Context, in *ListToolSetsRequest, opts ...grpc.CallOption) (*ListToolSetsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListToolSetsResponse)
-	err := c.cc.Invoke(ctx, AgentService_ListToolSets_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) GetTool(ctx context.Context, in *GetToolRequest, opts ...grpc.CallOption) (*v1.Tool, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Tool)
-	err := c.cc.Invoke(ctx, AgentService_GetTool_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListToolsResponse)
-	err := c.cc.Invoke(ctx, AgentService_ListTools_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -461,9 +393,9 @@ func (c *agentServiceClient) WakeAgent(ctx context.Context, in *WakeAgentRequest
 // for forward compatibility.
 //
 // This API stores agents and runs their turns, generating as each agent's
-// owner. The tools an agent holds are granted from the tool catalogue: methods
-// of routed gRPC services, offered when its owner could call them and called as
-// the owner, and genui components; built-in tools let agents launch sub-agents,
+// owner. The tools an agent holds are granted from the AiService's stored
+// tools: methods of routed gRPC services, offered when its owner could call
+// them and called as the owner, and genui components; built-in tools let agents launch sub-agents,
 // message their tree, label themselves and schedule wake-ups.
 //
 // # Resource model
@@ -473,11 +405,6 @@ func (c *agentServiceClient) WakeAgent(ctx context.Context, in *WakeAgentRequest
 //   - [Agent][malonaz.ai.agent.v1.Agent]: a running instance, its transcript in
 //     an AiService chat, its sub-agents linked by `parent_agent`.
 //     Format: organizations/{organization}/users/{user}/agents/{agent}
-//   - [ToolSet][malonaz.ai.agent.v1.ToolSet] and [Tool][malonaz.ai.agent.v1.Tool]:
-//     the tools an agent's spec may grant, derived from the service's
-//     configuration and its tool targets, never stored, each caller seeing
-//     those they could call.
-//     Format: toolSets/{tool_set}, toolSets/{tool_set}/tools/{tool}
 //
 // # Messaging
 //
@@ -534,25 +461,6 @@ type AgentServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListDefinitions(context.Context, *ListDefinitionsRequest) (*ListDefinitionsResponse, error)
-	// Get a tool set. NOT_FOUND unless configured and holding a tool the caller could call; a set that cannot be read
-	// carries its error.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetToolSet(context.Context, *GetToolSetRequest) (*v1.ToolSet, error)
-	// List the tool sets holding a tool the caller could call, by name. A set that cannot be read carries its error and
-	// never fails the list.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListToolSets(context.Context, *ListToolSetsRequest) (*ListToolSetsResponse, error)
-	// Get a tool. NOT_FOUND unless the caller could call it; UNAVAILABLE when its set cannot be read.
-	//
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetTool(context.Context, *GetToolRequest) (*v1.Tool, error)
-	// List the tools the caller could call of a set, or of every set with the parent `toolSets/-`, by name. A set that
-	// cannot be read fails the list of its own tools, UNAVAILABLE, and is left out of the list across sets.
-	//
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error)
 	// Create an agent.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
@@ -644,18 +552,6 @@ func (UnimplementedAgentServiceServer) UndeleteDefinition(context.Context, *Unde
 }
 func (UnimplementedAgentServiceServer) ListDefinitions(context.Context, *ListDefinitionsRequest) (*ListDefinitionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListDefinitions not implemented")
-}
-func (UnimplementedAgentServiceServer) GetToolSet(context.Context, *GetToolSetRequest) (*v1.ToolSet, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetToolSet not implemented")
-}
-func (UnimplementedAgentServiceServer) ListToolSets(context.Context, *ListToolSetsRequest) (*ListToolSetsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListToolSets not implemented")
-}
-func (UnimplementedAgentServiceServer) GetTool(context.Context, *GetToolRequest) (*v1.Tool, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetTool not implemented")
-}
-func (UnimplementedAgentServiceServer) ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListTools not implemented")
 }
 func (UnimplementedAgentServiceServer) CreateAgent(context.Context, *CreateAgentRequest) (*v1.Agent, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAgent not implemented")
@@ -820,78 +716,6 @@ func _AgentService_ListDefinitions_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServiceServer).ListDefinitions(ctx, req.(*ListDefinitionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_GetToolSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetToolSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).GetToolSet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_GetToolSet_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetToolSet(ctx, req.(*GetToolSetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_ListToolSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListToolSetsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ListToolSets(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ListToolSets_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ListToolSets(ctx, req.(*ListToolSetsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_GetTool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetToolRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).GetTool(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_GetTool_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetTool(ctx, req.(*GetToolRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_ListTools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListToolsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ListTools(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ListTools_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ListTools(ctx, req.(*ListToolsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1153,22 +977,6 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDefinitions",
 			Handler:    _AgentService_ListDefinitions_Handler,
-		},
-		{
-			MethodName: "GetToolSet",
-			Handler:    _AgentService_GetToolSet_Handler,
-		},
-		{
-			MethodName: "ListToolSets",
-			Handler:    _AgentService_ListToolSets_Handler,
-		},
-		{
-			MethodName: "GetTool",
-			Handler:    _AgentService_GetTool_Handler,
-		},
-		{
-			MethodName: "ListTools",
-			Handler:    _AgentService_ListTools_Handler,
 		},
 		{
 			MethodName: "CreateAgent",
