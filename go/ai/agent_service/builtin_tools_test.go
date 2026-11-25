@@ -116,6 +116,21 @@ func TestBuiltinTools_CreateAgentsLaunchesAndReports(t *testing.T) {
 	require.Equal(t, []string{fmt.Sprintf("[Report from sub-agent %s (%q)]", subAgent.Name, subAgent.Title), "sub-agent report"}, deliveredTexts(t, service, agent.Chat, reportMessage.Name))
 }
 
+// An ad-hoc sub-agent needs instructions: the refusal names the sub-agent and the field to add, and launches none.
+func TestBuiltinTools_CreateAgentsRequiresInstructionsWithoutADefinition(t *testing.T) {
+	service := newTestService(t)
+	agent := createTestAgent(t, service)
+	createAgentsCall := newToolCall("call-1", createAgentsToolName, map[string]any{
+		"tool_call_title": "Launch",
+		"agents":          []any{map[string]any{"title": "researcher", "task": "research things"}},
+	})
+
+	toolResult := callBuiltinTool(t, service, agent, createAgentsCall)
+	require.Equal(t, int32(codes.InvalidArgument), toolResult.GetError().GetCode())
+	require.Equal(t, "agent 1 (\"researcher\"): no instructions: add `instructions`, its system prompt, which every sub-agent without a definition needs, and launch again", toolResult.GetError().GetMessage())
+	require.Empty(t, listChildAgents(t, service, agent))
+}
+
 func TestBuiltinTools_CreateAgentsIsIdempotentByToolCallID(t *testing.T) {
 	service := newTestService(t)
 	service.aiService.setDefaultGeneration(textGeneration("done"))

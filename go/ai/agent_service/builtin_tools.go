@@ -182,6 +182,7 @@ func structuredToolResult(toolCall *aipb.ToolCall, message proto.Message) (*aipb
 // ============================== create_agents ==============================
 
 const createAgentsToolDescription = "Launch one or more sub-agents, each working on its own task concurrently with you. " +
+	"Every sub-agent launched without a `definition` MUST be given `instructions`, its system prompt, alongside its `title` and `task`: one without is refused. " +
 	"Each sub-agent runs either a `definition` you may launch, which sets its instructions, model, reasoning effort and tools, " +
 	"or ad-hoc `instructions`, with a `model`, `reasoning_effort` and `tools` (a subset of yours) that default to yours. " +
 	"It receives its `task` as its first message and shares none of your context: include everything it needs, and what to report back. " +
@@ -205,7 +206,7 @@ func createAgents(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 			err = s.validateTools(subAgent.GetSpec())
 		}
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "agent %d: %v", i+1, err).Err()
+			return nil, status.Errorf(codes.InvalidArgument, "agent %d (%q): %v", i+1, subAgentArguments.GetTitle(), err).Err()
 		}
 		subAgents = append(subAgents, subAgent)
 	}
@@ -276,7 +277,7 @@ func newSubAgent(agent *agentpb.Agent, arguments *agentservicepb.CreateAgentsToo
 	}
 
 	if strings.TrimSpace(arguments.GetInstructions()) == "" {
-		return nil, fmt.Errorf("instructions are required without a definition")
+		return nil, fmt.Errorf("no instructions: add `instructions`, its system prompt, which every sub-agent without a definition needs, and launch again")
 	}
 	tools, err := subAgentTools(spec.GetTools(), arguments.GetTools())
 	if err != nil {
