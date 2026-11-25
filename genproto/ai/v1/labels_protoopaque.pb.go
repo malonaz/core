@@ -27,8 +27,9 @@ var File_malonaz_ai_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xe2\x01\x92\x95\x15\xb5\x01\n" +
-	"\x19ai.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
+	"\x1amalonaz/ai/v1/labels.proto\x12\rmalonaz.ai.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xf1\x03\x92\x95\x15\xb5\x01\n" +
+	"\x19ai.malonaz.com/superseded\x1a\x97\x01Set on messages abandoned by a fork: a generation whose previous_message predates them. Superseded messages are excluded from the conversation history.\x92\x95\x15\x8a\x02\n" +
+	"\x17ai.malonaz.com/tool-set\x1a\xee\x01The set a tool is listed and granted with, under its parent: a mirrored method's service, its full name lowercased with dots as dashes (gateway-project-v1-projectgateway); genui for the genui components; a client's own name for its tools.Z&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_labels_proto_goTypes = []any{}
 var file_malonaz_ai_v1_labels_proto_depIdxs = []int32{

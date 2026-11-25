@@ -7,14 +7,24 @@ type LabelSuperseded struct {
 	GetKey func() string
 }
 
+type LabelToolSet struct {
+	GetKey func() string
+}
+
 type LabelSet struct {
 	Superseded LabelSuperseded
+	ToolSet    LabelToolSet
 }
 
 var Labels = LabelSet{
 	Superseded: LabelSuperseded{
 		GetKey: func() string {
 			return "ai.malonaz.com/superseded"
+		},
+	},
+	ToolSet: LabelToolSet{
+		GetKey: func() string {
+			return "ai.malonaz.com/tool-set"
 		},
 	},
 }

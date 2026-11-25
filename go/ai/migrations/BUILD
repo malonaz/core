@@ -6,6 +6,7 @@ postgres_migrations(
         "chat",
         "decision",
         "message",
+        "tool",
     ],
     visibility = ["PUBLIC"],
 )
