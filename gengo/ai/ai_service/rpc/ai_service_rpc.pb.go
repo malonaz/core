@@ -26,6 +26,7 @@ type aiServiceStore interface {
 	aiService_MessageStore
 	aiService_DecisionStore
 	aiService_ToolStore
+	aiService_ToolCallStore
 }
 
 type AiServiceServer struct {
@@ -33,6 +34,7 @@ type AiServiceServer struct {
 	*aiService_MessageServer
 	*aiService_DecisionServer
 	*aiService_ToolServer
+	*aiService_ToolCallServer
 }
 
 func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
@@ -41,6 +43,7 @@ func NewAiServiceServer(store aiServiceStore) *AiServiceServer {
 		aiService_MessageServer:  newAiService_MessageServer(store),
 		aiService_DecisionServer: newAiService_DecisionServer(store),
 		aiService_ToolServer:     newAiService_ToolServer(store),
+		aiService_ToolCallServer: newAiService_ToolCallServer(store),
 	}
 }
 
@@ -490,7 +493,7 @@ func (s *aiService_ChatServer) BatchGetChats(ctx context.Context, request *v1.Ba
 type aiService_MessageStore interface {
 	BatchInsertMessages(ctx context.Context, requestIDs []string, messages []*model.Message) ([]*model.Message, error)
 	UpdateMessage(ctx context.Context, message *model.Message, updateClause string, columns []string, etag string) (*model.Message, error)
-	SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error)
+	SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Message, error)
 	UndeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string) (*model.Message, error)
 	GetMessage(ctx context.Context, organizationId, userId, chatId, messageId string) (*model.Message, error)
 	BatchGetMessages(ctx context.Context, organizationIds []string, userIds []string, chatIds []string, messageIds []string) ([]*model.Message, error)
@@ -738,10 +741,13 @@ func (s *aiService_MessageServer) DeleteMessage(ctx context.Context, request *v1
 	}
 
 	// STEP 2: Soft delete the resource.
-	dbMessageModel, err := s.store.SoftDeleteMessage(ctx, organizationId, userId, chatId, messageId, request.GetEtag(), newEtag, deleteTime)
+	dbMessageModel, err := s.store.SoftDeleteMessage(ctx, organizationId, userId, chatId, messageId, request.GetEtag(), newEtag, request.GetForce(), deleteTime)
 	if err != nil {
 		if errors.Is(err, model.ErrMessageNotExist) {
 			return nil, status.Errorf(codes.NotFound, "message does not exist").Err()
+		}
+		if errors.Is(err, model.ErrMessageHasChildren) {
+			return nil, status.Errorf(codes.FailedPrecondition, "message has child resources; set force to delete them too").Err()
 		}
 		if errors.Is(err, model.ErrMessageETagChanged) {
 			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
@@ -1716,6 +1722,259 @@ func (s *aiService_ToolServer) ListTools(ctx context.Context, request *v1.ListTo
 	// Create and return response.
 	return &v1.ListToolsResponse{
 		Tools:         tools,
+		NextPageToken: nextPageToken,
+	}, nil
+}
+
+type aiService_ToolCallStore interface {
+	BatchInsertToolCalls(ctx context.Context, requestIDs []string, toolCalls []*model.ToolCall) ([]*model.ToolCall, error)
+	UpdateToolCall(ctx context.Context, toolCall *model.ToolCall, updateClause string, columns []string, etag string) (*model.ToolCall, error)
+	SoftDeleteToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string, etag, newEtag string, deleteTime time.Time) (*model.ToolCall, error)
+	UndeleteToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string, etag, newEtag string) (*model.ToolCall, error)
+	GetToolCall(ctx context.Context, organizationId, userId, chatId, messageId, toolCallId string) (*model.ToolCall, error)
+	BatchGetToolCalls(ctx context.Context, organizationIds []string, userIds []string, chatIds []string, messageIds []string, toolCallIds []string) ([]*model.ToolCall, error)
+	ListToolCalls(ctx context.Context, organizationId, userId, chatId, messageId string, showDeleted bool, whereClause, orderByClause, paginationClause string, dbColumns []string, whereParams ...any) ([]*model.ToolCall, error)
+}
+
+type aiService_ToolCallServer struct {
+	store aiService_ToolCallStore
+}
+
+func newAiService_ToolCallServer(store aiService_ToolCallStore) *aiService_ToolCallServer {
+	return &aiService_ToolCallServer{
+		store: store,
+	}
+}
+
+func (s *aiService_ToolCallServer) GetToolCall(ctx context.Context, request *v1.GetToolCallRequest) (*v11.ToolCall, error) {
+	if resourcename.ContainsWildcard(request.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	organizationId, userId, chatId, messageId, toolCallId, err := model.ParseToolCallName(request.Name)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing name: %v", err).Err()
+	}
+
+	// Retrieve from the database.
+	dbToolCallModel, err := s.store.GetToolCall(ctx, organizationId, userId, chatId, messageId, toolCallId)
+	if err != nil {
+		if errors.Is(err, model.ErrToolCallNotExist) {
+			return nil, status.Errorf(codes.NotFound, "toolCall does not exist").Err()
+		}
+		return nil, status.FromError(err, "getting toolCall").Err()
+	}
+
+	toolCall, err := dbToolCallModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting toolCall from model to pb: %v", err).Err()
+	}
+	return toolCall, nil
+}
+
+func (s *aiService_ToolCallServer) BatchGetToolCalls(ctx context.Context, request *v1.BatchGetToolCallsRequest) (*v1.BatchGetToolCallsResponse, error) {
+	var organizationId, userId, chatId, messageId string
+	if request.Parent != "" {
+		if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}", &organizationId, &userId, &chatId, &messageId); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+		}
+	}
+
+	organizationIds := make([]string, len(request.GetNames()))
+	userIds := make([]string, len(request.GetNames()))
+	chatIds := make([]string, len(request.GetNames()))
+	messageIds := make([]string, len(request.GetNames()))
+	toolCallIds := make([]string, len(request.GetNames()))
+
+	for i, name := range request.Names {
+		if resourcename.ContainsWildcard(name) {
+			return nil, status.Errorf(codes.InvalidArgument, "name cannot contain wildcard").Err()
+		}
+		if request.Parent != "" && !resourcename.HasParent(name, request.Parent) {
+			return nil, status.Errorf(codes.InvalidArgument, "name %q does not have parent %q", name, request.Parent).Err()
+		}
+		organizationId, userId, chatId, messageId, toolCallId, err := model.ParseToolCallName(name)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing name %s: %v", name, err).Err()
+		}
+		organizationIds[i] = organizationId
+		userIds[i] = userId
+		chatIds[i] = chatId
+		messageIds[i] = messageId
+		toolCallIds[i] = toolCallId
+	}
+
+	dbToolCalls, err := s.store.BatchGetToolCalls(ctx, organizationIds, userIds, chatIds, messageIds, toolCallIds)
+	if err != nil {
+		return nil, status.FromError(err, "batch getting tool_call").Err()
+	}
+	if len(dbToolCalls) != len(request.Names) {
+		return nil, status.Errorf(codes.NotFound, "expected %d toolCalls, found %d", len(request.Names), len(dbToolCalls)).Err()
+	}
+
+	toolCallNameToToolCall := make(map[string]*v11.ToolCall, len(request.Names))
+	for _, dbToolCallModel := range dbToolCalls {
+		toolCall, err := dbToolCallModel.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting toolCall from model to pb: %v", err).Err()
+		}
+		toolCallNameToToolCall[toolCall.Name] = toolCall
+	}
+
+	toolCalls := make([]*v11.ToolCall, 0, len(dbToolCalls))
+	for _, name := range request.Names {
+		toolCall, ok := toolCallNameToToolCall[name]
+		if !ok {
+			return nil, status.Errorf(codes.NotFound, "could not find %q", name).Err()
+		}
+		toolCalls = append(toolCalls, toolCall)
+	}
+
+	return &v1.BatchGetToolCallsResponse{
+		ToolCalls: toolCalls,
+	}, nil
+}
+
+var updateToolCallRequestParser = aip.MustNewUpdateRequestParser[*v1.UpdateToolCallRequest, *v11.ToolCall]()
+
+func (s *aiService_ToolCallServer) UpdateToolCall(ctx context.Context, request *v1.UpdateToolCallRequest) (*v11.ToolCall, error) {
+	for {
+		response, err := s.updateToolCall(ctx, request)
+		if err != nil {
+			if request.GetToolCall().GetEtag() == "" && status.HasCode(err, codes.Aborted) {
+				// Request did not specify an ETag => we retry.
+				// In order to understand why we still use ETag in the db layer, consider the following situation:
+				//  > `resource.metadata` is stored as JSONB in the store.
+				//  > Request A wants to update `resource.metadata.field1` and does not care about ETag.
+				//  > Request B wants to update `resource.metadata.field2` and does not care about ETag.
+				//  > Request A reads the resource and patches it.
+				//  > Request B reads the resource and patches it.
+				//  > Request A persists the patched resource, followed by Request B.
+				//  > Request A's changes are lost.
+				select {
+				case <-ctx.Done():
+					return nil, status.Errorf(codes.Canceled, "context canceled while retrying update").Err()
+				default:
+					continue
+				}
+			}
+			return nil, err
+		}
+		return response, nil
+	}
+}
+
+func (s *aiService_ToolCallServer) updateToolCall(ctx context.Context, request *v1.UpdateToolCallRequest) (*v11.ToolCall, error) {
+	if len(request.GetUpdateMask().GetPaths()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "missing update_mask.paths").Err()
+	}
+	if resourcename.ContainsWildcard(request.ToolCall.Name) {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use wildcard").Err()
+	}
+
+	// STEP 1: Parse request.
+	parsedRequest, err := updateToolCallRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing request: %v", err).Err()
+	}
+
+	// STEP 2: retrieve existing resource.
+	getToolCallRequest := &v1.GetToolCallRequest{Name: request.ToolCall.Name}
+	existingToolCall, err := s.GetToolCall(ctx, getToolCallRequest)
+	if err != nil {
+		return nil, err
+	}
+	// Verify that the resource is not soft deleted
+	if existingToolCall.DeleteTime != nil {
+		return nil, status.Errorf(codes.NotFound, "toolCall does not exist").Err()
+	}
+	// Capture the Etag. If it is not set, use the latest available Etag.
+	etag := request.GetToolCall().GetEtag()
+	if etag == "" {
+		etag = existingToolCall.GetEtag()
+	}
+
+	// STEP 3: Patch the existing resource.
+	patchedToolCall := proto.CloneOf(existingToolCall)
+	parsedRequest.ApplyFieldMask(patchedToolCall, request.ToolCall)
+	if err := protovalidate.Validate(patchedToolCall); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating patched resource: %v", err).Err()
+	}
+
+	// Set the update time.
+	patchedToolCall.UpdateTime = timestamppb.Now()
+	{ // Compute the new Etag.
+		var err error
+		patchedToolCall.Etag, err = aip.ComputeETag(patchedToolCall)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "computing new etag: %v", err).Err()
+		}
+	}
+
+	// STEP 4: Insert patched resource.
+	toolCallModel, err := model.ToolCallFromPb(patchedToolCall)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting toolCall from pb to model: %v", err).Err()
+	}
+	dbToolCallModel, err := s.store.UpdateToolCall(ctx, toolCallModel, parsedRequest.GetSQLUpdateClause(), parsedRequest.GetSQLColumns(), etag)
+	if err != nil {
+		if errors.Is(err, model.ErrToolCallNotExist) {
+			return nil, status.Errorf(codes.NotFound, "toolCall does not exist").Err()
+		}
+		if errors.Is(err, model.ErrToolCallETagChanged) {
+			return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+		}
+		return nil, status.FromError(err, "updating toolCall").Err()
+	}
+
+	toolCall, err := dbToolCallModel.ToPb()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting toolCall from model to pb: %v", err).Err()
+	}
+
+	return toolCall, nil
+}
+
+var listToolCallsRequestParser = aip.MustNewListRequestParser[*v1.ListToolCallsRequest, *v11.ToolCall](aip.WithFilteringOpts(aip.WithFQN()), aip.WithOrderingOpts(aip.WithOrderingFQN()))
+
+func (s *aiService_ToolCallServer) ListToolCalls(ctx context.Context, request *v1.ListToolCallsRequest) (*v1.ListToolCallsResponse, error) {
+	// Parse parent names
+	var organizationId, userId, chatId, messageId string
+	if err := resourcename.Sscan(request.Parent, "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}", &organizationId, &userId, &chatId, &messageId); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent name: %v", err).Err()
+	}
+
+	// Parse request
+	parsedRequest, err := listToolCallsRequestParser.Parse(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error()).Err()
+	}
+	whereClause, whereParams := parsedRequest.GetSQLWhereClause()
+	var dbColumns []string
+
+	// Retrieve from the database.
+	dbToolCalls, err := s.store.ListToolCalls(ctx, organizationId, userId, chatId, messageId, request.ShowDeleted, whereClause, parsedRequest.GetSQLOrderByClause(), parsedRequest.GetSQLPaginationClause(), dbColumns, whereParams...)
+	if err != nil {
+		return nil, status.FromError(err, "listing tool_calls").Err()
+	}
+	nextPageToken := parsedRequest.GetNextPageToken(len(dbToolCalls))
+	if nextPageToken != "" {
+		dbToolCalls = dbToolCalls[:len(dbToolCalls)-1]
+	}
+
+	// Convert back to proto.
+	toolCalls := make([]*v11.ToolCall, 0, len(dbToolCalls))
+	for _, dbToolCall := range dbToolCalls {
+		toolCall, err := dbToolCall.ToPb()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting model.ToolCall to ToolCall: %v", err).Err()
+		}
+		toolCalls = append(toolCalls, toolCall)
+	}
+
+	// Create and return response.
+	return &v1.ListToolCallsResponse{
+		ToolCalls:     toolCalls,
 		NextPageToken: nextPageToken,
 	}, nil
 }

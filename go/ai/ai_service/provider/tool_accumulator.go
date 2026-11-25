@@ -169,7 +169,7 @@ func (a *ToolCallAccumulator) BuildPartial(index int64) (*aipb.Block, error) {
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
-	tc := &aipb.ToolCall{
+	tc := &aipb.ToolUse{
 		Id:        entry.id,
 		Name:      entry.name,
 		Arguments: &structpb.Struct{},
@@ -218,7 +218,7 @@ func (a *ToolCallAccumulator) Build(index int64) (*aipb.Block, error) {
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "tool call with index %d not found", index).Err()
 	}
-	tc := &aipb.ToolCall{
+	tc := &aipb.ToolUse{
 		Id:        entry.id,
 		Name:      entry.name,
 		Arguments: &structpb.Struct{},

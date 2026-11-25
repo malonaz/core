@@ -8,7 +8,7 @@ import (
 	. "github.com/malonaz/core/go/ai/ai_service/provider"
 )
 
-func buildToolCall(t *testing.T, a *ToolCallAccumulator, index int64) *aipb.ToolCall {
+func buildToolCall(t *testing.T, a *ToolCallAccumulator, index int64) *aipb.ToolUse {
 	t.Helper()
 	block, err := a.Build(index)
 	if err != nil {

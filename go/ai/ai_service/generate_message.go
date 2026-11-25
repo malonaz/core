@@ -258,7 +258,7 @@ func (s *Service) StreamGenerateMessage(request *pb.GenerateMessageRequest, srv 
 		modelUsage:                            &aipb.ModelUsage{Model: request.Model},
 		toolNameToTool:                        toolNameToTool,
 		toolSetNameToToolNameToTool:           toolSetNameToToolNameToTool,
-		toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+		toolCallIDToToolCall:                  map[string]*aipb.ToolUse{},
 		useExecuteTool:                        useExecuteTool,
 	}
 
@@ -400,7 +400,7 @@ func pairToolCalls(history []*aipb.Message) []*aipb.Message {
 
 // missingToolResult stands in for a tool call's missing result: its
 // server-generated result if any, else an error saying none was provided.
-func missingToolResult(toolCall *aipb.ToolCall) *aipb.ToolResult {
+func missingToolResult(toolCall *aipb.ToolUse) *aipb.ToolResult {
 	if toolCall.GetResult() != nil {
 		return toolCall.GetResult()
 	}
@@ -459,14 +459,14 @@ type generateMessageWrapper struct {
 	modelUsage                  *aipb.ModelUsage
 	toolNameToTool              map[string]*aipb.Tool
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool
-	toolCallIDToToolCall        map[string]*aipb.ToolCall
+	toolCallIDToToolCall        map[string]*aipb.ToolUse
 	useExecuteTool              bool
 }
 
 func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse) error {
 	switch c := response.GetContent().(type) {
 	case *pb.StreamGenerateMessageResponse_Block:
-		var toolCall *aipb.ToolCall
+		var toolCall *aipb.ToolUse
 		if c.Block.GetToolCall() != nil {
 			toolCall = c.Block.GetToolCall()
 		}
@@ -523,7 +523,7 @@ func (w *generateMessageWrapper) Send(response *pb.StreamGenerateMessageResponse
 }
 
 func processDiscoveryToolCall(
-	toolCall *aipb.ToolCall,
+	toolCall *aipb.ToolUse,
 	toolSetNameToToolNameToTool map[string]map[string]*aipb.Tool,
 	toolNameToTool map[string]*aipb.Tool,
 ) *aipb.ToolResult {

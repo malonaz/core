@@ -10,6 +10,7 @@ go_library(
         "model_model.pb.go",
         "stats.go",
         "stats_model.pb.go",
+        "tool_call_model.pb.go",
         "tool_model.pb.go",
         "voice_model.pb.go",
     ],

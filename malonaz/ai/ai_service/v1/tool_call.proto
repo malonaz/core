@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/v1/tool_call.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.GetToolCall.
+message GetToolCallRequest {
+  // The resource name of the tool call to retrieve.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/ToolCall"
+  ];
+}
+
+// Request message for AiService.BatchGetToolCalls.
+message BatchGetToolCallsRequest {
+  // The message whose tool calls to retrieve, if they share one.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string parent = 1 [(google.api.resource_reference).type = "ai.malonaz.com/Message"];
+
+  // The resource names of the tool calls to retrieve, at most 1000.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "ai.malonaz.com/ToolCall"
+  ];
+}
+
+// Response message for AiService.BatchGetToolCalls.
+message BatchGetToolCallsResponse {
+  // The tool calls requested.
+  repeated ai.v1.ToolCall tool_calls = 1;
+}
+
+// Request message for AiService.UpdateToolCall.
+message UpdateToolCallRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: ["labels"]
+  };
+  option (buf.validate.message).cel = {
+    id: "tool_call.name_required"
+    message: "tool_call.name must be set"
+    expression: "has(this.tool_call.name)"
+  };
+
+  // The tool call to update. Its `name` identifies it.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}/toolCalls/{tool_call}
+  ai.v1.ToolCall tool_call = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.ListToolCalls.
+message ListToolCallsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The message whose tool calls to list: `-` for any chat or message, e.g. a user's calls across their chats with
+  // `organizations/{organization}/users/{user}/chats/-/messages/-`.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Message"
+  ];
+
+  // @autogen.
+  string filter = 2;
+
+  // If true, include the tool calls of deleted messages.
+  bool show_deleted = 3;
+
+  // @autogen
+  string order_by = 4;
+
+  // Maximum number of tool calls to return (max 1000).
+  int32 page_size = 5 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListToolCalls` call.
+  string page_token = 6;
+}
+
+// Response message for AiService.ListToolCalls.
+message ListToolCallsResponse {
+  // The tool calls.
+  repeated ai.v1.ToolCall tool_calls = 1;
+
+  // A token to retrieve the next page, or empty when there are no more.
+  string next_page_token = 2;
+}

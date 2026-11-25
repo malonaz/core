@@ -10,6 +10,7 @@ filegroup(
         "model.proto",
         "stats.proto",
         "tool.proto",
+        "tool_call.proto",
         "voice.proto",
     ],
     visibility = ["PUBLIC"],
@@ -27,6 +28,7 @@ proto_library(
         "model.proto",
         "stats.proto",
         "tool.proto",
+        "tool_call.proto",
         "voice.proto",
     ],
     additional_context = {

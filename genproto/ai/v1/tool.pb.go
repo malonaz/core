@@ -629,8 +629,10 @@ func (b0 ToolMethod_builder) Build() *ToolMethod {
 	return m0
 }
 
-// A tool call that the model wants to invoke.
-type ToolCall struct {
+// A ToolUse is a model's request to call a tool, as a message carries it in its
+// `tool_call` block. Its stored resource is the [ToolCall][malonaz.ai.v1.ToolCall]
+// at `{message}/toolCalls/{n}`, n its position among the message's tool calls.
+type ToolUse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
 	// The id of this tool call.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -651,20 +653,20 @@ type ToolCall struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ToolCall) Reset() {
-	*x = ToolCall{}
+func (x *ToolUse) Reset() {
+	*x = ToolUse{}
 	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ToolCall) String() string {
+func (x *ToolUse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ToolCall) ProtoMessage() {}
+func (*ToolUse) ProtoMessage() {}
 
-func (x *ToolCall) ProtoReflect() protoreflect.Message {
+func (x *ToolUse) ProtoReflect() protoreflect.Message {
 	mi := &file_malonaz_ai_v1_tool_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -676,117 +678,117 @@ func (x *ToolCall) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ToolCall) GetId() string {
+func (x *ToolUse) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *ToolCall) GetName() string {
+func (x *ToolUse) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *ToolCall) GetArguments() *structpb.Struct {
+func (x *ToolUse) GetArguments() *structpb.Struct {
 	if x != nil {
 		return x.Arguments
 	}
 	return nil
 }
 
-func (x *ToolCall) GetExtraFields() *structpb.Struct {
+func (x *ToolUse) GetExtraFields() *structpb.Struct {
 	if x != nil {
 		return x.ExtraFields
 	}
 	return nil
 }
 
-func (x *ToolCall) GetAnnotations() map[string]string {
+func (x *ToolUse) GetAnnotations() map[string]string {
 	if x != nil {
 		return x.Annotations
 	}
 	return nil
 }
 
-func (x *ToolCall) GetPartial() bool {
+func (x *ToolUse) GetPartial() bool {
 	if x != nil {
 		return x.Partial
 	}
 	return false
 }
 
-func (x *ToolCall) GetResult() *ToolResult {
+func (x *ToolUse) GetResult() *ToolResult {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *ToolCall) SetId(v string) {
+func (x *ToolUse) SetId(v string) {
 	x.Id = v
 }
 
-func (x *ToolCall) SetName(v string) {
+func (x *ToolUse) SetName(v string) {
 	x.Name = v
 }
 
-func (x *ToolCall) SetArguments(v *structpb.Struct) {
+func (x *ToolUse) SetArguments(v *structpb.Struct) {
 	x.Arguments = v
 }
 
-func (x *ToolCall) SetExtraFields(v *structpb.Struct) {
+func (x *ToolUse) SetExtraFields(v *structpb.Struct) {
 	x.ExtraFields = v
 }
 
-func (x *ToolCall) SetAnnotations(v map[string]string) {
+func (x *ToolUse) SetAnnotations(v map[string]string) {
 	x.Annotations = v
 }
 
-func (x *ToolCall) SetPartial(v bool) {
+func (x *ToolUse) SetPartial(v bool) {
 	x.Partial = v
 }
 
-func (x *ToolCall) SetResult(v *ToolResult) {
+func (x *ToolUse) SetResult(v *ToolResult) {
 	x.Result = v
 }
 
-func (x *ToolCall) HasArguments() bool {
+func (x *ToolUse) HasArguments() bool {
 	if x == nil {
 		return false
 	}
 	return x.Arguments != nil
 }
 
-func (x *ToolCall) HasExtraFields() bool {
+func (x *ToolUse) HasExtraFields() bool {
 	if x == nil {
 		return false
 	}
 	return x.ExtraFields != nil
 }
 
-func (x *ToolCall) HasResult() bool {
+func (x *ToolUse) HasResult() bool {
 	if x == nil {
 		return false
 	}
 	return x.Result != nil
 }
 
-func (x *ToolCall) ClearArguments() {
+func (x *ToolUse) ClearArguments() {
 	x.Arguments = nil
 }
 
-func (x *ToolCall) ClearExtraFields() {
+func (x *ToolUse) ClearExtraFields() {
 	x.ExtraFields = nil
 }
 
-func (x *ToolCall) ClearResult() {
+func (x *ToolUse) ClearResult() {
 	x.Result = nil
 }
 
-type ToolCall_builder struct {
+type ToolUse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The id of this tool call.
@@ -806,8 +808,8 @@ type ToolCall_builder struct {
 	Result *ToolResult
 }
 
-func (b0 ToolCall_builder) Build() *ToolCall {
-	m0 := &ToolCall{}
+func (b0 ToolUse_builder) Build() *ToolUse {
+	m0 := &ToolUse{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Id = b.Id
@@ -1781,13 +1783,13 @@ const file_malonaz_ai_v1_tool_proto_rawDesc = "" +
 	"\vKIND_IMPORT\x10\n" +
 	"\x12\x0f\n" +
 	"\vKIND_EXPORT\x10\v\x12\x0f\n" +
-	"\vKIND_CUSTOM\x10\f\"\x92\x03\n" +
-	"\bToolCall\x12\x16\n" +
+	"\vKIND_CUSTOM\x10\f\"\x90\x03\n" +
+	"\aToolUse\x12\x16\n" +
 	"\x02id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1a\n" +
 	"\x04name\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01R\x04name\x12=\n" +
 	"\targuments\x18\x03 \x01(\v2\x17.google.protobuf.StructB\x06\xbaH\x03\xc8\x01\x01R\targuments\x12:\n" +
-	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12J\n" +
-	"\vannotations\x18\x05 \x03(\v2(.malonaz.ai.v1.ToolCall.AnnotationsEntryR\vannotations\x12\x18\n" +
+	"\fextra_fields\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12I\n" +
+	"\vannotations\x18\x05 \x03(\v2'.malonaz.ai.v1.ToolUse.AnnotationsEntryR\vannotations\x12\x18\n" +
 	"\apartial\x18\x06 \x01(\bR\apartial\x121\n" +
 	"\x06result\x18\a \x01(\v2\x19.malonaz.ai.v1.ToolResultR\x06result\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
@@ -1843,7 +1845,7 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(ToolMethod_Kind)(0),          // 1: malonaz.ai.v1.ToolMethod.Kind
 	(*Tool)(nil),                  // 2: malonaz.ai.v1.Tool
 	(*ToolMethod)(nil),            // 3: malonaz.ai.v1.ToolMethod
-	(*ToolCall)(nil),              // 4: malonaz.ai.v1.ToolCall
+	(*ToolUse)(nil),               // 4: malonaz.ai.v1.ToolUse
 	(*ToolResult)(nil),            // 5: malonaz.ai.v1.ToolResult
 	(*ToolChoice)(nil),            // 6: malonaz.ai.v1.ToolChoice
 	(*ToolSet)(nil),               // 7: malonaz.ai.v1.ToolSet
@@ -1852,7 +1854,7 @@ var file_malonaz_ai_v1_tool_proto_goTypes = []any{
 	(*ToolCallRpc)(nil),           // 10: malonaz.ai.v1.ToolCallRpc
 	nil,                           // 11: malonaz.ai.v1.Tool.AnnotationsEntry
 	nil,                           // 12: malonaz.ai.v1.Tool.LabelsEntry
-	nil,                           // 13: malonaz.ai.v1.ToolCall.AnnotationsEntry
+	nil,                           // 13: malonaz.ai.v1.ToolUse.AnnotationsEntry
 	nil,                           // 14: malonaz.ai.v1.ToolResult.AnnotationsEntry
 	(*v1.Schema)(nil),             // 15: malonaz.json.v1.Schema
 	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
@@ -1868,10 +1870,10 @@ var file_malonaz_ai_v1_tool_proto_depIdxs = []int32{
 	16, // 3: malonaz.ai.v1.Tool.update_time:type_name -> google.protobuf.Timestamp
 	12, // 4: malonaz.ai.v1.Tool.labels:type_name -> malonaz.ai.v1.Tool.LabelsEntry
 	1,  // 5: malonaz.ai.v1.ToolMethod.kind:type_name -> malonaz.ai.v1.ToolMethod.Kind
-	17, // 6: malonaz.ai.v1.ToolCall.arguments:type_name -> google.protobuf.Struct
-	17, // 7: malonaz.ai.v1.ToolCall.extra_fields:type_name -> google.protobuf.Struct
-	13, // 8: malonaz.ai.v1.ToolCall.annotations:type_name -> malonaz.ai.v1.ToolCall.AnnotationsEntry
-	5,  // 9: malonaz.ai.v1.ToolCall.result:type_name -> malonaz.ai.v1.ToolResult
+	17, // 6: malonaz.ai.v1.ToolUse.arguments:type_name -> google.protobuf.Struct
+	17, // 7: malonaz.ai.v1.ToolUse.extra_fields:type_name -> google.protobuf.Struct
+	13, // 8: malonaz.ai.v1.ToolUse.annotations:type_name -> malonaz.ai.v1.ToolUse.AnnotationsEntry
+	5,  // 9: malonaz.ai.v1.ToolUse.result:type_name -> malonaz.ai.v1.ToolResult
 	14, // 10: malonaz.ai.v1.ToolResult.annotations:type_name -> malonaz.ai.v1.ToolResult.AnnotationsEntry
 	18, // 11: malonaz.ai.v1.ToolResult.structured_content:type_name -> google.protobuf.Value
 	19, // 12: malonaz.ai.v1.ToolResult.error:type_name -> google.rpc.Status

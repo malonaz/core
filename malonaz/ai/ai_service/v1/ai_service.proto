@@ -14,12 +14,14 @@ import "malonaz/ai/ai_service/v1/stats.proto";
 import "malonaz/ai/ai_service/v1/text_to_speech.proto";
 import "malonaz/ai/ai_service/v1/text_to_text.proto";
 import "malonaz/ai/ai_service/v1/tool.proto";
+import "malonaz/ai/ai_service/v1/tool_call.proto";
 import "malonaz/ai/ai_service/v1/voice.proto";
 import "malonaz/ai/v1/chat.proto";
 import "malonaz/ai/v1/decision.proto";
 import "malonaz/ai/v1/message.proto";
 import "malonaz/ai/v1/model.proto";
 import "malonaz/ai/v1/tool.proto";
+import "malonaz/ai/v1/tool_call.proto";
 import "malonaz/ai/v1/voice.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 
@@ -31,6 +33,8 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 //
 // - Tools: [Tool][malonaz.ai.v1.Tool] resources are what a model may be given:
 //   platform tools mirrored from gRPC services, an organization's own.
+// - Tool calls: [ToolCall][malonaz.ai.v1.ToolCall] resources list the calls
+//   generations make, each settled by the message holding its result.
 // - Model management: [Model][malonaz.ai.v1.Model] resources describe the
 //   generation models available per provider (STT, TTT, TTS), including
 //   pricing and provider-specific settings.
@@ -538,6 +542,50 @@ service AiService {
     };
     option (google.api.method_signature) = "parent";
     option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/Tool";
+  }
+
+  // ===================== Tool Call Management =====================
+
+  // Get a tool call.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetToolCall(GetToolCallRequest) returns (ai.v1.ToolCall) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/chats/*/messages/*/toolCalls/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/ToolCall";
+  }
+
+  // Get several tool calls.
+  //
+  // See: https://google.aip.dev/231 (Batch methods: Get).
+  rpc BatchGetToolCalls(BatchGetToolCallsRequest) returns (BatchGetToolCallsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*/messages/*}/toolCalls:batchGet"};
+    option (google.api.method_signature) = "parent,names";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/ToolCall";
+  }
+
+  // Update a tool call's labels. Everything else is the service's, written with the messages.
+  //
+  // See: https://google.aip.dev/134 (Standard methods: Update).
+  rpc UpdateToolCall(UpdateToolCallRequest) returns (ai.v1.ToolCall) {
+    option (google.api.http) = {
+      patch: "/v1/{tool_call.name=organizations/*/users/*/chats/*/messages/*/toolCalls/*}"
+      body: "tool_call"
+    };
+    option (google.api.method_signature) = "tool_call,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/ToolCall";
+  }
+
+  // List tool calls: a message's, or across chats and messages with `-`.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListToolCalls(ListToolCallsRequest) returns (ListToolCallsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/chats/*/messages/*}/toolCalls"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "ai.malonaz.com/ToolCall";
   }
 
   // ===================== Stats =====================

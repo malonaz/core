@@ -172,35 +172,58 @@ func (s *Store) UpdateMessage(ctx context.Context, _message *model.Message, upda
 var softDeleteMessagePostgresQuery = `UPDATE message SET delete_time = $5, etag = $6 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND delete_time IS NULL RETURNING ` +
 	strings.Join(MessagePostgresColumns, ",")
 
-func (s *Store) SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, deleteTime time.Time) (*model.Message, error) {
+func (s *Store) SoftDeleteMessage(ctx context.Context, organizationId, userId, chatId, messageId string, etag, newEtag string, force bool, deleteTime time.Time) (*model.Message, error) {
 	query := softDeleteMessagePostgresQuery
 	params := []any{organizationId, userId, chatId, messageId, deleteTime, newEtag}
 	if etag != "" {
 		query = strings.Replace(query, "RETURNING", fmt.Sprintf("AND etag = $%d RETURNING", len(params)+1), 1)
 		params = append(params, etag)
 	}
-	rows, err := s.client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("soft deleting message: %w", err)
-	}
-	row, err := v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
-	if err != nil {
-		if err == v5.ErrNoRows {
-			live, currentEtag, probeErr := s.probeMessage(ctx, s.client, organizationId, userId, chatId, messageId)
-			if probeErr != nil {
-				return nil, probeErr
-			}
-			if !live {
-				return nil, model.ErrMessageAlreadyDeleted
-			}
-			if etag != "" && currentEtag != etag {
-				return nil, model.ErrMessageETagChanged
-			}
-			return nil, fmt.Errorf("soft delete matched no rows but message is live")
+	var result *model.Message
+	transactionFN := func(tx postgres.Tx) error {
+		result = nil
+		rows, err := tx.Query(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("soft deleting message: %w", err)
 		}
+		result, err = v5.CollectOneRow(rows, v5.RowToAddrOfStructByNameLax[model.Message])
+		if err != nil {
+			if err == v5.ErrNoRows {
+				live, currentEtag, probeErr := s.probeMessage(ctx, tx, organizationId, userId, chatId, messageId)
+				if probeErr != nil {
+					return probeErr
+				}
+				if !live {
+					return model.ErrMessageAlreadyDeleted
+				}
+				if etag != "" && currentEtag != etag {
+					return model.ErrMessageETagChanged
+				}
+				return fmt.Errorf("soft delete matched no rows but message is live")
+			}
+			return err
+		}
+
+		if !force {
+			var hasChildren bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM tool_call WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND delete_time IS NULL)`, organizationId, userId, chatId, messageId).Scan(&hasChildren); err != nil {
+				return fmt.Errorf("checking message children: %w", err)
+			}
+			if hasChildren {
+				return model.ErrMessageHasChildren
+			}
+		}
+		if _, err := tx.Exec(ctx, `UPDATE tool_call SET delete_time = COALESCE(delete_time, $5) WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4`, organizationId, userId, chatId, messageId, deleteTime); err != nil {
+			return fmt.Errorf("cascading message delete to tool_call: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := s.client.ExecuteTransaction(ctx, postgres.ReadCommitted, transactionFN); err != nil {
 		return nil, err
 	}
-	return row, nil
+	return result, nil
 }
 
 var undeleteMessagePostgresQuery = `UPDATE message SET delete_time = NULL, etag = $5 WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3 AND message_id = $4 AND delete_time IS NOT NULL RETURNING ` +

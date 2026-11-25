@@ -7,6 +7,7 @@ postgres_migrations(
         "decision",
         "message",
         "tool",
+        "tool_call",
     ],
     visibility = ["PUBLIC"],
 )

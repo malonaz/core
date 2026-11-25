@@ -248,7 +248,7 @@ func (b0 BatchCreateToolsResponse_builder) Build() *BatchCreateToolsResponse {
 // Request message for AiEngine.ParseToolCall.
 type ParseToolCallRequest struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ToolCall *v1.ToolCall           `protobuf:"bytes,1,opt,name=tool_call,json=toolCall,proto3"`
+	xxx_hidden_ToolCall *v1.ToolUse            `protobuf:"bytes,1,opt,name=tool_call,json=toolCall,proto3"`
 	xxx_hidden_ToolSets *[]*v1.ToolSet         `protobuf:"bytes,2,rep,name=tool_sets,json=toolSets,proto3"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
@@ -279,7 +279,7 @@ func (x *ParseToolCallRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ParseToolCallRequest) GetToolCall() *v1.ToolCall {
+func (x *ParseToolCallRequest) GetToolCall() *v1.ToolUse {
 	if x != nil {
 		return x.xxx_hidden_ToolCall
 	}
@@ -295,7 +295,7 @@ func (x *ParseToolCallRequest) GetToolSets() []*v1.ToolSet {
 	return nil
 }
 
-func (x *ParseToolCallRequest) SetToolCall(v *v1.ToolCall) {
+func (x *ParseToolCallRequest) SetToolCall(v *v1.ToolUse) {
 	x.xxx_hidden_ToolCall = v
 }
 
@@ -318,7 +318,7 @@ type ParseToolCallRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The tool call to parse.
-	ToolCall *v1.ToolCall
+	ToolCall *v1.ToolUse
 	// Must be passed if tool call *can* be of type `DiscoverToolsRequest` or `RpcRequest`
 	// in order to ensure the call is valid.
 	// if `DiscoverToolsRequest`:
@@ -1208,9 +1208,9 @@ const file_malonaz_ai_ai_engine_v1_ai_engine_proto_rawDesc = "" +
 	"\x17BatchCreateToolsRequest\x12P\n" +
 	"\brequests\x18\x01 \x03(\v2*.malonaz.ai.ai_engine.v1.CreateToolRequestB\b\xbaH\x05\x92\x01\x02\b\x01R\brequests\"E\n" +
 	"\x18BatchCreateToolsResponse\x12)\n" +
-	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x89\x01\n" +
-	"\x14ParseToolCallRequest\x12<\n" +
-	"\ttool_call\x18\x01 \x01(\v2\x17.malonaz.ai.v1.ToolCallB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x123\n" +
+	"\x05tools\x18\x01 \x03(\v2\x13.malonaz.ai.v1.ToolR\x05tools\"\x88\x01\n" +
+	"\x14ParseToolCallRequest\x12;\n" +
+	"\ttool_call\x18\x01 \x01(\v2\x16.malonaz.ai.v1.ToolUseB\x06\xbaH\x03\xc8\x01\x01R\btoolCall\x123\n" +
 	"\ttool_sets\x18\x02 \x03(\v2\x16.malonaz.ai.v1.ToolSetR\btoolSets\"\xde\x01\n" +
 	"\x15ParseToolCallResponse\x123\n" +
 	"\amessage\x18\x01 \x01(\v2\x17.google.protobuf.StructH\x00R\amessage\x12@\n" +
@@ -1271,7 +1271,7 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_goTypes = []any{
 	(*DescriptorReference)(nil),           // 9: malonaz.ai.ai_engine.v1.DescriptorReference
 	nil,                                   // 10: malonaz.ai.ai_engine.v1.CreateServiceToolSetRequest.MethodNameToSchemaConfigurationEntry
 	(*v1.Tool)(nil),                       // 11: malonaz.ai.v1.Tool
-	(*v1.ToolCall)(nil),                   // 12: malonaz.ai.v1.ToolCall
+	(*v1.ToolUse)(nil),                    // 12: malonaz.ai.v1.ToolUse
 	(*v1.ToolSet)(nil),                    // 13: malonaz.ai.v1.ToolSet
 	(*structpb.Struct)(nil),               // 14: google.protobuf.Struct
 	(*v1.ToolCallDiscovery)(nil),          // 15: malonaz.ai.v1.ToolCallDiscovery
@@ -1284,7 +1284,7 @@ var file_malonaz_ai_ai_engine_v1_ai_engine_proto_depIdxs = []int32{
 	8,  // 1: malonaz.ai.ai_engine.v1.CreateToolRequest.schema_configuration:type_name -> malonaz.ai.ai_engine.v1.SchemaConfiguration
 	0,  // 2: malonaz.ai.ai_engine.v1.BatchCreateToolsRequest.requests:type_name -> malonaz.ai.ai_engine.v1.CreateToolRequest
 	11, // 3: malonaz.ai.ai_engine.v1.BatchCreateToolsResponse.tools:type_name -> malonaz.ai.v1.Tool
-	12, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolCall
+	12, // 4: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_call:type_name -> malonaz.ai.v1.ToolUse
 	13, // 5: malonaz.ai.ai_engine.v1.ParseToolCallRequest.tool_sets:type_name -> malonaz.ai.v1.ToolSet
 	14, // 6: malonaz.ai.ai_engine.v1.ParseToolCallResponse.message:type_name -> google.protobuf.Struct
 	15, // 7: malonaz.ai.ai_engine.v1.ParseToolCallResponse.discovery:type_name -> malonaz.ai.v1.ToolCallDiscovery

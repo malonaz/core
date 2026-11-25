@@ -603,7 +603,7 @@ func (x *Block) GetText() string {
 	return ""
 }
 
-func (x *Block) GetToolCall() *ToolCall {
+func (x *Block) GetToolCall() *ToolUse {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Content.(*block_ToolCall); ok {
 			return x.ToolCall
@@ -612,7 +612,7 @@ func (x *Block) GetToolCall() *ToolCall {
 	return nil
 }
 
-func (x *Block) GetPartialToolCall() *ToolCall {
+func (x *Block) GetPartialToolCall() *ToolUse {
 	if x != nil {
 		if x, ok := x.xxx_hidden_Content.(*block_PartialToolCall); ok {
 			return x.PartialToolCall
@@ -668,7 +668,7 @@ func (x *Block) SetText(v string) {
 	x.xxx_hidden_Content = &block_Text{v}
 }
 
-func (x *Block) SetToolCall(v *ToolCall) {
+func (x *Block) SetToolCall(v *ToolUse) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
@@ -676,7 +676,7 @@ func (x *Block) SetToolCall(v *ToolCall) {
 	x.xxx_hidden_Content = &block_ToolCall{v}
 }
 
-func (x *Block) SetPartialToolCall(v *ToolCall) {
+func (x *Block) SetPartialToolCall(v *ToolUse) {
 	if v == nil {
 		x.xxx_hidden_Content = nil
 		return
@@ -878,9 +878,9 @@ type Block_builder struct {
 	// Text block.
 	Text *string
 	// Tool call block.
-	ToolCall *ToolCall
+	ToolCall *ToolUse
 	// Partial tool call block.
-	PartialToolCall *ToolCall
+	PartialToolCall *ToolUse
 	// Tool result block.
 	ToolResult *ToolResult
 	// Image block.
@@ -947,12 +947,12 @@ type block_Text struct {
 
 type block_ToolCall struct {
 	// Tool call block.
-	ToolCall *ToolCall `protobuf:"bytes,6,opt,name=tool_call,json=toolCall,proto3,oneof"`
+	ToolCall *ToolUse `protobuf:"bytes,6,opt,name=tool_call,json=toolCall,proto3,oneof"`
 }
 
 type block_PartialToolCall struct {
 	// Partial tool call block.
-	PartialToolCall *ToolCall `protobuf:"bytes,7,opt,name=partial_tool_call,json=partialToolCall,proto3,oneof"`
+	PartialToolCall *ToolUse `protobuf:"bytes,7,opt,name=partial_tool_call,json=partialToolCall,proto3,oneof"`
 }
 
 type block_ToolResult struct {
@@ -1430,15 +1430,15 @@ const file_malonaz_ai_v1_message_proto_rawDesc = "" +
 	"\x12system_role_blocks\x12)SYSTEM messages can only have text blocks\x1a1this.role != 1 || this.blocks.all(b, has(b.text))\x1a\xcc\x01\n" +
 	"\x15assistant_role_blocks\x12JASSISTANT messages can only have thought, text, tool_call, or image blocks\x1agthis.role != 2 || this.blocks.all(b, has(b.thought) || has(b.text) || has(b.tool_call) || has(b.image))\x1a\xa4\x01\n" +
 	"\x10user_role_blocks\x12:USER messages can only have text, image or document blocks\x1aTthis.role != 3 || this.blocks.all(b, has(b.text) || has(b.image) || has(b.document))\x1a|\n" +
-	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\x82\xf6,$d96e0fa8-568e-420f-bdb2-3c133ef3a50f\"\xec\x05\n" +
+	"\x10tool_role_blocks\x12.TOOL messages can only have tool_result blocks\x1a8this.role != 4 || this.blocks.all(b, has(b.tool_result))Ҧ\x04\x00\x82\xf6,$d96e0fa8-568e-420f-bdb2-3c133ef3a50f\"\xea\x05\n" +
 	"\x05Block\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x03R\x05index\x12\x1c\n" +
 	"\tsignature\x18\x02 \x01(\tR\tsignature\x12:\n" +
 	"\fextra_fields\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vextraFields\x12\x1a\n" +
 	"\athought\x18\x04 \x01(\tH\x00R\athought\x12\x14\n" +
-	"\x04text\x18\x05 \x01(\tH\x00R\x04text\x126\n" +
-	"\ttool_call\x18\x06 \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\btoolCall\x12E\n" +
-	"\x11partial_tool_call\x18\a \x01(\v2\x17.malonaz.ai.v1.ToolCallH\x00R\x0fpartialToolCall\x12<\n" +
+	"\x04text\x18\x05 \x01(\tH\x00R\x04text\x125\n" +
+	"\ttool_call\x18\x06 \x01(\v2\x16.malonaz.ai.v1.ToolUseH\x00R\btoolCall\x12D\n" +
+	"\x11partial_tool_call\x18\a \x01(\v2\x16.malonaz.ai.v1.ToolUseH\x00R\x0fpartialToolCall\x12<\n" +
 	"\vtool_result\x18\b \x01(\v2\x19.malonaz.ai.v1.ToolResultH\x00R\n" +
 	"toolResult\x12,\n" +
 	"\x05image\x18\t \x01(\v2\x14.malonaz.ai.v1.ImageH\x00R\x05image\x125\n" +
@@ -1498,7 +1498,7 @@ var file_malonaz_ai_v1_message_proto_goTypes = []any{
 	(*ModelUsage)(nil),            // 10: malonaz.ai.v1.ModelUsage
 	(*status.Status)(nil),         // 11: google.rpc.Status
 	(*structpb.Struct)(nil),       // 12: google.protobuf.Struct
-	(*ToolCall)(nil),              // 13: malonaz.ai.v1.ToolCall
+	(*ToolUse)(nil),               // 13: malonaz.ai.v1.ToolUse
 	(*ToolResult)(nil),            // 14: malonaz.ai.v1.ToolResult
 }
 var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
@@ -1512,8 +1512,8 @@ var file_malonaz_ai_v1_message_proto_depIdxs = []int32{
 	10, // 7: malonaz.ai.v1.Message.model_usage:type_name -> malonaz.ai.v1.ModelUsage
 	11, // 8: malonaz.ai.v1.Message.status:type_name -> google.rpc.Status
 	12, // 9: malonaz.ai.v1.Block.extra_fields:type_name -> google.protobuf.Struct
-	13, // 10: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolCall
-	13, // 11: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolCall
+	13, // 10: malonaz.ai.v1.Block.tool_call:type_name -> malonaz.ai.v1.ToolUse
+	13, // 11: malonaz.ai.v1.Block.partial_tool_call:type_name -> malonaz.ai.v1.ToolUse
 	14, // 12: malonaz.ai.v1.Block.tool_result:type_name -> malonaz.ai.v1.ToolResult
 	5,  // 13: malonaz.ai.v1.Block.image:type_name -> malonaz.ai.v1.Image
 	6,  // 14: malonaz.ai.v1.Block.document:type_name -> malonaz.ai.v1.Document
