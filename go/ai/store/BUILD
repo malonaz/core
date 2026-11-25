@@ -18,6 +18,7 @@ filegroup(
     srcs = [
         "chat.go",
         "decision.go",
+        "message.go",
         "stats.go",
     ],
     labels = [
@@ -31,6 +32,7 @@ go_library(
     srcs = [
         "chat.go",
         "decision.go",
+        "message.go",
         "stats.go",
         ":codegen",
     ],

@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	pb "github.com/malonaz/core/genproto/ai/ai_engine/v1"
@@ -16,7 +17,7 @@ import (
 	"github.com/malonaz/core/go/pbutil/pbjson"
 )
 
-func ParseDiscoveryToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallDiscovery, error) {
+func ParseDiscoveryToolCall(toolCall *aipb.ToolUse) (*aipb.ToolCallDiscovery, error) {
 	args := toolCall.GetArguments().AsMap()
 	toolNamesRaw, _ := args["tools"].([]any)
 	var toolNames []string
@@ -37,7 +38,7 @@ func ParseDiscoveryToolCall(toolCall *aipb.ToolCall) (*aipb.ToolCallDiscovery, e
 	}, nil
 }
 
-func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
+func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolUse, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
 	toolType, ok := aipb.Annotations.ToolType.Get(toolCall)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing annotations on tool call").Err()
@@ -65,7 +66,7 @@ func ParseToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSe
 	}
 }
 
-func parseDiscoveryToolCall(toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
+func parseDiscoveryToolCall(toolCall *aipb.ToolUse, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
 	args := toolCall.GetArguments().AsMap()
 	toolNamesRaw, _ := args["tools"].([]any)
 	var toolNames []string
@@ -96,15 +97,10 @@ func parseDiscoveryToolCall(toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (
 	}, nil
 }
 
-func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
-	toolType, _ := aipb.Annotations.ToolType.Get(toolCall)
-	methodFullName, ok := aipb.Annotations.GrpcMethod.Get(toolCall)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcMethod.Key).Err()
-	}
-	serviceFullName, ok := aipb.Annotations.GrpcService.Get(toolCall)
-	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "tool of type %q missing annotation %q", toolType, aipb.Annotations.GrpcService.Key).Err()
+func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolUse, toolSets []*aipb.ToolSet) (*pb.ParseToolCallResponse, error) {
+	toolMethod, ok, err := aipb.Annotations.Method.Get(toolCall)
+	if err != nil || !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "tool call %q missing a readable %s annotation: %v", toolCall.GetName(), aipb.Annotations.Method.Key, err).Err()
 	}
 
 	if aipb.Annotations.DiscoverableTool.Has(toolCall) {
@@ -132,8 +128,8 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 	return &pb.ParseToolCallResponse{
 		Result: &pb.ParseToolCallResponse_Rpc{
 			Rpc: &aipb.ToolCallRpc{
-				ServiceFullName: serviceFullName,
-				MethodFullName:  methodFullName,
+				ServiceFullName: toolMethod.GetService(),
+				MethodFullName:  toolMethod.GetMethod(),
 				Request:         request,
 				ReadMask:        readMask,
 			},
@@ -142,7 +138,21 @@ func parseRPCToolCall(schema *pbjson.SchemaBuilder, toolCall *aipb.ToolCall, too
 	}, nil
 }
 
-func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolCall) (*structpb.Struct, error) {
+func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolUse) (*structpb.Struct, error) {
+	dynamicMessage, err := BuildToolCallMessage(schemaBuilder, toolCall)
+	if err != nil {
+		return nil, err
+	}
+	message := &structpb.Struct{}
+	if err := pbutil.UnmarshalFromDynamic(message, dynamicMessage); err != nil {
+		return nil, status.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
+	}
+	return message, nil
+}
+
+// BuildToolCallMessage builds the message a tool call generates, named by its proto message annotation, from its
+// arguments: unwrapped from a stray envelope, normalized to proto names, restricted to the generation field mask.
+func BuildToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.ToolUse) (*dynamicpb.Message, error) {
 	messageFullName, ok := aipb.Annotations.ProtoMessage.Get(toolCall)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "missing %s annotation", aipb.Annotations.ProtoMessage.Key).Err()
@@ -176,13 +186,7 @@ func ParseToolCallMessage(schemaBuilder *pbjson.SchemaBuilder, toolCall *aipb.To
 		}
 		fieldMask.Apply(dynamicMessage)
 	}
-
-	message := &structpb.Struct{}
-	if err := pbutil.UnmarshalFromDynamic(message, dynamicMessage); err != nil {
-		return nil, status.Errorf(codes.Internal, "marshaling to struct: %v", err).Err()
-	}
-
-	return message, nil
+	return dynamicMessage, nil
 }
 
 // pruneArguments returns a copy of arguments restricted to the field mask.

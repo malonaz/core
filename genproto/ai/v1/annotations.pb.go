@@ -27,13 +27,13 @@ var File_malonaz_ai_v1_annotations_proto protoreflect.FileDescriptor
 
 const file_malonaz_ai_v1_annotations_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmalonaz/ai/v1/annotations.proto\x12\rmalonaz.ai.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xd4\n" +
-	"\x9a\x95\x15i\n" +
-	"\x1fai-engine.malonaz.com/tool-type\x12FThe kind of tool: discovery, generate-message or generate-rpc-request.\x9a\x95\x15`\n" +
-	"\"ai-engine.malonaz.com/grpc-service\x12:Fully-qualified name of the gRPC service backing the tool.\x9a\x95\x15^\n" +
-	"!ai-engine.malonaz.com/grpc-method\x129Fully-qualified name of the gRPC method backing the tool.\x9a\x95\x15f\n" +
-	"#ai-engine.malonaz.com/proto-message\x12?Fully-qualified name of the message the tool's arguments build.\x9a\x95\x15[\n" +
-	"$ai-engine.malonaz.com/no-side-effect\x123\"true\" when the tool is safe to call speculatively.\x9a\x95\x15z\n" +
+	"\x1fmalonaz/ai/v1/annotations.proto\x12\rmalonaz.ai.v1\x1a'malonaz/codegen/aip/v1/annotation.protoB\xeb\v\x9a\x95\x15i\n" +
+	"\x1fai-engine.malonaz.com/tool-type\x12FThe kind of tool: discovery, generate-message or generate-rpc-request.\x9a\x95\x15\x95\x01\n" +
+	"\x1cai-engine.malonaz.com/method\x12iOn a tool standing for a gRPC method, and the calls made to it: the method as its descriptors declare it.\x1a\n" +
+	"ToolMethod\x9a\x95\x15\x8c\x01\n" +
+	"!ai-engine.malonaz.com/grpc-method\x12gDeprecated: the method annotation's `method`. Fully-qualified name of the gRPC method backing the tool.\x9a\x95\x15\x8c\x01\n" +
+	"$ai-engine.malonaz.com/no-side-effect\x12dDeprecated: the method annotation's `read_only`. \"true\" when the tool is safe to call speculatively.\x9a\x95\x15f\n" +
+	"#ai-engine.malonaz.com/proto-message\x12?Fully-qualified name of the message the tool's arguments build.\x9a\x95\x15z\n" +
 	"+ai-engine.malonaz.com/generation-field-mask\x12KComma-separated field mask restricting which fields the model may populate.\x9a\x95\x15e\n" +
 	"#ai-engine.malonaz.com/tool-set-name\x12>The tool set the tool belongs to; routes discovery tool calls.\x9a\x95\x15\x9b\x01\n" +
 	"'ai-engine.malonaz.com/discoverable-tool\x12p\"true\" when the tool must be discovered before use, \"false\" when it belongs to a tool set but is pre-discovered.\x9a\x95\x15m\n" +

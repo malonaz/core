@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+package malonaz.ai.ai_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/ai/v1/tool.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+
+option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
+
+// Request message for AiService.CreateTool.
+message CreateToolRequest {
+  option (buf.validate.message).cel = {
+    id: "tool.title_required"
+    message: "tool.title must be set: the name a model calls the tool by"
+    expression: "this.tool.title != ''"
+  };
+
+  // The parent of the tool: empty for a platform tool, else its organization.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).child_type = "ai.malonaz.com/Tool"];
+
+  // The tool to create.
+  ai.v1.Tool tool = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The ID to use for the resource, which will become the final component of
+  // the resource name.
+  // This value should be 1-63 characters, and valid characters
+  // are /[a-z][0-9]-/.
+  string tool_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the tool it created instead of creating another.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for AiService.GetTool.
+message GetToolRequest {
+  // The resource name of the tool to retrieve.
+  // Format: tools/{tool}
+  // Format: organizations/{organization}/tools/{tool}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Tool"
+  ];
+}
+
+// Request message for AiService.BatchGetTools.
+message BatchGetToolsRequest {
+  // The parent of the tools, if they share one.
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).child_type = "ai.malonaz.com/Tool"];
+
+  // The resource names of the tools to retrieve, at most 1000.
+  repeated string names = 2 [
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 1000
+      unique: true
+      items: {
+        string: {min_len: 1}
+      }
+    },
+    (google.api.resource_reference).type = "ai.malonaz.com/Tool"
+  ];
+}
+
+// Response message for AiService.BatchGetTools.
+message BatchGetToolsResponse {
+  // The tools requested.
+  repeated ai.v1.Tool tools = 1;
+}
+
+// Request message for AiService.UpdateTool.
+message UpdateToolRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "title",
+      "description",
+      "json_schema",
+      "annotations",
+      "labels"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "tool.name_required"
+    message: "tool.name must be set"
+    expression: "has(this.tool.name)"
+  };
+
+  // The tool to update. Its `name` identifies it.
+  // Format: tools/{tool}
+  // Format: organizations/{organization}/tools/{tool}
+  ai.v1.Tool tool = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
+
+  // The fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for AiService.DeleteTool.
+message DeleteToolRequest {
+  // The resource name of the tool to delete.
+  // Format: tools/{tool}
+  // Format: organizations/{organization}/tools/{tool}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "ai.malonaz.com/Tool"
+  ];
+
+  // If true, and the tool is not found, the request succeeds and nothing happens.
+  bool allow_missing = 2;
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for AiService.ListTools.
+message ListToolsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "name",
+      "create_time",
+      "update_time"
+    ]
+    default: "name"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
+
+  // The parent of the tools: empty for the platform's, else an organization (`organizations/-` for every
+  // organization's).
+  // Format: organizations/{organization}
+  string parent = 1 [(google.api.resource_reference).child_type = "ai.malonaz.com/Tool"];
+
+  // @autogen.
+  string filter = 2;
+
+  // @autogen
+  string order_by = 3;
+
+  // Maximum number of tools to return (max 1000).
+  int32 page_size = 4 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A page token, received from a previous `ListTools` call.
+  string page_token = 5;
+}
+
+// Response message for AiService.ListTools.
+message ListToolsResponse {
+  // The tools.
+  repeated ai.v1.Tool tools = 1;
+
+  // A token to retrieve the next page, or empty when there are no more.
+  string next_page_token = 2;
+}

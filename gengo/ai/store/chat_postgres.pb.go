@@ -229,6 +229,9 @@ func (s *Store) SoftDeleteChat(ctx context.Context, organizationId, userId, chat
 				return model.ErrChatHasChildren
 			}
 		}
+		if _, err := tx.Exec(ctx, `UPDATE tool_call SET delete_time = COALESCE(delete_time, $4) WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`, organizationId, userId, chatId, deleteTime); err != nil {
+			return fmt.Errorf("cascading chat delete to tool_call: %w", err)
+		}
 		if _, err := tx.Exec(ctx, `UPDATE message SET delete_time = COALESCE(delete_time, $4) WHERE organization_id = $1 AND user_id = $2 AND chat_id = $3`, organizationId, userId, chatId, deleteTime); err != nil {
 			return fmt.Errorf("cascading chat delete to message: %w", err)
 		}

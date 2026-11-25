@@ -17,7 +17,7 @@ import (
 
 const testToolSetName = "gateway.project.v1.ProjectGateway"
 
-func newDiscoveryToolCall(t *testing.T, toolNames ...string) *aipb.ToolCall {
+func newDiscoveryToolCall(t *testing.T, toolNames ...string) *aipb.ToolUse {
 	t.Helper()
 	names := make([]any, 0, len(toolNames))
 	for _, toolName := range toolNames {
@@ -25,7 +25,7 @@ func newDiscoveryToolCall(t *testing.T, toolNames ...string) *aipb.ToolCall {
 	}
 	arguments, err := structpb.NewStruct(map[string]any{"tools": names})
 	require.NoError(t, err)
-	return &aipb.ToolCall{
+	return &aipb.ToolUse{
 		Id:        "call-1",
 		Name:      "ProjectGateway_Discover",
 		Arguments: arguments,
@@ -141,9 +141,9 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 			AiService_StreamGenerateMessageServer: stream,
 			messageAccumulator:                    ai.NewMessageAccumulator(),
 			toolNameToTool:                        map[string]*aipb.Tool{"A": discoveredTool},
-			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+			toolCallIDToToolCall:                  map[string]*aipb.ToolUse{},
 		}
-		toolCall := &aipb.ToolCall{Id: "call-1", Name: "A"}
+		toolCall := &aipb.ToolUse{Id: "call-1", Name: "A"}
 		response := &pb.StreamGenerateMessageResponse{
 			Content: &pb.StreamGenerateMessageResponse_Block{Block: ai.NewToolCallBlock(toolCall)},
 		}
@@ -160,13 +160,13 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 			AiService_StreamGenerateMessageServer: stream,
 			messageAccumulator:                    ai.NewMessageAccumulator(),
 			toolNameToTool:                        map[string]*aipb.Tool{},
-			toolCallIDToToolCall:                  map[string]*aipb.ToolCall{},
+			toolCallIDToToolCall:                  map[string]*aipb.ToolUse{},
 		}
-		partialToolCall := &aipb.ToolCall{Id: "call-1", Name: "Nope", Partial: true}
+		partialToolCall := &aipb.ToolUse{Id: "call-1", Name: "Nope", Partial: true}
 		require.NoError(t, wrapper.Send(&pb.StreamGenerateMessageResponse{
 			Content: &pb.StreamGenerateMessageResponse_Block{Block: &aipb.Block{Content: &aipb.Block_PartialToolCall{PartialToolCall: partialToolCall}}},
 		}))
-		toolCall := &aipb.ToolCall{Id: "call-1", Name: "Nope"}
+		toolCall := &aipb.ToolUse{Id: "call-1", Name: "Nope"}
 		require.NoError(t, wrapper.Send(&pb.StreamGenerateMessageResponse{
 			Content: &pb.StreamGenerateMessageResponse_Block{Block: ai.NewToolCallBlock(toolCall)},
 		}))
@@ -178,8 +178,8 @@ func TestGenerateMessageWrapperSend(t *testing.T) {
 	})
 }
 
-func newTestToolCall(toolCallID string) *aipb.ToolCall {
-	return &aipb.ToolCall{Id: toolCallID, Name: "tool_" + toolCallID}
+func newTestToolCall(toolCallID string) *aipb.ToolUse {
+	return &aipb.ToolUse{Id: toolCallID, Name: "tool_" + toolCallID}
 }
 
 func newTestToolResult(toolCallID, content string) *aipb.ToolResult {
@@ -190,7 +190,7 @@ func newTestMissingToolResult(toolCallID string) *aipb.ToolResult {
 	return ai.NewErrorToolResult("tool_"+toolCallID, toolCallID, errToolResultMissing)
 }
 
-func newTestToolCallMessage(toolCalls ...*aipb.ToolCall) *aipb.Message {
+func newTestToolCallMessage(toolCalls ...*aipb.ToolUse) *aipb.Message {
 	blocks := []*aipb.Block{ai.NewThoughtBlock("thinking")}
 	for _, toolCall := range toolCalls {
 		blocks = append(blocks, ai.NewToolCallBlock(toolCall))

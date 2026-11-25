@@ -367,7 +367,7 @@ func assertMoney(t *testing.T, message protoreflect.Message, fieldName string, w
 func TestNormalizeArguments(t *testing.T) {
 	dummyDescriptor := findMessageDescriptor(t, (&librarypb.Dummy{}).ProtoReflect().Descriptor().FullName())
 	shelfMetadataDescriptor := findMessageDescriptor(t, (&librarypb.ShelfMetadata{}).ProtoReflect().Descriptor().FullName())
-	toolCallDescriptor := findMessageDescriptor(t, (&aipb.ToolCall{}).ProtoReflect().Descriptor().FullName())
+	toolCallDescriptor := findMessageDescriptor(t, (&aipb.ToolUse{}).ProtoReflect().Descriptor().FullName())
 
 	t.Run("renames json names to proto names, recursively", func(t *testing.T) {
 		// Regression: a model emitted coverMessage for cover_message and the

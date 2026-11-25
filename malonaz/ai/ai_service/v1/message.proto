@@ -108,6 +108,9 @@ message DeleteMessageRequest {
   // If set, the request will only succeed if the current etag matches this value.
   // This ensures the client has an up-to-date value before proceeding with deletion.
   string etag = 3;
+
+  // If true, the message's tool calls are deleted with it; a message with any is refused otherwise.
+  bool force = 4;
 }
 
 // Request message for AiService.UndeleteMessage.

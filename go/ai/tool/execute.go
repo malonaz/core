@@ -40,7 +40,7 @@ func CreateExecuteTool() *aipb.Tool {
 // UnwrapExecuteToolCall rewrites an execute_tool call in place into a call to
 // the tool it names. Returns false while a partial call has not yet produced
 // the target name, in which case there is nothing to forward.
-func UnwrapExecuteToolCall(toolCall *aipb.ToolCall) bool {
+func UnwrapExecuteToolCall(toolCall *aipb.ToolUse) bool {
 	fields := toolCall.GetArguments().GetFields()
 	name := fields["name"].GetStringValue()
 	if name == "" {

@@ -10,6 +10,8 @@ filegroup(
         "stats.proto",
         "text_to_speech.proto",
         "text_to_text.proto",
+        "tool.proto",
+        "tool_call.proto",
         "voice.proto",
     ],
     visibility = ["PUBLIC"],
@@ -27,6 +29,8 @@ grpc_library(
         "stats.proto",
         "text_to_speech.proto",
         "text_to_text.proto",
+        "tool.proto",
+        "tool_call.proto",
         "voice.proto",
     ],
     additional_context = {

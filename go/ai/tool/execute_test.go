@@ -16,7 +16,7 @@ func TestUnwrapExecuteToolCall(t *testing.T) {
 			"arguments": map[string]any{"location": "Paris"},
 		})
 		require.NoError(t, err)
-		toolCall := &aipb.ToolCall{Id: "1", Name: ExecuteToolName, Arguments: arguments}
+		toolCall := &aipb.ToolUse{Id: "1", Name: ExecuteToolName, Arguments: arguments}
 
 		require.True(t, UnwrapExecuteToolCall(toolCall))
 		require.Equal(t, "get_weather", toolCall.Name)
@@ -26,7 +26,7 @@ func TestUnwrapExecuteToolCall(t *testing.T) {
 	t.Run("defaults missing arguments to an empty object", func(t *testing.T) {
 		arguments, err := structpb.NewStruct(map[string]any{"name": "ping"})
 		require.NoError(t, err)
-		toolCall := &aipb.ToolCall{Name: ExecuteToolName, Arguments: arguments}
+		toolCall := &aipb.ToolUse{Name: ExecuteToolName, Arguments: arguments}
 
 		require.True(t, UnwrapExecuteToolCall(toolCall))
 		require.Equal(t, "ping", toolCall.Name)
@@ -34,7 +34,7 @@ func TestUnwrapExecuteToolCall(t *testing.T) {
 	})
 
 	t.Run("reports a partial call whose name has not streamed yet", func(t *testing.T) {
-		toolCall := &aipb.ToolCall{Name: ExecuteToolName, Arguments: &structpb.Struct{}, Partial: true}
+		toolCall := &aipb.ToolUse{Name: ExecuteToolName, Arguments: &structpb.Struct{}, Partial: true}
 
 		require.False(t, UnwrapExecuteToolCall(toolCall))
 		require.Equal(t, ExecuteToolName, toolCall.Name)

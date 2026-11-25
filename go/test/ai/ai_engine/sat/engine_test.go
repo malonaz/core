@@ -79,7 +79,7 @@ func TestParseToolCallDiscovery(t *testing.T) {
 	arguments, err := structpb.NewStruct(map[string]any{"tools": []any{"AiEngine_CreateTool"}})
 	require.NoError(t, err)
 	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
-		ToolCall: &aipb.ToolCall{
+		ToolCall: &aipb.ToolUse{
 			Id:          "call-1",
 			Name:        toolSet.GetDiscoveryTool().GetName(),
 			Arguments:   arguments,
@@ -103,7 +103,7 @@ func TestParseToolCallDirect(t *testing.T) {
 	arguments, err := structpb.NewStruct(map[string]any{"name": "MyDiscover", "description": "My discovery tool"})
 	require.NoError(t, err)
 	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
-		ToolCall: &aipb.ToolCall{
+		ToolCall: &aipb.ToolUse{
 			Id:          "call-1",
 			Name:        tool.GetName(),
 			Arguments:   arguments,
@@ -132,7 +132,7 @@ func TestParseToolCallJSONNames(t *testing.T) {
 	})
 	require.NoError(t, err)
 	parseToolCallRequest := &aienginepb.ParseToolCallRequest{
-		ToolCall: &aipb.ToolCall{
+		ToolCall: &aipb.ToolUse{
 			Id:          "call-1",
 			Name:        tool.GetName(),
 			Arguments:   arguments,

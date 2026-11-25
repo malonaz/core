@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
@@ -387,6 +388,96 @@ func (c *Client) TextToTextStream(
 	](c.server.TextToTextStream)
 
 	return serverStreamClient(ctx, request, opts...)
+}
+
+// CreateTool creates a tool.
+func (c *Client) CreateTool(
+	ctx context.Context,
+	request *aiservicepb.CreateToolRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Tool, error) {
+	return c.server.CreateTool(ctx, request)
+}
+
+// GetTool retrieves a tool by its resource name.
+func (c *Client) GetTool(
+	ctx context.Context,
+	request *aiservicepb.GetToolRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Tool, error) {
+	return c.server.GetTool(ctx, request)
+}
+
+// BatchGetTools retrieves several tools.
+func (c *Client) BatchGetTools(
+	ctx context.Context,
+	request *aiservicepb.BatchGetToolsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetToolsResponse, error) {
+	return c.server.BatchGetTools(ctx, request)
+}
+
+// UpdateTool updates a tool.
+func (c *Client) UpdateTool(
+	ctx context.Context,
+	request *aiservicepb.UpdateToolRequest,
+	opts ...grpc.CallOption,
+) (*aipb.Tool, error) {
+	return c.server.UpdateTool(ctx, request)
+}
+
+// DeleteTool deletes a tool.
+func (c *Client) DeleteTool(
+	ctx context.Context,
+	request *aiservicepb.DeleteToolRequest,
+	opts ...grpc.CallOption,
+) (*emptypb.Empty, error) {
+	return c.server.DeleteTool(ctx, request)
+}
+
+// ListTools lists tools.
+func (c *Client) ListTools(
+	ctx context.Context,
+	request *aiservicepb.ListToolsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListToolsResponse, error) {
+	return c.server.ListTools(ctx, request)
+}
+
+// GetToolCall retrieves a tool call by its resource name.
+func (c *Client) GetToolCall(
+	ctx context.Context,
+	request *aiservicepb.GetToolCallRequest,
+	opts ...grpc.CallOption,
+) (*aipb.ToolCall, error) {
+	return c.server.GetToolCall(ctx, request)
+}
+
+// BatchGetToolCalls retrieves several tool calls.
+func (c *Client) BatchGetToolCalls(
+	ctx context.Context,
+	request *aiservicepb.BatchGetToolCallsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.BatchGetToolCallsResponse, error) {
+	return c.server.BatchGetToolCalls(ctx, request)
+}
+
+// UpdateToolCall updates a tool call's labels.
+func (c *Client) UpdateToolCall(
+	ctx context.Context,
+	request *aiservicepb.UpdateToolCallRequest,
+	opts ...grpc.CallOption,
+) (*aipb.ToolCall, error) {
+	return c.server.UpdateToolCall(ctx, request)
+}
+
+// ListToolCalls lists tool calls.
+func (c *Client) ListToolCalls(
+	ctx context.Context,
+	request *aiservicepb.ListToolCallsRequest,
+	opts ...grpc.CallOption,
+) (*aiservicepb.ListToolCallsResponse, error) {
+	return c.server.ListToolCalls(ctx, request)
 }
 
 // Verify interface compliance at compile time.

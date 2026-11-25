@@ -392,6 +392,7 @@ type DeleteMessageRequest struct {
 	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_AllowMissing bool                   `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3"`
 	xxx_hidden_Etag         string                 `protobuf:"bytes,3,opt,name=etag,proto3"`
+	xxx_hidden_Force        bool                   `protobuf:"varint,4,opt,name=force,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -442,6 +443,13 @@ func (x *DeleteMessageRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteMessageRequest) GetForce() bool {
+	if x != nil {
+		return x.xxx_hidden_Force
+	}
+	return false
+}
+
 func (x *DeleteMessageRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -452,6 +460,10 @@ func (x *DeleteMessageRequest) SetAllowMissing(v bool) {
 
 func (x *DeleteMessageRequest) SetEtag(v string) {
 	x.xxx_hidden_Etag = v
+}
+
+func (x *DeleteMessageRequest) SetForce(v bool) {
+	x.xxx_hidden_Force = v
 }
 
 type DeleteMessageRequest_builder struct {
@@ -466,6 +478,8 @@ type DeleteMessageRequest_builder struct {
 	// If set, the request will only succeed if the current etag matches this value.
 	// This ensures the client has an up-to-date value before proceeding with deletion.
 	Etag string
+	// If true, the message's tool calls are deleted with it; a message with any is refused otherwise.
+	Force bool
 }
 
 func (b0 DeleteMessageRequest_builder) Build() *DeleteMessageRequest {
@@ -475,6 +489,7 @@ func (b0 DeleteMessageRequest_builder) Build() *DeleteMessageRequest {
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_AllowMissing = b.AllowMissing
 	x.xxx_hidden_Etag = b.Etag
+	x.xxx_hidden_Force = b.Force
 	return m0
 }
 
@@ -1881,12 +1896,13 @@ const file_malonaz_ai_ai_service_v1_message_proto_rawDesc = "" +
 	"\x06labels\n" +
 	"\vannotations\n" +
 	"\x06blocks\n" +
-	"\x06status\"\x89\x01\n" +
+	"\x06status\"\x9f\x01\n" +
 	"\x14DeleteMessageRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
 	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"f\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\x12\x14\n" +
+	"\x05force\x18\x04 \x01(\bR\x05force\"f\n" +
 	"\x16UndeleteMessageRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x18\n" +
 	"\x16ai.malonaz.com/Message\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +

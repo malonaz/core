@@ -41,7 +41,7 @@ const (
 //     descriptor, so a model can emit arguments that map back onto typed
 //     protos.
 //   - Tool call parsing: validate a model-emitted
-//     [ToolCall][malonaz.ai.v1.ToolCall] against the schema of the tool that
+//     [ToolUse][malonaz.ai.v1.ToolUse] against the schema of the tool that
 //     created it, returning the parsed arguments as a typed result.
 //   - Tool discovery: bundle many tools behind a single discovery tool so
 //     large tool surfaces don't bloat the model's context. The model first
@@ -174,7 +174,7 @@ func (c *aiEngineClient) CreateServiceToolSet(ctx context.Context, in *CreateSer
 //     descriptor, so a model can emit arguments that map back onto typed
 //     protos.
 //   - Tool call parsing: validate a model-emitted
-//     [ToolCall][malonaz.ai.v1.ToolCall] against the schema of the tool that
+//     [ToolUse][malonaz.ai.v1.ToolUse] against the schema of the tool that
 //     created it, returning the parsed arguments as a typed result.
 //   - Tool discovery: bundle many tools behind a single discovery tool so
 //     large tool surfaces don't bloat the model's context. The model first

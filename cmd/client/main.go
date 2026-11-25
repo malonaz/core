@@ -237,7 +237,7 @@ type blockAccumulator struct {
 	signature string
 	text      strings.Builder
 	thought   strings.Builder
-	toolCall  *aipb.ToolCall
+	toolCall  *aipb.ToolUse
 	image     *aipb.Image
 }
 
@@ -451,7 +451,7 @@ func buildToolSets() []*aipb.ToolSet {
 
 // toolResults answers the completed tool calls of a turn: discovery calls
 // carry a server-computed result, everything else gets a canned answer.
-func toolResults(toolCalls []*aipb.ToolCall) []*aipb.Block {
+func toolResults(toolCalls []*aipb.ToolUse) []*aipb.Block {
 	blocks := make([]*aipb.Block, 0, len(toolCalls))
 	for _, tc := range toolCalls {
 		result := tc.Result
@@ -491,7 +491,7 @@ func runStream(ctx context.Context, client aiservicepb.AiServiceClient) error {
 		}
 
 		imageIndex := 0
-		var toolCalls []*aipb.ToolCall
+		var toolCalls []*aipb.ToolUse
 		for {
 			response, err := stream.Recv()
 			if err == io.EOF {

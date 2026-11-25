@@ -137,8 +137,8 @@ func partialArgChunk(partialArg string) string {
 const stopChunk = `{"candidates":[{"content":{"role":"model","parts":[{"text":""}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":10,"candidatesTokenCount":5}}`
 
 // toolCalls returns the complete tool calls among the streamed responses.
-func toolCalls(responses []*aiservicepb.StreamGenerateMessageResponse) []*aipb.ToolCall {
-	var toolCalls []*aipb.ToolCall
+func toolCalls(responses []*aiservicepb.StreamGenerateMessageResponse) []*aipb.ToolUse {
+	var toolCalls []*aipb.ToolUse
 	for _, response := range responses {
 		if toolCall := response.GetBlock().GetToolCall(); toolCall != nil {
 			toolCalls = append(toolCalls, toolCall)
