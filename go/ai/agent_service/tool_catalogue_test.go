@@ -68,7 +68,7 @@ func TestToolCatalogue_SetsListedByNameEachCarryingItsError(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{"toolSets/genui", healthToolSet, "toolSets/" + workspaceService, "toolSets/" + unreachable}, toolSetNames(response.ToolSets))
 	// Comments travel with the reflection a descriptor set built with its source info serves.
-	require.Contains(t, response.ToolSets[2].Description, "This API runs commands and edits files in one workspace")
+	require.Contains(t, response.ToolSets[2].Description, "This API runs commands in one workspace")
 	// An unreachable target is its set's error, not the list's.
 	require.Nil(t, response.ToolSets[1].Error)
 	require.Equal(t, int32(codes.Unavailable), response.ToolSets[3].Error.GetCode())
@@ -110,9 +110,8 @@ func TestToolCatalogue_ToolsListedByNameWithTheirFacts(t *testing.T) {
 	for _, tool := range response.Tools {
 		nameToTool[tool.Name] = tool
 	}
-	readFiles, exec := nameToTool["toolSets/"+workspaceService+"/tools/ReadFiles"], nameToTool["toolSets/"+workspaceService+"/tools/Exec"]
-	require.Contains(t, readFiles.Description, "Read one or more text files.")
-	require.True(t, readFiles.ReadOnly)
+	exec := nameToTool["toolSets/"+workspaceService+"/tools/Exec"]
+	require.Contains(t, exec.Description, "Run a bash command in the workspace")
 	require.False(t, exec.ReadOnly)
 	require.False(t, exec.ResolvedByClient)
 

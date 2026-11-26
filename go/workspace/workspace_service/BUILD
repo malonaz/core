@@ -14,11 +14,8 @@ onyx_service_src(
 go_library(
     name = "workspace_service",
     srcs = [
-        "edit_file.go",
         "exec.go",
-        "read_files.go",
         "runtime.go",
-        "write_file.go",
         ":service.tmpl.go",
     ],
     visibility = ["//..."],
@@ -32,11 +29,8 @@ go_library(
 go_test(
     name = "test",
     srcs = [
-        "edit_file_test.go",
         "exec_test.go",
-        "read_files_test.go",
         "runtime_test.go",
-        "write_file_test.go",
     ],
     deps = [
         ":workspace_service",

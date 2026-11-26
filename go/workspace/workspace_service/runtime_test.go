@@ -23,13 +23,6 @@ func writeTestFile(t *testing.T, path, content string) {
 	require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
 }
 
-func readTestFile(t *testing.T, path string) string {
-	t.Helper()
-	content, err := os.ReadFile(path)
-	require.NoError(t, err)
-	return string(content)
-}
-
 func TestNewResolvesDirectory(t *testing.T) {
 	directory := t.TempDir()
 	t.Chdir(directory)

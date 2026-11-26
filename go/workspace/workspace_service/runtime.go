@@ -1,4 +1,4 @@
-// Package workspace_service runs commands and edits files in one directory: the workspace.
+// Package workspace_service runs commands in one directory: the workspace.
 package workspace_service
 
 import (
