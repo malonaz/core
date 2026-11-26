@@ -28,7 +28,7 @@ from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xce\x06\n\nFilesystem\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xca\x01\n\x06labels\x18\x05 \x03(\x0b\x32,.malonaz.workspace.v1.Filesystem.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12\x42\n\x04kind\x18\x06 \x01(\x0e\x32%.malonaz.workspace.v1.Filesystem.KindB\r\xe0\x41\x05\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\x1c\n\x0bquota_bytes\x18\x07 \x01(\x03\x42\x07\xbaH\x04\"\x02(\x00\x12\x17\n\nused_bytes\x18\x08 \x01(\x03\x42\x03\xe0\x41\x03\x12\x37\n\x06writer\x18\t \x01(\tB\'\xe0\x41\x03\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\x12?\n\x0flatest_snapshot\x18\n \x01(\tB&\xe0\x41\x03\xfa\x41 \n\x1eworkspace.malonaz.com/Snapshot\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"=\n\x04Kind\x12\x14\n\x10KIND_UNSPECIFIED\x10\x00\x12\x0e\n\nKIND_LOCAL\x10\x01\x12\x0f\n\x0bKIND_SHARED\x10\x02:\x82\x01\xea\x41\x7f\n workspace.malonaz.com/Filesystem\x12\x42organizations/{organization}/users/{user}/filesystems/{filesystem}*\x0b\x66ilesystems2\nfilesystemB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd1\x06\n\nFilesystem\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xca\x01\n\x06labels\x18\x05 \x03(\x0b\x32,.malonaz.workspace.v1.Filesystem.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12\x42\n\x04kind\x18\x06 \x01(\x0e\x32%.malonaz.workspace.v1.Filesystem.KindB\r\xe0\x41\x05\xbaH\x07\x82\x01\x04\x10\x01 \x00\x12\x1c\n\x0bquota_bytes\x18\x07 \x01(\x03\x42\x07\xbaH\x04\"\x02(\x00\x12\x17\n\nused_bytes\x18\x08 \x01(\x03\x42\x03\xe0\x41\x03\x12:\n\x0b\x61ttachments\x18\t \x03(\x0b\x32 .malonaz.workspace.v1.AttachmentB\x03\xe0\x41\x03\x12?\n\x0flatest_snapshot\x18\n \x01(\tB&\xe0\x41\x03\xfa\x41 \n\x1eworkspace.malonaz.com/Snapshot\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"=\n\x04Kind\x12\x14\n\x10KIND_UNSPECIFIED\x10\x00\x12\x0e\n\nKIND_LOCAL\x10\x01\x12\x0f\n\x0bKIND_SHARED\x10\x02:\x82\x01\xea\x41\x7f\n workspace.malonaz.com/Filesystem\x12\x42organizations/{organization}/users/{user}/filesystems/{filesystem}*\x0b\x66ilesystems2\nfilesystem\"^\n\nAttachment\x12=\n\tworkspace\x18\x01 \x01(\tB*\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x11\n\tread_only\x18\x02 \x01(\x08\x42/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -52,16 +52,20 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_FILESYSTEM'].fields_by_name['quota_bytes']._serialized_options = b'\272H\004\"\002(\000'
   _globals['_FILESYSTEM'].fields_by_name['used_bytes']._loaded_options = None
   _globals['_FILESYSTEM'].fields_by_name['used_bytes']._serialized_options = b'\340A\003'
-  _globals['_FILESYSTEM'].fields_by_name['writer']._loaded_options = None
-  _globals['_FILESYSTEM'].fields_by_name['writer']._serialized_options = b'\340A\003\372A!\n\037workspace.malonaz.com/Workspace'
+  _globals['_FILESYSTEM'].fields_by_name['attachments']._loaded_options = None
+  _globals['_FILESYSTEM'].fields_by_name['attachments']._serialized_options = b'\340A\003'
   _globals['_FILESYSTEM'].fields_by_name['latest_snapshot']._loaded_options = None
   _globals['_FILESYSTEM'].fields_by_name['latest_snapshot']._serialized_options = b'\340A\003\372A \n\036workspace.malonaz.com/Snapshot'
   _globals['_FILESYSTEM']._loaded_options = None
   _globals['_FILESYSTEM']._serialized_options = b'\352A\177\n workspace.malonaz.com/Filesystem\022Borganizations/{organization}/users/{user}/filesystems/{filesystem}*\013filesystems2\nfilesystem'
+  _globals['_ATTACHMENT'].fields_by_name['workspace']._loaded_options = None
+  _globals['_ATTACHMENT'].fields_by_name['workspace']._serialized_options = b'\372A!\n\037workspace.malonaz.com/Workspace\272H\003\310\001\001'
   _globals['_FILESYSTEM']._serialized_start=186
-  _globals['_FILESYSTEM']._serialized_end=1032
-  _globals['_FILESYSTEM_LABELSENTRY']._serialized_start=791
-  _globals['_FILESYSTEM_LABELSENTRY']._serialized_end=836
-  _globals['_FILESYSTEM_KIND']._serialized_start=838
-  _globals['_FILESYSTEM_KIND']._serialized_end=899
+  _globals['_FILESYSTEM']._serialized_end=1035
+  _globals['_FILESYSTEM_LABELSENTRY']._serialized_start=794
+  _globals['_FILESYSTEM_LABELSENTRY']._serialized_end=839
+  _globals['_FILESYSTEM_KIND']._serialized_start=841
+  _globals['_FILESYSTEM_KIND']._serialized_end=902
+  _globals['_ATTACHMENT']._serialized_start=1037
+  _globals['_ATTACHMENT']._serialized_end=1131
 # @@protoc_insertion_point(module_scope)

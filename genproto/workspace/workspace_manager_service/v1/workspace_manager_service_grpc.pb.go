@@ -64,8 +64,8 @@ const (
 // waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceClient interface {
 	// Create a workspace and start its pod. Returns at once, STARTING; the first
-	// Exec waits for READY. Claims each LOCAL read-write mount's writer,
-	// FAILED_PRECONDITION if another workspace holds it.
+	// Exec waits for READY. Attaches each mount's filesystem,
+	// FAILED_PRECONDITION if a LOCAL one it would write has another writer.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateWorkspace(ctx context.Context, in *CreateWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
@@ -77,13 +77,15 @@ type WorkspaceManagerServiceClient interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
-	// Update a workspace's mounts or labels. A mounts change recreates a running
-	// pod, with the secrets of its last start: mounted files stay, `/tmp` goes.
+	// Update a workspace's mounts or labels. A mounts change attaches the
+	// filesystems added, detaches those dropped and recreates a running pod:
+	// mounted files stay, `/tmp` and the secrets go, so the caller sets them
+	// again with SetWorkspaceSecrets.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateWorkspace(ctx context.Context, in *UpdateWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
-	// Delete a workspace: its pod, and its claim on each LOCAL filesystem's
-	// writer. The filesystems and their files are untouched.
+	// Delete a workspace: its pod, and its attachment to each filesystem it
+	// mounts. The filesystems and their files are untouched.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
@@ -241,8 +243,8 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 // waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceServer interface {
 	// Create a workspace and start its pod. Returns at once, STARTING; the first
-	// Exec waits for READY. Claims each LOCAL read-write mount's writer,
-	// FAILED_PRECONDITION if another workspace holds it.
+	// Exec waits for READY. Attaches each mount's filesystem,
+	// FAILED_PRECONDITION if a LOCAL one it would write has another writer.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateWorkspace(context.Context, *CreateWorkspaceRequest) (*v1.Workspace, error)
@@ -254,13 +256,15 @@ type WorkspaceManagerServiceServer interface {
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
-	// Update a workspace's mounts or labels. A mounts change recreates a running
-	// pod, with the secrets of its last start: mounted files stay, `/tmp` goes.
+	// Update a workspace's mounts or labels. A mounts change attaches the
+	// filesystems added, detaches those dropped and recreates a running pod:
+	// mounted files stay, `/tmp` and the secrets go, so the caller sets them
+	// again with SetWorkspaceSecrets.
 	//
 	// See: https://google.aip.dev/134 (Standard methods: Update).
 	UpdateWorkspace(context.Context, *UpdateWorkspaceRequest) (*v1.Workspace, error)
-	// Delete a workspace: its pod, and its claim on each LOCAL filesystem's
-	// writer. The filesystems and their files are untouched.
+	// Delete a workspace: its pod, and its attachment to each filesystem it
+	// mounts. The filesystems and their files are untouched.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*v1.Workspace, error)

@@ -490,12 +490,14 @@ func (b0 DeleteFilesystemRequest_builder) Build() *DeleteFilesystemRequest {
 // Request message for FilesystemService.AttachFilesystem.
 type AttachFilesystemRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The LOCAL filesystem whose writer to claim.
+	// The filesystem to attach.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The workspace claiming it.
+	// The workspace mounting it.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
-	Workspace     string `protobuf:"bytes,2,opt,name=workspace,proto3" json:"workspace,omitempty"`
+	Workspace string `protobuf:"bytes,2,opt,name=workspace,proto3" json:"workspace,omitempty"`
+	// If true, the workspace mounts it read-only.
+	ReadOnly      bool `protobuf:"varint,3,opt,name=read_only,json=readOnly,proto3" json:"read_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -539,6 +541,13 @@ func (x *AttachFilesystemRequest) GetWorkspace() string {
 	return ""
 }
 
+func (x *AttachFilesystemRequest) GetReadOnly() bool {
+	if x != nil {
+		return x.ReadOnly
+	}
+	return false
+}
+
 func (x *AttachFilesystemRequest) SetName(v string) {
 	x.Name = v
 }
@@ -547,15 +556,21 @@ func (x *AttachFilesystemRequest) SetWorkspace(v string) {
 	x.Workspace = v
 }
 
+func (x *AttachFilesystemRequest) SetReadOnly(v bool) {
+	x.ReadOnly = v
+}
+
 type AttachFilesystemRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The LOCAL filesystem whose writer to claim.
+	// The filesystem to attach.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Name string
-	// The workspace claiming it.
+	// The workspace mounting it.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Workspace string
+	// If true, the workspace mounts it read-only.
+	ReadOnly bool
 }
 
 func (b0 AttachFilesystemRequest_builder) Build() *AttachFilesystemRequest {
@@ -564,16 +579,17 @@ func (b0 AttachFilesystemRequest_builder) Build() *AttachFilesystemRequest {
 	_, _ = b, x
 	x.Name = b.Name
 	x.Workspace = b.Workspace
+	x.ReadOnly = b.ReadOnly
 	return m0
 }
 
 // Request message for FilesystemService.DetachFilesystem.
 type DetachFilesystemRequest struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The LOCAL filesystem whose writer to release.
+	// The filesystem to detach.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The workspace releasing it.
+	// The workspace no longer mounting it.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Workspace     string `protobuf:"bytes,2,opt,name=workspace,proto3" json:"workspace,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -630,10 +646,10 @@ func (x *DetachFilesystemRequest) SetWorkspace(v string) {
 type DetachFilesystemRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The LOCAL filesystem whose writer to release.
+	// The filesystem to detach.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Name string
-	// The workspace releasing it.
+	// The workspace no longer mounting it.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Workspace string
 }
@@ -678,12 +694,13 @@ const file_malonaz_workspace_filesystem_service_v1_filesystem_proto_rawDesc = ""
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xaa\x01\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xc7\x01\n" +
 	"\x17AttachFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12K\n" +
 	"\tworkspace\x18\x02 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\"\xaa\x01\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12\x1b\n" +
+	"\tread_only\x18\x03 \x01(\bR\breadOnly\"\xaa\x01\n" +
 	"\x17DetachFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12K\n" +

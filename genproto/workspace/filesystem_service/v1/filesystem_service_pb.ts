@@ -29,18 +29,20 @@ export const file_malonaz_workspace_filesystem_service_v1_filesystem_service: Ge
  * # Resource model
  *
  * - [Filesystem][malonaz.workspace.v1.Filesystem]: a directory tree, LOCAL
- *   (node disk, snapshotted, one writer) or SHARED (network, many writers).
+ *   (node disk, snapshotted, one writing workspace) or SHARED (network,
+ *   many).
  *   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
  * - [Snapshot][malonaz.workspace.v1.Snapshot]: a LOCAL filesystem's state at
  *   a turn's end, and what changed since the one before.
  *   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
  *
- * # Writers
+ * # Attachments
  *
- * A LOCAL filesystem has at most one read-write mount, its `writer`: the
- * WorkspaceManagerService claims it with AttachFilesystem before mounting it
- * and releases it with DetachFilesystem. Read-only and SHARED mounts claim
- * nothing.
+ * The WorkspaceManagerService attaches a filesystem to each workspace mounting
+ * it, with AttachFilesystem before the mount and DetachFilesystem once the
+ * workspace drops it, so a filesystem knows every workspace mounting it. A
+ * SHARED filesystem takes any number of attachments; a LOCAL one any number of
+ * read-only ones but at most one that writes.
  *
  * @generated from service malonaz.workspace.filesystem_service.v1.FilesystemService
  */
@@ -83,7 +85,7 @@ export const FilesystemService: GenService<{
   },
   /**
    * Delete a filesystem, its files and its history. FAILED_PRECONDITION while
-   * a workspace mounts it.
+   * it has attachments.
    *
    * See: https://google.aip.dev/135 (Standard methods: Delete).
    *
@@ -95,8 +97,9 @@ export const FilesystemService: GenService<{
     output: typeof FilesystemSchema;
   },
   /**
-   * Claim a LOCAL filesystem's writer for a workspace. Idempotent for the
-   * workspace holding it; FAILED_PRECONDITION if another does.
+   * Attach a filesystem to a workspace mounting it. Attaching it again to the
+   * same workspace updates `read_only`. FAILED_PRECONDITION for a read-write
+   * attachment of a LOCAL filesystem another workspace writes.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -108,8 +111,8 @@ export const FilesystemService: GenService<{
     output: typeof FilesystemSchema;
   },
   /**
-   * Release a LOCAL filesystem's writer. Idempotent: a filesystem the
-   * workspace does not hold is returned as is.
+   * Detach a filesystem from a workspace. Idempotent: a filesystem not
+   * attached to the workspace is returned as is.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *

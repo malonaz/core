@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/filesystem_service/v1/filesystem.proto.
  */
 export const file_malonaz_workspace_filesystem_service_v1_filesystem: GenFile = /*@__PURE__*/
-  fileDesc("CjhtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvZmlsZXN5c3RlbS5wcm90bxInbWFsb25hei53b3Jrc3BhY2UuZmlsZXN5c3RlbV9zZXJ2aWNlLnYxIvABChdDcmVhdGVGaWxlc3lzdGVtUmVxdWVzdBI4CgZwYXJlbnQYASABKAlCKOBBAvpBHAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXK6SAPIAQESPAoKZmlsZXN5c3RlbRgCIAEoCzIgLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW1CBrpIA8gBARI8Cg1maWxlc3lzdGVtX2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSokyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIlQKFEdldEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQEijQEKFkxpc3RGaWxlc3lzdGVtc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJOgaC8y0CCGQiaQoXTGlzdEZpbGVzeXN0ZW1zUmVzcG9uc2USNQoLZmlsZXN5c3RlbXMYASADKAsyIC5tYWxvbmF6LndvcmtzcGFjZS52MS5GaWxlc3lzdGVtEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChdEZWxldGVGaWxlc3lzdGVtUmVxdWVzdBI8CgRuYW1lGAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSKZAQoXQXR0YWNoRmlsZXN5c3RlbVJlcXVlc3QSPAoEbmFtZRgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARJACgl3b3Jrc3BhY2UYAiABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBASKZAQoXRGV0YWNoRmlsZXN5c3RlbVJlcXVlc3QSPAoEbmFtZRgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARJACgl3b3Jrc3BhY2UYAiABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBAUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvZmlsZXN5c3RlbV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
+  fileDesc("CjhtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvZmlsZXN5c3RlbS5wcm90bxInbWFsb25hei53b3Jrc3BhY2UuZmlsZXN5c3RlbV9zZXJ2aWNlLnYxIvABChdDcmVhdGVGaWxlc3lzdGVtUmVxdWVzdBI4CgZwYXJlbnQYASABKAlCKOBBAvpBHAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXK6SAPIAQESPAoKZmlsZXN5c3RlbRgCIAEoCzIgLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW1CBrpIA8gBARI8Cg1maWxlc3lzdGVtX2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSokyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIlQKFEdldEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQEijQEKFkxpc3RGaWxlc3lzdGVtc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJOgaC8y0CCGQiaQoXTGlzdEZpbGVzeXN0ZW1zUmVzcG9uc2USNQoLZmlsZXN5c3RlbXMYASADKAsyIC5tYWxvbmF6LndvcmtzcGFjZS52MS5GaWxlc3lzdGVtEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChdEZWxldGVGaWxlc3lzdGVtUmVxdWVzdBI8CgRuYW1lGAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSKsAQoXQXR0YWNoRmlsZXN5c3RlbVJlcXVlc3QSPAoEbmFtZRgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARJACgl3b3Jrc3BhY2UYAiABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIRCglyZWFkX29ubHkYAyABKAgimQEKF0RldGFjaEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESQAoJd29ya3NwYWNlGAIgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQFCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL2ZpbGVzeXN0ZW1fc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
 
 /**
  * Request message for FilesystemService.CreateFilesystem.
@@ -234,7 +234,26 @@ export type ListFilesystemsResponse = Message<"malonaz.workspace.filesystem_serv
   nextPageToken: string;
 };
 
-export type ListFilesystemsResponseValid = ListFilesystemsResponse;
+/**
+ * Response message for FilesystemService.ListFilesystems.
+ *
+ * @generated from message malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse
+ */
+export type ListFilesystemsResponseValid = Message<"malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse"> & {
+  /**
+   * The filesystems, ordered by name.
+   *
+   * @generated from field: repeated malonaz.workspace.v1.Filesystem filesystems = 1;
+   */
+  filesystems: FilesystemValid[];
+
+  /**
+   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   *
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+};
 
 /**
  * Describes the message malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.
@@ -315,7 +334,7 @@ export const DeleteFilesystemRequestSchema: GenMessage<DeleteFilesystemRequest, 
  */
 export type AttachFilesystemRequest = Message<"malonaz.workspace.filesystem_service.v1.AttachFilesystemRequest"> & {
   /**
-   * The LOCAL filesystem whose writer to claim.
+   * The filesystem to attach.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string name = 1;
@@ -323,12 +342,19 @@ export type AttachFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
   name: string;
 
   /**
-   * The workspace claiming it.
+   * The workspace mounting it.
    * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
    *
    * @generated from field: string workspace = 2;
    */
   workspace: string;
+
+  /**
+   * If true, the workspace mounts it read-only.
+   *
+   * @generated from field: bool read_only = 3;
+   */
+  readOnly: boolean;
 };
 
 /**
@@ -338,7 +364,7 @@ export type AttachFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
  */
 export type AttachFilesystemRequestValid = Message<"malonaz.workspace.filesystem_service.v1.AttachFilesystemRequest"> & {
   /**
-   * The LOCAL filesystem whose writer to claim.
+   * The filesystem to attach.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string name = 1;
@@ -346,12 +372,19 @@ export type AttachFilesystemRequestValid = Message<"malonaz.workspace.filesystem
   name: string;
 
   /**
-   * The workspace claiming it.
+   * The workspace mounting it.
    * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
    *
    * @generated from field: string workspace = 2;
    */
   workspace: string;
+
+  /**
+   * If true, the workspace mounts it read-only.
+   *
+   * @generated from field: bool read_only = 3;
+   */
+  readOnly: boolean;
 };
 
 /**
@@ -368,7 +401,7 @@ export const AttachFilesystemRequestSchema: GenMessage<AttachFilesystemRequest, 
  */
 export type DetachFilesystemRequest = Message<"malonaz.workspace.filesystem_service.v1.DetachFilesystemRequest"> & {
   /**
-   * The LOCAL filesystem whose writer to release.
+   * The filesystem to detach.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string name = 1;
@@ -376,7 +409,7 @@ export type DetachFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
   name: string;
 
   /**
-   * The workspace releasing it.
+   * The workspace no longer mounting it.
    * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
    *
    * @generated from field: string workspace = 2;
@@ -391,7 +424,7 @@ export type DetachFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
  */
 export type DetachFilesystemRequestValid = Message<"malonaz.workspace.filesystem_service.v1.DetachFilesystemRequest"> & {
   /**
-   * The LOCAL filesystem whose writer to release.
+   * The filesystem to detach.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string name = 1;
@@ -399,7 +432,7 @@ export type DetachFilesystemRequestValid = Message<"malonaz.workspace.filesystem
   name: string;
 
   /**
-   * The workspace releasing it.
+   * The workspace no longer mounting it.
    * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
    *
    * @generated from field: string workspace = 2;

@@ -108,7 +108,7 @@ message DeleteFilesystemRequest {
 
 // Request message for FilesystemService.AttachFilesystem.
 message AttachFilesystemRequest {
-  // The LOCAL filesystem whose writer to claim.
+  // The filesystem to attach.
   // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
   string name = 1 [
     (buf.validate.field).required = true,
@@ -116,18 +116,21 @@ message AttachFilesystemRequest {
     (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
   ];
 
-  // The workspace claiming it.
+  // The workspace mounting it.
   // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
   string workspace = 2 [
     (buf.validate.field).required = true,
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
   ];
+
+  // If true, the workspace mounts it read-only.
+  bool read_only = 3;
 }
 
 // Request message for FilesystemService.DetachFilesystem.
 message DetachFilesystemRequest {
-  // The LOCAL filesystem whose writer to release.
+  // The filesystem to detach.
   // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
   string name = 1 [
     (buf.validate.field).required = true,
@@ -135,7 +138,7 @@ message DetachFilesystemRequest {
     (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
   ];
 
-  // The workspace releasing it.
+  // The workspace no longer mounting it.
   // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
   string workspace = 2 [
     (buf.validate.field).required = true,

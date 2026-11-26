@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/v1/filesystem.proto.
  */
 export const file_malonaz_workspace_v1_filesystem: GenFile = /*@__PURE__*/
-  fileDesc("CiVtYWxvbmF6L3dvcmtzcGFjZS92MS9maWxlc3lzdGVtLnByb3RvEhRtYWxvbmF6LndvcmtzcGFjZS52MSLOBgoKRmlsZXN5c3RlbRIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSDAoEZXRhZxgEIAEoCRLKAQoGbGFiZWxzGAUgAygLMiwubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSQgoEa2luZBgGIAEoDjIlLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW0uS2luZEIN4EEFukgHggEEEAEgABIcCgtxdW90YV9ieXRlcxgHIAEoA0IHukgEIgIoABIXCgp1c2VkX2J5dGVzGAggASgDQgPgQQMSNwoGd3JpdGVyGAkgASgJQifgQQP6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2USPwoPbGF0ZXN0X3NuYXBzaG90GAogASgJQibgQQP6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIj0KBEtpbmQSFAoQS0lORF9VTlNQRUNJRklFRBAAEg4KCktJTkRfTE9DQUwQARIPCgtLSU5EX1NIQVJFRBACOoIB6kF/CiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbRJCb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vZmlsZXN5c3RlbXMve2ZpbGVzeXN0ZW19KgtmaWxlc3lzdGVtczIKZmlsZXN5c3RlbUIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiVtYWxvbmF6L3dvcmtzcGFjZS92MS9maWxlc3lzdGVtLnByb3RvEhRtYWxvbmF6LndvcmtzcGFjZS52MSLRBgoKRmlsZXN5c3RlbRIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSDAoEZXRhZxgEIAEoCRLKAQoGbGFiZWxzGAUgAygLMiwubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSQgoEa2luZBgGIAEoDjIlLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW0uS2luZEIN4EEFukgHggEEEAEgABIcCgtxdW90YV9ieXRlcxgHIAEoA0IHukgEIgIoABIXCgp1c2VkX2J5dGVzGAggASgDQgPgQQMSOgoLYXR0YWNobWVudHMYCSADKAsyIC5tYWxvbmF6LndvcmtzcGFjZS52MS5BdHRhY2htZW50QgPgQQMSPwoPbGF0ZXN0X3NuYXBzaG90GAogASgJQibgQQP6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIj0KBEtpbmQSFAoQS0lORF9VTlNQRUNJRklFRBAAEg4KCktJTkRfTE9DQUwQARIPCgtLSU5EX1NIQVJFRBACOoIB6kF/CiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbRJCb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vZmlsZXN5c3RlbXMve2ZpbGVzeXN0ZW19KgtmaWxlc3lzdGVtczIKZmlsZXN5c3RlbSJeCgpBdHRhY2htZW50Ej0KCXdvcmtzcGFjZRgBIAEoCUIq+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEhEKCXJlYWRfb25seRgCIAEoCEIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
  * A Filesystem is a directory tree workspaces mount: it owns the files and
@@ -85,13 +85,12 @@ export type Filesystem = Message<"malonaz.workspace.v1.Filesystem"> & {
   usedBytes: bigint;
 
   /**
-   * The workspace holding the filesystem's one read-write mount. LOCAL only;
-   * empty while no workspace writes it.
-   * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+   * The workspaces mounting the filesystem. A LOCAL filesystem has at most
+   * one that is not read-only.
    *
-   * @generated from field: string writer = 9;
+   * @generated from field: repeated malonaz.workspace.v1.Attachment attachments = 9;
    */
-  writer: string;
+  attachments: Attachment[];
 
   /**
    * The filesystem's latest snapshot. LOCAL only; empty until the first.
@@ -102,7 +101,89 @@ export type Filesystem = Message<"malonaz.workspace.v1.Filesystem"> & {
   latestSnapshot: string;
 };
 
-export type FilesystemValid = Filesystem;
+/**
+ * A Filesystem is a directory tree workspaces mount: it owns the files and
+ * their history, and outlives every workspace mounting it. Stored as a
+ * Kubernetes object; a LOCAL filesystem's snapshots live in object storage.
+ *
+ * @generated from message malonaz.workspace.v1.Filesystem
+ */
+export type FilesystemValid = Message<"malonaz.workspace.v1.Filesystem"> & {
+  /**
+   * The resource name of the filesystem.
+   * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * The creation timestamp of the filesystem.
+   *
+   * @generated from field: google.protobuf.Timestamp create_time = 2;
+   */
+  createTime?: Timestamp;
+
+  /**
+   * The last update timestamp of the filesystem.
+   *
+   * @generated from field: google.protobuf.Timestamp update_time = 3;
+   */
+  updateTime?: Timestamp;
+
+  /**
+   * A checksum computed by the server based on the current value of the resource.
+   *
+   * @generated from field: string etag = 4;
+   */
+  etag: string;
+
+  /**
+   * The labels on this filesystem.
+   *
+   * @generated from field: map<string, string> labels = 5;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * Where the filesystem's files live.
+   *
+   * @generated from field: malonaz.workspace.v1.Filesystem.Kind kind = 6;
+   */
+  kind: Filesystem_Kind;
+
+  /**
+   * The most bytes the filesystem may hold. A full LOCAL filesystem fails writes
+   * with ENOSPC; an over-quota SHARED one is mounted read-only until it shrinks.
+   * Defaults to the server's quota for its kind.
+   *
+   * @generated from field: int64 quota_bytes = 7;
+   */
+  quotaBytes: bigint;
+
+  /**
+   * The bytes the filesystem holds, as last measured.
+   *
+   * @generated from field: int64 used_bytes = 8;
+   */
+  usedBytes: bigint;
+
+  /**
+   * The workspaces mounting the filesystem. A LOCAL filesystem has at most
+   * one that is not read-only.
+   *
+   * @generated from field: repeated malonaz.workspace.v1.Attachment attachments = 9;
+   */
+  attachments: AttachmentValid[];
+
+  /**
+   * The filesystem's latest snapshot. LOCAL only; empty until the first.
+   * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
+   *
+   * @generated from field: string latest_snapshot = 10;
+   */
+  latestSnapshot: string;
+};
 
 /**
  * Describes the message malonaz.workspace.v1.Filesystem.
@@ -112,7 +193,8 @@ export const FilesystemSchema: GenMessage<Filesystem, {validType: FilesystemVali
   messageDesc(file_malonaz_workspace_v1_filesystem, 0);
 
 /**
- * Kind is where a filesystem's files live, which decides its speed and writers.
+ * Kind is where a filesystem's files live, which decides its speed and how
+ * many workspaces may write it.
  *
  * @generated from enum malonaz.workspace.v1.Filesystem.Kind
  */
@@ -125,7 +207,7 @@ export enum Filesystem_Kind {
   UNSPECIFIED = 0,
 
   /**
-   * On the disk of the node running its writer, snapshotted to object storage:
+   * On the disk of the node running its writing workspace, snapshotted to object storage:
    * fast for git, package managers and builds, with a history. One read-write
    * mount at a time.
    *
@@ -148,4 +230,55 @@ export enum Filesystem_Kind {
  */
 export const Filesystem_KindSchema: GenEnum<Filesystem_Kind> = /*@__PURE__*/
   enumDesc(file_malonaz_workspace_v1_filesystem, 0, 0);
+
+/**
+ * An Attachment is a workspace mounting a filesystem.
+ *
+ * @generated from message malonaz.workspace.v1.Attachment
+ */
+export type Attachment = Message<"malonaz.workspace.v1.Attachment"> & {
+  /**
+   * The workspace mounting the filesystem.
+   * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+   *
+   * @generated from field: string workspace = 1;
+   */
+  workspace: string;
+
+  /**
+   * If true, the workspace cannot write the filesystem.
+   *
+   * @generated from field: bool read_only = 2;
+   */
+  readOnly: boolean;
+};
+
+/**
+ * An Attachment is a workspace mounting a filesystem.
+ *
+ * @generated from message malonaz.workspace.v1.Attachment
+ */
+export type AttachmentValid = Message<"malonaz.workspace.v1.Attachment"> & {
+  /**
+   * The workspace mounting the filesystem.
+   * Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+   *
+   * @generated from field: string workspace = 1;
+   */
+  workspace: string;
+
+  /**
+   * If true, the workspace cannot write the filesystem.
+   *
+   * @generated from field: bool read_only = 2;
+   */
+  readOnly: boolean;
+};
+
+/**
+ * Describes the message malonaz.workspace.v1.Attachment.
+ * Use `create(AttachmentSchema)` to create a new message.
+ */
+export const AttachmentSchema: GenMessage<Attachment, {validType: AttachmentValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_workspace_v1_filesystem, 1);
 

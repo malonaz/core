@@ -51,8 +51,8 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
 export const WorkspaceManagerService: GenService<{
   /**
    * Create a workspace and start its pod. Returns at once, STARTING; the first
-   * Exec waits for READY. Claims each LOCAL read-write mount's writer,
-   * FAILED_PRECONDITION if another workspace holds it.
+   * Exec waits for READY. Attaches each mount's filesystem,
+   * FAILED_PRECONDITION if a LOCAL one it would write has another writer.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *
@@ -88,8 +88,10 @@ export const WorkspaceManagerService: GenService<{
     output: typeof ListWorkspacesResponseSchema;
   },
   /**
-   * Update a workspace's mounts or labels. A mounts change recreates a running
-   * pod, with the secrets of its last start: mounted files stay, `/tmp` goes.
+   * Update a workspace's mounts or labels. A mounts change attaches the
+   * filesystems added, detaches those dropped and recreates a running pod:
+   * mounted files stay, `/tmp` and the secrets go, so the caller sets them
+   * again with SetWorkspaceSecrets.
    *
    * See: https://google.aip.dev/134 (Standard methods: Update).
    *
@@ -101,8 +103,8 @@ export const WorkspaceManagerService: GenService<{
     output: typeof WorkspaceSchema;
   },
   /**
-   * Delete a workspace: its pod, and its claim on each LOCAL filesystem's
-   * writer. The filesystems and their files are untouched.
+   * Delete a workspace: its pod, and its attachment to each filesystem it
+   * mounts. The filesystems and their files are untouched.
    *
    * See: https://google.aip.dev/135 (Standard methods: Delete).
    *

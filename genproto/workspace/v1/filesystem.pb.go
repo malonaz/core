@@ -25,13 +25,14 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Kind is where a filesystem's files live, which decides its speed and writers.
+// Kind is where a filesystem's files live, which decides its speed and how
+// many workspaces may write it.
 type Filesystem_Kind int32
 
 const (
 	// Used to detect an unset field.
 	Filesystem_KIND_UNSPECIFIED Filesystem_Kind = 0
-	// On the disk of the node running its writer, snapshotted to object storage:
+	// On the disk of the node running its writing workspace, snapshotted to object storage:
 	// fast for git, package managers and builds, with a history. One read-write
 	// mount at a time.
 	Filesystem_KIND_LOCAL Filesystem_Kind = 1
@@ -101,10 +102,9 @@ type Filesystem struct {
 	QuotaBytes int64 `protobuf:"varint,7,opt,name=quota_bytes,json=quotaBytes,proto3" json:"quota_bytes,omitempty"`
 	// The bytes the filesystem holds, as last measured.
 	UsedBytes int64 `protobuf:"varint,8,opt,name=used_bytes,json=usedBytes,proto3" json:"used_bytes,omitempty"`
-	// The workspace holding the filesystem's one read-write mount. LOCAL only;
-	// empty while no workspace writes it.
-	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
-	Writer string `protobuf:"bytes,9,opt,name=writer,proto3" json:"writer,omitempty"`
+	// The workspaces mounting the filesystem. A LOCAL filesystem has at most
+	// one that is not read-only.
+	Attachments []*Attachment `protobuf:"bytes,9,rep,name=attachments,proto3" json:"attachments,omitempty"`
 	// The filesystem's latest snapshot. LOCAL only; empty until the first.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
 	LatestSnapshot string `protobuf:"bytes,10,opt,name=latest_snapshot,json=latestSnapshot,proto3" json:"latest_snapshot,omitempty"`
@@ -193,11 +193,11 @@ func (x *Filesystem) GetUsedBytes() int64 {
 	return 0
 }
 
-func (x *Filesystem) GetWriter() string {
+func (x *Filesystem) GetAttachments() []*Attachment {
 	if x != nil {
-		return x.Writer
+		return x.Attachments
 	}
-	return ""
+	return nil
 }
 
 func (x *Filesystem) GetLatestSnapshot() string {
@@ -239,8 +239,8 @@ func (x *Filesystem) SetUsedBytes(v int64) {
 	x.UsedBytes = v
 }
 
-func (x *Filesystem) SetWriter(v string) {
-	x.Writer = v
+func (x *Filesystem) SetAttachments(v []*Attachment) {
+	x.Attachments = v
 }
 
 func (x *Filesystem) SetLatestSnapshot(v string) {
@@ -291,10 +291,9 @@ type Filesystem_builder struct {
 	QuotaBytes int64
 	// The bytes the filesystem holds, as last measured.
 	UsedBytes int64
-	// The workspace holding the filesystem's one read-write mount. LOCAL only;
-	// empty while no workspace writes it.
-	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
-	Writer string
+	// The workspaces mounting the filesystem. A LOCAL filesystem has at most
+	// one that is not read-only.
+	Attachments []*Attachment
 	// The filesystem's latest snapshot. LOCAL only; empty until the first.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
 	LatestSnapshot string
@@ -312,8 +311,86 @@ func (b0 Filesystem_builder) Build() *Filesystem {
 	x.Kind = b.Kind
 	x.QuotaBytes = b.QuotaBytes
 	x.UsedBytes = b.UsedBytes
-	x.Writer = b.Writer
+	x.Attachments = b.Attachments
 	x.LatestSnapshot = b.LatestSnapshot
+	return m0
+}
+
+// An Attachment is a workspace mounting a filesystem.
+type Attachment struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// The workspace mounting the filesystem.
+	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+	Workspace string `protobuf:"bytes,1,opt,name=workspace,proto3" json:"workspace,omitempty"`
+	// If true, the workspace cannot write the filesystem.
+	ReadOnly      bool `protobuf:"varint,2,opt,name=read_only,json=readOnly,proto3" json:"read_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Attachment) Reset() {
+	*x = Attachment{}
+	mi := &file_malonaz_workspace_v1_filesystem_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Attachment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Attachment) ProtoMessage() {}
+
+func (x *Attachment) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_workspace_v1_filesystem_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Attachment) GetWorkspace() string {
+	if x != nil {
+		return x.Workspace
+	}
+	return ""
+}
+
+func (x *Attachment) GetReadOnly() bool {
+	if x != nil {
+		return x.ReadOnly
+	}
+	return false
+}
+
+func (x *Attachment) SetWorkspace(v string) {
+	x.Workspace = v
+}
+
+func (x *Attachment) SetReadOnly(v bool) {
+	x.ReadOnly = v
+}
+
+type Attachment_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The workspace mounting the filesystem.
+	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+	Workspace string
+	// If true, the workspace cannot write the filesystem.
+	ReadOnly bool
+}
+
+func (b0 Attachment_builder) Build() *Attachment {
+	m0 := &Attachment{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Workspace = b.Workspace
+	x.ReadOnly = b.ReadOnly
 	return m0
 }
 
@@ -321,7 +398,7 @@ var File_malonaz_workspace_v1_filesystem_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbb\a\n" +
+	"%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc3\a\n" +
 	"\n" +
 	"Filesystem\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
@@ -335,9 +412,8 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"\vquota_bytes\x18\a \x01(\x03B\a\xbaH\x04\"\x02(\x00R\n" +
 	"quotaBytes\x12\"\n" +
 	"\n" +
-	"used_bytes\x18\b \x01(\x03B\x03\xe0A\x03R\tusedBytes\x12?\n" +
-	"\x06writer\x18\t \x01(\tB'\xe0A\x03\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/WorkspaceR\x06writer\x12O\n" +
+	"used_bytes\x18\b \x01(\x03B\x03\xe0A\x03R\tusedBytes\x12G\n" +
+	"\vattachments\x18\t \x03(\v2 .malonaz.workspace.v1.AttachmentB\x03\xe0A\x03R\vattachments\x12O\n" +
 	"\x0flatest_snapshot\x18\n" +
 	" \x01(\tB&\xe0A\x03\xfaA \n" +
 	"\x1eworkspace.malonaz.com/SnapshotR\x0elatestSnapshot\x1a9\n" +
@@ -350,26 +426,33 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"KIND_LOCAL\x10\x01\x12\x0f\n" +
 	"\vKIND_SHARED\x10\x02:\x82\x01\xeaA\x7f\n" +
 	" workspace.malonaz.com/Filesystem\x12Borganizations/{organization}/users/{user}/filesystems/{filesystem}*\vfilesystems2\n" +
-	"filesystemB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
+	"filesystem\"s\n" +
+	"\n" +
+	"Attachment\x12H\n" +
+	"\tworkspace\x18\x01 \x01(\tB*\xfaA!\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12\x1b\n" +
+	"\tread_only\x18\x02 \x01(\bR\breadOnlyB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
 var file_malonaz_workspace_v1_filesystem_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_malonaz_workspace_v1_filesystem_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_malonaz_workspace_v1_filesystem_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_workspace_v1_filesystem_proto_goTypes = []any{
 	(Filesystem_Kind)(0),          // 0: malonaz.workspace.v1.Filesystem.Kind
 	(*Filesystem)(nil),            // 1: malonaz.workspace.v1.Filesystem
-	nil,                           // 2: malonaz.workspace.v1.Filesystem.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*Attachment)(nil),            // 2: malonaz.workspace.v1.Attachment
+	nil,                           // 3: malonaz.workspace.v1.Filesystem.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_malonaz_workspace_v1_filesystem_proto_depIdxs = []int32{
-	3, // 0: malonaz.workspace.v1.Filesystem.create_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.workspace.v1.Filesystem.update_time:type_name -> google.protobuf.Timestamp
-	2, // 2: malonaz.workspace.v1.Filesystem.labels:type_name -> malonaz.workspace.v1.Filesystem.LabelsEntry
+	4, // 0: malonaz.workspace.v1.Filesystem.create_time:type_name -> google.protobuf.Timestamp
+	4, // 1: malonaz.workspace.v1.Filesystem.update_time:type_name -> google.protobuf.Timestamp
+	3, // 2: malonaz.workspace.v1.Filesystem.labels:type_name -> malonaz.workspace.v1.Filesystem.LabelsEntry
 	0, // 3: malonaz.workspace.v1.Filesystem.kind:type_name -> malonaz.workspace.v1.Filesystem.Kind
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 4: malonaz.workspace.v1.Filesystem.attachments:type_name -> malonaz.workspace.v1.Attachment
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_v1_filesystem_proto_init() }
@@ -383,7 +466,7 @@ func file_malonaz_workspace_v1_filesystem_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_workspace_v1_filesystem_proto_rawDesc), len(file_malonaz_workspace_v1_filesystem_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
