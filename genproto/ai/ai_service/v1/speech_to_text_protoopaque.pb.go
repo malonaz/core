@@ -283,7 +283,7 @@ func (b0 SpeechToTextResponse_builder) Build() *SpeechToTextResponse {
 	return m0
 }
 
-// A stretch of speech by one speaker.
+// A speech-to-text segment is a stretch of speech by one speaker.
 type SpeechToTextSegment struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Speaker     int32                  `protobuf:"varint,1,opt,name=speaker,proto3,oneof"`
@@ -1409,14 +1409,14 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\rconfiguration\x18\x01 \x01(\v29.malonaz.ai.ai_service.v1.SpeechToTextStreamConfigurationH\x00R\rconfiguration\x12:\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
 	"audioChunkB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\xfe\x02\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xa2\x03\n" +
 	"\x1fSpeechToTextStreamConfiguration\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12%\n" +
 	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12b\n" +
-	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn:T\xbaHQ\x1aO\n" +
-	"\x10audio_format_pcm\x12\x1astreaming takes linear PCM\x1a\x1fthis.audio_format.encoding == 0\"\xe6\x03\n" +
+	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn:x\xbaHu\x1as\n" +
+	"4speech_to_text_stream_configuration.audio_format_pcm\x12\x1astreaming takes linear PCM\x1a\x1fthis.audio_format.encoding == 0\"\xe6\x03\n" +
 	"(SpeechToTextStreamEndOfTurnConfiguration\x12J\n" +
 	"\x14confidence_threshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\x13confidenceThreshold\x12U\n" +
 	"\x1aeager_confidence_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x18eagerConfidenceThreshold\x12G\n" +

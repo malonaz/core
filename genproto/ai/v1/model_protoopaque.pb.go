@@ -976,11 +976,11 @@ const file_malonaz_ai_v1_model_proto_rawDesc = "" +
 	"\x13context_token_limit\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\x11contextTokenLimit\x12\x14\n" +
 	"\x05image\x18\x02 \x01(\bR\x05image\x12\x1a\n" +
 	"\bdocument\x18\x03 \x01(\bR\bdocument\x128\n" +
-	"\apricing\x18\x04 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\xf0\x01\n" +
+	"\apricing\x18\x04 \x01(\v2\x1e.malonaz.ai.v1.TttModelPricingR\apricing\"\x81\x02\n" +
 	"\x0eTtsModelConfig\x12C\n" +
 	"\faudio_format\x18\x01 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12E\n" +
-	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRates:R\xbaHO\x1aM\n" +
-	"\x10audio_format_pcm\x12\x18tts output is linear PCM\x1a\x1fthis.audio_format.encoding == 0Bo\xeaAD\n" +
+	"\x16supported_sample_rates\x18\x02 \x03(\x05B\x0f\xbaH\f\x92\x01\t\b\x01\"\x05\x1a\x03(\xc0>R\x14supportedSampleRates:c\xbaH`\x1a^\n" +
+	"!tts_model_config.audio_format_pcm\x12\x18tts output is linear PCM\x1a\x1fthis.audio_format.encoding == 0Bo\xeaAD\n" +
 	"\x17ai.malonaz.com/Provider\x12\x14providers/{provider}*\tproviders2\bproviderZ&github.com/malonaz/core/genproto/ai/v1b\x06proto3"
 
 var file_malonaz_ai_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 7)

@@ -45,7 +45,7 @@ message SpeechToTextResponse {
   repeated SpeechToTextSegment segments = 4;
 }
 
-// A stretch of speech by one speaker.
+// A speech-to-text segment is a stretch of speech by one speaker.
 message SpeechToTextSegment {
   // Zero-based id of the voice, only meaningful within one response. Unset when the provider does
   // not identify speakers.
@@ -81,7 +81,7 @@ message SpeechToTextStreamRequest {
 // Configuration for speech-to-text streaming. Sent as the first message.
 message SpeechToTextStreamConfiguration {
   option (buf.validate.message).cel = {
-    id: "audio_format_pcm"
+    id: "speech_to_text_stream_configuration.audio_format_pcm"
     message: "streaming takes linear PCM"
     expression: "this.audio_format.encoding == 0"
   };

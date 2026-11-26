@@ -133,7 +133,7 @@ message DecisionModelConfig {
 // Configuration for a tts model.
 message TtsModelConfig {
   option (buf.validate.message).cel = {
-    id: "audio_format_pcm"
+    id: "tts_model_config.audio_format_pcm"
     message: "tts output is linear PCM"
     expression: "this.audio_format.encoding == 0"
   };

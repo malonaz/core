@@ -6,7 +6,7 @@ local p = "providers/deepgram/models/";
     {
       "name": p + "nova-3",
       "provider_model_id": "nova-3",
-      "description": "English pre-recorded speech-to-text with speaker diarization and utterance timings.",
+      "description": "Pre-recorded speech-to-text with speaker diarization and utterance timings.",
       "stt": {}
     },
     {

@@ -71,8 +71,8 @@ func TestSpeechToText(t *testing.T) {
 		},
 		GenerationMetrics: &aipb.GenerationMetrics{},
 		Segments: []*aiservicepb.SpeechToTextSegment{
-			{Speaker: proto.Int32(0), StartOffset: durationpb.New(500_000_000), EndOffset: durationpb.New(2_250_000_000), Text: "Thanks for calling."},
-			{Speaker: proto.Int32(1), StartOffset: durationpb.New(3_000_000_000), EndOffset: durationpb.New(4_500_000_000), Text: "Hi there."},
+			{Speaker: proto.Int32(0), StartOffset: durationpb.New(500 * time.Millisecond), EndOffset: durationpb.New(2250 * time.Millisecond), Text: "Thanks for calling."},
+			{Speaker: proto.Int32(1), StartOffset: durationpb.New(3 * time.Second), EndOffset: durationpb.New(4500 * time.Millisecond), Text: "Hi there."},
 		},
 	}
 	grpcrequire.Equal(t, expected, response, protocmp.IgnoreFields(&aipb.GenerationMetrics{}, "ttlb"))
