@@ -126,6 +126,7 @@ type CreateWorkspaceRequest struct {
 	xxx_hidden_Workspace   *v1.Workspace          `protobuf:"bytes,2,opt,name=workspace,proto3"`
 	xxx_hidden_WorkspaceId string                 `protobuf:"bytes,3,opt,name=workspace_id,json=workspaceId,proto3"`
 	xxx_hidden_Secrets     *[]*Secret             `protobuf:"bytes,4,rep,name=secrets,proto3"`
+	xxx_hidden_RequestId   string                 `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -185,6 +186,13 @@ func (x *CreateWorkspaceRequest) GetSecrets() []*Secret {
 	return nil
 }
 
+func (x *CreateWorkspaceRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
 func (x *CreateWorkspaceRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
@@ -199,6 +207,10 @@ func (x *CreateWorkspaceRequest) SetWorkspaceId(v string) {
 
 func (x *CreateWorkspaceRequest) SetSecrets(v []*Secret) {
 	x.xxx_hidden_Secrets = &v
+}
+
+func (x *CreateWorkspaceRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
 }
 
 func (x *CreateWorkspaceRequest) HasWorkspace() bool {
@@ -221,12 +233,16 @@ type CreateWorkspaceRequest_builder struct {
 	// The workspace to create. Only `labels` and `mounts` are read.
 	Workspace *v1.Workspace
 	// The ID to use for the workspace, which becomes the final component of its
-	// name. Required, unless a server in front of the manager assigns it (the
-	// one agents call uses the root agent's id, one workspace per tree).
+	// name. Required, unless a server in front of the manager assigns it: the
+	// one agents call uses the creating agent's id, so an agent has at most one
+	// workspace and its sub-agents share it unless they create their own.
 	// Creating an existing workspace fails ALREADY_EXISTS.
 	WorkspaceId string
 	// The secrets the pod starts with.
 	Secrets []*Secret
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the workspace it created instead of creating another.
+	RequestId string
 }
 
 func (b0 CreateWorkspaceRequest_builder) Build() *CreateWorkspaceRequest {
@@ -237,6 +253,7 @@ func (b0 CreateWorkspaceRequest_builder) Build() *CreateWorkspaceRequest {
 	x.xxx_hidden_Workspace = b.Workspace
 	x.xxx_hidden_WorkspaceId = b.WorkspaceId
 	x.xxx_hidden_Secrets = &b.Secrets
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -947,11 +964,12 @@ func (b0 SetWorkspaceSecretsResponse_builder) Build() *SetWorkspaceSecretsRespon
 
 // Request message for WorkspaceManagerService.SnapshotWorkspace.
 type SnapshotWorkspaceRequest struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_Turn string                 `protobuf:"bytes,2,opt,name=turn,proto3"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name      string                 `protobuf:"bytes,1,opt,name=name,proto3"`
+	xxx_hidden_Turn      string                 `protobuf:"bytes,2,opt,name=turn,proto3"`
+	xxx_hidden_RequestId string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *SnapshotWorkspaceRequest) Reset() {
@@ -993,12 +1011,23 @@ func (x *SnapshotWorkspaceRequest) GetTurn() string {
 	return ""
 }
 
+func (x *SnapshotWorkspaceRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
 func (x *SnapshotWorkspaceRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
 
 func (x *SnapshotWorkspaceRequest) SetTurn(v string) {
 	x.xxx_hidden_Turn = v
+}
+
+func (x *SnapshotWorkspaceRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
 }
 
 type SnapshotWorkspaceRequest_builder struct {
@@ -1009,6 +1038,10 @@ type SnapshotWorkspaceRequest_builder struct {
 	Name string
 	// The turn the snapshots end, an id opaque to the service. Empty for an idle snapshot.
 	Turn string
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the snapshots it took instead of taking more:
+	// each mount's CreateSnapshot request id derives from it.
+	RequestId string
 }
 
 func (b0 SnapshotWorkspaceRequest_builder) Build() *SnapshotWorkspaceRequest {
@@ -1017,6 +1050,7 @@ func (b0 SnapshotWorkspaceRequest_builder) Build() *SnapshotWorkspaceRequest {
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Turn = b.Turn
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -1088,13 +1122,15 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\x06Secret\x12<\n" +
 	"\x02id\x18\x01 \x01(\tB,\xbaH)\xc8\x01\x01r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$R\x02id\x128\n" +
 	"\aenv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x012\x15^([A-Z_][A-Z0-9_]*)?$R\x06envVar\x12\"\n" +
-	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"\xca\x02\n" +
+	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"\xf6\x02\n" +
 	"\x16CreateWorkspaceRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12E\n" +
 	"\tworkspace\x18\x02 \x01(\v2\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xc8\x01\x01R\tworkspace\x12H\n" +
 	"\fworkspace_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\vworkspaceId\x12]\n" +
-	"\asecrets\x18\x04 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\"X\n" +
+	"\asecrets\x18\x04 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\x12*\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"X\n" +
 	"\x13GetWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\"\xa9\x01\n" +
@@ -1135,11 +1171,13 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12]\n" +
 	"\asecrets\x18\x02 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\"7\n" +
 	"\x1bSetWorkspaceSecretsResponse\x12\x18\n" +
-	"\aapplied\x18\x01 \x01(\bR\aapplied\"{\n" +
+	"\aapplied\x18\x01 \x01(\bR\aapplied\"\xa7\x01\n" +
 	"\x18SnapshotWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12\x1c\n" +
-	"\x04turn\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x04turn\"^\n" +
+	"\x04turn\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x04turn\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"^\n" +
 	"\x19SnapshotWorkspaceResponse\x12A\n" +
 	"\tsnapshots\x18\x01 \x03(\tB#\xfaA \n" +
 	"\x1eworkspace.malonaz.com/SnapshotR\tsnapshotsBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3"

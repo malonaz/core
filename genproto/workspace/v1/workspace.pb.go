@@ -77,7 +77,8 @@ func (x Workspace_State) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// A Workspace is a sandboxed shell for an agent tree: a pod with the
+// A Workspace is a sandboxed shell for an agent, shared by its sub-agents
+// unless they create their own: a pod with the
 // filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
 // compute and its mounts, not the files: those live on its filesystems, which
 // outlive it and may be mounted by other workspaces. Stored as a Kubernetes

@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/workspace_manager_service/v1/workspace.proto.
  */
 export const file_malonaz_workspace_workspace_manager_service_v1_workspace: GenFile = /*@__PURE__*/
-  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSKRAQoGU2VjcmV0EjgKAmlkGAEgASgJQiy6SClyJBg/MiBeW2EtejAtOV0oW2EtejAtOV8tXSpbYS16MC05XSk/JMgBARIwCgdlbnZfdmFyGAIgASgJQh+6SBxyGhiAATIVXihbQS1aX11bQS1aMC05X10qKT8kEhsKBXZhbHVlGAMgASgMQgyAAQG6SAZ6BBiAgAQioQIKFkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjoKCXdvcmtzcGFjZRgCIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgDyAEBEjsKDHdvcmtzcGFjZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARJUCgdzZWNyZXRzGAQgAygLMjYubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZWNyZXRCC+BBBLpIBZIBAhBAIlIKE0dldFdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBIowBChVMaXN0V29ya3NwYWNlc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJOgaC8y0CCGQiZgoWTGlzdFdvcmtzcGFjZXNSZXNwb25zZRIzCgp3b3Jrc3BhY2VzGAEgAygLMh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSL4AQoWVXBkYXRlV29ya3NwYWNlUmVxdWVzdBI6Cgl3b3Jrc3BhY2UYASABKAsyHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2VCBrpIA8gBARI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhRGk8KF3dvcmtzcGFjZS5uYW1lX3JlcXVpcmVkEhp3b3Jrc3BhY2UubmFtZSBtdXN0IGJlIHNldBoYaGFzKHRoaXMud29ya3NwYWNlLm5hbWUp6pzBAxAKBmxhYmVscwoGbW91bnRzInoKFkRlbGV0ZVdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSKqAQoVU3RhcnRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARJUCgdzZWNyZXRzGAIgAygLMjYubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZWNyZXRCC+BBBLpIBZIBAhBAImEKFFN0b3BXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIMCgRldGFnGAIgASgJIq8BChpTZXRXb3Jrc3BhY2VTZWNyZXRzUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESVAoHc2VjcmV0cxgCIAMoCzI2Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCIuChtTZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2USDwoHYXBwbGllZBgBIAEoCCJvChhTbmFwc2hvdFdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEhYKBHR1cm4YAiABKAlCCLpIBXIDGIACIlMKGVNuYXBzaG90V29ya3NwYWNlUmVzcG9uc2USNgoJc25hcHNob3RzGAEgAygJQiP6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdEJJWkdnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2Uvd29ya3NwYWNlX21hbmFnZXJfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace]);
+  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSKRAQoGU2VjcmV0EjgKAmlkGAEgASgJQiy6SClyJBg/MiBeW2EtejAtOV0oW2EtejAtOV8tXSpbYS16MC05XSk/JMgBARIwCgdlbnZfdmFyGAIgASgJQh+6SBxyGhiAATIVXihbQS1aX11bQS1aMC05X10qKT8kEhsKBXZhbHVlGAMgASgMQgyAAQG6SAZ6BBiAgAQiwgIKFkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjoKCXdvcmtzcGFjZRgCIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgDyAEBEjsKDHdvcmtzcGFjZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARJUCgdzZWNyZXRzGAQgAygLMjYubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZWNyZXRCC+BBBLpIBZIBAhBAEh8KCnJlcXVlc3RfaWQYBSABKAlCC7pICHIDsAEB2AEBIlIKE0dldFdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBIowBChVMaXN0V29ya3NwYWNlc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJOgaC8y0CCGQiZgoWTGlzdFdvcmtzcGFjZXNSZXNwb25zZRIzCgp3b3Jrc3BhY2VzGAEgAygLMh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSL4AQoWVXBkYXRlV29ya3NwYWNlUmVxdWVzdBI6Cgl3b3Jrc3BhY2UYASABKAsyHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2VCBrpIA8gBARI3Cgt1cGRhdGVfbWFzaxgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBATppukhRGk8KF3dvcmtzcGFjZS5uYW1lX3JlcXVpcmVkEhp3b3Jrc3BhY2UubmFtZSBtdXN0IGJlIHNldBoYaGFzKHRoaXMud29ya3NwYWNlLm5hbWUp6pzBAxAKBmxhYmVscwoGbW91bnRzInoKFkRlbGV0ZVdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSKqAQoVU3RhcnRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARJUCgdzZWNyZXRzGAIgAygLMjYubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZWNyZXRCC+BBBLpIBZIBAhBAImEKFFN0b3BXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIMCgRldGFnGAIgASgJIq8BChpTZXRXb3Jrc3BhY2VTZWNyZXRzUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESVAoHc2VjcmV0cxgCIAMoCzI2Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCIuChtTZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2USDwoHYXBwbGllZBgBIAEoCCKQAQoYU25hcHNob3RXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIWCgR0dXJuGAIgASgJQgi6SAVyAxiAAhIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASJTChlTbmFwc2hvdFdvcmtzcGFjZVJlc3BvbnNlEjYKCXNuYXBzaG90cxgBIAMoCUIj+kEgCh53b3Jrc3BhY2UubWFsb25hei5jb20vU25hcHNob3RCSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace]);
 
 /**
  * A Secret is a value a workspace's shells can read, never stored.
@@ -106,8 +106,9 @@ export type CreateWorkspaceRequest = Message<"malonaz.workspace.workspace_manage
 
   /**
    * The ID to use for the workspace, which becomes the final component of its
-   * name. Required, unless a server in front of the manager assigns it (the
-   * one agents call uses the root agent's id, one workspace per tree).
+   * name. Required, unless a server in front of the manager assigns it: the
+   * one agents call uses the creating agent's id, so an agent has at most one
+   * workspace and its sub-agents share it unless they create their own.
    * Creating an existing workspace fails ALREADY_EXISTS.
    *
    * @generated from field: string workspace_id = 3;
@@ -120,6 +121,14 @@ export type CreateWorkspaceRequest = Message<"malonaz.workspace.workspace_manage
    * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 4;
    */
   secrets: Secret[];
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the workspace it created instead of creating another.
+   *
+   * @generated from field: string request_id = 5;
+   */
+  requestId: string;
 };
 
 /**
@@ -145,8 +154,9 @@ export type CreateWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
 
   /**
    * The ID to use for the workspace, which becomes the final component of its
-   * name. Required, unless a server in front of the manager assigns it (the
-   * one agents call uses the root agent's id, one workspace per tree).
+   * name. Required, unless a server in front of the manager assigns it: the
+   * one agents call uses the creating agent's id, so an agent has at most one
+   * workspace and its sub-agents share it unless they create their own.
    * Creating an existing workspace fails ALREADY_EXISTS.
    *
    * @generated from field: string workspace_id = 3;
@@ -159,6 +169,14 @@ export type CreateWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
    * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 4;
    */
   secrets: SecretValid[];
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the workspace it created instead of creating another.
+   *
+   * @generated from field: string request_id = 5;
+   */
+  requestId: string;
 };
 
 /**
@@ -639,6 +657,15 @@ export type SnapshotWorkspaceRequest = Message<"malonaz.workspace.workspace_mana
    * @generated from field: string turn = 2;
    */
   turn: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the snapshots it took instead of taking more:
+   * each mount's CreateSnapshot request id derives from it.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**
@@ -661,6 +688,15 @@ export type SnapshotWorkspaceRequestValid = Message<"malonaz.workspace.workspace
    * @generated from field: string turn = 2;
    */
   turn: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the snapshots it took instead of taking more:
+   * each mount's CreateSnapshot request id derives from it.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**

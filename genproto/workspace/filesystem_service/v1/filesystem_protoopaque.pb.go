@@ -32,6 +32,7 @@ type CreateFilesystemRequest struct {
 	xxx_hidden_Parent       string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
 	xxx_hidden_Filesystem   *v1.Filesystem         `protobuf:"bytes,2,opt,name=filesystem,proto3"`
 	xxx_hidden_FilesystemId string                 `protobuf:"bytes,3,opt,name=filesystem_id,json=filesystemId,proto3"`
+	xxx_hidden_RequestId    string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -82,6 +83,13 @@ func (x *CreateFilesystemRequest) GetFilesystemId() string {
 	return ""
 }
 
+func (x *CreateFilesystemRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
 func (x *CreateFilesystemRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
@@ -92,6 +100,10 @@ func (x *CreateFilesystemRequest) SetFilesystem(v *v1.Filesystem) {
 
 func (x *CreateFilesystemRequest) SetFilesystemId(v string) {
 	x.xxx_hidden_FilesystemId = v
+}
+
+func (x *CreateFilesystemRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
 }
 
 func (x *CreateFilesystemRequest) HasFilesystem() bool {
@@ -116,6 +128,9 @@ type CreateFilesystemRequest_builder struct {
 	// The ID to use for the filesystem, which becomes the final component of its
 	// name. Creating an existing filesystem fails ALREADY_EXISTS.
 	FilesystemId string
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the filesystem it created instead of creating another.
+	RequestId string
 }
 
 func (b0 CreateFilesystemRequest_builder) Build() *CreateFilesystemRequest {
@@ -125,6 +140,7 @@ func (b0 CreateFilesystemRequest_builder) Build() *CreateFilesystemRequest {
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Filesystem = b.Filesystem
 	x.xxx_hidden_FilesystemId = b.FilesystemId
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -605,14 +621,16 @@ var File_malonaz_workspace_filesystem_service_v1_filesystem_proto protoreflect.F
 
 const file_malonaz_workspace_filesystem_service_v1_filesystem_proto_rawDesc = "" +
 	"\n" +
-	"8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xf1\x01\n" +
+	"8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\x9d\x02\n" +
 	"\x17CreateFilesystemRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12H\n" +
 	"\n" +
 	"filesystem\x18\x02 \x01(\v2 .malonaz.workspace.v1.FilesystemB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"filesystem\x12J\n" +
-	"\rfilesystem_id\x18\x03 \x01(\tB%\xbaH\"\xc8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\ffilesystemId\"Z\n" +
+	"\rfilesystem_id\x18\x03 \x01(\tB%\xbaH\"\xc8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\ffilesystemId\x12*\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"Z\n" +
 	"\x14GetFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\"\xaa\x01\n" +

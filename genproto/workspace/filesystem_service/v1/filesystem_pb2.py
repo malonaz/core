@@ -29,7 +29,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.workspace.v1 import filesystem_pb2 as malonaz_dot_workspace_dot_v1_dot_filesystem__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12\'malonaz.workspace.filesystem_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xcf\x01\n\x17\x43reateFilesystemRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12<\n\nfilesystem\x18\x02 \x01(\x0b\x32 .malonaz.workspace.v1.FilesystemB\x06\xbaH\x03\xc8\x01\x01\x12<\n\rfilesystem_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xc8\x01\x01\"T\n\x14GetFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\"\x8d\x01\n\x16ListFilesystemsRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x1d\n\tpage_size\x18\x02 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x03 \x01(\t:\x06\x82\xf3-\x02\x08\x64\"i\n\x17ListFilesystemsResponse\x12\x35\n\x0b\x66ilesystems\x18\x01 \x03(\x0b\x32 .malonaz.workspace.v1.Filesystem\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"|\n\x17\x44\x65leteFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x99\x01\n\x17\x41ttachFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12@\n\tworkspace\x18\x02 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\"\x99\x01\n\x17\x44\x65tachFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12@\n\tworkspace\x18\x02 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x42\x42Z@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12\'malonaz.workspace.filesystem_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xf0\x01\n\x17\x43reateFilesystemRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12<\n\nfilesystem\x18\x02 \x01(\x0b\x32 .malonaz.workspace.v1.FilesystemB\x06\xbaH\x03\xc8\x01\x01\x12<\n\rfilesystem_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"T\n\x14GetFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\"\x8d\x01\n\x16ListFilesystemsRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x1d\n\tpage_size\x18\x02 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x03 \x01(\t:\x06\x82\xf3-\x02\x08\x64\"i\n\x17ListFilesystemsResponse\x12\x35\n\x0b\x66ilesystems\x18\x01 \x03(\x0b\x32 .malonaz.workspace.v1.Filesystem\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"|\n\x17\x44\x65leteFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"\x99\x01\n\x17\x41ttachFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12@\n\tworkspace\x18\x02 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\"\x99\x01\n\x17\x44\x65tachFilesystemRequest\x12<\n\x04name\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12@\n\tworkspace\x18\x02 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x42\x42Z@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -43,6 +43,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CREATEFILESYSTEMREQUEST'].fields_by_name['filesystem']._serialized_options = b'\272H\003\310\001\001'
   _globals['_CREATEFILESYSTEMREQUEST'].fields_by_name['filesystem_id']._loaded_options = None
   _globals['_CREATEFILESYSTEMREQUEST'].fields_by_name['filesystem_id']._serialized_options = b'\272H\"r\035\020\001\030?2\027^[a-z0-9](-?[a-z0-9])*$\310\001\001'
+  _globals['_CREATEFILESYSTEMREQUEST'].fields_by_name['request_id']._loaded_options = None
+  _globals['_CREATEFILESYSTEMREQUEST'].fields_by_name['request_id']._serialized_options = b'\272H\010r\003\260\001\001\330\001\001'
   _globals['_GETFILESYSTEMREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_GETFILESYSTEMREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A\"\n workspace.malonaz.com/Filesystem\272H\003\310\001\001'
   _globals['_LISTFILESYSTEMSREQUEST'].fields_by_name['parent']._loaded_options = None
@@ -62,17 +64,17 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DETACHFILESYSTEMREQUEST'].fields_by_name['workspace']._loaded_options = None
   _globals['_DETACHFILESYSTEMREQUEST'].fields_by_name['workspace']._serialized_options = b'\340A\002\372A!\n\037workspace.malonaz.com/Workspace\272H\003\310\001\001'
   _globals['_CREATEFILESYSTEMREQUEST']._serialized_start=264
-  _globals['_CREATEFILESYSTEMREQUEST']._serialized_end=471
-  _globals['_GETFILESYSTEMREQUEST']._serialized_start=473
-  _globals['_GETFILESYSTEMREQUEST']._serialized_end=557
-  _globals['_LISTFILESYSTEMSREQUEST']._serialized_start=560
-  _globals['_LISTFILESYSTEMSREQUEST']._serialized_end=701
-  _globals['_LISTFILESYSTEMSRESPONSE']._serialized_start=703
-  _globals['_LISTFILESYSTEMSRESPONSE']._serialized_end=808
-  _globals['_DELETEFILESYSTEMREQUEST']._serialized_start=810
-  _globals['_DELETEFILESYSTEMREQUEST']._serialized_end=934
-  _globals['_ATTACHFILESYSTEMREQUEST']._serialized_start=937
-  _globals['_ATTACHFILESYSTEMREQUEST']._serialized_end=1090
-  _globals['_DETACHFILESYSTEMREQUEST']._serialized_start=1093
-  _globals['_DETACHFILESYSTEMREQUEST']._serialized_end=1246
+  _globals['_CREATEFILESYSTEMREQUEST']._serialized_end=504
+  _globals['_GETFILESYSTEMREQUEST']._serialized_start=506
+  _globals['_GETFILESYSTEMREQUEST']._serialized_end=590
+  _globals['_LISTFILESYSTEMSREQUEST']._serialized_start=593
+  _globals['_LISTFILESYSTEMSREQUEST']._serialized_end=734
+  _globals['_LISTFILESYSTEMSRESPONSE']._serialized_start=736
+  _globals['_LISTFILESYSTEMSRESPONSE']._serialized_end=841
+  _globals['_DELETEFILESYSTEMREQUEST']._serialized_start=843
+  _globals['_DELETEFILESYSTEMREQUEST']._serialized_end=967
+  _globals['_ATTACHFILESYSTEMREQUEST']._serialized_start=970
+  _globals['_ATTACHFILESYSTEMREQUEST']._serialized_end=1123
+  _globals['_DETACHFILESYSTEMREQUEST']._serialized_start=1126
+  _globals['_DETACHFILESYSTEMREQUEST']._serialized_end=1279
 # @@protoc_insertion_point(module_scope)

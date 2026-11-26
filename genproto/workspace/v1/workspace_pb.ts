@@ -18,7 +18,8 @@ export const file_malonaz_workspace_v1_workspace: GenFile = /*@__PURE__*/
   fileDesc("CiRtYWxvbmF6L3dvcmtzcGFjZS92MS93b3Jrc3BhY2UucHJvdG8SFG1hbG9uYXoud29ya3NwYWNlLnYxIpcHCglXb3Jrc3BhY2USEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSyQEKBmxhYmVscxgFIAMoCzIrLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSNQoGbW91bnRzGAYgAygLMhsubWFsb25hei53b3Jrc3BhY2UudjEuTW91bnRCCLpIBZIBAhAQEkEKBXN0YXRlGAcgASgOMiUubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlLlN0YXRlQgvgQQO6SAWCAQIQARIRCgRub2RlGAggASgJQgPgQQMSOQoQbGFzdF9hY3RpdmVfdGltZRgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlYKBVN0YXRlEhUKEVNUQVRFX1VOU1BFQ0lGSUVEEAASEQoNU1RBVEVfU1RPUFBFRBABEhIKDlNUQVRFX1NUQVJUSU5HEAISDwoLU1RBVEVfUkVBRFkQAzrhAepBegofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZRJAb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vd29ya3NwYWNlcy97d29ya3NwYWNlfSoKd29ya3NwYWNlczIJd29ya3NwYWNlukhhGl8KHHdvcmtzcGFjZS51bmlxdWVfbW91bnRfcGF0aHMSGm1vdW50IHBhdGhzIG11c3QgYmUgdW5pcXVlGiN0aGlzLm1vdW50cy5tYXAobSwgbS5wYXRoKS51bmlxdWUoKSLOAgoFTW91bnQSPwoKZmlsZXN5c3RlbRgBIAEoCUIr+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARLwAQoEcGF0aBgCIAEoCULhAbpI3QFyKhj/ATIlXi9bYS16QS1aMC05Ll8tXSsoL1thLXpBLVowLTkuXy1dKykqJLoBqgEKE21vdW50LnBhdGhfcmVzZXJ2ZWQSNnBhdGggbXVzdCBub3QgYmUgdW5kZXIgL3RtcCwgL3J1biwgL3Byb2MsIC9zeXMgb3IgL2RldhpbIVsnL3RtcCcsICcvcnVuJywgJy9wcm9jJywgJy9zeXMnLCAnL2RldiddLmV4aXN0cyhwLCB0aGlzID09IHAgfHwgdGhpcy5zdGFydHNXaXRoKHAgKyAnLycpKcgBARIRCglyZWFkX29ubHkYAyABKAhChgFaLWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS92MepBVAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp]);
 
 /**
- * A Workspace is a sandboxed shell for an agent tree: a pod with the
+ * A Workspace is a sandboxed shell for an agent, shared by its sub-agents
+ * unless they create their own: a pod with the
  * filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
  * compute and its mounts, not the files: those live on its filesystems, which
  * outlive it and may be mounted by other workspaces. Stored as a Kubernetes
@@ -95,7 +96,8 @@ export type Workspace = Message<"malonaz.workspace.v1.Workspace"> & {
 };
 
 /**
- * A Workspace is a sandboxed shell for an agent tree: a pod with the
+ * A Workspace is a sandboxed shell for an agent, shared by its sub-agents
+ * unless they create their own: a pod with the
  * filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
  * compute and its mounts, not the files: those live on its filesystems, which
  * outlive it and may be mounted by other workspaces. Stored as a Kubernetes

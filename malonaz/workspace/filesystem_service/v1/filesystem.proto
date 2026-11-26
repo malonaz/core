@@ -33,6 +33,13 @@ message CreateFilesystemRequest {
       pattern: "^[a-z0-9](-?[a-z0-9])*$"
     }
   ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the filesystem it created instead of creating another.
+  string request_id = 4 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // Request message for FilesystemService.GetFilesystem.

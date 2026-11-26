@@ -28,11 +28,12 @@ const (
 
 // Request message for FilesystemService.CreateSnapshot.
 type CreateSnapshotRequest struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Parent   string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_Snapshot *v1.Snapshot           `protobuf:"bytes,2,opt,name=snapshot,proto3"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
+	xxx_hidden_Snapshot  *v1.Snapshot           `protobuf:"bytes,2,opt,name=snapshot,proto3"`
+	xxx_hidden_RequestId string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CreateSnapshotRequest) Reset() {
@@ -74,12 +75,23 @@ func (x *CreateSnapshotRequest) GetSnapshot() *v1.Snapshot {
 	return nil
 }
 
+func (x *CreateSnapshotRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
 func (x *CreateSnapshotRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
 
 func (x *CreateSnapshotRequest) SetSnapshot(v *v1.Snapshot) {
 	x.xxx_hidden_Snapshot = v
+}
+
+func (x *CreateSnapshotRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
 }
 
 func (x *CreateSnapshotRequest) HasSnapshot() bool {
@@ -101,6 +113,9 @@ type CreateSnapshotRequest_builder struct {
 	Parent string
 	// The snapshot to take. Only `trigger` and `turn` are read; its id is assigned by the server.
 	Snapshot *v1.Snapshot
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the snapshot it created instead of creating another.
+	RequestId string
 }
 
 func (b0 CreateSnapshotRequest_builder) Build() *CreateSnapshotRequest {
@@ -109,6 +124,7 @@ func (b0 CreateSnapshotRequest_builder) Build() *CreateSnapshotRequest {
 	_, _ = b, x
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Snapshot = b.Snapshot
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -376,11 +392,13 @@ var File_malonaz_workspace_filesystem_service_v1_snapshot_proto protoreflect.Fil
 
 const file_malonaz_workspace_filesystem_service_v1_snapshot_proto_rawDesc = "" +
 	"\n" +
-	"6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xa3\x01\n" +
+	"6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xcf\x01\n" +
 	"\x15CreateSnapshotRequest\x12F\n" +
 	"\x06parent\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x06parent\x12B\n" +
-	"\bsnapshot\x18\x02 \x01(\v2\x1e.malonaz.workspace.v1.SnapshotB\x06\xbaH\x03\xc8\x01\x01R\bsnapshot\"\x98\x01\n" +
+	"\bsnapshot\x18\x02 \x01(\v2\x1e.malonaz.workspace.v1.SnapshotB\x06\xbaH\x03\xc8\x01\x01R\bsnapshot\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\x98\x01\n" +
 	"\x12GetSnapshotRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
 	"\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01R\x04name\x12@\n" +

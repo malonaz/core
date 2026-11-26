@@ -27,8 +27,8 @@ var File_malonaz_workspace_v1_labels_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"!malonaz/workspace/v1/labels.proto\x12\x14malonaz.workspace.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xd8\x03\x92\x95\x15\xa4\x03\n" +
-	" workspace.malonaz.com/root-agent\x1a\xff\x02On a Workspace or Filesystem: the id of the root agent whose tree it serves, the last segment of the agent's resource name; the resource's parent, the agent's user, holds the rest. Set by the server agents call, never by agents. The workspace services treat it as opaque; the host deletes what carries it when the agent goes. A user's shared filesystem, used by every tree, has none.Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
+	"!malonaz/workspace/v1/labels.proto\x12\x14malonaz.workspace.v1\x1a\"malonaz/codegen/aip/v1/label.protoB\xc8\x04\x92\x95\x15\x94\x04\n" +
+	" workspace.malonaz.com/root-agent\x1a\xef\x03On a Workspace or Filesystem: the id of the root agent of the tree whose agent created it, the last segment of the agent's resource name; the resource's parent, the agent's user, holds the rest. Set by the server agents call, never by agents. The workspace services treat it as opaque; the host deletes what carries it when the root agent goes, so a sub-agent's workspaces and filesystems outlive the sub-agent until its tree is deleted. A user's shared filesystem, used by every tree, has none.Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
 var file_malonaz_workspace_v1_labels_proto_goTypes = []any{}
 var file_malonaz_workspace_v1_labels_proto_depIdxs = []int32{

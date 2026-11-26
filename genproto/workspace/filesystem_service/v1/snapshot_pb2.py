@@ -29,7 +29,7 @@ from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1
 from malonaz.workspace.v1 import filesystem_pb2 as malonaz_dot_workspace_dot_v1_dot_filesystem__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12\'malonaz.workspace.filesystem_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\x91\x01\n\x15\x43reateSnapshotRequest\x12>\n\x06parent\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x38\n\x08snapshot\x18\x02 \x01(\x0b\x32\x1e.malonaz.workspace.v1.SnapshotB\x06\xbaH\x03\xc8\x01\x01\"\x8c\x01\n\x12GetSnapshotRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01\x12:\n\x04view\x18\x02 \x01(\x0e\x32\".malonaz.workspace.v1.SnapshotViewB\x08\xbaH\x05\x82\x01\x02\x10\x01\"\xcd\x01\n\x14ListSnapshotsRequest\x12>\n\x06parent\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x1d\n\tpage_size\x18\x02 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x03 \x01(\t\x12:\n\x04view\x18\x04 \x01(\x0e\x32\".malonaz.workspace.v1.SnapshotViewB\x08\xbaH\x05\x82\x01\x02\x10\x01:\x06\x82\xf3-\x02\x08\x64\"c\n\x15ListSnapshotsResponse\x12\x31\n\tsnapshots\x18\x01 \x03(\x0b\x32\x1e.malonaz.workspace.v1.Snapshot\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\tBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12\'malonaz.workspace.filesystem_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xb2\x01\n\x15\x43reateSnapshotRequest\x12>\n\x06parent\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x38\n\x08snapshot\x18\x02 \x01(\x0b\x32\x1e.malonaz.workspace.v1.SnapshotB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\x8c\x01\n\x12GetSnapshotRequest\x12:\n\x04name\x18\x01 \x01(\tB,\xe0\x41\x02\xfa\x41 \n\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01\x12:\n\x04view\x18\x02 \x01(\x0e\x32\".malonaz.workspace.v1.SnapshotViewB\x08\xbaH\x05\x82\x01\x02\x10\x01\"\xcd\x01\n\x14ListSnapshotsRequest\x12>\n\x06parent\x18\x01 \x01(\tB.\xe0\x41\x02\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\x1d\n\tpage_size\x18\x02 \x01(\x05\x42\n\xbaH\x07\x1a\x05\x18\xe8\x07(\x00\x12\x12\n\npage_token\x18\x03 \x01(\t\x12:\n\x04view\x18\x04 \x01(\x0e\x32\".malonaz.workspace.v1.SnapshotViewB\x08\xbaH\x05\x82\x01\x02\x10\x01:\x06\x82\xf3-\x02\x08\x64\"c\n\x15ListSnapshotsResponse\x12\x31\n\tsnapshots\x18\x01 \x03(\x0b\x32\x1e.malonaz.workspace.v1.Snapshot\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\tBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -41,6 +41,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CREATESNAPSHOTREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\"\n workspace.malonaz.com/Filesystem\272H\003\310\001\001'
   _globals['_CREATESNAPSHOTREQUEST'].fields_by_name['snapshot']._loaded_options = None
   _globals['_CREATESNAPSHOTREQUEST'].fields_by_name['snapshot']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_CREATESNAPSHOTREQUEST'].fields_by_name['request_id']._loaded_options = None
+  _globals['_CREATESNAPSHOTREQUEST'].fields_by_name['request_id']._serialized_options = b'\272H\010r\003\260\001\001\330\001\001'
   _globals['_GETSNAPSHOTREQUEST'].fields_by_name['name']._loaded_options = None
   _globals['_GETSNAPSHOTREQUEST'].fields_by_name['name']._serialized_options = b'\340A\002\372A \n\036workspace.malonaz.com/Snapshot\272H\003\310\001\001'
   _globals['_GETSNAPSHOTREQUEST'].fields_by_name['view']._loaded_options = None
@@ -54,11 +56,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LISTSNAPSHOTSREQUEST']._loaded_options = None
   _globals['_LISTSNAPSHOTSREQUEST']._serialized_options = b'\202\363-\002\010d'
   _globals['_CREATESNAPSHOTREQUEST']._serialized_start=262
-  _globals['_CREATESNAPSHOTREQUEST']._serialized_end=407
-  _globals['_GETSNAPSHOTREQUEST']._serialized_start=410
-  _globals['_GETSNAPSHOTREQUEST']._serialized_end=550
-  _globals['_LISTSNAPSHOTSREQUEST']._serialized_start=553
-  _globals['_LISTSNAPSHOTSREQUEST']._serialized_end=758
-  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_start=760
-  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_end=859
+  _globals['_CREATESNAPSHOTREQUEST']._serialized_end=440
+  _globals['_GETSNAPSHOTREQUEST']._serialized_start=443
+  _globals['_GETSNAPSHOTREQUEST']._serialized_end=583
+  _globals['_LISTSNAPSHOTSREQUEST']._serialized_start=586
+  _globals['_LISTSNAPSHOTSREQUEST']._serialized_end=791
+  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_start=793
+  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_end=892
 # @@protoc_insertion_point(module_scope)

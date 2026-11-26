@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/filesystem_service/v1/snapshot.proto.
  */
 export const file_malonaz_workspace_filesystem_service_v1_snapshot: GenFile = /*@__PURE__*/
-  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKRAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQEijAEKEkdldFNuYXBzaG90UmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdLpIA8gBARI6CgR2aWV3GAIgASgOMiIubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3RWaWV3Qgi6SAWCAQIQASLNAQoUTGlzdFNuYXBzaG90c1JlcXVlc3QSPgoGcGFyZW50GAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJEjoKBHZpZXcYBCABKA4yIi5tYWxvbmF6LndvcmtzcGFjZS52MS5TbmFwc2hvdFZpZXdCCLpIBYIBAhABOgaC8y0CCGQiYwoVTGlzdFNuYXBzaG90c1Jlc3BvbnNlEjEKCXNuYXBzaG90cxgBIAMoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvZmlsZXN5c3RlbV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
+  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKyAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEijAEKEkdldFNuYXBzaG90UmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdLpIA8gBARI6CgR2aWV3GAIgASgOMiIubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3RWaWV3Qgi6SAWCAQIQASLNAQoUTGlzdFNuYXBzaG90c1JlcXVlc3QSPgoGcGFyZW50GAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJEjoKBHZpZXcYBCABKA4yIi5tYWxvbmF6LndvcmtzcGFjZS52MS5TbmFwc2hvdFZpZXdCCLpIBYIBAhABOgaC8y0CCGQiYwoVTGlzdFNuYXBzaG90c1Jlc3BvbnNlEjEKCXNuYXBzaG90cxgBIAMoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvZmlsZXN5c3RlbV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
 
 /**
  * Request message for FilesystemService.CreateSnapshot.
@@ -38,6 +38,14 @@ export type CreateSnapshotRequest = Message<"malonaz.workspace.filesystem_servic
    * @generated from field: malonaz.workspace.v1.Snapshot snapshot = 2;
    */
   snapshot?: Snapshot;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the snapshot it created instead of creating another.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**
@@ -60,6 +68,14 @@ export type CreateSnapshotRequestValid = Message<"malonaz.workspace.filesystem_s
    * @generated from field: malonaz.workspace.v1.Snapshot snapshot = 2;
    */
   snapshot: SnapshotValid;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the snapshot it created instead of creating another.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**

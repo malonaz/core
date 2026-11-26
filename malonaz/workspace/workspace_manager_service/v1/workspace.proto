@@ -49,8 +49,9 @@ message CreateWorkspaceRequest {
   malonaz.workspace.v1.Workspace workspace = 2 [(buf.validate.field).required = true];
 
   // The ID to use for the workspace, which becomes the final component of its
-  // name. Required, unless a server in front of the manager assigns it (the
-  // one agents call uses the root agent's id, one workspace per tree).
+  // name. Required, unless a server in front of the manager assigns it: the
+  // one agents call uses the creating agent's id, so an agent has at most one
+  // workspace and its sub-agents share it unless they create their own.
   // Creating an existing workspace fails ALREADY_EXISTS.
   string workspace_id = 3 [
     (buf.validate.field).string = {
@@ -65,6 +66,13 @@ message CreateWorkspaceRequest {
   repeated Secret secrets = 4 [
     (google.api.field_behavior) = INPUT_ONLY,
     (buf.validate.field).repeated.max_items = 64
+  ];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the workspace it created instead of creating another.
+  string request_id = 5 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
   ];
 }
 
@@ -219,6 +227,14 @@ message SnapshotWorkspaceRequest {
 
   // The turn the snapshots end, an id opaque to the service. Empty for an idle snapshot.
   string turn = 2 [(buf.validate.field).string.max_len = 256];
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the snapshots it took instead of taking more:
+  // each mount's CreateSnapshot request id derives from it.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // Response message for WorkspaceManagerService.SnapshotWorkspace.
