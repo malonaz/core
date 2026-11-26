@@ -1,0 +1,229 @@
+syntax = "proto3";
+
+package malonaz.workspace.workspace_manager_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/workspace/v1/workspace.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1";
+
+// A Secret is a value a workspace's shells can read, never stored.
+message Secret {
+  // The secret's file name under `/run/workspace/secrets`.
+  string id = 1 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string = {
+      max_len: 63
+      pattern: "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$"
+    }
+  ];
+
+  // The env var holding the secret in every shell. Empty for a file only.
+  string env_var = 2 [(buf.validate.field).string = {
+    max_len: 128
+    pattern: "^([A-Z_][A-Z0-9_]*)?$"
+  }];
+
+  // The secret's value.
+  bytes value = 3 [
+    debug_redact = true,
+    (buf.validate.field).bytes.max_len = 65536
+  ];
+}
+
+// Request message for WorkspaceManagerService.CreateWorkspace.
+message CreateWorkspaceRequest {
+  // The user owning the workspace.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/User"
+  ];
+
+  // The workspace to create. Only `labels` and `mounts` are read.
+  malonaz.workspace.v1.Workspace workspace = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the workspace, which becomes the final component of its
+  // name. Required, unless a server in front of the manager assigns it (the
+  // one agents call uses the root agent's id, one workspace per tree).
+  // Creating an existing workspace fails ALREADY_EXISTS.
+  string workspace_id = 3 [
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  // The secrets the pod starts with.
+  repeated Secret secrets = 4 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    (buf.validate.field).repeated.max_items = 64
+  ];
+}
+
+// Request message for WorkspaceManagerService.GetWorkspace.
+message GetWorkspaceRequest {
+  // The workspace to retrieve.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+}
+
+// Request message for WorkspaceManagerService.ListWorkspaces.
+message ListWorkspacesRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+
+  // The user owning the workspaces. Use "organizations/{organization}/users/-"
+  // to list across users.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/User"
+  ];
+
+  // Requested page size. Server may return fewer workspaces than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
+  // returned by a previous call.
+  string page_token = 3;
+}
+
+// Response message for WorkspaceManagerService.ListWorkspaces.
+message ListWorkspacesResponse {
+  // The workspaces, ordered by name.
+  repeated malonaz.workspace.v1.Workspace workspaces = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  string next_page_token = 2;
+}
+
+// Request message for WorkspaceManagerService.UpdateWorkspace.
+message UpdateWorkspaceRequest {
+  option (malonaz.codegen.aip.v1.update) = {
+    paths: [
+      "labels",
+      "mounts"
+    ]
+  };
+  option (buf.validate.message).cel = {
+    id: "workspace.name_required"
+    message: "workspace.name must be set"
+    expression: "has(this.workspace.name)"
+  };
+
+  // The workspace to update.
+  malonaz.workspace.v1.Workspace workspace = 1 [(buf.validate.field).required = true];
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
+}
+
+// Request message for WorkspaceManagerService.DeleteWorkspace.
+message DeleteWorkspaceRequest {
+  // The workspace to delete.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // If true, and the workspace is not found, the request succeeds without action.
+  bool allow_missing = 2;
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for WorkspaceManagerService.StartWorkspace.
+message StartWorkspaceRequest {
+  // The workspace to start.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // The secrets the pod starts with. Ignored when it is already running.
+  repeated Secret secrets = 2 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    (buf.validate.field).repeated.max_items = 64
+  ];
+}
+
+// Request message for WorkspaceManagerService.StopWorkspace.
+message StopWorkspaceRequest {
+  // The workspace to stop.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 2;
+}
+
+// Request message for WorkspaceManagerService.SetWorkspaceSecrets.
+message SetWorkspaceSecretsRequest {
+  // The workspace whose secrets to replace.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // The secrets, replacing every one the pod holds.
+  repeated Secret secrets = 2 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    (buf.validate.field).repeated.max_items = 64
+  ];
+}
+
+// Response message for WorkspaceManagerService.SetWorkspaceSecrets.
+message SetWorkspaceSecretsResponse {
+  // If true, the workspace was running and holds the secrets; false when it was stopped, a no-op.
+  bool applied = 1;
+}
+
+// Request message for WorkspaceManagerService.SnapshotWorkspace.
+message SnapshotWorkspaceRequest {
+  // The workspace whose LOCAL read-write mounts to snapshot.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // The turn the snapshots end, an id opaque to the service. Empty for an idle snapshot.
+  string turn = 2 [(buf.validate.field).string.max_len = 256];
+}
+
+// Response message for WorkspaceManagerService.SnapshotWorkspace.
+message SnapshotWorkspaceResponse {
+  // The snapshots taken, one per LOCAL read-write mount, in mount order.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
+  repeated string snapshots = 1 [(google.api.resource_reference).type = "workspace.malonaz.com/Snapshot"];
+}

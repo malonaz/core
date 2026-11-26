@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package malonaz.workspace.filesystem_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/workspace/v1/filesystem.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/filesystem_service/v1";
+
+// Request message for FilesystemService.CreateFilesystem.
+message CreateFilesystemRequest {
+  // The user owning the filesystem.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/User"
+  ];
+
+  // The filesystem to create. Only `labels`, `kind` and `quota_bytes` are read.
+  malonaz.workspace.v1.Filesystem filesystem = 2 [(buf.validate.field).required = true];
+
+  // The ID to use for the filesystem, which becomes the final component of its
+  // name. Creating an existing filesystem fails ALREADY_EXISTS.
+  string filesystem_id = 3 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 63
+      pattern: "^[a-z0-9](-?[a-z0-9])*$"
+    }
+  ];
+}
+
+// Request message for FilesystemService.GetFilesystem.
+message GetFilesystemRequest {
+  // The filesystem to retrieve.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+}
+
+// Request message for FilesystemService.ListFilesystems.
+message ListFilesystemsRequest {
+  option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+
+  // The user owning the filesystems. Use "organizations/{organization}/users/-"
+  // to list across users.
+  // Format: organizations/{organization}/users/{user}
+  string parent = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/User"
+  ];
+
+  // Requested page size. Server may return fewer filesystems than requested.
+  // If unspecified, server will pick an appropriate default.
+  int32 page_size = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 1000
+  }];
+
+  // A token identifying a page of results the server should return.
+  // This is the value of
+  // [ListFilesystemsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.next_page_token]
+  // returned by a previous call.
+  string page_token = 3;
+}
+
+// Response message for FilesystemService.ListFilesystems.
+message ListFilesystemsResponse {
+  // The filesystems, ordered by name.
+  repeated malonaz.workspace.v1.Filesystem filesystems = 1;
+
+  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  string next_page_token = 2;
+}
+
+// Request message for FilesystemService.DeleteFilesystem.
+message DeleteFilesystemRequest {
+  // The filesystem to delete.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+
+  // If true, and the filesystem is not found, the request succeeds without action.
+  bool allow_missing = 2;
+
+  // If set, the request only succeeds if the current etag matches this value.
+  string etag = 3;
+}
+
+// Request message for FilesystemService.AttachFilesystem.
+message AttachFilesystemRequest {
+  // The LOCAL filesystem whose writer to claim.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+
+  // The workspace claiming it.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string workspace = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+}
+
+// Request message for FilesystemService.DetachFilesystem.
+message DetachFilesystemRequest {
+  // The LOCAL filesystem whose writer to release.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string name = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+
+  // The workspace releasing it.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string workspace = 2 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+}

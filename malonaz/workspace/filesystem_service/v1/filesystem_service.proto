@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package malonaz.workspace.filesystem_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "malonaz/workspace/filesystem_service/v1/filesystem.proto";
+import "malonaz/workspace/filesystem_service/v1/snapshot.proto";
+import "malonaz/workspace/v1/filesystem.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/filesystem_service/v1";
+
+// This API stores the filesystems workspaces mount, and the history of the
+// LOCAL ones. It knows nothing about users or agents: the server in front of
+// it checks who may touch which filesystem.
+//
+// # Resource model
+//
+// - [Filesystem][malonaz.workspace.v1.Filesystem]: a directory tree, LOCAL
+//   (node disk, snapshotted, one writer) or SHARED (network, many writers).
+//   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+// - [Snapshot][malonaz.workspace.v1.Snapshot]: a LOCAL filesystem's state at
+//   a turn's end, and what changed since the one before.
+//   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
+//
+// # Writers
+//
+// A LOCAL filesystem has at most one read-write mount, its `writer`: the
+// WorkspaceManagerService claims it with AttachFilesystem before mounting it
+// and releases it with DetachFilesystem. Read-only and SHARED mounts claim
+// nothing.
+service FilesystemService {
+  option (google.api.default_host) = "workspace.malonaz.com";
+
+  // ===================== Filesystem Management =====================
+
+  // Create a filesystem, empty.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateFilesystem(CreateFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/filesystems"
+      body: "filesystem"
+    };
+    option (google.api.method_signature) = "parent,filesystem,filesystem_id";
+  }
+
+  // Get a filesystem.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetFilesystem(GetFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/filesystems/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List filesystems.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListFilesystems(ListFilesystemsRequest) returns (ListFilesystemsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/filesystems"};
+    option (google.api.method_signature) = "parent";
+  }
+
+  // Delete a filesystem, its files and its history. FAILED_PRECONDITION while
+  // a workspace mounts it.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteFilesystem(DeleteFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/filesystems/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Claim a LOCAL filesystem's writer for a workspace. Idempotent for the
+  // workspace holding it; FAILED_PRECONDITION if another does.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc AttachFilesystem(AttachFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/filesystems/*}:attach"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,workspace";
+  }
+
+  // Release a LOCAL filesystem's writer. Idempotent: a filesystem the
+  // workspace does not hold is returned as is.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc DetachFilesystem(DetachFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/filesystems/*}:detach"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,workspace";
+  }
+
+  // ===================== Snapshot Management =====================
+
+  // Snapshot a LOCAL filesystem now. A filesystem unchanged since its last
+  // snapshot records an empty one, so every turn maps to a snapshot.
+  // FAILED_PRECONDITION for a SHARED filesystem.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (malonaz.workspace.v1.Snapshot) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/filesystems/*}/snapshots"
+      body: "snapshot"
+    };
+    option (google.api.method_signature) = "parent,snapshot";
+  }
+
+  // Get a snapshot, in the FULL view unless asked otherwise.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetSnapshot(GetSnapshotRequest) returns (malonaz.workspace.v1.Snapshot) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/filesystems/*/snapshots/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // List a filesystem's snapshots, newest first, in the BASIC view unless
+  // asked otherwise.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/filesystems/*}/snapshots"};
+    option (google.api.method_signature) = "parent";
+  }
+}

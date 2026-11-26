@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package malonaz.workspace.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/v1";
+option (google.api.resource_definition) = {
+  type: "workspace.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
+
+// A Workspace is a sandboxed shell for an agent tree: a pod with the
+// filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
+// compute and its mounts, not the files: those live on its filesystems, which
+// outlive it and may be mounted by other workspaces. Stored as a Kubernetes
+// object, the only state its services keep.
+message Workspace {
+  option (google.api.resource) = {
+    type: "workspace.malonaz.com/Workspace"
+    pattern: "organizations/{organization}/users/{user}/workspaces/{workspace}"
+    singular: "workspace"
+    plural: "workspaces"
+  };
+  option (buf.validate.message).cel = {
+    id: "workspace.unique_mount_paths"
+    message: "mount paths must be unique"
+    expression: "this.mounts.map(m, m.path).unique()"
+  };
+
+  // State is where the workspace's pod is in its lifecycle.
+  enum State {
+    // Used to detect an unset field.
+    STATE_UNSPECIFIED = 0;
+    // The workspace has no pod: its next Exec or StartWorkspace starts one.
+    STATE_STOPPED = 1;
+    // The pod is starting: an Exec waits for it.
+    STATE_STARTING = 2;
+    // The pod is ready to run commands.
+    STATE_READY = 3;
+  }
+
+  // The resource name of the workspace.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the workspace.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the workspace.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 4;
+
+  // The labels on this workspace.
+  map<string, string> labels = 5 [(buf.validate.field).map = {
+    max_pairs: 64
+    keys: {
+      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+    }
+    values: {
+      string: {
+        max_len: 63
+        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+      }
+    }
+  }];
+
+  // The filesystems the workspace mounts. Changing them recreates its pod: the
+  // mounted files stay, `/tmp` goes.
+  repeated Mount mounts = 6 [(buf.validate.field).repeated.max_items = 16];
+
+  // Where the workspace's pod is in its lifecycle.
+  State state = 7 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (buf.validate.field).enum.defined_only = true
+  ];
+
+  // The node running the workspace's pod. Empty while stopped.
+  string node = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // When a command, a terminal or a start last used the workspace. An idle
+  // workspace is stopped, its files kept.
+  google.protobuf.Timestamp last_active_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// A Mount is a filesystem a workspace sees at a path.
+message Mount {
+  // The filesystem mounted. A LOCAL filesystem has one read-write mount at a time.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string filesystem = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+
+  // The absolute path the filesystem is mounted at, outside `/tmp` and `/run`.
+  string path = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string = {
+      max_len: 255
+      pattern: "^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$"
+    },
+    (buf.validate.field).cel = {
+      id: "mount.path_reserved"
+      message: "path must not be under /tmp, /run, /proc, /sys or /dev"
+      expression: "!['/tmp', '/run', '/proc', '/sys', '/dev'].exists(p, this == p || this.startsWith(p + '/'))"
+    }
+  ];
+
+  // If true, the workspace cannot write the filesystem.
+  bool read_only = 3;
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package malonaz.workspace.v1;
+
+import "malonaz/codegen/aip/v1/label.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/v1";
+option (malonaz.codegen.aip.v1.label) = {
+  key: "workspace.malonaz.com/root-agent"
+  description: "On a Workspace or Filesystem: the id of the root agent whose tree it serves, the last segment of the agent's resource name; the resource's parent, the agent's user, holds the rest. Set by the server agents call, never by agents. The workspace services treat it as opaque; the host deletes what carries it when the agent goes. A user's shared filesystem, used by every tree, has none."
+};
