@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/ai/ai_service/v1/speech_to_text.proto.
  */
 export const file_malonaz_ai_ai_service_v1_speech_to_text: GenFile = /*@__PURE__*/
-  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvc3BlZWNoX3RvX3RleHQucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSLKAQoTU3BlZWNoVG9UZXh0UmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEjQKC2F1ZGlvX2NodW5rGAMgASgLMhcubWFsb25hei5hdWRpby52MS5DaHVua0IGukgDyAEBEhUKDWxhbmd1YWdlX2NvZGUYBCABKAkimAEKFFNwZWVjaFRvVGV4dFJlc3BvbnNlEhIKCnRyYW5zY3JpcHQYASABKAkSLgoLbW9kZWxfdXNhZ2UYAiABKAsyGS5tYWxvbmF6LmFpLnYxLk1vZGVsVXNhZ2USPAoSZ2VuZXJhdGlvbl9tZXRyaWNzGAMgASgLMiAubWFsb25hei5haS52MS5HZW5lcmF0aW9uTWV0cmljcyKxAQoZU3BlZWNoVG9UZXh0U3RyZWFtUmVxdWVzdBJSCg1jb25maWd1cmF0aW9uGAEgASgLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUNvbmZpZ3VyYXRpb25IABIuCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmtIAEIQCgdjb250ZW50EgW6SAIIASL6AQofU3BlZWNoVG9UZXh0U3RyZWFtQ29uZmlndXJhdGlvbhIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEhYKDmxhbmd1YWdlX2NvZGVzGAMgAygJElcKC2VuZF9vZl90dXJuGAQgASgLMkIubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUVuZE9mVHVybkNvbmZpZ3VyYXRpb24irgMKKFNwZWVjaFRvVGV4dFN0cmVhbUVuZE9mVHVybkNvbmZpZ3VyYXRpb24SNQoUY29uZmlkZW5jZV90aHJlc2hvbGQYASABKAFCF7pIFBISGc3MzMzMzOw/KQAAAAAAAOA/EjsKGmVhZ2VyX2NvbmZpZGVuY2VfdGhyZXNob2xkGAIgASgBQhe6SBQSEhnNzMzMzMzsPykAAAAAAAAAABI+Cgd0aW1lb3V0GAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQhK6SA+qAQwiAggKMgYQgMq17gE6zQG6SMkBGsYBChNlYWdlcl9sdGVfdGhyZXNob2xkEiRlYWdlcl90aHJlc2hvbGQgbXVzdCBiZSA8PSB0aHJlc2hvbGQaiAEhaGFzKHRoaXMuZWFnZXJfY29uZmlkZW5jZV90aHJlc2hvbGQpIHx8ICFoYXModGhpcy5jb25maWRlbmNlX3RocmVzaG9sZCkgfHwgdGhpcy5lYWdlcl9jb25maWRlbmNlX3RocmVzaG9sZCA8PSB0aGlzLmNvbmZpZGVuY2VfdGhyZXNob2xkIqYEChpTcGVlY2hUb1RleHRTdHJlYW1SZXNwb25zZRJLCgp0dXJuX3N0YXJ0GAEgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEkwKC3R1cm5fdXBkYXRlGAIgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEk8KDnR1cm5fZWFnZXJfZW5kGAMgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEk0KDHR1cm5fcmVzdW1lZBgEIAEoCzI1Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1UdXJuRXZlbnRIABJJCgh0dXJuX2VuZBgFIAEoCzI1Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1UdXJuRXZlbnRIABIwCgttb2RlbF91c2FnZRgGIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgHIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIAEIQCgdjb250ZW50EgW6SAIIASKlAQobU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50EhIKCnR1cm5faW5kZXgYASABKAUSEgoKdHJhbnNjcmlwdBgCIAEoCRIeChZlbmRfb2ZfdHVybl9jb25maWRlbmNlGAMgASgBEh8KF2RldGVjdGVkX2xhbmd1YWdlX2NvZGVzGAQgAygJEh0KFWhpbnRlZF9sYW5ndWFnZV9jb2RlcxgFIAMoCUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
+  fileDesc("Ci1tYWxvbmF6L2FpL2FpX3NlcnZpY2UvdjEvc3BlZWNoX3RvX3RleHQucHJvdG8SGG1hbG9uYXouYWkuYWlfc2VydmljZS52MSKbBAoTU3BlZWNoVG9UZXh0UmVxdWVzdBIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARIuCgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdBIsCgthdWRpb19jaHVuaxgDIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmsSFQoNbGFuZ3VhZ2VfY29kZRgEIAEoCRJJCg1lbmNvZGVkX2F1ZGlvGAUgASgLMjIubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dEVuY29kZWRBdWRpbzqTArpIjwIaeAoScGNtX2F1ZGlvX2NvbXBsZXRlEjFhdWRpb19mb3JtYXQgYW5kIGF1ZGlvX2NodW5rIG11c3QgYmUgc2V0IHRvZ2V0aGVyGi9oYXModGhpcy5hdWRpb19mb3JtYXQpID09IGhhcyh0aGlzLmF1ZGlvX2NodW5rKRqSAQoRYXVkaW9fZXhhY3RseV9vbmUSS2V4YWN0bHkgb25lIG9mIGF1ZGlvX2NodW5rICh3aXRoIGF1ZGlvX2Zvcm1hdCkgb3IgZW5jb2RlZF9hdWRpbyBtdXN0IGJlIHNldBowaGFzKHRoaXMuYXVkaW9fY2h1bmspICE9IGhhcyh0aGlzLmVuY29kZWRfYXVkaW8pIkwKGFNwZWVjaFRvVGV4dEVuY29kZWRBdWRpbxIZCgltaW1lX3R5cGUYASABKAlCBrpIA8gBARIVCgRkYXRhGAIgASgMQge6SAR6AhABItkBChRTcGVlY2hUb1RleHRSZXNwb25zZRISCgp0cmFuc2NyaXB0GAEgASgJEi4KC21vZGVsX3VzYWdlGAIgASgLMhkubWFsb25hei5haS52MS5Nb2RlbFVzYWdlEjwKEmdlbmVyYXRpb25fbWV0cmljcxgDIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3MSPwoIc2VnbWVudHMYBCADKAsyLS5tYWxvbmF6LmFpLmFpX3NlcnZpY2UudjEuU3BlZWNoVG9UZXh0U2VnbWVudCKlAQoTU3BlZWNoVG9UZXh0U2VnbWVudBIUCgdzcGVha2VyGAEgASgFSACIAQESLwoMc3RhcnRfb2Zmc2V0GAIgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uEi0KCmVuZF9vZmZzZXQYAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb24SDAoEdGV4dBgEIAEoCUIKCghfc3BlYWtlciKxAQoZU3BlZWNoVG9UZXh0U3RyZWFtUmVxdWVzdBJSCg1jb25maWd1cmF0aW9uGAEgASgLMjkubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUNvbmZpZ3VyYXRpb25IABIuCgthdWRpb19jaHVuaxgCIAEoCzIXLm1hbG9uYXouYXVkaW8udjEuQ2h1bmtIAEIQCgdjb250ZW50EgW6SAIIASL6AQofU3BlZWNoVG9UZXh0U3RyZWFtQ29uZmlndXJhdGlvbhIuCgVtb2RlbBgBIAEoCUIf+kEWChRhaS5tYWxvbmF6LmNvbS9Nb2RlbLpIA8gBARI2CgxhdWRpb19mb3JtYXQYAiABKAsyGC5tYWxvbmF6LmF1ZGlvLnYxLkZvcm1hdEIGukgDyAEBEhYKDmxhbmd1YWdlX2NvZGVzGAMgAygJElcKC2VuZF9vZl90dXJuGAQgASgLMkIubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbUVuZE9mVHVybkNvbmZpZ3VyYXRpb24irgMKKFNwZWVjaFRvVGV4dFN0cmVhbUVuZE9mVHVybkNvbmZpZ3VyYXRpb24SNQoUY29uZmlkZW5jZV90aHJlc2hvbGQYASABKAFCF7pIFBISGc3MzMzMzOw/KQAAAAAAAOA/EjsKGmVhZ2VyX2NvbmZpZGVuY2VfdGhyZXNob2xkGAIgASgBQhe6SBQSEhnNzMzMzMzsPykAAAAAAAAAABI+Cgd0aW1lb3V0GAMgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQhK6SA+qAQwiAggKMgYQgMq17gE6zQG6SMkBGsYBChNlYWdlcl9sdGVfdGhyZXNob2xkEiRlYWdlcl90aHJlc2hvbGQgbXVzdCBiZSA8PSB0aHJlc2hvbGQaiAEhaGFzKHRoaXMuZWFnZXJfY29uZmlkZW5jZV90aHJlc2hvbGQpIHx8ICFoYXModGhpcy5jb25maWRlbmNlX3RocmVzaG9sZCkgfHwgdGhpcy5lYWdlcl9jb25maWRlbmNlX3RocmVzaG9sZCA8PSB0aGlzLmNvbmZpZGVuY2VfdGhyZXNob2xkIqYEChpTcGVlY2hUb1RleHRTdHJlYW1SZXNwb25zZRJLCgp0dXJuX3N0YXJ0GAEgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEkwKC3R1cm5fdXBkYXRlGAIgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEk8KDnR1cm5fZWFnZXJfZW5kGAMgASgLMjUubWFsb25hei5haS5haV9zZXJ2aWNlLnYxLlNwZWVjaFRvVGV4dFN0cmVhbVR1cm5FdmVudEgAEk0KDHR1cm5fcmVzdW1lZBgEIAEoCzI1Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1UdXJuRXZlbnRIABJJCgh0dXJuX2VuZBgFIAEoCzI1Lm1hbG9uYXouYWkuYWlfc2VydmljZS52MS5TcGVlY2hUb1RleHRTdHJlYW1UdXJuRXZlbnRIABIwCgttb2RlbF91c2FnZRgGIAEoCzIZLm1hbG9uYXouYWkudjEuTW9kZWxVc2FnZUgAEj4KEmdlbmVyYXRpb25fbWV0cmljcxgHIAEoCzIgLm1hbG9uYXouYWkudjEuR2VuZXJhdGlvbk1ldHJpY3NIAEIQCgdjb250ZW50EgW6SAIIASKlAQobU3BlZWNoVG9UZXh0U3RyZWFtVHVybkV2ZW50EhIKCnR1cm5faW5kZXgYASABKAUSEgoKdHJhbnNjcmlwdBgCIAEoCRIeChZlbmRfb2ZfdHVybl9jb25maWRlbmNlGAMgASgBEh8KF2RldGVjdGVkX2xhbmd1YWdlX2NvZGVzGAQgAygJEh0KFWhpbnRlZF9sYW5ndWFnZV9jb2RlcxgFIAMoCUIzWjFnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by9haS9haV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_resource, file_google_protobuf_duration, file_malonaz_ai_v1_metrics, file_malonaz_audio_v1_audio]);
 
 /**
  * Request message for AiService.SpeechToText.
@@ -35,14 +35,14 @@ export type SpeechToTextRequest = Message<"malonaz.ai.ai_service.v1.SpeechToText
   model: string;
 
   /**
-   * Audio format of the audio.
+   * Audio format of the PCM audio. Set with audio_chunk.
    *
    * @generated from field: malonaz.audio.v1.Format audio_format = 2;
    */
   audioFormat?: Format;
 
   /**
-   * Audio to transcribe.
+   * PCM audio to transcribe. Set with audio_format.
    *
    * @generated from field: malonaz.audio.v1.Chunk audio_chunk = 3;
    */
@@ -54,6 +54,13 @@ export type SpeechToTextRequest = Message<"malonaz.ai.ai_service.v1.SpeechToText
    * @generated from field: string language_code = 4;
    */
   languageCode: string;
+
+  /**
+   * An encoded audio file to transcribe, such as an mp3. Providers that only take PCM reject it.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio encoded_audio = 5;
+   */
+  encodedAudio?: SpeechToTextEncodedAudio;
 };
 
 /**
@@ -71,18 +78,18 @@ export type SpeechToTextRequestValid = Message<"malonaz.ai.ai_service.v1.SpeechT
   model: string;
 
   /**
-   * Audio format of the audio.
+   * Audio format of the PCM audio. Set with audio_chunk.
    *
    * @generated from field: malonaz.audio.v1.Format audio_format = 2;
    */
-  audioFormat: FormatValid;
+  audioFormat?: FormatValid;
 
   /**
-   * Audio to transcribe.
+   * PCM audio to transcribe. Set with audio_format.
    *
    * @generated from field: malonaz.audio.v1.Chunk audio_chunk = 3;
    */
-  audioChunk: ChunkValid;
+  audioChunk?: ChunkValid;
 
   /**
    * Optional language code to improve transcription accuracy (e.g., "en", "es").
@@ -90,6 +97,13 @@ export type SpeechToTextRequestValid = Message<"malonaz.ai.ai_service.v1.SpeechT
    * @generated from field: string language_code = 4;
    */
   languageCode: string;
+
+  /**
+   * An encoded audio file to transcribe, such as an mp3. Providers that only take PCM reject it.
+   *
+   * @generated from field: malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio encoded_audio = 5;
+   */
+  encodedAudio?: SpeechToTextEncodedAudioValid;
 };
 
 /**
@@ -98,6 +112,55 @@ export type SpeechToTextRequestValid = Message<"malonaz.ai.ai_service.v1.SpeechT
  */
 export const SpeechToTextRequestSchema: GenMessage<SpeechToTextRequest, {validType: SpeechToTextRequestValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 0);
+
+/**
+ * An encoded audio file.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio
+ */
+export type SpeechToTextEncodedAudio = Message<"malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio"> & {
+  /**
+   * The media type of the data (e.g., "audio/mpeg").
+   *
+   * @generated from field: string mime_type = 1;
+   */
+  mimeType: string;
+
+  /**
+   * The file contents.
+   *
+   * @generated from field: bytes data = 2;
+   */
+  data: Uint8Array;
+};
+
+/**
+ * An encoded audio file.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio
+ */
+export type SpeechToTextEncodedAudioValid = Message<"malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio"> & {
+  /**
+   * The media type of the data (e.g., "audio/mpeg").
+   *
+   * @generated from field: string mime_type = 1;
+   */
+  mimeType: string;
+
+  /**
+   * The file contents.
+   *
+   * @generated from field: bytes data = 2;
+   */
+  data: Uint8Array;
+};
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SpeechToTextEncodedAudio.
+ * Use `create(SpeechToTextEncodedAudioSchema)` to create a new message.
+ */
+export const SpeechToTextEncodedAudioSchema: GenMessage<SpeechToTextEncodedAudio, {validType: SpeechToTextEncodedAudioValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 1);
 
 /**
  * Response message for AiService.SpeechToText.
@@ -125,6 +188,14 @@ export type SpeechToTextResponse = Message<"malonaz.ai.ai_service.v1.SpeechToTex
    * @generated from field: malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
    */
   generationMetrics?: GenerationMetrics;
+
+  /**
+   * The transcript in time order, one segment per utterance. Empty when the provider returns no
+   * segments.
+   *
+   * @generated from field: repeated malonaz.ai.ai_service.v1.SpeechToTextSegment segments = 4;
+   */
+  segments: SpeechToTextSegment[];
 };
 
 export type SpeechToTextResponseValid = SpeechToTextResponse;
@@ -134,7 +205,52 @@ export type SpeechToTextResponseValid = SpeechToTextResponse;
  * Use `create(SpeechToTextResponseSchema)` to create a new message.
  */
 export const SpeechToTextResponseSchema: GenMessage<SpeechToTextResponse, {validType: SpeechToTextResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 1);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 2);
+
+/**
+ * A stretch of speech by one speaker.
+ *
+ * @generated from message malonaz.ai.ai_service.v1.SpeechToTextSegment
+ */
+export type SpeechToTextSegment = Message<"malonaz.ai.ai_service.v1.SpeechToTextSegment"> & {
+  /**
+   * Zero-based id of the voice, only meaningful within one response. Unset when the provider does
+   * not identify speakers.
+   *
+   * @generated from field: optional int32 speaker = 1;
+   */
+  speaker?: number;
+
+  /**
+   * Offset of the segment's start from the start of the audio.
+   *
+   * @generated from field: google.protobuf.Duration start_offset = 2;
+   */
+  startOffset?: Duration;
+
+  /**
+   * Offset of the segment's end from the start of the audio.
+   *
+   * @generated from field: google.protobuf.Duration end_offset = 3;
+   */
+  endOffset?: Duration;
+
+  /**
+   * The spoken text.
+   *
+   * @generated from field: string text = 4;
+   */
+  text: string;
+};
+
+export type SpeechToTextSegmentValid = SpeechToTextSegment;
+
+/**
+ * Describes the message malonaz.ai.ai_service.v1.SpeechToTextSegment.
+ * Use `create(SpeechToTextSegmentSchema)` to create a new message.
+ */
+export const SpeechToTextSegmentSchema: GenMessage<SpeechToTextSegment, {validType: SpeechToTextSegmentValid}> = /*@__PURE__*/
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 3);
 
 /**
  * Request message for AiService.SpeechToTextStream.
@@ -207,7 +323,7 @@ export type SpeechToTextStreamRequestValid = Message<"malonaz.ai.ai_service.v1.S
  * Use `create(SpeechToTextStreamRequestSchema)` to create a new message.
  */
 export const SpeechToTextStreamRequestSchema: GenMessage<SpeechToTextStreamRequest, {validType: SpeechToTextStreamRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 2);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 4);
 
 /**
  * Configuration for speech-to-text streaming. Sent as the first message.
@@ -288,7 +404,7 @@ export type SpeechToTextStreamConfigurationValid = Message<"malonaz.ai.ai_servic
  * Use `create(SpeechToTextStreamConfigurationSchema)` to create a new message.
  */
 export const SpeechToTextStreamConfigurationSchema: GenMessage<SpeechToTextStreamConfiguration, {validType: SpeechToTextStreamConfigurationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 3);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 5);
 
 /**
  * Configuration for end-of-turn detection.
@@ -331,7 +447,7 @@ export type SpeechToTextStreamEndOfTurnConfigurationValid = SpeechToTextStreamEn
  * Use `create(SpeechToTextStreamEndOfTurnConfigurationSchema)` to create a new message.
  */
 export const SpeechToTextStreamEndOfTurnConfigurationSchema: GenMessage<SpeechToTextStreamEndOfTurnConfiguration, {validType: SpeechToTextStreamEndOfTurnConfigurationValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 4);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 6);
 
 /**
  * Response message for AiService.SpeechToTextStream.
@@ -410,7 +526,7 @@ export type SpeechToTextStreamResponseValid = SpeechToTextStreamResponse;
  * Use `create(SpeechToTextStreamResponseSchema)` to create a new message.
  */
 export const SpeechToTextStreamResponseSchema: GenMessage<SpeechToTextStreamResponse, {validType: SpeechToTextStreamResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 5);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 7);
 
 /**
  * A turn-level event emitted during speech-to-text streaming.
@@ -465,5 +581,5 @@ export type SpeechToTextStreamTurnEventValid = SpeechToTextStreamTurnEvent;
  * Use `create(SpeechToTextStreamTurnEventSchema)` to create a new message.
  */
 export const SpeechToTextStreamTurnEventSchema: GenMessage<SpeechToTextStreamTurnEvent, {validType: SpeechToTextStreamTurnEventValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 6);
+  messageDesc(file_malonaz_ai_ai_service_v1_speech_to_text, 8);
 

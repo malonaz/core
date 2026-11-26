@@ -7,6 +7,7 @@ import (
 	"time"
 
 	openai "github.com/sashabaranov/go-openai"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
@@ -20,6 +21,10 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	model, err := c.modelService.GetModel(ctx, getModelRequest)
 	if err != nil {
 		return nil, err
+	}
+
+	if request.GetAudioChunk() == nil || request.GetAudioFormat() == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "openai speech to text takes PCM audio (format and chunk), not encoded audio").Err()
 	}
 
 	wavBytes := audio.PCMToWAV(request.AudioChunk.Data, request.AudioFormat)

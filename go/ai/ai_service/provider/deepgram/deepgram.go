@@ -32,11 +32,12 @@ const (
 type Client struct {
 	apiKey       string
 	baseURL      string
+	restBaseURL  string
 	modelService *provider.ModelService
 }
 
 func NewClient(apiKey string, modelService *provider.ModelService) *Client {
-	return &Client{apiKey: apiKey, baseURL: defaultBaseURL, modelService: modelService}
+	return &Client{apiKey: apiKey, baseURL: defaultBaseURL, restBaseURL: defaultRESTBaseURL, modelService: modelService}
 }
 
 func (c *Client) ProviderId() string          { return provider.Deepgram }
@@ -165,4 +166,7 @@ func (lc *ListenConnection) keepAlive(ctx context.Context) {
 	}
 }
 
-var _ provider.SpeechToTextStreamClient = (*Client)(nil)
+var (
+	_ provider.SpeechToTextClient       = (*Client)(nil)
+	_ provider.SpeechToTextStreamClient = (*Client)(nil)
+)

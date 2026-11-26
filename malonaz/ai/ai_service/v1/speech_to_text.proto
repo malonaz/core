@@ -12,6 +12,17 @@ option go_package = "github.com/malonaz/core/genproto/ai/ai_service/v1";
 
 // Request message for AiService.SpeechToText.
 message SpeechToTextRequest {
+  option (buf.validate.message).cel = {
+    id: "pcm_audio_complete"
+    message: "audio_format and audio_chunk must be set together"
+    expression: "has(this.audio_format) == has(this.audio_chunk)"
+  };
+  option (buf.validate.message).cel = {
+    id: "audio_exactly_one"
+    message: "exactly one of audio_chunk (with audio_format) or encoded_audio must be set"
+    expression: "has(this.audio_chunk) != has(this.encoded_audio)"
+  };
+
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
   string model = 1 [
@@ -19,14 +30,26 @@ message SpeechToTextRequest {
     (buf.validate.field).required = true
   ];
 
-  // Audio format of the audio.
-  audio.v1.Format audio_format = 2 [(buf.validate.field).required = true];
+  // Audio format of the PCM audio. Set with audio_chunk.
+  audio.v1.Format audio_format = 2;
 
-  // Audio to transcribe.
-  audio.v1.Chunk audio_chunk = 3 [(buf.validate.field).required = true];
+  // PCM audio to transcribe. Set with audio_format.
+  audio.v1.Chunk audio_chunk = 3;
 
   // Optional language code to improve transcription accuracy (e.g., "en", "es").
   string language_code = 4;
+
+  // An encoded audio file to transcribe, such as an mp3. Providers that only take PCM reject it.
+  SpeechToTextEncodedAudio encoded_audio = 5;
+}
+
+// An encoded audio file.
+message SpeechToTextEncodedAudio {
+  // The media type of the data (e.g., "audio/mpeg").
+  string mime_type = 1 [(buf.validate.field).required = true];
+
+  // The file contents.
+  bytes data = 2 [(buf.validate.field).bytes.min_len = 1];
 }
 
 // Response message for AiService.SpeechToText.
@@ -39,6 +62,26 @@ message SpeechToTextResponse {
 
   // Generation metrics.
   .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+
+  // The transcript in time order, one segment per utterance. Empty when the provider returns no
+  // segments.
+  repeated SpeechToTextSegment segments = 4;
+}
+
+// A stretch of speech by one speaker.
+message SpeechToTextSegment {
+  // Zero-based id of the voice, only meaningful within one response. Unset when the provider does
+  // not identify speakers.
+  optional int32 speaker = 1;
+
+  // Offset of the segment's start from the start of the audio.
+  google.protobuf.Duration start_offset = 2;
+
+  // Offset of the segment's end from the start of the audio.
+  google.protobuf.Duration end_offset = 3;
+
+  // The spoken text.
+  string text = 4;
 }
 
 // Request message for AiService.SpeechToTextStream.
