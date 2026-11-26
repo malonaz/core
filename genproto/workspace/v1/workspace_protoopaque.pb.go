@@ -149,6 +149,7 @@ type Workspace struct {
 	xxx_hidden_State          Workspace_State        `protobuf:"varint,7,opt,name=state,proto3,enum=malonaz.workspace.v1.Workspace_State"`
 	xxx_hidden_Node           string                 `protobuf:"bytes,8,opt,name=node,proto3"`
 	xxx_hidden_LastActiveTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_active_time,json=lastActiveTime,proto3"`
+	xxx_hidden_StartTime      *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=start_time,json=startTime,proto3"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -243,6 +244,13 @@ func (x *Workspace) GetLastActiveTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Workspace) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_StartTime
+	}
+	return nil
+}
+
 func (x *Workspace) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -279,6 +287,10 @@ func (x *Workspace) SetLastActiveTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_LastActiveTime = v
 }
 
+func (x *Workspace) SetStartTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_StartTime = v
+}
+
 func (x *Workspace) HasCreateTime() bool {
 	if x == nil {
 		return false
@@ -300,6 +312,13 @@ func (x *Workspace) HasLastActiveTime() bool {
 	return x.xxx_hidden_LastActiveTime != nil
 }
 
+func (x *Workspace) HasStartTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartTime != nil
+}
+
 func (x *Workspace) ClearCreateTime() {
 	x.xxx_hidden_CreateTime = nil
 }
@@ -310,6 +329,10 @@ func (x *Workspace) ClearUpdateTime() {
 
 func (x *Workspace) ClearLastActiveTime() {
 	x.xxx_hidden_LastActiveTime = nil
+}
+
+func (x *Workspace) ClearStartTime() {
+	x.xxx_hidden_StartTime = nil
 }
 
 type Workspace_builder struct {
@@ -336,6 +359,9 @@ type Workspace_builder struct {
 	// When a command or a start last used the workspace. An idle
 	// workspace is stopped, its files kept.
 	LastActiveTime *timestamppb.Timestamp
+	// When the workspace's current pod started: a new value means a new pod,
+	// which holds no secrets until they are set again. Unset while stopped.
+	StartTime *timestamppb.Timestamp
 }
 
 func (b0 Workspace_builder) Build() *Workspace {
@@ -351,6 +377,7 @@ func (b0 Workspace_builder) Build() *Workspace {
 	x.xxx_hidden_State = b.State
 	x.xxx_hidden_Node = b.Node
 	x.xxx_hidden_LastActiveTime = b.LastActiveTime
+	x.xxx_hidden_StartTime = b.StartTime
 	return m0
 }
 
@@ -448,7 +475,7 @@ var File_malonaz_workspace_v1_workspace_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_workspace_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd5\b\n" +
+	"$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\x9b\t\n" +
 	"\tWorkspace\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -460,7 +487,10 @@ const file_malonaz_workspace_v1_workspace_proto_rawDesc = "" +
 	"\x06mounts\x18\x06 \x03(\v2\x1b.malonaz.workspace.v1.MountB\x0e\xbaH\x05\x92\x01\x02\x10\x10\xba\xea\x0f\x02\x10\x01R\x06mounts\x12H\n" +
 	"\x05state\x18\a \x01(\x0e2%.malonaz.workspace.v1.Workspace.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12\x17\n" +
 	"\x04node\x18\b \x01(\tB\x03\xe0A\x03R\x04node\x12O\n" +
-	"\x10last_active_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\x0elastActiveTime\x1a9\n" +
+	"\x10last_active_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\x0elastActiveTime\x12D\n" +
+	"\n" +
+	"start_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\tstartTime\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"l\n" +
@@ -507,12 +537,13 @@ var file_malonaz_workspace_v1_workspace_proto_depIdxs = []int32{
 	3, // 3: malonaz.workspace.v1.Workspace.mounts:type_name -> malonaz.workspace.v1.Mount
 	0, // 4: malonaz.workspace.v1.Workspace.state:type_name -> malonaz.workspace.v1.Workspace.State
 	5, // 5: malonaz.workspace.v1.Workspace.last_active_time:type_name -> google.protobuf.Timestamp
-	1, // 6: malonaz.workspace.v1.Mount.mode:type_name -> malonaz.workspace.v1.Mount.Mode
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	5, // 6: malonaz.workspace.v1.Workspace.start_time:type_name -> google.protobuf.Timestamp
+	1, // 7: malonaz.workspace.v1.Mount.mode:type_name -> malonaz.workspace.v1.Mount.Mode
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_v1_workspace_proto_init() }

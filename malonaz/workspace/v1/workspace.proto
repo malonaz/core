@@ -112,6 +112,13 @@ message Workspace {
     (malonaz.codegen.model.v1.field_opts).nullable = true,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
+
+  // When the workspace's current pod started: a new value means a new pod,
+  // which holds no secrets until they are set again. Unset while stopped.
+  google.protobuf.Timestamp start_time = 10 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 }
 
 // A Mount is a filesystem a workspace sees at a path.

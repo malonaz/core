@@ -32,6 +32,7 @@ type Workspace struct {
 	State          int16      `db:"state" schema:"workspace" table:"workspace"`
 	Node           string     `db:"node" schema:"workspace" table:"workspace"`
 	LastActiveTime *time.Time `db:"last_active_time" schema:"workspace" table:"workspace"`
+	StartTime      *time.Time `db:"start_time" schema:"workspace" table:"workspace"`
 }
 
 func WorkspaceFromPb(m *v1.Workspace) (*Workspace, error) {
@@ -70,6 +71,14 @@ func WorkspaceFromPb(m *v1.Workspace) (*Workspace, error) {
 		t := m.LastActiveTime.AsTime()
 		LastActiveTime = &t
 	}
+	var StartTime *time.Time
+	if m.StartTime != nil {
+		if err := m.StartTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating start_time: %w", err)
+		}
+		t := m.StartTime.AsTime()
+		StartTime = &t
+	}
 	return &Workspace{
 		OrganizationID: OrganizationID,
 		UserID:         UserID,
@@ -82,6 +91,7 @@ func WorkspaceFromPb(m *v1.Workspace) (*Workspace, error) {
 		State:          int16(m.State),
 		Node:           m.Node,
 		LastActiveTime: LastActiveTime,
+		StartTime:      StartTime,
 	}, nil
 }
 
@@ -114,6 +124,13 @@ func (m *Workspace) ToPb() (*v1.Workspace, error) {
 			return nil, fmt.Errorf("validating last_active_time: %w", err)
 		}
 	}
+	var StartTime *timestamppb.Timestamp
+	if m.StartTime != nil {
+		StartTime = timestamppb.New(*m.StartTime)
+		if err := StartTime.CheckValid(); err != nil {
+			return nil, fmt.Errorf("validating start_time: %w", err)
+		}
+	}
 	name := resourcename.Sprint("organizations/{organization}/users/{user}/workspaces/{workspace}", m.OrganizationID, m.UserID, m.WorkspaceID)
 	if err := resourcename.Validate(name); err != nil {
 		return nil, fmt.Errorf("validating resource name: %w", err)
@@ -128,6 +145,7 @@ func (m *Workspace) ToPb() (*v1.Workspace, error) {
 		State:          v1.Workspace_State(m.State),
 		Node:           m.Node,
 		LastActiveTime: LastActiveTime,
+		StartTime:      StartTime,
 	}, nil
 }
 
