@@ -28,9 +28,9 @@ var File_malonaz_workspace_filesystem_service_v1_filesystem_service_proto protor
 
 const file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_rawDesc = "" +
 	"\n" +
-	"@malonaz/workspace/filesystem_service/v1/filesystem_service.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a8malonaz/workspace/filesystem_service/v1/filesystem.proto\x1a6malonaz/workspace/filesystem_service/v1/snapshot.proto\x1a%malonaz/workspace/v1/filesystem.proto2\xed\x0e\n" +
-	"\x11FilesystemService\x12\xde\x01\n" +
-	"\x10CreateFilesystem\x12@.malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"f\xdaA\x1fparent,filesystem,filesystem_id\x82\xd3\xe4\x93\x02>:\n" +
+	"@malonaz/workspace/filesystem_service/v1/filesystem_service.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a8malonaz/workspace/filesystem_service/v1/filesystem.proto\x1a6malonaz/workspace/filesystem_service/v1/snapshot.proto\x1a%malonaz/workspace/v1/filesystem.proto\x1a#malonaz/workspace/v1/snapshot.proto2\xdf\x0e\n" +
+	"\x11FilesystemService\x12\xd0\x01\n" +
+	"\x10CreateFilesystem\x12@.malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"X\xdaA\x11parent,filesystem\x82\xd3\xe4\x93\x02>:\n" +
 	"filesystem\"0/v1/{parent=organizations/*/users/*}/filesystems\x12\xb4\x01\n" +
 	"\rGetFilesystem\x12=.malonaz.workspace.filesystem_service.v1.GetFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"B\xdaA\x04name\x82\xd3\xe4\x93\x022\x120/v1/{name=organizations/*/users/*/filesystems/*}\x90\x02\x01\x12\xda\x01\n" +
 	"\x0fListFilesystems\x12?.malonaz.workspace.filesystem_service.v1.ListFilesystemsRequest\x1a@.malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse\"D\xdaA\x06parent\x82\xd3\xe4\x93\x022\x120/v1/{parent=organizations/*/users/*}/filesystems\x90\x02\x01\x12\xb7\x01\n" +

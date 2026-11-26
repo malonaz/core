@@ -8,15 +8,15 @@ import { file_buf_validate_validate } from "../../../../buf/validate/validate_pb
 import { file_google_api_field_behavior } from "../../../../google/api/field_behavior_pb";
 import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
-import type { Snapshot, SnapshotValid, SnapshotView } from "../../v1/filesystem_pb";
-import { file_malonaz_workspace_v1_filesystem } from "../../v1/filesystem_pb";
+import type { Snapshot, SnapshotValid } from "../../v1/snapshot_pb";
+import { file_malonaz_workspace_v1_snapshot } from "../../v1/snapshot_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/workspace/filesystem_service/v1/snapshot.proto.
  */
 export const file_malonaz_workspace_filesystem_service_v1_snapshot: GenFile = /*@__PURE__*/
-  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKyAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEijAEKEkdldFNuYXBzaG90UmVxdWVzdBI6CgRuYW1lGAEgASgJQizgQQL6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdLpIA8gBARI6CgR2aWV3GAIgASgOMiIubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3RWaWV3Qgi6SAWCAQIQASLNAQoUTGlzdFNuYXBzaG90c1JlcXVlc3QSPgoGcGFyZW50GAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJEjoKBHZpZXcYBCABKA4yIi5tYWxvbmF6LndvcmtzcGFjZS52MS5TbmFwc2hvdFZpZXdCCLpIBYIBAhABOgaC8y0CCGQiYwoVTGlzdFNuYXBzaG90c1Jlc3BvbnNlEjEKCXNuYXBzaG90cxgBIAMoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCUJCWkBnaXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvZmlsZXN5c3RlbV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
+  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKyAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEiUAoSR2V0U25hcHNob3RSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoed29ya3NwYWNlLm1hbG9uYXouY29tL1NuYXBzaG90ukgDyAEBIpEBChRMaXN0U25hcHNob3RzUmVxdWVzdBI+CgZwYXJlbnQYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESHQoJcGFnZV9zaXplGAIgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YAyABKAk6BoLzLQIIZCJjChVMaXN0U25hcHNob3RzUmVzcG9uc2USMQoJc25hcHNob3RzGAEgAygLMh4ubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3QSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_snapshot]);
 
 /**
  * Request message for FilesystemService.CreateSnapshot.
@@ -98,13 +98,6 @@ export type GetSnapshotRequest = Message<"malonaz.workspace.filesystem_service.v
    * @generated from field: string name = 1;
    */
   name: string;
-
-  /**
-   * How much of the snapshot to return. Defaults to FULL.
-   *
-   * @generated from field: malonaz.workspace.v1.SnapshotView view = 2;
-   */
-  view: SnapshotView;
 };
 
 /**
@@ -120,13 +113,6 @@ export type GetSnapshotRequestValid = Message<"malonaz.workspace.filesystem_serv
    * @generated from field: string name = 1;
    */
   name: string;
-
-  /**
-   * How much of the snapshot to return. Defaults to FULL.
-   *
-   * @generated from field: malonaz.workspace.v1.SnapshotView view = 2;
-   */
-  view: SnapshotView;
 };
 
 /**
@@ -167,13 +153,6 @@ export type ListSnapshotsRequest = Message<"malonaz.workspace.filesystem_service
    * @generated from field: string page_token = 3;
    */
   pageToken: string;
-
-  /**
-   * How much of each snapshot to return. Defaults to BASIC.
-   *
-   * @generated from field: malonaz.workspace.v1.SnapshotView view = 4;
-   */
-  view: SnapshotView;
 };
 
 /**
@@ -207,13 +186,6 @@ export type ListSnapshotsRequestValid = Message<"malonaz.workspace.filesystem_se
    * @generated from field: string page_token = 3;
    */
   pageToken: string;
-
-  /**
-   * How much of each snapshot to return. Defaults to BASIC.
-   *
-   * @generated from field: malonaz.workspace.v1.SnapshotView view = 4;
-   */
-  view: SnapshotView;
 };
 
 /**

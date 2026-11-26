@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
-import "malonaz/workspace/v1/filesystem.proto";
+import "malonaz/workspace/v1/snapshot.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/filesystem_service/v1";
 
@@ -40,9 +40,6 @@ message GetSnapshotRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "workspace.malonaz.com/Snapshot"
   ];
-
-  // How much of the snapshot to return. Defaults to FULL.
-  malonaz.workspace.v1.SnapshotView view = 2 [(buf.validate.field).enum.defined_only = true];
 }
 
 // Request message for FilesystemService.ListSnapshots.
@@ -69,9 +66,6 @@ message ListSnapshotsRequest {
   // [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
   // returned by a previous call.
   string page_token = 3;
-
-  // How much of each snapshot to return. Defaults to BASIC.
-  malonaz.workspace.v1.SnapshotView view = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 // Response message for FilesystemService.ListSnapshots.

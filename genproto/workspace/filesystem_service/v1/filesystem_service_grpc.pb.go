@@ -88,12 +88,12 @@ type FilesystemServiceClient interface {
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateSnapshot(ctx context.Context, in *CreateSnapshotRequest, opts ...grpc.CallOption) (*v1.Snapshot, error)
-	// Get a snapshot, in the FULL view unless asked otherwise.
+	// Get a snapshot.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetSnapshot(ctx context.Context, in *GetSnapshotRequest, opts ...grpc.CallOption) (*v1.Snapshot, error)
-	// List a filesystem's snapshots, newest first, in the BASIC view unless
-	// asked otherwise.
+	// List a filesystem's snapshots, newest first. A read mask leaving out
+	// `added`, `changed` and `deleted` keeps a long history small.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListSnapshots(ctx context.Context, in *ListSnapshotsRequest, opts ...grpc.CallOption) (*ListSnapshotsResponse, error)
@@ -254,12 +254,12 @@ type FilesystemServiceServer interface {
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateSnapshot(context.Context, *CreateSnapshotRequest) (*v1.Snapshot, error)
-	// Get a snapshot, in the FULL view unless asked otherwise.
+	// Get a snapshot.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetSnapshot(context.Context, *GetSnapshotRequest) (*v1.Snapshot, error)
-	// List a filesystem's snapshots, newest first, in the BASIC view unless
-	// asked otherwise.
+	// List a filesystem's snapshots, newest first. A read mask leaving out
+	// `added`, `changed` and `deleted` keeps a long history small.
 	//
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListSnapshots(context.Context, *ListSnapshotsRequest) (*ListSnapshotsResponse, error)

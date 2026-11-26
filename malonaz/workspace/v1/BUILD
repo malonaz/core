@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "filesystem.proto",
         "labels.proto",
+        "snapshot.proto",
         "workspace.proto",
     ],
     visibility = ["PUBLIC"],
@@ -13,6 +14,7 @@ proto_library(
     srcs = [
         "filesystem.proto",
         "labels.proto",
+        "snapshot.proto",
         "workspace.proto",
     ],
     additional_context = {

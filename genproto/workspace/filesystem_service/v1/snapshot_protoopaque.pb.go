@@ -132,7 +132,6 @@ func (b0 CreateSnapshotRequest_builder) Build() *CreateSnapshotRequest {
 type GetSnapshotRequest struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name string                 `protobuf:"bytes,1,opt,name=name,proto3"`
-	xxx_hidden_View v1.SnapshotView        `protobuf:"varint,2,opt,name=view,proto3,enum=malonaz.workspace.v1.SnapshotView"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -169,19 +168,8 @@ func (x *GetSnapshotRequest) GetName() string {
 	return ""
 }
 
-func (x *GetSnapshotRequest) GetView() v1.SnapshotView {
-	if x != nil {
-		return x.xxx_hidden_View
-	}
-	return v1.SnapshotView(0)
-}
-
 func (x *GetSnapshotRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
-}
-
-func (x *GetSnapshotRequest) SetView(v v1.SnapshotView) {
-	x.xxx_hidden_View = v
 }
 
 type GetSnapshotRequest_builder struct {
@@ -190,8 +178,6 @@ type GetSnapshotRequest_builder struct {
 	// The snapshot to retrieve.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
 	Name string
-	// How much of the snapshot to return. Defaults to FULL.
-	View v1.SnapshotView
 }
 
 func (b0 GetSnapshotRequest_builder) Build() *GetSnapshotRequest {
@@ -199,7 +185,6 @@ func (b0 GetSnapshotRequest_builder) Build() *GetSnapshotRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
-	x.xxx_hidden_View = b.View
 	return m0
 }
 
@@ -209,7 +194,6 @@ type ListSnapshotsRequest struct {
 	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
 	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
 	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
-	xxx_hidden_View      v1.SnapshotView        `protobuf:"varint,4,opt,name=view,proto3,enum=malonaz.workspace.v1.SnapshotView"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -260,13 +244,6 @@ func (x *ListSnapshotsRequest) GetPageToken() string {
 	return ""
 }
 
-func (x *ListSnapshotsRequest) GetView() v1.SnapshotView {
-	if x != nil {
-		return x.xxx_hidden_View
-	}
-	return v1.SnapshotView(0)
-}
-
 func (x *ListSnapshotsRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
@@ -277,10 +254,6 @@ func (x *ListSnapshotsRequest) SetPageSize(v int32) {
 
 func (x *ListSnapshotsRequest) SetPageToken(v string) {
 	x.xxx_hidden_PageToken = v
-}
-
-func (x *ListSnapshotsRequest) SetView(v v1.SnapshotView) {
-	x.xxx_hidden_View = v
 }
 
 type ListSnapshotsRequest_builder struct {
@@ -297,8 +270,6 @@ type ListSnapshotsRequest_builder struct {
 	// [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
 	// returned by a previous call.
 	PageToken string
-	// How much of each snapshot to return. Defaults to BASIC.
-	View v1.SnapshotView
 }
 
 func (b0 ListSnapshotsRequest_builder) Build() *ListSnapshotsRequest {
@@ -308,7 +279,6 @@ func (b0 ListSnapshotsRequest_builder) Build() *ListSnapshotsRequest {
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_PageSize = b.PageSize
 	x.xxx_hidden_PageToken = b.PageToken
-	x.xxx_hidden_View = b.View
 	return m0
 }
 
@@ -392,25 +362,23 @@ var File_malonaz_workspace_filesystem_service_v1_snapshot_proto protoreflect.Fil
 
 const file_malonaz_workspace_filesystem_service_v1_snapshot_proto_rawDesc = "" +
 	"\n" +
-	"6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\xcf\x01\n" +
+	"6malonaz/workspace/filesystem_service/v1/snapshot.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a#malonaz/workspace/v1/snapshot.proto\"\xcf\x01\n" +
 	"\x15CreateSnapshotRequest\x12F\n" +
 	"\x06parent\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x06parent\x12B\n" +
 	"\bsnapshot\x18\x02 \x01(\v2\x1e.malonaz.workspace.v1.SnapshotB\x06\xbaH\x03\xc8\x01\x01R\bsnapshot\x12*\n" +
 	"\n" +
-	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\x98\x01\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"V\n" +
 	"\x12GetSnapshotRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
-	"\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01R\x04name\x12@\n" +
-	"\x04view\x18\x02 \x01(\x0e2\".malonaz.workspace.v1.SnapshotViewB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04view\"\xf0\x01\n" +
+	"\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01R\x04name\"\xae\x01\n" +
 	"\x14ListSnapshotsRequest\x12F\n" +
 	"\x06parent\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x06parent\x12'\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken\x12@\n" +
-	"\x04view\x18\x04 \x01(\x0e2\".malonaz.workspace.v1.SnapshotViewB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04view:\x06\x82\xf3-\x02\bd\"}\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\bd\"}\n" +
 	"\x15ListSnapshotsResponse\x12<\n" +
 	"\tsnapshots\x18\x01 \x03(\v2\x1e.malonaz.workspace.v1.SnapshotR\tsnapshots\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageTokenBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3"
@@ -422,18 +390,15 @@ var file_malonaz_workspace_filesystem_service_v1_snapshot_proto_goTypes = []any{
 	(*ListSnapshotsRequest)(nil),  // 2: malonaz.workspace.filesystem_service.v1.ListSnapshotsRequest
 	(*ListSnapshotsResponse)(nil), // 3: malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse
 	(*v1.Snapshot)(nil),           // 4: malonaz.workspace.v1.Snapshot
-	(v1.SnapshotView)(0),          // 5: malonaz.workspace.v1.SnapshotView
 }
 var file_malonaz_workspace_filesystem_service_v1_snapshot_proto_depIdxs = []int32{
 	4, // 0: malonaz.workspace.filesystem_service.v1.CreateSnapshotRequest.snapshot:type_name -> malonaz.workspace.v1.Snapshot
-	5, // 1: malonaz.workspace.filesystem_service.v1.GetSnapshotRequest.view:type_name -> malonaz.workspace.v1.SnapshotView
-	5, // 2: malonaz.workspace.filesystem_service.v1.ListSnapshotsRequest.view:type_name -> malonaz.workspace.v1.SnapshotView
-	4, // 3: malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.snapshots:type_name -> malonaz.workspace.v1.Snapshot
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 1: malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.snapshots:type_name -> malonaz.workspace.v1.Snapshot
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_filesystem_service_v1_snapshot_proto_init() }

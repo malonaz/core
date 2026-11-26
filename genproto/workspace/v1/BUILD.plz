@@ -5,6 +5,8 @@ go_library(
         "filesystem_aip.pb.go",
         "labels.pb.go",
         "labels_aip.pb.go",
+        "snapshot.pb.go",
+        "snapshot_aip.pb.go",
         "workspace.pb.go",
         "workspace_aip.pb.go",
     ],

@@ -7,6 +7,7 @@ import "google/api/client.proto";
 import "malonaz/workspace/filesystem_service/v1/filesystem.proto";
 import "malonaz/workspace/filesystem_service/v1/snapshot.proto";
 import "malonaz/workspace/v1/filesystem.proto";
+import "malonaz/workspace/v1/snapshot.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/filesystem_service/v1";
 
@@ -42,7 +43,7 @@ service FilesystemService {
       post: "/v1/{parent=organizations/*/users/*}/filesystems"
       body: "filesystem"
     };
-    option (google.api.method_signature) = "parent,filesystem,filesystem_id";
+    option (google.api.method_signature) = "parent,filesystem";
   }
 
   // Get a filesystem.
@@ -111,7 +112,7 @@ service FilesystemService {
     option (google.api.method_signature) = "parent,snapshot";
   }
 
-  // Get a snapshot, in the FULL view unless asked otherwise.
+  // Get a snapshot.
   //
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetSnapshot(GetSnapshotRequest) returns (malonaz.workspace.v1.Snapshot) {
@@ -120,8 +121,8 @@ service FilesystemService {
     option (google.api.method_signature) = "name";
   }
 
-  // List a filesystem's snapshots, newest first, in the BASIC view unless
-  // asked otherwise.
+  // List a filesystem's snapshots, newest first. A read mask leaving out
+  // `added`, `changed` and `deleted` keeps a long history small.
   //
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse) {

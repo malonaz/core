@@ -14,6 +14,7 @@ import google.api.client_pb2
 import malonaz.workspace.filesystem_service.v1.filesystem_pb2
 import malonaz.workspace.filesystem_service.v1.snapshot_pb2
 import malonaz.workspace.v1.filesystem_pb2
+import malonaz.workspace.v1.snapshot_pb2
 import malonaz.workspace.filesystem_service.v1.filesystem_service_pb2
 
 
@@ -44,11 +45,11 @@ class FilesystemServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def CreateSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest, malonaz.workspace.v1.filesystem_pb2.Snapshot]') -> None:
+    async def CreateSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest, malonaz.workspace.v1.snapshot_pb2.Snapshot]') -> None:
         pass
 
     @abc.abstractmethod
-    async def GetSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.GetSnapshotRequest, malonaz.workspace.v1.filesystem_pb2.Snapshot]') -> None:
+    async def GetSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.GetSnapshotRequest, malonaz.workspace.v1.snapshot_pb2.Snapshot]') -> None:
         pass
 
     @abc.abstractmethod
@@ -97,13 +98,13 @@ class FilesystemServiceBase(abc.ABC):
                 self.CreateSnapshot,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest,
-                malonaz.workspace.v1.filesystem_pb2.Snapshot,
+                malonaz.workspace.v1.snapshot_pb2.Snapshot,
             ),
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/GetSnapshot': grpclib.const.Handler(
                 self.GetSnapshot,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.filesystem_service.v1.snapshot_pb2.GetSnapshotRequest,
-                malonaz.workspace.v1.filesystem_pb2.Snapshot,
+                malonaz.workspace.v1.snapshot_pb2.Snapshot,
             ),
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/ListSnapshots': grpclib.const.Handler(
                 self.ListSnapshots,
@@ -157,13 +158,13 @@ class FilesystemServiceStub:
             channel,
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/CreateSnapshot',
             malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest,
-            malonaz.workspace.v1.filesystem_pb2.Snapshot,
+            malonaz.workspace.v1.snapshot_pb2.Snapshot,
         )
         self.GetSnapshot = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/GetSnapshot',
             malonaz.workspace.filesystem_service.v1.snapshot_pb2.GetSnapshotRequest,
-            malonaz.workspace.v1.filesystem_pb2.Snapshot,
+            malonaz.workspace.v1.snapshot_pb2.Snapshot,
         )
         self.ListSnapshots = grpclib.client.UnaryUnaryMethod(
             channel,

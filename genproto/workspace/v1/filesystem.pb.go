@@ -25,54 +25,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SnapshotView is how much of a snapshot a read returns.
-type SnapshotView int32
-
-const (
-	// Used to detect an unset field: BASIC for lists, FULL for gets.
-	SnapshotView_SNAPSHOT_VIEW_UNSPECIFIED SnapshotView = 0
-	// Everything but the changed paths.
-	SnapshotView_SNAPSHOT_VIEW_BASIC SnapshotView = 1
-	// Everything, the changed paths included.
-	SnapshotView_SNAPSHOT_VIEW_FULL SnapshotView = 2
-)
-
-// Enum value maps for SnapshotView.
-var (
-	SnapshotView_name = map[int32]string{
-		0: "SNAPSHOT_VIEW_UNSPECIFIED",
-		1: "SNAPSHOT_VIEW_BASIC",
-		2: "SNAPSHOT_VIEW_FULL",
-	}
-	SnapshotView_value = map[string]int32{
-		"SNAPSHOT_VIEW_UNSPECIFIED": 0,
-		"SNAPSHOT_VIEW_BASIC":       1,
-		"SNAPSHOT_VIEW_FULL":        2,
-	}
-)
-
-func (x SnapshotView) Enum() *SnapshotView {
-	p := new(SnapshotView)
-	*p = x
-	return p
-}
-
-func (x SnapshotView) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (SnapshotView) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_workspace_v1_filesystem_proto_enumTypes[0].Descriptor()
-}
-
-func (SnapshotView) Type() protoreflect.EnumType {
-	return &file_malonaz_workspace_v1_filesystem_proto_enumTypes[0]
-}
-
-func (x SnapshotView) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
 // Kind is where a filesystem's files live, which decides its speed and writers.
 type Filesystem_Kind int32
 
@@ -114,66 +66,14 @@ func (x Filesystem_Kind) String() string {
 }
 
 func (Filesystem_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_workspace_v1_filesystem_proto_enumTypes[1].Descriptor()
+	return file_malonaz_workspace_v1_filesystem_proto_enumTypes[0].Descriptor()
 }
 
 func (Filesystem_Kind) Type() protoreflect.EnumType {
-	return &file_malonaz_workspace_v1_filesystem_proto_enumTypes[1]
+	return &file_malonaz_workspace_v1_filesystem_proto_enumTypes[0]
 }
 
 func (x Filesystem_Kind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Trigger is what took a snapshot.
-type Snapshot_Trigger int32
-
-const (
-	// Used to detect an unset field.
-	Snapshot_TRIGGER_UNSPECIFIED Snapshot_Trigger = 0
-	// A turn ended, named in `turn`.
-	Snapshot_TRIGGER_TURN Snapshot_Trigger = 1
-	// The workspace writing it sat idle with no turn end signalled.
-	Snapshot_TRIGGER_IDLE Snapshot_Trigger = 2
-	// The workspace writing it stopped.
-	Snapshot_TRIGGER_STOP Snapshot_Trigger = 3
-)
-
-// Enum value maps for Snapshot_Trigger.
-var (
-	Snapshot_Trigger_name = map[int32]string{
-		0: "TRIGGER_UNSPECIFIED",
-		1: "TRIGGER_TURN",
-		2: "TRIGGER_IDLE",
-		3: "TRIGGER_STOP",
-	}
-	Snapshot_Trigger_value = map[string]int32{
-		"TRIGGER_UNSPECIFIED": 0,
-		"TRIGGER_TURN":        1,
-		"TRIGGER_IDLE":        2,
-		"TRIGGER_STOP":        3,
-	}
-)
-
-func (x Snapshot_Trigger) Enum() *Snapshot_Trigger {
-	p := new(Snapshot_Trigger)
-	*p = x
-	return p
-}
-
-func (x Snapshot_Trigger) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Snapshot_Trigger) Descriptor() protoreflect.EnumDescriptor {
-	return file_malonaz_workspace_v1_filesystem_proto_enumTypes[2].Descriptor()
-}
-
-func (Snapshot_Trigger) Type() protoreflect.EnumType {
-	return &file_malonaz_workspace_v1_filesystem_proto_enumTypes[2]
-}
-
-func (x Snapshot_Trigger) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
@@ -417,195 +317,6 @@ func (b0 Filesystem_builder) Build() *Filesystem {
 	return m0
 }
 
-// A Snapshot is a LOCAL filesystem's state at one point, usually an agent's
-// turn end, and what changed since the snapshot before it. Immutable; deleted
-// with its filesystem.
-type Snapshot struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The resource name of the snapshot. Its id is assigned by the server, in
-	// increasing order.
-	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The creation timestamp of the snapshot.
-	CreateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	// What took the snapshot.
-	Trigger Snapshot_Trigger `protobuf:"varint,3,opt,name=trigger,proto3,enum=malonaz.workspace.v1.Snapshot_Trigger" json:"trigger,omitempty"`
-	// The turn the snapshot ends, an id opaque to the service. Set only for TRIGGER_TURN.
-	Turn string `protobuf:"bytes,4,opt,name=turn,proto3" json:"turn,omitempty"`
-	// The bytes the snapshot added to storage: what changed since the one before.
-	SizeBytes int64 `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	// The paths, relative to the filesystem's root, created since the snapshot before. Only in the FULL view.
-	Added []string `protobuf:"bytes,6,rep,name=added,proto3" json:"added,omitempty"`
-	// The paths whose content or mode changed since the snapshot before. Only in the FULL view.
-	Changed []string `protobuf:"bytes,7,rep,name=changed,proto3" json:"changed,omitempty"`
-	// The paths deleted since the snapshot before. Only in the FULL view.
-	Deleted       []string `protobuf:"bytes,8,rep,name=deleted,proto3" json:"deleted,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Snapshot) Reset() {
-	*x = Snapshot{}
-	mi := &file_malonaz_workspace_v1_filesystem_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Snapshot) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Snapshot) ProtoMessage() {}
-
-func (x *Snapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_v1_filesystem_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Snapshot) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *Snapshot) GetCreateTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreateTime
-	}
-	return nil
-}
-
-func (x *Snapshot) GetTrigger() Snapshot_Trigger {
-	if x != nil {
-		return x.Trigger
-	}
-	return Snapshot_TRIGGER_UNSPECIFIED
-}
-
-func (x *Snapshot) GetTurn() string {
-	if x != nil {
-		return x.Turn
-	}
-	return ""
-}
-
-func (x *Snapshot) GetSizeBytes() int64 {
-	if x != nil {
-		return x.SizeBytes
-	}
-	return 0
-}
-
-func (x *Snapshot) GetAdded() []string {
-	if x != nil {
-		return x.Added
-	}
-	return nil
-}
-
-func (x *Snapshot) GetChanged() []string {
-	if x != nil {
-		return x.Changed
-	}
-	return nil
-}
-
-func (x *Snapshot) GetDeleted() []string {
-	if x != nil {
-		return x.Deleted
-	}
-	return nil
-}
-
-func (x *Snapshot) SetName(v string) {
-	x.Name = v
-}
-
-func (x *Snapshot) SetCreateTime(v *timestamppb.Timestamp) {
-	x.CreateTime = v
-}
-
-func (x *Snapshot) SetTrigger(v Snapshot_Trigger) {
-	x.Trigger = v
-}
-
-func (x *Snapshot) SetTurn(v string) {
-	x.Turn = v
-}
-
-func (x *Snapshot) SetSizeBytes(v int64) {
-	x.SizeBytes = v
-}
-
-func (x *Snapshot) SetAdded(v []string) {
-	x.Added = v
-}
-
-func (x *Snapshot) SetChanged(v []string) {
-	x.Changed = v
-}
-
-func (x *Snapshot) SetDeleted(v []string) {
-	x.Deleted = v
-}
-
-func (x *Snapshot) HasCreateTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.CreateTime != nil
-}
-
-func (x *Snapshot) ClearCreateTime() {
-	x.CreateTime = nil
-}
-
-type Snapshot_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The resource name of the snapshot. Its id is assigned by the server, in
-	// increasing order.
-	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
-	Name string
-	// The creation timestamp of the snapshot.
-	CreateTime *timestamppb.Timestamp
-	// What took the snapshot.
-	Trigger Snapshot_Trigger
-	// The turn the snapshot ends, an id opaque to the service. Set only for TRIGGER_TURN.
-	Turn string
-	// The bytes the snapshot added to storage: what changed since the one before.
-	SizeBytes int64
-	// The paths, relative to the filesystem's root, created since the snapshot before. Only in the FULL view.
-	Added []string
-	// The paths whose content or mode changed since the snapshot before. Only in the FULL view.
-	Changed []string
-	// The paths deleted since the snapshot before. Only in the FULL view.
-	Deleted []string
-}
-
-func (b0 Snapshot_builder) Build() *Snapshot {
-	m0 := &Snapshot{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Name = b.Name
-	x.CreateTime = b.CreateTime
-	x.Trigger = b.Trigger
-	x.Turn = b.Turn
-	x.SizeBytes = b.SizeBytes
-	x.Added = b.Added
-	x.Changed = b.Changed
-	x.Deleted = b.Deleted
-	return m0
-}
-
 var File_malonaz_workspace_v1_filesystem_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
@@ -639,52 +350,26 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"KIND_LOCAL\x10\x01\x12\x0f\n" +
 	"\vKIND_SHARED\x10\x02:\x82\x01\xeaA\x7f\n" +
 	" workspace.malonaz.com/Filesystem\x12Borganizations/{organization}/users/{user}/filesystems/{filesystem}*\vfilesystems2\n" +
-	"filesystem\"\xc3\x04\n" +
-	"\bSnapshot\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
-	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
-	"createTime\x12O\n" +
-	"\atrigger\x18\x03 \x01(\x0e2&.malonaz.workspace.v1.Snapshot.TriggerB\r\xe0A\x05\xbaH\a\x82\x01\x04\x10\x01 \x00R\atrigger\x12\x1f\n" +
-	"\x04turn\x18\x04 \x01(\tB\v\xe0A\x05\xbaH\x05r\x03\x18\x80\x02R\x04turn\x12\"\n" +
-	"\n" +
-	"size_bytes\x18\x05 \x01(\x03B\x03\xe0A\x03R\tsizeBytes\x12\x19\n" +
-	"\x05added\x18\x06 \x03(\tB\x03\xe0A\x03R\x05added\x12\x1d\n" +
-	"\achanged\x18\a \x03(\tB\x03\xe0A\x03R\achanged\x12\x1d\n" +
-	"\adeleted\x18\b \x03(\tB\x03\xe0A\x03R\adeleted\"X\n" +
-	"\aTrigger\x12\x17\n" +
-	"\x13TRIGGER_UNSPECIFIED\x10\x00\x12\x10\n" +
-	"\fTRIGGER_TURN\x10\x01\x12\x10\n" +
-	"\fTRIGGER_IDLE\x10\x02\x12\x10\n" +
-	"\fTRIGGER_STOP\x10\x03:\x92\x01\xeaA\x8e\x01\n" +
-	"\x1eworkspace.malonaz.com/Snapshot\x12Worganizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}*\tsnapshots2\bsnapshot*^\n" +
-	"\fSnapshotView\x12\x1d\n" +
-	"\x19SNAPSHOT_VIEW_UNSPECIFIED\x10\x00\x12\x17\n" +
-	"\x13SNAPSHOT_VIEW_BASIC\x10\x01\x12\x16\n" +
-	"\x12SNAPSHOT_VIEW_FULL\x10\x02B/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
+	"filesystemB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
-var file_malonaz_workspace_v1_filesystem_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_malonaz_workspace_v1_filesystem_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_malonaz_workspace_v1_filesystem_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_workspace_v1_filesystem_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_workspace_v1_filesystem_proto_goTypes = []any{
-	(SnapshotView)(0),             // 0: malonaz.workspace.v1.SnapshotView
-	(Filesystem_Kind)(0),          // 1: malonaz.workspace.v1.Filesystem.Kind
-	(Snapshot_Trigger)(0),         // 2: malonaz.workspace.v1.Snapshot.Trigger
-	(*Filesystem)(nil),            // 3: malonaz.workspace.v1.Filesystem
-	(*Snapshot)(nil),              // 4: malonaz.workspace.v1.Snapshot
-	nil,                           // 5: malonaz.workspace.v1.Filesystem.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(Filesystem_Kind)(0),          // 0: malonaz.workspace.v1.Filesystem.Kind
+	(*Filesystem)(nil),            // 1: malonaz.workspace.v1.Filesystem
+	nil,                           // 2: malonaz.workspace.v1.Filesystem.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_malonaz_workspace_v1_filesystem_proto_depIdxs = []int32{
-	6, // 0: malonaz.workspace.v1.Filesystem.create_time:type_name -> google.protobuf.Timestamp
-	6, // 1: malonaz.workspace.v1.Filesystem.update_time:type_name -> google.protobuf.Timestamp
-	5, // 2: malonaz.workspace.v1.Filesystem.labels:type_name -> malonaz.workspace.v1.Filesystem.LabelsEntry
-	1, // 3: malonaz.workspace.v1.Filesystem.kind:type_name -> malonaz.workspace.v1.Filesystem.Kind
-	6, // 4: malonaz.workspace.v1.Snapshot.create_time:type_name -> google.protobuf.Timestamp
-	2, // 5: malonaz.workspace.v1.Snapshot.trigger:type_name -> malonaz.workspace.v1.Snapshot.Trigger
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3, // 0: malonaz.workspace.v1.Filesystem.create_time:type_name -> google.protobuf.Timestamp
+	3, // 1: malonaz.workspace.v1.Filesystem.update_time:type_name -> google.protobuf.Timestamp
+	2, // 2: malonaz.workspace.v1.Filesystem.labels:type_name -> malonaz.workspace.v1.Filesystem.LabelsEntry
+	0, // 3: malonaz.workspace.v1.Filesystem.kind:type_name -> malonaz.workspace.v1.Filesystem.Kind
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_v1_filesystem_proto_init() }
@@ -697,8 +382,8 @@ func file_malonaz_workspace_v1_filesystem_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_workspace_v1_filesystem_proto_rawDesc), len(file_malonaz_workspace_v1_filesystem_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
