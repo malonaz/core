@@ -75,7 +75,11 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	if request.GetLanguageCode() != "" {
 		params.Set("language", request.GetLanguageCode())
 	}
-	listenURL := fmt.Sprintf("%s/v1/listen?%s", c.restBaseURL, params.Encode())
+	for _, keyterm := range request.GetKeyterms() {
+		params.Add("keyterm", keyterm)
+	}
+	// Deepgram documents %20 for spaces in a keyterm; Encode writes '+' and escapes a literal one.
+	listenURL := fmt.Sprintf("%s/v1/listen?%s", c.restBaseURL, strings.ReplaceAll(params.Encode(), "+", "%20"))
 	headers := map[string]string{"Authorization": fmt.Sprintf("token %s", c.apiKey)}
 
 	startTime := time.Now()
