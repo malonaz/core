@@ -1,0 +1,17 @@
+name: agent-service
+includeRuntime: false
+implementation: //go/agent/agent_service
+codegens:
+  - type: rpc
+    name: agent-service
+    store: agent
+    implementation: //gengo/agent/agent_service/rpc
+dependencies:
+  - type: postgres_client
+    name: agent
+  - type: postgres_db_client
+    name: agent
+    implementation: //gengo/agent/store
+  - type: grpc_client
+    proto: //malonaz/ai/ai_service/v1
+    service: ai-service

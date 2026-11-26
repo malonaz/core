@@ -14,7 +14,7 @@ go_binary(
     name = "ai-service",
     srcs = [":ai-service_main.go"],
     test_only = True,
-    visibility = ["//go/test/ai/..."],
+    visibility = ["//go/test/..."],
     deps = [
         "//go/ai/ai_service",
         "//go/ai/store",

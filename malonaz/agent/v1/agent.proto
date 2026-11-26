@@ -1,0 +1,182 @@
+syntax = "proto3";
+
+package malonaz.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+
+option go_package = "github.com/malonaz/core/genproto/agent/v1";
+option (google.api.resource_definition) = {
+  type: "agent.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
+option (google.api.resource_definition) = {
+  type: "agent.malonaz.com/User"
+  pattern: "organizations/{organization}/users/{user}"
+  singular: "user"
+  plural: "users"
+};
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Chat"
+  pattern: "organizations/{organization}/users/{user}/chats/{chat}"
+  singular: "chat"
+  plural: "chats"
+};
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Model"
+  pattern: "providers/{provider}/models/{model}"
+  singular: "model"
+  plural: "models"
+};
+option (google.api.resource_definition) = {
+  type: "ai.malonaz.com/Message"
+  pattern: "organizations/{organization}/users/{user}/chats/{chat}/messages/{message}"
+  singular: "message"
+  plural: "messages"
+};
+
+// An Agent is a durable, long-lived actor. It never reaches a terminal state:
+// it converses through its backing chat, delegates work by creating child
+// [Task][malonaz.agent.v1.Task] resources, and distills durable knowledge into
+// [Memory][malonaz.agent.v1.Memory] resources. Its conversation is backed by a
+// chain of chats: when the current chat grows past the context threshold, the
+// runner extracts memories and rolls over to a fresh chat.
+message Agent {
+  option (google.api.resource) = {
+    type: "agent.malonaz.com/Agent"
+    pattern: "organizations/{organization}/users/{user}/agents/{agent}"
+    singular: "agent"
+    plural: "agents"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "agent"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "384d4c34-504b-4e35-a165-d9ea4ba76c19";
+
+  // The resource name of the agent.
+  // Format: organizations/{organization}/users/{user}/agents/{agent}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the agent.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the agent.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The deletion timestamp of the agent. Set when soft-deleted.
+  google.protobuf.Timestamp delete_time = 4 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // A checksum computed by the server based on the current value of the resource.
+  // Can be sent in update and delete requests to ensure the client has an
+  // up-to-date value before proceeding.
+  string etag = 5;
+
+  // The labels on this agent.
+  map<string, string> labels = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // A human-readable title for this agent.
+  string title = 7 [(buf.validate.field).string.max_len = 256];
+
+  // The persona: standing instructions injected as the system prompt of every
+  // chat and task this agent runs.
+  string instructions = 8 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 65536
+  ];
+
+  // The model driving this agent.
+  // Format: providers/{provider}/models/{model}
+  string model = 9 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "ai.malonaz.com/Model"
+  ];
+
+  // The current state of the agent. Agents are never terminal.
+  AgentState state = 10 [
+    (buf.validate.field).enum.defined_only = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The current backing chat. Earlier chats in the chain are listed in
+  // `metadata.previous_chats`.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  string chat = 11 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "ai.malonaz.com/Chat"
+  ];
+
+  // Tool configuration and loop bookkeeping.
+  AgentMetadata metadata = 12 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true
+  ];
+}
+
+// Tool configuration (set at creation) and loop bookkeeping (maintained by
+// the runner) for an agent.
+message AgentMetadata {
+  // Names of the service tool sets exposed to the agent.
+  repeated string tool_sets = 1;
+
+  // Number of completed model turns across all chats.
+  int64 turn_count = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Maps a create_task tool-call id to the awaited child task. While
+  // non-empty, the agent's current turn is deferred; each task's terminal
+  // report is written back as that tool call's result, and the last one wakes
+  // the agent.
+  // Format of values: organizations/{organization}/users/{user}/agents/{agent}/tasks/{task}
+  map<string, string> awaited_tasks = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last chat message the runner has fully processed. Used to detect
+  // wakes that raced with a running turn.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}/messages/{message}
+  string last_processed_message = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Chats this agent has rolled over, oldest first. The current one is
+  // `agent.chat`.
+  // Format: organizations/{organization}/users/{user}/chats/{chat}
+  repeated string previous_chats = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// The lifecycle state of an agent. Never terminal: failures are fed back into
+// the loop as observations, crashes heal via the runner reaper.
+enum AgentState {
+  // Used to detect an unset field.
+  AGENT_STATE_UNSPECIFIED = 0;
+
+  // The agent has no pending wake and is not being driven.
+  AGENT_STATE_IDLE = 1;
+
+  // The agent has a pending wake, awaiting pickup by a runner.
+  AGENT_STATE_ACTIVE = 2;
+
+  // The agent is paused by an operator; wakes accumulate but are not processed.
+  AGENT_STATE_SUSPENDED = 3;
+
+  // A runner is driving the agent's turns. Heals via the reaper if the
+  // runner's heartbeat (update_time) goes stale.
+  AGENT_STATE_PROCESSING = 4;
+}
