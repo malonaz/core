@@ -40,6 +40,14 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
  * `/run/workspace/env`, which every shell sources. They are never stored: a
  * stopped workspace has none, and its next start carries them again.
  *
+ * # Commands
+ *
+ * Commands do not go through this API: the workspace gateway serves
+ * [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
+ * and forwards each call to the pod of the workspace named in its
+ * `x-workspace` metadata, starting a stopped one (with no secrets) and
+ * waiting for it to be ready within the call's deadline.
+ *
  * @generated from service malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService
  */
 export const WorkspaceManagerService: GenService<{

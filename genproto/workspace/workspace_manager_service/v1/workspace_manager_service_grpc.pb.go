@@ -55,6 +55,14 @@ const (
 // SetWorkspaceSecrets, as files under `/run/workspace/secrets` and env vars in
 // `/run/workspace/env`, which every shell sources. They are never stored: a
 // stopped workspace has none, and its next start carries them again.
+//
+// # Commands
+//
+// Commands do not go through this API: the workspace gateway serves
+// [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
+// and forwards each call to the pod of the workspace named in its
+// `x-workspace` metadata, starting a stopped one (with no secrets) and
+// waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceClient interface {
 	// Create a workspace and start its pod. Returns at once, STARTING; the first
 	// Exec waits for READY. Claims each LOCAL read-write mount's writer,
@@ -242,6 +250,14 @@ type WorkspaceManagerService_OpenTerminalClient = grpc.BidiStreamingClient[OpenT
 // SetWorkspaceSecrets, as files under `/run/workspace/secrets` and env vars in
 // `/run/workspace/env`, which every shell sources. They are never stored: a
 // stopped workspace has none, and its next start carries them again.
+//
+// # Commands
+//
+// Commands do not go through this API: the workspace gateway serves
+// [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
+// and forwards each call to the pod of the workspace named in its
+// `x-workspace` metadata, starting a stopped one (with no secrets) and
+// waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceServer interface {
 	// Create a workspace and start its pod. Returns at once, STARTING; the first
 	// Exec waits for READY. Claims each LOCAL read-write mount's writer,
