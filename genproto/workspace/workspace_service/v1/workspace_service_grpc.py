@@ -21,18 +21,6 @@ class WorkspaceServiceBase(abc.ABC):
     async def Exec(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecRequest, malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecResponse]') -> None:
         pass
 
-    @abc.abstractmethod
-    async def ReadFiles(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesRequest, malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def WriteFile(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileRequest, malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def EditFile(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileRequest, malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileResponse]') -> None:
-        pass
-
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
         return {
             '/malonaz.workspace.workspace_service.v1.WorkspaceService/Exec': grpclib.const.Handler(
@@ -40,24 +28,6 @@ class WorkspaceServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecRequest,
                 malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecResponse,
-            ),
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/ReadFiles': grpclib.const.Handler(
-                self.ReadFiles,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesRequest,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesResponse,
-            ),
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/WriteFile': grpclib.const.Handler(
-                self.WriteFile,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileRequest,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileResponse,
-            ),
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/EditFile': grpclib.const.Handler(
-                self.EditFile,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileRequest,
-                malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileResponse,
             ),
         }
 
@@ -70,22 +40,4 @@ class WorkspaceServiceStub:
             '/malonaz.workspace.workspace_service.v1.WorkspaceService/Exec',
             malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecRequest,
             malonaz.workspace.workspace_service.v1.workspace_service_pb2.ExecResponse,
-        )
-        self.ReadFiles = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/ReadFiles',
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesRequest,
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.ReadFilesResponse,
-        )
-        self.WriteFile = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/WriteFile',
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileRequest,
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.WriteFileResponse,
-        )
-        self.EditFile = grpclib.client.UnaryUnaryMethod(
-            channel,
-            '/malonaz.workspace.workspace_service.v1.WorkspaceService/EditFile',
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileRequest,
-            malonaz.workspace.workspace_service.v1.workspace_service_pb2.EditFileResponse,
         )

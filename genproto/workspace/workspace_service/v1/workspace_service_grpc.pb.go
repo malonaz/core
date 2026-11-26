@@ -19,35 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WorkspaceService_Exec_FullMethodName      = "/malonaz.workspace.workspace_service.v1.WorkspaceService/Exec"
-	WorkspaceService_ReadFiles_FullMethodName = "/malonaz.workspace.workspace_service.v1.WorkspaceService/ReadFiles"
-	WorkspaceService_WriteFile_FullMethodName = "/malonaz.workspace.workspace_service.v1.WorkspaceService/WriteFile"
-	WorkspaceService_EditFile_FullMethodName  = "/malonaz.workspace.workspace_service.v1.WorkspaceService/EditFile"
+	WorkspaceService_Exec_FullMethodName = "/malonaz.workspace.workspace_service.v1.WorkspaceService/Exec"
 )
 
 // WorkspaceServiceClient is the client API for WorkspaceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// This API runs commands and edits files in one workspace: the directory its
-// server serves. Its methods are meant to be called as agent tools.
+// This API runs commands in one workspace: the directory its server serves.
+// Its methods are meant to be called as agent tools; commands read and edit
+// files too.
 type WorkspaceServiceClient interface {
 	// Run a bash command in the workspace and return its exit code and combined
 	// stdout and stderr. Stdin is empty: never run interactive commands. Long
 	// output keeps its head and tail only. On timeout, the command and every
 	// process it started are killed.
 	Exec(ctx context.Context, in *ExecRequest, opts ...grpc.CallOption) (*ExecResponse, error)
-	// Read one or more text files. Each file returns a bounded window of lines;
-	// a file read only in part gives the offset to read on from. A file that
-	// cannot be read reports its error in place of its content.
-	ReadFiles(ctx context.Context, in *ReadFilesRequest, opts ...grpc.CallOption) (*ReadFilesResponse, error)
-	// Create a file, or overwrite it whole, creating missing parent directories.
-	// Prefer EditFile to change part of an existing file.
-	WriteFile(ctx context.Context, in *WriteFileRequest, opts ...grpc.CallOption) (*WriteFileResponse, error)
-	// Replace exact text in a file. old_string must match the file's content
-	// exactly, whitespace included, and occur exactly once unless replace_all is
-	// set: include enough surrounding lines to make it unique.
-	EditFile(ctx context.Context, in *EditFileRequest, opts ...grpc.CallOption) (*EditFileResponse, error)
 }
 
 type workspaceServiceClient struct {
@@ -68,59 +55,19 @@ func (c *workspaceServiceClient) Exec(ctx context.Context, in *ExecRequest, opts
 	return out, nil
 }
 
-func (c *workspaceServiceClient) ReadFiles(ctx context.Context, in *ReadFilesRequest, opts ...grpc.CallOption) (*ReadFilesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReadFilesResponse)
-	err := c.cc.Invoke(ctx, WorkspaceService_ReadFiles_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *workspaceServiceClient) WriteFile(ctx context.Context, in *WriteFileRequest, opts ...grpc.CallOption) (*WriteFileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WriteFileResponse)
-	err := c.cc.Invoke(ctx, WorkspaceService_WriteFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *workspaceServiceClient) EditFile(ctx context.Context, in *EditFileRequest, opts ...grpc.CallOption) (*EditFileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EditFileResponse)
-	err := c.cc.Invoke(ctx, WorkspaceService_EditFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // WorkspaceServiceServer is the server API for WorkspaceService service.
 // All implementations should embed UnimplementedWorkspaceServiceServer
 // for forward compatibility.
 //
-// This API runs commands and edits files in one workspace: the directory its
-// server serves. Its methods are meant to be called as agent tools.
+// This API runs commands in one workspace: the directory its server serves.
+// Its methods are meant to be called as agent tools; commands read and edit
+// files too.
 type WorkspaceServiceServer interface {
 	// Run a bash command in the workspace and return its exit code and combined
 	// stdout and stderr. Stdin is empty: never run interactive commands. Long
 	// output keeps its head and tail only. On timeout, the command and every
 	// process it started are killed.
 	Exec(context.Context, *ExecRequest) (*ExecResponse, error)
-	// Read one or more text files. Each file returns a bounded window of lines;
-	// a file read only in part gives the offset to read on from. A file that
-	// cannot be read reports its error in place of its content.
-	ReadFiles(context.Context, *ReadFilesRequest) (*ReadFilesResponse, error)
-	// Create a file, or overwrite it whole, creating missing parent directories.
-	// Prefer EditFile to change part of an existing file.
-	WriteFile(context.Context, *WriteFileRequest) (*WriteFileResponse, error)
-	// Replace exact text in a file. old_string must match the file's content
-	// exactly, whitespace included, and occur exactly once unless replace_all is
-	// set: include enough surrounding lines to make it unique.
-	EditFile(context.Context, *EditFileRequest) (*EditFileResponse, error)
 }
 
 // UnimplementedWorkspaceServiceServer should be embedded to have
@@ -132,15 +79,6 @@ type UnimplementedWorkspaceServiceServer struct{}
 
 func (UnimplementedWorkspaceServiceServer) Exec(context.Context, *ExecRequest) (*ExecResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Exec not implemented")
-}
-func (UnimplementedWorkspaceServiceServer) ReadFiles(context.Context, *ReadFilesRequest) (*ReadFilesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ReadFiles not implemented")
-}
-func (UnimplementedWorkspaceServiceServer) WriteFile(context.Context, *WriteFileRequest) (*WriteFileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method WriteFile not implemented")
-}
-func (UnimplementedWorkspaceServiceServer) EditFile(context.Context, *EditFileRequest) (*EditFileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method EditFile not implemented")
 }
 func (UnimplementedWorkspaceServiceServer) testEmbeddedByValue() {}
 
@@ -180,60 +118,6 @@ func _WorkspaceService_Exec_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WorkspaceService_ReadFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadFilesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkspaceServiceServer).ReadFiles(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WorkspaceService_ReadFiles_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkspaceServiceServer).ReadFiles(ctx, req.(*ReadFilesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkspaceService_WriteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WriteFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkspaceServiceServer).WriteFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WorkspaceService_WriteFile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkspaceServiceServer).WriteFile(ctx, req.(*WriteFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkspaceService_EditFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EditFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkspaceServiceServer).EditFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WorkspaceService_EditFile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkspaceServiceServer).EditFile(ctx, req.(*EditFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // WorkspaceService_ServiceDesc is the grpc.ServiceDesc for WorkspaceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -244,18 +128,6 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Exec",
 			Handler:    _WorkspaceService_Exec_Handler,
-		},
-		{
-			MethodName: "ReadFiles",
-			Handler:    _WorkspaceService_ReadFiles_Handler,
-		},
-		{
-			MethodName: "WriteFile",
-			Handler:    _WorkspaceService_WriteFile_Handler,
-		},
-		{
-			MethodName: "EditFile",
-			Handler:    _WorkspaceService_EditFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
