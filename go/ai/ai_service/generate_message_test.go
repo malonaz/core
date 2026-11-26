@@ -1,6 +1,7 @@
 package ai_service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -118,6 +119,10 @@ func TestProcessDiscoveryToolCall(t *testing.T) {
 type fakeStream struct {
 	pb.AiService_StreamGenerateMessageServer
 	responses []*pb.StreamGenerateMessageResponse
+}
+
+func (f *fakeStream) Context() context.Context {
+	return context.Background()
 }
 
 func (f *fakeStream) Send(response *pb.StreamGenerateMessageResponse) error {
