@@ -157,13 +157,14 @@ with gzip.GzipFile(os.environ["OUT"], "wb", compresslevel=6, mtime=0) as gz:
             tar.add(src, arcname=os.path.join(sys.argv[1], os.path.basename(src)), filter=root)
 """
 
-def crane_layer(name, srcs, dir = "/", visibility = None):
+def crane_layer(name, srcs, dir = "/", labels = [], visibility = None):
     """crane_layer defines an image layer for crane_image, owned by root like a Dockerfile COPY.
 
     Args:
       name: Name of the rule.
       srcs: Files or directories, placed under dir by their base name.
       dir: Directory in the image to place srcs in.
+      labels: Labels to tag this rule with, e.g. manual for a layer only deploys build.
       visibility: Visibility of this rule.
     """
     return build_rule(
@@ -171,6 +172,7 @@ def crane_layer(name, srcs, dir = "/", visibility = None):
         srcs = srcs,
         outs = [name + ".tar.gz"],
         cmd = "python3 -c '%s' %s $SRCS" % (_CRANE_LAYER_PY, _shell_quote(dir.lstrip("/"))),
+        labels = labels,
         visibility = visibility,
     )
 
