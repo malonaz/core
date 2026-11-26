@@ -168,8 +168,11 @@ type SpeechToTextResponse struct {
 	ModelUsage *v11.ModelUsage `protobuf:"bytes,2,opt,name=model_usage,json=modelUsage,proto3" json:"model_usage,omitempty"`
 	// Generation metrics.
 	GenerationMetrics *v11.GenerationMetrics `protobuf:"bytes,3,opt,name=generation_metrics,json=generationMetrics,proto3" json:"generation_metrics,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// The transcript in time order, one segment per utterance. Empty when the provider returns no
+	// segments.
+	Segments      []*SpeechToTextSegment `protobuf:"bytes,4,rep,name=segments,proto3" json:"segments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SpeechToTextResponse) Reset() {
@@ -218,6 +221,13 @@ func (x *SpeechToTextResponse) GetGenerationMetrics() *v11.GenerationMetrics {
 	return nil
 }
 
+func (x *SpeechToTextResponse) GetSegments() []*SpeechToTextSegment {
+	if x != nil {
+		return x.Segments
+	}
+	return nil
+}
+
 func (x *SpeechToTextResponse) SetTranscript(v string) {
 	x.Transcript = v
 }
@@ -228,6 +238,10 @@ func (x *SpeechToTextResponse) SetModelUsage(v *v11.ModelUsage) {
 
 func (x *SpeechToTextResponse) SetGenerationMetrics(v *v11.GenerationMetrics) {
 	x.GenerationMetrics = v
+}
+
+func (x *SpeechToTextResponse) SetSegments(v []*SpeechToTextSegment) {
+	x.Segments = v
 }
 
 func (x *SpeechToTextResponse) HasModelUsage() bool {
@@ -261,6 +275,9 @@ type SpeechToTextResponse_builder struct {
 	ModelUsage *v11.ModelUsage
 	// Generation metrics.
 	GenerationMetrics *v11.GenerationMetrics
+	// The transcript in time order, one segment per utterance. Empty when the provider returns no
+	// segments.
+	Segments []*SpeechToTextSegment
 }
 
 func (b0 SpeechToTextResponse_builder) Build() *SpeechToTextResponse {
@@ -270,6 +287,150 @@ func (b0 SpeechToTextResponse_builder) Build() *SpeechToTextResponse {
 	x.Transcript = b.Transcript
 	x.ModelUsage = b.ModelUsage
 	x.GenerationMetrics = b.GenerationMetrics
+	x.Segments = b.Segments
+	return m0
+}
+
+// A speech-to-text segment is a stretch of speech by one speaker.
+type SpeechToTextSegment struct {
+	state protoimpl.MessageState `protogen:"hybrid.v1"`
+	// Zero-based id of the voice, only meaningful within one response. Unset when the provider does
+	// not identify speakers.
+	Speaker *int32 `protobuf:"varint,1,opt,name=speaker,proto3,oneof" json:"speaker,omitempty"`
+	// Offset of the segment's start from the start of the audio.
+	StartOffset *durationpb.Duration `protobuf:"bytes,2,opt,name=start_offset,json=startOffset,proto3" json:"start_offset,omitempty"`
+	// Offset of the segment's end from the start of the audio.
+	EndOffset *durationpb.Duration `protobuf:"bytes,3,opt,name=end_offset,json=endOffset,proto3" json:"end_offset,omitempty"`
+	// The spoken text.
+	Text          string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpeechToTextSegment) Reset() {
+	*x = SpeechToTextSegment{}
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpeechToTextSegment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpeechToTextSegment) ProtoMessage() {}
+
+func (x *SpeechToTextSegment) ProtoReflect() protoreflect.Message {
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SpeechToTextSegment) GetSpeaker() int32 {
+	if x != nil && x.Speaker != nil {
+		return *x.Speaker
+	}
+	return 0
+}
+
+func (x *SpeechToTextSegment) GetStartOffset() *durationpb.Duration {
+	if x != nil {
+		return x.StartOffset
+	}
+	return nil
+}
+
+func (x *SpeechToTextSegment) GetEndOffset() *durationpb.Duration {
+	if x != nil {
+		return x.EndOffset
+	}
+	return nil
+}
+
+func (x *SpeechToTextSegment) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *SpeechToTextSegment) SetSpeaker(v int32) {
+	x.Speaker = &v
+}
+
+func (x *SpeechToTextSegment) SetStartOffset(v *durationpb.Duration) {
+	x.StartOffset = v
+}
+
+func (x *SpeechToTextSegment) SetEndOffset(v *durationpb.Duration) {
+	x.EndOffset = v
+}
+
+func (x *SpeechToTextSegment) SetText(v string) {
+	x.Text = v
+}
+
+func (x *SpeechToTextSegment) HasSpeaker() bool {
+	if x == nil {
+		return false
+	}
+	return x.Speaker != nil
+}
+
+func (x *SpeechToTextSegment) HasStartOffset() bool {
+	if x == nil {
+		return false
+	}
+	return x.StartOffset != nil
+}
+
+func (x *SpeechToTextSegment) HasEndOffset() bool {
+	if x == nil {
+		return false
+	}
+	return x.EndOffset != nil
+}
+
+func (x *SpeechToTextSegment) ClearSpeaker() {
+	x.Speaker = nil
+}
+
+func (x *SpeechToTextSegment) ClearStartOffset() {
+	x.StartOffset = nil
+}
+
+func (x *SpeechToTextSegment) ClearEndOffset() {
+	x.EndOffset = nil
+}
+
+type SpeechToTextSegment_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Zero-based id of the voice, only meaningful within one response. Unset when the provider does
+	// not identify speakers.
+	Speaker *int32
+	// Offset of the segment's start from the start of the audio.
+	StartOffset *durationpb.Duration
+	// Offset of the segment's end from the start of the audio.
+	EndOffset *durationpb.Duration
+	// The spoken text.
+	Text string
+}
+
+func (b0 SpeechToTextSegment_builder) Build() *SpeechToTextSegment {
+	m0 := &SpeechToTextSegment{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.Speaker = b.Speaker
+	x.StartOffset = b.StartOffset
+	x.EndOffset = b.EndOffset
+	x.Text = b.Text
 	return m0
 }
 
@@ -289,7 +450,7 @@ type SpeechToTextStreamRequest struct {
 
 func (x *SpeechToTextStreamRequest) Reset() {
 	*x = SpeechToTextStreamRequest{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -301,7 +462,7 @@ func (x *SpeechToTextStreamRequest) String() string {
 func (*SpeechToTextStreamRequest) ProtoMessage() {}
 
 func (x *SpeechToTextStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -442,7 +603,7 @@ func (b0 SpeechToTextStreamRequest_builder) Build() *SpeechToTextStreamRequest {
 type case_SpeechToTextStreamRequest_Content protoreflect.FieldNumber
 
 func (x case_SpeechToTextStreamRequest_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -489,7 +650,7 @@ type SpeechToTextStreamConfiguration struct {
 
 func (x *SpeechToTextStreamConfiguration) Reset() {
 	*x = SpeechToTextStreamConfiguration{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -501,7 +662,7 @@ func (x *SpeechToTextStreamConfiguration) String() string {
 func (*SpeechToTextStreamConfiguration) ProtoMessage() {}
 
 func (x *SpeechToTextStreamConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -625,7 +786,7 @@ type SpeechToTextStreamEndOfTurnConfiguration struct {
 
 func (x *SpeechToTextStreamEndOfTurnConfiguration) Reset() {
 	*x = SpeechToTextStreamEndOfTurnConfiguration{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -637,7 +798,7 @@ func (x *SpeechToTextStreamEndOfTurnConfiguration) String() string {
 func (*SpeechToTextStreamEndOfTurnConfiguration) ProtoMessage() {}
 
 func (x *SpeechToTextStreamEndOfTurnConfiguration) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[4]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -739,7 +900,7 @@ type SpeechToTextStreamResponse struct {
 
 func (x *SpeechToTextStreamResponse) Reset() {
 	*x = SpeechToTextStreamResponse{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -751,7 +912,7 @@ func (x *SpeechToTextStreamResponse) String() string {
 func (*SpeechToTextStreamResponse) ProtoMessage() {}
 
 func (x *SpeechToTextStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1084,7 +1245,7 @@ func (b0 SpeechToTextStreamResponse_builder) Build() *SpeechToTextStreamResponse
 type case_SpeechToTextStreamResponse_Content protoreflect.FieldNumber
 
 func (x case_SpeechToTextStreamResponse_Content) String() string {
-	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5].Descriptor()
+	md := file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6].Descriptor()
 	if x == 0 {
 		return "not set"
 	}
@@ -1167,7 +1328,7 @@ type SpeechToTextStreamTurnEvent struct {
 
 func (x *SpeechToTextStreamTurnEvent) Reset() {
 	*x = SpeechToTextStreamTurnEvent{}
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1340,7 @@ func (x *SpeechToTextStreamTurnEvent) String() string {
 func (*SpeechToTextStreamTurnEvent) ProtoMessage() {}
 
 func (x *SpeechToTextStreamTurnEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6]
+	mi := &file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1285,25 +1446,35 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12@\n" +
 	"\vaudio_chunk\x18\x03 \x01(\v2\x17.malonaz.audio.v1.ChunkB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"audioChunk\x12#\n" +
-	"\rlanguage_code\x18\x04 \x01(\tR\flanguageCode\"\xc3\x01\n" +
+	"\rlanguage_code\x18\x04 \x01(\tR\flanguageCode\"\x8e\x02\n" +
 	"\x14SpeechToTextResponse\x12\x1e\n" +
 	"\n" +
 	"transcript\x18\x01 \x01(\tR\n" +
 	"transcript\x12:\n" +
 	"\vmodel_usage\x18\x02 \x01(\v2\x19.malonaz.ai.v1.ModelUsageR\n" +
 	"modelUsage\x12O\n" +
-	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\"\xcc\x01\n" +
+	"\x12generation_metrics\x18\x03 \x01(\v2 .malonaz.ai.v1.GenerationMetricsR\x11generationMetrics\x12I\n" +
+	"\bsegments\x18\x04 \x03(\v2-.malonaz.ai.ai_service.v1.SpeechToTextSegmentR\bsegments\"\xcc\x01\n" +
+	"\x13SpeechToTextSegment\x12\x1d\n" +
+	"\aspeaker\x18\x01 \x01(\x05H\x00R\aspeaker\x88\x01\x01\x12<\n" +
+	"\fstart_offset\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\vstartOffset\x128\n" +
+	"\n" +
+	"end_offset\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\tendOffset\x12\x12\n" +
+	"\x04text\x18\x04 \x01(\tR\x04textB\n" +
+	"\n" +
+	"\b_speaker\"\xcc\x01\n" +
 	"\x19SpeechToTextStreamRequest\x12a\n" +
 	"\rconfiguration\x18\x01 \x01(\v29.malonaz.ai.ai_service.v1.SpeechToTextStreamConfigurationH\x00R\rconfiguration\x12:\n" +
 	"\vaudio_chunk\x18\x02 \x01(\v2\x17.malonaz.audio.v1.ChunkH\x00R\n" +
 	"audioChunkB\x10\n" +
-	"\acontent\x12\x05\xbaH\x02\b\x01\"\xa8\x02\n" +
+	"\acontent\x12\x05\xbaH\x02\b\x01\"\xa2\x03\n" +
 	"\x1fSpeechToTextStreamConfiguration\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12%\n" +
 	"\x0elanguage_codes\x18\x03 \x03(\tR\rlanguageCodes\x12b\n" +
-	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn\"\xe6\x03\n" +
+	"\vend_of_turn\x18\x04 \x01(\v2B.malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfigurationR\tendOfTurn:x\xbaHu\x1as\n" +
+	"4speech_to_text_stream_configuration.audio_format_pcm\x12\x1astreaming takes linear PCM\x1a\x1fthis.audio_format.encoding == 0\"\xe6\x03\n" +
 	"(SpeechToTextStreamEndOfTurnConfiguration\x12J\n" +
 	"\x14confidence_threshold\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\xe0?R\x13confidenceThreshold\x12U\n" +
 	"\x1aeager_confidence_threshold\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\xcd\xcc\xcc\xcc\xcc\xcc\xec?)\x00\x00\x00\x00\x00\x00\x00\x00R\x18eagerConfidenceThreshold\x12G\n" +
@@ -1332,43 +1503,47 @@ const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\x17detected_language_codes\x18\x04 \x03(\tR\x15detectedLanguageCodes\x122\n" +
 	"\x15hinted_language_codes\x18\x05 \x03(\tR\x13hintedLanguageCodesB3Z1github.com/malonaz/core/genproto/ai/ai_service/v1b\x06proto3"
 
-var file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_goTypes = []any{
 	(*SpeechToTextRequest)(nil),                      // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest
 	(*SpeechToTextResponse)(nil),                     // 1: malonaz.ai.ai_service.v1.SpeechToTextResponse
-	(*SpeechToTextStreamRequest)(nil),                // 2: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
-	(*SpeechToTextStreamConfiguration)(nil),          // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
-	(*SpeechToTextStreamEndOfTurnConfiguration)(nil), // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
-	(*SpeechToTextStreamResponse)(nil),               // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
-	(*SpeechToTextStreamTurnEvent)(nil),              // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	(*v1.Format)(nil),                                // 7: malonaz.audio.v1.Format
-	(*v1.Chunk)(nil),                                 // 8: malonaz.audio.v1.Chunk
-	(*v11.ModelUsage)(nil),                           // 9: malonaz.ai.v1.ModelUsage
-	(*v11.GenerationMetrics)(nil),                    // 10: malonaz.ai.v1.GenerationMetrics
-	(*durationpb.Duration)(nil),                      // 11: google.protobuf.Duration
+	(*SpeechToTextSegment)(nil),                      // 2: malonaz.ai.ai_service.v1.SpeechToTextSegment
+	(*SpeechToTextStreamRequest)(nil),                // 3: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest
+	(*SpeechToTextStreamConfiguration)(nil),          // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
+	(*SpeechToTextStreamEndOfTurnConfiguration)(nil), // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
+	(*SpeechToTextStreamResponse)(nil),               // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse
+	(*SpeechToTextStreamTurnEvent)(nil),              // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	(*v1.Format)(nil),                                // 8: malonaz.audio.v1.Format
+	(*v1.Chunk)(nil),                                 // 9: malonaz.audio.v1.Chunk
+	(*v11.ModelUsage)(nil),                           // 10: malonaz.ai.v1.ModelUsage
+	(*v11.GenerationMetrics)(nil),                    // 11: malonaz.ai.v1.GenerationMetrics
+	(*durationpb.Duration)(nil),                      // 12: google.protobuf.Duration
 }
 var file_malonaz_ai_ai_service_v1_speech_to_text_proto_depIdxs = []int32{
-	7,  // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_format:type_name -> malonaz.audio.v1.Format
-	8,  // 1: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	9,  // 2: malonaz.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	10, // 3: malonaz.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	3,  // 4: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
-	8,  // 5: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
-	7,  // 6: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.audio_format:type_name -> malonaz.audio.v1.Format
-	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
-	11, // 8: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration.timeout:type_name -> google.protobuf.Duration
-	6,  // 9: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_start:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	6,  // 10: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_update:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	6,  // 11: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_eager_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	6,  // 12: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_resumed:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	6,  // 13: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
-	9,  // 14: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
-	10, // 15: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	8,  // 0: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_format:type_name -> malonaz.audio.v1.Format
+	9,  // 1: malonaz.ai.ai_service.v1.SpeechToTextRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	10, // 2: malonaz.ai.ai_service.v1.SpeechToTextResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	11, // 3: malonaz.ai.ai_service.v1.SpeechToTextResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	2,  // 4: malonaz.ai.ai_service.v1.SpeechToTextResponse.segments:type_name -> malonaz.ai.ai_service.v1.SpeechToTextSegment
+	12, // 5: malonaz.ai.ai_service.v1.SpeechToTextSegment.start_offset:type_name -> google.protobuf.Duration
+	12, // 6: malonaz.ai.ai_service.v1.SpeechToTextSegment.end_offset:type_name -> google.protobuf.Duration
+	4,  // 7: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.configuration:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration
+	9,  // 8: malonaz.ai.ai_service.v1.SpeechToTextStreamRequest.audio_chunk:type_name -> malonaz.audio.v1.Chunk
+	8,  // 9: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.audio_format:type_name -> malonaz.audio.v1.Format
+	5,  // 10: malonaz.ai.ai_service.v1.SpeechToTextStreamConfiguration.end_of_turn:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration
+	12, // 11: malonaz.ai.ai_service.v1.SpeechToTextStreamEndOfTurnConfiguration.timeout:type_name -> google.protobuf.Duration
+	7,  // 12: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_start:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	7,  // 13: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_update:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	7,  // 14: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_eager_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	7,  // 15: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_resumed:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	7,  // 16: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.turn_end:type_name -> malonaz.ai.ai_service.v1.SpeechToTextStreamTurnEvent
+	10, // 17: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.model_usage:type_name -> malonaz.ai.v1.ModelUsage
+	11, // 18: malonaz.ai.ai_service.v1.SpeechToTextStreamResponse.generation_metrics:type_name -> malonaz.ai.v1.GenerationMetrics
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() }
@@ -1376,11 +1551,12 @@ func file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() {
 	if File_malonaz_ai_ai_service_v1_speech_to_text_proto != nil {
 		return
 	}
-	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2].OneofWrappers = []any{
+	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[2].OneofWrappers = []any{}
+	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[3].OneofWrappers = []any{
 		(*SpeechToTextStreamRequest_Configuration)(nil),
 		(*SpeechToTextStreamRequest_AudioChunk)(nil),
 	}
-	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[5].OneofWrappers = []any{
+	file_malonaz_ai_ai_service_v1_speech_to_text_proto_msgTypes[6].OneofWrappers = []any{
 		(*SpeechToTextStreamResponse_TurnStart)(nil),
 		(*SpeechToTextStreamResponse_TurnUpdate)(nil),
 		(*SpeechToTextStreamResponse_TurnEagerEnd)(nil),
@@ -1395,7 +1571,7 @@ func file_malonaz_ai_ai_service_v1_speech_to_text_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc), len(file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

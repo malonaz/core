@@ -39,6 +39,26 @@ message SpeechToTextResponse {
 
   // Generation metrics.
   .malonaz.ai.v1.GenerationMetrics generation_metrics = 3;
+
+  // The transcript in time order, one segment per utterance. Empty when the provider returns no
+  // segments.
+  repeated SpeechToTextSegment segments = 4;
+}
+
+// A speech-to-text segment is a stretch of speech by one speaker.
+message SpeechToTextSegment {
+  // Zero-based id of the voice, only meaningful within one response. Unset when the provider does
+  // not identify speakers.
+  optional int32 speaker = 1;
+
+  // Offset of the segment's start from the start of the audio.
+  google.protobuf.Duration start_offset = 2;
+
+  // Offset of the segment's end from the start of the audio.
+  google.protobuf.Duration end_offset = 3;
+
+  // The spoken text.
+  string text = 4;
 }
 
 // Request message for AiService.SpeechToTextStream.
@@ -60,6 +80,12 @@ message SpeechToTextStreamRequest {
 
 // Configuration for speech-to-text streaming. Sent as the first message.
 message SpeechToTextStreamConfiguration {
+  option (buf.validate.message).cel = {
+    id: "speech_to_text_stream_configuration.audio_format_pcm"
+    message: "streaming takes linear PCM"
+    expression: "this.audio_format.encoding == 0"
+  };
+
   // The resource name of the model used.
   // Format: providers/{provider}/models/{model}
   string model = 1 [

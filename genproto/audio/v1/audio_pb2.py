@@ -27,7 +27,7 @@ from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"e\n\x06\x46ormat\x12\x1c\n\x0bsample_rate\x18\x01 \x01(\x05\x42\x07\xbaH\x04\x1a\x02 \x00\x12\x1b\n\x08\x63hannels\x18\x02 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x30\x01\x30\x02\x12 \n\x0f\x62its_per_sample\x18\x03 \x01(\x05\x42\x07\xbaH\x04\x1a\x02 \x00\"\xb5\x03\n\x05\x43hunk\x12\x16\n\x05index\x18\x01 \x01(\rB\x07\xbaH\x04*\x02 \x00\x12\x30\n\x0c\x63\x61pture_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x33\n\x08\x64uration\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x06\xbaH\x03\xc8\x01\x01\x12\x15\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x07\xbaH\x04z\x02\x10\x01:\x95\x02\xbaH\x91\x02\x1a\x83\x01\n+chunk.capture_time_required_for_first_chunk\x12(capture_time must be set when index is 1\x1a*this.index != 1u || has(this.capture_time)\x1a\x88\x01\n\'chunk.capture_time_only_for_first_chunk\x12\x30\x63\x61pture_time must not be set when index is not 1\x1a+this.index == 1u || !has(this.capture_time)B+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe4\x02\n\x06\x46ormat\x12\x36\n\x08\x65ncoding\x18\x04 \x01(\x0e\x32\x1a.malonaz.audio.v1.EncodingB\x08\xbaH\x05\x82\x01\x02\x10\x01\x12\x13\n\x0bsample_rate\x18\x01 \x01(\x05\x12\x10\n\x08\x63hannels\x18\x02 \x01(\x05\x12\x17\n\x0f\x62its_per_sample\x18\x03 \x01(\x05:\xe1\x01\xbaH\xdd\x01\x1a\xda\x01\n\x15\x66ormat.pcm_parameters\x12Ilinear PCM needs sample_rate > 0, channels 1 or 2 and bits_per_sample > 0\x1avthis.encoding != 0 || (this.sample_rate > 0 && (this.channels == 1 || this.channels == 2) && this.bits_per_sample > 0)\"\xb5\x03\n\x05\x43hunk\x12\x16\n\x05index\x18\x01 \x01(\rB\x07\xbaH\x04*\x02 \x00\x12\x30\n\x0c\x63\x61pture_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x33\n\x08\x64uration\x18\x03 \x01(\x0b\x32\x19.google.protobuf.DurationB\x06\xbaH\x03\xc8\x01\x01\x12\x15\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x07\xbaH\x04z\x02\x10\x01:\x95\x02\xbaH\x91\x02\x1a\x83\x01\n+chunk.capture_time_required_for_first_chunk\x12(capture_time must be set when index is 1\x1a*this.index != 1u || has(this.capture_time)\x1a\x88\x01\n\'chunk.capture_time_only_for_first_chunk\x12\x30\x63\x61pture_time must not be set when index is not 1\x1a+this.index == 1u || !has(this.capture_time)*6\n\x08\x45ncoding\x12\x18\n\x14\x45NCODING_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x45NCODING_MP3\x10\x01\x42+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,12 +35,10 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.audio.v1.audio_pb2'
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z)github.com/malonaz/core/genproto/audio/v1'
-  _globals['_FORMAT'].fields_by_name['sample_rate']._loaded_options = None
-  _globals['_FORMAT'].fields_by_name['sample_rate']._serialized_options = b'\272H\004\032\002 \000'
-  _globals['_FORMAT'].fields_by_name['channels']._loaded_options = None
-  _globals['_FORMAT'].fields_by_name['channels']._serialized_options = b'\272H\006\032\0040\0010\002'
-  _globals['_FORMAT'].fields_by_name['bits_per_sample']._loaded_options = None
-  _globals['_FORMAT'].fields_by_name['bits_per_sample']._serialized_options = b'\272H\004\032\002 \000'
+  _globals['_FORMAT'].fields_by_name['encoding']._loaded_options = None
+  _globals['_FORMAT'].fields_by_name['encoding']._serialized_options = b'\272H\005\202\001\002\020\001'
+  _globals['_FORMAT']._loaded_options = None
+  _globals['_FORMAT']._serialized_options = b'\272H\335\001\032\332\001\n\025format.pcm_parameters\022Ilinear PCM needs sample_rate > 0, channels 1 or 2 and bits_per_sample > 0\032vthis.encoding != 0 || (this.sample_rate > 0 && (this.channels == 1 || this.channels == 2) && this.bits_per_sample > 0)'
   _globals['_CHUNK'].fields_by_name['index']._loaded_options = None
   _globals['_CHUNK'].fields_by_name['index']._serialized_options = b'\272H\004*\002 \000'
   _globals['_CHUNK'].fields_by_name['duration']._loaded_options = None
@@ -49,8 +47,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CHUNK'].fields_by_name['data']._serialized_options = b'\272H\004z\002\020\001'
   _globals['_CHUNK']._loaded_options = None
   _globals['_CHUNK']._serialized_options = b'\272H\221\002\032\203\001\n+chunk.capture_time_required_for_first_chunk\022(capture_time must be set when index is 1\032*this.index != 1u || has(this.capture_time)\032\210\001\n\'chunk.capture_time_only_for_first_chunk\0220capture_time must not be set when index is not 1\032+this.index == 1u || !has(this.capture_time)'
-  _globals['_FORMAT']._serialized_start=144
-  _globals['_FORMAT']._serialized_end=245
-  _globals['_CHUNK']._serialized_start=248
-  _globals['_CHUNK']._serialized_end=685
+  _globals['_ENCODING']._serialized_start=943
+  _globals['_ENCODING']._serialized_end=997
+  _globals['_FORMAT']._serialized_start=145
+  _globals['_FORMAT']._serialized_end=501
+  _globals['_CHUNK']._serialized_start=504
+  _globals['_CHUNK']._serialized_end=941
 # @@protoc_insertion_point(module_scope)

@@ -4,6 +4,12 @@ local p = "providers/deepgram/models/";
   "provider_id": "deepgram",
   "models": [
     {
+      "name": p + "nova-3",
+      "provider_model_id": "nova-3",
+      "description": "Pre-recorded speech-to-text with speaker diarization and utterance timings.",
+      "stt": {}
+    },
+    {
       "name": p + "flux-general-en",
       "provider_model_id": "flux-general-en",
       "description": "English-only real-time streaming speech-to-text with voice activity detection and end-of-turn prediction.",

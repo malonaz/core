@@ -132,6 +132,12 @@ message DecisionModelConfig {
 
 // Configuration for a tts model.
 message TtsModelConfig {
+  option (buf.validate.message).cel = {
+    id: "tts_model_config.audio_format_pcm"
+    message: "tts output is linear PCM"
+    expression: "this.audio_format.encoding == 0"
+  };
+
   // Default audio format of the output of this model.
   audio.v1.Format audio_format = 1 [(buf.validate.field).required = true];
   // Supported sample rates.

@@ -10,17 +10,29 @@ option go_package = "github.com/malonaz/core/genproto/audio/v1";
 
 // Audio format specification for an audio stream.
 message Format {
-  // e.g., 16000, 44100, 48000
-  int32 sample_rate = 1 [(buf.validate.field).int32.gt = 0];
-  // 1 for mono, 2 for stereo
-  int32 channels = 2 [(buf.validate.field).int32 = {
-    in: [
-      1,
-      2
-    ]
-  }];
-  // typically 16 or 24
-  int32 bits_per_sample = 3 [(buf.validate.field).int32.gt = 0];
+  option (buf.validate.message).cel = {
+    id: "format.pcm_parameters"
+    message: "linear PCM needs sample_rate > 0, channels 1 or 2 and bits_per_sample > 0"
+    expression: "this.encoding != 0 || (this.sample_rate > 0 && (this.channels == 1 || this.channels == 2) && this.bits_per_sample > 0)"
+  };
+
+  // How the audio is encoded.
+  Encoding encoding = 4 [(buf.validate.field).enum.defined_only = true];
+  // e.g., 16000, 44100, 48000. Required for linear PCM.
+  int32 sample_rate = 1;
+  // 1 for mono, 2 for stereo. Required for linear PCM.
+  int32 channels = 2;
+  // typically 16 or 24. Required for linear PCM.
+  int32 bits_per_sample = 3;
+}
+
+// Encoding of audio data.
+enum Encoding {
+  // Linear PCM, described by the other Format fields. Unlike other zero values this is a valid
+  // encoding, which keeps every Format written before encoding existed valid.
+  ENCODING_UNSPECIFIED = 0;
+  // MP3, which carries its own sample rate and channels.
+  ENCODING_MP3 = 1;
 }
 
 // A chunk of audio data.

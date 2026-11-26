@@ -3,6 +3,7 @@ go_library(
     srcs = [
         "deepgram.go",
         "speak.go",
+        "speech_to_text.go",
         "speech_to_text_stream.go",
         "stream_text_to_speech.go",
         "text_to_speech.go",
@@ -17,6 +18,26 @@ go_library(
         "//malonaz/audio/v1",
         "//third_party/go:github.com__coder__websocket",
         "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)
+
+go_test(
+    name = "deepgram_test",
+    srcs = ["speech_to_text_test.go"],
+    deps = [
+        ":deepgram",
+        "//go/ai/ai_service/provider",
+        "//go/audio",
+        "//go/grpc/require",
+        "//malonaz/ai/ai_service/v1",
+        "//malonaz/ai/v1",
+        "//malonaz/audio/v1",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__protobuf__proto",
+        "//third_party/go:google.golang.org__protobuf__testing__protocmp",
         "//third_party/go:google.golang.org__protobuf__types__known__durationpb",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
