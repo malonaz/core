@@ -463,4 +463,3 @@ func updateLabels(ctx context.Context, s *Service, agent *agentpb.Agent, toolCal
 	updatedLabels := &agentpb.Agent{Labels: updatedAgent.GetLabels()}
 	return structuredToolResult(toolCall, updatedLabels)
 }
-
