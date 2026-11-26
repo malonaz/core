@@ -38,7 +38,10 @@ type SpeechToTextRequest struct {
 	// Audio to transcribe.
 	AudioChunk *v1.Chunk `protobuf:"bytes,3,opt,name=audio_chunk,json=audioChunk,proto3" json:"audio_chunk,omitempty"`
 	// Optional language code to improve transcription accuracy (e.g., "en", "es").
-	LanguageCode  string `protobuf:"bytes,4,opt,name=language_code,json=languageCode,proto3" json:"language_code,omitempty"`
+	LanguageCode string `protobuf:"bytes,4,opt,name=language_code,json=languageCode,proto3" json:"language_code,omitempty"`
+	// Words and phrases likely in the audio (names, products, jargon), to bias recognition towards
+	// them. Providers without support ignore them.
+	Keyterms      []string `protobuf:"bytes,5,rep,name=keyterms,proto3" json:"keyterms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -96,6 +99,13 @@ func (x *SpeechToTextRequest) GetLanguageCode() string {
 	return ""
 }
 
+func (x *SpeechToTextRequest) GetKeyterms() []string {
+	if x != nil {
+		return x.Keyterms
+	}
+	return nil
+}
+
 func (x *SpeechToTextRequest) SetModel(v string) {
 	x.Model = v
 }
@@ -110,6 +120,10 @@ func (x *SpeechToTextRequest) SetAudioChunk(v *v1.Chunk) {
 
 func (x *SpeechToTextRequest) SetLanguageCode(v string) {
 	x.LanguageCode = v
+}
+
+func (x *SpeechToTextRequest) SetKeyterms(v []string) {
+	x.Keyterms = v
 }
 
 func (x *SpeechToTextRequest) HasAudioFormat() bool {
@@ -146,6 +160,9 @@ type SpeechToTextRequest_builder struct {
 	AudioChunk *v1.Chunk
 	// Optional language code to improve transcription accuracy (e.g., "en", "es").
 	LanguageCode string
+	// Words and phrases likely in the audio (names, products, jargon), to bias recognition towards
+	// them. Providers without support ignore them.
+	Keyterms []string
 }
 
 func (b0 SpeechToTextRequest_builder) Build() *SpeechToTextRequest {
@@ -156,6 +173,7 @@ func (b0 SpeechToTextRequest_builder) Build() *SpeechToTextRequest {
 	x.AudioFormat = b.AudioFormat
 	x.AudioChunk = b.AudioChunk
 	x.LanguageCode = b.LanguageCode
+	x.Keyterms = b.Keyterms
 	return m0
 }
 
@@ -1439,14 +1457,16 @@ var File_malonaz_ai_ai_service_v1_speech_to_text_proto protoreflect.FileDescript
 
 const file_malonaz_ai_ai_service_v1_speech_to_text_proto_rawDesc = "" +
 	"\n" +
-	"-malonaz/ai/ai_service/v1/speech_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xf8\x01\n" +
+	"-malonaz/ai/ai_service/v1/speech_to_text.proto\x12\x18malonaz.ai.ai_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bmalonaz/ai/v1/metrics.proto\x1a\x1cmalonaz/audio/v1/audio.proto\"\xa6\x02\n" +
 	"\x13SpeechToTextRequest\x125\n" +
 	"\x05model\x18\x01 \x01(\tB\x1f\xfaA\x16\n" +
 	"\x14ai.malonaz.com/Model\xbaH\x03\xc8\x01\x01R\x05model\x12C\n" +
 	"\faudio_format\x18\x02 \x01(\v2\x18.malonaz.audio.v1.FormatB\x06\xbaH\x03\xc8\x01\x01R\vaudioFormat\x12@\n" +
 	"\vaudio_chunk\x18\x03 \x01(\v2\x17.malonaz.audio.v1.ChunkB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"audioChunk\x12#\n" +
-	"\rlanguage_code\x18\x04 \x01(\tR\flanguageCode\"\x8e\x02\n" +
+	"\rlanguage_code\x18\x04 \x01(\tR\flanguageCode\x12,\n" +
+	"\bkeyterms\x18\x05 \x03(\tB\x10\xbaH\r\x92\x01\n" +
+	"\x10d\"\x06r\x04\x10\x01\x18dR\bkeyterms\"\x8e\x02\n" +
 	"\x14SpeechToTextResponse\x12\x1e\n" +
 	"\n" +
 	"transcript\x18\x01 \x01(\tR\n" +

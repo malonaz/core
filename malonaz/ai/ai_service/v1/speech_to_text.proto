@@ -27,6 +27,18 @@ message SpeechToTextRequest {
 
   // Optional language code to improve transcription accuracy (e.g., "en", "es").
   string language_code = 4;
+
+  // Words and phrases likely in the audio (names, products, jargon), to bias recognition towards
+  // them. Providers without support ignore them.
+  repeated string keyterms = 5 [(buf.validate.field).repeated = {
+    max_items: 100
+    items: {
+      string: {
+        min_len: 1
+        max_len: 100
+      }
+    }
+  }];
 }
 
 // Response message for AiService.SpeechToText.

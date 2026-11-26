@@ -59,6 +59,7 @@ func TestSpeechToText(t *testing.T) {
 		Model:       "providers/deepgram/models/nova-3",
 		AudioFormat: &audiopb.Format{Encoding: audiopb.Encoding_ENCODING_MP3},
 		AudioChunk:  &audiopb.Chunk{Index: 1, CaptureTime: timestamppb.Now(), Duration: durationpb.New(12400 * time.Millisecond), Data: []byte("mp3-bytes")},
+		Keyterms:    []string{"Hearth", "Beatriz Tello", "C++"},
 	}
 	response, err := client.SpeechToText(context.Background(), request)
 	require.NoError(t, err)
@@ -76,7 +77,7 @@ func TestSpeechToText(t *testing.T) {
 		},
 	}
 	grpcrequire.Equal(t, expected, response, protocmp.IgnoreFields(&aipb.GenerationMetrics{}, "ttlb"))
-	require.Equal(t, "diarize=true&model=nova-3&punctuate=true&smart_format=true&utterances=true", gotQuery)
+	require.Equal(t, "diarize=true&keyterm=Hearth&keyterm=Beatriz%20Tello&keyterm=C%2B%2B&model=nova-3&punctuate=true&smart_format=true&utterances=true", gotQuery)
 	require.Equal(t, "token test-key", gotAuthorization)
 	require.Equal(t, "audio/mpeg", gotContentType)
 	require.Equal(t, []byte("mp3-bytes"), gotBody)
