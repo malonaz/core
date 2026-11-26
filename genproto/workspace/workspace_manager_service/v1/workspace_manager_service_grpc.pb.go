@@ -48,12 +48,20 @@ const (
 //
 // Filesystems are the FilesystemService's.
 //
+// # Lifecycle
+//
+// Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
+// its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
+// the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
+// A server in front that wants a running workspace calls CreateWorkspace then
+// StartWorkspace.
+//
 // # Secrets
 //
-// Secrets reach a pod only through CreateWorkspace, StartWorkspace and
-// SetWorkspaceSecrets, as files under `/run/workspace/secrets` and env vars in
-// `/run/workspace/env`, which every shell sources. They are never stored: a
-// stopped workspace has none, and its next start carries them again.
+// Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
+// files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
+// which every shell sources. They are never stored: a stopped workspace has
+// none, and its next start carries them again.
 //
 // # Commands
 //
@@ -63,9 +71,9 @@ const (
 // `x-workspace` metadata, starting a stopped one (with no secrets) and
 // waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceClient interface {
-	// Create a workspace and start its pod. Returns at once, STARTING; the first
-	// Exec waits for READY. Attaches each mount's filesystem,
-	// FAILED_PRECONDITION if a LOCAL one it would write has another writer.
+	// Create a workspace, STOPPED: no pod runs until StartWorkspace or an Exec
+	// starts it. Attaches each mount's filesystem, FAILED_PRECONDITION if a
+	// LOCAL one it would write has another writer.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateWorkspace(ctx context.Context, in *CreateWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
@@ -89,7 +97,8 @@ type WorkspaceManagerServiceClient interface {
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
-	// Start a stopped workspace's pod with its mounts and the request's secrets.
+	// Start a stopped workspace's pod with its mounts and the request's
+	// secrets. Returns at once, STARTING; an Exec waits for READY.
 	// Idempotent: a starting or ready workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -227,12 +236,20 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 //
 // Filesystems are the FilesystemService's.
 //
+// # Lifecycle
+//
+// Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
+// its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
+// the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
+// A server in front that wants a running workspace calls CreateWorkspace then
+// StartWorkspace.
+//
 // # Secrets
 //
-// Secrets reach a pod only through CreateWorkspace, StartWorkspace and
-// SetWorkspaceSecrets, as files under `/run/workspace/secrets` and env vars in
-// `/run/workspace/env`, which every shell sources. They are never stored: a
-// stopped workspace has none, and its next start carries them again.
+// Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
+// files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
+// which every shell sources. They are never stored: a stopped workspace has
+// none, and its next start carries them again.
 //
 // # Commands
 //
@@ -242,9 +259,9 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 // `x-workspace` metadata, starting a stopped one (with no secrets) and
 // waiting for it to be ready within the call's deadline.
 type WorkspaceManagerServiceServer interface {
-	// Create a workspace and start its pod. Returns at once, STARTING; the first
-	// Exec waits for READY. Attaches each mount's filesystem,
-	// FAILED_PRECONDITION if a LOCAL one it would write has another writer.
+	// Create a workspace, STOPPED: no pod runs until StartWorkspace or an Exec
+	// starts it. Attaches each mount's filesystem, FAILED_PRECONDITION if a
+	// LOCAL one it would write has another writer.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
 	CreateWorkspace(context.Context, *CreateWorkspaceRequest) (*v1.Workspace, error)
@@ -268,7 +285,8 @@ type WorkspaceManagerServiceServer interface {
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*v1.Workspace, error)
-	// Start a stopped workspace's pod with its mounts and the request's secrets.
+	// Start a stopped workspace's pod with its mounts and the request's
+	// secrets. Returns at once, STARTING; an Exec waits for READY.
 	// Idempotent: a starting or ready workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).

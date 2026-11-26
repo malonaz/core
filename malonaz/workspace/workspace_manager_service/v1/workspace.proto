@@ -62,15 +62,9 @@ message CreateWorkspaceRequest {
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
 
-  // The secrets the pod starts with.
-  repeated Secret secrets = 4 [
-    (google.api.field_behavior) = INPUT_ONLY,
-    (buf.validate.field).repeated.max_items = 64
-  ];
-
   // A unique identifier for this request. Must be a UUID. Repeating a request
   // with the same ID returns the workspace it created instead of creating another.
-  string request_id = 5 [
+  string request_id = 4 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true
   ];

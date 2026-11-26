@@ -31,12 +31,20 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
  *
  * Filesystems are the FilesystemService's.
  *
+ * # Lifecycle
+ *
+ * Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
+ * its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
+ * the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
+ * A server in front that wants a running workspace calls CreateWorkspace then
+ * StartWorkspace.
+ *
  * # Secrets
  *
- * Secrets reach a pod only through CreateWorkspace, StartWorkspace and
- * SetWorkspaceSecrets, as files under `/run/workspace/secrets` and env vars in
- * `/run/workspace/env`, which every shell sources. They are never stored: a
- * stopped workspace has none, and its next start carries them again.
+ * Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
+ * files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
+ * which every shell sources. They are never stored: a stopped workspace has
+ * none, and its next start carries them again.
  *
  * # Commands
  *
@@ -50,9 +58,9 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
  */
 export const WorkspaceManagerService: GenService<{
   /**
-   * Create a workspace and start its pod. Returns at once, STARTING; the first
-   * Exec waits for READY. Attaches each mount's filesystem,
-   * FAILED_PRECONDITION if a LOCAL one it would write has another writer.
+   * Create a workspace, STOPPED: no pod runs until StartWorkspace or an Exec
+   * starts it. Attaches each mount's filesystem, FAILED_PRECONDITION if a
+   * LOCAL one it would write has another writer.
    *
    * See: https://google.aip.dev/133 (Standard methods: Create).
    *
@@ -116,7 +124,8 @@ export const WorkspaceManagerService: GenService<{
     output: typeof WorkspaceSchema;
   },
   /**
-   * Start a stopped workspace's pod with its mounts and the request's secrets.
+   * Start a stopped workspace's pod with its mounts and the request's
+   * secrets. Returns at once, STARTING; an Exec waits for READY.
    * Idempotent: a starting or ready workspace is returned as is.
    *
    * See: https://google.aip.dev/136 (Custom methods).

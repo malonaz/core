@@ -125,8 +125,7 @@ type CreateWorkspaceRequest struct {
 	xxx_hidden_Parent      string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
 	xxx_hidden_Workspace   *v1.Workspace          `protobuf:"bytes,2,opt,name=workspace,proto3"`
 	xxx_hidden_WorkspaceId string                 `protobuf:"bytes,3,opt,name=workspace_id,json=workspaceId,proto3"`
-	xxx_hidden_Secrets     *[]*Secret             `protobuf:"bytes,4,rep,name=secrets,proto3"`
-	xxx_hidden_RequestId   string                 `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3"`
+	xxx_hidden_RequestId   string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -177,15 +176,6 @@ func (x *CreateWorkspaceRequest) GetWorkspaceId() string {
 	return ""
 }
 
-func (x *CreateWorkspaceRequest) GetSecrets() []*Secret {
-	if x != nil {
-		if x.xxx_hidden_Secrets != nil {
-			return *x.xxx_hidden_Secrets
-		}
-	}
-	return nil
-}
-
 func (x *CreateWorkspaceRequest) GetRequestId() string {
 	if x != nil {
 		return x.xxx_hidden_RequestId
@@ -203,10 +193,6 @@ func (x *CreateWorkspaceRequest) SetWorkspace(v *v1.Workspace) {
 
 func (x *CreateWorkspaceRequest) SetWorkspaceId(v string) {
 	x.xxx_hidden_WorkspaceId = v
-}
-
-func (x *CreateWorkspaceRequest) SetSecrets(v []*Secret) {
-	x.xxx_hidden_Secrets = &v
 }
 
 func (x *CreateWorkspaceRequest) SetRequestId(v string) {
@@ -238,8 +224,6 @@ type CreateWorkspaceRequest_builder struct {
 	// workspace and its sub-agents share it unless they create their own.
 	// Creating an existing workspace fails ALREADY_EXISTS.
 	WorkspaceId string
-	// The secrets the pod starts with.
-	Secrets []*Secret
 	// A unique identifier for this request. Must be a UUID. Repeating a request
 	// with the same ID returns the workspace it created instead of creating another.
 	RequestId string
@@ -252,7 +236,6 @@ func (b0 CreateWorkspaceRequest_builder) Build() *CreateWorkspaceRequest {
 	x.xxx_hidden_Parent = b.Parent
 	x.xxx_hidden_Workspace = b.Workspace
 	x.xxx_hidden_WorkspaceId = b.WorkspaceId
-	x.xxx_hidden_Secrets = &b.Secrets
 	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
@@ -1122,15 +1105,14 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\x06Secret\x12<\n" +
 	"\x02id\x18\x01 \x01(\tB,\xbaH)\xc8\x01\x01r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$R\x02id\x128\n" +
 	"\aenv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x012\x15^([A-Z_][A-Z0-9_]*)?$R\x06envVar\x12\"\n" +
-	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"\xf6\x02\n" +
+	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"\x97\x02\n" +
 	"\x16CreateWorkspaceRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12E\n" +
 	"\tworkspace\x18\x02 \x01(\v2\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xc8\x01\x01R\tworkspace\x12H\n" +
-	"\fworkspace_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\vworkspaceId\x12]\n" +
-	"\asecrets\x18\x04 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\x12*\n" +
+	"\fworkspace_id\x18\x03 \x01(\tB%\xbaH\"\xd8\x01\x01r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$R\vworkspaceId\x12*\n" +
 	"\n" +
-	"request_id\x18\x05 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"X\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"X\n" +
 	"\x13GetWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\"\xa9\x01\n" +
@@ -1202,17 +1184,16 @@ var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_goTypes 
 }
 var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_depIdxs = []int32{
 	13, // 0: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
-	0,  // 1: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
-	13, // 2: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.workspaces:type_name -> malonaz.workspace.v1.Workspace
-	13, // 3: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
-	14, // 4: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	0,  // 5: malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
-	0,  // 6: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	13, // 1: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.workspaces:type_name -> malonaz.workspace.v1.Workspace
+	13, // 2: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
+	14, // 3: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	0,  // 4: malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
+	0,  // 5: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_init() }
