@@ -47,20 +47,25 @@ func Download(ctx context.Context, url string) ([]byte, error) {
 	return data, nil
 }
 
-// PostJSON posts a JSON body to a provider and decodes its JSON response. A
-// response other than 200 is returned as a status error carrying the
-// provider's answer, coded so that callers can tell a request the provider
-// rejected from a provider that is rate limiting or down.
+// PostJSON posts a JSON body to a provider and decodes its JSON response. See Post.
 func PostJSON(ctx context.Context, url string, headers map[string]string, requestBody, responseBody any) error {
 	requestBytes, err := json.Marshal(requestBody)
 	if err != nil {
 		return status.Errorf(codes.Internal, "marshaling request: %v", err).Err()
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(requestBytes))
+	return Post(ctx, url, "application/json", headers, bytes.NewReader(requestBytes), responseBody)
+}
+
+// Post posts a body of the given content type to a provider and decodes its JSON response. A
+// response other than 200 is returned as a status error carrying the provider's answer, coded so
+// that callers can tell a request the provider rejected from a provider that is rate limiting or
+// down.
+func Post(ctx context.Context, url, contentType string, headers map[string]string, requestBody io.Reader, responseBody any) error {
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, requestBody)
 	if err != nil {
 		return status.Errorf(codes.Internal, "building request: %v", err).Err()
 	}
-	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Content-Type", contentType)
 	for key, value := range headers {
 		request.Header.Set(key, value)
 	}

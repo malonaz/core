@@ -3,10 +3,8 @@ package deepgram
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
+	"math"
 	"net/url"
 	"strings"
 	"time"
@@ -17,14 +15,12 @@ import (
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
 	audiopb "github.com/malonaz/core/genproto/audio/v1"
+	"github.com/malonaz/core/go/ai/ai_service/provider"
 	"github.com/malonaz/core/go/audio"
 	"github.com/malonaz/core/go/grpc/status"
 )
 
-const (
-	defaultRESTBaseURL = "https://api.deepgram.com"
-	maxErrorBodyBytes  = 512
-)
+const defaultRESTBaseURL = "https://api.deepgram.com"
 
 // prerecordedResponse is the subset of the /v1/listen response read here.
 type prerecordedResponse struct {
@@ -80,36 +76,19 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		params.Set("language", request.GetLanguageCode())
 	}
 	listenURL := fmt.Sprintf("%s/v1/listen?%s", c.restBaseURL, params.Encode())
-	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, listenURL, bytes.NewReader(body))
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "creating deepgram request: %v", err).Err()
-	}
-	httpRequest.Header.Set("Authorization", fmt.Sprintf("token %s", c.apiKey))
-	httpRequest.Header.Set("Content-Type", mimeType)
+	headers := map[string]string{"Authorization": fmt.Sprintf("token %s", c.apiKey)}
 
 	startTime := time.Now()
-	httpResponse, err := http.DefaultClient.Do(httpRequest)
-	if err != nil {
-		return nil, status.FromError(err, "calling deepgram").Err()
-	}
-	defer httpResponse.Body.Close()
-	responseBody, err := io.ReadAll(httpResponse.Body)
-	if err != nil {
-		return nil, status.FromError(err, "reading deepgram response").Err()
-	}
-	if httpResponse.StatusCode != http.StatusOK {
-		return nil, status.Errorf(httpStatusToCode(httpResponse.StatusCode), "deepgram returned %d: %s", httpResponse.StatusCode, truncate(responseBody, maxErrorBodyBytes)).Err()
-	}
 	var prerecorded prerecordedResponse
-	if err := json.Unmarshal(responseBody, &prerecorded); err != nil {
-		return nil, status.Errorf(codes.Internal, "parsing deepgram response: %v", err).Err()
+	if err := provider.Post(ctx, listenURL, mimeType, headers, bytes.NewReader(body), &prerecorded); err != nil {
+		return nil, err
 	}
 
 	response := &aiservicepb.SpeechToTextResponse{
 		ModelUsage: &aipb.ModelUsage{
 			Model: request.GetModel(),
 			InputSecond: &aipb.ResourceConsumption{
-				Quantity: int64(time.Duration(prerecorded.Metadata.Duration * float64(time.Second)).Round(time.Second).Seconds()),
+				Quantity: int64(math.Round(prerecorded.Metadata.Duration)),
 			},
 		},
 		GenerationMetrics: &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))},
@@ -120,32 +99,14 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 	for _, utterance := range prerecorded.Results.Utterances {
 		response.Segments = append(response.Segments, &aiservicepb.SpeechToTextSegment{
 			Speaker:     utterance.Speaker,
-			StartOffset: durationpb.New(time.Duration(utterance.Start * float64(time.Second))),
-			EndOffset:   durationpb.New(time.Duration(utterance.End * float64(time.Second))),
+			StartOffset: durationpb.New(secondsToDuration(utterance.Start)),
+			EndOffset:   durationpb.New(secondsToDuration(utterance.End)),
 			Text:        strings.TrimSpace(utterance.Transcript),
 		})
 	}
 	return response, nil
 }
 
-func truncate(body []byte, limit int) string {
-	if len(body) <= limit {
-		return string(body)
-	}
-	return string(body[:limit]) + "..."
-}
-
-// httpStatusToCode maps a Deepgram failure to the caller's view of it: a rejected key or plan is our
-// configuration, not the caller's.
-func httpStatusToCode(httpStatus int) codes.Code {
-	switch {
-	case httpStatus == http.StatusBadRequest, httpStatus == http.StatusRequestEntityTooLarge:
-		return codes.InvalidArgument
-	case httpStatus == http.StatusTooManyRequests:
-		return codes.ResourceExhausted
-	case httpStatus >= 500:
-		return codes.Unavailable
-	default:
-		return codes.Internal
-	}
+func secondsToDuration(seconds float64) time.Duration {
+	return time.Duration(seconds * float64(time.Second))
 }
