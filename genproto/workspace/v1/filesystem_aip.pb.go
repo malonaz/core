@@ -52,6 +52,15 @@ func MatchFilesystemRn(name string) bool {
 }
 
 // FilesystemRn returns the workspace.malonaz.com/Filesystem under n.
+func (n *OrganizationRn) FilesystemRn(user string, filesystem string) *FilesystemRn {
+	return &FilesystemRn{
+		Organization: n.Organization,
+		User:         user,
+		Filesystem:   filesystem,
+	}
+}
+
+// FilesystemRn returns the workspace.malonaz.com/Filesystem under n.
 func (n *UserRn) FilesystemRn(filesystem string) *FilesystemRn {
 	return &FilesystemRn{
 		Organization: n.Organization,
@@ -126,5 +135,12 @@ func (n *FilesystemRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the workspace.malonaz.com/Organization n is under.
+func (n *FilesystemRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

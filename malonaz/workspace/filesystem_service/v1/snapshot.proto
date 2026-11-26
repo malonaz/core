@@ -24,7 +24,7 @@ message CreateSnapshotRequest {
   malonaz.workspace.v1.Snapshot snapshot = 2 [(buf.validate.field).required = true];
 
   // A unique identifier for this request. Must be a UUID. Repeating a request
-  // with the same ID returns the snapshot it created instead of creating another.
+  // with the same ID returns the operation it started instead of starting another.
   string request_id = 3 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true
@@ -45,6 +45,13 @@ message GetSnapshotRequest {
 // Request message for FilesystemService.ListSnapshots.
 message ListSnapshotsRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: ["create_time"]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
 
   // The filesystem whose snapshots to list.
   // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
@@ -54,25 +61,27 @@ message ListSnapshotsRequest {
     (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
   ];
 
-  // Requested page size. Server may return fewer snapshots than requested.
-  // If unspecified, server will pick an appropriate default.
-  int32 page_size = 2 [(buf.validate.field).int32 = {
+  // @autogen.
+  string filter = 2;
+
+  // @autogen
+  string order_by = 3;
+
+  // Maximum number of snapshots to return (max 100).
+  int32 page_size = 4 [(buf.validate.field).int32 = {
     gte: 0
-    lte: 1000
+    lte: 100
   }];
 
-  // A token identifying a page of results the server should return.
-  // This is the value of
-  // [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
-  // returned by a previous call.
-  string page_token = 3;
+  // A page token, received from a previous `ListSnapshots` call.
+  string page_token = 5;
 }
 
 // Response message for FilesystemService.ListSnapshots.
 message ListSnapshotsResponse {
-  // The snapshots, newest first.
+  // The snapshots.
   repeated malonaz.workspace.v1.Snapshot snapshots = 1;
 
-  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  // A token to retrieve the next page. Omitted when there are no more pages.
   string next_page_token = 2;
 }

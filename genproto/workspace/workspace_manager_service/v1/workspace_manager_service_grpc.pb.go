@@ -7,11 +7,13 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	v1 "github.com/malonaz/core/genproto/workspace/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -50,18 +52,21 @@ const (
 //
 // # Lifecycle
 //
-// Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
-// its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
-// the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
-// A server in front that wants a running workspace calls CreateWorkspace then
-// StartWorkspace.
+// Creating a workspace makes the resource only, STOPPED. StartWorkspace starts
+// its pod, STARTING then RUNNING; StopWorkspace, or the idle reaper, snapshots
+// its LOCAL read-write mounts and deletes the pod, STOPPING then STOPPED.
+// Files live on the filesystems, so stopping loses only `/tmp`. Starting,
+// stopping and snapshotting are long-running operations run by the
+// scheduler; a server in front that wants a running workspace calls
+// CreateWorkspace, then StartWorkspace.
 //
 // # Secrets
 //
-// Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
-// files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
-// which every shell sources. They are never stored: a stopped workspace has
-// none, and its next start carries them again.
+// Secrets reach a pod only through SetWorkspaceSecrets, as files under
+// `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
+// shell sources. They are never stored, nor carried by an operation: a pod
+// starts with none, and loses them when it stops or is recreated, so the
+// caller sets them once the workspace is RUNNING.
 //
 // # Commands
 //
@@ -69,7 +74,7 @@ const (
 // [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
 // and forwards each call to the pod of the workspace named in its
 // `x-workspace` metadata, starting a stopped one (with no secrets) and
-// waiting for it to be ready within the call's deadline.
+// waiting for it to be running within the call's deadline.
 type WorkspaceManagerServiceClient interface {
 	// Create a workspace, STOPPED: no pod runs until StartWorkspace or an Exec
 	// starts it. Attaches each mount's filesystem, FAILED_PRECONDITION if a
@@ -96,21 +101,22 @@ type WorkspaceManagerServiceClient interface {
 	// mounts. The filesystems and their files are untouched.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
-	// Start a stopped workspace's pod with its mounts and the request's
-	// secrets. Returns at once, STARTING; an Exec waits for READY.
-	// Idempotent: a starting or ready workspace is returned as is.
+	DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Start a stopped workspace's pod with its mounts, with no secrets. The
+	// operation is done once the workspace is RUNNING; a starting or running
+	// workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	StartWorkspace(ctx context.Context, in *StartWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
+	StartWorkspace(ctx context.Context, in *StartWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Stop a workspace: snapshot its LOCAL read-write mounts, then delete its
-	// pod and secrets. Its files stay; its next Exec or StartWorkspace starts it
-	// again. Idempotent on a stopped workspace.
+	// pod and secrets. Its files stay. The operation is done once the
+	// workspace is STOPPED; a stopped workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	StopWorkspace(ctx context.Context, in *StopWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error)
+	StopWorkspace(ctx context.Context, in *StopWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Replace a running workspace's secrets, effective in every shell started
-	// after. A no-op on a stopped workspace.
+	// after. A no-op on a workspace that is not running. Never long-running, so
+	// its secrets are never stored in an operation.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	SetWorkspaceSecrets(ctx context.Context, in *SetWorkspaceSecretsRequest, opts ...grpc.CallOption) (*SetWorkspaceSecretsResponse, error)
@@ -118,7 +124,7 @@ type WorkspaceManagerServiceClient interface {
 	// FilesystemService's CreateSnapshot.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	SnapshotWorkspace(ctx context.Context, in *SnapshotWorkspaceRequest, opts ...grpc.CallOption) (*SnapshotWorkspaceResponse, error)
+	SnapshotWorkspace(ctx context.Context, in *SnapshotWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 }
 
 type workspaceManagerServiceClient struct {
@@ -169,9 +175,9 @@ func (c *workspaceManagerServiceClient) UpdateWorkspace(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *workspaceManagerServiceClient) DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error) {
+func (c *workspaceManagerServiceClient) DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Workspace)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, WorkspaceManagerService_DeleteWorkspace_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -179,9 +185,9 @@ func (c *workspaceManagerServiceClient) DeleteWorkspace(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *workspaceManagerServiceClient) StartWorkspace(ctx context.Context, in *StartWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error) {
+func (c *workspaceManagerServiceClient) StartWorkspace(ctx context.Context, in *StartWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Workspace)
+	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, WorkspaceManagerService_StartWorkspace_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -189,9 +195,9 @@ func (c *workspaceManagerServiceClient) StartWorkspace(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *workspaceManagerServiceClient) StopWorkspace(ctx context.Context, in *StopWorkspaceRequest, opts ...grpc.CallOption) (*v1.Workspace, error) {
+func (c *workspaceManagerServiceClient) StopWorkspace(ctx context.Context, in *StopWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Workspace)
+	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, WorkspaceManagerService_StopWorkspace_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -209,9 +215,9 @@ func (c *workspaceManagerServiceClient) SetWorkspaceSecrets(ctx context.Context,
 	return out, nil
 }
 
-func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, in *SnapshotWorkspaceRequest, opts ...grpc.CallOption) (*SnapshotWorkspaceResponse, error) {
+func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, in *SnapshotWorkspaceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SnapshotWorkspaceResponse)
+	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, WorkspaceManagerService_SnapshotWorkspace_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -238,18 +244,21 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 //
 // # Lifecycle
 //
-// Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
-// its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
-// the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
-// A server in front that wants a running workspace calls CreateWorkspace then
-// StartWorkspace.
+// Creating a workspace makes the resource only, STOPPED. StartWorkspace starts
+// its pod, STARTING then RUNNING; StopWorkspace, or the idle reaper, snapshots
+// its LOCAL read-write mounts and deletes the pod, STOPPING then STOPPED.
+// Files live on the filesystems, so stopping loses only `/tmp`. Starting,
+// stopping and snapshotting are long-running operations run by the
+// scheduler; a server in front that wants a running workspace calls
+// CreateWorkspace, then StartWorkspace.
 //
 // # Secrets
 //
-// Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
-// files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
-// which every shell sources. They are never stored: a stopped workspace has
-// none, and its next start carries them again.
+// Secrets reach a pod only through SetWorkspaceSecrets, as files under
+// `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
+// shell sources. They are never stored, nor carried by an operation: a pod
+// starts with none, and loses them when it stops or is recreated, so the
+// caller sets them once the workspace is RUNNING.
 //
 // # Commands
 //
@@ -257,7 +266,7 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 // [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
 // and forwards each call to the pod of the workspace named in its
 // `x-workspace` metadata, starting a stopped one (with no secrets) and
-// waiting for it to be ready within the call's deadline.
+// waiting for it to be running within the call's deadline.
 type WorkspaceManagerServiceServer interface {
 	// Create a workspace, STOPPED: no pod runs until StartWorkspace or an Exec
 	// starts it. Attaches each mount's filesystem, FAILED_PRECONDITION if a
@@ -284,21 +293,22 @@ type WorkspaceManagerServiceServer interface {
 	// mounts. The filesystems and their files are untouched.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*v1.Workspace, error)
-	// Start a stopped workspace's pod with its mounts and the request's
-	// secrets. Returns at once, STARTING; an Exec waits for READY.
-	// Idempotent: a starting or ready workspace is returned as is.
+	DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*emptypb.Empty, error)
+	// Start a stopped workspace's pod with its mounts, with no secrets. The
+	// operation is done once the workspace is RUNNING; a starting or running
+	// workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	StartWorkspace(context.Context, *StartWorkspaceRequest) (*v1.Workspace, error)
+	StartWorkspace(context.Context, *StartWorkspaceRequest) (*longrunningpb.Operation, error)
 	// Stop a workspace: snapshot its LOCAL read-write mounts, then delete its
-	// pod and secrets. Its files stay; its next Exec or StartWorkspace starts it
-	// again. Idempotent on a stopped workspace.
+	// pod and secrets. Its files stay. The operation is done once the
+	// workspace is STOPPED; a stopped workspace is returned as is.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	StopWorkspace(context.Context, *StopWorkspaceRequest) (*v1.Workspace, error)
+	StopWorkspace(context.Context, *StopWorkspaceRequest) (*longrunningpb.Operation, error)
 	// Replace a running workspace's secrets, effective in every shell started
-	// after. A no-op on a stopped workspace.
+	// after. A no-op on a workspace that is not running. Never long-running, so
+	// its secrets are never stored in an operation.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	SetWorkspaceSecrets(context.Context, *SetWorkspaceSecretsRequest) (*SetWorkspaceSecretsResponse, error)
@@ -306,7 +316,7 @@ type WorkspaceManagerServiceServer interface {
 	// FilesystemService's CreateSnapshot.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
-	SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*SnapshotWorkspaceResponse, error)
+	SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*longrunningpb.Operation, error)
 }
 
 // UnimplementedWorkspaceManagerServiceServer should be embedded to have
@@ -328,19 +338,19 @@ func (UnimplementedWorkspaceManagerServiceServer) ListWorkspaces(context.Context
 func (UnimplementedWorkspaceManagerServiceServer) UpdateWorkspace(context.Context, *UpdateWorkspaceRequest) (*v1.Workspace, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateWorkspace not implemented")
 }
-func (UnimplementedWorkspaceManagerServiceServer) DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*v1.Workspace, error) {
+func (UnimplementedWorkspaceManagerServiceServer) DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteWorkspace not implemented")
 }
-func (UnimplementedWorkspaceManagerServiceServer) StartWorkspace(context.Context, *StartWorkspaceRequest) (*v1.Workspace, error) {
+func (UnimplementedWorkspaceManagerServiceServer) StartWorkspace(context.Context, *StartWorkspaceRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method StartWorkspace not implemented")
 }
-func (UnimplementedWorkspaceManagerServiceServer) StopWorkspace(context.Context, *StopWorkspaceRequest) (*v1.Workspace, error) {
+func (UnimplementedWorkspaceManagerServiceServer) StopWorkspace(context.Context, *StopWorkspaceRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method StopWorkspace not implemented")
 }
 func (UnimplementedWorkspaceManagerServiceServer) SetWorkspaceSecrets(context.Context, *SetWorkspaceSecretsRequest) (*SetWorkspaceSecretsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetWorkspaceSecrets not implemented")
 }
-func (UnimplementedWorkspaceManagerServiceServer) SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*SnapshotWorkspaceResponse, error) {
+func (UnimplementedWorkspaceManagerServiceServer) SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method SnapshotWorkspace not implemented")
 }
 func (UnimplementedWorkspaceManagerServiceServer) testEmbeddedByValue() {}

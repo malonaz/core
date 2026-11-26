@@ -208,8 +208,10 @@ func (b0 GetFilesystemRequest_builder) Build() *GetFilesystemRequest {
 type ListFilesystemsRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
-	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_Filter    string                 `protobuf:"bytes,2,opt,name=filter,proto3"`
+	xxx_hidden_OrderBy   string                 `protobuf:"bytes,3,opt,name=order_by,json=orderBy,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -246,6 +248,20 @@ func (x *ListFilesystemsRequest) GetParent() string {
 	return ""
 }
 
+func (x *ListFilesystemsRequest) GetFilter() string {
+	if x != nil {
+		return x.xxx_hidden_Filter
+	}
+	return ""
+}
+
+func (x *ListFilesystemsRequest) GetOrderBy() string {
+	if x != nil {
+		return x.xxx_hidden_OrderBy
+	}
+	return ""
+}
+
 func (x *ListFilesystemsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.xxx_hidden_PageSize
@@ -264,6 +280,14 @@ func (x *ListFilesystemsRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
 
+func (x *ListFilesystemsRequest) SetFilter(v string) {
+	x.xxx_hidden_Filter = v
+}
+
+func (x *ListFilesystemsRequest) SetOrderBy(v string) {
+	x.xxx_hidden_OrderBy = v
+}
+
 func (x *ListFilesystemsRequest) SetPageSize(v int32) {
 	x.xxx_hidden_PageSize = v
 }
@@ -279,13 +303,13 @@ type ListFilesystemsRequest_builder struct {
 	// to list across users.
 	// Format: organizations/{organization}/users/{user}
 	Parent string
-	// Requested page size. Server may return fewer filesystems than requested.
-	// If unspecified, server will pick an appropriate default.
+	// @autogen.
+	Filter string
+	// @autogen
+	OrderBy string
+	// Maximum number of filesystems to return (max 100).
 	PageSize int32
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListFilesystemsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.next_page_token]
-	// returned by a previous call.
+	// A page token, received from a previous `ListFilesystems` call.
 	PageToken string
 }
 
@@ -294,6 +318,8 @@ func (b0 ListFilesystemsRequest_builder) Build() *ListFilesystemsRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Filter = b.Filter
+	x.xxx_hidden_OrderBy = b.OrderBy
 	x.xxx_hidden_PageSize = b.PageSize
 	x.xxx_hidden_PageToken = b.PageToken
 	return m0
@@ -360,9 +386,9 @@ func (x *ListFilesystemsResponse) SetNextPageToken(v string) {
 type ListFilesystemsResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The filesystems, ordered by name.
+	// The filesystems.
 	Filesystems []*v1.Filesystem
-	// A token to retrieve the next page of results, or empty if there are no more results in the list.
+	// A token to retrieve the next page. Omitted when there are no more pages.
 	NextPageToken string
 }
 
@@ -381,6 +407,7 @@ type DeleteFilesystemRequest struct {
 	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_AllowMissing bool                   `protobuf:"varint,2,opt,name=allow_missing,json=allowMissing,proto3"`
 	xxx_hidden_Etag         string                 `protobuf:"bytes,3,opt,name=etag,proto3"`
+	xxx_hidden_RequestId    string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -431,6 +458,13 @@ func (x *DeleteFilesystemRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteFilesystemRequest) GetRequestId() string {
+	if x != nil {
+		return x.xxx_hidden_RequestId
+	}
+	return ""
+}
+
 func (x *DeleteFilesystemRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -443,6 +477,10 @@ func (x *DeleteFilesystemRequest) SetEtag(v string) {
 	x.xxx_hidden_Etag = v
 }
 
+func (x *DeleteFilesystemRequest) SetRequestId(v string) {
+	x.xxx_hidden_RequestId = v
+}
+
 type DeleteFilesystemRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -453,6 +491,9 @@ type DeleteFilesystemRequest_builder struct {
 	AllowMissing bool
 	// If set, the request only succeeds if the current etag matches this value.
 	Etag string
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId string
 }
 
 func (b0 DeleteFilesystemRequest_builder) Build() *DeleteFilesystemRequest {
@@ -462,6 +503,7 @@ func (b0 DeleteFilesystemRequest_builder) Build() *DeleteFilesystemRequest {
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_AllowMissing = b.AllowMissing
 	x.xxx_hidden_Etag = b.Etag
+	x.xxx_hidden_RequestId = b.RequestId
 	return m0
 }
 
@@ -470,7 +512,7 @@ type AttachFilesystemRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name      string                 `protobuf:"bytes,1,opt,name=name,proto3"`
 	xxx_hidden_Workspace string                 `protobuf:"bytes,2,opt,name=workspace,proto3"`
-	xxx_hidden_ReadOnly  bool                   `protobuf:"varint,3,opt,name=read_only,json=readOnly,proto3"`
+	xxx_hidden_Mode      v1.Mount_Mode          `protobuf:"varint,3,opt,name=mode,proto3,enum=malonaz.workspace.v1.Mount_Mode"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -514,11 +556,11 @@ func (x *AttachFilesystemRequest) GetWorkspace() string {
 	return ""
 }
 
-func (x *AttachFilesystemRequest) GetReadOnly() bool {
+func (x *AttachFilesystemRequest) GetMode() v1.Mount_Mode {
 	if x != nil {
-		return x.xxx_hidden_ReadOnly
+		return x.xxx_hidden_Mode
 	}
-	return false
+	return v1.Mount_Mode(0)
 }
 
 func (x *AttachFilesystemRequest) SetName(v string) {
@@ -529,8 +571,8 @@ func (x *AttachFilesystemRequest) SetWorkspace(v string) {
 	x.xxx_hidden_Workspace = v
 }
 
-func (x *AttachFilesystemRequest) SetReadOnly(v bool) {
-	x.xxx_hidden_ReadOnly = v
+func (x *AttachFilesystemRequest) SetMode(v v1.Mount_Mode) {
+	x.xxx_hidden_Mode = v
 }
 
 type AttachFilesystemRequest_builder struct {
@@ -542,8 +584,8 @@ type AttachFilesystemRequest_builder struct {
 	// The workspace mounting it.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Workspace string
-	// If true, the workspace mounts it read-only.
-	ReadOnly bool
+	// How the workspace mounts it.
+	Mode v1.Mount_Mode
 }
 
 func (b0 AttachFilesystemRequest_builder) Build() *AttachFilesystemRequest {
@@ -552,7 +594,7 @@ func (b0 AttachFilesystemRequest_builder) Build() *AttachFilesystemRequest {
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Workspace = b.Workspace
-	x.xxx_hidden_ReadOnly = b.ReadOnly
+	x.xxx_hidden_Mode = b.Mode
 	return m0
 }
 
@@ -636,7 +678,7 @@ var File_malonaz_workspace_filesystem_service_v1_filesystem_proto protoreflect.F
 
 const file_malonaz_workspace_filesystem_service_v1_filesystem_proto_rawDesc = "" +
 	"\n" +
-	"8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\"\x9d\x02\n" +
+	"8malonaz/workspace/filesystem_service/v1/filesystem.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a%malonaz/workspace/v1/filesystem.proto\x1a$malonaz/workspace/v1/workspace.proto\"\x9d\x02\n" +
 	"\x17CreateFilesystemRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12H\n" +
@@ -648,28 +690,35 @@ const file_malonaz_workspace_filesystem_service_v1_filesystem_proto_rawDesc = ""
 	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"Z\n" +
 	"\x14GetFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
-	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\"\xaa\x01\n" +
+	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\"\x93\x02\n" +
 	"\x16ListFilesystemsRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12'\n" +
-	"\tpage_size\x18\x02 \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x03 \x01(\tR\aorderBy\x12&\n" +
+	"\tpage_size\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\bd\"\x85\x01\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:=\x82\xf3-\x02\bd\x8a\xf3-,\n" +
+	"\vcreate_time\n" +
+	"\vupdate_time\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"\x01*\"\x85\x01\n" +
 	"\x17ListFilesystemsResponse\x12B\n" +
 	"\vfilesystems\x18\x01 \x03(\v2 .malonaz.workspace.v1.FilesystemR\vfilesystems\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x96\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc2\x01\n" +
 	"\x17DeleteFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xc7\x01\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\x12*\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\xec\x01\n" +
 	"\x17AttachFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12K\n" +
 	"\tworkspace\x18\x02 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12\x1b\n" +
-	"\tread_only\x18\x03 \x01(\bR\breadOnly\"\xaa\x01\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12@\n" +
+	"\x04mode\x18\x03 \x01(\x0e2 .malonaz.workspace.v1.Mount.ModeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04mode\"\xaa\x01\n" +
 	"\x17DetachFilesystemRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x04name\x12K\n" +
@@ -686,15 +735,17 @@ var file_malonaz_workspace_filesystem_service_v1_filesystem_proto_goTypes = []an
 	(*AttachFilesystemRequest)(nil), // 5: malonaz.workspace.filesystem_service.v1.AttachFilesystemRequest
 	(*DetachFilesystemRequest)(nil), // 6: malonaz.workspace.filesystem_service.v1.DetachFilesystemRequest
 	(*v1.Filesystem)(nil),           // 7: malonaz.workspace.v1.Filesystem
+	(v1.Mount_Mode)(0),              // 8: malonaz.workspace.v1.Mount.Mode
 }
 var file_malonaz_workspace_filesystem_service_v1_filesystem_proto_depIdxs = []int32{
 	7, // 0: malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest.filesystem:type_name -> malonaz.workspace.v1.Filesystem
 	7, // 1: malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.filesystems:type_name -> malonaz.workspace.v1.Filesystem
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	8, // 2: malonaz.workspace.filesystem_service.v1.AttachFilesystemRequest.mode:type_name -> malonaz.workspace.v1.Mount.Mode
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_filesystem_service_v1_filesystem_proto_init() }

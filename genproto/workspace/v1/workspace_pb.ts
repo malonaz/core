@@ -9,21 +9,23 @@ import { file_google_api_field_behavior } from "../../../google/api/field_behavi
 import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
+import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/workspace/v1/workspace.proto.
  */
 export const file_malonaz_workspace_v1_workspace: GenFile = /*@__PURE__*/
-  fileDesc("CiRtYWxvbmF6L3dvcmtzcGFjZS92MS93b3Jrc3BhY2UucHJvdG8SFG1hbG9uYXoud29ya3NwYWNlLnYxIpcHCglXb3Jrc3BhY2USEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkSyQEKBmxhYmVscxgFIAMoCzIrLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSNQoGbW91bnRzGAYgAygLMhsubWFsb25hei53b3Jrc3BhY2UudjEuTW91bnRCCLpIBZIBAhAQEkEKBXN0YXRlGAcgASgOMiUubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlLlN0YXRlQgvgQQO6SAWCAQIQARIRCgRub2RlGAggASgJQgPgQQMSOQoQbGFzdF9hY3RpdmVfdGltZRgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCA+BBAxotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlYKBVN0YXRlEhUKEVNUQVRFX1VOU1BFQ0lGSUVEEAASEQoNU1RBVEVfU1RPUFBFRBABEhIKDlNUQVRFX1NUQVJUSU5HEAISDwoLU1RBVEVfUkVBRFkQAzrhAepBegofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZRJAb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vd29ya3NwYWNlcy97d29ya3NwYWNlfSoKd29ya3NwYWNlczIJd29ya3NwYWNlukhhGl8KHHdvcmtzcGFjZS51bmlxdWVfbW91bnRfcGF0aHMSGm1vdW50IHBhdGhzIG11c3QgYmUgdW5pcXVlGiN0aGlzLm1vdW50cy5tYXAobSwgbS5wYXRoKS51bmlxdWUoKSLOAgoFTW91bnQSPwoKZmlsZXN5c3RlbRgBIAEoCUIr+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARLwAQoEcGF0aBgCIAEoCULhAbpI3QFyKhj/ATIlXi9bYS16QS1aMC05Ll8tXSsoL1thLXpBLVowLTkuXy1dKykqJLoBqgEKE21vdW50LnBhdGhfcmVzZXJ2ZWQSNnBhdGggbXVzdCBub3QgYmUgdW5kZXIgL3RtcCwgL3J1biwgL3Byb2MsIC9zeXMgb3IgL2RldhpbIVsnL3RtcCcsICcvcnVuJywgJy9wcm9jJywgJy9zeXMnLCAnL2RldiddLmV4aXN0cyhwLCB0aGlzID09IHAgfHwgdGhpcy5zdGFydHNXaXRoKHAgKyAnLycpKcgBARIRCglyZWFkX29ubHkYAyABKAhChgFaLWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS92MepBVAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXISKW9yZ2FuaXphdGlvbnMve29yZ2FuaXphdGlvbn0vdXNlcnMve3VzZXJ9KgV1c2VyczIEdXNlcmIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiRtYWxvbmF6L3dvcmtzcGFjZS92MS93b3Jrc3BhY2UucHJvdG8SFG1hbG9uYXoud29ya3NwYWNlLnYxIvgHCglXb3Jrc3BhY2USEQoEbmFtZRgBIAEoCUID4EEIEjQKC2NyZWF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEjQKC3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEgwKBGV0YWcYBCABKAkS0QEKBmxhYmVscxgFIAMoCzIrLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARI7CgZtb3VudHMYBiADKAsyGy5tYWxvbmF6LndvcmtzcGFjZS52MS5Nb3VudEIOukgFkgECEBC66g8CEAESQQoFc3RhdGUYByABKA4yJS5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2UuU3RhdGVCC+BBA7pIBYIBAhABEhEKBG5vZGUYCCABKAlCA+BBAxI/ChBsYXN0X2FjdGl2ZV90aW1lGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJ4EEDuuoPAiABGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEibAoFU3RhdGUSFQoRU1RBVEVfVU5TUEVDSUZJRUQQABIRCg1TVEFURV9TVE9QUEVEEAESEgoOU1RBVEVfU1RBUlRJTkcQAhIRCg1TVEFURV9SVU5OSU5HEAMSEgoOU1RBVEVfU1RPUFBJTkcQBDqYAupBegofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZRJAb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vd29ya3NwYWNlcy97d29ya3NwYWNlfSoKd29ya3NwYWNlczIJd29ya3NwYWNlukhhGl8KHHdvcmtzcGFjZS51bmlxdWVfbW91bnRfcGF0aHMSGm1vdW50IHBhdGhzIG11c3QgYmUgdW5pcXVlGiN0aGlzLm1vdW50cy5tYXAobSwgbS5wYXRoKS51bmlxdWUoKdKmBAsKCXdvcmtzcGFjZYL2LCRiOTgzY2ZkZi0xMmQ2LTQ4NjItYWM4Yy1hZmM2ZDY3ZWRmMmYivgMKBU1vdW50Ej8KCmZpbGVzeXN0ZW0YASABKAlCK/pBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQES8AEKBHBhdGgYAiABKAlC4QG6SN0BcioY/wEyJV4vW2EtekEtWjAtOS5fLV0rKC9bYS16QS1aMC05Ll8tXSspKiS6AaoBChNtb3VudC5wYXRoX3Jlc2VydmVkEjZwYXRoIG11c3Qgbm90IGJlIHVuZGVyIC90bXAsIC9ydW4sIC9wcm9jLCAvc3lzIG9yIC9kZXYaWyFbJy90bXAnLCAnL3J1bicsICcvcHJvYycsICcvc3lzJywgJy9kZXYnXS5leGlzdHMocCwgdGhpcyA9PSBwIHx8IHRoaXMuc3RhcnRzV2l0aChwICsgJy8nKSnIAQESOgoEbW9kZRgDIAEoDjIgLm1hbG9uYXoud29ya3NwYWNlLnYxLk1vdW50Lk1vZGVCCrpIB4IBBBABIAAiRQoETW9kZRIUChBNT0RFX1VOU1BFQ0lGSUVEEAASEwoPTU9ERV9SRUFEX1dSSVRFEAESEgoOTU9ERV9SRUFEX09OTFkQAkLoAVotZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3Yx6kFfCiJ3b3Jrc3BhY2UubWFsb25hei5jb20vT3JnYW5pemF0aW9uEhxvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259Kg1vcmdhbml6YXRpb25zMgxvcmdhbml6YXRpb27qQVQKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyEilvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfSoFdXNlcnMyBHVzZXJiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model]);
 
 /**
  * A Workspace is a sandboxed shell for an agent, shared by its sub-agents
  * unless they create their own: a pod with the
  * filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
  * compute and its mounts, not the files: those live on its filesystems, which
- * outlive it and may be mounted by other workspaces. Stored as a Kubernetes
- * object, the only state its services keep.
+ * outlive it and may be mounted by other workspaces. Created STOPPED: its pod
+ * runs only between StartWorkspace and StopWorkspace or the idle reaper.
  *
  * @generated from message malonaz.workspace.v1.Workspace
  */
@@ -100,8 +102,8 @@ export type Workspace = Message<"malonaz.workspace.v1.Workspace"> & {
  * unless they create their own: a pod with the
  * filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
  * compute and its mounts, not the files: those live on its filesystems, which
- * outlive it and may be mounted by other workspaces. Stored as a Kubernetes
- * object, the only state its services keep.
+ * outlive it and may be mounted by other workspaces. Created STOPPED: its pod
+ * runs only between StartWorkspace and StopWorkspace or the idle reaper.
  *
  * @generated from message malonaz.workspace.v1.Workspace
  */
@@ -194,7 +196,7 @@ export enum Workspace_State {
   UNSPECIFIED = 0,
 
   /**
-   * The workspace has no pod: its next Exec or StartWorkspace starts one.
+   * The workspace has no pod: StartWorkspace or its next Exec starts one.
    *
    * @generated from enum value: STATE_STOPPED = 1;
    */
@@ -208,11 +210,19 @@ export enum Workspace_State {
   STARTING = 2,
 
   /**
-   * The pod is ready to run commands.
+   * The pod runs commands.
    *
-   * @generated from enum value: STATE_READY = 3;
+   * @generated from enum value: STATE_RUNNING = 3;
    */
-  READY = 3,
+  RUNNING = 3,
+
+  /**
+   * The workspace is snapshotting its LOCAL read-write mounts before its pod
+   * is deleted.
+   *
+   * @generated from enum value: STATE_STOPPING = 4;
+   */
+  STOPPING = 4,
 }
 
 /**
@@ -228,7 +238,7 @@ export const Workspace_StateSchema: GenEnum<Workspace_State> = /*@__PURE__*/
  */
 export type Mount = Message<"malonaz.workspace.v1.Mount"> & {
   /**
-   * The filesystem mounted. A LOCAL filesystem has one read-write mount at a time.
+   * The filesystem mounted.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string filesystem = 1;
@@ -243,11 +253,11 @@ export type Mount = Message<"malonaz.workspace.v1.Mount"> & {
   path: string;
 
   /**
-   * If true, the workspace cannot write the filesystem.
+   * How the workspace may use the filesystem.
    *
-   * @generated from field: bool read_only = 3;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 3;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**
@@ -257,7 +267,7 @@ export type Mount = Message<"malonaz.workspace.v1.Mount"> & {
  */
 export type MountValid = Message<"malonaz.workspace.v1.Mount"> & {
   /**
-   * The filesystem mounted. A LOCAL filesystem has one read-write mount at a time.
+   * The filesystem mounted.
    * Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
    *
    * @generated from field: string filesystem = 1;
@@ -272,11 +282,11 @@ export type MountValid = Message<"malonaz.workspace.v1.Mount"> & {
   path: string;
 
   /**
-   * If true, the workspace cannot write the filesystem.
+   * How the workspace may use the filesystem.
    *
-   * @generated from field: bool read_only = 3;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 3;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**
@@ -285,4 +295,38 @@ export type MountValid = Message<"malonaz.workspace.v1.Mount"> & {
  */
 export const MountSchema: GenMessage<Mount, {validType: MountValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_workspace_v1_workspace, 1);
+
+/**
+ * Mode is how a workspace may use a filesystem it mounts.
+ *
+ * @generated from enum malonaz.workspace.v1.Mount.Mode
+ */
+export enum Mount_Mode {
+  /**
+   * Used to detect an unset field.
+   *
+   * @generated from enum value: MODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The workspace reads and writes it. A LOCAL filesystem has one such mount at a time.
+   *
+   * @generated from enum value: MODE_READ_WRITE = 1;
+   */
+  READ_WRITE = 1,
+
+  /**
+   * The workspace only reads it.
+   *
+   * @generated from enum value: MODE_READ_ONLY = 2;
+   */
+  READ_ONLY = 2,
+}
+
+/**
+ * Describes the enum malonaz.workspace.v1.Mount.Mode.
+ */
+export const Mount_ModeSchema: GenEnum<Mount_Mode> = /*@__PURE__*/
+  enumDesc(file_malonaz_workspace_v1_workspace, 1, 0);
 

@@ -114,7 +114,7 @@ type CreateSnapshotRequest_builder struct {
 	// The snapshot to take. Only `trigger` and `turn` are read; its id is assigned by the server.
 	Snapshot *v1.Snapshot
 	// A unique identifier for this request. Must be a UUID. Repeating a request
-	// with the same ID returns the snapshot it created instead of creating another.
+	// with the same ID returns the operation it started instead of starting another.
 	RequestId string
 }
 
@@ -192,8 +192,10 @@ func (b0 GetSnapshotRequest_builder) Build() *GetSnapshotRequest {
 type ListSnapshotsRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Parent    string                 `protobuf:"bytes,1,opt,name=parent,proto3"`
-	xxx_hidden_PageSize  int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3"`
-	xxx_hidden_PageToken string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3"`
+	xxx_hidden_Filter    string                 `protobuf:"bytes,2,opt,name=filter,proto3"`
+	xxx_hidden_OrderBy   string                 `protobuf:"bytes,3,opt,name=order_by,json=orderBy,proto3"`
+	xxx_hidden_PageSize  int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3"`
+	xxx_hidden_PageToken string                 `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -230,6 +232,20 @@ func (x *ListSnapshotsRequest) GetParent() string {
 	return ""
 }
 
+func (x *ListSnapshotsRequest) GetFilter() string {
+	if x != nil {
+		return x.xxx_hidden_Filter
+	}
+	return ""
+}
+
+func (x *ListSnapshotsRequest) GetOrderBy() string {
+	if x != nil {
+		return x.xxx_hidden_OrderBy
+	}
+	return ""
+}
+
 func (x *ListSnapshotsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.xxx_hidden_PageSize
@@ -248,6 +264,14 @@ func (x *ListSnapshotsRequest) SetParent(v string) {
 	x.xxx_hidden_Parent = v
 }
 
+func (x *ListSnapshotsRequest) SetFilter(v string) {
+	x.xxx_hidden_Filter = v
+}
+
+func (x *ListSnapshotsRequest) SetOrderBy(v string) {
+	x.xxx_hidden_OrderBy = v
+}
+
 func (x *ListSnapshotsRequest) SetPageSize(v int32) {
 	x.xxx_hidden_PageSize = v
 }
@@ -262,13 +286,13 @@ type ListSnapshotsRequest_builder struct {
 	// The filesystem whose snapshots to list.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Parent string
-	// Requested page size. Server may return fewer snapshots than requested.
-	// If unspecified, server will pick an appropriate default.
+	// @autogen.
+	Filter string
+	// @autogen
+	OrderBy string
+	// Maximum number of snapshots to return (max 100).
 	PageSize int32
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
-	// returned by a previous call.
+	// A page token, received from a previous `ListSnapshots` call.
 	PageToken string
 }
 
@@ -277,6 +301,8 @@ func (b0 ListSnapshotsRequest_builder) Build() *ListSnapshotsRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Parent = b.Parent
+	x.xxx_hidden_Filter = b.Filter
+	x.xxx_hidden_OrderBy = b.OrderBy
 	x.xxx_hidden_PageSize = b.PageSize
 	x.xxx_hidden_PageToken = b.PageToken
 	return m0
@@ -343,9 +369,9 @@ func (x *ListSnapshotsResponse) SetNextPageToken(v string) {
 type ListSnapshotsResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The snapshots, newest first.
+	// The snapshots.
 	Snapshots []*v1.Snapshot
-	// A token to retrieve the next page of results, or empty if there are no more results in the list.
+	// A token to retrieve the next page. Omitted when there are no more pages.
 	NextPageToken string
 }
 
@@ -371,14 +397,17 @@ const file_malonaz_workspace_filesystem_service_v1_snapshot_proto_rawDesc = "" +
 	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"V\n" +
 	"\x12GetSnapshotRequest\x12@\n" +
 	"\x04name\x18\x01 \x01(\tB,\xe0A\x02\xfaA \n" +
-	"\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01R\x04name\"\xae\x01\n" +
+	"\x1eworkspace.malonaz.com/Snapshot\xbaH\x03\xc8\x01\x01R\x04name\"\x8a\x02\n" +
 	"\x14ListSnapshotsRequest\x12F\n" +
 	"\x06parent\x18\x01 \x01(\tB.\xe0A\x02\xfaA\"\n" +
-	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x06parent\x12'\n" +
-	"\tpage_size\x18\x02 \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x03 \x01(\tR\aorderBy\x12&\n" +
+	"\tpage_size\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\bd\"}\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:0\x82\xf3-\x02\bd\x8a\xf3-\x1f\n" +
+	"\vcreate_time\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"\x01*\"}\n" +
 	"\x15ListSnapshotsResponse\x12<\n" +
 	"\tsnapshots\x18\x01 \x03(\v2\x1e.malonaz.workspace.v1.SnapshotR\tsnapshots\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageTokenBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3"

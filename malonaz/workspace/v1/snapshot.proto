@@ -6,6 +6,8 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/v1";
 
@@ -19,6 +21,8 @@ message Snapshot {
     singular: "snapshot"
     plural: "snapshots"
   };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "workspace"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "8a518fce-716d-4875-a9d0-fb9842f49573";
 
   // Trigger is what took a snapshot.
   enum Trigger {

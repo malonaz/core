@@ -3,6 +3,7 @@ filegroup(
     srcs = [
         "filesystem.proto",
         "labels.proto",
+        "operation.proto",
         "snapshot.proto",
         "workspace.proto",
     ],
@@ -14,6 +15,7 @@ proto_library(
     srcs = [
         "filesystem.proto",
         "labels.proto",
+        "operation.proto",
         "snapshot.proto",
         "workspace.proto",
     ],
@@ -25,6 +27,7 @@ proto_library(
     visibility = ["PUBLIC"],
     deps = [
         "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/model/v1",
         "//third_party/proto:google__api__annotations",
         "//third_party/proto:validate",
     ],

@@ -10,13 +10,15 @@ import { file_google_api_resource } from "../../../../google/api/resource_pb";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import type { Filesystem, FilesystemValid } from "../../v1/filesystem_pb";
 import { file_malonaz_workspace_v1_filesystem } from "../../v1/filesystem_pb";
+import type { Mount_Mode } from "../../v1/workspace_pb";
+import { file_malonaz_workspace_v1_workspace } from "../../v1/workspace_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/workspace/filesystem_service/v1/filesystem.proto.
  */
 export const file_malonaz_workspace_filesystem_service_v1_filesystem: GenFile = /*@__PURE__*/
-  fileDesc("CjhtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvZmlsZXN5c3RlbS5wcm90bxInbWFsb25hei53b3Jrc3BhY2UuZmlsZXN5c3RlbV9zZXJ2aWNlLnYxIvABChdDcmVhdGVGaWxlc3lzdGVtUmVxdWVzdBI4CgZwYXJlbnQYASABKAlCKOBBAvpBHAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXK6SAPIAQESPAoKZmlsZXN5c3RlbRgCIAEoCzIgLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW1CBrpIA8gBARI8Cg1maWxlc3lzdGVtX2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSokyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIlQKFEdldEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQEijQEKFkxpc3RGaWxlc3lzdGVtc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEh0KCXBhZ2Vfc2l6ZRgCIAEoBUIKukgHGgUY6AcoABISCgpwYWdlX3Rva2VuGAMgASgJOgaC8y0CCGQiaQoXTGlzdEZpbGVzeXN0ZW1zUmVzcG9uc2USNQoLZmlsZXN5c3RlbXMYASADKAsyIC5tYWxvbmF6LndvcmtzcGFjZS52MS5GaWxlc3lzdGVtEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJ8ChdEZWxldGVGaWxlc3lzdGVtUmVxdWVzdBI8CgRuYW1lGAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEhUKDWFsbG93X21pc3NpbmcYAiABKAgSDAoEZXRhZxgDIAEoCSKsAQoXQXR0YWNoRmlsZXN5c3RlbVJlcXVlc3QSPAoEbmFtZRgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARJACgl3b3Jrc3BhY2UYAiABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIRCglyZWFkX29ubHkYAyABKAgimQEKF0RldGFjaEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESQAoJd29ya3NwYWNlGAIgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQFCQlpAZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL2ZpbGVzeXN0ZW1fc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem]);
+  fileDesc("CjhtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvZmlsZXN5c3RlbS5wcm90bxInbWFsb25hei53b3Jrc3BhY2UuZmlsZXN5c3RlbV9zZXJ2aWNlLnYxIvABChdDcmVhdGVGaWxlc3lzdGVtUmVxdWVzdBI4CgZwYXJlbnQYASABKAlCKOBBAvpBHAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXK6SAPIAQESPAoKZmlsZXN5c3RlbRgCIAEoCzIgLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW1CBrpIA8gBARI8Cg1maWxlc3lzdGVtX2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSokyAEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIlQKFEdldEZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQEi5QEKFkxpc3RGaWxlc3lzdGVtc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEg4KBmZpbHRlchgCIAEoCRIQCghvcmRlcl9ieRgDIAEoCRIcCglwYWdlX3NpemUYBCABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAUgASgJOj2C8y0CCGSK8y0sCgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqImkKF0xpc3RGaWxlc3lzdGVtc1Jlc3BvbnNlEjUKC2ZpbGVzeXN0ZW1zGAEgAygLMiAubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkinQEKF0RlbGV0ZUZpbGVzeXN0ZW1SZXF1ZXN0EjwKBG5hbWUYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBItUBChdBdHRhY2hGaWxlc3lzdGVtUmVxdWVzdBI8CgRuYW1lGAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEkAKCXdvcmtzcGFjZRgCIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEjoKBG1vZGUYAyABKA4yIC5tYWxvbmF6LndvcmtzcGFjZS52MS5Nb3VudC5Nb2RlQgq6SAeCAQQQASAAIpkBChdEZXRhY2hGaWxlc3lzdGVtUmVxdWVzdBI8CgRuYW1lGAEgASgJQi7gQQL6QSIKIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtukgDyAEBEkAKCXdvcmtzcGFjZRgCIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_filesystem, file_malonaz_workspace_v1_workspace]);
 
 /**
  * Request message for FilesystemService.CreateFilesystem.
@@ -154,20 +156,30 @@ export type ListFilesystemsRequest = Message<"malonaz.workspace.filesystem_servi
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer filesystems than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of filesystems to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListFilesystemsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListFilesystems` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -188,20 +200,30 @@ export type ListFilesystemsRequestValid = Message<"malonaz.workspace.filesystem_
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer filesystems than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of filesystems to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListFilesystemsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListFilesystems` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -220,14 +242,14 @@ export const ListFilesystemsRequestSchema: GenMessage<ListFilesystemsRequest, {v
  */
 export type ListFilesystemsResponse = Message<"malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse"> & {
   /**
-   * The filesystems, ordered by name.
+   * The filesystems.
    *
    * @generated from field: repeated malonaz.workspace.v1.Filesystem filesystems = 1;
    */
   filesystems: Filesystem[];
 
   /**
-   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   * A token to retrieve the next page. Omitted when there are no more pages.
    *
    * @generated from field: string next_page_token = 2;
    */
@@ -241,14 +263,14 @@ export type ListFilesystemsResponse = Message<"malonaz.workspace.filesystem_serv
  */
 export type ListFilesystemsResponseValid = Message<"malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse"> & {
   /**
-   * The filesystems, ordered by name.
+   * The filesystems.
    *
    * @generated from field: repeated malonaz.workspace.v1.Filesystem filesystems = 1;
    */
   filesystems: FilesystemValid[];
 
   /**
-   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   * A token to retrieve the next page. Omitted when there are no more pages.
    *
    * @generated from field: string next_page_token = 2;
    */
@@ -289,6 +311,14 @@ export type DeleteFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
    * @generated from field: string etag = 3;
    */
   etag: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
+   *
+   * @generated from field: string request_id = 4;
+   */
+  requestId: string;
 };
 
 /**
@@ -318,6 +348,14 @@ export type DeleteFilesystemRequestValid = Message<"malonaz.workspace.filesystem
    * @generated from field: string etag = 3;
    */
   etag: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
+   *
+   * @generated from field: string request_id = 4;
+   */
+  requestId: string;
 };
 
 /**
@@ -350,11 +388,11 @@ export type AttachFilesystemRequest = Message<"malonaz.workspace.filesystem_serv
   workspace: string;
 
   /**
-   * If true, the workspace mounts it read-only.
+   * How the workspace mounts it.
    *
-   * @generated from field: bool read_only = 3;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 3;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**
@@ -380,11 +418,11 @@ export type AttachFilesystemRequestValid = Message<"malonaz.workspace.filesystem
   workspace: string;
 
   /**
-   * If true, the workspace mounts it read-only.
+   * How the workspace mounts it.
    *
-   * @generated from field: bool read_only = 3;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 3;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**

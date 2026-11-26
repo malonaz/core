@@ -26,16 +26,18 @@ from buf.validate import validate_pb2 as buf_dot_validate_dot_validate__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
+from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
+from malonaz.codegen.model.v1 import model_pb2 as malonaz_dot_codegen_dot_model_dot_v1_dot_model__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x97\x07\n\tWorkspace\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xc9\x01\n\x06labels\x18\x05 \x03(\x0b\x32+.malonaz.workspace.v1.Workspace.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\x12\x35\n\x06mounts\x18\x06 \x03(\x0b\x32\x1b.malonaz.workspace.v1.MountB\x08\xbaH\x05\x92\x01\x02\x10\x10\x12\x41\n\x05state\x18\x07 \x01(\x0e\x32%.malonaz.workspace.v1.Workspace.StateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12\x11\n\x04node\x18\x08 \x01(\tB\x03\xe0\x41\x03\x12\x39\n\x10last_active_time\x18\t \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"V\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n\rSTATE_STOPPED\x10\x01\x12\x12\n\x0eSTATE_STARTING\x10\x02\x12\x0f\n\x0bSTATE_READY\x10\x03:\xe1\x01\xea\x41z\n\x1fworkspace.malonaz.com/Workspace\x12@organizations/{organization}/users/{user}/workspaces/{workspace}*\nworkspaces2\tworkspace\xbaHa\x1a_\n\x1cworkspace.unique_mount_paths\x12\x1amount paths must be unique\x1a#this.mounts.map(m, m.path).unique()\"\xce\x02\n\x05Mount\x12?\n\nfilesystem\x18\x01 \x01(\tB+\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\xf0\x01\n\x04path\x18\x02 \x01(\tB\xe1\x01\xbaH\xdd\x01r*\x18\xff\x01\x32%^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$\xba\x01\xaa\x01\n\x13mount.path_reserved\x12\x36path must not be under /tmp, /run, /proc, /sys or /dev\x1a[![\'/tmp\', \'/run\', \'/proc\', \'/sys\', \'/dev\'].exists(p, this == p || this.startsWith(p + \'/\'))\xc8\x01\x01\x12\x11\n\tread_only\x18\x03 \x01(\x08\x42\x86\x01Z-github.com/malonaz/core/genproto/workspace/v1\xea\x41T\n\x1aworkspace.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xf8\x07\n\tWorkspace\x12\x11\n\x04name\x18\x01 \x01(\tB\x03\xe0\x41\x08\x12\x34\n\x0b\x63reate_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x34\n\x0bupdate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x03\xe0\x41\x03\x12\x0c\n\x04\x65tag\x18\x04 \x01(\t\x12\xd1\x01\n\x06labels\x18\x05 \x03(\x0b\x32+.malonaz.workspace.v1.Workspace.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01\x12;\n\x06mounts\x18\x06 \x03(\x0b\x32\x1b.malonaz.workspace.v1.MountB\x0e\xbaH\x05\x92\x01\x02\x10\x10\xba\xea\x0f\x02\x10\x01\x12\x41\n\x05state\x18\x07 \x01(\x0e\x32%.malonaz.workspace.v1.Workspace.StateB\x0b\xe0\x41\x03\xbaH\x05\x82\x01\x02\x10\x01\x12\x11\n\x04node\x18\x08 \x01(\tB\x03\xe0\x41\x03\x12?\n\x10last_active_time\x18\t \x01(\x0b\x32\x1a.google.protobuf.TimestampB\t\xe0\x41\x03\xba\xea\x0f\x02 \x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"l\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n\rSTATE_STOPPED\x10\x01\x12\x12\n\x0eSTATE_STARTING\x10\x02\x12\x11\n\rSTATE_RUNNING\x10\x03\x12\x12\n\x0eSTATE_STOPPING\x10\x04:\x98\x02\xea\x41z\n\x1fworkspace.malonaz.com/Workspace\x12@organizations/{organization}/users/{user}/workspaces/{workspace}*\nworkspaces2\tworkspace\xbaHa\x1a_\n\x1cworkspace.unique_mount_paths\x12\x1amount paths must be unique\x1a#this.mounts.map(m, m.path).unique()\xd2\xa6\x04\x0b\n\tworkspace\x82\xf6,$b983cfdf-12d6-4862-ac8c-afc6d67edf2f\"\xbe\x03\n\x05Mount\x12?\n\nfilesystem\x18\x01 \x01(\tB+\xfa\x41\"\n workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01\x12\xf0\x01\n\x04path\x18\x02 \x01(\tB\xe1\x01\xbaH\xdd\x01r*\x18\xff\x01\x32%^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$\xba\x01\xaa\x01\n\x13mount.path_reserved\x12\x36path must not be under /tmp, /run, /proc, /sys or /dev\x1a[![\'/tmp\', \'/run\', \'/proc\', \'/sys\', \'/dev\'].exists(p, this == p || this.startsWith(p + \'/\'))\xc8\x01\x01\x12:\n\x04mode\x18\x03 \x01(\x0e\x32 .malonaz.workspace.v1.Mount.ModeB\n\xbaH\x07\x82\x01\x04\x10\x01 \x00\"E\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0fMODE_READ_WRITE\x10\x01\x12\x12\n\x0eMODE_READ_ONLY\x10\x02\x42\xe8\x01Z-github.com/malonaz/core/genproto/workspace/v1\xea\x41_\n\"workspace.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\x0corganization\xea\x41T\n\x1aworkspace.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.workspace.v1.workspace_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z-github.com/malonaz/core/genproto/workspace/v1\352AT\n\032workspace.malonaz.com/User\022)organizations/{organization}/users/{user}*\005users2\004user'
+  _globals['DESCRIPTOR']._serialized_options = b'Z-github.com/malonaz/core/genproto/workspace/v1\352A_\n\"workspace.malonaz.com/Organization\022\034organizations/{organization}*\rorganizations2\014organization\352AT\n\032workspace.malonaz.com/User\022)organizations/{organization}/users/{user}*\005users2\004user'
   _globals['_WORKSPACE_LABELSENTRY']._loaded_options = None
   _globals['_WORKSPACE_LABELSENTRY']._serialized_options = b'8\001'
   _globals['_WORKSPACE'].fields_by_name['name']._loaded_options = None
@@ -45,27 +47,31 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_WORKSPACE'].fields_by_name['update_time']._loaded_options = None
   _globals['_WORKSPACE'].fields_by_name['update_time']._serialized_options = b'\340A\003'
   _globals['_WORKSPACE'].fields_by_name['labels']._loaded_options = None
-  _globals['_WORKSPACE'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$'
+  _globals['_WORKSPACE'].fields_by_name['labels']._serialized_options = b'\272H\207\001\232\001\203\001\020@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\031r\027\030?2\023^[a-z0-9_\\-\\p{L}]*$\272\352\017\004\020\001 \001'
   _globals['_WORKSPACE'].fields_by_name['mounts']._loaded_options = None
-  _globals['_WORKSPACE'].fields_by_name['mounts']._serialized_options = b'\272H\005\222\001\002\020\020'
+  _globals['_WORKSPACE'].fields_by_name['mounts']._serialized_options = b'\272H\005\222\001\002\020\020\272\352\017\002\020\001'
   _globals['_WORKSPACE'].fields_by_name['state']._loaded_options = None
   _globals['_WORKSPACE'].fields_by_name['state']._serialized_options = b'\340A\003\272H\005\202\001\002\020\001'
   _globals['_WORKSPACE'].fields_by_name['node']._loaded_options = None
   _globals['_WORKSPACE'].fields_by_name['node']._serialized_options = b'\340A\003'
   _globals['_WORKSPACE'].fields_by_name['last_active_time']._loaded_options = None
-  _globals['_WORKSPACE'].fields_by_name['last_active_time']._serialized_options = b'\340A\003'
+  _globals['_WORKSPACE'].fields_by_name['last_active_time']._serialized_options = b'\340A\003\272\352\017\002 \001'
   _globals['_WORKSPACE']._loaded_options = None
-  _globals['_WORKSPACE']._serialized_options = b'\352Az\n\037workspace.malonaz.com/Workspace\022@organizations/{organization}/users/{user}/workspaces/{workspace}*\nworkspaces2\tworkspace\272Ha\032_\n\034workspace.unique_mount_paths\022\032mount paths must be unique\032#this.mounts.map(m, m.path).unique()'
+  _globals['_WORKSPACE']._serialized_options = b'\352Az\n\037workspace.malonaz.com/Workspace\022@organizations/{organization}/users/{user}/workspaces/{workspace}*\nworkspaces2\tworkspace\272Ha\032_\n\034workspace.unique_mount_paths\022\032mount paths must be unique\032#this.mounts.map(m, m.path).unique()\322\246\004\013\n\tworkspace\202\366,$b983cfdf-12d6-4862-ac8c-afc6d67edf2f'
   _globals['_MOUNT'].fields_by_name['filesystem']._loaded_options = None
   _globals['_MOUNT'].fields_by_name['filesystem']._serialized_options = b'\372A\"\n workspace.malonaz.com/Filesystem\272H\003\310\001\001'
   _globals['_MOUNT'].fields_by_name['path']._loaded_options = None
   _globals['_MOUNT'].fields_by_name['path']._serialized_options = b'\272H\335\001r*\030\377\0012%^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$\272\001\252\001\n\023mount.path_reserved\0226path must not be under /tmp, /run, /proc, /sys or /dev\032[![\'/tmp\', \'/run\', \'/proc\', \'/sys\', \'/dev\'].exists(p, this == p || this.startsWith(p + \'/\'))\310\001\001'
-  _globals['_WORKSPACE']._serialized_start=185
-  _globals['_WORKSPACE']._serialized_end=1104
-  _globals['_WORKSPACE_LABELSENTRY']._serialized_start=743
-  _globals['_WORKSPACE_LABELSENTRY']._serialized_end=788
-  _globals['_WORKSPACE_STATE']._serialized_start=790
-  _globals['_WORKSPACE_STATE']._serialized_end=876
-  _globals['_MOUNT']._serialized_start=1107
-  _globals['_MOUNT']._serialized_end=1441
+  _globals['_MOUNT'].fields_by_name['mode']._loaded_options = None
+  _globals['_MOUNT'].fields_by_name['mode']._serialized_options = b'\272H\007\202\001\004\020\001 \000'
+  _globals['_WORKSPACE']._serialized_start=257
+  _globals['_WORKSPACE']._serialized_end=1273
+  _globals['_WORKSPACE_LABELSENTRY']._serialized_start=835
+  _globals['_WORKSPACE_LABELSENTRY']._serialized_end=880
+  _globals['_WORKSPACE_STATE']._serialized_start=882
+  _globals['_WORKSPACE_STATE']._serialized_end=990
+  _globals['_MOUNT']._serialized_start=1276
+  _globals['_MOUNT']._serialized_end=1722
+  _globals['_MOUNT_MODE']._serialized_start=1653
+  _globals['_MOUNT_MODE']._serialized_end=1722
 # @@protoc_insertion_point(module_scope)

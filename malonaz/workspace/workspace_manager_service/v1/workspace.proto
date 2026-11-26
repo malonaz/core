@@ -84,6 +84,17 @@ message GetWorkspaceRequest {
 // Request message for WorkspaceManagerService.ListWorkspaces.
 message ListWorkspacesRequest {
   option (malonaz.codegen.aip.v1.pagination) = {default_page_size: 100};
+  option (malonaz.codegen.aip.v1.ordering) = {
+    paths: [
+      "create_time",
+      "update_time",
+      "last_active_time"
+    ]
+    default: "create_time desc"
+  };
+  option (malonaz.codegen.aip.v1.filtering) = {
+    paths: ["*"]
+  };
 
   // The user owning the workspaces. Use "organizations/{organization}/users/-"
   // to list across users.
@@ -94,26 +105,28 @@ message ListWorkspacesRequest {
     (google.api.resource_reference).type = "workspace.malonaz.com/User"
   ];
 
-  // Requested page size. Server may return fewer workspaces than requested.
-  // If unspecified, server will pick an appropriate default.
-  int32 page_size = 2 [(buf.validate.field).int32 = {
+  // @autogen.
+  string filter = 2;
+
+  // @autogen
+  string order_by = 3;
+
+  // Maximum number of workspaces to return (max 100).
+  int32 page_size = 4 [(buf.validate.field).int32 = {
     gte: 0
-    lte: 1000
+    lte: 100
   }];
 
-  // A token identifying a page of results the server should return.
-  // This is the value of
-  // [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
-  // returned by a previous call.
-  string page_token = 3;
+  // A page token, received from a previous `ListWorkspaces` call.
+  string page_token = 5;
 }
 
 // Response message for WorkspaceManagerService.ListWorkspaces.
 message ListWorkspacesResponse {
-  // The workspaces, ordered by name.
+  // The workspaces.
   repeated malonaz.workspace.v1.Workspace workspaces = 1;
 
-  // A token to retrieve the next page of results, or empty if there are no more results in the list.
+  // A token to retrieve the next page. Omitted when there are no more pages.
   string next_page_token = 2;
 }
 
@@ -132,7 +145,7 @@ message UpdateWorkspaceRequest {
   };
 
   // The workspace to update.
-  malonaz.workspace.v1.Workspace workspace = 1 [(buf.validate.field).required = true];
+  malonaz.workspace.v1.Workspace workspace = 1 [(buf.validate.field).ignore = IGNORE_ALWAYS];
 
   // The list of fields to update.
   google.protobuf.FieldMask update_mask = 2 [(buf.validate.field).required = true];
@@ -165,10 +178,11 @@ message StartWorkspaceRequest {
     (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
   ];
 
-  // The secrets the pod starts with. Ignored when it is already running.
-  repeated Secret secrets = 2 [
-    (google.api.field_behavior) = INPUT_ONLY,
-    (buf.validate.field).repeated.max_items = 64
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the operation it started instead of starting another.
+  string request_id = 2 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
   ];
 }
 
@@ -184,6 +198,13 @@ message StopWorkspaceRequest {
 
   // If set, the request only succeeds if the current etag matches this value.
   string etag = 2;
+
+  // A unique identifier for this request. Must be a UUID. Repeating a request
+  // with the same ID returns the operation it started instead of starting another.
+  string request_id = 3 [
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).string.uuid = true
+  ];
 }
 
 // Request message for WorkspaceManagerService.SetWorkspaceSecrets.
@@ -205,7 +226,7 @@ message SetWorkspaceSecretsRequest {
 
 // Response message for WorkspaceManagerService.SetWorkspaceSecrets.
 message SetWorkspaceSecretsResponse {
-  // If true, the workspace was running and holds the secrets; false when it was stopped, a no-op.
+  // If true, the workspace was running and holds the secrets; false when it was not running, a no-op.
   bool applied = 1;
 }
 
@@ -223,8 +244,8 @@ message SnapshotWorkspaceRequest {
   string turn = 2 [(buf.validate.field).string.max_len = 256];
 
   // A unique identifier for this request. Must be a UUID. Repeating a request
-  // with the same ID returns the snapshots it took instead of taking more:
-  // each mount's CreateSnapshot request id derives from it.
+  // with the same ID returns the operation it started instead of starting
+  // another; each mount's CreateSnapshot request id derives from it.
   string request_id = 3 [
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
     (buf.validate.field).string.uuid = true

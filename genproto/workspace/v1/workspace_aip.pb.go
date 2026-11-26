@@ -10,6 +10,89 @@ import (
 	strings "strings"
 )
 
+// OrganizationRnType is the resource type of OrganizationRn.
+const OrganizationRnType = "workspace.malonaz.com/Organization"
+
+// NewOrganizationRn is the resource named organization under parent, which must follow one of: "".
+func NewOrganizationRn(parent string, organization string) (*OrganizationRn, error) {
+	switch {
+	case parent == "":
+		n := &OrganizationRn{}
+		n.Organization = organization
+		return n, nil
+	}
+	return nil, fmt.Errorf("parent %q matches no parent pattern of workspace.malonaz.com/Organization", parent)
+}
+
+// OrganizationRnPattern is the pattern OrganizationRn follows.
+const OrganizationRnPattern = "organizations/{organization}"
+
+// OrganizationRn is the resource name "organizations/{organization}".
+type OrganizationRn struct {
+	Organization string
+}
+
+// ParseOrganizationRn parses and validates name against OrganizationRnPattern.
+func ParseOrganizationRn(name string) (*OrganizationRn, error) {
+	n := &OrganizationRn{}
+	if err := n.UnmarshalString(name); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// MatchOrganizationRn reports whether name follows OrganizationRnPattern.
+func MatchOrganizationRn(name string) bool {
+	return resourcename.Match(OrganizationRnPattern, name)
+}
+
+func (n *OrganizationRn) Validate() error {
+	if n.Organization == "" {
+		return fmt.Errorf("organization: empty")
+	}
+	if strings.IndexByte(n.Organization, '/') != -1 {
+		return fmt.Errorf("organization: contains illegal character '/'")
+	}
+	return nil
+}
+
+func (n *OrganizationRn) ContainsWildcard() bool {
+	return n.Organization == aip.Wildcard
+}
+
+func (n *OrganizationRn) String() string {
+	return resourcename.Sprint(OrganizationRnPattern, n.Organization)
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (n *OrganizationRn) MarshalText() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return []byte(n.String()), nil
+}
+
+// UnmarshalString parses and validates name against OrganizationRnPattern.
+func (n *OrganizationRn) UnmarshalString(name string) error {
+	if err := resourcename.Sscan(name, OrganizationRnPattern, &n.Organization); err != nil {
+		return err
+	}
+	return n.Validate()
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (n *OrganizationRn) UnmarshalText(text []byte) error {
+	return n.UnmarshalString(string(text))
+}
+
+func (n *OrganizationRn) Type() string { return OrganizationRnType }
+
+func (n *OrganizationRn) Pattern() string { return OrganizationRnPattern }
+
+func (n *OrganizationRn) ID() string { return n.Organization }
+
+func (n *OrganizationRn) Parent() string { return "" }
+
 // UserRnType is the resource type of UserRn.
 const UserRnType = "workspace.malonaz.com/User"
 
@@ -48,6 +131,14 @@ func ParseUserRn(name string) (*UserRn, error) {
 // MatchUserRn reports whether name follows UserRnPattern.
 func MatchUserRn(name string) bool {
 	return resourcename.Match(UserRnPattern, name)
+}
+
+// UserRn returns the workspace.malonaz.com/User under n.
+func (n *OrganizationRn) UserRn(user string) *UserRn {
+	return &UserRn{
+		Organization: n.Organization,
+		User:         user,
+	}
 }
 
 func (n *UserRn) Validate() error {
@@ -105,6 +196,13 @@ func (n *UserRn) Parent() string {
 	return resourcename.Sprint("organizations/{organization}", n.Organization)
 }
 
+// OrganizationRn returns the workspace.malonaz.com/Organization n is under.
+func (n *UserRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
+	}
+}
+
 // WorkspaceRnType is the resource type of WorkspaceRn.
 const WorkspaceRnType = "workspace.malonaz.com/Workspace"
 
@@ -144,6 +242,15 @@ func ParseWorkspaceRn(name string) (*WorkspaceRn, error) {
 // MatchWorkspaceRn reports whether name follows WorkspaceRnPattern.
 func MatchWorkspaceRn(name string) bool {
 	return resourcename.Match(WorkspaceRnPattern, name)
+}
+
+// WorkspaceRn returns the workspace.malonaz.com/Workspace under n.
+func (n *OrganizationRn) WorkspaceRn(user string, workspace string) *WorkspaceRn {
+	return &WorkspaceRn{
+		Organization: n.Organization,
+		User:         user,
+		Workspace:    workspace,
+	}
 }
 
 // WorkspaceRn returns the workspace.malonaz.com/Workspace under n.
@@ -221,5 +328,12 @@ func (n *WorkspaceRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the workspace.malonaz.com/Organization n is under.
+func (n *WorkspaceRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

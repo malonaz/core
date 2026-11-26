@@ -10,6 +10,8 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
+	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -260,7 +262,7 @@ var File_malonaz_workspace_v1_snapshot_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_snapshot_proto_rawDesc = "" +
 	"\n" +
-	"#malonaz/workspace/v1/snapshot.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc3\x04\n" +
+	"#malonaz/workspace/v1/snapshot.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xfa\x04\n" +
 	"\bSnapshot\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -276,8 +278,9 @@ const file_malonaz_workspace_v1_snapshot_proto_rawDesc = "" +
 	"\x13TRIGGER_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fTRIGGER_TURN\x10\x01\x12\x10\n" +
 	"\fTRIGGER_IDLE\x10\x02\x12\x10\n" +
-	"\fTRIGGER_STOP\x10\x03:\x92\x01\xeaA\x8e\x01\n" +
-	"\x1eworkspace.malonaz.com/Snapshot\x12Worganizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}*\tsnapshots2\bsnapshotB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
+	"\fTRIGGER_STOP\x10\x03:\xc9\x01\xeaA\x8e\x01\n" +
+	"\x1eworkspace.malonaz.com/Snapshot\x12Worganizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}*\tsnapshots2\bsnapshotҦ\x04\v\n" +
+	"\tworkspace\x82\xf6,$8a518fce-716d-4875-a9d0-fb9842f49573B/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
 var file_malonaz_workspace_v1_snapshot_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_workspace_v1_snapshot_proto_msgTypes = make([]protoimpl.MessageInfo, 1)

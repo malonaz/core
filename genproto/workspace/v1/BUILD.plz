@@ -5,6 +5,7 @@ go_library(
         "filesystem_aip.pb.go",
         "labels.pb.go",
         "labels_aip.pb.go",
+        "operation.pb.go",
         "snapshot.pb.go",
         "snapshot_aip.pb.go",
         "workspace.pb.go",
@@ -14,6 +15,7 @@ go_library(
     deps = [
         "//go/aip",
         "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/model/v1",
         "//third_party/go:go.einride.tech__aip__resourcename",
         "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
         "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",

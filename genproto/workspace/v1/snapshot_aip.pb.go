@@ -53,6 +53,16 @@ func MatchSnapshotRn(name string) bool {
 }
 
 // SnapshotRn returns the workspace.malonaz.com/Snapshot under n.
+func (n *OrganizationRn) SnapshotRn(user string, filesystem string, snapshot string) *SnapshotRn {
+	return &SnapshotRn{
+		Organization: n.Organization,
+		User:         user,
+		Filesystem:   filesystem,
+		Snapshot:     snapshot,
+	}
+}
+
+// SnapshotRn returns the workspace.malonaz.com/Snapshot under n.
 func (n *UserRn) SnapshotRn(filesystem string, snapshot string) *SnapshotRn {
 	return &SnapshotRn{
 		Organization: n.Organization,
@@ -153,5 +163,12 @@ func (n *SnapshotRn) UserRn() *UserRn {
 	return &UserRn{
 		Organization: n.Organization,
 		User:         n.User,
+	}
+}
+
+// OrganizationRn returns the workspace.malonaz.com/Organization n is under.
+func (n *SnapshotRn) OrganizationRn() *OrganizationRn {
+	return &OrganizationRn{
+		Organization: n.Organization,
 	}
 }

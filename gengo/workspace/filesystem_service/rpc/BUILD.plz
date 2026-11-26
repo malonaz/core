@@ -1,0 +1,21 @@
+go_library(
+    name = "rpc",
+    srcs = ["filesystem_service_rpc.pb.go"],
+    visibility = ["//..."],
+    deps = [
+        "//go/aip",
+        "//go/grpc/status",
+        "//go/scheduler/longrunning",
+        "//go/uuid",
+        "//go/workspace/model",
+        "//malonaz/scheduler/scheduler_service/v1",
+        "//malonaz/workspace/filesystem_service/v1",
+        "//malonaz/workspace/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__metadata",
+        "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+        "//third_party/proto:google__longrunning__operations",
+    ],
+)

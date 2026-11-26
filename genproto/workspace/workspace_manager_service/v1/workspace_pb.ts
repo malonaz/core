@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/workspace_manager_service/v1/workspace.proto.
  */
 export const file_malonaz_workspace_workspace_manager_service_v1_workspace: GenFile = /*@__PURE__*/
-  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSKRAQoGU2VjcmV0EjgKAmlkGAEgASgJQiy6SClyJBg/MiBeW2EtejAtOV0oW2EtejAtOV8tXSpbYS16MC05XSk/JMgBARIwCgdlbnZfdmFyGAIgASgJQh+6SBxyGhiAATIVXihbQS1aX11bQS1aMC05X10qKT8kEhsKBXZhbHVlGAMgASgMQgyAAQG6SAZ6BBiAgAQi7AEKFkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjoKCXdvcmtzcGFjZRgCIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgDyAEBEjsKDHdvcmtzcGFjZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBASJSChNHZXRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBASKMAQoVTGlzdFdvcmtzcGFjZXNSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChp3b3Jrc3BhY2UubWFsb25hei5jb20vVXNlcrpIA8gBARIdCglwYWdlX3NpemUYAiABKAVCCrpIBxoFGOgHKAASEgoKcGFnZV90b2tlbhgDIAEoCToGgvMtAghkImYKFkxpc3RXb3Jrc3BhY2VzUmVzcG9uc2USMwoKd29ya3NwYWNlcxgBIAMoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAki+AEKFlVwZGF0ZVdvcmtzcGFjZVJlcXVlc3QSOgoJd29ya3NwYWNlGAEgASgLMh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlQga6SAPIAQESNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIURpPChd3b3Jrc3BhY2UubmFtZV9yZXF1aXJlZBIad29ya3NwYWNlLm5hbWUgbXVzdCBiZSBzZXQaGGhhcyh0aGlzLndvcmtzcGFjZS5uYW1lKeqcwQMQCgZsYWJlbHMKBm1vdW50cyJ6ChZEZWxldGVXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkiqgEKFVN0YXJ0V29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESVAoHc2VjcmV0cxgCIAMoCzI2Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCJhChRTdG9wV29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESDAoEZXRhZxgCIAEoCSKvAQoaU2V0V29ya3NwYWNlU2VjcmV0c1JlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBElQKB3NlY3JldHMYAiADKAsyNi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlNlY3JldEIL4EEEukgFkgECEEAiLgobU2V0V29ya3NwYWNlU2VjcmV0c1Jlc3BvbnNlEg8KB2FwcGxpZWQYASABKAgikAEKGFNuYXBzaG90V29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESFgoEdHVybhgCIAEoCUIIukgFcgMYgAISHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEiUwoZU25hcHNob3RXb3Jrc3BhY2VSZXNwb25zZRI2CglzbmFwc2hvdHMYASADKAlCI/pBIAoed29ya3NwYWNlLm1hbG9uYXouY29tL1NuYXBzaG90QklaR2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace]);
+  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSKRAQoGU2VjcmV0EjgKAmlkGAEgASgJQiy6SClyJBg/MiBeW2EtejAtOV0oW2EtejAtOV8tXSpbYS16MC05XSk/JMgBARIwCgdlbnZfdmFyGAIgASgJQh+6SBxyGhiAATIVXihbQS1aX11bQS1aMC05X10qKT8kEhsKBXZhbHVlGAMgASgMQgyAAQG6SAZ6BBiAgAQi7AEKFkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjoKCXdvcmtzcGFjZRgCIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgDyAEBEjsKDHdvcmtzcGFjZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBASJSChNHZXRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBASL2AQoVTGlzdFdvcmtzcGFjZXNSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChp3b3Jrc3BhY2UubWFsb25hei5jb20vVXNlcrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHAoJcGFnZV9zaXplGAQgASgFQgm6SAYaBBhkKAASEgoKcGFnZV90b2tlbhgFIAEoCTpPgvMtAghkivMtPgoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lChBsYXN0X2FjdGl2ZV90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJmChZMaXN0V29ya3NwYWNlc1Jlc3BvbnNlEjMKCndvcmtzcGFjZXMYASADKAsyHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2USFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIvgBChZVcGRhdGVXb3Jrc3BhY2VSZXF1ZXN0EjoKCXdvcmtzcGFjZRgBIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmm6SFEaTwoXd29ya3NwYWNlLm5hbWVfcmVxdWlyZWQSGndvcmtzcGFjZS5uYW1lIG11c3QgYmUgc2V0GhhoYXModGhpcy53b3Jrc3BhY2UubmFtZSnqnMEDEAoGbGFiZWxzCgZtb3VudHMiegoWRGVsZXRlV29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJInUKFVN0YXJ0V29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESHwoKcmVxdWVzdF9pZBgCIAEoCUILukgIcgOwAQHYAQEiggEKFFN0b3BXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIMCgRldGFnGAIgASgJEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBIq8BChpTZXRXb3Jrc3BhY2VTZWNyZXRzUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESVAoHc2VjcmV0cxgCIAMoCzI2Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCIuChtTZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2USDwoHYXBwbGllZBgBIAEoCCKQAQoYU25hcHNob3RXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIWCgR0dXJuGAIgASgJQgi6SAVyAxiAAhIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASJTChlTbmFwc2hvdFdvcmtzcGFjZVJlc3BvbnNlEjYKCXNuYXBzaG90cxgBIAMoCUIj+kEgCh53b3Jrc3BhY2UubWFsb25hei5jb20vU25hcHNob3RCSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace]);
 
 /**
  * A Secret is a value a workspace's shells can read, never stored.
@@ -225,20 +225,30 @@ export type ListWorkspacesRequest = Message<"malonaz.workspace.workspace_manager
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer workspaces than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of workspaces to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListWorkspaces` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -259,20 +269,30 @@ export type ListWorkspacesRequestValid = Message<"malonaz.workspace.workspace_ma
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer workspaces than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of workspaces to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListWorkspaces` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -291,14 +311,14 @@ export const ListWorkspacesRequestSchema: GenMessage<ListWorkspacesRequest, {val
  */
 export type ListWorkspacesResponse = Message<"malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse"> & {
   /**
-   * The workspaces, ordered by name.
+   * The workspaces.
    *
    * @generated from field: repeated malonaz.workspace.v1.Workspace workspaces = 1;
    */
   workspaces: Workspace[];
 
   /**
-   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   * A token to retrieve the next page. Omitted when there are no more pages.
    *
    * @generated from field: string next_page_token = 2;
    */
@@ -312,14 +332,14 @@ export type ListWorkspacesResponse = Message<"malonaz.workspace.workspace_manage
  */
 export type ListWorkspacesResponseValid = Message<"malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse"> & {
   /**
-   * The workspaces, ordered by name.
+   * The workspaces.
    *
    * @generated from field: repeated malonaz.workspace.v1.Workspace workspaces = 1;
    */
   workspaces: WorkspaceValid[];
 
   /**
-   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   * A token to retrieve the next page. Omitted when there are no more pages.
    *
    * @generated from field: string next_page_token = 2;
    */
@@ -365,7 +385,7 @@ export type UpdateWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
    *
    * @generated from field: malonaz.workspace.v1.Workspace workspace = 1;
    */
-  workspace: WorkspaceValid;
+  workspace?: Workspace;
 
   /**
    * The list of fields to update.
@@ -462,11 +482,12 @@ export type StartWorkspaceRequest = Message<"malonaz.workspace.workspace_manager
   name: string;
 
   /**
-   * The secrets the pod starts with. Ignored when it is already running.
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
    *
-   * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 2;
+   * @generated from field: string request_id = 2;
    */
-  secrets: Secret[];
+  requestId: string;
 };
 
 /**
@@ -484,11 +505,12 @@ export type StartWorkspaceRequestValid = Message<"malonaz.workspace.workspace_ma
   name: string;
 
   /**
-   * The secrets the pod starts with. Ignored when it is already running.
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
    *
-   * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 2;
+   * @generated from field: string request_id = 2;
    */
-  secrets: SecretValid[];
+  requestId: string;
 };
 
 /**
@@ -518,6 +540,14 @@ export type StopWorkspaceRequest = Message<"malonaz.workspace.workspace_manager_
    * @generated from field: string etag = 2;
    */
   etag: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**
@@ -540,6 +570,14 @@ export type StopWorkspaceRequestValid = Message<"malonaz.workspace.workspace_man
    * @generated from field: string etag = 2;
    */
   etag: string;
+
+  /**
+   * A unique identifier for this request. Must be a UUID. Repeating a request
+   * with the same ID returns the operation it started instead of starting another.
+   *
+   * @generated from field: string request_id = 3;
+   */
+  requestId: string;
 };
 
 /**
@@ -607,7 +645,7 @@ export const SetWorkspaceSecretsRequestSchema: GenMessage<SetWorkspaceSecretsReq
  */
 export type SetWorkspaceSecretsResponse = Message<"malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse"> & {
   /**
-   * If true, the workspace was running and holds the secrets; false when it was stopped, a no-op.
+   * If true, the workspace was running and holds the secrets; false when it was not running, a no-op.
    *
    * @generated from field: bool applied = 1;
    */
@@ -646,8 +684,8 @@ export type SnapshotWorkspaceRequest = Message<"malonaz.workspace.workspace_mana
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the snapshots it took instead of taking more:
-   * each mount's CreateSnapshot request id derives from it.
+   * with the same ID returns the operation it started instead of starting
+   * another; each mount's CreateSnapshot request id derives from it.
    *
    * @generated from field: string request_id = 3;
    */
@@ -677,8 +715,8 @@ export type SnapshotWorkspaceRequestValid = Message<"malonaz.workspace.workspace
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the snapshots it took instead of taking more:
-   * each mount's CreateSnapshot request id derives from it.
+   * with the same ID returns the operation it started instead of starting
+   * another; each mount's CreateSnapshot request id derives from it.
    *
    * @generated from field: string request_id = 3;
    */

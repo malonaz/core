@@ -11,6 +11,9 @@ if typing.TYPE_CHECKING:
 
 import google.api.annotations_pb2
 import google.api.client_pb2
+import google.longrunning.operations_pb2
+import malonaz.codegen.aip.v1.aip_pb2
+import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.workspace.filesystem_service.v1.filesystem_pb2
 import malonaz.workspace.filesystem_service.v1.snapshot_pb2
 import malonaz.workspace.v1.filesystem_pb2
@@ -33,7 +36,7 @@ class FilesystemServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def DeleteFilesystem(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.filesystem_pb2.DeleteFilesystemRequest, malonaz.workspace.v1.filesystem_pb2.Filesystem]') -> None:
+    async def DeleteFilesystem(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.filesystem_pb2.DeleteFilesystemRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -45,7 +48,7 @@ class FilesystemServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def CreateSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest, malonaz.workspace.v1.snapshot_pb2.Snapshot]') -> None:
+    async def CreateSnapshot(self, stream: 'grpclib.server.Stream[malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -80,7 +83,7 @@ class FilesystemServiceBase(abc.ABC):
                 self.DeleteFilesystem,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.filesystem_service.v1.filesystem_pb2.DeleteFilesystemRequest,
-                malonaz.workspace.v1.filesystem_pb2.Filesystem,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/AttachFilesystem': grpclib.const.Handler(
                 self.AttachFilesystem,
@@ -98,7 +101,7 @@ class FilesystemServiceBase(abc.ABC):
                 self.CreateSnapshot,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest,
-                malonaz.workspace.v1.snapshot_pb2.Snapshot,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/GetSnapshot': grpclib.const.Handler(
                 self.GetSnapshot,
@@ -140,7 +143,7 @@ class FilesystemServiceStub:
             channel,
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/DeleteFilesystem',
             malonaz.workspace.filesystem_service.v1.filesystem_pb2.DeleteFilesystemRequest,
-            malonaz.workspace.v1.filesystem_pb2.Filesystem,
+            google.longrunning.operations_pb2.Operation,
         )
         self.AttachFilesystem = grpclib.client.UnaryUnaryMethod(
             channel,
@@ -158,7 +161,7 @@ class FilesystemServiceStub:
             channel,
             '/malonaz.workspace.filesystem_service.v1.FilesystemService/CreateSnapshot',
             malonaz.workspace.filesystem_service.v1.snapshot_pb2.CreateSnapshotRequest,
-            malonaz.workspace.v1.snapshot_pb2.Snapshot,
+            google.longrunning.operations_pb2.Operation,
         )
         self.GetSnapshot = grpclib.client.UnaryUnaryMethod(
             channel,

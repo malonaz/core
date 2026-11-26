@@ -9,6 +9,9 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
+	_ "github.com/malonaz/core/genproto/codegen/scheduler/v1"
 	v1 "github.com/malonaz/core/genproto/workspace/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -28,18 +31,29 @@ var File_malonaz_workspace_filesystem_service_v1_filesystem_service_proto protor
 
 const file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_rawDesc = "" +
 	"\n" +
-	"@malonaz/workspace/filesystem_service/v1/filesystem_service.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a8malonaz/workspace/filesystem_service/v1/filesystem.proto\x1a6malonaz/workspace/filesystem_service/v1/snapshot.proto\x1a%malonaz/workspace/v1/filesystem.proto\x1a#malonaz/workspace/v1/snapshot.proto2\xdf\x0e\n" +
-	"\x11FilesystemService\x12\xd0\x01\n" +
-	"\x10CreateFilesystem\x12@.malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"X\xdaA\x11parent,filesystem\x82\xd3\xe4\x93\x02>:\n" +
-	"filesystem\"0/v1/{parent=organizations/*/users/*}/filesystems\x12\xb4\x01\n" +
-	"\rGetFilesystem\x12=.malonaz.workspace.filesystem_service.v1.GetFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"B\xdaA\x04name\x82\xd3\xe4\x93\x022\x120/v1/{name=organizations/*/users/*/filesystems/*}\x90\x02\x01\x12\xda\x01\n" +
-	"\x0fListFilesystems\x12?.malonaz.workspace.filesystem_service.v1.ListFilesystemsRequest\x1a@.malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse\"D\xdaA\x06parent\x82\xd3\xe4\x93\x022\x120/v1/{parent=organizations/*/users/*}/filesystems\x90\x02\x01\x12\xb7\x01\n" +
-	"\x10DeleteFilesystem\x12@.malonaz.workspace.filesystem_service.v1.DeleteFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"?\xdaA\x04name\x82\xd3\xe4\x93\x022*0/v1/{name=organizations/*/users/*/filesystems/*}\x12\xcb\x01\n" +
+	"@malonaz/workspace/filesystem_service/v1/filesystem_service.proto\x12'malonaz.workspace.filesystem_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a#google/longrunning/operations.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a,malonaz/codegen/scheduler/v1/scheduler.proto\x1a8malonaz/workspace/filesystem_service/v1/filesystem.proto\x1a6malonaz/workspace/filesystem_service/v1/snapshot.proto\x1a%malonaz/workspace/v1/filesystem.proto\x1a#malonaz/workspace/v1/snapshot.proto2\xbd\x11\n" +
+	"\x11FilesystemService\x12\xf6\x01\n" +
+	"\x10CreateFilesystem\x12@.malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"~\xdaA\x11parent,filesystem´-\"\n" +
+	" workspace.malonaz.com/Filesystem\x82\xd3\xe4\x93\x02>:\n" +
+	"filesystem\"0/v1/{parent=organizations/*/users/*}/filesystems\x12\xda\x01\n" +
+	"\rGetFilesystem\x12=.malonaz.workspace.filesystem_service.v1.GetFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"h\xdaA\x04name´-\"\n" +
+	" workspace.malonaz.com/Filesystem\x82\xd3\xe4\x93\x022\x120/v1/{name=organizations/*/users/*/filesystems/*}\x90\x02\x01\x12\x80\x02\n" +
+	"\x0fListFilesystems\x12?.malonaz.workspace.filesystem_service.v1.ListFilesystemsRequest\x1a@.malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse\"j\xdaA\x06parent´-\"\n" +
+	" workspace.malonaz.com/Filesystem\x82\xd3\xe4\x93\x022\x120/v1/{parent=organizations/*/users/*}/filesystems\x90\x02\x01\x12\x84\x02\n" +
+	"\x10DeleteFilesystem\x12@.malonaz.workspace.filesystem_service.v1.DeleteFilesystemRequest\x1a\x1d.google.longrunning.Operation\"\x8e\x01\xcaA?\n" +
+	"\x15google.protobuf.Empty\x12&malonaz.workspace.v1.OperationMetadata\xdaA\x04name\xc2\xcf$\t\n" +
+	"\a\n" +
+	"\x03\b\xd8\x04\x10\x05\x82\xd3\xe4\x93\x022*0/v1/{name=organizations/*/users/*/filesystems/*}\x12\xcb\x01\n" +
 	"\x10AttachFilesystem\x12@.malonaz.workspace.filesystem_service.v1.AttachFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"S\xdaA\x0ename,workspace\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=organizations/*/users/*/filesystems/*}:attach\x12\xcb\x01\n" +
-	"\x10DetachFilesystem\x12@.malonaz.workspace.filesystem_service.v1.DetachFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"S\xdaA\x0ename,workspace\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=organizations/*/users/*/filesystems/*}:detach\x12\xd2\x01\n" +
-	"\x0eCreateSnapshot\x12>.malonaz.workspace.filesystem_service.v1.CreateSnapshotRequest\x1a\x1e.malonaz.workspace.v1.Snapshot\"`\xdaA\x0fparent,snapshot\x82\xd3\xe4\x93\x02H:\bsnapshot\"</v1/{parent=organizations/*/users/*/filesystems/*}/snapshots\x12\xba\x01\n" +
-	"\vGetSnapshot\x12;.malonaz.workspace.filesystem_service.v1.GetSnapshotRequest\x1a\x1e.malonaz.workspace.v1.Snapshot\"N\xdaA\x04name\x82\xd3\xe4\x93\x02>\x12</v1/{name=organizations/*/users/*/filesystems/*/snapshots/*}\x90\x02\x01\x12\xe0\x01\n" +
-	"\rListSnapshots\x12=.malonaz.workspace.filesystem_service.v1.ListSnapshotsRequest\x1a>.malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse\"P\xdaA\x06parent\x82\xd3\xe4\x93\x02>\x12</v1/{parent=organizations/*/users/*/filesystems/*}/snapshots\x90\x02\x01\x1a\x18\xcaA\x15workspace.malonaz.comBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3"
+	"\x10DetachFilesystem\x12@.malonaz.workspace.filesystem_service.v1.DetachFilesystemRequest\x1a .malonaz.workspace.v1.Filesystem\"S\xdaA\x0ename,workspace\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=organizations/*/users/*/filesystems/*}:detach\x12\xa9\x02\n" +
+	"\x0eCreateSnapshot\x12>.malonaz.workspace.filesystem_service.v1.CreateSnapshotRequest\x1a\x1d.google.longrunning.Operation\"\xb7\x01\xcaAG\n" +
+	"\x1dmalonaz.workspace.v1.Snapshot\x12&malonaz.workspace.v1.OperationMetadata\xdaA\x0fparent,snapshot\xc2\xcf$\t\n" +
+	"\a\n" +
+	"\x03\b\xd8\x04\x10\x03\x82\xd3\xe4\x93\x02H:\bsnapshot\"</v1/{parent=organizations/*/users/*/filesystems/*}/snapshots\x12\xde\x01\n" +
+	"\vGetSnapshot\x12;.malonaz.workspace.filesystem_service.v1.GetSnapshotRequest\x1a\x1e.malonaz.workspace.v1.Snapshot\"r\xdaA\x04name´- \n" +
+	"\x1eworkspace.malonaz.com/Snapshot\x82\xd3\xe4\x93\x02>\x12</v1/{name=organizations/*/users/*/filesystems/*/snapshots/*}\x90\x02\x01\x12\x84\x02\n" +
+	"\rListSnapshots\x12=.malonaz.workspace.filesystem_service.v1.ListSnapshotsRequest\x1a>.malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse\"t\xdaA\x06parent´- \n" +
+	"\x1eworkspace.malonaz.com/Snapshot\x82\xd3\xe4\x93\x02>\x12</v1/{parent=organizations/*/users/*/filesystems/*}/snapshots\x90\x02\x01\x1a\x18\xcaA\x15workspace.malonaz.comBBZ@github.com/malonaz/core/genproto/workspace/filesystem_service/v1b\x06proto3"
 
 var file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_goTypes = []any{
 	(*CreateFilesystemRequest)(nil), // 0: malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest
@@ -53,8 +67,9 @@ var file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_goType
 	(*ListSnapshotsRequest)(nil),    // 8: malonaz.workspace.filesystem_service.v1.ListSnapshotsRequest
 	(*v1.Filesystem)(nil),           // 9: malonaz.workspace.v1.Filesystem
 	(*ListFilesystemsResponse)(nil), // 10: malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse
-	(*v1.Snapshot)(nil),             // 11: malonaz.workspace.v1.Snapshot
-	(*ListSnapshotsResponse)(nil),   // 12: malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse
+	(*longrunningpb.Operation)(nil), // 11: google.longrunning.Operation
+	(*v1.Snapshot)(nil),             // 12: malonaz.workspace.v1.Snapshot
+	(*ListSnapshotsResponse)(nil),   // 13: malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse
 }
 var file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.workspace.filesystem_service.v1.FilesystemService.CreateFilesystem:input_type -> malonaz.workspace.filesystem_service.v1.CreateFilesystemRequest
@@ -69,12 +84,12 @@ var file_malonaz_workspace_filesystem_service_v1_filesystem_service_proto_depIdx
 	9,  // 9: malonaz.workspace.filesystem_service.v1.FilesystemService.CreateFilesystem:output_type -> malonaz.workspace.v1.Filesystem
 	9,  // 10: malonaz.workspace.filesystem_service.v1.FilesystemService.GetFilesystem:output_type -> malonaz.workspace.v1.Filesystem
 	10, // 11: malonaz.workspace.filesystem_service.v1.FilesystemService.ListFilesystems:output_type -> malonaz.workspace.filesystem_service.v1.ListFilesystemsResponse
-	9,  // 12: malonaz.workspace.filesystem_service.v1.FilesystemService.DeleteFilesystem:output_type -> malonaz.workspace.v1.Filesystem
+	11, // 12: malonaz.workspace.filesystem_service.v1.FilesystemService.DeleteFilesystem:output_type -> google.longrunning.Operation
 	9,  // 13: malonaz.workspace.filesystem_service.v1.FilesystemService.AttachFilesystem:output_type -> malonaz.workspace.v1.Filesystem
 	9,  // 14: malonaz.workspace.filesystem_service.v1.FilesystemService.DetachFilesystem:output_type -> malonaz.workspace.v1.Filesystem
-	11, // 15: malonaz.workspace.filesystem_service.v1.FilesystemService.CreateSnapshot:output_type -> malonaz.workspace.v1.Snapshot
-	11, // 16: malonaz.workspace.filesystem_service.v1.FilesystemService.GetSnapshot:output_type -> malonaz.workspace.v1.Snapshot
-	12, // 17: malonaz.workspace.filesystem_service.v1.FilesystemService.ListSnapshots:output_type -> malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse
+	11, // 15: malonaz.workspace.filesystem_service.v1.FilesystemService.CreateSnapshot:output_type -> google.longrunning.Operation
+	12, // 16: malonaz.workspace.filesystem_service.v1.FilesystemService.GetSnapshot:output_type -> malonaz.workspace.v1.Snapshot
+	13, // 17: malonaz.workspace.filesystem_service.v1.FilesystemService.ListSnapshots:output_type -> malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse
 	9,  // [9:18] is the sub-list for method output_type
 	0,  // [0:9] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

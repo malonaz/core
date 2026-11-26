@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/filesystem_service/v1/snapshot.proto.
  */
 export const file_malonaz_workspace_filesystem_service_v1_snapshot: GenFile = /*@__PURE__*/
-  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKyAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEiUAoSR2V0U25hcHNob3RSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoed29ya3NwYWNlLm1hbG9uYXouY29tL1NuYXBzaG90ukgDyAEBIpEBChRMaXN0U25hcHNob3RzUmVxdWVzdBI+CgZwYXJlbnQYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESHQoJcGFnZV9zaXplGAIgASgFQgq6SAcaBRjoBygAEhIKCnBhZ2VfdG9rZW4YAyABKAk6BoLzLQIIZCJjChVMaXN0U25hcHNob3RzUmVzcG9uc2USMQoJc25hcHNob3RzGAEgAygLMh4ubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3QSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_snapshot]);
+  fileDesc("CjZtYWxvbmF6L3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjEvc25hcHNob3QucHJvdG8SJ21hbG9uYXoud29ya3NwYWNlLmZpbGVzeXN0ZW1fc2VydmljZS52MSKyAQoVQ3JlYXRlU25hcHNob3RSZXF1ZXN0Ej4KBnBhcmVudBgBIAEoCUIu4EEC+kEiCiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbbpIA8gBARI4CghzbmFwc2hvdBgCIAEoCzIeLm1hbG9uYXoud29ya3NwYWNlLnYxLlNuYXBzaG90Qga6SAPIAQESHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEiUAoSR2V0U25hcHNob3RSZXF1ZXN0EjoKBG5hbWUYASABKAlCLOBBAvpBIAoed29ya3NwYWNlLm1hbG9uYXouY29tL1NuYXBzaG90ukgDyAEBItwBChRMaXN0U25hcHNob3RzUmVxdWVzdBI+CgZwYXJlbnQYASABKAlCLuBBAvpBIgogd29ya3NwYWNlLm1hbG9uYXouY29tL0ZpbGVzeXN0ZW26SAPIAQESDgoGZmlsdGVyGAIgASgJEhAKCG9yZGVyX2J5GAMgASgJEhwKCXBhZ2Vfc2l6ZRgEIAEoBUIJukgGGgQYZCgAEhIKCnBhZ2VfdG9rZW4YBSABKAk6MILzLQIIZIrzLR8KC2NyZWF0ZV90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJjChVMaXN0U25hcHNob3RzUmVzcG9uc2USMQoJc25hcHNob3RzGAEgAygLMh4ubWFsb25hei53b3Jrc3BhY2UudjEuU25hcHNob3QSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJQkJaQGdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS9maWxlc3lzdGVtX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_snapshot]);
 
 /**
  * Request message for FilesystemService.CreateSnapshot.
@@ -41,7 +41,7 @@ export type CreateSnapshotRequest = Message<"malonaz.workspace.filesystem_servic
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the snapshot it created instead of creating another.
+   * with the same ID returns the operation it started instead of starting another.
    *
    * @generated from field: string request_id = 3;
    */
@@ -71,7 +71,7 @@ export type CreateSnapshotRequestValid = Message<"malonaz.workspace.filesystem_s
 
   /**
    * A unique identifier for this request. Must be a UUID. Repeating a request
-   * with the same ID returns the snapshot it created instead of creating another.
+   * with the same ID returns the operation it started instead of starting another.
    *
    * @generated from field: string request_id = 3;
    */
@@ -137,20 +137,30 @@ export type ListSnapshotsRequest = Message<"malonaz.workspace.filesystem_service
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer snapshots than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of snapshots to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListSnapshots` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -170,20 +180,30 @@ export type ListSnapshotsRequestValid = Message<"malonaz.workspace.filesystem_se
   parent: string;
 
   /**
-   * Requested page size. Server may return fewer snapshots than requested.
-   * If unspecified, server will pick an appropriate default.
+   * @autogen.
    *
-   * @generated from field: int32 page_size = 2;
+   * @generated from field: string filter = 2;
+   */
+  filter: string;
+
+  /**
+   * @autogen
+   *
+   * @generated from field: string order_by = 3;
+   */
+  orderBy: string;
+
+  /**
+   * Maximum number of snapshots to return (max 100).
+   *
+   * @generated from field: int32 page_size = 4;
    */
   pageSize: number;
 
   /**
-   * A token identifying a page of results the server should return.
-   * This is the value of
-   * [ListSnapshotsResponse.next_page_token][malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse.next_page_token]
-   * returned by a previous call.
+   * A page token, received from a previous `ListSnapshots` call.
    *
-   * @generated from field: string page_token = 3;
+   * @generated from field: string page_token = 5;
    */
   pageToken: string;
 };
@@ -202,14 +222,14 @@ export const ListSnapshotsRequestSchema: GenMessage<ListSnapshotsRequest, {valid
  */
 export type ListSnapshotsResponse = Message<"malonaz.workspace.filesystem_service.v1.ListSnapshotsResponse"> & {
   /**
-   * The snapshots, newest first.
+   * The snapshots.
    *
    * @generated from field: repeated malonaz.workspace.v1.Snapshot snapshots = 1;
    */
   snapshots: Snapshot[];
 
   /**
-   * A token to retrieve the next page of results, or empty if there are no more results in the list.
+   * A token to retrieve the next page. Omitted when there are no more pages.
    *
    * @generated from field: string next_page_token = 2;
    */

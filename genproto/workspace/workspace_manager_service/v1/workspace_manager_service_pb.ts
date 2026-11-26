@@ -6,16 +6,22 @@ import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_annotations } from "../../../../google/api/annotations_pb";
 import { file_google_api_client } from "../../../../google/api/client_pb";
+import type { OperationSchema } from "../../../../google/longrunning/operations_pb";
+import { file_google_longrunning_operations } from "../../../../google/longrunning/operations_pb";
+import type { EmptySchema } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
+import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
+import { file_malonaz_codegen_scheduler_v1_scheduler } from "../../../codegen/scheduler/v1/scheduler_pb";
 import type { WorkspaceSchema } from "../../v1/workspace_pb";
 import { file_malonaz_workspace_v1_workspace } from "../../v1/workspace_pb";
-import type { CreateWorkspaceRequestSchema, DeleteWorkspaceRequestSchema, GetWorkspaceRequestSchema, ListWorkspacesRequestSchema, ListWorkspacesResponseSchema, SetWorkspaceSecretsRequestSchema, SetWorkspaceSecretsResponseSchema, SnapshotWorkspaceRequestSchema, SnapshotWorkspaceResponseSchema, StartWorkspaceRequestSchema, StopWorkspaceRequestSchema, UpdateWorkspaceRequestSchema } from "./workspace_pb";
+import type { CreateWorkspaceRequestSchema, DeleteWorkspaceRequestSchema, GetWorkspaceRequestSchema, ListWorkspacesRequestSchema, ListWorkspacesResponseSchema, SetWorkspaceSecretsRequestSchema, SetWorkspaceSecretsResponseSchema, SnapshotWorkspaceRequestSchema, StartWorkspaceRequestSchema, StopWorkspaceRequestSchema, UpdateWorkspaceRequestSchema } from "./workspace_pb";
 import { file_malonaz_workspace_workspace_manager_service_v1_workspace } from "./workspace_pb";
 
 /**
  * Describes the file malonaz/workspace/workspace_manager_service/v1/workspace_manager_service.proto.
  */
 export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service: GenFile = /*@__PURE__*/
-  fileDesc("Ck5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UucHJvdG8SLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEyyw8KF1dvcmtzcGFjZU1hbmFnZXJTZXJ2aWNlEtEBCg9DcmVhdGVXb3Jrc3BhY2USRi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QaHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2UiVdpBEHBhcmVudCx3b3Jrc3BhY2WC0+STAjwiLy92MS97cGFyZW50PW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qfS93b3Jrc3BhY2VzOgl3b3Jrc3BhY2UStwEKDEdldFdvcmtzcGFjZRJDLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuR2V0V29ya3NwYWNlUmVxdWVzdBofLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZSJBkAIB2kEEbmFtZYLT5JMCMRIvL3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL3dvcmtzcGFjZXMvKn0S5AEKDkxpc3RXb3Jrc3BhY2VzEkUubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5MaXN0V29ya3NwYWNlc1JlcXVlc3QaRi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkxpc3RXb3Jrc3BhY2VzUmVzcG9uc2UiQ5ACAdpBBnBhcmVudILT5JMCMRIvL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L3dvcmtzcGFjZXMS4AEKD1VwZGF0ZVdvcmtzcGFjZRJGLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuVXBkYXRlV29ya3NwYWNlUmVxdWVzdBofLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZSJk2kEVd29ya3NwYWNlLHVwZGF0ZV9tYXNrgtPkkwJGMjkvdjEve3dvcmtzcGFjZS5uYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL3dvcmtzcGFjZXMvKn06CXdvcmtzcGFjZRK6AQoPRGVsZXRlV29ya3NwYWNlEkYubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5EZWxldGVXb3Jrc3BhY2VSZXF1ZXN0Gh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlIj7aQQRuYW1lgtPkkwIxKi8vdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfRLBAQoOU3RhcnRXb3Jrc3BhY2USRS5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlN0YXJ0V29ya3NwYWNlUmVxdWVzdBofLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZSJH2kEEbmFtZYLT5JMCOiI1L3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL3dvcmtzcGFjZXMvKn06c3RhcnQ6ASoSvgEKDVN0b3BXb3Jrc3BhY2USRC5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlN0b3BXb3Jrc3BhY2VSZXF1ZXN0Gh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlIkbaQQRuYW1lgtPkkwI5IjQvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfTpzdG9wOgEqEoQCChNTZXRXb3Jrc3BhY2VTZWNyZXRzEkoubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZXRXb3Jrc3BhY2VTZWNyZXRzUmVxdWVzdBpLLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2V0V29ya3NwYWNlU2VjcmV0c1Jlc3BvbnNlIlTaQQxuYW1lLHNlY3JldHOC0+STAj8iOi92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi93b3Jrc3BhY2VzLyp9OnNldFNlY3JldHM6ASoS9AEKEVNuYXBzaG90V29ya3NwYWNlEkgubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TbmFwc2hvdFdvcmtzcGFjZVJlcXVlc3QaSS5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlNuYXBzaG90V29ya3NwYWNlUmVzcG9uc2UiStpBBG5hbWWC0+STAj0iOC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi93b3Jrc3BhY2VzLyp9OnNuYXBzaG90OgEqGhjKQRV3b3Jrc3BhY2UubWFsb25hei5jb21CSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_google_api_annotations, file_google_api_client, file_malonaz_workspace_v1_workspace, file_malonaz_workspace_workspace_manager_service_v1_workspace]);
+  fileDesc("Ck5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UucHJvdG8SLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEy0RIKF1dvcmtzcGFjZU1hbmFnZXJTZXJ2aWNlEvYBCg9DcmVhdGVXb3Jrc3BhY2USRi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QaHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2UietpBEHBhcmVudCx3b3Jrc3BhY2XCtC0hCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlgtPkkwI8Ii8vdjEve3BhcmVudD1vcmdhbml6YXRpb25zLyovdXNlcnMvKn0vd29ya3NwYWNlczoJd29ya3NwYWNlEtwBCgxHZXRXb3Jrc3BhY2USQy5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkdldFdvcmtzcGFjZVJlcXVlc3QaHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2UiZpACAdpBBG5hbWXCtC0hCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlgtPkkwIxEi8vdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfRKJAgoOTGlzdFdvcmtzcGFjZXMSRS5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkxpc3RXb3Jrc3BhY2VzUmVxdWVzdBpGLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuTGlzdFdvcmtzcGFjZXNSZXNwb25zZSJokAIB2kEGcGFyZW50wrQtIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZYLT5JMCMRIvL3YxL3twYXJlbnQ9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyp9L3dvcmtzcGFjZXMShgIKD1VwZGF0ZVdvcmtzcGFjZRJGLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuVXBkYXRlV29ya3NwYWNlUmVxdWVzdBofLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZSKJAdpBFXdvcmtzcGFjZSx1cGRhdGVfbWFza8K0LSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2WC0+STAkYyOS92MS97d29ya3NwYWNlLm5hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfToJd29ya3NwYWNlEtYBCg9EZWxldGVXb3Jrc3BhY2USRi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLkRlbGV0ZVdvcmtzcGFjZVJlcXVlc3QaFi5nb29nbGUucHJvdG9idWYuRW1wdHkiY9pBBG5hbWXCtC0hCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlgtPkkwIxKi8vdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfRKXAgoOU3RhcnRXb3Jrc3BhY2USRS5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlN0YXJ0V29ya3NwYWNlUmVxdWVzdBodLmdvb2dsZS5sb25ncnVubmluZy5PcGVyYXRpb24ingHKQUgKHm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZRImbWFsb25hei53b3Jrc3BhY2UudjEuT3BlcmF0aW9uTWV0YWRhdGHaQQRuYW1lws8kCAoGCgIIeBADgtPkkwI6IjUvdjEve25hbWU9b3JnYW5pemF0aW9ucy8qL3VzZXJzLyovd29ya3NwYWNlcy8qfTpzdGFydDoBKhKVAgoNU3RvcFdvcmtzcGFjZRJELm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU3RvcFdvcmtzcGFjZVJlcXVlc3QaHS5nb29nbGUubG9uZ3J1bm5pbmcuT3BlcmF0aW9uIp4BykFICh5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2USJm1hbG9uYXoud29ya3NwYWNlLnYxLk9wZXJhdGlvbk1ldGFkYXRh2kEEbmFtZcLPJAkKBwoDCNgEEAOC0+STAjkiNC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi93b3Jrc3BhY2VzLyp9OnN0b3A6ASoShAIKE1NldFdvcmtzcGFjZVNlY3JldHMSSi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlNldFdvcmtzcGFjZVNlY3JldHNSZXF1ZXN0GksubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MS5TZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2UiVNpBDG5hbWUsc2VjcmV0c4LT5JMCPyI6L3YxL3tuYW1lPW9yZ2FuaXphdGlvbnMvKi91c2Vycy8qL3dvcmtzcGFjZXMvKn06c2V0U2VjcmV0czoBKhKcAgoRU25hcHNob3RXb3Jrc3BhY2USSC5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlLnYxLlNuYXBzaG90V29ya3NwYWNlUmVxdWVzdBodLmdvb2dsZS5sb25ncnVubmluZy5PcGVyYXRpb24inQHKQUMKGVNuYXBzaG90V29ya3NwYWNlUmVzcG9uc2USJm1hbG9uYXoud29ya3NwYWNlLnYxLk9wZXJhdGlvbk1ldGFkYXRh2kEEbmFtZcLPJAkKBwoDCNgEEAOC0+STAj0iOC92MS97bmFtZT1vcmdhbml6YXRpb25zLyovdXNlcnMvKi93b3Jrc3BhY2VzLyp9OnNuYXBzaG90OgEqGhjKQRV3b3Jrc3BhY2UubWFsb25hei5jb21CSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_google_api_annotations, file_google_api_client, file_google_longrunning_operations, file_google_protobuf_empty, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_scheduler_v1_scheduler, file_malonaz_workspace_v1_workspace, file_malonaz_workspace_workspace_manager_service_v1_workspace]);
 
 /**
  * This API runs workspaces: a sandboxed pod per workspace, mounting the
@@ -33,18 +39,21 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
  *
  * # Lifecycle
  *
- * Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
- * its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
- * the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
- * A server in front that wants a running workspace calls CreateWorkspace then
- * StartWorkspace.
+ * Creating a workspace makes the resource only, STOPPED. StartWorkspace starts
+ * its pod, STARTING then RUNNING; StopWorkspace, or the idle reaper, snapshots
+ * its LOCAL read-write mounts and deletes the pod, STOPPING then STOPPED.
+ * Files live on the filesystems, so stopping loses only `/tmp`. Starting,
+ * stopping and snapshotting are long-running operations run by the
+ * scheduler; a server in front that wants a running workspace calls
+ * CreateWorkspace, then StartWorkspace.
  *
  * # Secrets
  *
- * Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
- * files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
- * which every shell sources. They are never stored: a stopped workspace has
- * none, and its next start carries them again.
+ * Secrets reach a pod only through SetWorkspaceSecrets, as files under
+ * `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
+ * shell sources. They are never stored, nor carried by an operation: a pod
+ * starts with none, and loses them when it stops or is recreated, so the
+ * caller sets them once the workspace is RUNNING.
  *
  * # Commands
  *
@@ -52,7 +61,7 @@ export const file_malonaz_workspace_workspace_manager_service_v1_workspace_manag
  * [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
  * and forwards each call to the pod of the workspace named in its
  * `x-workspace` metadata, starting a stopped one (with no secrets) and
- * waiting for it to be ready within the call's deadline.
+ * waiting for it to be running within the call's deadline.
  *
  * @generated from service malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService
  */
@@ -121,12 +130,12 @@ export const WorkspaceManagerService: GenService<{
   deleteWorkspace: {
     methodKind: "unary";
     input: typeof DeleteWorkspaceRequestSchema;
-    output: typeof WorkspaceSchema;
+    output: typeof EmptySchema;
   },
   /**
-   * Start a stopped workspace's pod with its mounts and the request's
-   * secrets. Returns at once, STARTING; an Exec waits for READY.
-   * Idempotent: a starting or ready workspace is returned as is.
+   * Start a stopped workspace's pod with its mounts, with no secrets. The
+   * operation is done once the workspace is RUNNING; a starting or running
+   * workspace is returned as is.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -135,12 +144,12 @@ export const WorkspaceManagerService: GenService<{
   startWorkspace: {
     methodKind: "unary";
     input: typeof StartWorkspaceRequestSchema;
-    output: typeof WorkspaceSchema;
+    output: typeof OperationSchema;
   },
   /**
    * Stop a workspace: snapshot its LOCAL read-write mounts, then delete its
-   * pod and secrets. Its files stay; its next Exec or StartWorkspace starts it
-   * again. Idempotent on a stopped workspace.
+   * pod and secrets. Its files stay. The operation is done once the
+   * workspace is STOPPED; a stopped workspace is returned as is.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -149,11 +158,12 @@ export const WorkspaceManagerService: GenService<{
   stopWorkspace: {
     methodKind: "unary";
     input: typeof StopWorkspaceRequestSchema;
-    output: typeof WorkspaceSchema;
+    output: typeof OperationSchema;
   },
   /**
    * Replace a running workspace's secrets, effective in every shell started
-   * after. A no-op on a stopped workspace.
+   * after. A no-op on a workspace that is not running. Never long-running, so
+   * its secrets are never stored in an operation.
    *
    * See: https://google.aip.dev/136 (Custom methods).
    *
@@ -175,7 +185,7 @@ export const WorkspaceManagerService: GenService<{
   snapshotWorkspace: {
     methodKind: "unary";
     input: typeof SnapshotWorkspaceRequestSchema;
-    output: typeof SnapshotWorkspaceResponseSchema;
+    output: typeof OperationSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service, 0);

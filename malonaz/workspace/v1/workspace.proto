@@ -6,8 +6,16 @@ import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/v1";
+option (google.api.resource_definition) = {
+  type: "workspace.malonaz.com/Organization"
+  pattern: "organizations/{organization}"
+  singular: "organization"
+  plural: "organizations"
+};
 option (google.api.resource_definition) = {
   type: "workspace.malonaz.com/User"
   pattern: "organizations/{organization}/users/{user}"
@@ -19,8 +27,8 @@ option (google.api.resource_definition) = {
 // unless they create their own: a pod with the
 // filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
 // compute and its mounts, not the files: those live on its filesystems, which
-// outlive it and may be mounted by other workspaces. Stored as a Kubernetes
-// object, the only state its services keep.
+// outlive it and may be mounted by other workspaces. Created STOPPED: its pod
+// runs only between StartWorkspace and StopWorkspace or the idle reaper.
 message Workspace {
   option (google.api.resource) = {
     type: "workspace.malonaz.com/Workspace"
@@ -33,17 +41,22 @@ message Workspace {
     message: "mount paths must be unique"
     expression: "this.mounts.map(m, m.path).unique()"
   };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "workspace"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "b983cfdf-12d6-4862-ac8c-afc6d67edf2f";
 
   // State is where the workspace's pod is in its lifecycle.
   enum State {
     // Used to detect an unset field.
     STATE_UNSPECIFIED = 0;
-    // The workspace has no pod: its next Exec or StartWorkspace starts one.
+    // The workspace has no pod: StartWorkspace or its next Exec starts one.
     STATE_STOPPED = 1;
     // The pod is starting: an Exec waits for it.
     STATE_STARTING = 2;
-    // The pod is ready to run commands.
-    STATE_READY = 3;
+    // The pod runs commands.
+    STATE_RUNNING = 3;
+    // The workspace is snapshotting its LOCAL read-write mounts before its pod
+    // is deleted.
+    STATE_STOPPING = 4;
   }
 
   // The resource name of the workspace.
@@ -60,22 +73,29 @@ message Workspace {
   string etag = 4;
 
   // The labels on this workspace.
-  map<string, string> labels = 5 [(buf.validate.field).map = {
-    max_pairs: 64
-    keys: {
-      string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
-    }
-    values: {
-      string: {
-        max_len: 63
-        pattern: "^[a-z0-9_\\-\\p{L}]*$"
+  map<string, string> labels = 5 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
       }
     }
-  }];
+  ];
 
   // The filesystems the workspace mounts. Changing them recreates its pod: the
   // mounted files stay, `/tmp` goes.
-  repeated Mount mounts = 6 [(buf.validate.field).repeated.max_items = 16];
+  repeated Mount mounts = 6 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (buf.validate.field).repeated.max_items = 16
+  ];
 
   // Where the workspace's pod is in its lifecycle.
   State state = 7 [
@@ -88,12 +108,25 @@ message Workspace {
 
   // When a command or a start last used the workspace. An idle
   // workspace is stopped, its files kept.
-  google.protobuf.Timestamp last_active_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp last_active_time = 9 [
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 }
 
 // A Mount is a filesystem a workspace sees at a path.
 message Mount {
-  // The filesystem mounted. A LOCAL filesystem has one read-write mount at a time.
+  // Mode is how a workspace may use a filesystem it mounts.
+  enum Mode {
+    // Used to detect an unset field.
+    MODE_UNSPECIFIED = 0;
+    // The workspace reads and writes it. A LOCAL filesystem has one such mount at a time.
+    MODE_READ_WRITE = 1;
+    // The workspace only reads it.
+    MODE_READ_ONLY = 2;
+  }
+
+  // The filesystem mounted.
   // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
   string filesystem = 1 [
     (buf.validate.field).required = true,
@@ -114,6 +147,9 @@ message Mount {
     }
   ];
 
-  // If true, the workspace cannot write the filesystem.
-  bool read_only = 3;
+  // How the workspace may use the filesystem.
+  Mode mode = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
 }

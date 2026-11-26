@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package malonaz.workspace.v1;
+
+option go_package = "github.com/malonaz/core/genproto/workspace/v1";
+
+// OperationMetadata is the metadata of the workspace services' long-running
+// operations, set when the operation starts.
+message OperationMetadata {
+  // The resource the operation acts on.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string target = 1;
+
+  // The method the operation runs, e.g. `start` or `snapshot`.
+  string verb = 2;
+}

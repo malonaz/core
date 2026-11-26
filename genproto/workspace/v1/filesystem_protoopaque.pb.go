@@ -10,6 +10,8 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
+	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -79,8 +81,8 @@ func (x Filesystem_Kind) Number() protoreflect.EnumNumber {
 }
 
 // A Filesystem is a directory tree workspaces mount: it owns the files and
-// their history, and outlives every workspace mounting it. Stored as a
-// Kubernetes object; a LOCAL filesystem's snapshots live in object storage.
+// their history, and outlives every workspace mounting it. A LOCAL
+// filesystem's snapshot tars live in object storage.
 type Filesystem struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name           string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -279,7 +281,7 @@ type Filesystem_builder struct {
 	// The bytes the filesystem holds, as last measured.
 	UsedBytes int64
 	// The workspaces mounting the filesystem. A LOCAL filesystem has at most
-	// one that is not read-only.
+	// one in MODE_READ_WRITE.
 	Attachments []*Attachment
 	// The filesystem's latest snapshot. LOCAL only; empty until the first.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
@@ -307,7 +309,7 @@ func (b0 Filesystem_builder) Build() *Filesystem {
 type Attachment struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Workspace string                 `protobuf:"bytes,1,opt,name=workspace,proto3"`
-	xxx_hidden_ReadOnly  bool                   `protobuf:"varint,2,opt,name=read_only,json=readOnly,proto3"`
+	xxx_hidden_Mode      Mount_Mode             `protobuf:"varint,2,opt,name=mode,proto3,enum=malonaz.workspace.v1.Mount_Mode"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -344,19 +346,19 @@ func (x *Attachment) GetWorkspace() string {
 	return ""
 }
 
-func (x *Attachment) GetReadOnly() bool {
+func (x *Attachment) GetMode() Mount_Mode {
 	if x != nil {
-		return x.xxx_hidden_ReadOnly
+		return x.xxx_hidden_Mode
 	}
-	return false
+	return Mount_MODE_UNSPECIFIED
 }
 
 func (x *Attachment) SetWorkspace(v string) {
 	x.xxx_hidden_Workspace = v
 }
 
-func (x *Attachment) SetReadOnly(v bool) {
-	x.xxx_hidden_ReadOnly = v
+func (x *Attachment) SetMode(v Mount_Mode) {
+	x.xxx_hidden_Mode = v
 }
 
 type Attachment_builder struct {
@@ -365,8 +367,8 @@ type Attachment_builder struct {
 	// The workspace mounting the filesystem.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Workspace string
-	// If true, the workspace cannot write the filesystem.
-	ReadOnly bool
+	// How the workspace may use the filesystem.
+	Mode Mount_Mode
 }
 
 func (b0 Attachment_builder) Build() *Attachment {
@@ -374,7 +376,7 @@ func (b0 Attachment_builder) Build() *Attachment {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Workspace = b.Workspace
-	x.xxx_hidden_ReadOnly = b.ReadOnly
+	x.xxx_hidden_Mode = b.Mode
 	return m0
 }
 
@@ -382,7 +384,7 @@ var File_malonaz_workspace_v1_filesystem_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"\n" +
-	"%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc3\a\n" +
+	"%malonaz/workspace/v1/filesystem.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\x1a$malonaz/workspace/v1/workspace.proto\"\x88\b\n" +
 	"\n" +
 	"Filesystem\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
@@ -390,14 +392,14 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"createTime\x12@\n" +
 	"\vupdate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12\x12\n" +
-	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xd2\x01\n" +
-	"\x06labels\x18\x05 \x03(\v2,.malonaz.workspace.v1.Filesystem.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x12H\n" +
+	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xda\x01\n" +
+	"\x06labels\x18\x05 \x03(\v2,.malonaz.workspace.v1.Filesystem.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12H\n" +
 	"\x04kind\x18\x06 \x01(\x0e2%.malonaz.workspace.v1.Filesystem.KindB\r\xe0A\x05\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04kind\x12(\n" +
 	"\vquota_bytes\x18\a \x01(\x03B\a\xbaH\x04\"\x02(\x00R\n" +
 	"quotaBytes\x12\"\n" +
 	"\n" +
-	"used_bytes\x18\b \x01(\x03B\x03\xe0A\x03R\tusedBytes\x12G\n" +
-	"\vattachments\x18\t \x03(\v2 .malonaz.workspace.v1.AttachmentB\x03\xe0A\x03R\vattachments\x12O\n" +
+	"used_bytes\x18\b \x01(\x03B\x03\xe0A\x03R\tusedBytes\x12M\n" +
+	"\vattachments\x18\t \x03(\v2 .malonaz.workspace.v1.AttachmentB\t\xe0A\x03\xba\xea\x0f\x02\x10\x01R\vattachments\x12O\n" +
 	"\x0flatest_snapshot\x18\n" +
 	" \x01(\tB&\xe0A\x03\xfaA \n" +
 	"\x1eworkspace.malonaz.com/SnapshotR\x0elatestSnapshot\x1a9\n" +
@@ -408,14 +410,16 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"KIND_LOCAL\x10\x01\x12\x0f\n" +
-	"\vKIND_SHARED\x10\x02:\x82\x01\xeaA\x7f\n" +
+	"\vKIND_SHARED\x10\x02:\xb9\x01\xeaA\x7f\n" +
 	" workspace.malonaz.com/Filesystem\x12Borganizations/{organization}/users/{user}/filesystems/{filesystem}*\vfilesystems2\n" +
-	"filesystem\"s\n" +
+	"filesystemҦ\x04\v\n" +
+	"\tworkspace\x82\xf6,$5c3c0d12-d6cb-4cc6-97d9-e4a3d930f54d\"\x98\x01\n" +
 	"\n" +
 	"Attachment\x12H\n" +
 	"\tworkspace\x18\x01 \x01(\tB*\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12\x1b\n" +
-	"\tread_only\x18\x02 \x01(\bR\breadOnlyB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\tworkspace\x12@\n" +
+	"\x04mode\x18\x02 \x01(\x0e2 .malonaz.workspace.v1.Mount.ModeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04modeB/Z-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
 var file_malonaz_workspace_v1_filesystem_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_workspace_v1_filesystem_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
@@ -425,6 +429,7 @@ var file_malonaz_workspace_v1_filesystem_proto_goTypes = []any{
 	(*Attachment)(nil),            // 2: malonaz.workspace.v1.Attachment
 	nil,                           // 3: malonaz.workspace.v1.Filesystem.LabelsEntry
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(Mount_Mode)(0),               // 5: malonaz.workspace.v1.Mount.Mode
 }
 var file_malonaz_workspace_v1_filesystem_proto_depIdxs = []int32{
 	4, // 0: malonaz.workspace.v1.Filesystem.create_time:type_name -> google.protobuf.Timestamp
@@ -432,11 +437,12 @@ var file_malonaz_workspace_v1_filesystem_proto_depIdxs = []int32{
 	3, // 2: malonaz.workspace.v1.Filesystem.labels:type_name -> malonaz.workspace.v1.Filesystem.LabelsEntry
 	0, // 3: malonaz.workspace.v1.Filesystem.kind:type_name -> malonaz.workspace.v1.Filesystem.Kind
 	2, // 4: malonaz.workspace.v1.Filesystem.attachments:type_name -> malonaz.workspace.v1.Attachment
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	5, // 5: malonaz.workspace.v1.Attachment.mode:type_name -> malonaz.workspace.v1.Mount.Mode
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_v1_filesystem_proto_init() }
@@ -444,6 +450,7 @@ func file_malonaz_workspace_v1_filesystem_proto_init() {
 	if File_malonaz_workspace_v1_filesystem_proto != nil {
 		return
 	}
+	file_malonaz_workspace_v1_workspace_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

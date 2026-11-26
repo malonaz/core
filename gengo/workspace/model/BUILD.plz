@@ -1,0 +1,17 @@
+go_library(
+    name = "model",
+    srcs = [
+        "filesystem_model.pb.go",
+        "labels_model.pb.go",
+        "operation_model.pb.go",
+        "snapshot_model.pb.go",
+        "workspace_model.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/pbutil",
+        "//malonaz/workspace/v1",
+        "//third_party/go:go.einride.tech__aip__resourcename",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
+    ],
+)

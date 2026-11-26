@@ -7,6 +7,7 @@
 package v1
 
 import (
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	v1 "github.com/malonaz/core/genproto/workspace/v1"
 	grpc "google.golang.org/grpc"
@@ -70,12 +71,13 @@ type FilesystemServiceClient interface {
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListFilesystems(ctx context.Context, in *ListFilesystemsRequest, opts ...grpc.CallOption) (*ListFilesystemsResponse, error)
 	// Delete a filesystem, its files and its history. FAILED_PRECONDITION while
-	// it has attachments.
+	// it has attachments. Long-running: deleting its history in object storage
+	// takes a while.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteFilesystem(ctx context.Context, in *DeleteFilesystemRequest, opts ...grpc.CallOption) (*v1.Filesystem, error)
+	DeleteFilesystem(ctx context.Context, in *DeleteFilesystemRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Attach a filesystem to a workspace mounting it. Attaching it again to the
-	// same workspace updates `read_only`. FAILED_PRECONDITION for a read-write
+	// same workspace updates its `mode`. FAILED_PRECONDITION for a read-write
 	// attachment of a LOCAL filesystem another workspace writes.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -87,10 +89,11 @@ type FilesystemServiceClient interface {
 	DetachFilesystem(ctx context.Context, in *DetachFilesystemRequest, opts ...grpc.CallOption) (*v1.Filesystem, error)
 	// Snapshot a LOCAL filesystem now. A filesystem unchanged since its last
 	// snapshot records an empty one, so every turn maps to a snapshot.
-	// FAILED_PRECONDITION for a SHARED filesystem.
+	// FAILED_PRECONDITION for a SHARED filesystem. Long-running: the snapshot
+	// is uploaded to object storage.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateSnapshot(ctx context.Context, in *CreateSnapshotRequest, opts ...grpc.CallOption) (*v1.Snapshot, error)
+	CreateSnapshot(ctx context.Context, in *CreateSnapshotRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// Get a snapshot.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
@@ -140,9 +143,9 @@ func (c *filesystemServiceClient) ListFilesystems(ctx context.Context, in *ListF
 	return out, nil
 }
 
-func (c *filesystemServiceClient) DeleteFilesystem(ctx context.Context, in *DeleteFilesystemRequest, opts ...grpc.CallOption) (*v1.Filesystem, error) {
+func (c *filesystemServiceClient) DeleteFilesystem(ctx context.Context, in *DeleteFilesystemRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Filesystem)
+	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, FilesystemService_DeleteFilesystem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -170,9 +173,9 @@ func (c *filesystemServiceClient) DetachFilesystem(ctx context.Context, in *Deta
 	return out, nil
 }
 
-func (c *filesystemServiceClient) CreateSnapshot(ctx context.Context, in *CreateSnapshotRequest, opts ...grpc.CallOption) (*v1.Snapshot, error) {
+func (c *filesystemServiceClient) CreateSnapshot(ctx context.Context, in *CreateSnapshotRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.Snapshot)
+	out := new(longrunningpb.Operation)
 	err := c.cc.Invoke(ctx, FilesystemService_CreateSnapshot_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -239,12 +242,13 @@ type FilesystemServiceServer interface {
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListFilesystems(context.Context, *ListFilesystemsRequest) (*ListFilesystemsResponse, error)
 	// Delete a filesystem, its files and its history. FAILED_PRECONDITION while
-	// it has attachments.
+	// it has attachments. Long-running: deleting its history in object storage
+	// takes a while.
 	//
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	DeleteFilesystem(context.Context, *DeleteFilesystemRequest) (*v1.Filesystem, error)
+	DeleteFilesystem(context.Context, *DeleteFilesystemRequest) (*longrunningpb.Operation, error)
 	// Attach a filesystem to a workspace mounting it. Attaching it again to the
-	// same workspace updates `read_only`. FAILED_PRECONDITION for a read-write
+	// same workspace updates its `mode`. FAILED_PRECONDITION for a read-write
 	// attachment of a LOCAL filesystem another workspace writes.
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
@@ -256,10 +260,11 @@ type FilesystemServiceServer interface {
 	DetachFilesystem(context.Context, *DetachFilesystemRequest) (*v1.Filesystem, error)
 	// Snapshot a LOCAL filesystem now. A filesystem unchanged since its last
 	// snapshot records an empty one, so every turn maps to a snapshot.
-	// FAILED_PRECONDITION for a SHARED filesystem.
+	// FAILED_PRECONDITION for a SHARED filesystem. Long-running: the snapshot
+	// is uploaded to object storage.
 	//
 	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateSnapshot(context.Context, *CreateSnapshotRequest) (*v1.Snapshot, error)
+	CreateSnapshot(context.Context, *CreateSnapshotRequest) (*longrunningpb.Operation, error)
 	// Get a snapshot.
 	//
 	// See: https://google.aip.dev/131 (Standard methods: Get).
@@ -287,7 +292,7 @@ func (UnimplementedFilesystemServiceServer) GetFilesystem(context.Context, *GetF
 func (UnimplementedFilesystemServiceServer) ListFilesystems(context.Context, *ListFilesystemsRequest) (*ListFilesystemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFilesystems not implemented")
 }
-func (UnimplementedFilesystemServiceServer) DeleteFilesystem(context.Context, *DeleteFilesystemRequest) (*v1.Filesystem, error) {
+func (UnimplementedFilesystemServiceServer) DeleteFilesystem(context.Context, *DeleteFilesystemRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFilesystem not implemented")
 }
 func (UnimplementedFilesystemServiceServer) AttachFilesystem(context.Context, *AttachFilesystemRequest) (*v1.Filesystem, error) {
@@ -296,7 +301,7 @@ func (UnimplementedFilesystemServiceServer) AttachFilesystem(context.Context, *A
 func (UnimplementedFilesystemServiceServer) DetachFilesystem(context.Context, *DetachFilesystemRequest) (*v1.Filesystem, error) {
 	return nil, status.Error(codes.Unimplemented, "method DetachFilesystem not implemented")
 }
-func (UnimplementedFilesystemServiceServer) CreateSnapshot(context.Context, *CreateSnapshotRequest) (*v1.Snapshot, error) {
+func (UnimplementedFilesystemServiceServer) CreateSnapshot(context.Context, *CreateSnapshotRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateSnapshot not implemented")
 }
 func (UnimplementedFilesystemServiceServer) GetSnapshot(context.Context, *GetSnapshotRequest) (*v1.Snapshot, error) {

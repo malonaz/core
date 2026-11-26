@@ -10,6 +10,8 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
+	_ "github.com/malonaz/core/genproto/codegen/model/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -31,12 +33,15 @@ type Workspace_State int32
 const (
 	// Used to detect an unset field.
 	Workspace_STATE_UNSPECIFIED Workspace_State = 0
-	// The workspace has no pod: its next Exec or StartWorkspace starts one.
+	// The workspace has no pod: StartWorkspace or its next Exec starts one.
 	Workspace_STATE_STOPPED Workspace_State = 1
 	// The pod is starting: an Exec waits for it.
 	Workspace_STATE_STARTING Workspace_State = 2
-	// The pod is ready to run commands.
-	Workspace_STATE_READY Workspace_State = 3
+	// The pod runs commands.
+	Workspace_STATE_RUNNING Workspace_State = 3
+	// The workspace is snapshotting its LOCAL read-write mounts before its pod
+	// is deleted.
+	Workspace_STATE_STOPPING Workspace_State = 4
 )
 
 // Enum value maps for Workspace_State.
@@ -45,13 +50,15 @@ var (
 		0: "STATE_UNSPECIFIED",
 		1: "STATE_STOPPED",
 		2: "STATE_STARTING",
-		3: "STATE_READY",
+		3: "STATE_RUNNING",
+		4: "STATE_STOPPING",
 	}
 	Workspace_State_value = map[string]int32{
 		"STATE_UNSPECIFIED": 0,
 		"STATE_STOPPED":     1,
 		"STATE_STARTING":    2,
-		"STATE_READY":       3,
+		"STATE_RUNNING":     3,
+		"STATE_STOPPING":    4,
 	}
 )
 
@@ -77,12 +84,60 @@ func (x Workspace_State) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
+// Mode is how a workspace may use a filesystem it mounts.
+type Mount_Mode int32
+
+const (
+	// Used to detect an unset field.
+	Mount_MODE_UNSPECIFIED Mount_Mode = 0
+	// The workspace reads and writes it. A LOCAL filesystem has one such mount at a time.
+	Mount_MODE_READ_WRITE Mount_Mode = 1
+	// The workspace only reads it.
+	Mount_MODE_READ_ONLY Mount_Mode = 2
+)
+
+// Enum value maps for Mount_Mode.
+var (
+	Mount_Mode_name = map[int32]string{
+		0: "MODE_UNSPECIFIED",
+		1: "MODE_READ_WRITE",
+		2: "MODE_READ_ONLY",
+	}
+	Mount_Mode_value = map[string]int32{
+		"MODE_UNSPECIFIED": 0,
+		"MODE_READ_WRITE":  1,
+		"MODE_READ_ONLY":   2,
+	}
+)
+
+func (x Mount_Mode) Enum() *Mount_Mode {
+	p := new(Mount_Mode)
+	*p = x
+	return p
+}
+
+func (x Mount_Mode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Mount_Mode) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_workspace_v1_workspace_proto_enumTypes[1].Descriptor()
+}
+
+func (Mount_Mode) Type() protoreflect.EnumType {
+	return &file_malonaz_workspace_v1_workspace_proto_enumTypes[1]
+}
+
+func (x Mount_Mode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // A Workspace is a sandboxed shell for an agent, shared by its sub-agents
 // unless they create their own: a pod with the
 // filesystems it mounts and a `/tmp` lost whenever the pod goes. It owns its
 // compute and its mounts, not the files: those live on its filesystems, which
-// outlive it and may be mounted by other workspaces. Stored as a Kubernetes
-// object, the only state its services keep.
+// outlive it and may be mounted by other workspaces. Created STOPPED: its pod
+// runs only between StartWorkspace and StopWorkspace or the idle reaper.
 type Workspace struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name           string                 `protobuf:"bytes,1,opt,name=name,proto3"`
@@ -304,7 +359,7 @@ type Mount struct {
 	state                 protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Filesystem string                 `protobuf:"bytes,1,opt,name=filesystem,proto3"`
 	xxx_hidden_Path       string                 `protobuf:"bytes,2,opt,name=path,proto3"`
-	xxx_hidden_ReadOnly   bool                   `protobuf:"varint,3,opt,name=read_only,json=readOnly,proto3"`
+	xxx_hidden_Mode       Mount_Mode             `protobuf:"varint,3,opt,name=mode,proto3,enum=malonaz.workspace.v1.Mount_Mode"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -348,11 +403,11 @@ func (x *Mount) GetPath() string {
 	return ""
 }
 
-func (x *Mount) GetReadOnly() bool {
+func (x *Mount) GetMode() Mount_Mode {
 	if x != nil {
-		return x.xxx_hidden_ReadOnly
+		return x.xxx_hidden_Mode
 	}
-	return false
+	return Mount_MODE_UNSPECIFIED
 }
 
 func (x *Mount) SetFilesystem(v string) {
@@ -363,20 +418,20 @@ func (x *Mount) SetPath(v string) {
 	x.xxx_hidden_Path = v
 }
 
-func (x *Mount) SetReadOnly(v bool) {
-	x.xxx_hidden_ReadOnly = v
+func (x *Mount) SetMode(v Mount_Mode) {
+	x.xxx_hidden_Mode = v
 }
 
 type Mount_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The filesystem mounted. A LOCAL filesystem has one read-write mount at a time.
+	// The filesystem mounted.
 	// Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
 	Filesystem string
 	// The absolute path the filesystem is mounted at, outside `/tmp` and `/run`.
 	Path string
-	// If true, the workspace cannot write the filesystem.
-	ReadOnly bool
+	// How the workspace may use the filesystem.
+	Mode Mount_Mode
 }
 
 func (b0 Mount_builder) Build() *Mount {
@@ -385,7 +440,7 @@ func (b0 Mount_builder) Build() *Mount {
 	_, _ = b, x
 	x.xxx_hidden_Filesystem = b.Filesystem
 	x.xxx_hidden_Path = b.Path
-	x.xxx_hidden_ReadOnly = b.ReadOnly
+	x.xxx_hidden_Mode = b.Mode
 	return m0
 }
 
@@ -393,61 +448,71 @@ var File_malonaz_workspace_v1_workspace_proto protoreflect.FileDescriptor
 
 const file_malonaz_workspace_v1_workspace_proto_rawDesc = "" +
 	"\n" +
-	"$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf4\a\n" +
+	"$malonaz/workspace/v1/workspace.proto\x12\x14malonaz.workspace.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/codegen/model/v1/model.proto\"\xd5\b\n" +
 	"\tWorkspace\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"createTime\x12@\n" +
 	"\vupdate_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12\x12\n" +
-	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xd1\x01\n" +
-	"\x06labels\x18\x05 \x03(\v2+.malonaz.workspace.v1.Workspace.LabelsEntryB\x8b\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$R\x06labels\x12=\n" +
-	"\x06mounts\x18\x06 \x03(\v2\x1b.malonaz.workspace.v1.MountB\b\xbaH\x05\x92\x01\x02\x10\x10R\x06mounts\x12H\n" +
+	"\x04etag\x18\x04 \x01(\tR\x04etag\x12\xd9\x01\n" +
+	"\x06labels\x18\x05 \x03(\v2+.malonaz.workspace.v1.Workspace.LabelsEntryB\x93\x01\xbaH\x87\x01\x9a\x01\x83\x01\x10@\"drb2`^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$*\x19r\x17\x18?2\x13^[a-z0-9_\\-\\p{L}]*$\xba\xea\x0f\x04\x10\x01 \x01R\x06labels\x12C\n" +
+	"\x06mounts\x18\x06 \x03(\v2\x1b.malonaz.workspace.v1.MountB\x0e\xbaH\x05\x92\x01\x02\x10\x10\xba\xea\x0f\x02\x10\x01R\x06mounts\x12H\n" +
 	"\x05state\x18\a \x01(\x0e2%.malonaz.workspace.v1.Workspace.StateB\v\xe0A\x03\xbaH\x05\x82\x01\x02\x10\x01R\x05state\x12\x17\n" +
-	"\x04node\x18\b \x01(\tB\x03\xe0A\x03R\x04node\x12I\n" +
-	"\x10last_active_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x0elastActiveTime\x1a9\n" +
+	"\x04node\x18\b \x01(\tB\x03\xe0A\x03R\x04node\x12O\n" +
+	"\x10last_active_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\t\xe0A\x03\xba\xea\x0f\x02 \x01R\x0elastActiveTime\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"V\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"l\n" +
 	"\x05State\x12\x15\n" +
 	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATE_STOPPED\x10\x01\x12\x12\n" +
-	"\x0eSTATE_STARTING\x10\x02\x12\x0f\n" +
-	"\vSTATE_READY\x10\x03:\xe1\x01\xeaAz\n" +
+	"\x0eSTATE_STARTING\x10\x02\x12\x11\n" +
+	"\rSTATE_RUNNING\x10\x03\x12\x12\n" +
+	"\x0eSTATE_STOPPING\x10\x04:\x98\x02\xeaAz\n" +
 	"\x1fworkspace.malonaz.com/Workspace\x12@organizations/{organization}/users/{user}/workspaces/{workspace}*\n" +
 	"workspaces2\tworkspace\xbaHa\x1a_\n" +
-	"\x1cworkspace.unique_mount_paths\x12\x1amount paths must be unique\x1a#this.mounts.map(m, m.path).unique()\"\xea\x02\n" +
+	"\x1cworkspace.unique_mount_paths\x12\x1amount paths must be unique\x1a#this.mounts.map(m, m.path).unique()Ҧ\x04\v\n" +
+	"\tworkspace\x82\xf6,$b983cfdf-12d6-4862-ac8c-afc6d67edf2f\"\xd6\x03\n" +
 	"\x05Mount\x12K\n" +
 	"\n" +
 	"filesystem\x18\x01 \x01(\tB+\xfaA\"\n" +
 	" workspace.malonaz.com/Filesystem\xbaH\x03\xc8\x01\x01R\n" +
 	"filesystem\x12\xf6\x01\n" +
 	"\x04path\x18\x02 \x01(\tB\xe1\x01\xbaH\xdd\x01\xba\x01\xaa\x01\n" +
-	"\x13mount.path_reserved\x126path must not be under /tmp, /run, /proc, /sys or /dev\x1a[!['/tmp', '/run', '/proc', '/sys', '/dev'].exists(p, this == p || this.startsWith(p + '/'))\xc8\x01\x01r*\x18\xff\x012%^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$R\x04path\x12\x1b\n" +
-	"\tread_only\x18\x03 \x01(\bR\breadOnlyB\x86\x01\xeaAT\n" +
+	"\x13mount.path_reserved\x126path must not be under /tmp, /run, /proc, /sys or /dev\x1a[!['/tmp', '/run', '/proc', '/sys', '/dev'].exists(p, this == p || this.startsWith(p + '/'))\xc8\x01\x01r*\x18\xff\x012%^/[a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*$R\x04path\x12@\n" +
+	"\x04mode\x18\x03 \x01(\x0e2 .malonaz.workspace.v1.Mount.ModeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04mode\"E\n" +
+	"\x04Mode\x12\x14\n" +
+	"\x10MODE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fMODE_READ_WRITE\x10\x01\x12\x12\n" +
+	"\x0eMODE_READ_ONLY\x10\x02B\xe8\x01\xeaA_\n" +
+	"\"workspace.malonaz.com/Organization\x12\x1corganizations/{organization}*\rorganizations2\forganization\xeaAT\n" +
 	"\x1aworkspace.malonaz.com/User\x12)organizations/{organization}/users/{user}*\x05users2\x04userZ-github.com/malonaz/core/genproto/workspace/v1b\x06proto3"
 
-var file_malonaz_workspace_v1_workspace_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_malonaz_workspace_v1_workspace_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_malonaz_workspace_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_malonaz_workspace_v1_workspace_proto_goTypes = []any{
 	(Workspace_State)(0),          // 0: malonaz.workspace.v1.Workspace.State
-	(*Workspace)(nil),             // 1: malonaz.workspace.v1.Workspace
-	(*Mount)(nil),                 // 2: malonaz.workspace.v1.Mount
-	nil,                           // 3: malonaz.workspace.v1.Workspace.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(Mount_Mode)(0),               // 1: malonaz.workspace.v1.Mount.Mode
+	(*Workspace)(nil),             // 2: malonaz.workspace.v1.Workspace
+	(*Mount)(nil),                 // 3: malonaz.workspace.v1.Mount
+	nil,                           // 4: malonaz.workspace.v1.Workspace.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 }
 var file_malonaz_workspace_v1_workspace_proto_depIdxs = []int32{
-	4, // 0: malonaz.workspace.v1.Workspace.create_time:type_name -> google.protobuf.Timestamp
-	4, // 1: malonaz.workspace.v1.Workspace.update_time:type_name -> google.protobuf.Timestamp
-	3, // 2: malonaz.workspace.v1.Workspace.labels:type_name -> malonaz.workspace.v1.Workspace.LabelsEntry
-	2, // 3: malonaz.workspace.v1.Workspace.mounts:type_name -> malonaz.workspace.v1.Mount
+	5, // 0: malonaz.workspace.v1.Workspace.create_time:type_name -> google.protobuf.Timestamp
+	5, // 1: malonaz.workspace.v1.Workspace.update_time:type_name -> google.protobuf.Timestamp
+	4, // 2: malonaz.workspace.v1.Workspace.labels:type_name -> malonaz.workspace.v1.Workspace.LabelsEntry
+	3, // 3: malonaz.workspace.v1.Workspace.mounts:type_name -> malonaz.workspace.v1.Mount
 	0, // 4: malonaz.workspace.v1.Workspace.state:type_name -> malonaz.workspace.v1.Workspace.State
-	4, // 5: malonaz.workspace.v1.Workspace.last_active_time:type_name -> google.protobuf.Timestamp
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	5, // 5: malonaz.workspace.v1.Workspace.last_active_time:type_name -> google.protobuf.Timestamp
+	1, // 6: malonaz.workspace.v1.Mount.mode:type_name -> malonaz.workspace.v1.Mount.Mode
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_v1_workspace_proto_init() }
@@ -460,7 +525,7 @@ func file_malonaz_workspace_v1_workspace_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_workspace_v1_workspace_proto_rawDesc), len(file_malonaz_workspace_v1_workspace_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,

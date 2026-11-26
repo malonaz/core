@@ -4,6 +4,10 @@ package malonaz.workspace.workspace_manager_service.v1;
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/empty.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
 import "malonaz/workspace/v1/workspace.proto";
 import "malonaz/workspace/workspace_manager_service/v1/workspace.proto";
 
@@ -24,18 +28,21 @@ option go_package = "github.com/malonaz/core/genproto/workspace/workspace_manage
 //
 // # Lifecycle
 //
-// Creating a workspace makes the resource only, STOPPED; StartWorkspace starts
-// its pod, STARTING then READY, and StopWorkspace or the idle reaper deletes
-// the pod again. Files live on the filesystems, so stopping loses only `/tmp`.
-// A server in front that wants a running workspace calls CreateWorkspace then
-// StartWorkspace.
+// Creating a workspace makes the resource only, STOPPED. StartWorkspace starts
+// its pod, STARTING then RUNNING; StopWorkspace, or the idle reaper, snapshots
+// its LOCAL read-write mounts and deletes the pod, STOPPING then STOPPED.
+// Files live on the filesystems, so stopping loses only `/tmp`. Starting,
+// stopping and snapshotting are long-running operations run by the
+// scheduler; a server in front that wants a running workspace calls
+// CreateWorkspace, then StartWorkspace.
 //
 // # Secrets
 //
-// Secrets reach a pod only through StartWorkspace and SetWorkspaceSecrets, as
-// files under `/run/workspace/secrets` and env vars in `/run/workspace/env`,
-// which every shell sources. They are never stored: a stopped workspace has
-// none, and its next start carries them again.
+// Secrets reach a pod only through SetWorkspaceSecrets, as files under
+// `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
+// shell sources. They are never stored, nor carried by an operation: a pod
+// starts with none, and loses them when it stops or is recreated, so the
+// caller sets them once the workspace is RUNNING.
 //
 // # Commands
 //
@@ -43,7 +50,7 @@ option go_package = "github.com/malonaz/core/genproto/workspace/workspace_manage
 // [WorkspaceService][malonaz.workspace.workspace_service.v1.WorkspaceService]
 // and forwards each call to the pod of the workspace named in its
 // `x-workspace` metadata, starting a stopped one (with no secrets) and
-// waiting for it to be ready within the call's deadline.
+// waiting for it to be running within the call's deadline.
 service WorkspaceManagerService {
   option (google.api.default_host) = "workspace.malonaz.com";
 
@@ -60,6 +67,7 @@ service WorkspaceManagerService {
       body: "workspace"
     };
     option (google.api.method_signature) = "parent,workspace";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Workspace";
   }
 
   // Get a workspace.
@@ -69,6 +77,7 @@ service WorkspaceManagerService {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/workspaces/*}"};
     option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Workspace";
   }
 
   // List workspaces.
@@ -78,6 +87,7 @@ service WorkspaceManagerService {
     option idempotency_level = NO_SIDE_EFFECTS;
     option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/workspaces"};
     option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Workspace";
   }
 
   // Update a workspace's mounts or labels. A mounts change attaches the
@@ -92,45 +102,64 @@ service WorkspaceManagerService {
       body: "workspace"
     };
     option (google.api.method_signature) = "workspace,update_mask";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Workspace";
   }
 
   // Delete a workspace: its pod, and its attachment to each filesystem it
   // mounts. The filesystems and their files are untouched.
   //
   // See: https://google.aip.dev/135 (Standard methods: Delete).
-  rpc DeleteWorkspace(DeleteWorkspaceRequest) returns (malonaz.workspace.v1.Workspace) {
+  rpc DeleteWorkspace(DeleteWorkspaceRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/workspaces/*}"};
     option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Workspace";
   }
 
-  // Start a stopped workspace's pod with its mounts and the request's
-  // secrets. Returns at once, STARTING; an Exec waits for READY.
-  // Idempotent: a starting or ready workspace is returned as is.
+  // Start a stopped workspace's pod with its mounts, with no secrets. The
+  // operation is done once the workspace is RUNNING; a starting or running
+  // workspace is returned as is.
   //
   // See: https://google.aip.dev/136 (Custom methods).
-  rpc StartWorkspace(StartWorkspaceRequest) returns (malonaz.workspace.v1.Workspace) {
+  rpc StartWorkspace(StartWorkspaceRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {
       post: "/v1/{name=organizations/*/users/*/workspaces/*}:start"
       body: "*"
     };
     option (google.api.method_signature) = "name";
+    option (google.longrunning.operation_info) = {
+      response_type: "malonaz.workspace.v1.Workspace"
+      metadata_type: "malonaz.workspace.v1.OperationMetadata"
+    };
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 120}
+      max_attempts: 3
+    };
   }
 
   // Stop a workspace: snapshot its LOCAL read-write mounts, then delete its
-  // pod and secrets. Its files stay; its next Exec or StartWorkspace starts it
-  // again. Idempotent on a stopped workspace.
+  // pod and secrets. Its files stay. The operation is done once the
+  // workspace is STOPPED; a stopped workspace is returned as is.
   //
   // See: https://google.aip.dev/136 (Custom methods).
-  rpc StopWorkspace(StopWorkspaceRequest) returns (malonaz.workspace.v1.Workspace) {
+  rpc StopWorkspace(StopWorkspaceRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {
       post: "/v1/{name=organizations/*/users/*/workspaces/*}:stop"
       body: "*"
     };
     option (google.api.method_signature) = "name";
+    option (google.longrunning.operation_info) = {
+      response_type: "malonaz.workspace.v1.Workspace"
+      metadata_type: "malonaz.workspace.v1.OperationMetadata"
+    };
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 600}
+      max_attempts: 3
+    };
   }
 
   // Replace a running workspace's secrets, effective in every shell started
-  // after. A no-op on a stopped workspace.
+  // after. A no-op on a workspace that is not running. Never long-running, so
+  // its secrets are never stored in an operation.
   //
   // See: https://google.aip.dev/136 (Custom methods).
   rpc SetWorkspaceSecrets(SetWorkspaceSecretsRequest) returns (SetWorkspaceSecretsResponse) {
@@ -145,11 +174,19 @@ service WorkspaceManagerService {
   // FilesystemService's CreateSnapshot.
   //
   // See: https://google.aip.dev/136 (Custom methods).
-  rpc SnapshotWorkspace(SnapshotWorkspaceRequest) returns (SnapshotWorkspaceResponse) {
+  rpc SnapshotWorkspace(SnapshotWorkspaceRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {
       post: "/v1/{name=organizations/*/users/*/workspaces/*}:snapshot"
       body: "*"
     };
     option (google.api.method_signature) = "name";
+    option (google.longrunning.operation_info) = {
+      response_type: "SnapshotWorkspaceResponse"
+      metadata_type: "malonaz.workspace.v1.OperationMetadata"
+    };
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 600}
+      max_attempts: 3
+    };
   }
 }

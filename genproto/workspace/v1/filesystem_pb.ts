@@ -9,18 +9,22 @@ import { file_google_api_field_behavior } from "../../../google/api/field_behavi
 import { file_google_api_resource } from "../../../google/api/resource_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import { file_malonaz_codegen_aip_v1_aip } from "../../codegen/aip/v1/aip_pb";
+import { file_malonaz_codegen_model_v1_model } from "../../codegen/model/v1/model_pb";
+import type { Mount_Mode } from "./workspace_pb";
+import { file_malonaz_workspace_v1_workspace } from "./workspace_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/workspace/v1/filesystem.proto.
  */
 export const file_malonaz_workspace_v1_filesystem: GenFile = /*@__PURE__*/
-  fileDesc("CiVtYWxvbmF6L3dvcmtzcGFjZS92MS9maWxlc3lzdGVtLnByb3RvEhRtYWxvbmF6LndvcmtzcGFjZS52MSLRBgoKRmlsZXN5c3RlbRIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSDAoEZXRhZxgEIAEoCRLKAQoGbGFiZWxzGAUgAygLMiwubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbS5MYWJlbHNFbnRyeUKLAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiQSQgoEa2luZBgGIAEoDjIlLm1hbG9uYXoud29ya3NwYWNlLnYxLkZpbGVzeXN0ZW0uS2luZEIN4EEFukgHggEEEAEgABIcCgtxdW90YV9ieXRlcxgHIAEoA0IHukgEIgIoABIXCgp1c2VkX2J5dGVzGAggASgDQgPgQQMSOgoLYXR0YWNobWVudHMYCSADKAsyIC5tYWxvbmF6LndvcmtzcGFjZS52MS5BdHRhY2htZW50QgPgQQMSPwoPbGF0ZXN0X3NuYXBzaG90GAogASgJQibgQQP6QSAKHndvcmtzcGFjZS5tYWxvbmF6LmNvbS9TbmFwc2hvdBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIj0KBEtpbmQSFAoQS0lORF9VTlNQRUNJRklFRBAAEg4KCktJTkRfTE9DQUwQARIPCgtLSU5EX1NIQVJFRBACOoIB6kF/CiB3b3Jrc3BhY2UubWFsb25hei5jb20vRmlsZXN5c3RlbRJCb3JnYW5pemF0aW9ucy97b3JnYW5pemF0aW9ufS91c2Vycy97dXNlcn0vZmlsZXN5c3RlbXMve2ZpbGVzeXN0ZW19KgtmaWxlc3lzdGVtczIKZmlsZXN5c3RlbSJeCgpBdHRhY2htZW50Ej0KCXdvcmtzcGFjZRgBIAEoCUIq+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEhEKCXJlYWRfb25seRgCIAEoCEIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp]);
+  fileDesc("CiVtYWxvbmF6L3dvcmtzcGFjZS92MS9maWxlc3lzdGVtLnByb3RvEhRtYWxvbmF6LndvcmtzcGFjZS52MSKWBwoKRmlsZXN5c3RlbRIRCgRuYW1lGAEgASgJQgPgQQgSNAoLY3JlYXRlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSNAoLdXBkYXRlX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSDAoEZXRhZxgEIAEoCRLSAQoGbGFiZWxzGAUgAygLMiwubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbS5MYWJlbHNFbnRyeUKTAbpIhwGaAYMBEEAiZHJiMmBeKFthLXpBLVowLTldKFthLXpBLVowLTkuLV17MCwyNTF9W2EtekEtWjAtOV0pPy8pP1thLXpBLVowLTldKFthLXpBLVowLTlfLi1dezAsNjF9W2EtekEtWjAtOV0pPyQqGXIXGD8yE15bYS16MC05X1wtXHB7TH1dKiS66g8EEAEgARJCCgRraW5kGAYgASgOMiUubWFsb25hei53b3Jrc3BhY2UudjEuRmlsZXN5c3RlbS5LaW5kQg3gQQW6SAeCAQQQASAAEhwKC3F1b3RhX2J5dGVzGAcgASgDQge6SAQiAigAEhcKCnVzZWRfYnl0ZXMYCCABKANCA+BBAxJACgthdHRhY2htZW50cxgJIAMoCzIgLm1hbG9uYXoud29ya3NwYWNlLnYxLkF0dGFjaG1lbnRCCeBBA7rqDwIQARI/Cg9sYXRlc3Rfc25hcHNob3QYCiABKAlCJuBBA/pBIAoed29ya3NwYWNlLm1hbG9uYXouY29tL1NuYXBzaG90Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiPQoES2luZBIUChBLSU5EX1VOU1BFQ0lGSUVEEAASDgoKS0lORF9MT0NBTBABEg8KC0tJTkRfU0hBUkVEEAI6uQHqQX8KIHdvcmtzcGFjZS5tYWxvbmF6LmNvbS9GaWxlc3lzdGVtEkJvcmdhbml6YXRpb25zL3tvcmdhbml6YXRpb259L3VzZXJzL3t1c2VyfS9maWxlc3lzdGVtcy97ZmlsZXN5c3RlbX0qC2ZpbGVzeXN0ZW1zMgpmaWxlc3lzdGVt0qYECwoJd29ya3NwYWNlgvYsJDVjM2MwZDEyLWQ2Y2ItNGNjNi05N2Q5LWU0YTNkOTMwZjU0ZCKHAQoKQXR0YWNobWVudBI9Cgl3b3Jrc3BhY2UYASABKAlCKvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARI6CgRtb2RlGAIgASgOMiAubWFsb25hei53b3Jrc3BhY2UudjEuTW91bnQuTW9kZUIKukgHggEEEAEgAEIvWi1naXRodWIuY29tL21hbG9uYXovY29yZS9nZW5wcm90by93b3Jrc3BhY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_timestamp, file_malonaz_codegen_aip_v1_aip, file_malonaz_codegen_model_v1_model, file_malonaz_workspace_v1_workspace]);
 
 /**
  * A Filesystem is a directory tree workspaces mount: it owns the files and
- * their history, and outlives every workspace mounting it. Stored as a
- * Kubernetes object; a LOCAL filesystem's snapshots live in object storage.
+ * their history, and outlives every workspace mounting it. A LOCAL
+ * filesystem's snapshot tars live in object storage.
  *
  * @generated from message malonaz.workspace.v1.Filesystem
  */
@@ -86,7 +90,7 @@ export type Filesystem = Message<"malonaz.workspace.v1.Filesystem"> & {
 
   /**
    * The workspaces mounting the filesystem. A LOCAL filesystem has at most
-   * one that is not read-only.
+   * one in MODE_READ_WRITE.
    *
    * @generated from field: repeated malonaz.workspace.v1.Attachment attachments = 9;
    */
@@ -103,8 +107,8 @@ export type Filesystem = Message<"malonaz.workspace.v1.Filesystem"> & {
 
 /**
  * A Filesystem is a directory tree workspaces mount: it owns the files and
- * their history, and outlives every workspace mounting it. Stored as a
- * Kubernetes object; a LOCAL filesystem's snapshots live in object storage.
+ * their history, and outlives every workspace mounting it. A LOCAL
+ * filesystem's snapshot tars live in object storage.
  *
  * @generated from message malonaz.workspace.v1.Filesystem
  */
@@ -170,7 +174,7 @@ export type FilesystemValid = Message<"malonaz.workspace.v1.Filesystem"> & {
 
   /**
    * The workspaces mounting the filesystem. A LOCAL filesystem has at most
-   * one that is not read-only.
+   * one in MODE_READ_WRITE.
    *
    * @generated from field: repeated malonaz.workspace.v1.Attachment attachments = 9;
    */
@@ -246,11 +250,11 @@ export type Attachment = Message<"malonaz.workspace.v1.Attachment"> & {
   workspace: string;
 
   /**
-   * If true, the workspace cannot write the filesystem.
+   * How the workspace may use the filesystem.
    *
-   * @generated from field: bool read_only = 2;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 2;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**
@@ -268,11 +272,11 @@ export type AttachmentValid = Message<"malonaz.workspace.v1.Attachment"> & {
   workspace: string;
 
   /**
-   * If true, the workspace cannot write the filesystem.
+   * How the workspace may use the filesystem.
    *
-   * @generated from field: bool read_only = 2;
+   * @generated from field: malonaz.workspace.v1.Mount.Mode mode = 2;
    */
-  readOnly: boolean;
+  mode: Mount_Mode;
 };
 
 /**

@@ -322,14 +322,14 @@ type ListWorkspacesRequest struct {
 	// to list across users.
 	// Format: organizations/{organization}/users/{user}
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// Requested page size. Server may return fewer workspaces than requested.
-	// If unspecified, server will pick an appropriate default.
-	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
-	// returned by a previous call.
-	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// @autogen.
+	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	// @autogen
+	OrderBy string `protobuf:"bytes,3,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
+	// Maximum number of workspaces to return (max 100).
+	PageSize int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A page token, received from a previous `ListWorkspaces` call.
+	PageToken     string `protobuf:"bytes,5,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -366,6 +366,20 @@ func (x *ListWorkspacesRequest) GetParent() string {
 	return ""
 }
 
+func (x *ListWorkspacesRequest) GetFilter() string {
+	if x != nil {
+		return x.Filter
+	}
+	return ""
+}
+
+func (x *ListWorkspacesRequest) GetOrderBy() string {
+	if x != nil {
+		return x.OrderBy
+	}
+	return ""
+}
+
 func (x *ListWorkspacesRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
@@ -384,6 +398,14 @@ func (x *ListWorkspacesRequest) SetParent(v string) {
 	x.Parent = v
 }
 
+func (x *ListWorkspacesRequest) SetFilter(v string) {
+	x.Filter = v
+}
+
+func (x *ListWorkspacesRequest) SetOrderBy(v string) {
+	x.OrderBy = v
+}
+
 func (x *ListWorkspacesRequest) SetPageSize(v int32) {
 	x.PageSize = v
 }
@@ -399,13 +421,13 @@ type ListWorkspacesRequest_builder struct {
 	// to list across users.
 	// Format: organizations/{organization}/users/{user}
 	Parent string
-	// Requested page size. Server may return fewer workspaces than requested.
-	// If unspecified, server will pick an appropriate default.
+	// @autogen.
+	Filter string
+	// @autogen
+	OrderBy string
+	// Maximum number of workspaces to return (max 100).
 	PageSize int32
-	// A token identifying a page of results the server should return.
-	// This is the value of
-	// [ListWorkspacesResponse.next_page_token][malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.next_page_token]
-	// returned by a previous call.
+	// A page token, received from a previous `ListWorkspaces` call.
 	PageToken string
 }
 
@@ -414,6 +436,8 @@ func (b0 ListWorkspacesRequest_builder) Build() *ListWorkspacesRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Parent = b.Parent
+	x.Filter = b.Filter
+	x.OrderBy = b.OrderBy
 	x.PageSize = b.PageSize
 	x.PageToken = b.PageToken
 	return m0
@@ -422,9 +446,9 @@ func (b0 ListWorkspacesRequest_builder) Build() *ListWorkspacesRequest {
 // Response message for WorkspaceManagerService.ListWorkspaces.
 type ListWorkspacesResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The workspaces, ordered by name.
+	// The workspaces.
 	Workspaces []*v1.Workspace `protobuf:"bytes,1,rep,name=workspaces,proto3" json:"workspaces,omitempty"`
-	// A token to retrieve the next page of results, or empty if there are no more results in the list.
+	// A token to retrieve the next page. Omitted when there are no more pages.
 	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -480,9 +504,9 @@ func (x *ListWorkspacesResponse) SetNextPageToken(v string) {
 type ListWorkspacesResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The workspaces, ordered by name.
+	// The workspaces.
 	Workspaces []*v1.Workspace
-	// A token to retrieve the next page of results, or empty if there are no more results in the list.
+	// A token to retrieve the next page. Omitted when there are no more pages.
 	NextPageToken string
 }
 
@@ -693,8 +717,9 @@ type StartWorkspaceRequest struct {
 	// The workspace to start.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The secrets the pod starts with. Ignored when it is already running.
-	Secrets       []*Secret `protobuf:"bytes,2,rep,name=secrets,proto3" json:"secrets,omitempty"`
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId     string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -731,19 +756,19 @@ func (x *StartWorkspaceRequest) GetName() string {
 	return ""
 }
 
-func (x *StartWorkspaceRequest) GetSecrets() []*Secret {
+func (x *StartWorkspaceRequest) GetRequestId() string {
 	if x != nil {
-		return x.Secrets
+		return x.RequestId
 	}
-	return nil
+	return ""
 }
 
 func (x *StartWorkspaceRequest) SetName(v string) {
 	x.Name = v
 }
 
-func (x *StartWorkspaceRequest) SetSecrets(v []*Secret) {
-	x.Secrets = v
+func (x *StartWorkspaceRequest) SetRequestId(v string) {
+	x.RequestId = v
 }
 
 type StartWorkspaceRequest_builder struct {
@@ -752,8 +777,9 @@ type StartWorkspaceRequest_builder struct {
 	// The workspace to start.
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Name string
-	// The secrets the pod starts with. Ignored when it is already running.
-	Secrets []*Secret
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId string
 }
 
 func (b0 StartWorkspaceRequest_builder) Build() *StartWorkspaceRequest {
@@ -761,7 +787,7 @@ func (b0 StartWorkspaceRequest_builder) Build() *StartWorkspaceRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.Name = b.Name
-	x.Secrets = b.Secrets
+	x.RequestId = b.RequestId
 	return m0
 }
 
@@ -772,7 +798,10 @@ type StopWorkspaceRequest struct {
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// If set, the request only succeeds if the current etag matches this value.
-	Etag          string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	Etag string `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -816,12 +845,23 @@ func (x *StopWorkspaceRequest) GetEtag() string {
 	return ""
 }
 
+func (x *StopWorkspaceRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 func (x *StopWorkspaceRequest) SetName(v string) {
 	x.Name = v
 }
 
 func (x *StopWorkspaceRequest) SetEtag(v string) {
 	x.Etag = v
+}
+
+func (x *StopWorkspaceRequest) SetRequestId(v string) {
+	x.RequestId = v
 }
 
 type StopWorkspaceRequest_builder struct {
@@ -832,6 +872,9 @@ type StopWorkspaceRequest_builder struct {
 	Name string
 	// If set, the request only succeeds if the current etag matches this value.
 	Etag string
+	// A unique identifier for this request. Must be a UUID. Repeating a request
+	// with the same ID returns the operation it started instead of starting another.
+	RequestId string
 }
 
 func (b0 StopWorkspaceRequest_builder) Build() *StopWorkspaceRequest {
@@ -840,6 +883,7 @@ func (b0 StopWorkspaceRequest_builder) Build() *StopWorkspaceRequest {
 	_, _ = b, x
 	x.Name = b.Name
 	x.Etag = b.Etag
+	x.RequestId = b.RequestId
 	return m0
 }
 
@@ -924,7 +968,7 @@ func (b0 SetWorkspaceSecretsRequest_builder) Build() *SetWorkspaceSecretsRequest
 // Response message for WorkspaceManagerService.SetWorkspaceSecrets.
 type SetWorkspaceSecretsResponse struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// If true, the workspace was running and holds the secrets; false when it was stopped, a no-op.
+	// If true, the workspace was running and holds the secrets; false when it was not running, a no-op.
 	Applied       bool `protobuf:"varint,1,opt,name=applied,proto3" json:"applied,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -969,7 +1013,7 @@ func (x *SetWorkspaceSecretsResponse) SetApplied(v bool) {
 type SetWorkspaceSecretsResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// If true, the workspace was running and holds the secrets; false when it was stopped, a no-op.
+	// If true, the workspace was running and holds the secrets; false when it was not running, a no-op.
 	Applied bool
 }
 
@@ -990,8 +1034,8 @@ type SnapshotWorkspaceRequest struct {
 	// The turn the snapshots end, an id opaque to the service. Empty for an idle snapshot.
 	Turn string `protobuf:"bytes,2,opt,name=turn,proto3" json:"turn,omitempty"`
 	// A unique identifier for this request. Must be a UUID. Repeating a request
-	// with the same ID returns the snapshots it took instead of taking more:
-	// each mount's CreateSnapshot request id derives from it.
+	// with the same ID returns the operation it started instead of starting
+	// another; each mount's CreateSnapshot request id derives from it.
 	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1064,8 +1108,8 @@ type SnapshotWorkspaceRequest_builder struct {
 	// The turn the snapshots end, an id opaque to the service. Empty for an idle snapshot.
 	Turn string
 	// A unique identifier for this request. Must be a UUID. Repeating a request
-	// with the same ID returns the snapshots it took instead of taking more:
-	// each mount's CreateSnapshot request id derives from it.
+	// with the same ID returns the operation it started instead of starting
+	// another; each mount's CreateSnapshot request id derives from it.
 	RequestId string
 }
 
@@ -1159,21 +1203,26 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"request_id\x18\x04 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"X\n" +
 	"\x13GetWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\"\xa9\x01\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\"\xa4\x02\n" +
 	"\x15ListWorkspacesRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
-	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12'\n" +
-	"\tpage_size\x18\x02 \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\xe8\a(\x00R\bpageSize\x12\x1d\n" +
+	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12\x16\n" +
+	"\x06filter\x18\x02 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x03 \x01(\tR\aorderBy\x12&\n" +
+	"\tpage_size\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken:\x06\x82\xf3-\x02\bd\"\x81\x01\n" +
+	"page_token\x18\x05 \x01(\tR\tpageToken:O\x82\xf3-\x02\bd\x8a\xf3->\n" +
+	"\vcreate_time\n" +
+	"\vupdate_time\n" +
+	"\x10last_active_time\x12\x10create_time desc\x92\xf3-\x03\n" +
+	"\x01*\"\x81\x01\n" +
 	"\x16ListWorkspacesResponse\x12?\n" +
 	"\n" +
 	"workspaces\x18\x01 \x03(\v2\x1f.malonaz.workspace.v1.WorkspaceR\n" +
 	"workspaces\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x8f\x02\n" +
 	"\x16UpdateWorkspaceRequest\x12E\n" +
-	"\tworkspace\x18\x01 \x01(\v2\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xc8\x01\x01R\tworkspace\x12C\n" +
+	"\tworkspace\x18\x01 \x01(\v2\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xd8\x01\x03R\tworkspace\x12C\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"updateMask:i\xbaHQ\x1aO\n" +
 	"\x17workspace.name_required\x12\x1aworkspace.name must be set\x1a\x18has(this.workspace.name)\xea\x9c\xc1\x03\x10\n" +
@@ -1183,15 +1232,18 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12#\n" +
 	"\rallow_missing\x18\x02 \x01(\bR\fallowMissing\x12\x12\n" +
-	"\x04etag\x18\x03 \x01(\tR\x04etag\"\xb9\x01\n" +
+	"\x04etag\x18\x03 \x01(\tR\x04etag\"\x86\x01\n" +
 	"\x15StartWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12]\n" +
-	"\asecrets\x18\x02 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\"m\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12*\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\x99\x01\n" +
 	"\x14StopWorkspaceRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
-	"\x04etag\x18\x02 \x01(\tR\x04etag\"\xbe\x01\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\xbe\x01\n" +
 	"\x1aSetWorkspaceSecretsRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12]\n" +
@@ -1231,13 +1283,12 @@ var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_depIdxs 
 	13, // 1: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.workspaces:type_name -> malonaz.workspace.v1.Workspace
 	13, // 2: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
 	14, // 3: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	0,  // 4: malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
-	0,  // 5: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	0,  // 4: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_init() }

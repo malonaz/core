@@ -11,6 +11,10 @@ if typing.TYPE_CHECKING:
 
 import google.api.annotations_pb2
 import google.api.client_pb2
+import google.longrunning.operations_pb2
+import google.protobuf.empty_pb2
+import malonaz.codegen.aip.v1.aip_pb2
+import malonaz.codegen.scheduler.v1.scheduler_pb2
 import malonaz.workspace.v1.workspace_pb2
 import malonaz.workspace.workspace_manager_service.v1.workspace_pb2
 import malonaz.workspace.workspace_manager_service.v1.workspace_manager_service_pb2
@@ -35,15 +39,15 @@ class WorkspaceManagerServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def DeleteWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.DeleteWorkspaceRequest, malonaz.workspace.v1.workspace_pb2.Workspace]') -> None:
+    async def DeleteWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.DeleteWorkspaceRequest, google.protobuf.empty_pb2.Empty]') -> None:
         pass
 
     @abc.abstractmethod
-    async def StartWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StartWorkspaceRequest, malonaz.workspace.v1.workspace_pb2.Workspace]') -> None:
+    async def StartWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StartWorkspaceRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
-    async def StopWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StopWorkspaceRequest, malonaz.workspace.v1.workspace_pb2.Workspace]') -> None:
+    async def StopWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StopWorkspaceRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     @abc.abstractmethod
@@ -51,7 +55,7 @@ class WorkspaceManagerServiceBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def SnapshotWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest, malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse]') -> None:
+    async def SnapshotWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest, google.longrunning.operations_pb2.Operation]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -84,19 +88,19 @@ class WorkspaceManagerServiceBase(abc.ABC):
                 self.DeleteWorkspace,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.DeleteWorkspaceRequest,
-                malonaz.workspace.v1.workspace_pb2.Workspace,
+                google.protobuf.empty_pb2.Empty,
             ),
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/StartWorkspace': grpclib.const.Handler(
                 self.StartWorkspace,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StartWorkspaceRequest,
-                malonaz.workspace.v1.workspace_pb2.Workspace,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/StopWorkspace': grpclib.const.Handler(
                 self.StopWorkspace,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StopWorkspaceRequest,
-                malonaz.workspace.v1.workspace_pb2.Workspace,
+                google.longrunning.operations_pb2.Operation,
             ),
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/SetWorkspaceSecrets': grpclib.const.Handler(
                 self.SetWorkspaceSecrets,
@@ -108,7 +112,7 @@ class WorkspaceManagerServiceBase(abc.ABC):
                 self.SnapshotWorkspace,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest,
-                malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse,
+                google.longrunning.operations_pb2.Operation,
             ),
         }
 
@@ -144,19 +148,19 @@ class WorkspaceManagerServiceStub:
             channel,
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/DeleteWorkspace',
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.DeleteWorkspaceRequest,
-            malonaz.workspace.v1.workspace_pb2.Workspace,
+            google.protobuf.empty_pb2.Empty,
         )
         self.StartWorkspace = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/StartWorkspace',
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StartWorkspaceRequest,
-            malonaz.workspace.v1.workspace_pb2.Workspace,
+            google.longrunning.operations_pb2.Operation,
         )
         self.StopWorkspace = grpclib.client.UnaryUnaryMethod(
             channel,
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/StopWorkspace',
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.StopWorkspaceRequest,
-            malonaz.workspace.v1.workspace_pb2.Workspace,
+            google.longrunning.operations_pb2.Operation,
         )
         self.SetWorkspaceSecrets = grpclib.client.UnaryUnaryMethod(
             channel,
@@ -168,5 +172,5 @@ class WorkspaceManagerServiceStub:
             channel,
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/SnapshotWorkspace',
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest,
-            malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse,
+            google.longrunning.operations_pb2.Operation,
         )
