@@ -12,7 +12,6 @@ if typing.TYPE_CHECKING:
 import google.api.annotations_pb2
 import google.api.client_pb2
 import malonaz.workspace.v1.workspace_pb2
-import malonaz.workspace.workspace_manager_service.v1.terminal_pb2
 import malonaz.workspace.workspace_manager_service.v1.workspace_pb2
 import malonaz.workspace.workspace_manager_service.v1.workspace_manager_service_pb2
 
@@ -53,10 +52,6 @@ class WorkspaceManagerServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def SnapshotWorkspace(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest, malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse]') -> None:
-        pass
-
-    @abc.abstractmethod
-    async def OpenTerminal(self, stream: 'grpclib.server.Stream[malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalRequest, malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalResponse]') -> None:
         pass
 
     def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
@@ -114,12 +109,6 @@ class WorkspaceManagerServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest,
                 malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse,
-            ),
-            '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/OpenTerminal': grpclib.const.Handler(
-                self.OpenTerminal,
-                grpclib.const.Cardinality.STREAM_STREAM,
-                malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalRequest,
-                malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalResponse,
             ),
         }
 
@@ -180,10 +169,4 @@ class WorkspaceManagerServiceStub:
             '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/SnapshotWorkspace',
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceRequest,
             malonaz.workspace.workspace_manager_service.v1.workspace_pb2.SnapshotWorkspaceResponse,
-        )
-        self.OpenTerminal = grpclib.client.StreamStreamMethod(
-            channel,
-            '/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/OpenTerminal',
-            malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalRequest,
-            malonaz.workspace.workspace_manager_service.v1.terminal_pb2.OpenTerminalResponse,
         )

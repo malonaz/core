@@ -103,7 +103,7 @@ type Workspace struct {
 	State Workspace_State `protobuf:"varint,7,opt,name=state,proto3,enum=malonaz.workspace.v1.Workspace_State" json:"state,omitempty"`
 	// The node running the workspace's pod. Empty while stopped.
 	Node string `protobuf:"bytes,8,opt,name=node,proto3" json:"node,omitempty"`
-	// When a command, a terminal or a start last used the workspace. An idle
+	// When a command or a start last used the workspace. An idle
 	// workspace is stopped, its files kept.
 	LastActiveTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_active_time,json=lastActiveTime,proto3" json:"last_active_time,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -288,7 +288,7 @@ type Workspace_builder struct {
 	State Workspace_State
 	// The node running the workspace's pod. Empty while stopped.
 	Node string
-	// When a command, a terminal or a start last used the workspace. An idle
+	// When a command or a start last used the workspace. An idle
 	// workspace is stopped, its files kept.
 	LastActiveTime *timestamppb.Timestamp
 }

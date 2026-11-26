@@ -115,8 +115,6 @@ message Snapshot {
     TRIGGER_IDLE = 2;
     // The workspace writing it stopped.
     TRIGGER_STOP = 3;
-    // A terminal on the workspace writing it closed.
-    TRIGGER_TERMINAL = 4;
   }
 
   // The resource name of the snapshot. Its id is assigned by the server, in

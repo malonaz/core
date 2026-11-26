@@ -87,7 +87,7 @@ export type Workspace = Message<"malonaz.workspace.v1.Workspace"> & {
   node: string;
 
   /**
-   * When a command, a terminal or a start last used the workspace. An idle
+   * When a command or a start last used the workspace. An idle
    * workspace is stopped, its files kept.
    *
    * @generated from field: google.protobuf.Timestamp last_active_time = 9;
@@ -165,7 +165,7 @@ export type WorkspaceValid = Message<"malonaz.workspace.v1.Workspace"> & {
   node: string;
 
   /**
-   * When a command, a terminal or a start last used the workspace. An idle
+   * When a command or a start last used the workspace. An idle
    * workspace is stopped, its files kept.
    *
    * @generated from field: google.protobuf.Timestamp last_active_time = 9;

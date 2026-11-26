@@ -137,8 +137,6 @@ const (
 	Snapshot_TRIGGER_IDLE Snapshot_Trigger = 2
 	// The workspace writing it stopped.
 	Snapshot_TRIGGER_STOP Snapshot_Trigger = 3
-	// A terminal on the workspace writing it closed.
-	Snapshot_TRIGGER_TERMINAL Snapshot_Trigger = 4
 )
 
 // Enum value maps for Snapshot_Trigger.
@@ -148,14 +146,12 @@ var (
 		1: "TRIGGER_TURN",
 		2: "TRIGGER_IDLE",
 		3: "TRIGGER_STOP",
-		4: "TRIGGER_TERMINAL",
 	}
 	Snapshot_Trigger_value = map[string]int32{
 		"TRIGGER_UNSPECIFIED": 0,
 		"TRIGGER_TURN":        1,
 		"TRIGGER_IDLE":        2,
 		"TRIGGER_STOP":        3,
-		"TRIGGER_TERMINAL":    4,
 	}
 )
 
@@ -617,7 +613,7 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"KIND_LOCAL\x10\x01\x12\x0f\n" +
 	"\vKIND_SHARED\x10\x02:\x82\x01\xeaA\x7f\n" +
 	" workspace.malonaz.com/Filesystem\x12Borganizations/{organization}/users/{user}/filesystems/{filesystem}*\vfilesystems2\n" +
-	"filesystem\"\xd9\x04\n" +
+	"filesystem\"\xc3\x04\n" +
 	"\bSnapshot\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12@\n" +
 	"\vcreate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
@@ -628,13 +624,12 @@ const file_malonaz_workspace_v1_filesystem_proto_rawDesc = "" +
 	"size_bytes\x18\x05 \x01(\x03B\x03\xe0A\x03R\tsizeBytes\x12\x19\n" +
 	"\x05added\x18\x06 \x03(\tB\x03\xe0A\x03R\x05added\x12\x1d\n" +
 	"\achanged\x18\a \x03(\tB\x03\xe0A\x03R\achanged\x12\x1d\n" +
-	"\adeleted\x18\b \x03(\tB\x03\xe0A\x03R\adeleted\"n\n" +
+	"\adeleted\x18\b \x03(\tB\x03\xe0A\x03R\adeleted\"X\n" +
 	"\aTrigger\x12\x17\n" +
 	"\x13TRIGGER_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fTRIGGER_TURN\x10\x01\x12\x10\n" +
 	"\fTRIGGER_IDLE\x10\x02\x12\x10\n" +
-	"\fTRIGGER_STOP\x10\x03\x12\x14\n" +
-	"\x10TRIGGER_TERMINAL\x10\x04:\x92\x01\xeaA\x8e\x01\n" +
+	"\fTRIGGER_STOP\x10\x03:\x92\x01\xeaA\x8e\x01\n" +
 	"\x1eworkspace.malonaz.com/Snapshot\x12Worganizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}*\tsnapshots2\bsnapshot*^\n" +
 	"\fSnapshotView\x12\x1d\n" +
 	"\x19SNAPSHOT_VIEW_UNSPECIFIED\x10\x00\x12\x17\n" +

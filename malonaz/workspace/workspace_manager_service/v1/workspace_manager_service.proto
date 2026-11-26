@@ -5,7 +5,6 @@ package malonaz.workspace.workspace_manager_service.v1;
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "malonaz/workspace/v1/workspace.proto";
-import "malonaz/workspace/workspace_manager_service/v1/terminal.proto";
 import "malonaz/workspace/workspace_manager_service/v1/workspace.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1";
@@ -142,10 +141,4 @@ service WorkspaceManagerService {
     };
     option (google.api.method_signature) = "name";
   }
-
-  // Open a shell on a PTY in a workspace, starting it if needed, its working
-  // directory the first mount (else `/tmp`). The first request names the
-  // workspace; the stream ends with the shell's exit code. An open terminal
-  // keeps the workspace active.
-  rpc OpenTerminal(stream OpenTerminalRequest) returns (stream OpenTerminalResponse);
 }

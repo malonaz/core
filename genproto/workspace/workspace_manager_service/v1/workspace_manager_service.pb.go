@@ -28,7 +28,7 @@ var File_malonaz_workspace_workspace_manager_service_v1_workspace_manager_servic
 
 const file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service_proto_rawDesc = "" +
 	"\n" +
-	"Nmalonaz/workspace/workspace_manager_service/v1/workspace_manager_service.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a$malonaz/workspace/v1/workspace.proto\x1a=malonaz/workspace/workspace_manager_service/v1/terminal.proto\x1a>malonaz/workspace/workspace_manager_service/v1/workspace.proto2\xeb\x10\n" +
+	"Nmalonaz/workspace/workspace_manager_service/v1/workspace_manager_service.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a$malonaz/workspace/v1/workspace.proto\x1a>malonaz/workspace/workspace_manager_service/v1/workspace.proto2\xcb\x0f\n" +
 	"\x17WorkspaceManagerService\x12\xd1\x01\n" +
 	"\x0fCreateWorkspace\x12F.malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest\x1a\x1f.malonaz.workspace.v1.Workspace\"U\xdaA\x10parent,workspace\x82\xd3\xe4\x93\x02<:\tworkspace\"//v1/{parent=organizations/*/users/*}/workspaces\x12\xb7\x01\n" +
 	"\fGetWorkspace\x12C.malonaz.workspace.workspace_manager_service.v1.GetWorkspaceRequest\x1a\x1f.malonaz.workspace.v1.Workspace\"A\xdaA\x04name\x82\xd3\xe4\x93\x021\x12//v1/{name=organizations/*/users/*/workspaces/*}\x90\x02\x01\x12\xe4\x01\n" +
@@ -38,8 +38,7 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_serv
 	"\x0eStartWorkspace\x12E.malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest\x1a\x1f.malonaz.workspace.v1.Workspace\"G\xdaA\x04name\x82\xd3\xe4\x93\x02::\x01*\"5/v1/{name=organizations/*/users/*/workspaces/*}:start\x12\xbe\x01\n" +
 	"\rStopWorkspace\x12D.malonaz.workspace.workspace_manager_service.v1.StopWorkspaceRequest\x1a\x1f.malonaz.workspace.v1.Workspace\"F\xdaA\x04name\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=organizations/*/users/*/workspaces/*}:stop\x12\x84\x02\n" +
 	"\x13SetWorkspaceSecrets\x12J.malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest\x1aK.malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse\"T\xdaA\fname,secrets\x82\xd3\xe4\x93\x02?:\x01*\":/v1/{name=organizations/*/users/*/workspaces/*}:setSecrets\x12\xf4\x01\n" +
-	"\x11SnapshotWorkspace\x12H.malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest\x1aI.malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse\"J\xdaA\x04name\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/{name=organizations/*/users/*/workspaces/*}:snapshot\x12\x9d\x01\n" +
-	"\fOpenTerminal\x12C.malonaz.workspace.workspace_manager_service.v1.OpenTerminalRequest\x1aD.malonaz.workspace.workspace_manager_service.v1.OpenTerminalResponse(\x010\x01\x1a\x18\xcaA\x15workspace.malonaz.comBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3"
+	"\x11SnapshotWorkspace\x12H.malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest\x1aI.malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse\"J\xdaA\x04name\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/{name=organizations/*/users/*/workspaces/*}:snapshot\x1a\x18\xcaA\x15workspace.malonaz.comBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3"
 
 var file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service_proto_goTypes = []any{
 	(*CreateWorkspaceRequest)(nil),      // 0: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest
@@ -51,12 +50,10 @@ var file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_servic
 	(*StopWorkspaceRequest)(nil),        // 6: malonaz.workspace.workspace_manager_service.v1.StopWorkspaceRequest
 	(*SetWorkspaceSecretsRequest)(nil),  // 7: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest
 	(*SnapshotWorkspaceRequest)(nil),    // 8: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest
-	(*OpenTerminalRequest)(nil),         // 9: malonaz.workspace.workspace_manager_service.v1.OpenTerminalRequest
-	(*v1.Workspace)(nil),                // 10: malonaz.workspace.v1.Workspace
-	(*ListWorkspacesResponse)(nil),      // 11: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
-	(*SetWorkspaceSecretsResponse)(nil), // 12: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
-	(*SnapshotWorkspaceResponse)(nil),   // 13: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
-	(*OpenTerminalResponse)(nil),        // 14: malonaz.workspace.workspace_manager_service.v1.OpenTerminalResponse
+	(*v1.Workspace)(nil),                // 9: malonaz.workspace.v1.Workspace
+	(*ListWorkspacesResponse)(nil),      // 10: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
+	(*SetWorkspaceSecretsResponse)(nil), // 11: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
+	(*SnapshotWorkspaceResponse)(nil),   // 12: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
 }
 var file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service_proto_depIdxs = []int32{
 	0,  // 0: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.CreateWorkspace:input_type -> malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest
@@ -68,19 +65,17 @@ var file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_servic
 	6,  // 6: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.StopWorkspace:input_type -> malonaz.workspace.workspace_manager_service.v1.StopWorkspaceRequest
 	7,  // 7: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SetWorkspaceSecrets:input_type -> malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest
 	8,  // 8: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SnapshotWorkspace:input_type -> malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest
-	9,  // 9: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.OpenTerminal:input_type -> malonaz.workspace.workspace_manager_service.v1.OpenTerminalRequest
-	10, // 10: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.CreateWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	10, // 11: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.GetWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	11, // 12: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.ListWorkspaces:output_type -> malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
-	10, // 13: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.UpdateWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	10, // 14: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.DeleteWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	10, // 15: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.StartWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	10, // 16: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.StopWorkspace:output_type -> malonaz.workspace.v1.Workspace
-	12, // 17: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SetWorkspaceSecrets:output_type -> malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
-	13, // 18: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SnapshotWorkspace:output_type -> malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
-	14, // 19: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.OpenTerminal:output_type -> malonaz.workspace.workspace_manager_service.v1.OpenTerminalResponse
-	10, // [10:20] is the sub-list for method output_type
-	0,  // [0:10] is the sub-list for method input_type
+	9,  // 9: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.CreateWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	9,  // 10: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.GetWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	10, // 11: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.ListWorkspaces:output_type -> malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
+	9,  // 12: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.UpdateWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	9,  // 13: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.DeleteWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	9,  // 14: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.StartWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	9,  // 15: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.StopWorkspace:output_type -> malonaz.workspace.v1.Workspace
+	11, // 16: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SetWorkspaceSecrets:output_type -> malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
+	12, // 17: malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService.SnapshotWorkspace:output_type -> malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
+	9,  // [9:18] is the sub-list for method output_type
+	0,  // [0:9] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -93,7 +88,6 @@ func file_malonaz_workspace_workspace_manager_service_v1_workspace_manager_servi
 	if File_malonaz_workspace_workspace_manager_service_v1_workspace_manager_service_proto != nil {
 		return
 	}
-	file_malonaz_workspace_workspace_manager_service_v1_terminal_proto_init()
 	file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{

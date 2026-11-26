@@ -1,7 +1,6 @@
 filegroup(
     name = "proto",
     srcs = [
-        "terminal.proto",
         "workspace.proto",
         "workspace_manager_service.proto",
     ],
@@ -11,7 +10,6 @@ filegroup(
 grpc_library(
     name = "v1",
     srcs = [
-        "terminal.proto",
         "workspace.proto",
         "workspace_manager_service.proto",
     ],

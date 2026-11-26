@@ -29,7 +29,6 @@ const (
 	WorkspaceManagerService_StopWorkspace_FullMethodName       = "/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/StopWorkspace"
 	WorkspaceManagerService_SetWorkspaceSecrets_FullMethodName = "/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/SetWorkspaceSecrets"
 	WorkspaceManagerService_SnapshotWorkspace_FullMethodName   = "/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/SnapshotWorkspace"
-	WorkspaceManagerService_OpenTerminal_FullMethodName        = "/malonaz.workspace.workspace_manager_service.v1.WorkspaceManagerService/OpenTerminal"
 )
 
 // WorkspaceManagerServiceClient is the client API for WorkspaceManagerService service.
@@ -109,11 +108,6 @@ type WorkspaceManagerServiceClient interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	SnapshotWorkspace(ctx context.Context, in *SnapshotWorkspaceRequest, opts ...grpc.CallOption) (*SnapshotWorkspaceResponse, error)
-	// Open a shell on a PTY in a workspace, starting it if needed, its working
-	// directory the first mount (else `/tmp`). The first request names the
-	// workspace; the stream ends with the shell's exit code. An open terminal
-	// keeps the workspace active.
-	OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenTerminalRequest, OpenTerminalResponse], error)
 }
 
 type workspaceManagerServiceClient struct {
@@ -214,19 +208,6 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 	return out, nil
 }
 
-func (c *workspaceManagerServiceClient) OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenTerminalRequest, OpenTerminalResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &WorkspaceManagerService_ServiceDesc.Streams[0], WorkspaceManagerService_OpenTerminal_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[OpenTerminalRequest, OpenTerminalResponse]{ClientStream: stream}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type WorkspaceManagerService_OpenTerminalClient = grpc.BidiStreamingClient[OpenTerminalRequest, OpenTerminalResponse]
-
 // WorkspaceManagerServiceServer is the server API for WorkspaceManagerService service.
 // All implementations should embed UnimplementedWorkspaceManagerServiceServer
 // for forward compatibility.
@@ -304,11 +285,6 @@ type WorkspaceManagerServiceServer interface {
 	//
 	// See: https://google.aip.dev/136 (Custom methods).
 	SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*SnapshotWorkspaceResponse, error)
-	// Open a shell on a PTY in a workspace, starting it if needed, its working
-	// directory the first mount (else `/tmp`). The first request names the
-	// workspace; the stream ends with the shell's exit code. An open terminal
-	// keeps the workspace active.
-	OpenTerminal(grpc.BidiStreamingServer[OpenTerminalRequest, OpenTerminalResponse]) error
 }
 
 // UnimplementedWorkspaceManagerServiceServer should be embedded to have
@@ -344,9 +320,6 @@ func (UnimplementedWorkspaceManagerServiceServer) SetWorkspaceSecrets(context.Co
 }
 func (UnimplementedWorkspaceManagerServiceServer) SnapshotWorkspace(context.Context, *SnapshotWorkspaceRequest) (*SnapshotWorkspaceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SnapshotWorkspace not implemented")
-}
-func (UnimplementedWorkspaceManagerServiceServer) OpenTerminal(grpc.BidiStreamingServer[OpenTerminalRequest, OpenTerminalResponse]) error {
-	return status.Error(codes.Unimplemented, "method OpenTerminal not implemented")
 }
 func (UnimplementedWorkspaceManagerServiceServer) testEmbeddedByValue() {}
 
@@ -530,13 +503,6 @@ func _WorkspaceManagerService_SnapshotWorkspace_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WorkspaceManagerService_OpenTerminal_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(WorkspaceManagerServiceServer).OpenTerminal(&grpc.GenericServerStream[OpenTerminalRequest, OpenTerminalResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type WorkspaceManagerService_OpenTerminalServer = grpc.BidiStreamingServer[OpenTerminalRequest, OpenTerminalResponse]
-
 // WorkspaceManagerService_ServiceDesc is the grpc.ServiceDesc for WorkspaceManagerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -581,13 +547,6 @@ var WorkspaceManagerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _WorkspaceManagerService_SnapshotWorkspace_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "OpenTerminal",
-			Handler:       _WorkspaceManagerService_OpenTerminal_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "malonaz/workspace/workspace_manager_service/v1/workspace_manager_service.proto",
 }

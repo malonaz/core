@@ -278,7 +278,7 @@ type Workspace_builder struct {
 	State Workspace_State
 	// The node running the workspace's pod. Empty while stopped.
 	Node string
-	// When a command, a terminal or a start last used the workspace. An idle
+	// When a command or a start last used the workspace. An idle
 	// workspace is stopped, its files kept.
 	LastActiveTime *timestamppb.Timestamp
 }

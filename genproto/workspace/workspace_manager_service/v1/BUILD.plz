@@ -1,7 +1,6 @@
 go_library(
     name = "v1",
     srcs = [
-        "terminal.pb.go",
         "workspace.pb.go",
         "workspace_manager_service.pb.go",
         "workspace_manager_service_grpc.pb.go",
