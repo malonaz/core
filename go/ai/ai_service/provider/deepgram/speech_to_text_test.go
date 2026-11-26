@@ -6,16 +6,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/ai/ai_service/provider"
+	"github.com/malonaz/core/go/audio"
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 )
 
@@ -52,8 +56,9 @@ func TestSpeechToText(t *testing.T) {
 	})
 
 	request := &aiservicepb.SpeechToTextRequest{
-		Model:        "providers/deepgram/models/nova-3",
-		EncodedAudio: &aiservicepb.SpeechToTextEncodedAudio{MimeType: "audio/mpeg", Data: []byte("mp3-bytes")},
+		Model:       "providers/deepgram/models/nova-3",
+		AudioFormat: &audiopb.Format{Encoding: audiopb.Encoding_ENCODING_MP3},
+		AudioChunk:  &audiopb.Chunk{Index: 1, CaptureTime: timestamppb.Now(), Duration: durationpb.New(12400 * time.Millisecond), Data: []byte("mp3-bytes")},
 	}
 	response, err := client.SpeechToText(context.Background(), request)
 	require.NoError(t, err)
@@ -82,9 +87,31 @@ func TestSpeechToTextError(t *testing.T) {
 		http.Error(w, "bad audio", http.StatusBadRequest)
 	})
 	request := &aiservicepb.SpeechToTextRequest{
-		Model:        "providers/deepgram/models/nova-3",
-		EncodedAudio: &aiservicepb.SpeechToTextEncodedAudio{MimeType: "audio/mpeg", Data: []byte("x")},
+		Model:       "providers/deepgram/models/nova-3",
+		AudioFormat: &audiopb.Format{Encoding: audiopb.Encoding_ENCODING_MP3},
+		AudioChunk:  &audiopb.Chunk{Index: 1, CaptureTime: timestamppb.Now(), Duration: durationpb.New(time.Second), Data: []byte("x")},
 	}
 	_, err := client.SpeechToText(context.Background(), request)
 	grpcrequire.Error(t, codes.InvalidArgument, err)
+}
+
+func TestSpeechToTextPCM(t *testing.T) {
+	var gotContentType string
+	var gotBody []byte
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		gotContentType = r.Header.Get("Content-Type")
+		gotBody, _ = io.ReadAll(r.Body)
+		_, _ = w.Write([]byte(prerecordedBody))
+	})
+	audioFormat := &audiopb.Format{SampleRate: 8000, Channels: 1, BitsPerSample: 16}
+	pcm := []byte{1, 2, 3, 4}
+	request := &aiservicepb.SpeechToTextRequest{
+		Model:       "providers/deepgram/models/nova-3",
+		AudioFormat: audioFormat,
+		AudioChunk:  &audiopb.Chunk{Index: 1, CaptureTime: timestamppb.Now(), Duration: durationpb.New(time.Second), Data: pcm},
+	}
+	_, err := client.SpeechToText(context.Background(), request)
+	require.NoError(t, err)
+	require.Equal(t, "audio/wav", gotContentType)
+	require.Equal(t, audio.PCMToWAV(pcm, audioFormat), gotBody)
 }

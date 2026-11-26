@@ -16,6 +16,7 @@ go_library(
         "//go/grpc/status",
         "//malonaz/ai/ai_service/v1",
         "//malonaz/ai/v1",
+        "//malonaz/audio/v1",
         "//third_party/go:github.com__openai__openai-go__v3",
         "//third_party/go:github.com__openai__openai-go__v3__option",
         "//third_party/go:github.com__openai__openai-go__v3__packages__respjson",

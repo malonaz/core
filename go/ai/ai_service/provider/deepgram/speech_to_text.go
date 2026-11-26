@@ -16,6 +16,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/audio"
 	"github.com/malonaz/core/go/grpc/status"
 )
@@ -54,15 +55,19 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		return nil, status.FromError(err, "getting model").Err()
 	}
 
+	audioFormat := request.GetAudioFormat()
+	if audioFormat == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "audio_format is required").Err()
+	}
 	var body []byte
 	var mimeType string
-	if encodedAudio := request.GetEncodedAudio(); encodedAudio != nil {
-		body, mimeType = encodedAudio.GetData(), encodedAudio.GetMimeType()
-	} else {
-		if request.GetAudioFormat() == nil || request.GetAudioChunk() == nil {
-			return nil, status.Errorf(codes.InvalidArgument, "audio_format and audio_chunk must be set together").Err()
-		}
-		body, mimeType = audio.PCMToWAV(request.GetAudioChunk().GetData(), request.GetAudioFormat()), "audio/wav"
+	switch encoding := audioFormat.GetEncoding(); encoding {
+	case audiopb.Encoding_ENCODING_MP3:
+		body, mimeType = request.GetAudioChunk().GetData(), "audio/mpeg"
+	case audiopb.Encoding_ENCODING_UNSPECIFIED:
+		body, mimeType = audio.PCMToWAV(request.GetAudioChunk().GetData(), audioFormat), "audio/wav"
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "deepgram speech to text does not take %s", encoding).Err()
 	}
 
 	params := url.Values{}
@@ -104,7 +109,7 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		ModelUsage: &aipb.ModelUsage{
 			Model: request.GetModel(),
 			InputSecond: &aipb.ResourceConsumption{
-				Quantity: int32(time.Duration(prerecorded.Metadata.Duration * float64(time.Second)).Round(time.Second).Seconds()),
+				Quantity: int64(time.Duration(prerecorded.Metadata.Duration * float64(time.Second)).Round(time.Second).Seconds()),
 			},
 		},
 		GenerationMetrics: &aipb.GenerationMetrics{Ttlb: durationpb.New(time.Since(startTime))},

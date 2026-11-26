@@ -12,6 +12,7 @@ import (
 
 	aiservicepb "github.com/malonaz/core/genproto/ai/ai_service/v1"
 	aipb "github.com/malonaz/core/genproto/ai/v1"
+	audiopb "github.com/malonaz/core/genproto/audio/v1"
 	"github.com/malonaz/core/go/audio"
 	"github.com/malonaz/core/go/grpc/status"
 )
@@ -23,8 +24,11 @@ func (c *Client) SpeechToText(ctx context.Context, request *aiservicepb.SpeechTo
 		return nil, err
 	}
 
-	if request.GetAudioChunk() == nil || request.GetAudioFormat() == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "openai speech to text takes PCM audio (format and chunk), not encoded audio").Err()
+	if request.GetAudioFormat() == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "audio_format is required").Err()
+	}
+	if encoding := request.GetAudioFormat().GetEncoding(); encoding != audiopb.Encoding_ENCODING_UNSPECIFIED {
+		return nil, status.Errorf(codes.InvalidArgument, "openai speech to text takes linear PCM, not %s", encoding).Err()
 	}
 
 	wavBytes := audio.PCMToWAV(request.AudioChunk.Data, request.AudioFormat)

@@ -25,14 +25,61 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Encoding of audio data.
+type Encoding int32
+
+const (
+	// Linear PCM, described by the other Format fields. Unlike other zero values this is a valid
+	// encoding, which keeps every Format written before encoding existed valid.
+	Encoding_ENCODING_UNSPECIFIED Encoding = 0
+	// MP3, which carries its own sample rate and channels.
+	Encoding_ENCODING_MP3 Encoding = 1
+)
+
+// Enum value maps for Encoding.
+var (
+	Encoding_name = map[int32]string{
+		0: "ENCODING_UNSPECIFIED",
+		1: "ENCODING_MP3",
+	}
+	Encoding_value = map[string]int32{
+		"ENCODING_UNSPECIFIED": 0,
+		"ENCODING_MP3":         1,
+	}
+)
+
+func (x Encoding) Enum() *Encoding {
+	p := new(Encoding)
+	*p = x
+	return p
+}
+
+func (x Encoding) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Encoding) Descriptor() protoreflect.EnumDescriptor {
+	return file_malonaz_audio_v1_audio_proto_enumTypes[0].Descriptor()
+}
+
+func (Encoding) Type() protoreflect.EnumType {
+	return &file_malonaz_audio_v1_audio_proto_enumTypes[0]
+}
+
+func (x Encoding) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // Audio format specification for an audio stream.
 type Format struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// e.g., 16000, 44100, 48000
+	// How the audio is encoded.
+	Encoding Encoding `protobuf:"varint,4,opt,name=encoding,proto3,enum=malonaz.audio.v1.Encoding" json:"encoding,omitempty"`
+	// e.g., 16000, 44100, 48000. Required for linear PCM.
 	SampleRate int32 `protobuf:"varint,1,opt,name=sample_rate,json=sampleRate,proto3" json:"sample_rate,omitempty"`
-	// 1 for mono, 2 for stereo
+	// 1 for mono, 2 for stereo. Required for linear PCM.
 	Channels int32 `protobuf:"varint,2,opt,name=channels,proto3" json:"channels,omitempty"`
-	// typically 16 or 24
+	// typically 16 or 24. Required for linear PCM.
 	BitsPerSample int32 `protobuf:"varint,3,opt,name=bits_per_sample,json=bitsPerSample,proto3" json:"bits_per_sample,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -63,6 +110,13 @@ func (x *Format) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
+func (x *Format) GetEncoding() Encoding {
+	if x != nil {
+		return x.Encoding
+	}
+	return Encoding_ENCODING_UNSPECIFIED
+}
+
 func (x *Format) GetSampleRate() int32 {
 	if x != nil {
 		return x.SampleRate
@@ -84,6 +138,10 @@ func (x *Format) GetBitsPerSample() int32 {
 	return 0
 }
 
+func (x *Format) SetEncoding(v Encoding) {
+	x.Encoding = v
+}
+
 func (x *Format) SetSampleRate(v int32) {
 	x.SampleRate = v
 }
@@ -99,11 +157,13 @@ func (x *Format) SetBitsPerSample(v int32) {
 type Format_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// e.g., 16000, 44100, 48000
+	// How the audio is encoded.
+	Encoding Encoding
+	// e.g., 16000, 44100, 48000. Required for linear PCM.
 	SampleRate int32
-	// 1 for mono, 2 for stereo
+	// 1 for mono, 2 for stereo. Required for linear PCM.
 	Channels int32
-	// typically 16 or 24
+	// typically 16 or 24. Required for linear PCM.
 	BitsPerSample int32
 }
 
@@ -111,6 +171,7 @@ func (b0 Format_builder) Build() *Format {
 	m0 := &Format{}
 	b, x := &b0, m0
 	_, _ = b, x
+	x.Encoding = b.Encoding
 	x.SampleRate = b.SampleRate
 	x.Channels = b.Channels
 	x.BitsPerSample = b.BitsPerSample
@@ -260,35 +321,43 @@ var File_malonaz_audio_v1_audio_proto protoreflect.FileDescriptor
 
 const file_malonaz_audio_v1_audio_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8a\x01\n" +
-	"\x06Format\x12(\n" +
-	"\vsample_rate\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\n" +
-	"sampleRate\x12%\n" +
-	"\bchannels\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x040\x010\x02R\bchannels\x12/\n" +
-	"\x0fbits_per_sample\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\rbitsPerSample\"\xd9\x03\n" +
+	"\x1cmalonaz/audio/v1/audio.proto\x12\x10malonaz.audio.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x93\x03\n" +
+	"\x06Format\x12@\n" +
+	"\bencoding\x18\x04 \x01(\x0e2\x1a.malonaz.audio.v1.EncodingB\b\xbaH\x05\x82\x01\x02\x10\x01R\bencoding\x12\x1f\n" +
+	"\vsample_rate\x18\x01 \x01(\x05R\n" +
+	"sampleRate\x12\x1a\n" +
+	"\bchannels\x18\x02 \x01(\x05R\bchannels\x12&\n" +
+	"\x0fbits_per_sample\x18\x03 \x01(\x05R\rbitsPerSample:\xe1\x01\xbaH\xdd\x01\x1a\xda\x01\n" +
+	"\x15format.pcm_parameters\x12Ilinear PCM needs sample_rate > 0, channels 1 or 2 and bits_per_sample > 0\x1avthis.encoding != 0 || (this.sample_rate > 0 && (this.channels == 1 || this.channels == 2) && this.bits_per_sample > 0)\"\xd9\x03\n" +
 	"\x05Chunk\x12\x1d\n" +
 	"\x05index\x18\x01 \x01(\rB\a\xbaH\x04*\x02 \x00R\x05index\x12=\n" +
 	"\fcapture_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vcaptureTime\x12=\n" +
 	"\bduration\x18\x03 \x01(\v2\x19.google.protobuf.DurationB\x06\xbaH\x03\xc8\x01\x01R\bduration\x12\x1b\n" +
 	"\x04data\x18\x04 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04data:\x95\x02\xbaH\x91\x02\x1a\x83\x01\n" +
 	"+chunk.capture_time_required_for_first_chunk\x12(capture_time must be set when index is 1\x1a*this.index != 1u || has(this.capture_time)\x1a\x88\x01\n" +
-	"'chunk.capture_time_only_for_first_chunk\x120capture_time must not be set when index is not 1\x1a+this.index == 1u || !has(this.capture_time)B+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3"
+	"'chunk.capture_time_only_for_first_chunk\x120capture_time must not be set when index is not 1\x1a+this.index == 1u || !has(this.capture_time)*6\n" +
+	"\bEncoding\x12\x18\n" +
+	"\x14ENCODING_UNSPECIFIED\x10\x00\x12\x10\n" +
+	"\fENCODING_MP3\x10\x01B+Z)github.com/malonaz/core/genproto/audio/v1b\x06proto3"
 
+var file_malonaz_audio_v1_audio_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_malonaz_audio_v1_audio_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_malonaz_audio_v1_audio_proto_goTypes = []any{
-	(*Format)(nil),                // 0: malonaz.audio.v1.Format
-	(*Chunk)(nil),                 // 1: malonaz.audio.v1.Chunk
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 3: google.protobuf.Duration
+	(Encoding)(0),                 // 0: malonaz.audio.v1.Encoding
+	(*Format)(nil),                // 1: malonaz.audio.v1.Format
+	(*Chunk)(nil),                 // 2: malonaz.audio.v1.Chunk
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 4: google.protobuf.Duration
 }
 var file_malonaz_audio_v1_audio_proto_depIdxs = []int32{
-	2, // 0: malonaz.audio.v1.Chunk.capture_time:type_name -> google.protobuf.Timestamp
-	3, // 1: malonaz.audio.v1.Chunk.duration:type_name -> google.protobuf.Duration
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: malonaz.audio.v1.Format.encoding:type_name -> malonaz.audio.v1.Encoding
+	3, // 1: malonaz.audio.v1.Chunk.capture_time:type_name -> google.protobuf.Timestamp
+	4, // 2: malonaz.audio.v1.Chunk.duration:type_name -> google.protobuf.Duration
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_malonaz_audio_v1_audio_proto_init() }
@@ -301,13 +370,14 @@ func file_malonaz_audio_v1_audio_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_audio_v1_audio_proto_rawDesc), len(file_malonaz_audio_v1_audio_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_malonaz_audio_v1_audio_proto_goTypes,
 		DependencyIndexes: file_malonaz_audio_v1_audio_proto_depIdxs,
+		EnumInfos:         file_malonaz_audio_v1_audio_proto_enumTypes,
 		MessageInfos:      file_malonaz_audio_v1_audio_proto_msgTypes,
 	}.Build()
 	File_malonaz_audio_v1_audio_proto = out.File

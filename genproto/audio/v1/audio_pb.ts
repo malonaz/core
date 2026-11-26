@@ -2,8 +2,8 @@
 // @generated from file malonaz/audio/v1/audio.proto (package malonaz.audio.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
 import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_duration, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/audio/v1/audio.proto.
  */
 export const file_malonaz_audio_v1_audio: GenFile = /*@__PURE__*/
-  fileDesc("ChxtYWxvbmF6L2F1ZGlvL3YxL2F1ZGlvLnByb3RvEhBtYWxvbmF6LmF1ZGlvLnYxImUKBkZvcm1hdBIcCgtzYW1wbGVfcmF0ZRgBIAEoBUIHukgEGgIgABIbCghjaGFubmVscxgCIAEoBUIJukgGGgQwATACEiAKD2JpdHNfcGVyX3NhbXBsZRgDIAEoBUIHukgEGgIgACK1AwoFQ2h1bmsSFgoFaW5kZXgYASABKA1CB7pIBCoCIAASMAoMY2FwdHVyZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIzCghkdXJhdGlvbhgDIAEoCzIZLmdvb2dsZS5wcm90b2J1Zi5EdXJhdGlvbkIGukgDyAEBEhUKBGRhdGEYBCABKAxCB7pIBHoCEAE6lQK6SJECGoMBCitjaHVuay5jYXB0dXJlX3RpbWVfcmVxdWlyZWRfZm9yX2ZpcnN0X2NodW5rEihjYXB0dXJlX3RpbWUgbXVzdCBiZSBzZXQgd2hlbiBpbmRleCBpcyAxGip0aGlzLmluZGV4ICE9IDF1IHx8IGhhcyh0aGlzLmNhcHR1cmVfdGltZSkaiAEKJ2NodW5rLmNhcHR1cmVfdGltZV9vbmx5X2Zvcl9maXJzdF9jaHVuaxIwY2FwdHVyZV90aW1lIG11c3Qgbm90IGJlIHNldCB3aGVuIGluZGV4IGlzIG5vdCAxGit0aGlzLmluZGV4ID09IDF1IHx8ICFoYXModGhpcy5jYXB0dXJlX3RpbWUpQitaKWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1ZGlvL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration, file_google_protobuf_timestamp]);
+  fileDesc("ChxtYWxvbmF6L2F1ZGlvL3YxL2F1ZGlvLnByb3RvEhBtYWxvbmF6LmF1ZGlvLnYxIuQCCgZGb3JtYXQSNgoIZW5jb2RpbmcYBCABKA4yGi5tYWxvbmF6LmF1ZGlvLnYxLkVuY29kaW5nQgi6SAWCAQIQARITCgtzYW1wbGVfcmF0ZRgBIAEoBRIQCghjaGFubmVscxgCIAEoBRIXCg9iaXRzX3Blcl9zYW1wbGUYAyABKAU64QG6SN0BGtoBChVmb3JtYXQucGNtX3BhcmFtZXRlcnMSSWxpbmVhciBQQ00gbmVlZHMgc2FtcGxlX3JhdGUgPiAwLCBjaGFubmVscyAxIG9yIDIgYW5kIGJpdHNfcGVyX3NhbXBsZSA+IDAadnRoaXMuZW5jb2RpbmcgIT0gMCB8fCAodGhpcy5zYW1wbGVfcmF0ZSA+IDAgJiYgKHRoaXMuY2hhbm5lbHMgPT0gMSB8fCB0aGlzLmNoYW5uZWxzID09IDIpICYmIHRoaXMuYml0c19wZXJfc2FtcGxlID4gMCkitQMKBUNodW5rEhYKBWluZGV4GAEgASgNQge6SAQqAiAAEjAKDGNhcHR1cmVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASMwoIZHVyYXRpb24YAyABKAsyGS5nb29nbGUucHJvdG9idWYuRHVyYXRpb25CBrpIA8gBARIVCgRkYXRhGAQgASgMQge6SAR6AhABOpUCukiRAhqDAQorY2h1bmsuY2FwdHVyZV90aW1lX3JlcXVpcmVkX2Zvcl9maXJzdF9jaHVuaxIoY2FwdHVyZV90aW1lIG11c3QgYmUgc2V0IHdoZW4gaW5kZXggaXMgMRoqdGhpcy5pbmRleCAhPSAxdSB8fCBoYXModGhpcy5jYXB0dXJlX3RpbWUpGogBCidjaHVuay5jYXB0dXJlX3RpbWVfb25seV9mb3JfZmlyc3RfY2h1bmsSMGNhcHR1cmVfdGltZSBtdXN0IG5vdCBiZSBzZXQgd2hlbiBpbmRleCBpcyBub3QgMRordGhpcy5pbmRleCA9PSAxdSB8fCAhaGFzKHRoaXMuY2FwdHVyZV90aW1lKSo2CghFbmNvZGluZxIYChRFTkNPRElOR19VTlNQRUNJRklFRBAAEhAKDEVOQ09ESU5HX01QMxABQitaKWdpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL2F1ZGlvL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration, file_google_protobuf_timestamp]);
 
 /**
  * Audio format specification for an audio stream.
@@ -22,21 +22,28 @@ export const file_malonaz_audio_v1_audio: GenFile = /*@__PURE__*/
  */
 export type Format = Message<"malonaz.audio.v1.Format"> & {
   /**
-   * e.g., 16000, 44100, 48000
+   * How the audio is encoded.
+   *
+   * @generated from field: malonaz.audio.v1.Encoding encoding = 4;
+   */
+  encoding: Encoding;
+
+  /**
+   * e.g., 16000, 44100, 48000. Required for linear PCM.
    *
    * @generated from field: int32 sample_rate = 1;
    */
   sampleRate: number;
 
   /**
-   * 1 for mono, 2 for stereo
+   * 1 for mono, 2 for stereo. Required for linear PCM.
    *
    * @generated from field: int32 channels = 2;
    */
   channels: number;
 
   /**
-   * typically 16 or 24
+   * typically 16 or 24. Required for linear PCM.
    *
    * @generated from field: int32 bits_per_sample = 3;
    */
@@ -134,4 +141,32 @@ export type ChunkValid = Message<"malonaz.audio.v1.Chunk"> & {
  */
 export const ChunkSchema: GenMessage<Chunk, {validType: ChunkValid}> = /*@__PURE__*/
   messageDesc(file_malonaz_audio_v1_audio, 1);
+
+/**
+ * Encoding of audio data.
+ *
+ * @generated from enum malonaz.audio.v1.Encoding
+ */
+export enum Encoding {
+  /**
+   * Linear PCM, described by the other Format fields. Unlike other zero values this is a valid
+   * encoding, which keeps every Format written before encoding existed valid.
+   *
+   * @generated from enum value: ENCODING_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * MP3, which carries its own sample rate and channels.
+   *
+   * @generated from enum value: ENCODING_MP3 = 1;
+   */
+  MP3 = 1,
+}
+
+/**
+ * Describes the enum malonaz.audio.v1.Encoding.
+ */
+export const EncodingSchema: GenEnum<Encoding> = /*@__PURE__*/
+  enumDesc(file_malonaz_audio_v1_audio, 0);
 
