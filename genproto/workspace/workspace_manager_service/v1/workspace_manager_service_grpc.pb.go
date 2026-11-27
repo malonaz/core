@@ -62,9 +62,9 @@ const (
 //
 // # Secrets
 //
-// Secrets reach a pod only through SetWorkspaceSecrets, as files under
-// `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
-// shell sources. They are never stored, nor carried by an operation: a pod
+// Secrets reach a pod only through SetWorkspaceSecrets, as env vars its
+// workspace-server sets on every command; nothing is written to disk. They
+// are never stored, nor carried by an operation: a pod
 // starts with none, and loses them when it stops or is recreated, so the
 // caller sets them once the workspace is RUNNING.
 //
@@ -254,9 +254,9 @@ func (c *workspaceManagerServiceClient) SnapshotWorkspace(ctx context.Context, i
 //
 // # Secrets
 //
-// Secrets reach a pod only through SetWorkspaceSecrets, as files under
-// `/run/workspace/secrets` and env vars in `/run/workspace/env`, which every
-// shell sources. They are never stored, nor carried by an operation: a pod
+// Secrets reach a pod only through SetWorkspaceSecrets, as env vars its
+// workspace-server sets on every command; nothing is written to disk. They
+// are never stored, nor carried by an operation: a pod
 // starts with none, and loses them when it stops or is recreated, so the
 // caller sets them once the workspace is RUNNING.
 //

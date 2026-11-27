@@ -30,6 +30,7 @@ func (s *Service) Exec(ctx context.Context, request *pb.ExecRequest) (*pb.ExecRe
 
 	command := exec.CommandContext(timeoutCtx, "bash", "-c", request.GetCommand())
 	command.Dir = s.resolvePath(request.GetWorkingDirectory())
+	command.Env = s.commandEnv()
 	// Its own process group, so a kill reaches every process the command started.
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	command.Cancel = func() error { return syscall.Kill(-command.Process.Pid, syscall.SIGKILL) }

@@ -1,12 +1,18 @@
 filegroup(
     name = "proto",
-    srcs = ["workspace_service.proto"],
+    srcs = [
+        "secret_service.proto",
+        "workspace_service.proto",
+    ],
     visibility = ["PUBLIC"],
 )
 
 grpc_library(
     name = "v1",
-    srcs = ["workspace_service.proto"],
+    srcs = [
+        "secret_service.proto",
+        "workspace_service.proto",
+    ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/workspace/workspace_service/v1",
     },

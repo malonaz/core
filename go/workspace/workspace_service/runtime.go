@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"syscall"
 
 	"google.golang.org/grpc/codes"
@@ -21,6 +22,9 @@ type Opts struct {
 
 type runtime struct {
 	directory string
+	// secretsMutex guards secretEnv, the KEY=value env SetSecrets last set.
+	secretsMutex sync.RWMutex
+	secretEnv    []string
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {

@@ -66,7 +66,7 @@ func TestSpec(t *testing.T) {
 
 		readWrite, readOnly, disabled := false, true, false
 		runtimeClassName := "gvisor"
-		tmpSizeLimit, runSizeLimit := resource.MustParse("1Gi"), resource.MustParse("16Mi")
+		tmpSizeLimit := resource.MustParse("1Gi")
 		expected := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        Name(testWorkspaceName),
@@ -85,7 +85,6 @@ func TestSpec(t *testing.T) {
 						{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: "/workspace"},
 						{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: "9090"},
 						{Name: "WORKSPACE_SERVICE_GRPC_DISABLE_TLS", Value: "true"},
-						{Name: "BASH_ENV", Value: "/run/workspace/env"},
 						{Name: "WORKSPACE_SERVICE_AUTHENTICATION", Value: "none"},
 					},
 					Ports: []corev1.ContainerPort{{Name: "grpc", ContainerPort: 9090}},
@@ -94,7 +93,6 @@ func TestSpec(t *testing.T) {
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{Name: "tmp", MountPath: "/tmp"},
-						{Name: "run", MountPath: "/run/workspace", ReadOnly: true},
 						{Name: "mount-0", MountPath: "/workspace"},
 						{Name: "mount-1", MountPath: "/shared/me", ReadOnly: true},
 					},
@@ -105,7 +103,6 @@ func TestSpec(t *testing.T) {
 				}},
 				Volumes: []corev1.Volume{
 					{Name: "tmp", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &tmpSizeLimit}}},
-					{Name: "run", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory, SizeLimit: &runSizeLimit}}},
 					{Name: "mount-0", VolumeSource: corev1.VolumeSource{CSI: &corev1.CSIVolumeSource{
 						Driver:           "workspaces.onikisu",
 						ReadOnly:         &readWrite,
@@ -127,21 +124,7 @@ func TestSpec(t *testing.T) {
 		pod, err := Spec(testConfig(), workspace, nil)
 		require.NoError(t, err)
 		require.Equal(t, corev1.EnvVar{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: "/tmp"}, pod.Spec.Containers[0].Env[0])
-		require.Len(t, pod.Spec.Volumes, 2)
-	})
-
-	t.Run("sidecar writes the run directory", func(t *testing.T) {
-		config := testConfig()
-		config.Sidecar = &corev1.Container{Name: "sidecar", Image: "sidecar:1"}
-		pod, err := Spec(config, testWorkspace(), testFilesystemNameToKind)
-		require.NoError(t, err)
-		expected := corev1.Container{
-			Name:         "sidecar",
-			Image:        "sidecar:1",
-			VolumeMounts: []corev1.VolumeMount{{Name: "run", MountPath: "/run/workspace"}},
-		}
-		require.Equal(t, expected, pod.Spec.Containers[1])
-		require.Empty(t, config.Sidecar.VolumeMounts)
+		require.Len(t, pod.Spec.Volumes, 1)
 	})
 
 	t.Run("unknown filesystem kind", func(t *testing.T) {

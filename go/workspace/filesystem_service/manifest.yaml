@@ -1,0 +1,15 @@
+name: filesystem-service
+target: //go/workspace/filesystem_service
+codegens:
+  - rpc:
+      name: filesystem-service
+      store: workspace
+      target: //gengo/workspace/filesystem_service/rpc
+      longrunning: true
+dependencies:
+  - postgres_db_client:
+      name: workspace
+      target: //gengo/workspace/store
+  - grpc_client:
+      service: scheduler-service
+      proto: //malonaz/scheduler/scheduler_service/v1

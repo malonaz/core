@@ -10,6 +10,7 @@ go_library(
         "//malonaz/codegen/aip/v1",
         "//malonaz/codegen/scheduler/v1",
         "//malonaz/workspace/v1",
+        "//malonaz/workspace/workspace_service/v1",
         "//third_party/go:google.golang.org__grpc",
         "//third_party/go:google.golang.org__grpc__codes",
         "//third_party/go:google.golang.org__grpc__status",

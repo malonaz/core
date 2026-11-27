@@ -12,76 +12,15 @@ import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import { file_malonaz_codegen_aip_v1_aip } from "../../../codegen/aip/v1/aip_pb";
 import type { Workspace, WorkspaceValid } from "../../v1/workspace_pb";
 import { file_malonaz_workspace_v1_workspace } from "../../v1/workspace_pb";
+import type { Secret, SecretValid } from "../../workspace_service/v1/secret_service_pb";
+import { file_malonaz_workspace_workspace_service_v1_secret_service } from "../../workspace_service/v1/secret_service_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file malonaz/workspace/workspace_manager_service/v1/workspace.proto.
  */
 export const file_malonaz_workspace_workspace_manager_service_v1_workspace: GenFile = /*@__PURE__*/
-  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSKRAQoGU2VjcmV0EjgKAmlkGAEgASgJQiy6SClyJBg/MiBeW2EtejAtOV0oW2EtejAtOV8tXSpbYS16MC05XSk/JMgBARIwCgdlbnZfdmFyGAIgASgJQh+6SBxyGhiAATIVXihbQS1aX11bQS1aMC05X10qKT8kEhsKBXZhbHVlGAMgASgMQgyAAQG6SAZ6BBiAgAQi7AEKFkNyZWF0ZVdvcmtzcGFjZVJlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEjoKCXdvcmtzcGFjZRgCIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgDyAEBEjsKDHdvcmtzcGFjZV9pZBgDIAEoCUIlukgich0QARg/MhdeW2EtejAtOV0oLT9bYS16MC05XSkqJNgBARIfCgpyZXF1ZXN0X2lkGAQgASgJQgu6SAhyA7ABAdgBASJSChNHZXRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBASL2AQoVTGlzdFdvcmtzcGFjZXNSZXF1ZXN0EjgKBnBhcmVudBgBIAEoCUIo4EEC+kEcChp3b3Jrc3BhY2UubWFsb25hei5jb20vVXNlcrpIA8gBARIOCgZmaWx0ZXIYAiABKAkSEAoIb3JkZXJfYnkYAyABKAkSHAoJcGFnZV9zaXplGAQgASgFQgm6SAYaBBhkKAASEgoKcGFnZV90b2tlbhgFIAEoCTpPgvMtAghkivMtPgoLY3JlYXRlX3RpbWUKC3VwZGF0ZV90aW1lChBsYXN0X2FjdGl2ZV90aW1lEhBjcmVhdGVfdGltZSBkZXNjkvMtAwoBKiJmChZMaXN0V29ya3NwYWNlc1Jlc3BvbnNlEjMKCndvcmtzcGFjZXMYASADKAsyHy5tYWxvbmF6LndvcmtzcGFjZS52MS5Xb3Jrc3BhY2USFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIvgBChZVcGRhdGVXb3Jrc3BhY2VSZXF1ZXN0EjoKCXdvcmtzcGFjZRgBIAEoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZUIGukgD2AEDEjcKC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBOmm6SFEaTwoXd29ya3NwYWNlLm5hbWVfcmVxdWlyZWQSGndvcmtzcGFjZS5uYW1lIG11c3QgYmUgc2V0GhhoYXModGhpcy53b3Jrc3BhY2UubmFtZSnqnMEDEAoGbGFiZWxzCgZtb3VudHMiegoWRGVsZXRlV29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESFQoNYWxsb3dfbWlzc2luZxgCIAEoCBIMCgRldGFnGAMgASgJInUKFVN0YXJ0V29ya3NwYWNlUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESHwoKcmVxdWVzdF9pZBgCIAEoCUILukgIcgOwAQHYAQEiggEKFFN0b3BXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIMCgRldGFnGAIgASgJEh8KCnJlcXVlc3RfaWQYAyABKAlCC7pICHIDsAEB2AEBIq8BChpTZXRXb3Jrc3BhY2VTZWNyZXRzUmVxdWVzdBI7CgRuYW1lGAEgASgJQi3gQQL6QSEKH3dvcmtzcGFjZS5tYWxvbmF6LmNvbS9Xb3Jrc3BhY2W6SAPIAQESVAoHc2VjcmV0cxgCIAMoCzI2Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCIuChtTZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2USDwoHYXBwbGllZBgBIAEoCCKQAQoYU25hcHNob3RXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIWCgR0dXJuGAIgASgJQgi6SAVyAxiAAhIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASJTChlTbmFwc2hvdFdvcmtzcGFjZVJlc3BvbnNlEjYKCXNuYXBzaG90cxgBIAMoCUIj+kEgCh53b3Jrc3BhY2UubWFsb25hei5jb20vU25hcHNob3RCSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace]);
-
-/**
- * A Secret is a value a workspace's shells can read, never stored.
- *
- * @generated from message malonaz.workspace.workspace_manager_service.v1.Secret
- */
-export type Secret = Message<"malonaz.workspace.workspace_manager_service.v1.Secret"> & {
-  /**
-   * The secret's file name under `/run/workspace/secrets`.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
-   * The env var holding the secret in every shell. Empty for a file only.
-   *
-   * @generated from field: string env_var = 2;
-   */
-  envVar: string;
-
-  /**
-   * The secret's value.
-   *
-   * @generated from field: bytes value = 3;
-   */
-  value: Uint8Array;
-};
-
-/**
- * A Secret is a value a workspace's shells can read, never stored.
- *
- * @generated from message malonaz.workspace.workspace_manager_service.v1.Secret
- */
-export type SecretValid = Message<"malonaz.workspace.workspace_manager_service.v1.Secret"> & {
-  /**
-   * The secret's file name under `/run/workspace/secrets`.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
-   * The env var holding the secret in every shell. Empty for a file only.
-   *
-   * @generated from field: string env_var = 2;
-   */
-  envVar: string;
-
-  /**
-   * The secret's value.
-   *
-   * @generated from field: bytes value = 3;
-   */
-  value: Uint8Array;
-};
-
-/**
- * Describes the message malonaz.workspace.workspace_manager_service.v1.Secret.
- * Use `create(SecretSchema)` to create a new message.
- */
-export const SecretSchema: GenMessage<Secret, {validType: SecretValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 0);
+  fileDesc("Cj5tYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2VfbWFuYWdlcl9zZXJ2aWNlL3YxL3dvcmtzcGFjZS5wcm90bxIubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX21hbmFnZXJfc2VydmljZS52MSLsAQoWQ3JlYXRlV29ya3NwYWNlUmVxdWVzdBI4CgZwYXJlbnQYASABKAlCKOBBAvpBHAoad29ya3NwYWNlLm1hbG9uYXouY29tL1VzZXK6SAPIAQESOgoJd29ya3NwYWNlGAIgASgLMh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlQga6SAPIAQESOwoMd29ya3NwYWNlX2lkGAMgASgJQiW6SCJyHRABGD8yF15bYS16MC05XSgtP1thLXowLTldKSok2AEBEh8KCnJlcXVlc3RfaWQYBCABKAlCC7pICHIDsAEB2AEBIlIKE0dldFdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBIvYBChVMaXN0V29ya3NwYWNlc1JlcXVlc3QSOAoGcGFyZW50GAEgASgJQijgQQL6QRwKGndvcmtzcGFjZS5tYWxvbmF6LmNvbS9Vc2VyukgDyAEBEg4KBmZpbHRlchgCIAEoCRIQCghvcmRlcl9ieRgDIAEoCRIcCglwYWdlX3NpemUYBCABKAVCCbpIBhoEGGQoABISCgpwYWdlX3Rva2VuGAUgASgJOk+C8y0CCGSK8y0+CgtjcmVhdGVfdGltZQoLdXBkYXRlX3RpbWUKEGxhc3RfYWN0aXZlX3RpbWUSEGNyZWF0ZV90aW1lIGRlc2OS8y0DCgEqImYKFkxpc3RXb3Jrc3BhY2VzUmVzcG9uc2USMwoKd29ya3NwYWNlcxgBIAMoCzIfLm1hbG9uYXoud29ya3NwYWNlLnYxLldvcmtzcGFjZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAki+AEKFlVwZGF0ZVdvcmtzcGFjZVJlcXVlc3QSOgoJd29ya3NwYWNlGAEgASgLMh8ubWFsb25hei53b3Jrc3BhY2UudjEuV29ya3NwYWNlQga6SAPYAQMSNwoLdXBkYXRlX21hc2sYAiABKAsyGi5nb29nbGUucHJvdG9idWYuRmllbGRNYXNrQga6SAPIAQE6abpIURpPChd3b3Jrc3BhY2UubmFtZV9yZXF1aXJlZBIad29ya3NwYWNlLm5hbWUgbXVzdCBiZSBzZXQaGGhhcyh0aGlzLndvcmtzcGFjZS5uYW1lKeqcwQMQCgZsYWJlbHMKBm1vdW50cyJ6ChZEZWxldGVXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIVCg1hbGxvd19taXNzaW5nGAIgASgIEgwKBGV0YWcYAyABKAkidQoVU3RhcnRXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIfCgpyZXF1ZXN0X2lkGAIgASgJQgu6SAhyA7ABAdgBASKCAQoUU3RvcFdvcmtzcGFjZVJlcXVlc3QSOwoEbmFtZRgBIAEoCUIt4EEC+kEhCh93b3Jrc3BhY2UubWFsb25hei5jb20vV29ya3NwYWNlukgDyAEBEgwKBGV0YWcYAiABKAkSHwoKcmVxdWVzdF9pZBgDIAEoCUILukgIcgOwAQHYAQEipwEKGlNldFdvcmtzcGFjZVNlY3JldHNSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARJMCgdzZWNyZXRzGAIgAygLMi4ubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX3NlcnZpY2UudjEuU2VjcmV0QgvgQQS6SAWSAQIQQCIuChtTZXRXb3Jrc3BhY2VTZWNyZXRzUmVzcG9uc2USDwoHYXBwbGllZBgBIAEoCCKQAQoYU25hcHNob3RXb3Jrc3BhY2VSZXF1ZXN0EjsKBG5hbWUYASABKAlCLeBBAvpBIQofd29ya3NwYWNlLm1hbG9uYXouY29tL1dvcmtzcGFjZbpIA8gBARIWCgR0dXJuGAIgASgJQgi6SAVyAxiAAhIfCgpyZXF1ZXN0X2lkGAMgASgJQgu6SAhyA7ABAdgBASJTChlTbmFwc2hvdFdvcmtzcGFjZVJlc3BvbnNlEjYKCXNuYXBzaG90cxgBIAMoCUIj+kEgCh53b3Jrc3BhY2UubWFsb25hei5jb20vU25hcHNob3RCSVpHZ2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9tYW5hZ2VyX3NlcnZpY2UvdjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_field_mask, file_malonaz_codegen_aip_v1_aip, file_malonaz_workspace_v1_workspace, file_malonaz_workspace_workspace_service_v1_secret_service]);
 
 /**
  * Request message for WorkspaceManagerService.CreateWorkspace.
@@ -170,7 +109,7 @@ export type CreateWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
  * Use `create(CreateWorkspaceRequestSchema)` to create a new message.
  */
 export const CreateWorkspaceRequestSchema: GenMessage<CreateWorkspaceRequest, {validType: CreateWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 1);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 0);
 
 /**
  * Request message for WorkspaceManagerService.GetWorkspace.
@@ -207,7 +146,7 @@ export type GetWorkspaceRequestValid = Message<"malonaz.workspace.workspace_mana
  * Use `create(GetWorkspaceRequestSchema)` to create a new message.
  */
 export const GetWorkspaceRequestSchema: GenMessage<GetWorkspaceRequest, {validType: GetWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 2);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 1);
 
 /**
  * Request message for WorkspaceManagerService.ListWorkspaces.
@@ -302,7 +241,7 @@ export type ListWorkspacesRequestValid = Message<"malonaz.workspace.workspace_ma
  * Use `create(ListWorkspacesRequestSchema)` to create a new message.
  */
 export const ListWorkspacesRequestSchema: GenMessage<ListWorkspacesRequest, {validType: ListWorkspacesRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 3);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 2);
 
 /**
  * Response message for WorkspaceManagerService.ListWorkspaces.
@@ -351,7 +290,7 @@ export type ListWorkspacesResponseValid = Message<"malonaz.workspace.workspace_m
  * Use `create(ListWorkspacesResponseSchema)` to create a new message.
  */
 export const ListWorkspacesResponseSchema: GenMessage<ListWorkspacesResponse, {validType: ListWorkspacesResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 4);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 3);
 
 /**
  * Request message for WorkspaceManagerService.UpdateWorkspace.
@@ -400,7 +339,7 @@ export type UpdateWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
  * Use `create(UpdateWorkspaceRequestSchema)` to create a new message.
  */
 export const UpdateWorkspaceRequestSchema: GenMessage<UpdateWorkspaceRequest, {validType: UpdateWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 5);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 4);
 
 /**
  * Request message for WorkspaceManagerService.DeleteWorkspace.
@@ -465,7 +404,7 @@ export type DeleteWorkspaceRequestValid = Message<"malonaz.workspace.workspace_m
  * Use `create(DeleteWorkspaceRequestSchema)` to create a new message.
  */
 export const DeleteWorkspaceRequestSchema: GenMessage<DeleteWorkspaceRequest, {validType: DeleteWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 6);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 5);
 
 /**
  * Request message for WorkspaceManagerService.StartWorkspace.
@@ -518,7 +457,7 @@ export type StartWorkspaceRequestValid = Message<"malonaz.workspace.workspace_ma
  * Use `create(StartWorkspaceRequestSchema)` to create a new message.
  */
 export const StartWorkspaceRequestSchema: GenMessage<StartWorkspaceRequest, {validType: StartWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 7);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 6);
 
 /**
  * Request message for WorkspaceManagerService.StopWorkspace.
@@ -585,7 +524,7 @@ export type StopWorkspaceRequestValid = Message<"malonaz.workspace.workspace_man
  * Use `create(StopWorkspaceRequestSchema)` to create a new message.
  */
 export const StopWorkspaceRequestSchema: GenMessage<StopWorkspaceRequest, {validType: StopWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 8);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 7);
 
 /**
  * Request message for WorkspaceManagerService.SetWorkspaceSecrets.
@@ -604,7 +543,7 @@ export type SetWorkspaceSecretsRequest = Message<"malonaz.workspace.workspace_ma
   /**
    * The secrets, replacing every one the pod holds.
    *
-   * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 2;
+   * @generated from field: repeated malonaz.workspace.workspace_service.v1.Secret secrets = 2;
    */
   secrets: Secret[];
 };
@@ -626,7 +565,7 @@ export type SetWorkspaceSecretsRequestValid = Message<"malonaz.workspace.workspa
   /**
    * The secrets, replacing every one the pod holds.
    *
-   * @generated from field: repeated malonaz.workspace.workspace_manager_service.v1.Secret secrets = 2;
+   * @generated from field: repeated malonaz.workspace.workspace_service.v1.Secret secrets = 2;
    */
   secrets: SecretValid[];
 };
@@ -636,7 +575,7 @@ export type SetWorkspaceSecretsRequestValid = Message<"malonaz.workspace.workspa
  * Use `create(SetWorkspaceSecretsRequestSchema)` to create a new message.
  */
 export const SetWorkspaceSecretsRequestSchema: GenMessage<SetWorkspaceSecretsRequest, {validType: SetWorkspaceSecretsRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 9);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 8);
 
 /**
  * Response message for WorkspaceManagerService.SetWorkspaceSecrets.
@@ -659,7 +598,7 @@ export type SetWorkspaceSecretsResponseValid = SetWorkspaceSecretsResponse;
  * Use `create(SetWorkspaceSecretsResponseSchema)` to create a new message.
  */
 export const SetWorkspaceSecretsResponseSchema: GenMessage<SetWorkspaceSecretsResponse, {validType: SetWorkspaceSecretsResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 10);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 9);
 
 /**
  * Request message for WorkspaceManagerService.SnapshotWorkspace.
@@ -728,7 +667,7 @@ export type SnapshotWorkspaceRequestValid = Message<"malonaz.workspace.workspace
  * Use `create(SnapshotWorkspaceRequestSchema)` to create a new message.
  */
 export const SnapshotWorkspaceRequestSchema: GenMessage<SnapshotWorkspaceRequest, {validType: SnapshotWorkspaceRequestValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 11);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 10);
 
 /**
  * Response message for WorkspaceManagerService.SnapshotWorkspace.
@@ -752,5 +691,5 @@ export type SnapshotWorkspaceResponseValid = SnapshotWorkspaceResponse;
  * Use `create(SnapshotWorkspaceResponseSchema)` to create a new message.
  */
 export const SnapshotWorkspaceResponseSchema: GenMessage<SnapshotWorkspaceResponse, {validType: SnapshotWorkspaceResponseValid}> = /*@__PURE__*/
-  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 12);
+  messageDesc(file_malonaz_workspace_workspace_manager_service_v1_workspace, 11);
 
