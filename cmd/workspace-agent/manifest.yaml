@@ -1,0 +1,8 @@
+name: workspace-agent
+servers:
+  - name: node-service
+    grpc:
+      services:
+        - service: node-service
+          proto: //malonaz/workspace/node_service/v1
+          manifest: //go/workspace/node_service:manifest

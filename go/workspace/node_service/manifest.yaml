@@ -1,0 +1,2 @@
+name: node-service
+target: //go/workspace/node_service
