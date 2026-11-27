@@ -29,9 +29,8 @@ const (
 // This API puts secrets in one workspace's shells. The workspace manager calls
 // it on a running pod; it is never an agent tool.
 type SecretServiceClient interface {
-	// Replace every secret the workspace holds: a file per secret under
-	// `/run/workspace/secrets` and its env var in `/run/workspace/env`, which
-	// every shell sources. An empty list removes them all.
+	// Replace every secret the workspace holds. They are kept in memory only and
+	// set as env vars on each command run after. An empty list removes them all.
 	SetSecrets(ctx context.Context, in *SetSecretsRequest, opts ...grpc.CallOption) (*SetSecretsResponse, error)
 }
 
@@ -60,9 +59,8 @@ func (c *secretServiceClient) SetSecrets(ctx context.Context, in *SetSecretsRequ
 // This API puts secrets in one workspace's shells. The workspace manager calls
 // it on a running pod; it is never an agent tool.
 type SecretServiceServer interface {
-	// Replace every secret the workspace holds: a file per secret under
-	// `/run/workspace/secrets` and its env var in `/run/workspace/env`, which
-	// every shell sources. An empty list removes them all.
+	// Replace every secret the workspace holds. They are kept in memory only and
+	// set as env vars on each command run after. An empty list removes them all.
 	SetSecrets(context.Context, *SetSecretsRequest) (*SetSecretsResponse, error)
 }
 

@@ -27,7 +27,7 @@ from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
 from google.api import client_pb2 as google_dot_api_dot_client__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n;malonaz/workspace/workspace_service/v1/secret_service.proto\x12&malonaz.workspace.workspace_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\"\x91\x01\n\x06Secret\x12\x38\n\x02id\x18\x01 \x01(\tB,\xbaH)r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$\xc8\x01\x01\x12\x30\n\x07\x65nv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x01\x32\x15^([A-Z_][A-Z0-9_]*)?$\x12\x1b\n\x05value\x18\x03 \x01(\x0c\x42\x0c\x80\x01\x01\xbaH\x06z\x04\x18\x80\x80\x04\"^\n\x11SetSecretsRequest\x12I\n\x07secrets\x18\x01 \x03(\x0b\x32..malonaz.workspace.workspace_service.v1.SecretB\x08\xbaH\x05\x92\x01\x02\x10@\"\x14\n\x12SetSecretsResponse2\xd4\x01\n\rSecretService\x12\xa8\x01\n\nSetSecrets\x12\x39.malonaz.workspace.workspace_service.v1.SetSecretsRequest\x1a:.malonaz.workspace.workspace_service.v1.SetSecretsResponse\"#\x82\xd3\xe4\x93\x02\x1d\"\x18/v1/workspace:setSecrets:\x01*\x1a\x18\xca\x41\x15workspace.malonaz.comBAZ?github.com/malonaz/core/genproto/workspace/workspace_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n;malonaz/workspace/workspace_service/v1/secret_service.proto\x12&malonaz.workspace.workspace_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\"a\n\x06Secret\x12\x30\n\x07\x65nv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x17\x18\x80\x01\x32\x12^[A-Z_][A-Z0-9_]*$\xc8\x01\x01\x12\x1b\n\x05value\x18\x03 \x01(\x0c\x42\x0c\x80\x01\x01\xbaH\x06z\x04\x18\x80\x80\x04J\x04\x08\x01\x10\x02R\x02id\"^\n\x11SetSecretsRequest\x12I\n\x07secrets\x18\x01 \x03(\x0b\x32..malonaz.workspace.workspace_service.v1.SecretB\x08\xbaH\x05\x92\x01\x02\x10@\"\x14\n\x12SetSecretsResponse2\xd4\x01\n\rSecretService\x12\xa8\x01\n\nSetSecrets\x12\x39.malonaz.workspace.workspace_service.v1.SetSecretsRequest\x1a:.malonaz.workspace.workspace_service.v1.SetSecretsResponse\"#\x82\xd3\xe4\x93\x02\x1d\"\x18/v1/workspace:setSecrets:\x01*\x1a\x18\xca\x41\x15workspace.malonaz.comBAZ?github.com/malonaz/core/genproto/workspace/workspace_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,10 +35,8 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.workspace.workspace
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z?github.com/malonaz/core/genproto/workspace/workspace_service/v1'
-  _globals['_SECRET'].fields_by_name['id']._loaded_options = None
-  _globals['_SECRET'].fields_by_name['id']._serialized_options = b'\272H)r$\030?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$\310\001\001'
   _globals['_SECRET'].fields_by_name['env_var']._loaded_options = None
-  _globals['_SECRET'].fields_by_name['env_var']._serialized_options = b'\272H\034r\032\030\200\0012\025^([A-Z_][A-Z0-9_]*)?$'
+  _globals['_SECRET'].fields_by_name['env_var']._serialized_options = b'\272H\034r\027\030\200\0012\022^[A-Z_][A-Z0-9_]*$\310\001\001'
   _globals['_SECRET'].fields_by_name['value']._loaded_options = None
   _globals['_SECRET'].fields_by_name['value']._serialized_options = b'\200\001\001\272H\006z\004\030\200\200\004'
   _globals['_SETSECRETSREQUEST'].fields_by_name['secrets']._loaded_options = None
@@ -47,12 +45,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SECRETSERVICE']._serialized_options = b'\312A\025workspace.malonaz.com'
   _globals['_SECRETSERVICE'].methods_by_name['SetSecrets']._loaded_options = None
   _globals['_SECRETSERVICE'].methods_by_name['SetSecrets']._serialized_options = b'\202\323\344\223\002\035\"\030/v1/workspace:setSecrets:\001*'
-  _globals['_SECRET']._serialized_start=188
-  _globals['_SECRET']._serialized_end=333
-  _globals['_SETSECRETSREQUEST']._serialized_start=335
-  _globals['_SETSECRETSREQUEST']._serialized_end=429
-  _globals['_SETSECRETSRESPONSE']._serialized_start=431
-  _globals['_SETSECRETSRESPONSE']._serialized_end=451
-  _globals['_SECRETSERVICE']._serialized_start=454
-  _globals['_SECRETSERVICE']._serialized_end=666
+  _globals['_SECRET']._serialized_start=187
+  _globals['_SECRET']._serialized_end=284
+  _globals['_SETSECRETSREQUEST']._serialized_start=286
+  _globals['_SETSECRETSREQUEST']._serialized_end=380
+  _globals['_SETSECRETSRESPONSE']._serialized_start=382
+  _globals['_SETSECRETSRESPONSE']._serialized_end=402
+  _globals['_SECRETSERVICE']._serialized_start=405
+  _globals['_SECRETSERVICE']._serialized_end=617
 # @@protoc_insertion_point(module_scope)

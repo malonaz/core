@@ -13,30 +13,23 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file malonaz/workspace/workspace_service/v1/secret_service.proto.
  */
 export const file_malonaz_workspace_workspace_service_v1_secret_service: GenFile = /*@__PURE__*/
-  fileDesc("CjttYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2Vfc2VydmljZS92MS9zZWNyZXRfc2VydmljZS5wcm90bxImbWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX3NlcnZpY2UudjEikQEKBlNlY3JldBI4CgJpZBgBIAEoCUIsukgpciQYPzIgXlthLXowLTldKFthLXowLTlfLV0qW2EtejAtOV0pPyTIAQESMAoHZW52X3ZhchgCIAEoCUIfukgcchoYgAEyFV4oW0EtWl9dW0EtWjAtOV9dKik/JBIbCgV2YWx1ZRgDIAEoDEIMgAEBukgGegQYgIAEIl4KEVNldFNlY3JldHNSZXF1ZXN0EkkKB3NlY3JldHMYASADKAsyLi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2Vfc2VydmljZS52MS5TZWNyZXRCCLpIBZIBAhBAIhQKElNldFNlY3JldHNSZXNwb25zZTLUAQoNU2VjcmV0U2VydmljZRKoAQoKU2V0U2VjcmV0cxI5Lm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9zZXJ2aWNlLnYxLlNldFNlY3JldHNSZXF1ZXN0GjoubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX3NlcnZpY2UudjEuU2V0U2VjcmV0c1Jlc3BvbnNlIiOC0+STAh0iGC92MS93b3Jrc3BhY2U6c2V0U2VjcmV0czoBKhoYykEVd29ya3NwYWNlLm1hbG9uYXouY29tQkFaP2dpdGh1Yi5jb20vbWFsb25hei9jb3JlL2dlbnByb3RvL3dvcmtzcGFjZS93b3Jrc3BhY2Vfc2VydmljZS92MWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_annotations, file_google_api_client]);
+  fileDesc("CjttYWxvbmF6L3dvcmtzcGFjZS93b3Jrc3BhY2Vfc2VydmljZS92MS9zZWNyZXRfc2VydmljZS5wcm90bxImbWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX3NlcnZpY2UudjEiYQoGU2VjcmV0EjAKB2Vudl92YXIYAiABKAlCH7pIHHIXGIABMhJeW0EtWl9dW0EtWjAtOV9dKiTIAQESGwoFdmFsdWUYAyABKAxCDIABAbpIBnoEGICABEoECAEQAlICaWQiXgoRU2V0U2VjcmV0c1JlcXVlc3QSSQoHc2VjcmV0cxgBIAMoCzIuLm1hbG9uYXoud29ya3NwYWNlLndvcmtzcGFjZV9zZXJ2aWNlLnYxLlNlY3JldEIIukgFkgECEEAiFAoSU2V0U2VjcmV0c1Jlc3BvbnNlMtQBCg1TZWNyZXRTZXJ2aWNlEqgBCgpTZXRTZWNyZXRzEjkubWFsb25hei53b3Jrc3BhY2Uud29ya3NwYWNlX3NlcnZpY2UudjEuU2V0U2VjcmV0c1JlcXVlc3QaOi5tYWxvbmF6LndvcmtzcGFjZS53b3Jrc3BhY2Vfc2VydmljZS52MS5TZXRTZWNyZXRzUmVzcG9uc2UiI4LT5JMCHSIYL3YxL3dvcmtzcGFjZTpzZXRTZWNyZXRzOgEqGhjKQRV3b3Jrc3BhY2UubWFsb25hei5jb21CQVo/Z2l0aHViLmNvbS9tYWxvbmF6L2NvcmUvZ2VucHJvdG8vd29ya3NwYWNlL3dvcmtzcGFjZV9zZXJ2aWNlL3YxYgZwcm90bzM", [file_buf_validate_validate, file_google_api_annotations, file_google_api_client]);
 
 /**
- * A Secret is a value a workspace's shells can read, never stored.
+ * A Secret is an env var every command in a workspace gets, held in memory only.
  *
  * @generated from message malonaz.workspace.workspace_service.v1.Secret
  */
 export type Secret = Message<"malonaz.workspace.workspace_service.v1.Secret"> & {
   /**
-   * The secret's file name under `/run/workspace/secrets`.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
-   * The env var holding the secret in every shell. Empty for a file only.
+   * The env var holding the secret in every command.
    *
    * @generated from field: string env_var = 2;
    */
   envVar: string;
 
   /**
-   * The secret's value.
+   * The secret's value. An env var cannot hold a NUL byte.
    *
    * @generated from field: bytes value = 3;
    */
@@ -44,27 +37,20 @@ export type Secret = Message<"malonaz.workspace.workspace_service.v1.Secret"> & 
 };
 
 /**
- * A Secret is a value a workspace's shells can read, never stored.
+ * A Secret is an env var every command in a workspace gets, held in memory only.
  *
  * @generated from message malonaz.workspace.workspace_service.v1.Secret
  */
 export type SecretValid = Message<"malonaz.workspace.workspace_service.v1.Secret"> & {
   /**
-   * The secret's file name under `/run/workspace/secrets`.
-   *
-   * @generated from field: string id = 1;
-   */
-  id: string;
-
-  /**
-   * The env var holding the secret in every shell. Empty for a file only.
+   * The env var holding the secret in every command.
    *
    * @generated from field: string env_var = 2;
    */
   envVar: string;
 
   /**
-   * The secret's value.
+   * The secret's value. An env var cannot hold a NUL byte.
    *
    * @generated from field: bytes value = 3;
    */
@@ -138,9 +124,8 @@ export const SetSecretsResponseSchema: GenMessage<SetSecretsResponse, {validType
  */
 export const SecretService: GenService<{
   /**
-   * Replace every secret the workspace holds: a file per secret under
-   * `/run/workspace/secrets` and its env var in `/run/workspace/env`, which
-   * every shell sources. An empty list removes them all.
+   * Replace every secret the workspace holds. They are kept in memory only and
+   * set as env vars on each command run after. An empty list removes them all.
    *
    * @generated from rpc malonaz.workspace.workspace_service.v1.SecretService.SetSecrets
    */

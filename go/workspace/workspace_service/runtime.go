@@ -17,15 +17,14 @@ import (
 )
 
 type Opts struct {
-	Directory    string `long:"directory" env:"DIRECTORY" required:"true" description:"The workspace: the directory commands run in and relative paths resolve against"`
-	RunDirectory string `long:"run-directory" env:"RUN_DIRECTORY" default:"/run/workspace" description:"Where SetSecrets writes the secrets and the env file every shell sources"`
+	Directory string `long:"directory" env:"DIRECTORY" required:"true" description:"The workspace: the directory commands run in and relative paths resolve against"`
 }
 
 type runtime struct {
-	directory    string
-	runDirectory string
-	// secretsMutex serializes SetSecrets calls.
-	secretsMutex sync.Mutex
+	directory string
+	// secretsMutex guards secretEnv, the KEY=value env SetSecrets last set.
+	secretsMutex sync.RWMutex
+	secretEnv    []string
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
@@ -40,7 +39,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if !info.IsDir() {
 		return nil, fmt.Errorf("%s is not a directory", directory)
 	}
-	return &runtime{directory: directory, runDirectory: opts.RunDirectory}, nil
+	return &runtime{directory: directory}, nil
 }
 
 func (s *Service) start(context.Context) (func(), error) {

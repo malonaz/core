@@ -24,14 +24,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A Secret is a value a workspace's shells can read, never stored.
+// A Secret is an env var every command in a workspace gets, held in memory only.
 type Secret struct {
 	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The secret's file name under `/run/workspace/secrets`.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The env var holding the secret in every shell. Empty for a file only.
+	// The env var holding the secret in every command.
 	EnvVar string `protobuf:"bytes,2,opt,name=env_var,json=envVar,proto3" json:"env_var,omitempty"`
-	// The secret's value.
+	// The secret's value. An env var cannot hold a NUL byte.
 	Value         []byte `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -62,13 +60,6 @@ func (x *Secret) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Secret) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
 func (x *Secret) GetEnvVar() string {
 	if x != nil {
 		return x.EnvVar
@@ -81,10 +72,6 @@ func (x *Secret) GetValue() []byte {
 		return x.Value
 	}
 	return nil
-}
-
-func (x *Secret) SetId(v string) {
-	x.Id = v
 }
 
 func (x *Secret) SetEnvVar(v string) {
@@ -101,11 +88,9 @@ func (x *Secret) SetValue(v []byte) {
 type Secret_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The secret's file name under `/run/workspace/secrets`.
-	Id string
-	// The env var holding the secret in every shell. Empty for a file only.
+	// The env var holding the secret in every command.
 	EnvVar string
-	// The secret's value.
+	// The secret's value. An env var cannot hold a NUL byte.
 	Value []byte
 }
 
@@ -113,7 +98,6 @@ func (b0 Secret_builder) Build() *Secret {
 	m0 := &Secret{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
 	x.EnvVar = b.EnvVar
 	x.Value = b.Value
 	return m0
@@ -227,11 +211,10 @@ var File_malonaz_workspace_workspace_service_v1_secret_service_proto protoreflec
 
 const file_malonaz_workspace_workspace_service_v1_secret_service_proto_rawDesc = "" +
 	"\n" +
-	";malonaz/workspace/workspace_service/v1/secret_service.proto\x12&malonaz.workspace.workspace_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\"\xa4\x01\n" +
-	"\x06Secret\x12<\n" +
-	"\x02id\x18\x01 \x01(\tB,\xbaH)\xc8\x01\x01r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$R\x02id\x128\n" +
-	"\aenv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x012\x15^([A-Z_][A-Z0-9_]*)?$R\x06envVar\x12\"\n" +
-	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"g\n" +
+	";malonaz/workspace/workspace_service/v1/secret_service.proto\x12&malonaz.workspace.workspace_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\"p\n" +
+	"\x06Secret\x128\n" +
+	"\aenv_var\x18\x02 \x01(\tB\x1f\xbaH\x1c\xc8\x01\x01r\x17\x18\x80\x012\x12^[A-Z_][A-Z0-9_]*$R\x06envVar\x12\"\n" +
+	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05valueJ\x04\b\x01\x10\x02R\x02id\"g\n" +
 	"\x11SetSecretsRequest\x12R\n" +
 	"\asecrets\x18\x01 \x03(\v2..malonaz.workspace.workspace_service.v1.SecretB\b\xbaH\x05\x92\x01\x02\x10@R\asecrets\"\x14\n" +
 	"\x12SetSecretsResponse2\xd4\x01\n" +
