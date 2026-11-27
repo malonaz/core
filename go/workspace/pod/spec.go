@@ -25,6 +25,8 @@ const (
 
 	// AnnotationWorkspace holds the workspace's resource name: label values cannot hold it.
 	AnnotationWorkspace = "workspace.malonaz.com/workspace"
+	// AnnotationMounts holds a hash of the mounts the pod was built with.
+	AnnotationMounts = "workspace.malonaz.com/mounts"
 	// AnnotationLastActive holds when a call last used the pod, RFC 3339.
 	AnnotationLastActive = "workspace.malonaz.com/last-active"
 
@@ -33,7 +35,17 @@ const (
 	portName          = "grpc"
 	tmpVolume         = "tmp"
 	mountVolumePrefix = "mount-"
+
+	// port is the workspace-server's gRPC port.
+	port = 9090
+	// runtimeClassName sandboxes the commands in gVisor.
+	runtimeClassName = "gvisor"
+	// csiDriver mounts the filesystems on the node.
+	csiDriver = "workspaces.onikisu"
 )
+
+// tmpSizeLimit bounds `/tmp`, on the node's disk.
+var tmpSizeLimit = resource.MustParse("4Gi")
 
 // Config is how every workspace pod runs, the same for all workspaces.
 type Config struct {
@@ -41,18 +53,10 @@ type Config struct {
 	Namespace string
 	// Image runs core's workspace-server.
 	Image string
-	// Port is the workspace-server's gRPC port.
-	Port int
 	// DisableTLS serves and dials the workspace-server in plaintext.
 	DisableTLS bool
-	// RuntimeClassName is the gVisor runtime class.
-	RuntimeClassName string
-	// CSIDriver mounts the filesystems on the node.
-	CSIDriver string
 	// Resources of the workspace-server container, which runs the commands.
 	Resources corev1.ResourceRequirements
-	// TmpSizeLimit bounds `/tmp`, on the node's disk.
-	TmpSizeLimit resource.Quantity
 	// Env is passed to the workspace-server: TLS and authentication flags.
 	Env []corev1.EnvVar
 }
@@ -66,9 +70,9 @@ func Name(workspaceName string) string {
 // Spec builds the pod of a workspace with its mounts. filesystemNameToKind holds the kind of
 // every mounted filesystem: it decides how the node mounts it.
 func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[string]pb.Filesystem_Kind) (*corev1.Pod, error) {
-	// Copies: the pod must not alias the shared config.
-	tmpSizeLimit := config.TmpSizeLimit.DeepCopy()
-	runtimeClassName := config.RuntimeClassName
+	// Copies: the pod must not alias the shared defaults.
+	tmpSizeLimit := tmpSizeLimit.DeepCopy()
+	runtimeClassName := runtimeClassName
 	volumeMounts := []corev1.VolumeMount{{Name: tmpVolume, MountPath: tmpDirectory}}
 	volumes := []corev1.Volume{
 		{Name: tmpVolume, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &tmpSizeLimit}}},
@@ -82,7 +86,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		volume := corev1.Volume{
 			Name: mountVolumePrefix + strconv.Itoa(i),
 			VolumeSource: corev1.VolumeSource{CSI: &corev1.CSIVolumeSource{
-				Driver:   config.CSIDriver,
+				Driver:   csiDriver,
 				ReadOnly: &readOnly,
 				VolumeAttributes: map[string]string{
 					"filesystem": mount.GetFilesystem(),
@@ -102,7 +106,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	}
 	env := []corev1.EnvVar{
 		{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: directory},
-		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(config.Port)},
+		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(port)},
 		{Name: "WORKSPACE_SERVICE_GRPC_DISABLE_TLS", Value: strconv.FormatBool(config.DisableTLS)},
 	}
 	containers := []corev1.Container{{
@@ -110,7 +114,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		Image:        config.Image,
 		Env:          append(env, config.Env...),
 		Resources:    *config.Resources.DeepCopy(),
-		Ports:        []corev1.ContainerPort{{Name: portName, ContainerPort: int32(config.Port)}},
+		Ports:        []corev1.ContainerPort{{Name: portName, ContainerPort: port}},
 		VolumeMounts: volumeMounts,
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler:  corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromString(portName)}},
@@ -125,7 +129,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 			Name:        Name(workspace.GetName()),
 			Namespace:   config.Namespace,
 			Labels:      map[string]string{LabelName: labelValue},
-			Annotations: map[string]string{AnnotationWorkspace: workspace.GetName()},
+			Annotations: map[string]string{AnnotationWorkspace: workspace.GetName(), AnnotationMounts: MountsHash(workspace.GetMounts())},
 		},
 		Spec: corev1.PodSpec{
 			RuntimeClassName:             &runtimeClassName,
@@ -138,6 +142,20 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	return pod, nil
 }
 
+// MountsHash identifies a list of mounts: equal for the same mounts in the same order.
+func MountsHash(mounts []*pb.Mount) string {
+	hash := sha256.New()
+	for _, mount := range mounts {
+		fmt.Fprintf(hash, "%s\x00%s\x00%d\x00", mount.GetFilesystem(), mount.GetPath(), mount.GetMode())
+	}
+	return hex.EncodeToString(hash.Sum(nil))[:20]
+}
+
+// HasMounts reports whether a pod was built with those mounts.
+func HasMounts(pod *corev1.Pod, mounts []*pb.Mount) bool {
+	return pod.Annotations[AnnotationMounts] == MountsHash(mounts)
+}
+
 // ClientOpts addresses a running pod's workspace-server by its IP, with the port and TLS its spec
 // serves on: pods have no DNS name.
 func (c *Config) ClientOpts(pod *corev1.Pod) (*grpc.ClientOpts, error) {
@@ -146,7 +164,7 @@ func (c *Config) ClientOpts(pod *corev1.Pod) (*grpc.ClientOpts, error) {
 	}
 	clientOpts := &grpc.ClientOpts{
 		Host:       pod.Status.PodIP,
-		Port:       c.Port,
+		Port:       port,
 		DisableTLS: c.DisableTLS,
 	}
 	return clientOpts, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -19,6 +20,8 @@ import (
 
 	"github.com/malonaz/core/gengo/workspace/model"
 	"github.com/malonaz/core/gengo/workspace/store"
+	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
+	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
 	filesystemservicepb "github.com/malonaz/core/genproto/workspace/filesystem_service/v1"
 	nodeservicepb "github.com/malonaz/core/genproto/workspace/node_service/v1"
 	pb "github.com/malonaz/core/genproto/workspace/v1"
@@ -73,9 +76,23 @@ func (f *fakeNodes) PurgeFilesystem(ctx context.Context, request *nodeservicepb.
 }
 
 // newTestService returns a service over the test database, with fake agents, and a user of its own.
+// fakeScheduler records the jobs operations start.
+type fakeScheduler struct {
+	schedulerservicepb.SchedulerServiceClient
+	mutex   sync.Mutex
+	created []*schedulerservicepb.CreateJobRequest
+}
+
+func (f *fakeScheduler) CreateJob(ctx context.Context, request *schedulerservicepb.CreateJobRequest, _ ...grpc.CallOption) (*schedulerpb.Job, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	f.created = append(f.created, request)
+	return &schedulerpb.Job{Name: request.GetParent() + "/jobs/j" + strconv.Itoa(len(f.created))}, nil
+}
+
 func newTestService(t *testing.T) (*Service, *fakeNodes, string) {
 	t.Helper()
-	service, err := New(&Opts{}, store.New(testPostgresClient), nil)
+	service, err := New(&Opts{}, store.New(testPostgresClient), &fakeScheduler{})
 	require.NoError(t, err)
 	nodes := &fakeNodes{}
 	service.nodes = nodes
@@ -259,11 +276,41 @@ func TestRunDeleteFilesystem(t *testing.T) {
 	_, err = service.GetFilesystem(context.Background(), getFilesystemRequest)
 	grpcrequire.Error(t, codes.NotFound, err)
 
-	_, err = service.RunDeleteFilesystem(context.Background(), deleteFilesystemRequest)
-	grpcrequire.Error(t, codes.NotFound, err)
-	deleteFilesystemRequest.AllowMissing = true
+	// A retried job whose first attempt deleted the rows is done.
 	_, err = service.RunDeleteFilesystem(context.Background(), deleteFilesystemRequest)
 	require.NoError(t, err)
+	require.Len(t, nodes.purges, 1)
+}
+
+func TestDeleteFilesystem(t *testing.T) {
+	service, _, user := newTestService(t)
+	filesystem := createFilesystem(t, service, user, "repo", pb.Filesystem_KIND_LOCAL)
+	workspace := user + "/workspaces/w1"
+	_, err := attach(t, service, filesystem.GetName(), workspace, pb.Mount_MODE_READ_WRITE)
+	require.NoError(t, err)
+
+	// Refused before the operation starts.
+	for name, request := range map[string]*filesystemservicepb.DeleteFilesystemRequest{
+		"missing":  {Name: user + "/filesystems/missing"},
+		"attached": {Name: filesystem.GetName()},
+		"stale":    {Name: filesystem.GetName(), Etag: "stale"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := service.DeleteFilesystem(context.Background(), request)
+			grpcrequire.Error(t, map[string]codes.Code{"missing": codes.NotFound, "attached": codes.FailedPrecondition, "stale": codes.Aborted}[name], err)
+		})
+	}
+	scheduler := service.schedulerServiceClient.(*fakeScheduler)
+	require.Empty(t, scheduler.created)
+
+	detach(t, service, filesystem.GetName(), workspace)
+	deleteFilesystemRequest := &filesystemservicepb.DeleteFilesystemRequest{Name: filesystem.GetName()}
+	_, err = service.DeleteFilesystem(context.Background(), deleteFilesystemRequest)
+	require.NoError(t, err)
+	missingRequest := &filesystemservicepb.DeleteFilesystemRequest{Name: user + "/filesystems/missing", AllowMissing: true}
+	_, err = service.DeleteFilesystem(context.Background(), missingRequest)
+	require.NoError(t, err)
+	require.Len(t, scheduler.created, 2)
 }
 
 func TestRunCreateSnapshot(t *testing.T) {

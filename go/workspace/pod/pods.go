@@ -38,6 +38,16 @@ func (p *Pods) Get(ctx context.Context, name string) (*corev1.Pod, error) {
 	return p.pods.Get(ctx, name, metav1.GetOptions{})
 }
 
+// List returns every workspace pod.
+func (p *Pods) List(ctx context.Context) ([]corev1.Pod, error) {
+	listOptions := metav1.ListOptions{LabelSelector: LabelName + "=" + labelValue}
+	podList, err := p.pods.List(ctx, listOptions)
+	if err != nil {
+		return nil, fmt.Errorf("listing pods: %w", err)
+	}
+	return podList.Items, nil
+}
+
 // GetOrCreate creates a pod, or returns the existing one of that name: any of the services may
 // create it first.
 func (p *Pods) GetOrCreate(ctx context.Context, pod *corev1.Pod) (*corev1.Pod, error) {
@@ -96,6 +106,40 @@ func (p *Pods) WaitRunning(ctx context.Context, name string) (*corev1.Pod, error
 			}
 			if eventPod, ok := event.Object.(*corev1.Pod); ok && eventPod.Name == name {
 				pod = eventPod
+			}
+		}
+	}
+}
+
+// WaitDeleted waits until a pod is gone, within ctx's deadline: a pod's name is its workspace's,
+// so a new one waits for the old to finish terminating.
+func (p *Pods) WaitDeleted(ctx context.Context, name string) error {
+	listOptions := metav1.ListOptions{FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String()}
+	watcher, err := p.pods.Watch(ctx, listOptions)
+	if err != nil {
+		return fmt.Errorf("watching pod %s: %w", name, err)
+	}
+	defer watcher.Stop()
+
+	if _, err := p.Get(ctx, name); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("getting pod %s: %w", name, err)
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("waiting for pod %s to go: %w", name, ctx.Err())
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return fmt.Errorf("waiting for pod %s to go: watch closed", name)
+			}
+			switch event.Type {
+			case watch.Deleted:
+				return nil
+			case watch.Error:
+				return fmt.Errorf("watching pod %s: %w", name, apierrors.FromObject(event.Object))
 			}
 		}
 	}
