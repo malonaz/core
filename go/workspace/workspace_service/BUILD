@@ -16,6 +16,7 @@ go_library(
     srcs = [
         "exec.go",
         "runtime.go",
+        "secrets.go",
         ":service.tmpl.go",
     ],
     visibility = ["//..."],
@@ -31,6 +32,7 @@ go_test(
     srcs = [
         "exec_test.go",
         "runtime_test.go",
+        "secrets_test.go",
     ],
     deps = [
         ":workspace_service",

@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"syscall"
 
 	"google.golang.org/grpc/codes"
@@ -16,11 +17,15 @@ import (
 )
 
 type Opts struct {
-	Directory string `long:"directory" env:"DIRECTORY" required:"true" description:"The workspace: the directory commands run in and relative paths resolve against"`
+	Directory    string `long:"directory" env:"DIRECTORY" required:"true" description:"The workspace: the directory commands run in and relative paths resolve against"`
+	RunDirectory string `long:"run-directory" env:"RUN_DIRECTORY" default:"/run/workspace" description:"Where SetSecrets writes the secrets and the env file every shell sources"`
 }
 
 type runtime struct {
-	directory string
+	directory    string
+	runDirectory string
+	// secretsMutex serializes SetSecrets calls.
+	secretsMutex sync.Mutex
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
@@ -35,7 +40,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if !info.IsDir() {
 		return nil, fmt.Errorf("%s is not a directory", directory)
 	}
-	return &runtime{directory: directory}, nil
+	return &runtime{directory: directory, runDirectory: opts.RunDirectory}, nil
 }
 
 func (s *Service) start(context.Context) (func(), error) {

@@ -7,3 +7,6 @@ servers:
         - service: workspace-service
           proto: //malonaz/workspace/workspace_service/v1
           manifest: //go/workspace/workspace_service:manifest
+        - service: secret-service
+          proto: //malonaz/workspace/workspace_service/v1
+          manifest: //go/workspace/workspace_service:manifest

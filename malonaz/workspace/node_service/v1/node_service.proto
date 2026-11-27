@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package malonaz.workspace.node_service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "malonaz/workspace/v1/snapshot.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/node_service/v1";
+
+// This API does a node's share of the filesystems' work: the workspace agent
+// serves it on every node, and the filesystem manager calls it. It owns the
+// LOCAL filesystems' files on the node and their history in object storage.
+service NodeService {
+  option (google.api.default_host) = "workspace.malonaz.com";
+
+  // Snapshot a LOCAL filesystem mounted on this node: upload what changed
+  // since its last snapshot and return the snapshot with its size and paths
+  // filled in. Idempotent: a request repeating a `request_id` returns the
+  // first one's snapshot.
+  rpc SnapshotFilesystem(SnapshotFilesystemRequest) returns (malonaz.workspace.v1.Snapshot);
+
+  // Delete a filesystem's history from object storage and its files from
+  // this node. Idempotent: deleting a filesystem with neither is not an error.
+  rpc PurgeFilesystem(PurgeFilesystemRequest) returns (google.protobuf.Empty);
+}
+
+// Request message for NodeService.SnapshotFilesystem.
+message SnapshotFilesystemRequest {
+  // The snapshot to take, its name assigned by the filesystem manager; its
+  // parent is the filesystem.
+  malonaz.workspace.v1.Snapshot snapshot = 1 [(buf.validate.field).required = true];
+
+  // A unique identifier for this request. Must be a UUID.
+  string request_id = 2 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.uuid = true
+  ];
+}
+
+// Request message for NodeService.PurgeFilesystem.
+message PurgeFilesystemRequest {
+  // The filesystem to purge.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string filesystem = 1 [
+    (buf.validate.field).required = true,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Filesystem"
+  ];
+}

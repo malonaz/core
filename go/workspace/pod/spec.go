@@ -28,7 +28,7 @@ const (
 	// AnnotationLastActive holds when a call last used the pod, RFC 3339.
 	AnnotationLastActive = "workspace.malonaz.com/last-active"
 
-	// RunDirectory holds what the sidecar writes for commands: the secrets and their env file.
+	// RunDirectory holds what SetSecrets writes for commands: the secrets and their env file.
 	RunDirectory = "/run/workspace"
 	// SecretsDirectory holds a file per secret, named by its id.
 	SecretsDirectory = RunDirectory + "/secrets"
@@ -66,8 +66,6 @@ type Config struct {
 	TmpSizeLimit resource.Quantity
 	// Env is passed to the workspace-server: TLS and authentication flags.
 	Env []corev1.EnvVar
-	// Sidecar, if set, runs beside the workspace-server with RunDirectory mounted read-write.
-	Sidecar *corev1.Container
 }
 
 // Name is the pod of a workspace: a hash of its resource name, unique across owners.
@@ -83,8 +81,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	tmpSizeLimit := config.TmpSizeLimit.DeepCopy()
 	runtimeClassName := config.RuntimeClassName
 	runSizeLimit := runSizeLimit.DeepCopy()
-	runMount := corev1.VolumeMount{Name: runVolume, MountPath: RunDirectory, ReadOnly: true}
-	volumeMounts := []corev1.VolumeMount{{Name: tmpVolume, MountPath: tmpDirectory}, runMount}
+	volumeMounts := []corev1.VolumeMount{{Name: tmpVolume, MountPath: tmpDirectory}, {Name: runVolume, MountPath: RunDirectory}}
 	volumes := []corev1.Volume{
 		{Name: tmpVolume, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &tmpSizeLimit}}},
 		{Name: runVolume, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory, SizeLimit: &runSizeLimit}}},
@@ -118,6 +115,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	}
 	env := []corev1.EnvVar{
 		{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: directory},
+		{Name: "WORKSPACE_SERVICE_RUN_DIRECTORY", Value: RunDirectory},
 		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(config.Port)},
 		{Name: "WORKSPACE_SERVICE_GRPC_DISABLE_TLS", Value: strconv.FormatBool(config.DisableTLS)},
 		{Name: "BASH_ENV", Value: EnvFile},
@@ -134,12 +132,6 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 			PeriodSeconds: 1,
 		},
 	}}
-	if config.Sidecar != nil {
-		sidecar := config.Sidecar.DeepCopy()
-		runMount.ReadOnly = false
-		sidecar.VolumeMounts = append(sidecar.VolumeMounts, runMount)
-		containers = append(containers, *sidecar)
-	}
 
 	automountServiceAccountToken := false
 	enableServiceLinks := false

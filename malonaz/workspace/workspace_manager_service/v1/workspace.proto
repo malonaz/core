@@ -8,32 +8,9 @@ import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 import "malonaz/codegen/aip/v1/aip.proto";
 import "malonaz/workspace/v1/workspace.proto";
+import "malonaz/workspace/workspace_service/v1/secret_service.proto";
 
 option go_package = "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1";
-
-// A Secret is a value a workspace's shells can read, never stored.
-message Secret {
-  // The secret's file name under `/run/workspace/secrets`.
-  string id = 1 [
-    (buf.validate.field).required = true,
-    (buf.validate.field).string = {
-      max_len: 63
-      pattern: "^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$"
-    }
-  ];
-
-  // The env var holding the secret in every shell. Empty for a file only.
-  string env_var = 2 [(buf.validate.field).string = {
-    max_len: 128
-    pattern: "^([A-Z_][A-Z0-9_]*)?$"
-  }];
-
-  // The secret's value.
-  bytes value = 3 [
-    debug_redact = true,
-    (buf.validate.field).bytes.max_len = 65536
-  ];
-}
 
 // Request message for WorkspaceManagerService.CreateWorkspace.
 message CreateWorkspaceRequest {
@@ -218,7 +195,7 @@ message SetWorkspaceSecretsRequest {
   ];
 
   // The secrets, replacing every one the pod holds.
-  repeated Secret secrets = 2 [
+  repeated malonaz.workspace.workspace_service.v1.Secret secrets = 2 [
     (google.api.field_behavior) = INPUT_ONLY,
     (buf.validate.field).repeated.max_items = 64
   ];
