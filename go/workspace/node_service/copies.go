@@ -44,12 +44,15 @@ type copyState struct {
 	Requests []recordedRequest `json:"requests"`
 }
 
-// fileState is what tells a path's change apart.
+// fileState is what tells a path's change apart, as git's index does. ChangeTime and Inode catch
+// an edit that keeps size and mtime: workspace code can set mtime, never ctime.
 type fileState struct {
-	Mode    fs.FileMode `json:"mode"`
-	Size    int64       `json:"size,omitempty"`
-	ModTime int64       `json:"mod_time,omitempty"`
-	Link    string      `json:"link,omitempty"`
+	Mode       fs.FileMode `json:"mode"`
+	Size       int64       `json:"size,omitempty"`
+	ModTime    int64       `json:"mod_time,omitempty"`
+	ChangeTime int64       `json:"change_time,omitempty"`
+	Inode      uint64      `json:"inode,omitempty"`
+	Link       string      `json:"link,omitempty"`
 }
 
 // recordedRequest is a snapshot request answered, to answer its retries alike.
@@ -221,10 +224,19 @@ func walkCopy(root *os.Root) (map[string]fileState, error) {
 				return err
 			}
 		case info.IsDir():
+			// A directory's times move with its entries, which are diffed on their own.
+			pathToFile[path] = file
+			return nil
 		default:
 			// Sockets, pipes and devices are not kept.
 			return nil
 		}
+		stat, ok := info.Sys().(*syscall.Stat_t)
+		if !ok {
+			return fmt.Errorf("no stat for %s", path)
+		}
+		file.ChangeTime = stat.Ctim.Nano()
+		file.Inode = stat.Ino
 		pathToFile[path] = file
 		return nil
 	}
@@ -243,10 +255,6 @@ func diffCopy(previous, current map[string]fileState) *changes {
 		case !ok:
 			changes.added = append(changes.added, path)
 		case previousFile != file:
-			// A directory's mtime moves with its entries, which are diffed on their own.
-			if file.Mode.IsDir() && previousFile.Mode == file.Mode {
-				continue
-			}
 			changes.changed = append(changes.changed, path)
 		}
 	}

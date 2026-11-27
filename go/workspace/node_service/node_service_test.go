@@ -292,6 +292,23 @@ func TestSnapshotWritesFullAfterIncrementalsPileUp(t *testing.T) {
 	require.Equal(t, readTree(t, copyPath), readTree(t, restored))
 }
 
+func TestSnapshotFindsEditKeepingSizeAndModTime(t *testing.T) {
+	node := newTestNode(t, newFakeObjects())
+	copyPath := node.publish(t, kindLocal, false)
+	path := filepath.Join(copyPath, "a.txt")
+	writeTestFile(t, path, "a")
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	_, err = node.snapshot(t, uuid.MustNewV7().String())
+	require.NoError(t, err)
+
+	writeTestFile(t, path, "b")
+	require.NoError(t, os.Chtimes(path, info.ModTime(), info.ModTime()))
+	snapshot, err := node.snapshot(t, uuid.MustNewV7().String())
+	require.NoError(t, err)
+	require.Equal(t, [3][]string{nil, {"a.txt"}, nil}, snapshotPaths(snapshot))
+}
+
 func TestSnapshotWithoutCopy(t *testing.T) {
 	node := newTestNode(t, newFakeObjects())
 	_, err := node.snapshot(t, uuid.MustNewV7().String())
