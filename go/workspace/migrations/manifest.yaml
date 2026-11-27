@@ -1,0 +1,9 @@
+# Ordered list of every migration in this database.
+# Append-only: never reorder or edit an entry whose migration has been applied.
+migrations:
+  - path: workspace/001_init.sql
+    hash: 46efd1ad91a8d76af439463dc5e95ce3
+  - path: filesystem/001_init.sql
+    hash: 0420ca5b89a7faa9bb030afc8dc86a2a
+  - path: snapshot/001_init.sql
+    hash: b421e319dc39c6f485cd2e6316f6a4cc
