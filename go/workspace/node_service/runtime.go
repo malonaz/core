@@ -28,16 +28,21 @@ const (
 	stateDirectory = "state"
 	// temporaryDirectory holds snapshots being written and copies being removed.
 	temporaryDirectory = "tmp"
+
+	// fullSnapshotTurns is how many incremental snapshots may follow a full one before the next is full.
+	fullSnapshotTurns = 20
+	// fullSnapshotRatio makes the next snapshot full once the incrementals since the last full
+	// exceed 1/fullSnapshotRatio of its size, keeping a restore to ~1.25x one full.
+	fullSnapshotRatio = 4
+	// maxRecordedRequests is how many snapshot request ids each filesystem remembers, to answer retries.
+	maxRecordedRequests = 16
 )
 
 type Opts struct {
-	Directory           string `long:"directory" env:"DIRECTORY" default:"/var/lib/workspaces" description:"The node's workspace disk: LOCAL filesystems in local/, the SHARED network filesystem mounted at shared/"`
-	Bucket              string `long:"bucket" env:"BUCKET" required:"true" description:"The S3 bucket holding LOCAL filesystems' snapshots"`
-	NodeName            string `long:"node-name" env:"NODE_NAME" required:"true" description:"The node this agent runs on, which kubelet asks the CSI plugin for"`
-	CSISocketPath       string `long:"csi-socket-path" env:"CSI_SOCKET_PATH" default:"/csi/csi.sock" description:"The unix socket kubelet calls the CSI plugin on"`
-	FullSnapshotTurns   int    `long:"full-snapshot-turns" env:"FULL_SNAPSHOT_TURNS" default:"20" description:"How many incremental snapshots may follow a full one before the next is full"`
-	FullSnapshotRatio   int    `long:"full-snapshot-ratio" env:"FULL_SNAPSHOT_RATIO" default:"4" description:"The next snapshot is full once the incrementals since the last full exceed 1/ratio of its size"`
-	MaxRecordedRequests int    `long:"max-recorded-requests" env:"MAX_RECORDED_REQUESTS" default:"16" description:"How many snapshot request ids each filesystem remembers, to answer retries"`
+	Directory     string `long:"directory" env:"DIRECTORY" default:"/var/lib/workspaces" description:"The node's workspace disk: LOCAL filesystems in local/, the SHARED network filesystem mounted at shared/"`
+	Bucket        string `long:"bucket" env:"BUCKET" required:"true" description:"The S3 bucket holding LOCAL filesystems' snapshots"`
+	NodeName      string `long:"node-name" env:"NODE_NAME" required:"true" description:"The node this agent runs on, which kubelet asks the CSI plugin for"`
+	CSISocketPath string `long:"csi-socket-path" env:"CSI_SOCKET_PATH" default:"/csi/csi.sock" description:"The unix socket kubelet calls the CSI plugin on"`
 }
 
 type runtime struct {
@@ -50,9 +55,6 @@ type runtime struct {
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
-	if opts.FullSnapshotTurns <= 0 || opts.FullSnapshotRatio <= 0 || opts.MaxRecordedRequests <= 0 {
-		return nil, fmt.Errorf("full-snapshot-turns, full-snapshot-ratio and max-recorded-requests must be positive")
-	}
 	directory, err := filepath.Abs(opts.Directory)
 	if err != nil {
 		return nil, fmt.Errorf("resolving directory: %w", err)

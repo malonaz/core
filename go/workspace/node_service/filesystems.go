@@ -57,8 +57,8 @@ func (s *Service) SnapshotFilesystem(ctx context.Context, request *nodeservicepb
 
 	// A full snapshot keeps restores to about one: the first, and once increments pile up.
 	full := state.Sequence == 0 ||
-		int(state.Incrementals) >= s.opts.FullSnapshotTurns ||
-		state.IncrementalBytes*int64(s.opts.FullSnapshotRatio) > state.FullBytes
+		state.Incrementals >= fullSnapshotTurns ||
+		state.IncrementalBytes*fullSnapshotRatio > state.FullBytes
 	// An unchanged copy stores nothing: the turn still gets its empty snapshot.
 	if !changes.empty() || state.Sequence == 0 {
 		snapshotFiles := files
@@ -83,7 +83,7 @@ func (s *Service) SnapshotFilesystem(ctx context.Context, request *nodeservicepb
 	state.Files = files
 	copyRequest := &nodeservicepb.CopyRequest{RequestId: request.GetRequestId(), Snapshot: snapshot}
 	state.Requests = append(state.Requests, copyRequest)
-	if excess := len(state.Requests) - s.opts.MaxRecordedRequests; excess > 0 {
+	if excess := len(state.Requests) - maxRecordedRequests; excess > 0 {
 		state.Requests = state.Requests[excess:]
 	}
 	if err := s.writeState(filesystem, state); err != nil {

@@ -128,7 +128,7 @@ type testNode struct {
 
 func newTestNode(t *testing.T, objects *fakeObjects) *testNode {
 	t.Helper()
-	service, err := New(&Opts{Directory: t.TempDir(), NodeName: "node", FullSnapshotTurns: 20, FullSnapshotRatio: 4, MaxRecordedRequests: 2})
+	service, err := New(&Opts{Directory: t.TempDir(), NodeName: "node"})
 	require.NoError(t, err)
 	mounter := &fakeMounter{targetToBind: map[string]bind{}}
 	service.objects, service.mounter = objects, mounter
@@ -265,24 +265,20 @@ func TestSnapshotAndRestore(t *testing.T) {
 func TestSnapshotWritesFullAfterIncrementalsPileUp(t *testing.T) {
 	objects := newFakeObjects()
 	node := newTestNode(t, objects)
-	node.service.opts.FullSnapshotTurns = 2
-	node.service.opts.FullSnapshotRatio = 1
 	copyPath := node.publish(t, kindLocal, false)
 	// A big, unchanging file keeps every increment under the ratio.
 	big := make([]byte, 1<<16)
 	_, err := rand.Read(big)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(filepath.Join(copyPath, "big.bin"), big, 0o644))
-	for i := range 4 {
-		writeTestFile(t, filepath.Join(copyPath, "file.txt"), strings.Repeat("x", i+1))
+	// A full, fullSnapshotTurns incrementals, then a full again.
+	var expectedKeys []string
+	for sequence := int64(1); sequence <= fullSnapshotTurns+2; sequence++ {
+		writeTestFile(t, filepath.Join(copyPath, "file.txt"), strings.Repeat("x", int(sequence)))
 		_, err := node.snapshot(t, uuid.MustNewV7().String())
 		require.NoError(t, err)
-	}
-	expectedKeys := []string{
-		testFilesystem + "/00000000000000000001.full.tar.zst",
-		testFilesystem + "/00000000000000000002.incremental.tar.zst",
-		testFilesystem + "/00000000000000000003.incremental.tar.zst",
-		testFilesystem + "/00000000000000000004.full.tar.zst",
+		full := sequence == 1 || sequence == fullSnapshotTurns+2
+		expectedKeys = append(expectedKeys, objectKey(testFilesystem, sequence, full))
 	}
 	require.Equal(t, expectedKeys, objects.keys())
 
