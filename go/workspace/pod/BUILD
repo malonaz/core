@@ -1,15 +1,12 @@
 go_library(
     name = "pod",
     srcs = [
-        "dial.go",
         "pods.go",
         "spec.go",
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//go/certs",
         "//go/grpc",
-        "//go/prometheus",
         "//malonaz/workspace/v1",
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/go:k8s.io__api__core__v1",
@@ -27,7 +24,10 @@ go_library(
 
 go_test(
     name = "test",
-    srcs = ["pod_test.go"],
+    srcs = [
+        "pods_test.go",
+        "spec_test.go",
+    ],
     deps = [
         ":pod",
         "//go/grpc",

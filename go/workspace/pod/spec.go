@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	pb "github.com/malonaz/core/genproto/workspace/v1"
+	"github.com/malonaz/core/go/grpc"
 )
 
 const (
@@ -53,6 +54,8 @@ type Config struct {
 	Image string
 	// Port is the workspace-server's gRPC port.
 	Port int
+	// DisableTLS serves and dials the workspace-server in plaintext.
+	DisableTLS bool
 	// RuntimeClassName is the gVisor runtime class.
 	RuntimeClassName string
 	// CSIDriver mounts the filesystems on the node.
@@ -116,6 +119,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	env := []corev1.EnvVar{
 		{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: directory},
 		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(config.Port)},
+		{Name: "WORKSPACE_SERVICE_GRPC_DISABLE_TLS", Value: strconv.FormatBool(config.DisableTLS)},
 		{Name: "BASH_ENV", Value: EnvFile},
 	}
 	containers := []corev1.Container{{
@@ -155,4 +159,18 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		},
 	}
 	return pod, nil
+}
+
+// ClientOpts addresses a running pod's workspace-server by its IP, with the port and TLS its spec
+// serves on: pods have no DNS name.
+func (c *Config) ClientOpts(pod *corev1.Pod) (*grpc.ClientOpts, error) {
+	if pod.Status.PodIP == "" {
+		return nil, fmt.Errorf("pod %s has no IP", pod.Name)
+	}
+	clientOpts := &grpc.ClientOpts{
+		Host:       pod.Status.PodIP,
+		Port:       c.Port,
+		DisableTLS: c.DisableTLS,
+	}
+	return clientOpts, nil
 }
