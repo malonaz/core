@@ -33,6 +33,23 @@ const (
 	portName          = "grpc"
 	tmpVolume         = "tmp"
 	mountVolumePrefix = "mount-"
+
+	// port is the workspace-server's gRPC port.
+	port = 9090
+	// runtimeClassName sandboxes the commands in gVisor.
+	runtimeClassName = "gvisor"
+	// csiDriver mounts the filesystems on the node.
+	csiDriver = "workspaces.onikisu"
+)
+
+var (
+	// resources of the workspace-server container, which runs the commands.
+	resources = corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("250m"), corev1.ResourceMemory: resource.MustParse("512Mi")},
+		Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2"), corev1.ResourceMemory: resource.MustParse("2Gi")},
+	}
+	// tmpSizeLimit bounds `/tmp`, on the node's disk.
+	tmpSizeLimit = resource.MustParse("4Gi")
 )
 
 // Config is how every workspace pod runs, the same for all workspaces.
@@ -41,18 +58,8 @@ type Config struct {
 	Namespace string
 	// Image runs core's workspace-server.
 	Image string
-	// Port is the workspace-server's gRPC port.
-	Port int
 	// DisableTLS serves and dials the workspace-server in plaintext.
 	DisableTLS bool
-	// RuntimeClassName is the gVisor runtime class.
-	RuntimeClassName string
-	// CSIDriver mounts the filesystems on the node.
-	CSIDriver string
-	// Resources of the workspace-server container, which runs the commands.
-	Resources corev1.ResourceRequirements
-	// TmpSizeLimit bounds `/tmp`, on the node's disk.
-	TmpSizeLimit resource.Quantity
 	// Env is passed to the workspace-server: TLS and authentication flags.
 	Env []corev1.EnvVar
 }
@@ -66,9 +73,9 @@ func Name(workspaceName string) string {
 // Spec builds the pod of a workspace with its mounts. filesystemNameToKind holds the kind of
 // every mounted filesystem: it decides how the node mounts it.
 func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[string]pb.Filesystem_Kind) (*corev1.Pod, error) {
-	// Copies: the pod must not alias the shared config.
-	tmpSizeLimit := config.TmpSizeLimit.DeepCopy()
-	runtimeClassName := config.RuntimeClassName
+	// Copies: the pod must not alias the shared defaults.
+	tmpSizeLimit := tmpSizeLimit.DeepCopy()
+	runtimeClassName := runtimeClassName
 	volumeMounts := []corev1.VolumeMount{{Name: tmpVolume, MountPath: tmpDirectory}}
 	volumes := []corev1.Volume{
 		{Name: tmpVolume, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &tmpSizeLimit}}},
@@ -82,7 +89,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		volume := corev1.Volume{
 			Name: mountVolumePrefix + strconv.Itoa(i),
 			VolumeSource: corev1.VolumeSource{CSI: &corev1.CSIVolumeSource{
-				Driver:   config.CSIDriver,
+				Driver:   csiDriver,
 				ReadOnly: &readOnly,
 				VolumeAttributes: map[string]string{
 					"filesystem": mount.GetFilesystem(),
@@ -102,15 +109,15 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 	}
 	env := []corev1.EnvVar{
 		{Name: "WORKSPACE_SERVICE_DIRECTORY", Value: directory},
-		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(config.Port)},
+		{Name: "WORKSPACE_SERVICE_GRPC_PORT", Value: strconv.Itoa(port)},
 		{Name: "WORKSPACE_SERVICE_GRPC_DISABLE_TLS", Value: strconv.FormatBool(config.DisableTLS)},
 	}
 	containers := []corev1.Container{{
 		Name:         containerName,
 		Image:        config.Image,
 		Env:          append(env, config.Env...),
-		Resources:    *config.Resources.DeepCopy(),
-		Ports:        []corev1.ContainerPort{{Name: portName, ContainerPort: int32(config.Port)}},
+		Resources:    *resources.DeepCopy(),
+		Ports:        []corev1.ContainerPort{{Name: portName, ContainerPort: port}},
 		VolumeMounts: volumeMounts,
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler:  corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromString(portName)}},
@@ -146,7 +153,7 @@ func (c *Config) ClientOpts(pod *corev1.Pod) (*grpc.ClientOpts, error) {
 	}
 	clientOpts := &grpc.ClientOpts{
 		Host:       pod.Status.PodIP,
-		Port:       c.Port,
+		Port:       port,
 		DisableTLS: c.DisableTLS,
 	}
 	return clientOpts, nil

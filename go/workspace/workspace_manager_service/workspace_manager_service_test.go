@@ -180,19 +180,10 @@ func newTestEnvironment(t *testing.T) *testEnvironment {
 	}
 	scheduler := &fakeScheduler{}
 	opts := &Opts{
-		Namespace:        testNamespace,
-		Image:            "workspace-server:1",
-		Port:             9090,
-		RuntimeClassName: "gvisor",
-		CSIDriver:        "workspaces.onikisu",
-		CPURequest:       "250m",
-		CPULimit:         "2",
-		MemoryRequest:    "512Mi",
-		MemoryLimit:      "2Gi",
-		TmpSizeLimit:     "4Gi",
-		IdleTimeout:      30 * time.Minute,
-		MaxRunDuration:   12 * time.Hour,
-		ReapInterval:     time.Minute,
+		Namespace:      testNamespace,
+		Image:          "workspace-server:1",
+		IdleTimeout:    30 * time.Minute,
+		MaxRunDuration: 12 * time.Hour,
 	}
 	service, err := New(opts, store.New(testPostgresClient), scheduler, filesystems)
 	require.NoError(t, err)

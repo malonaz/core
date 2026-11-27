@@ -23,17 +23,10 @@ const (
 
 func testConfig() *Config {
 	return &Config{
-		Namespace:        testNamespace,
-		Image:            "workspace-server:1",
-		Port:             9090,
-		RuntimeClassName: "gvisor",
-		CSIDriver:        "workspaces.onikisu",
-		Resources: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("500m")},
-		},
-		DisableTLS:   true,
-		TmpSizeLimit: resource.MustParse("1Gi"),
-		Env:          []corev1.EnvVar{{Name: "WORKSPACE_SERVICE_AUTHENTICATION", Value: "none"}},
+		Namespace:  testNamespace,
+		Image:      "workspace-server:1",
+		DisableTLS: true,
+		Env:        []corev1.EnvVar{{Name: "WORKSPACE_SERVICE_AUTHENTICATION", Value: "none"}},
 	}
 }
 
@@ -66,7 +59,7 @@ func TestSpec(t *testing.T) {
 
 		readWrite, readOnly, disabled := false, true, false
 		runtimeClassName := "gvisor"
-		tmpSizeLimit := resource.MustParse("1Gi")
+		tmpSizeLimit := resource.MustParse("4Gi")
 		expected := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        Name(testWorkspaceName),
@@ -89,7 +82,8 @@ func TestSpec(t *testing.T) {
 					},
 					Ports: []corev1.ContainerPort{{Name: "grpc", ContainerPort: 9090}},
 					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("500m")},
+						Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("250m"), corev1.ResourceMemory: resource.MustParse("512Mi")},
+						Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2"), corev1.ResourceMemory: resource.MustParse("2Gi")},
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{Name: "tmp", MountPath: "/tmp"},

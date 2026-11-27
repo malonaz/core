@@ -10,7 +10,6 @@ import (
 
 	"cloud.google.com/go/longrunning/autogen/longrunningpb"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -24,23 +23,16 @@ import (
 // createSnapshotMethod is the operation SnapshotWorkspace waits on, one per mount.
 const createSnapshotMethod = "/malonaz.workspace.filesystem_service.v1.FilesystemService/CreateSnapshot"
 
-type Opts struct {
-	Namespace        string   `long:"namespace" env:"NAMESPACE" required:"true" description:"The namespace workspace pods run in"`
-	Image            string   `long:"image" env:"IMAGE" required:"true" description:"The workspace-server image every pod runs"`
-	Port             int      `long:"port" env:"PORT" default:"9090" description:"The workspace-server's gRPC port"`
-	DisableTLS       bool     `long:"disable-tls" env:"DISABLE_TLS" description:"Serve and dial the workspace-server in plaintext"`
-	RuntimeClassName string   `long:"runtime-class-name" env:"RUNTIME_CLASS_NAME" default:"gvisor" description:"The runtime class sandboxing workspace pods"`
-	CSIDriver        string   `long:"csi-driver" env:"CSI_DRIVER" default:"workspaces.onikisu" description:"The CSI driver mounting filesystems on the node"`
-	CPURequest       string   `long:"cpu-request" env:"CPU_REQUEST" default:"250m" description:"CPU each workspace requests"`
-	CPULimit         string   `long:"cpu-limit" env:"CPU_LIMIT" default:"2" description:"CPU each workspace may use"`
-	MemoryRequest    string   `long:"memory-request" env:"MEMORY_REQUEST" default:"512Mi" description:"Memory each workspace requests"`
-	MemoryLimit      string   `long:"memory-limit" env:"MEMORY_LIMIT" default:"2Gi" description:"Memory each workspace may use"`
-	TmpSizeLimit     string   `long:"tmp-size-limit" env:"TMP_SIZE_LIMIT" default:"4Gi" description:"The most a workspace's /tmp may hold"`
-	Env              []string `long:"env" env:"ENV" env-delim:"," description:"KEY=VALUE env vars for every workspace-server: its TLS and authentication flags"`
+// reapInterval is how often the reaper looks for pods to stop.
+const reapInterval = time.Minute
 
+type Opts struct {
+	Namespace      string        `long:"namespace" env:"NAMESPACE" required:"true" description:"The namespace workspace pods run in"`
+	Image          string        `long:"image" env:"IMAGE" required:"true" description:"The workspace-server image every pod runs"`
+	DisableTLS     bool          `long:"disable-tls" env:"DISABLE_TLS" description:"Serve and dial the workspace-server in plaintext"`
+	Env            []string      `long:"env" env:"ENV" env-delim:"," description:"KEY=VALUE env vars for every workspace-server: its TLS and authentication flags"`
 	IdleTimeout    time.Duration `long:"idle-timeout" env:"IDLE_TIMEOUT" default:"30m" description:"How long a running workspace may go unused before the reaper stops it"`
 	MaxRunDuration time.Duration `long:"max-run-duration" env:"MAX_RUN_DURATION" default:"12h" description:"How long a pod may run, used or not, before the reaper stops it"`
-	ReapInterval   time.Duration `long:"reap-interval" env:"REAP_INTERVAL" default:"1m" description:"Interval between reaper passes"`
 }
 
 // secretsDialer reaches the SecretService of a running pod. close releases it.
@@ -60,29 +52,8 @@ type runtime struct {
 }
 
 func newRuntime(opts *Opts) (*runtime, error) {
-	if opts.IdleTimeout <= 0 || opts.MaxRunDuration <= 0 || opts.ReapInterval <= 0 {
-		return nil, fmt.Errorf("idle-timeout, max-run-duration and reap-interval must be positive")
-	}
-	resources := corev1.ResourceRequirements{Requests: corev1.ResourceList{}, Limits: corev1.ResourceList{}}
-	for _, quantity := range []struct {
-		list  corev1.ResourceList
-		name  corev1.ResourceName
-		value string
-	}{
-		{resources.Requests, corev1.ResourceCPU, opts.CPURequest},
-		{resources.Limits, corev1.ResourceCPU, opts.CPULimit},
-		{resources.Requests, corev1.ResourceMemory, opts.MemoryRequest},
-		{resources.Limits, corev1.ResourceMemory, opts.MemoryLimit},
-	} {
-		parsed, err := resource.ParseQuantity(quantity.value)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %s %q: %w", quantity.name, quantity.value, err)
-		}
-		quantity.list[quantity.name] = parsed
-	}
-	tmpSizeLimit, err := resource.ParseQuantity(opts.TmpSizeLimit)
-	if err != nil {
-		return nil, fmt.Errorf("parsing tmp-size-limit %q: %w", opts.TmpSizeLimit, err)
+	if opts.IdleTimeout <= 0 || opts.MaxRunDuration <= 0 {
+		return nil, fmt.Errorf("idle-timeout and max-run-duration must be positive")
 	}
 	var env []corev1.EnvVar
 	for _, keyValue := range opts.Env {
@@ -93,15 +64,10 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		env = append(env, corev1.EnvVar{Name: key, Value: value})
 	}
 	podConfig := &pod.Config{
-		Namespace:        opts.Namespace,
-		Image:            opts.Image,
-		Port:             opts.Port,
-		DisableTLS:       opts.DisableTLS,
-		RuntimeClassName: opts.RuntimeClassName,
-		CSIDriver:        opts.CSIDriver,
-		Resources:        resources,
-		TmpSizeLimit:     tmpSizeLimit,
-		Env:              env,
+		Namespace:  opts.Namespace,
+		Image:      opts.Image,
+		DisableTLS: opts.DisableTLS,
+		Env:        env,
 	}
 	return &runtime{podConfig: podConfig}, nil
 }
@@ -126,7 +92,7 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		s.operations = longrunning.NewServer(s.schedulerServiceClient, []string{createSnapshotMethod})
 	}
 	reaper := routine.New("workspace-reap", s.reap).
-		WithTicker(s.opts.ReapInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx)
+		WithTicker(reapInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx)
 	return reaper.Close, nil
 }
 
