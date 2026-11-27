@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package malonaz.workspace.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/model/v1/model.proto";
+import "malonaz/workspace/v1/workspace.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/v1";
+
+// A Filesystem is a directory tree workspaces mount: it owns the files and
+// their history, and outlives every workspace mounting it. A LOCAL
+// filesystem's snapshot tars live in object storage.
+message Filesystem {
+  option (google.api.resource) = {
+    type: "workspace.malonaz.com/Filesystem"
+    pattern: "organizations/{organization}/users/{user}/filesystems/{filesystem}"
+    singular: "filesystem"
+    plural: "filesystems"
+  };
+  option (malonaz.codegen.model.v1.model_opts) = {schema_name: "workspace"};
+  option (malonaz.codegen.aip.v1.uuid_namespace) = "5c3c0d12-d6cb-4cc6-97d9-e4a3d930f54d";
+
+  // Kind is where a filesystem's files live, which decides its speed and how
+  // many workspaces may write it.
+  enum Kind {
+    // Used to detect an unset field.
+    KIND_UNSPECIFIED = 0;
+    // On the disk of the node running its writing workspace, snapshotted to object storage:
+    // fast for git, package managers and builds, with a history. One read-write
+    // mount at a time.
+    KIND_LOCAL = 1;
+    // On a network filesystem every node mounts: any number of read-write mounts
+    // at once, last write wins, a network round trip per small-file operation.
+    // No per-turn history. For small files shared across sessions.
+    KIND_SHARED = 2;
+  }
+
+  // The resource name of the filesystem.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The creation timestamp of the filesystem.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The last update timestamp of the filesystem.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // A checksum computed by the server based on the current value of the resource.
+  string etag = 4;
+
+  // The labels on this filesystem.
+  map<string, string> labels = 5 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (malonaz.codegen.model.v1.field_opts).nullable = true,
+    (buf.validate.field).map = {
+      max_pairs: 64
+      keys: {
+        string: {pattern: "^([a-zA-Z0-9]([a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?/)?[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$"}
+      }
+      values: {
+        string: {
+          max_len: 63
+          pattern: "^[a-z0-9_\\-\\p{L}]*$"
+        }
+      }
+    }
+  ];
+
+  // Where the filesystem's files live.
+  Kind kind = 6 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (buf.validate.field).enum = {
+      defined_only: true
+      not_in: [0]
+    }
+  ];
+
+  // The most bytes the filesystem may hold. A full LOCAL filesystem fails writes
+  // with ENOSPC; an over-quota SHARED one is mounted read-only until it shrinks.
+  // Defaults to the server's quota for its kind.
+  int64 quota_bytes = 7 [(buf.validate.field).int64.gte = 0];
+
+  // The bytes the filesystem holds, as last measured.
+  int64 used_bytes = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The workspaces mounting the filesystem. A LOCAL filesystem has at most
+  // one in MODE_READ_WRITE.
+  repeated Attachment attachments = 9 [
+    (malonaz.codegen.model.v1.field_opts).as_json_bytes = true,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+
+  // The filesystem's latest snapshot. LOCAL only; empty until the first.
+  // Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
+  string latest_snapshot = 10 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Snapshot"
+  ];
+}
+
+// An Attachment is a workspace mounting a filesystem.
+message Attachment {
+  // The workspace mounting the filesystem.
+  // Format: organizations/{organization}/users/{user}/workspaces/{workspace}
+  string workspace = 1 [
+    (buf.validate.field).required = true,
+    (google.api.resource_reference).type = "workspace.malonaz.com/Workspace"
+  ];
+
+  // How the workspace may use the filesystem.
+  Mount.Mode mode = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+}

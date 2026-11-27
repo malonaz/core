@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package malonaz.workspace.filesystem_service.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/longrunning/operations.proto";
+import "malonaz/codegen/aip/v1/aip.proto";
+import "malonaz/codegen/scheduler/v1/scheduler.proto";
+import "malonaz/workspace/filesystem_service/v1/filesystem.proto";
+import "malonaz/workspace/filesystem_service/v1/snapshot.proto";
+import "malonaz/workspace/v1/filesystem.proto";
+import "malonaz/workspace/v1/snapshot.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/filesystem_service/v1";
+
+// This API stores the filesystems workspaces mount, and the history of the
+// LOCAL ones. It knows nothing about users or agents: the server in front of
+// it checks who may touch which filesystem.
+//
+// # Resource model
+//
+// - [Filesystem][malonaz.workspace.v1.Filesystem]: a directory tree, LOCAL
+//   (node disk, snapshotted, one writing workspace) or SHARED (network,
+//   many).
+//   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}
+// - [Snapshot][malonaz.workspace.v1.Snapshot]: a LOCAL filesystem's state at
+//   a turn's end, and what changed since the one before.
+//   Format: organizations/{organization}/users/{user}/filesystems/{filesystem}/snapshots/{snapshot}
+//
+// # Attachments
+//
+// The WorkspaceManagerService attaches a filesystem to each workspace mounting
+// it, with AttachFilesystem before the mount and DetachFilesystem once the
+// workspace drops it, so a filesystem knows every workspace mounting it. A
+// SHARED filesystem takes any number of attachments; a LOCAL one any number of
+// read-only ones but at most one that writes.
+service FilesystemService {
+  option (google.api.default_host) = "workspace.malonaz.com";
+
+  // ===================== Filesystem Management =====================
+
+  // Create a filesystem, empty.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateFilesystem(CreateFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*}/filesystems"
+      body: "filesystem"
+    };
+    option (google.api.method_signature) = "parent,filesystem";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Filesystem";
+  }
+
+  // Get a filesystem.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetFilesystem(GetFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/filesystems/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Filesystem";
+  }
+
+  // List filesystems.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListFilesystems(ListFilesystemsRequest) returns (ListFilesystemsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*}/filesystems"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Filesystem";
+  }
+
+  // Delete a filesystem, its files and its history. FAILED_PRECONDITION while
+  // it has attachments. Long-running: deleting its history in object storage
+  // takes a while.
+  //
+  // See: https://google.aip.dev/135 (Standard methods: Delete).
+  rpc DeleteFilesystem(DeleteFilesystemRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=organizations/*/users/*/filesystems/*}"};
+    option (google.api.method_signature) = "name";
+    option (google.longrunning.operation_info) = {
+      response_type: "google.protobuf.Empty"
+      metadata_type: "malonaz.workspace.v1.OperationMetadata"
+    };
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 600}
+      max_attempts: 5
+    };
+  }
+
+  // Attach a filesystem to a workspace mounting it. Attaching it again to the
+  // same workspace updates its `mode`. FAILED_PRECONDITION for a read-write
+  // attachment of a LOCAL filesystem another workspace writes.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc AttachFilesystem(AttachFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/filesystems/*}:attach"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,workspace";
+  }
+
+  // Detach a filesystem from a workspace. Idempotent: a filesystem not
+  // attached to the workspace is returned as is.
+  //
+  // See: https://google.aip.dev/136 (Custom methods).
+  rpc DetachFilesystem(DetachFilesystemRequest) returns (malonaz.workspace.v1.Filesystem) {
+    option (google.api.http) = {
+      post: "/v1/{name=organizations/*/users/*/filesystems/*}:detach"
+      body: "*"
+    };
+    option (google.api.method_signature) = "name,workspace";
+  }
+
+  // ===================== Snapshot Management =====================
+
+  // Snapshot a LOCAL filesystem now. A filesystem unchanged since its last
+  // snapshot records an empty one, so every turn maps to a snapshot.
+  // FAILED_PRECONDITION for a SHARED filesystem. Long-running: the snapshot
+  // is uploaded to object storage.
+  //
+  // See: https://google.aip.dev/133 (Standard methods: Create).
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=organizations/*/users/*/filesystems/*}/snapshots"
+      body: "snapshot"
+    };
+    option (google.api.method_signature) = "parent,snapshot";
+    option (google.longrunning.operation_info) = {
+      response_type: "malonaz.workspace.v1.Snapshot"
+      metadata_type: "malonaz.workspace.v1.OperationMetadata"
+    };
+    option (malonaz.codegen.scheduler.v1.method).policy = {
+      attempt_timeout: {seconds: 600}
+      max_attempts: 3
+    };
+  }
+
+  // Get a snapshot.
+  //
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetSnapshot(GetSnapshotRequest) returns (malonaz.workspace.v1.Snapshot) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{name=organizations/*/users/*/filesystems/*/snapshots/*}"};
+    option (google.api.method_signature) = "name";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Snapshot";
+  }
+
+  // List a filesystem's snapshots, newest first. A read mask leaving out
+  // `added`, `changed` and `deleted` keeps a long history small.
+  //
+  // See: https://google.aip.dev/132 (Standard methods: List).
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+    option (google.api.http) = {get: "/v1/{parent=organizations/*/users/*/filesystems/*}/snapshots"};
+    option (google.api.method_signature) = "parent";
+    option (malonaz.codegen.aip.v1.standard_method).resource = "workspace.malonaz.com/Snapshot";
+  }
+}

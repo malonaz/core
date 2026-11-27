@@ -1,0 +1,24 @@
+go_library(
+    name = "v1",
+    srcs = [
+        "workspace.pb.go",
+        "workspace_manager_service.pb.go",
+        "workspace_manager_service_grpc.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/scheduler/v1",
+        "//malonaz/workspace/v1",
+        "//third_party/go:google.golang.org__grpc",
+        "//third_party/go:google.golang.org__grpc__codes",
+        "//third_party/go:google.golang.org__grpc__status",
+        "//third_party/go:google.golang.org__protobuf__reflect__protoreflect",
+        "//third_party/go:google.golang.org__protobuf__runtime__protoimpl",
+        "//third_party/go:google.golang.org__protobuf__types__known__emptypb",
+        "//third_party/go:google.golang.org__protobuf__types__known__fieldmaskpb",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__longrunning__operations",
+        "//third_party/proto:validate",
+    ],
+)

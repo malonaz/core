@@ -1,0 +1,14 @@
+go_library(
+    name = "store",
+    srcs = [
+        "filesystem_postgres.pb.go",
+        "snapshot_postgres.pb.go",
+        "workspace_postgres.pb.go",
+    ],
+    visibility = ["//..."],
+    deps = [
+        "//go/postgres",
+        "//go/workspace/model",
+        "//third_party/go:github.com__jackc__pgx__v5",
+    ],
+)

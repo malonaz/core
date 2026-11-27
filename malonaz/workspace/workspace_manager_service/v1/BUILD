@@ -1,0 +1,29 @@
+filegroup(
+    name = "proto",
+    srcs = [
+        "workspace.proto",
+        "workspace_manager_service.proto",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+grpc_library(
+    name = "v1",
+    srcs = [
+        "workspace.proto",
+        "workspace_manager_service.proto",
+    ],
+    additional_context = {
+        GO_IMPORT_PATH: "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1",
+    },
+    labels = ["copy_generated_code:malonaz:genproto"],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//malonaz/codegen/aip/v1",
+        "//malonaz/codegen/scheduler/v1",
+        "//malonaz/workspace/v1",
+        "//third_party/proto:google__api__annotations",
+        "//third_party/proto:google__longrunning__operations",
+        "//third_party/proto:validate",
+    ],
+)
