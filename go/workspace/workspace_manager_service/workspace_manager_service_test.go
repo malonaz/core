@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/fake"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/malonaz/core/gengo/workspace/store"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
@@ -137,12 +138,14 @@ type fakeSecrets struct {
 	sets  []*workspaceservicepb.SetSecretsRequest
 }
 
-func (f *fakeSecrets) dial(ctx context.Context, workspacePod *corev1.Pod) (workspaceservicepb.SecretServiceClient, func(), error) {
+func (f *fakeSecrets) dial(ctx context.Context, workspacePod *corev1.Pod) (workspaceservicepb.SecretServiceClient, func() error, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	f.pods = append(f.pods, workspacePod.Name)
-	return f, func() {}, nil
+	return f, f.close, nil
 }
+
+func (f *fakeSecrets) close() error { return nil }
 
 func (f *fakeSecrets) SetSecrets(ctx context.Context, request *workspaceservicepb.SetSecretsRequest, _ ...grpc.CallOption) (*workspaceservicepb.SetSecretsResponse, error) {
 	f.mutex.Lock()
@@ -218,28 +221,31 @@ func runKubelet(t *testing.T, clientset *fake.Clientset) {
 	pods := clientset.CoreV1().Pods(testNamespace)
 	watcher, err := pods.Watch(ctx, metav1.ListOptions{})
 	require.NoError(t, err)
-	go func() {
-		defer watcher.Stop()
-		for event := range watcher.ResultChan() {
-			created, ok := event.Object.(*corev1.Pod)
-			if event.Type != watch.Added || !ok {
-				continue
-			}
-			created = created.DeepCopy()
-			created.Spec.NodeName = testNode
-			scheduled, err := pods.Update(ctx, created, metav1.UpdateOptions{})
-			if err != nil {
-				continue
-			}
-			scheduled.Status = corev1.PodStatus{
-				Phase:      corev1.PodRunning,
-				PodIP:      "10.0.0.7",
-				StartTime:  &metav1.Time{Time: time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)},
-				Conditions: []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}},
-			}
-			pods.UpdateStatus(ctx, scheduled, metav1.UpdateOptions{})
+	go scheduleAndReady(ctx, pods, watcher)
+}
+
+// scheduleAndReady puts every pod the watcher sees added on testNode, running and ready.
+func scheduleAndReady(ctx context.Context, pods corev1client.PodInterface, watcher watch.Interface) {
+	defer watcher.Stop()
+	for event := range watcher.ResultChan() {
+		created, ok := event.Object.(*corev1.Pod)
+		if event.Type != watch.Added || !ok {
+			continue
 		}
-	}()
+		created = created.DeepCopy()
+		created.Spec.NodeName = testNode
+		scheduled, err := pods.Update(ctx, created, metav1.UpdateOptions{})
+		if err != nil {
+			continue
+		}
+		scheduled.Status = corev1.PodStatus{
+			Phase:      corev1.PodRunning,
+			PodIP:      "10.0.0.7",
+			StartTime:  &metav1.Time{Time: time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC)},
+			Conditions: []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}},
+		}
+		pods.UpdateStatus(ctx, scheduled, metav1.UpdateOptions{})
+	}
 }
 
 func (e *testEnvironment) createWorkspace(t *testing.T, id string) (*pb.Workspace, error) {
@@ -476,26 +482,11 @@ func TestDeleteWorkspace(t *testing.T) {
 func TestReap(t *testing.T) {
 	environment := newTestEnvironment(t)
 	now := time.Now()
-	// reapable creates a running workspace whose pod was created and last used at those times.
-	reapable := func(id string, createTime, lastActive time.Time) *corev1.Pod {
-		created, err := environment.createWorkspace(t, id)
-		require.NoError(t, err)
-		environment.startWorkspace(t, created.GetName())
-		pods := environment.clientset.CoreV1().Pods(testNamespace)
-		workspacePod, err := pods.Get(context.Background(), pod.Name(created.GetName()), metav1.GetOptions{})
-		require.NoError(t, err)
-		workspacePod.UID = types.UID(id)
-		workspacePod.CreationTimestamp = metav1.NewTime(createTime)
-		workspacePod.Annotations[pod.AnnotationLastActive] = lastActive.UTC().Format(time.RFC3339)
-		workspacePod, err = pods.Update(context.Background(), workspacePod, metav1.UpdateOptions{})
-		require.NoError(t, err)
-		return workspacePod
-	}
-	active := reapable("active", now.Add(-time.Hour), now.Add(-time.Minute))
-	idle := reapable("idle", now.Add(-time.Hour), now.Add(-31*time.Minute))
-	overrun := reapable("overrun", now.Add(-13*time.Hour), now.Add(-time.Minute))
+	active := environment.reapablePod(t, "active", now.Add(-time.Hour), now.Add(-time.Minute))
+	idle := environment.reapablePod(t, "idle", now.Add(-time.Hour), now.Add(-31*time.Minute))
+	overrun := environment.reapablePod(t, "overrun", now.Add(-13*time.Hour), now.Add(-time.Minute))
 	// An orphan: its workspace was deleted without it.
-	orphan := reapable("orphan", now.Add(-time.Hour), now.Add(-time.Hour))
+	orphan := environment.reapablePod(t, "orphan", now.Add(-time.Hour), now.Add(-time.Hour))
 	_, err := environment.service.WorkspaceManagerServiceServer.DeleteWorkspace(context.Background(), &workspacemanagerservicepb.DeleteWorkspaceRequest{Name: orphan.Annotations[pod.AnnotationWorkspace]})
 	require.NoError(t, err)
 
@@ -508,21 +499,42 @@ func TestReap(t *testing.T) {
 		require.NoError(t, err)
 		stopped = append(stopped, payload.(*workspacemanagerservicepb.StopWorkspaceRequest))
 	}
-	stopRequest := func(workspacePod *corev1.Pod) *workspacemanagerservicepb.StopWorkspaceRequest {
-		return &workspacemanagerservicepb.StopWorkspaceRequest{
-			Name:      workspacePod.Annotations[pod.AnnotationWorkspace],
-			RequestId: uuid.NewV5(workspaceNamespace, string(workspacePod.UID)).String(),
-		}
-	}
 	// Each pass starts the same operation: its request id derives from the pod.
-	slices.SortStableFunc(stopped, func(a, b *workspacemanagerservicepb.StopWorkspaceRequest) int {
-		return strings.Compare(a.GetName(), b.GetName())
-	})
-	requireProtosEqual(t, []*workspacemanagerservicepb.StopWorkspaceRequest{stopRequest(idle), stopRequest(idle), stopRequest(overrun), stopRequest(overrun)}, stopped)
+	slices.SortStableFunc(stopped, compareStopRequestNames)
+	requireProtosEqual(t, []*workspacemanagerservicepb.StopWorkspaceRequest{reapStopRequest(idle), reapStopRequest(idle), reapStopRequest(overrun), reapStopRequest(overrun)}, stopped)
 	require.ElementsMatch(t, []string{active.Name, idle.Name, overrun.Name}, environment.podNames(t))
 }
 
 // jobContext is the context the scheduler runs a job in.
 func jobContext(job string) context.Context {
 	return metadata.NewIncomingContext(context.Background(), metadata.Pairs(scheduler.JobMetadataKey, job))
+}
+
+// reapablePod creates a running workspace whose pod was created and last used at those times.
+func (e *testEnvironment) reapablePod(t *testing.T, id string, createTime, lastActive time.Time) *corev1.Pod {
+	t.Helper()
+	created, err := e.createWorkspace(t, id)
+	require.NoError(t, err)
+	e.startWorkspace(t, created.GetName())
+	pods := e.clientset.CoreV1().Pods(testNamespace)
+	workspacePod, err := pods.Get(context.Background(), pod.Name(created.GetName()), metav1.GetOptions{})
+	require.NoError(t, err)
+	workspacePod.UID = types.UID(id)
+	workspacePod.CreationTimestamp = metav1.NewTime(createTime)
+	workspacePod.Annotations[pod.AnnotationLastActive] = lastActive.UTC().Format(time.RFC3339)
+	workspacePod, err = pods.Update(context.Background(), workspacePod, metav1.UpdateOptions{})
+	require.NoError(t, err)
+	return workspacePod
+}
+
+// reapStopRequest is the stop a reap starts for a pod.
+func reapStopRequest(workspacePod *corev1.Pod) *workspacemanagerservicepb.StopWorkspaceRequest {
+	return &workspacemanagerservicepb.StopWorkspaceRequest{
+		Name:      workspacePod.Annotations[pod.AnnotationWorkspace],
+		RequestId: uuid.NewV5(workspaceNamespace, string(workspacePod.UID)).String(),
+	}
+}
+
+func compareStopRequestNames(a, b *workspacemanagerservicepb.StopWorkspaceRequest) int {
+	return strings.Compare(a.GetName(), b.GetName())
 }

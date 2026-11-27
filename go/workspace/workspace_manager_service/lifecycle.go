@@ -45,15 +45,9 @@ func (s *Service) RunStartWorkspace(ctx context.Context, request *workspacemanag
 			return nil, status.Errorf(codes.Internal, "getting pod: %v", err).Err()
 		}
 	}
-	starting := func(workspace *pb.Workspace) (bool, error) {
-		if workspace.GetState() == pb.Workspace_STATE_STOPPING {
-			return false, status.Errorf(codes.FailedPrecondition, "workspace is stopping").Err()
-		}
-		changed := workspace.GetState() != pb.Workspace_STATE_STARTING
-		workspace.State = pb.Workspace_STATE_STARTING
-		return changed, nil
-	}
-	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), starting, "state"); err != nil {
+	startable := []pb.Workspace_State{pb.Workspace_STATE_STOPPED, pb.Workspace_STATE_STARTING, pb.Workspace_STATE_RUNNING}
+	starting := &pb.Workspace{State: pb.Workspace_STATE_STARTING}
+	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), startable, starting, "state"); err != nil {
 		return nil, err
 	}
 
@@ -88,15 +82,9 @@ func (s *Service) RunStartWorkspace(ctx context.Context, request *workspacemanag
 		return nil, status.Errorf(codes.Internal, "%v", err).Err()
 	}
 
-	running := func(workspace *pb.Workspace) (bool, error) {
-		if workspace.GetState() != pb.Workspace_STATE_STARTING {
-			return false, status.Errorf(codes.Aborted, "workspace went %s while starting", workspace.GetState()).Err()
-		}
-		pod.RecordStart(workspace, ready)
-		workspace.LastActiveTime = timestamppb.New(now)
-		return true, nil
-	}
-	return s.updateWorkspace(ctx, workspace.GetName(), running, "state", "node", "start_time", "last_active_time")
+	running := &pb.Workspace{LastActiveTime: timestamppb.New(now)}
+	pod.RecordStart(running, ready)
+	return s.updateWorkspace(ctx, workspace.GetName(), []pb.Workspace_State{pb.Workspace_STATE_STARTING}, running, "state", "node", "start_time", "last_active_time")
 }
 
 // RunStopWorkspace implements the interface: it snapshots the LOCAL read-write mounts, then
@@ -117,20 +105,17 @@ func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanage
 	if workspace.GetState() == pb.Workspace_STATE_STOPPED {
 		return workspace, nil
 	}
-	stopping := func(workspace *pb.Workspace) (bool, error) {
-		changed := workspace.GetState() != pb.Workspace_STATE_STOPPING
-		workspace.State = pb.Workspace_STATE_STOPPING
-		return changed, nil
-	}
-	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), stopping, "state"); err != nil {
+	stopping := &pb.Workspace{State: pb.Workspace_STATE_STOPPING}
+	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), nil, stopping, "state"); err != nil {
 		return nil, err
 	}
 
 	podName := pod.Name(workspace.GetName())
-	var lastActiveTime *timestamppb.Timestamp
+	// The annotation keeps seconds: it only moves the time forward.
+	stopped := &pb.Workspace{State: pb.Workspace_STATE_STOPPED, LastActiveTime: workspace.GetLastActiveTime()}
 	if existing, err := s.pods.Get(ctx, podName); err == nil {
-		if lastActive, ok := pod.LastActiveTime(existing); ok {
-			lastActiveTime = timestamppb.New(lastActive)
+		if lastActive, ok := pod.LastActiveTime(existing); ok && lastActive.After(workspace.GetLastActiveTime().AsTime()) {
+			stopped.LastActiveTime = timestamppb.New(lastActive)
 		}
 	} else if !apierrors.IsNotFound(err) {
 		return nil, status.Errorf(codes.Internal, "getting pod: %v", err).Err()
@@ -142,17 +127,7 @@ func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanage
 		return nil, status.Errorf(codes.Internal, "%v", err).Err()
 	}
 
-	stopped := func(workspace *pb.Workspace) (bool, error) {
-		workspace.State = pb.Workspace_STATE_STOPPED
-		workspace.Node = ""
-		workspace.StartTime = nil
-		// The annotation keeps seconds: it only moves the time forward.
-		if lastActiveTime != nil && lastActiveTime.AsTime().After(workspace.GetLastActiveTime().AsTime()) {
-			workspace.LastActiveTime = lastActiveTime
-		}
-		return true, nil
-	}
-	return s.updateWorkspace(ctx, workspace.GetName(), stopped, "state", "node", "start_time", "last_active_time")
+	return s.updateWorkspace(ctx, workspace.GetName(), nil, stopped, "state", "node", "start_time", "last_active_time")
 }
 
 // RunSnapshotWorkspace implements the interface.

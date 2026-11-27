@@ -44,7 +44,7 @@ type Opts struct {
 }
 
 // secretsDialer reaches the SecretService of a running pod. close releases it.
-type secretsDialer func(ctx context.Context, pod *corev1.Pod) (client workspaceservicepb.SecretServiceClient, close func(), err error)
+type secretsDialer func(ctx context.Context, pod *corev1.Pod) (client workspaceservicepb.SecretServiceClient, close func() error, err error)
 
 // operationWaiter waits on an operation another service started on the shared scheduler.
 type operationWaiter interface {
@@ -131,7 +131,7 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 }
 
 // dialPodSecrets dials a running pod's workspace-server by its IP.
-func (s *Service) dialPodSecrets(ctx context.Context, workspacePod *corev1.Pod) (workspaceservicepb.SecretServiceClient, func(), error) {
+func (s *Service) dialPodSecrets(ctx context.Context, workspacePod *corev1.Pod) (workspaceservicepb.SecretServiceClient, func() error, error) {
 	clientOpts, err := s.podConfig.ClientOpts(workspacePod)
 	if err != nil {
 		return nil, nil, err
@@ -143,5 +143,5 @@ func (s *Service) dialPodSecrets(ctx context.Context, workspacePod *corev1.Pod) 
 	if err := connection.Connect(ctx); err != nil {
 		return nil, nil, fmt.Errorf("connecting to workspace-server: %w", err)
 	}
-	return workspaceservicepb.NewSecretServiceClient(connection.Get()), func() { connection.Close() }, nil
+	return workspaceservicepb.NewSecretServiceClient(connection.Get()), connection.Close, nil
 }

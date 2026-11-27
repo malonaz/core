@@ -30,6 +30,7 @@ go_library(
         "//go/aip",
         "//go/grpc",
         "//go/grpc/status",
+        "//go/pbutil/pbfieldmask",
         "//go/routine",
         "//go/scheduler",
         "//go/scheduler/longrunning",
@@ -91,6 +92,7 @@ go_test(
         "//third_party/go:k8s.io__apimachinery__pkg__types",
         "//third_party/go:k8s.io__apimachinery__pkg__watch",
         "//third_party/go:k8s.io__client-go__kubernetes__fake",
+        "//third_party/go:k8s.io__client-go__kubernetes__typed__core__v1",
         "//third_party/proto:google__longrunning__operations",
     ],
 )

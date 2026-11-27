@@ -18,6 +18,7 @@ import (
 	workspacemanagerservicepb "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1"
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
+	"github.com/malonaz/core/go/pbutil/pbfieldmask"
 	"github.com/malonaz/core/go/workspace/pod"
 )
 
@@ -77,13 +78,8 @@ func (s *Service) UpdateWorkspace(ctx context.Context, request *workspacemanager
 	if err := s.pods.Delete(ctx, pod.Name(workspace.GetName())); err != nil {
 		return nil, status.Errorf(codes.Internal, "deleting pod: %v", err).Err()
 	}
-	restart := func(workspace *pb.Workspace) (bool, error) {
-		workspace.State = pb.Workspace_STATE_STARTING
-		workspace.Node = ""
-		workspace.StartTime = nil
-		return true, nil
-	}
-	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), restart, "state", "node", "start_time"); err != nil {
+	restarting := &pb.Workspace{State: pb.Workspace_STATE_STARTING}
+	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), nil, restarting, "state", "node", "start_time"); err != nil {
 		return nil, err
 	}
 	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{Name: workspace.GetName()}
@@ -140,19 +136,24 @@ func (s *Service) detachMounts(ctx context.Context, workspace string, mounts []*
 
 // droppedMounts returns the mounts whose filesystem the new mounts no longer hold.
 func droppedMounts(oldMounts, newMounts []*pb.Mount) []*pb.Mount {
+	kept := map[string]bool{}
+	for _, newMount := range newMounts {
+		kept[newMount.GetFilesystem()] = true
+	}
 	var dropped []*pb.Mount
 	for _, oldMount := range oldMounts {
-		if !slices.ContainsFunc(newMounts, func(newMount *pb.Mount) bool { return newMount.GetFilesystem() == oldMount.GetFilesystem() }) {
+		if !kept[oldMount.GetFilesystem()] {
 			dropped = append(dropped, oldMount)
 		}
 	}
 	return dropped
 }
 
-// updateWorkspace applies a change to a workspace's columns, retrying when a concurrent write
-// changes its etag first. A change reporting false leaves the workspace as is.
-func (s *Service) updateWorkspace(ctx context.Context, name string, change func(*pb.Workspace) (bool, error), columns ...string) (*pb.Workspace, error) {
-	columns = append(columns, "update_time", "etag")
+// updateWorkspace sets a workspace's columns to patch's values, retrying when a concurrent write
+// changes its etag first. A workspace in none of the states from fails; nil allows any.
+func (s *Service) updateWorkspace(ctx context.Context, name string, from []pb.Workspace_State, patch *pb.Workspace, patchColumns ...string) (*pb.Workspace, error) {
+	mask := pbfieldmask.FromPaths(patchColumns...)
+	columns := slices.Concat(patchColumns, []string{"update_time", "etag"})
 	setClauses := make([]string, len(columns))
 	for i, column := range columns {
 		setClauses[i] = fmt.Sprintf("%s = $%d", column, i+1)
@@ -164,10 +165,13 @@ func (s *Service) updateWorkspace(ctx context.Context, name string, change func(
 		if err != nil {
 			return nil, err
 		}
+		if from != nil && !slices.Contains(from, workspace.GetState()) {
+			return nil, status.Errorf(codes.FailedPrecondition, "workspace is %s", workspace.GetState()).Err()
+		}
 		patchedWorkspace := proto.CloneOf(workspace)
-		changed, err := change(patchedWorkspace)
-		if err != nil || !changed {
-			return workspace, err
+		mask.Update(patchedWorkspace, patch)
+		if proto.Equal(patchedWorkspace, workspace) {
+			return workspace, nil
 		}
 		patchedWorkspace.UpdateTime = timestamppb.Now()
 		if patchedWorkspace.Etag, err = aip.ComputeETag(patchedWorkspace); err != nil {
