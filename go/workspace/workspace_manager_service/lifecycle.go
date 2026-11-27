@@ -76,7 +76,7 @@ func (s *Service) RunStartWorkspace(ctx context.Context, request *workspacemanag
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "%v", err).Err()
 	}
-	// A start counts as use: the reaper gives the workspace its idle timeout from now.
+	// A start counts as use: the reconciler gives the workspace its idle timeout from now.
 	now := time.Now()
 	if ready, err = s.pods.Touch(ctx, ready, now); err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err).Err()

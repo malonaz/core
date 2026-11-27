@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,9 +16,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,6 +28,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/malonaz/core/gengo/workspace/model"
 	"github.com/malonaz/core/gengo/workspace/store"
 	schedulerservicepb "github.com/malonaz/core/genproto/scheduler/scheduler_service/v1"
 	schedulerpb "github.com/malonaz/core/genproto/scheduler/v1"
@@ -474,7 +476,7 @@ func TestDeleteWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestReap(t *testing.T) {
+func TestReconcilePods(t *testing.T) {
 	environment := newTestEnvironment(t)
 	now := time.Now()
 	active := environment.reapablePod(t, "active", now.Add(-time.Hour), now.Add(-time.Minute))
@@ -485,19 +487,88 @@ func TestReap(t *testing.T) {
 	_, err := environment.service.WorkspaceManagerServiceServer.DeleteWorkspace(context.Background(), &workspacemanagerservicepb.DeleteWorkspaceRequest{Name: orphan.Annotations[pod.AnnotationWorkspace]})
 	require.NoError(t, err)
 
-	require.NoError(t, environment.service.reap(context.Background()))
-	require.NoError(t, environment.service.reap(context.Background()))
+	require.NoError(t, environment.service.reconcile(context.Background()))
+	require.NoError(t, environment.service.reconcile(context.Background()))
 
-	var stopped []*workspacemanagerservicepb.StopWorkspaceRequest
-	for _, created := range environment.scheduler.created {
+	// Each pass starts the same operation: its request id derives from the pod.
+	requireProtosEqual(t, map[string][]proto.Message{
+		idle.Annotations[pod.AnnotationWorkspace]:    {reapStopRequest(idle), reapStopRequest(idle)},
+		overrun.Annotations[pod.AnnotationWorkspace]: {reapStopRequest(overrun), reapStopRequest(overrun)},
+	}, environment.workspaceToJobs(t))
+	require.ElementsMatch(t, []string{active.Name, idle.Name, overrun.Name}, environment.podNames(t))
+}
+
+func TestReconcileWorkspaces(t *testing.T) {
+	environment := newTestEnvironment(t)
+	now := time.Now()
+
+	// RUNNING, its pod lost with its node.
+	lost, err := environment.createWorkspace(t, "lost")
+	require.NoError(t, err)
+	lost = environment.startWorkspace(t, lost.GetName())
+	err = environment.clientset.CoreV1().Pods(testNamespace).Delete(context.Background(), pod.Name(lost.GetName()), metav1.DeleteOptions{})
+	require.NoError(t, err)
+	// RUNNING with a pod in use: left alone.
+	environment.reapablePod(t, "healthy", now, now)
+	// STARTING, a start in flight: left alone.
+	environment.setState(t, "starting", pb.Workspace_STATE_STARTING, now)
+	stuckStarting := environment.setState(t, "stuck-starting", pb.Workspace_STATE_STARTING, now.Add(-11*time.Minute))
+	stuckStopping := environment.setState(t, "stuck-stopping", pb.Workspace_STATE_STOPPING, now.Add(-25*time.Minute))
+
+	require.NoError(t, environment.service.reconcile(context.Background()))
+	require.NoError(t, environment.service.reconcile(context.Background()))
+
+	// Each pass starts the same operation: its request id derives from the etag.
+	start := &workspacemanagerservicepb.StartWorkspaceRequest{
+		Name:      lost.GetName(),
+		RequestId: uuid.NewV5(workspaceNamespace, lost.GetName()+"/"+lost.GetEtag()).String(),
+	}
+	stopStarting := &workspacemanagerservicepb.StopWorkspaceRequest{
+		Name:      stuckStarting.GetName(),
+		RequestId: uuid.NewV5(workspaceNamespace, stuckStarting.GetName()+"/"+stuckStarting.GetEtag()).String(),
+	}
+	// Stuck past two timeouts: its second retry.
+	stopStopping := &workspacemanagerservicepb.StopWorkspaceRequest{
+		Name:      stuckStopping.GetName(),
+		RequestId: uuid.NewV5(workspaceNamespace, stuckStopping.GetName()+"/"+stuckStopping.GetEtag()+"/2").String(),
+	}
+	requireProtosEqual(t, map[string][]proto.Message{
+		lost.GetName():          {start, start},
+		stuckStarting.GetName(): {stopStarting, stopStarting},
+		stuckStopping.GetName(): {stopStopping, stopStopping},
+	}, environment.workspaceToJobs(t))
+}
+
+// workspaceToJobs returns the operations started on the environment's workspaces, by workspace: a
+// reconcile also sees the other tests' workspaces.
+func (e *testEnvironment) workspaceToJobs(t *testing.T) map[string][]proto.Message {
+	t.Helper()
+	workspaceToJobs := map[string][]proto.Message{}
+	for _, created := range e.scheduler.created {
 		payload, err := created.GetJob().GetPayload().UnmarshalNew()
 		require.NoError(t, err)
-		stopped = append(stopped, payload.(*workspacemanagerservicepb.StopWorkspaceRequest))
+		name := payload.(interface{ GetName() string }).GetName()
+		if strings.HasPrefix(name, e.user+"/") {
+			workspaceToJobs[name] = append(workspaceToJobs[name], payload)
+		}
 	}
-	// Each pass starts the same operation: its request id derives from the pod.
-	slices.SortStableFunc(stopped, compareStopRequestNames)
-	requireProtosEqual(t, []*workspacemanagerservicepb.StopWorkspaceRequest{reapStopRequest(idle), reapStopRequest(idle), reapStopRequest(overrun), reapStopRequest(overrun)}, stopped)
-	require.ElementsMatch(t, []string{active.Name, idle.Name, overrun.Name}, environment.podNames(t))
+	return workspaceToJobs
+}
+
+// setState creates a workspace, then stores it in a state since updateTime.
+func (e *testEnvironment) setState(t *testing.T, id string, state pb.Workspace_State, updateTime time.Time) *pb.Workspace {
+	t.Helper()
+	workspace, err := e.createWorkspace(t, id)
+	require.NoError(t, err)
+	workspace.State = state
+	workspace.UpdateTime = timestamppb.New(updateTime)
+	workspaceModel, err := model.WorkspaceFromPb(workspace)
+	require.NoError(t, err)
+	updatedWorkspaceModel, err := e.service.workspacePostgresStore.UpdateWorkspace(context.Background(), workspaceModel, "state = $1, update_time = $2", []string{"state", "update_time"}, workspace.GetEtag())
+	require.NoError(t, err)
+	updated, err := updatedWorkspaceModel.ToPb()
+	require.NoError(t, err)
+	return updated
 }
 
 // jobContext is the context the scheduler runs a job in.
@@ -522,14 +593,11 @@ func (e *testEnvironment) reapablePod(t *testing.T, id string, createTime, lastA
 	return workspacePod
 }
 
-// reapStopRequest is the stop a reap starts for a pod.
+// reapStopRequest is the stop the reconciler starts for an expired pod.
 func reapStopRequest(workspacePod *corev1.Pod) *workspacemanagerservicepb.StopWorkspaceRequest {
+	name := workspacePod.Annotations[pod.AnnotationWorkspace]
 	return &workspacemanagerservicepb.StopWorkspaceRequest{
-		Name:      workspacePod.Annotations[pod.AnnotationWorkspace],
-		RequestId: uuid.NewV5(workspaceNamespace, string(workspacePod.UID)).String(),
+		Name:      name,
+		RequestId: uuid.NewV5(workspaceNamespace, name+"/"+string(workspacePod.UID)).String(),
 	}
-}
-
-func compareStopRequestNames(a, b *workspacemanagerservicepb.StopWorkspaceRequest) int {
-	return strings.Compare(a.GetName(), b.GetName())
 }

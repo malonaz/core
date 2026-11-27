@@ -1,5 +1,5 @@
 // Package workspace_manager_service runs workspaces: it creates and deletes their pods, attaches
-// the filesystems they mount, snapshots them, and stops the idle ones.
+// the filesystems they mount, snapshots them, and reconciles their pods with their state.
 package workspace_manager_service
 
 import (
@@ -24,8 +24,8 @@ import (
 // createSnapshotMethod is the operation SnapshotWorkspace waits on, one per mount.
 const createSnapshotMethod = "/malonaz.workspace.filesystem_service.v1.FilesystemService/CreateSnapshot"
 
-// reapInterval is how often the reaper looks for pods to stop.
-const reapInterval = time.Minute
+// reconcileInterval is how often the reconciler compares pods to their workspaces.
+const reconcileInterval = time.Minute
 
 type Opts struct {
 	Namespace      string        `long:"namespace" env:"NAMESPACE" required:"true" description:"The namespace workspace pods run in"`
@@ -36,8 +36,8 @@ type Opts struct {
 	MemoryRequest  string        `long:"memory-request" env:"MEMORY_REQUEST" default:"512Mi" description:"Memory each workspace requests"`
 	MemoryLimit    string        `long:"memory-limit" env:"MEMORY_LIMIT" default:"2Gi" description:"Memory each workspace may use"`
 	Env            []string      `long:"env" env:"ENV" env-delim:"," description:"KEY=VALUE env vars for every workspace-server: its TLS and authentication flags"`
-	IdleTimeout    time.Duration `long:"idle-timeout" env:"IDLE_TIMEOUT" default:"30m" description:"How long a running workspace may go unused before the reaper stops it"`
-	MaxRunDuration time.Duration `long:"max-run-duration" env:"MAX_RUN_DURATION" default:"12h" description:"How long a pod may run, used or not, before the reaper stops it"`
+	IdleTimeout    time.Duration `long:"idle-timeout" env:"IDLE_TIMEOUT" default:"30m" description:"How long a running workspace may go unused before the reconciler stops it"`
+	MaxRunDuration time.Duration `long:"max-run-duration" env:"MAX_RUN_DURATION" default:"12h" description:"How long a pod may run, used or not, before the reconciler stops it"`
 }
 
 // secretsDialer reaches the SecretService of a running pod. close releases it.
@@ -95,7 +95,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	return &runtime{podConfig: podConfig}, nil
 }
 
-// start connects to the cluster and runs the reaper.
+// start connects to the cluster and runs the reconciler.
 func (s *Service) start(ctx context.Context) (func(), error) {
 	if s.pods == nil {
 		config, err := rest.InClusterConfig()
@@ -114,9 +114,9 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 	if s.operations == nil {
 		s.operations = longrunning.NewServer(s.schedulerServiceClient, []string{createSnapshotMethod})
 	}
-	reaper := routine.New("workspace-reap", s.reap).
-		WithTicker(reapInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx)
-	return reaper.Close, nil
+	reconciler := routine.New("workspace-reconcile", s.reconcile).
+		WithTicker(reconcileInterval).WithConstantBackOff(1).WithMetrics().WithLogger(s.log).Start(ctx)
+	return reconciler.Close, nil
 }
 
 // dialPodSecrets dials a running pod's workspace-server by its IP.

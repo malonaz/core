@@ -75,12 +75,13 @@ func (s *Service) UpdateWorkspace(ctx context.Context, request *workspacemanager
 	default:
 		return workspace, nil
 	}
-	if err := s.pods.Delete(ctx, pod.Name(workspace.GetName())); err != nil {
-		return nil, status.Errorf(codes.Internal, "deleting pod: %v", err).Err()
-	}
+	// STARTING before the pod goes: the reconciler restarts a RUNNING workspace without one.
 	restarting := &pb.Workspace{State: pb.Workspace_STATE_STARTING}
 	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), nil, restarting, "state", "node", "start_time"); err != nil {
 		return nil, err
+	}
+	if err := s.pods.Delete(ctx, pod.Name(workspace.GetName())); err != nil {
+		return nil, status.Errorf(codes.Internal, "deleting pod: %v", err).Err()
 	}
 	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{Name: workspace.GetName()}
 	if _, err := s.StartWorkspace(ctx, startWorkspaceRequest); err != nil {
