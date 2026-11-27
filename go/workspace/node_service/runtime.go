@@ -17,6 +17,7 @@ import (
 
 	"github.com/malonaz/core/go/grpc"
 	"github.com/malonaz/core/go/health"
+	"github.com/malonaz/core/go/prometheus"
 )
 
 const (
@@ -89,7 +90,8 @@ func (s *Service) start(ctx context.Context) (func(), error) {
 		csi.RegisterIdentityServer(server.Raw, &identityServer{})
 		csi.RegisterNodeServer(server.Raw, &nodeServer{service: s})
 	}
-	csiServer, err := grpc.NewServer(serverOpts, nil, nil, "csi", grpc.ServerOptions{}, register)
+	// Metrics on: kubelet's calls show in the binary's gRPC server metrics as the `csi.v1` services.
+	csiServer, err := grpc.NewServer(serverOpts, nil, &prometheus.Opts{}, "csi", grpc.ServerOptions{}, register)
 	if err != nil {
 		return nil, fmt.Errorf("creating csi server: %w", err)
 	}

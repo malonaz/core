@@ -280,36 +280,38 @@ func filePaths(files []*nodeservicepb.CopyFile) []string {
 	return paths
 }
 
-// writeSnapshot writes files of a copy, sorted so parents come before children, as a zstd tar.
-func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, files []*nodeservicepb.CopyFile) error {
+// writeSnapshot writes files of a copy, sorted so parents come before children, as a zstd tar,
+// and returns the tar's size before compression.
+func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, files []*nodeservicepb.CopyFile) (int64, error) {
 	encoder, err := zstd.NewWriter(file, zstd.WithEncoderLevel(zstd.SpeedFastest))
 	if err != nil {
-		return fmt.Errorf("creating zstd writer: %w", err)
+		return 0, fmt.Errorf("creating zstd writer: %w", err)
 	}
-	tarWriter := tar.NewWriter(encoder)
+	rawWriter := &countingWriter{writer: encoder}
+	tarWriter := tar.NewWriter(rawWriter)
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		return fmt.Errorf("encoding snapshot header: %w", err)
+		return 0, fmt.Errorf("encoding snapshot header: %w", err)
 	}
 	snapshotTarHeader := &tar.Header{Name: "snapshot.json", Mode: 0o644, Size: int64(len(headerBytes)), Typeflag: tar.TypeReg, Format: tar.FormatPAX}
 	if err := tarWriter.WriteHeader(snapshotTarHeader); err != nil {
-		return fmt.Errorf("writing snapshot header: %w", err)
+		return 0, fmt.Errorf("writing snapshot header: %w", err)
 	}
 	if _, err := tarWriter.Write(headerBytes); err != nil {
-		return fmt.Errorf("writing snapshot header: %w", err)
+		return 0, fmt.Errorf("writing snapshot header: %w", err)
 	}
 	for _, copyFile := range files {
 		if err := writeSnapshotEntry(root, tarWriter, copyFile); err != nil {
-			return fmt.Errorf("writing %s: %w", copyFile.GetPath(), err)
+			return 0, fmt.Errorf("writing %s: %w", copyFile.GetPath(), err)
 		}
 	}
 	if err := tarWriter.Close(); err != nil {
-		return fmt.Errorf("closing tar: %w", err)
+		return 0, fmt.Errorf("closing tar: %w", err)
 	}
 	if err := encoder.Close(); err != nil {
-		return fmt.Errorf("closing zstd writer: %w", err)
+		return 0, fmt.Errorf("closing zstd writer: %w", err)
 	}
-	return nil
+	return rawWriter.count, nil
 }
 
 func writeSnapshotEntry(root *os.Root, tarWriter *tar.Writer, file *nodeservicepb.CopyFile) error {
