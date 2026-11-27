@@ -85,7 +85,7 @@ func runInit(ctx context.Context) error {
 	defer postgresClient.Close()
 
 	m := migrator.NewMigrator(postgresClient)
-	return m.InitializeDatabase(ctx, opts.TargetPostgres.Database, opts.TargetPostgres.User, opts.TargetPostgres.Password, opts.Postgres.User)
+	return m.InitializeDatabase(ctx, opts.TargetPostgres.Database, opts.TargetPostgres.User, opts.TargetPostgres.Password, opts.Postgres.User, opts.TargetPostgres.IAM)
 }
 
 func runMigrate(ctx context.Context, databaseDirectory string) error {

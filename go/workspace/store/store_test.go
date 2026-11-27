@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	pb "github.com/malonaz/core/genproto/workspace/v1"
 	"github.com/malonaz/core/gengo/workspace/model"
+	pb "github.com/malonaz/core/genproto/workspace/v1"
 	"github.com/malonaz/core/go/postgres"
 	testserver "github.com/malonaz/core/go/postgres/test_server"
 	"github.com/malonaz/core/go/uuid"

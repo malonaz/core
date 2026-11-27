@@ -5,7 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/rds/auth"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -30,9 +34,17 @@ type Opts struct {
 	Database string `long:"database" env:"DATABASE" default:"postgres"  description:"Postgres database"`
 	MaxConns int    `long:"maxconns" env:"MAXCONNS" default:"10"        description:"Max number of connections"`
 	SSLMode  string `long:"sslmode"  env:"SSLMODE"  default:"disable"   description:"Postgres SSL mode"`
+	// RDS IAM auth: each new connection signs a token with the AWS default credential chain in place of Password.
+	IAM bool `long:"iam" env:"IAM" description:"Authenticate with an RDS IAM token instead of the password"`
 }
 
 func (o *Opts) Endpoint() string {
+	if o.IAM {
+		return fmt.Sprintf(
+			"host=%s port=%d user=%s dbname=%s sslmode=%s",
+			o.Host, o.Port, o.User, o.Database, o.SSLMode,
+		)
+	}
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		o.Host, o.Port, o.User, o.Database, o.Password, o.SSLMode,
@@ -72,19 +84,50 @@ func (c *Client) Start(ctx context.Context) error {
 		"host", c.opts.Host,
 		"port", c.opts.Port,
 		"ssl", c.opts.SSLMode,
+		"iam", c.opts.IAM,
 	)
 	log.InfoContext(ctx, "connecting to postgres server")
-	config, err := pgxpool.ParseConfig(c.opts.Endpoint())
+	poolConfig, err := pgxpool.ParseConfig(c.opts.Endpoint())
 	if err != nil {
 		return fmt.Errorf("parsing configuration: %w", err)
 	}
-	config.MaxConns = int32(c.opts.MaxConns)
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	poolConfig.MaxConns = int32(c.opts.MaxConns)
+	if c.opts.IAM {
+		if err := c.useIAMAuth(ctx, poolConfig); err != nil {
+			return err
+		}
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		return fmt.Errorf("creating pool: %w", err)
 	}
 	c.Pool = pool
 	log.InfoContext(ctx, "connected to postgres server")
+	return nil
+}
+
+// useIAMAuth signs an RDS IAM token for each new connection. Tokens last 15 minutes but are only
+// checked at connect time, so pooled connections outlive them.
+func (c *Client) useIAMAuth(ctx context.Context, poolConfig *pgxpool.Config) error {
+	if c.opts.SSLMode == "disable" {
+		return errors.New("iam auth requires ssl")
+	}
+	awsConfig, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("loading aws config: %w", err)
+	}
+	if awsConfig.Region == "" {
+		return errors.New("iam auth requires an aws region (AWS_REGION)")
+	}
+	endpoint := net.JoinHostPort(c.opts.Host, strconv.Itoa(c.opts.Port))
+	poolConfig.BeforeConnect = func(ctx context.Context, connConfig *pgx.ConnConfig) error {
+		token, err := auth.BuildAuthToken(ctx, endpoint, awsConfig.Region, c.opts.User, awsConfig.Credentials)
+		if err != nil {
+			return fmt.Errorf("building rds iam token: %w", err)
+		}
+		connConfig.Password = token
+		return nil
+	}
 	return nil
 }
 
