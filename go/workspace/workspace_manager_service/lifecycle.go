@@ -21,8 +21,9 @@ import (
 	"github.com/malonaz/core/go/workspace/pod"
 )
 
-// requestIDNamespace derives request ids: a job's from its name, a mount's from its operation's.
-var requestIDNamespace = uuid.MustParse("6d1c8a3e-5b7f-4e2a-8c94-1f0b3d5e7a26")
+// snapshotNamespace derives a mount's snapshot request id from the job snapshotting it: a retried
+// job snapshots nothing twice.
+var snapshotNamespace = uuid.MustParse("6d1c8a3e-5b7f-4e2a-8c94-1f0b3d5e7a26")
 
 // RunStartWorkspace implements the interface: it creates the pod, waits for it to serve and
 // records it. A RUNNING workspace whose pod is gone, its node lost, is started again.
@@ -102,6 +103,10 @@ func (s *Service) RunStartWorkspace(ctx context.Context, request *workspacemanag
 // RunStopWorkspace implements the interface: it snapshots the LOCAL read-write mounts, then
 // deletes the pod, keeping when the pod was last used.
 func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanagerservicepb.StopWorkspaceRequest) (*pb.Workspace, error) {
+	job, ok := scheduler.JobFromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.FailedPrecondition, "StopWorkspace runs only as a scheduler job").Err()
+	}
 	getWorkspaceRequest := &workspacemanagerservicepb.GetWorkspaceRequest{Name: request.GetName()}
 	workspace, err := s.GetWorkspace(ctx, getWorkspaceRequest)
 	if err != nil {
@@ -131,7 +136,7 @@ func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanage
 	} else if !apierrors.IsNotFound(err) {
 		return nil, status.Errorf(codes.Internal, "getting pod: %v", err).Err()
 	}
-	if _, err := s.snapshotMounts(ctx, workspace, pb.Snapshot_TRIGGER_STOP, "", operationRequestID(ctx, request.GetRequestId())); err != nil {
+	if _, err := s.snapshotMounts(ctx, workspace, pb.Snapshot_TRIGGER_STOP, "", job); err != nil {
 		return nil, err
 	}
 	if err := s.pods.Delete(ctx, podName); err != nil {
@@ -153,6 +158,10 @@ func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanage
 
 // RunSnapshotWorkspace implements the interface.
 func (s *Service) RunSnapshotWorkspace(ctx context.Context, request *workspacemanagerservicepb.SnapshotWorkspaceRequest) (*workspacemanagerservicepb.SnapshotWorkspaceResponse, error) {
+	job, ok := scheduler.JobFromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.FailedPrecondition, "SnapshotWorkspace runs only as a scheduler job").Err()
+	}
 	getWorkspaceRequest := &workspacemanagerservicepb.GetWorkspaceRequest{Name: request.GetName()}
 	workspace, err := s.GetWorkspace(ctx, getWorkspaceRequest)
 	if err != nil {
@@ -162,7 +171,7 @@ func (s *Service) RunSnapshotWorkspace(ctx context.Context, request *workspacema
 	if request.GetTurn() != "" {
 		trigger = pb.Snapshot_TRIGGER_TURN
 	}
-	snapshots, err := s.snapshotMounts(ctx, workspace, trigger, request.GetTurn(), operationRequestID(ctx, request.GetRequestId()))
+	snapshots, err := s.snapshotMounts(ctx, workspace, trigger, request.GetTurn(), job)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +179,8 @@ func (s *Service) RunSnapshotWorkspace(ctx context.Context, request *workspacema
 }
 
 // snapshotMounts snapshots each LOCAL read-write mount of a workspace, in mount order, and waits
-// for every snapshot. Each mount's request id derives from requestID, so a retry repeats none.
-func (s *Service) snapshotMounts(ctx context.Context, workspace *pb.Workspace, trigger pb.Snapshot_Trigger, turn, requestID string) ([]string, error) {
+// for every snapshot.
+func (s *Service) snapshotMounts(ctx context.Context, workspace *pb.Workspace, trigger pb.Snapshot_Trigger, turn, job string) ([]string, error) {
 	var snapshots []string
 	for _, mount := range workspace.GetMounts() {
 		if mount.GetMode() != pb.Mount_MODE_READ_WRITE {
@@ -187,7 +196,7 @@ func (s *Service) snapshotMounts(ctx context.Context, workspace *pb.Workspace, t
 		createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{
 			Parent:    filesystem.GetName(),
 			Snapshot:  &pb.Snapshot{Trigger: trigger, Turn: turn},
-			RequestId: uuid.NewV5(requestIDNamespace, requestID+"/"+filesystem.GetName()).String(),
+			RequestId: uuid.NewV5(snapshotNamespace, job+"/"+filesystem.GetName()).String(),
 		}
 		operation, err := s.filesystemServiceClient.CreateSnapshot(ctx, createSnapshotRequest)
 		if err != nil {
@@ -228,18 +237,6 @@ func (s *Service) getFilesystem(ctx context.Context, name string) (*pb.Filesyste
 		return nil, status.FromError(err, "getting filesystem %s", name).Err()
 	}
 	return filesystem, nil
-}
-
-// operationRequestID returns a request's id, or one derived from the job running it: every
-// attempt of an operation must derive the same ids.
-func operationRequestID(ctx context.Context, requestID string) string {
-	if requestID != "" {
-		return requestID
-	}
-	if jobName, ok := scheduler.JobFromIncomingContext(ctx); ok {
-		return uuid.NewV5(requestIDNamespace, jobName).String()
-	}
-	return uuid.MustNewV7().String()
 }
 
 // isTerminating reports whether a pod is being deleted.

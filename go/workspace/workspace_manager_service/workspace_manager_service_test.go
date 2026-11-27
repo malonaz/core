@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -36,6 +37,7 @@ import (
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/postgres"
 	testserver "github.com/malonaz/core/go/postgres/test_server"
+	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
 	"github.com/malonaz/core/go/workspace/pod"
 )
@@ -352,15 +354,14 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	requireProtosEqual(t, []*workspaceservicepb.SetSecretsRequest{{Secrets: secrets}}, environment.secrets.sets)
 
 	// A turn snapshots the LOCAL read-write mount only.
-	requestID := uuid.MustNewV7().String()
-	snapshotWorkspaceRequest := &workspacemanagerservicepb.SnapshotWorkspaceRequest{Name: name, Turn: "turn-1", RequestId: requestID}
-	snapshotWorkspaceResponse, err := environment.service.RunSnapshotWorkspace(context.Background(), snapshotWorkspaceRequest)
+	snapshotWorkspaceRequest := &workspacemanagerservicepb.SnapshotWorkspaceRequest{Name: name, Turn: "turn-1"}
+	snapshotWorkspaceResponse, err := environment.service.RunSnapshotWorkspace(jobContext("jobs/snapshot"), snapshotWorkspaceRequest)
 	require.NoError(t, err)
 	grpcrequire.Equal(t, &workspacemanagerservicepb.SnapshotWorkspaceResponse{Snapshots: []string{environment.repo + "/snapshots/s1"}}, snapshotWorkspaceResponse)
 
 	// Stop: a last snapshot, then the pod goes.
-	stopWorkspaceRequest := &workspacemanagerservicepb.StopWorkspaceRequest{Name: name, RequestId: uuid.MustNewV7().String()}
-	stopped, err := environment.service.RunStopWorkspace(context.Background(), stopWorkspaceRequest)
+	stopWorkspaceRequest := &workspacemanagerservicepb.StopWorkspaceRequest{Name: name}
+	stopped, err := environment.service.RunStopWorkspace(jobContext("jobs/stop"), stopWorkspaceRequest)
 	require.NoError(t, err)
 	expected = &pb.Workspace{
 		Name:           name,
@@ -377,17 +378,17 @@ func TestWorkspaceLifecycle(t *testing.T) {
 		{
 			Parent:    environment.repo,
 			Snapshot:  &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_TURN, Turn: "turn-1"},
-			RequestId: uuid.NewV5(requestIDNamespace, requestID+"/"+environment.repo).String(),
+			RequestId: uuid.NewV5(snapshotNamespace, "jobs/snapshot/"+environment.repo).String(),
 		},
 		{
 			Parent:    environment.repo,
 			Snapshot:  &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_STOP},
-			RequestId: uuid.NewV5(requestIDNamespace, stopWorkspaceRequest.GetRequestId()+"/"+environment.repo).String(),
+			RequestId: uuid.NewV5(snapshotNamespace, "jobs/stop/"+environment.repo).String(),
 		},
 	}, environment.filesystems.snapshots)
 
 	// Stopping again, or setting secrets once stopped, does nothing.
-	again, err := environment.service.RunStopWorkspace(context.Background(), stopWorkspaceRequest)
+	again, err := environment.service.RunStopWorkspace(jobContext("jobs/stop"), stopWorkspaceRequest)
 	require.NoError(t, err)
 	grpcrequire.Equal(t, stopped, again)
 	setWorkspaceSecretsResponse, err = environment.service.SetWorkspaceSecrets(context.Background(), setWorkspaceSecretsRequest)
@@ -510,11 +511,18 @@ func TestReap(t *testing.T) {
 	stopRequest := func(workspacePod *corev1.Pod) *workspacemanagerservicepb.StopWorkspaceRequest {
 		return &workspacemanagerservicepb.StopWorkspaceRequest{
 			Name:      workspacePod.Annotations[pod.AnnotationWorkspace],
-			RequestId: uuid.NewV5(requestIDNamespace, string(workspacePod.UID)).String(),
+			RequestId: uuid.NewV5(reapNamespace, string(workspacePod.UID)).String(),
 		}
 	}
 	// Each pass starts the same operation: its request id derives from the pod.
-	slices.SortStableFunc(stopped, func(a, b *workspacemanagerservicepb.StopWorkspaceRequest) int { return strings.Compare(a.GetName(), b.GetName()) })
+	slices.SortStableFunc(stopped, func(a, b *workspacemanagerservicepb.StopWorkspaceRequest) int {
+		return strings.Compare(a.GetName(), b.GetName())
+	})
 	requireProtosEqual(t, []*workspacemanagerservicepb.StopWorkspaceRequest{stopRequest(idle), stopRequest(idle), stopRequest(overrun), stopRequest(overrun)}, stopped)
 	require.ElementsMatch(t, []string{active.Name, idle.Name, overrun.Name}, environment.podNames(t))
+}
+
+// jobContext is the context the scheduler runs a job in.
+func jobContext(job string) context.Context {
+	return metadata.NewIncomingContext(context.Background(), metadata.Pairs(scheduler.JobMetadataKey, job))
 }
