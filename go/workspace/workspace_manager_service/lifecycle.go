@@ -15,15 +15,14 @@ import (
 	filesystemservicepb "github.com/malonaz/core/genproto/workspace/filesystem_service/v1"
 	pb "github.com/malonaz/core/genproto/workspace/v1"
 	workspacemanagerservicepb "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
 	"github.com/malonaz/core/go/workspace/pod"
 )
 
-// snapshotNamespace derives a mount's snapshot request id from the job snapshotting it: a retried
-// job snapshots nothing twice.
-var snapshotNamespace = uuid.MustParse("6d1c8a3e-5b7f-4e2a-8c94-1f0b3d5e7a26")
+var snapshotNamespace = aip.MustGetUUIDNamespace(&pb.Snapshot{})
 
 // RunStartWorkspace implements the interface: it creates the pod, waits for it to serve and
 // records it. A RUNNING workspace whose pod is gone, its node lost, is started again.

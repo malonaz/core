@@ -9,14 +9,13 @@ import (
 
 	pb "github.com/malonaz/core/genproto/workspace/v1"
 	workspacemanagerservicepb "github.com/malonaz/core/genproto/workspace/workspace_manager_service/v1"
+	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/uuid"
 	"github.com/malonaz/core/go/workspace/pod"
 )
 
-// reapNamespace derives a reap's stop request id from the pod: the passes until it stops start one
-// operation.
-var reapNamespace = uuid.MustParse("c4e8a2d6-1b3f-4f7a-9e5c-8d2b6a0f4e13")
+var workspaceNamespace = aip.MustGetUUIDNamespace(&pb.Workspace{})
 
 // reap stops every workspace whose pod sat unused past the idle timeout, or ran past the most a
 // pod may: an agent looping on commands never goes idle. A pod no workspace owns is deleted.
@@ -63,9 +62,10 @@ func (s *Service) reapPod(ctx context.Context, workspacePod *corev1.Pod) error {
 	if workspace.GetState() == pb.Workspace_STATE_STOPPED {
 		return s.pods.Delete(ctx, workspacePod.Name)
 	}
+	// Derived from the pod: the passes until it stops start one operation.
 	stopWorkspaceRequest := &workspacemanagerservicepb.StopWorkspaceRequest{
 		Name:      name,
-		RequestId: uuid.NewV5(reapNamespace, string(workspacePod.UID)).String(),
+		RequestId: uuid.NewV5(workspaceNamespace, string(workspacePod.UID)).String(),
 	}
 	_, err = s.StopWorkspace(ctx, stopWorkspaceRequest)
 	return err

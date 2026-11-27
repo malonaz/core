@@ -511,7 +511,7 @@ func TestReap(t *testing.T) {
 	stopRequest := func(workspacePod *corev1.Pod) *workspacemanagerservicepb.StopWorkspaceRequest {
 		return &workspacemanagerservicepb.StopWorkspaceRequest{
 			Name:      workspacePod.Annotations[pod.AnnotationWorkspace],
-			RequestId: uuid.NewV5(reapNamespace, string(workspacePod.UID)).String(),
+			RequestId: uuid.NewV5(workspaceNamespace, string(workspacePod.UID)).String(),
 		}
 	}
 	// Each pass starts the same operation: its request id derives from the pod.
