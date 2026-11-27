@@ -21,9 +21,24 @@ go_library(
     deps = [
         "//go/postgres",
         "//go/workspace/model",
-        "//malonaz/workspace/v1",
-        "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
-        "//third_party/go:github.com__jackc__pgx__v5__pgconn",
+    ],
+)
+
+go_test(
+    name = "store_test",
+    srcs = ["store_test.go"],
+    data = ["//go/workspace/migrations"],
+    deps = [
+        ":store",
+        "//go/postgres",
+        "//go/postgres/test_server",
+        "//go/uuid",
+        "//go/workspace/model",
+        "//malonaz/workspace/v1",
+        "//third_party/go:github.com__google__go-cmp__cmp",
+        "//third_party/go:github.com__stretchr__testify__require",
+        "//third_party/go:google.golang.org__protobuf__testing__protocmp",
+        "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
     ],
 )
