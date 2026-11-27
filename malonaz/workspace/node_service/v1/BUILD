@@ -1,12 +1,18 @@
 filegroup(
     name = "proto",
-    srcs = ["node_service.proto"],
+    srcs = [
+        "copy.proto",
+        "node_service.proto",
+    ],
     visibility = ["PUBLIC"],
 )
 
 grpc_library(
     name = "v1",
-    srcs = ["node_service.proto"],
+    srcs = [
+        "copy.proto",
+        "node_service.proto",
+    ],
     additional_context = {
         GO_IMPORT_PATH: "github.com/malonaz/core/genproto/workspace/node_service/v1",
     },

@@ -309,6 +309,25 @@ func TestSnapshotFindsEditKeepingSizeAndModTime(t *testing.T) {
 	require.Equal(t, [3][]string{nil, {"a.txt"}, nil}, snapshotPaths(snapshot))
 }
 
+func TestDiffCopy(t *testing.T) {
+	// `a.txt` sorts before `a/b` though a walk visits it after.
+	previous := []*nodeservicepb.CopyFile{
+		{Path: "a", Mode: uint32(fs.ModeDir)},
+		{Path: "a.txt", Size: 1},
+		{Path: "a/b", Size: 1},
+		{Path: "gone"},
+	}
+	current := []*nodeservicepb.CopyFile{
+		{Path: "a", Mode: uint32(fs.ModeDir)},
+		{Path: "a.txt", Size: 2},
+		{Path: "a/b", Size: 1},
+		{Path: "a/c", Size: 1},
+		{Path: "new"},
+	}
+	changes := diffCopy(previous, current)
+	require.Equal(t, [3][]string{{"a/c", "new"}, {"a.txt"}, {"gone"}}, [3][]string{filePaths(changes.added), filePaths(changes.changed), changes.deleted})
+}
+
 func TestSnapshotWithoutCopy(t *testing.T) {
 	node := newTestNode(t, newFakeObjects())
 	_, err := node.snapshot(t, uuid.MustNewV7().String())

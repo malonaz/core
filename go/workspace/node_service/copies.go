@@ -18,6 +18,8 @@ import (
 
 	"github.com/klauspost/compress/zstd"
 
+	nodeservicepb "github.com/malonaz/core/genproto/workspace/node_service/v1"
+	"github.com/malonaz/core/go/pbutil"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -29,36 +31,17 @@ const (
 	sequenceDigits = 20
 )
 
-// copyState is what the node knows of its copy of a LOCAL filesystem, kept beside it.
-type copyState struct {
-	// Sequence is the snapshot object the copy was last at; 0 before the first.
-	Sequence int64 `json:"sequence"`
-	// FullBytes is the size of the last full snapshot.
-	FullBytes int64 `json:"full_bytes"`
-	// Incrementals and IncrementalBytes count the snapshots written since the last full.
-	Incrementals     int   `json:"incrementals"`
-	IncrementalBytes int64 `json:"incremental_bytes"`
-	// PathToFile is every path in the copy at Sequence, relative to its root.
-	PathToFile map[string]fileState `json:"path_to_file"`
-	// Requests are the latest snapshot requests answered, oldest first.
-	Requests []recordedRequest `json:"requests"`
-}
+// stateEncoder and stateDecoder compress copies' state; both are safe for concurrent use.
+var (
+	stateEncoder = must(zstd.NewWriter(nil))
+	stateDecoder = must(zstd.NewReader(nil))
+)
 
-// fileState is what tells a path's change apart, as git's index does. ChangeTime and Inode catch
-// an edit that keeps size and mtime: workspace code can set mtime, never ctime.
-type fileState struct {
-	Mode       fs.FileMode `json:"mode"`
-	Size       int64       `json:"size,omitempty"`
-	ModTime    int64       `json:"mod_time,omitempty"`
-	ChangeTime int64       `json:"change_time,omitempty"`
-	Inode      uint64      `json:"inode,omitempty"`
-	Link       string      `json:"link,omitempty"`
-}
-
-// recordedRequest is a snapshot request answered, to answer its retries alike.
-type recordedRequest struct {
-	RequestID string `json:"request_id"`
-	Snapshot  []byte `json:"snapshot"`
+func must[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return value
 }
 
 // snapshotHeader is the first entry of every snapshot tar.
@@ -76,9 +59,10 @@ type snapshotObject struct {
 	size     int64
 }
 
-// changes is how a copy differs from its last snapshot.
+// changes is how a copy differs from its last snapshot, each list sorted by path.
 type changes struct {
-	added, changed, deleted []string
+	added, changed []*nodeservicepb.CopyFile
+	deleted        []string
 }
 
 func (c *changes) empty() bool {
@@ -94,7 +78,7 @@ func (r *runtime) sharedPath(filesystem string) string {
 }
 
 func (r *runtime) statePath(filesystem string) string {
-	return filepath.Join(r.directory, stateDirectory, filesystem+".json")
+	return filepath.Join(r.directory, stateDirectory, filesystem+".pb.zst")
 }
 
 // objectPrefix holds every snapshot object of a filesystem.
@@ -140,16 +124,20 @@ func (r *runtime) listSnapshotObjects(ctx context.Context, filesystem string) ([
 }
 
 // readState returns the node's state of a filesystem's copy, or nil with no copy.
-func (r *runtime) readState(filesystem string) (*copyState, error) {
-	bytes, err := os.ReadFile(r.statePath(filesystem))
+func (r *runtime) readState(filesystem string) (*nodeservicepb.Copy, error) {
+	compressed, err := os.ReadFile(r.statePath(filesystem))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("reading state: %w", err)
 	}
-	state := &copyState{}
-	if err := json.Unmarshal(bytes, state); err != nil {
+	bytes, err := stateDecoder.DecodeAll(compressed, nil)
+	if err != nil {
+		return nil, fmt.Errorf("decompressing state: %w", err)
+	}
+	state := &nodeservicepb.Copy{}
+	if err := pbutil.Unmarshal(bytes, state); err != nil {
 		return nil, fmt.Errorf("decoding state: %w", err)
 	}
 	if _, err := os.Lstat(r.localPath(filesystem)); err != nil {
@@ -162,11 +150,12 @@ func (r *runtime) readState(filesystem string) (*copyState, error) {
 }
 
 // writeState replaces the state of a filesystem's copy atomically.
-func (r *runtime) writeState(filesystem string, state *copyState) error {
-	bytes, err := json.Marshal(state)
+func (r *runtime) writeState(filesystem string, state *nodeservicepb.Copy) error {
+	bytes, err := pbutil.Marshal(state)
 	if err != nil {
 		return fmt.Errorf("encoding state: %w", err)
 	}
+	bytes = stateEncoder.EncodeAll(bytes, nil)
 	path := r.statePath(filesystem)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("creating state directory: %w", err)
@@ -200,9 +189,10 @@ func (r *runtime) removeCopy(filesystem string) error {
 	return nil
 }
 
-// walkCopy returns every regular file, directory and symlink in a copy. Symlinks are not followed.
-func walkCopy(root *os.Root) (map[string]fileState, error) {
-	pathToFile := map[string]fileState{}
+// walkCopy returns every regular file, directory and symlink in a copy, sorted by path. Symlinks
+// are not followed.
+func walkCopy(root *os.Root) ([]*nodeservicepb.CopyFile, error) {
+	var files []*nodeservicepb.CopyFile
 	walk := func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -214,7 +204,7 @@ func walkCopy(root *os.Root) (map[string]fileState, error) {
 		if err != nil {
 			return err
 		}
-		file := fileState{Mode: info.Mode()}
+		file := &nodeservicepb.CopyFile{Path: path, Mode: uint32(info.Mode())}
 		switch {
 		case info.Mode().IsRegular():
 			file.Size = info.Size()
@@ -225,7 +215,7 @@ func walkCopy(root *os.Root) (map[string]fileState, error) {
 			}
 		case info.IsDir():
 			// A directory's times move with its entries, which are diffed on their own.
-			pathToFile[path] = file
+			files = append(files, file)
 			return nil
 		default:
 			// Sockets, pipes and devices are not kept.
@@ -237,40 +227,61 @@ func walkCopy(root *os.Root) (map[string]fileState, error) {
 		}
 		file.ChangeTime = stat.Ctim.Nano()
 		file.Inode = stat.Ino
-		pathToFile[path] = file
+		files = append(files, file)
 		return nil
 	}
 	if err := fs.WalkDir(root.FS(), ".", walk); err != nil {
 		return nil, fmt.Errorf("walking copy: %w", err)
 	}
-	return pathToFile, nil
+	// WalkDir visits `a/b` before `a.txt`: sorted by path, two copies diff by merging.
+	sortFiles(files)
+	return files, nil
 }
 
-// diffCopy returns what changed from previous to current, each list sorted.
-func diffCopy(previous, current map[string]fileState) *changes {
+func sortFiles(files []*nodeservicepb.CopyFile) {
+	slices.SortFunc(files, func(a, b *nodeservicepb.CopyFile) int { return strings.Compare(a.GetPath(), b.GetPath()) })
+}
+
+// diffCopy returns what changed from previous to current, merging the two sorted lists.
+func diffCopy(previous, current []*nodeservicepb.CopyFile) *changes {
 	changes := &changes{}
-	for path, file := range current {
-		previousFile, ok := previous[path]
+	i, j := 0, 0
+	for i < len(previous) || j < len(current) {
 		switch {
-		case !ok:
-			changes.added = append(changes.added, path)
-		case previousFile != file:
-			changes.changed = append(changes.changed, path)
+		case j == len(current) || (i < len(previous) && previous[i].GetPath() < current[j].GetPath()):
+			changes.deleted = append(changes.deleted, previous[i].GetPath())
+			i++
+		case i == len(previous) || current[j].GetPath() < previous[i].GetPath():
+			changes.added = append(changes.added, current[j])
+			j++
+		default:
+			if !sameFile(previous[i], current[j]) {
+				changes.changed = append(changes.changed, current[j])
+			}
+			i++
+			j++
 		}
 	}
-	for path := range previous {
-		if _, ok := current[path]; !ok {
-			changes.deleted = append(changes.deleted, path)
-		}
-	}
-	slices.Sort(changes.added)
-	slices.Sort(changes.changed)
-	slices.Sort(changes.deleted)
 	return changes
 }
 
-// writeSnapshot writes the paths of a copy, parents before children, as a zstd tar to file.
-func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, paths []string, pathToFile map[string]fileState) error {
+// sameFile reports whether two states of one path are unchanged.
+func sameFile(a, b *nodeservicepb.CopyFile) bool {
+	return a.GetMode() == b.GetMode() && a.GetSize() == b.GetSize() && a.GetModTime() == b.GetModTime() &&
+		a.GetChangeTime() == b.GetChangeTime() && a.GetInode() == b.GetInode() && a.GetLink() == b.GetLink()
+}
+
+// filePaths returns the paths of files, nil for none.
+func filePaths(files []*nodeservicepb.CopyFile) []string {
+	var paths []string
+	for _, file := range files {
+		paths = append(paths, file.GetPath())
+	}
+	return paths
+}
+
+// writeSnapshot writes files of a copy, sorted so parents come before children, as a zstd tar.
+func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, files []*nodeservicepb.CopyFile) error {
 	encoder, err := zstd.NewWriter(file, zstd.WithEncoderLevel(zstd.SpeedFastest))
 	if err != nil {
 		return fmt.Errorf("creating zstd writer: %w", err)
@@ -287,9 +298,9 @@ func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, paths [
 	if _, err := tarWriter.Write(headerBytes); err != nil {
 		return fmt.Errorf("writing snapshot header: %w", err)
 	}
-	for _, path := range paths {
-		if err := writeSnapshotEntry(root, tarWriter, path, pathToFile[path]); err != nil {
-			return fmt.Errorf("writing %s: %w", path, err)
+	for _, copyFile := range files {
+		if err := writeSnapshotEntry(root, tarWriter, copyFile); err != nil {
+			return fmt.Errorf("writing %s: %w", copyFile.GetPath(), err)
 		}
 	}
 	if err := tarWriter.Close(); err != nil {
@@ -301,13 +312,14 @@ func writeSnapshot(root *os.Root, file *os.File, header *snapshotHeader, paths [
 	return nil
 }
 
-func writeSnapshotEntry(root *os.Root, tarWriter *tar.Writer, path string, file fileState) error {
-	if !file.Mode.IsRegular() {
+func writeSnapshotEntry(root *os.Root, tarWriter *tar.Writer, file *nodeservicepb.CopyFile) error {
+	path := file.GetPath()
+	if !fs.FileMode(file.GetMode()).IsRegular() {
 		info, err := root.Lstat(path)
 		if err != nil {
 			return err
 		}
-		tarHeader, err := tar.FileInfoHeader(info, file.Link)
+		tarHeader, err := tar.FileInfoHeader(info, file.GetLink())
 		if err != nil {
 			return err
 		}
@@ -326,7 +338,7 @@ func writeSnapshotEntry(root *os.Root, tarWriter *tar.Writer, path string, file 
 	if err != nil {
 		return err
 	}
-	if !info.Mode().IsRegular() || info.Size() != file.Size {
+	if !info.Mode().IsRegular() || info.Size() != file.GetSize() {
 		return fmt.Errorf("changed while snapshotting")
 	}
 	tarHeader, err := tar.FileInfoHeader(info, "")
