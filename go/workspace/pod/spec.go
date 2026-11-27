@@ -25,6 +25,8 @@ const (
 
 	// AnnotationWorkspace holds the workspace's resource name: label values cannot hold it.
 	AnnotationWorkspace = "workspace.malonaz.com/workspace"
+	// AnnotationMounts holds a hash of the mounts the pod was built with.
+	AnnotationMounts = "workspace.malonaz.com/mounts"
 	// AnnotationLastActive holds when a call last used the pod, RFC 3339.
 	AnnotationLastActive = "workspace.malonaz.com/last-active"
 
@@ -127,7 +129,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 			Name:        Name(workspace.GetName()),
 			Namespace:   config.Namespace,
 			Labels:      map[string]string{LabelName: labelValue},
-			Annotations: map[string]string{AnnotationWorkspace: workspace.GetName()},
+			Annotations: map[string]string{AnnotationWorkspace: workspace.GetName(), AnnotationMounts: MountsHash(workspace.GetMounts())},
 		},
 		Spec: corev1.PodSpec{
 			RuntimeClassName:             &runtimeClassName,
@@ -138,6 +140,20 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		},
 	}
 	return pod, nil
+}
+
+// MountsHash identifies a list of mounts: equal for the same mounts in the same order.
+func MountsHash(mounts []*pb.Mount) string {
+	hash := sha256.New()
+	for _, mount := range mounts {
+		fmt.Fprintf(hash, "%s\x00%s\x00%d\x00", mount.GetFilesystem(), mount.GetPath(), mount.GetMode())
+	}
+	return hex.EncodeToString(hash.Sum(nil))[:20]
+}
+
+// HasMounts reports whether a pod was built with those mounts.
+func HasMounts(pod *corev1.Pod, mounts []*pb.Mount) bool {
+	return pod.Annotations[AnnotationMounts] == MountsHash(mounts)
 }
 
 // ClientOpts addresses a running pod's workspace-server by its IP, with the port and TLS its spec

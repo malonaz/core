@@ -157,6 +157,7 @@ func TestTouch(t *testing.T) {
 	require.Equal(t, later.Annotations, stored.Annotations)
 	require.Equal(t, map[string]string{
 		AnnotationWorkspace:  testWorkspaceName,
+		AnnotationMounts:     MountsHash(testWorkspace().GetMounts()),
 		AnnotationLastActive: "2026-11-27T10:01:00Z",
 	}, stored.Annotations)
 }

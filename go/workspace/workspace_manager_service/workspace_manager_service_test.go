@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -67,8 +68,8 @@ type call struct {
 	mode      pb.Mount_Mode
 }
 
-// fakeFilesystems is the FilesystemService: it records attachments and snapshots, and refuses
-// the filesystems in refuse.
+// fakeFilesystems is the FilesystemService: it records calls, attachments and snapshots, and
+// refuses the filesystems in refuse.
 type fakeFilesystems struct {
 	filesystemservicepb.FilesystemServiceClient
 	mutex       sync.Mutex
@@ -85,14 +86,52 @@ func (f *fakeFilesystems) AttachFilesystem(ctx context.Context, request *filesys
 	if f.refuse[request.GetName()] {
 		return nil, status.Errorf(codes.FailedPrecondition, "written by another workspace").Err()
 	}
-	return f.filesystems[request.GetName()], nil
+	filesystem := f.filesystems[request.GetName()]
+	filesystem.Attachments = removeAttachment(filesystem.Attachments, request.GetWorkspace())
+	filesystem.Attachments = append(filesystem.Attachments, &pb.Attachment{Workspace: request.GetWorkspace(), Mode: request.GetMode()})
+	return filesystem, nil
 }
 
 func (f *fakeFilesystems) DetachFilesystem(ctx context.Context, request *filesystemservicepb.DetachFilesystemRequest, _ ...grpc.CallOption) (*pb.Filesystem, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	f.calls = append(f.calls, call{method: "detach", name: request.GetName(), workspace: request.GetWorkspace()})
-	return f.filesystems[request.GetName()], nil
+	filesystem := f.filesystems[request.GetName()]
+	filesystem.Attachments = removeAttachment(filesystem.Attachments, request.GetWorkspace())
+	return filesystem, nil
+}
+
+// ListFilesystems serves the one filter workspace-manager sends, on a workspace's attachments.
+func (f *fakeFilesystems) ListFilesystems(ctx context.Context, request *filesystemservicepb.ListFilesystemsRequest, _ ...grpc.CallOption) (*filesystemservicepb.ListFilesystemsResponse, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	workspace, err := strconv.Unquote(strings.TrimPrefix(request.GetFilter(), "attachments.workspace:"))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "unexpected filter %q", request.GetFilter()).Err()
+	}
+	response := &filesystemservicepb.ListFilesystemsResponse{}
+	for _, filesystem := range f.filesystems {
+		if len(removeAttachment(filesystem.Attachments, workspace)) != len(filesystem.Attachments) {
+			response.Filesystems = append(response.Filesystems, filesystem)
+		}
+	}
+	slices.SortFunc(response.Filesystems, compareFilesystemNames)
+	return response, nil
+}
+
+// removeAttachment returns attachments without the workspace's.
+func removeAttachment(attachments []*pb.Attachment, workspace string) []*pb.Attachment {
+	var kept []*pb.Attachment
+	for _, attachment := range attachments {
+		if attachment.GetWorkspace() != workspace {
+			kept = append(kept, attachment)
+		}
+	}
+	return kept
+}
+
+func compareFilesystemNames(a, b *pb.Filesystem) int {
+	return strings.Compare(a.GetName(), b.GetName())
 }
 
 func (f *fakeFilesystems) GetFilesystem(ctx context.Context, request *filesystemservicepb.GetFilesystemRequest, _ ...grpc.CallOption) (*pb.Filesystem, error) {
@@ -316,8 +355,6 @@ func TestCreateWorkspace(t *testing.T) {
 		grpcrequire.Error(t, codes.NotFound, err)
 		requireProtosEqual(t, []call{
 			{method: "attach", name: environment.repo, workspace: name, mode: pb.Mount_MODE_READ_WRITE},
-			{method: "detach", name: environment.repo, workspace: name},
-			{method: "detach", name: environment.shared, workspace: name},
 		}, environment.filesystems.calls)
 	})
 }
@@ -437,7 +474,8 @@ func TestUpdateWorkspaceMounts(t *testing.T) {
 	require.Len(t, environment.scheduler.created, 1)
 	payload, err := environment.scheduler.created[0].GetJob().GetPayload().UnmarshalNew()
 	require.NoError(t, err)
-	grpcrequire.Equal(t, &workspacemanagerservicepb.StartWorkspaceRequest{Name: name}, payload)
+	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{Name: name, RequestId: uuid.NewV5(workspaceNamespace, name+"/"+updated.GetEtag()).String()}
+	grpcrequire.Equal(t, startWorkspaceRequest, payload)
 
 	restarted := environment.startWorkspace(t, name)
 	require.Equal(t, pb.Workspace_STATE_RUNNING, restarted.GetState())
@@ -450,6 +488,79 @@ func TestUpdateWorkspaceMounts(t *testing.T) {
 	_, err = environment.service.UpdateWorkspace(context.Background(), updateWorkspaceRequest)
 	require.NoError(t, err)
 	require.Equal(t, []string{pod.Name(name)}, environment.podNames(t))
+}
+
+// TestUpdateWorkspaceConverges retries a mounts change whose first call stored the mounts, then failed.
+func TestUpdateWorkspaceConverges(t *testing.T) {
+	environment := newTestEnvironment(t)
+	created, err := environment.createWorkspace(t, "w1")
+	require.NoError(t, err)
+	name := created.GetName()
+	environment.startWorkspace(t, name)
+	mounts := []*pb.Mount{{Filesystem: environment.repo, Path: "/repo", Mode: pb.Mount_MODE_READ_WRITE}}
+	updateWorkspaceRequest := &workspacemanagerservicepb.UpdateWorkspaceRequest{
+		Workspace:  &pb.Workspace{Name: name, Mounts: mounts},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"mounts"}},
+	}
+	_, err = environment.service.WorkspaceManagerServiceServer.UpdateWorkspace(context.Background(), updateWorkspaceRequest)
+	require.NoError(t, err)
+	environment.filesystems.calls = nil
+
+	updated, err := environment.service.UpdateWorkspace(context.Background(), updateWorkspaceRequest)
+	require.NoError(t, err)
+	require.Equal(t, pb.Workspace_STATE_STARTING, updated.GetState())
+	// The shared filesystem stays attached until the retry detaches it.
+	requireProtosEqual(t, []call{
+		{method: "attach", name: environment.repo, workspace: name, mode: pb.Mount_MODE_READ_WRITE},
+		{method: "detach", name: environment.shared, workspace: name},
+	}, environment.filesystems.calls)
+	// The pod built with the old mounts goes; a start brings one with the stored mounts.
+	require.Empty(t, environment.podNames(t))
+	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{Name: name, RequestId: uuid.NewV5(workspaceNamespace, name+"/"+updated.GetEtag()).String()}
+	requireProtosEqual(t, map[string][]proto.Message{name: {startWorkspaceRequest}}, environment.workspaceToJobs(t))
+	restarted := environment.startWorkspace(t, name)
+	require.Equal(t, pb.Workspace_STATE_RUNNING, restarted.GetState())
+
+	// Once converged, a retry changes nothing.
+	environment.filesystems.calls = nil
+	again, err := environment.service.UpdateWorkspace(context.Background(), updateWorkspaceRequest)
+	require.NoError(t, err)
+	// The generated update rewrites the row whatever changed.
+	expected := proto.CloneOf(restarted)
+	expected.UpdateTime, expected.Etag = again.GetUpdateTime(), again.GetEtag()
+	grpcrequire.Equal(t, expected, again)
+	requireProtosEqual(t, []call{{method: "attach", name: environment.repo, workspace: name, mode: pb.Mount_MODE_READ_WRITE}}, environment.filesystems.calls)
+	require.Equal(t, []string{pod.Name(name)}, environment.podNames(t))
+}
+
+func TestStopWorkspaceETag(t *testing.T) {
+	environment := newTestEnvironment(t)
+	created, err := environment.createWorkspace(t, "w1")
+	require.NoError(t, err)
+	name := created.GetName()
+	running := environment.startWorkspace(t, name)
+
+	// Refused while running, before any operation starts.
+	stopWorkspaceRequest := &workspacemanagerservicepb.StopWorkspaceRequest{Name: name, Etag: created.GetEtag()}
+	_, err = environment.service.StopWorkspace(context.Background(), stopWorkspaceRequest)
+	grpcrequire.Error(t, codes.Aborted, err)
+	require.Empty(t, environment.scheduler.created)
+
+	// The run ignores the etag: a retried job finishes the stop its first attempt began.
+	stopWorkspaceRequest.Etag = running.GetEtag()
+	_, err = environment.service.StopWorkspace(context.Background(), stopWorkspaceRequest)
+	require.NoError(t, err)
+	stopping := &pb.Workspace{State: pb.Workspace_STATE_STOPPING}
+	_, err = environment.service.updateWorkspace(context.Background(), name, nil, stopping, "state")
+	require.NoError(t, err)
+	stopped, err := environment.service.RunStopWorkspace(jobContext(newJob()), stopWorkspaceRequest)
+	require.NoError(t, err)
+	require.Equal(t, pb.Workspace_STATE_STOPPED, stopped.GetState())
+
+	// Stopped, the stale etag reaches the operation already started.
+	_, err = environment.service.StopWorkspace(context.Background(), stopWorkspaceRequest)
+	require.NoError(t, err)
+	require.Len(t, environment.scheduler.created, 2)
 }
 
 func TestDeleteWorkspace(t *testing.T) {
@@ -510,6 +621,17 @@ func TestReconcileWorkspaces(t *testing.T) {
 	require.NoError(t, err)
 	// RUNNING with a pod in use: left alone.
 	environment.reapablePod(t, "healthy", now, now)
+	// RUNNING, its pod built with mounts a failed change replaced.
+	staleMounts, err := environment.createWorkspace(t, "stale-mounts")
+	require.NoError(t, err)
+	environment.startWorkspace(t, staleMounts.GetName())
+	updateWorkspaceRequest := &workspacemanagerservicepb.UpdateWorkspaceRequest{
+		Workspace:  &pb.Workspace{Name: staleMounts.GetName()},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"mounts"}},
+	}
+	_, err = environment.service.WorkspaceManagerServiceServer.UpdateWorkspace(context.Background(), updateWorkspaceRequest)
+	require.NoError(t, err)
+	refreshPodTimes(t, environment, staleMounts.GetName(), now)
 	// STARTING, a start in flight: left alone.
 	environment.setState(t, "starting", pb.Workspace_STATE_STARTING, now)
 	stuckStarting := environment.setState(t, "stuck-starting", pb.Workspace_STATE_STARTING, now.Add(-11*time.Minute))
@@ -532,7 +654,16 @@ func TestReconcileWorkspaces(t *testing.T) {
 		Name:      stuckStopping.GetName(),
 		RequestId: uuid.NewV5(workspaceNamespace, stuckStopping.GetName()+"/"+stuckStopping.GetEtag()+"/2").String(),
 	}
+	// Restarted once: going STARTING changed its etag, and a fresh start is left alone.
+	restarting, err := environment.getWorkspace(t, staleMounts.GetName())
+	require.NoError(t, err)
+	require.Equal(t, pb.Workspace_STATE_STARTING, restarting.GetState())
+	restart := &workspacemanagerservicepb.StartWorkspaceRequest{
+		Name:      staleMounts.GetName(),
+		RequestId: uuid.NewV5(workspaceNamespace, staleMounts.GetName()+"/"+restarting.GetEtag()).String(),
+	}
 	requireProtosEqual(t, map[string][]proto.Message{
+		staleMounts.GetName():   {restart},
 		lost.GetName():          {start, start},
 		stuckStarting.GetName(): {stopStarting, stopStarting},
 		stuckStopping.GetName(): {stopStopping, stopStopping},
@@ -555,6 +686,18 @@ func (e *testEnvironment) workspaceToJobs(t *testing.T) map[string][]proto.Messa
 	return workspaceToJobs
 }
 
+// refreshPodTimes makes a workspace's pod created and last used at now, so it is not expired.
+func refreshPodTimes(t *testing.T, environment *testEnvironment, name string, now time.Time) {
+	t.Helper()
+	pods := environment.clientset.CoreV1().Pods(testNamespace)
+	workspacePod, err := pods.Get(context.Background(), pod.Name(name), metav1.GetOptions{})
+	require.NoError(t, err)
+	workspacePod.CreationTimestamp = metav1.NewTime(now)
+	workspacePod.Annotations[pod.AnnotationLastActive] = now.UTC().Format(time.RFC3339)
+	_, err = pods.Update(context.Background(), workspacePod, metav1.UpdateOptions{})
+	require.NoError(t, err)
+}
+
 // setState creates a workspace, then stores it in a state since updateTime.
 func (e *testEnvironment) setState(t *testing.T, id string, state pb.Workspace_State, updateTime time.Time) *pb.Workspace {
 	t.Helper()
@@ -569,6 +712,11 @@ func (e *testEnvironment) setState(t *testing.T, id string, state pb.Workspace_S
 	updated, err := updatedWorkspaceModel.ToPb()
 	require.NoError(t, err)
 	return updated
+}
+
+// newJob names a job of its own.
+func newJob() string {
+	return "jobs/" + uuid.MustNewV7().String()
 }
 
 // jobContext is the context the scheduler runs a job in.

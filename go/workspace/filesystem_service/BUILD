@@ -28,6 +28,7 @@ go_library(
         "//go/grpc",
         "//go/grpc/status",
         "//go/scheduler",
+        "//go/scheduler/longrunning",
         "//go/uuid",
         "//go/workspace/filesystem_service/rpc",
         "//go/workspace/model",
@@ -47,6 +48,7 @@ go_library(
         "//third_party/go:k8s.io__client-go__kubernetes",
         "//third_party/go:k8s.io__client-go__kubernetes__typed__core__v1",
         "//third_party/go:k8s.io__client-go__rest",
+        "//third_party/proto:google__longrunning__operations",
     ],
 )
 
@@ -63,6 +65,8 @@ go_test(
         "//go/uuid",
         "//go/workspace/model",
         "//go/workspace/store",
+        "//malonaz/scheduler/scheduler_service/v1",
+        "//malonaz/scheduler/v1",
         "//malonaz/workspace/filesystem_service/v1",
         "//malonaz/workspace/node_service/v1",
         "//malonaz/workspace/v1",

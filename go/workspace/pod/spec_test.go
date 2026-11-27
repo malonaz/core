@@ -68,7 +68,7 @@ func TestSpec(t *testing.T) {
 				Name:        Name(testWorkspaceName),
 				Namespace:   testNamespace,
 				Labels:      map[string]string{LabelName: "workspace"},
-				Annotations: map[string]string{AnnotationWorkspace: testWorkspaceName},
+				Annotations: map[string]string{AnnotationWorkspace: testWorkspaceName, AnnotationMounts: MountsHash(testWorkspace().GetMounts())},
 			},
 			Spec: corev1.PodSpec{
 				RuntimeClassName:             &runtimeClassName,
@@ -140,4 +140,14 @@ func TestClientOpts(t *testing.T) {
 	clientOpts, err := config.ClientOpts(running(pod, time.Now()))
 	require.NoError(t, err)
 	require.Equal(t, &grpc.ClientOpts{Host: "10.0.0.7", Port: 9090, DisableTLS: true}, clientOpts)
+}
+
+func TestHasMounts(t *testing.T) {
+	workspace := testWorkspace()
+	pod, err := Spec(testConfig(), workspace, testFilesystemNameToKind)
+	require.NoError(t, err)
+	require.True(t, HasMounts(pod, workspace.GetMounts()))
+	require.False(t, HasMounts(pod, workspace.GetMounts()[:1]))
+	require.False(t, HasMounts(pod, []*pb.Mount{workspace.GetMounts()[1], workspace.GetMounts()[0]}))
+	require.False(t, HasMounts(&corev1.Pod{}, workspace.GetMounts()))
 }

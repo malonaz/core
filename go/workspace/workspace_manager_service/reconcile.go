@@ -80,7 +80,8 @@ func (s *Service) reconcilePod(ctx context.Context, workspacePod *corev1.Pod, no
 	return nil
 }
 
-// reconcileWorkspace starts a RUNNING workspace whose pod is gone, stops one stuck STARTING, and
+// reconcileWorkspace starts a RUNNING workspace whose pod is gone, restarts one whose pod has other
+// mounts, stops one stuck STARTING, and
 // retries the stop of one stuck STOPPING. Request ids derive from the etag, which a start or stop
 // changes: the passes until then start one operation.
 func (s *Service) reconcileWorkspace(ctx context.Context, workspace *pb.Workspace, workspacePod *corev1.Pod, now time.Time) error {
@@ -89,7 +90,12 @@ func (s *Service) reconcileWorkspace(ctx context.Context, workspace *pb.Workspac
 	case pb.Workspace_STATE_RUNNING:
 		// A terminating pod is waited out: a mounts change or a stop is replacing it.
 		if workspacePod != nil {
-			return nil
+			if isTerminating(workspacePod) || pod.HasMounts(workspacePod, workspace.GetMounts()) {
+				return nil
+			}
+			// Built with other mounts: a mounts change failed before it restarted the pod.
+			_, err := s.restartWorkspace(ctx, workspace.GetName())
+			return err
 		}
 		startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{
 			Name:      workspace.GetName(),

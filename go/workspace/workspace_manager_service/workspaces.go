@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/malonaz/core/gengo/workspace/model"
 	filesystemservicepb "github.com/malonaz/core/genproto/workspace/filesystem_service/v1"
@@ -19,6 +20,7 @@ import (
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/pbutil/pbfieldmask"
+	"github.com/malonaz/core/go/uuid"
 	"github.com/malonaz/core/go/workspace/pod"
 )
 
@@ -31,7 +33,7 @@ func (s *Service) CreateWorkspace(ctx context.Context, request *workspacemanager
 		return nil, err
 	}
 	if err := s.attachMounts(ctx, workspace.GetName(), workspace.GetMounts()); err != nil {
-		if rollbackErr := s.detachMounts(ctx, workspace.GetName(), workspace.GetMounts()); rollbackErr != nil {
+		if rollbackErr := s.detachUnmounted(ctx, workspace.GetName(), nil); rollbackErr != nil {
 			return nil, status.FromError(rollbackErr, "detaching after %v", err).Err()
 		}
 		deleteWorkspaceRequest := &workspacemanagerservicepb.DeleteWorkspaceRequest{Name: workspace.GetName(), AllowMissing: true}
@@ -44,54 +46,69 @@ func (s *Service) CreateWorkspace(ctx context.Context, request *workspacemanager
 }
 
 // UpdateWorkspace implements the interface. A mounts change attaches the new mounts first, so a
-// refused writer fails the update before it applies, and detaches the dropped ones after. A
-// running pod is deleted and started again with the new mounts.
+// refused writer fails the update before it applies. It then converges on the stored mounts, so a
+// retry finishes what a failed call left: it detaches every filesystem they no longer hold, and
+// restarts a pod built with other mounts.
 func (s *Service) UpdateWorkspace(ctx context.Context, request *workspacemanagerservicepb.UpdateWorkspaceRequest) (*pb.Workspace, error) {
 	paths := request.GetUpdateMask().GetPaths()
 	if !slices.Contains(paths, "mounts") && !slices.Contains(paths, "*") {
 		return s.WorkspaceManagerServiceServer.UpdateWorkspace(ctx, request)
 	}
-	getWorkspaceRequest := &workspacemanagerservicepb.GetWorkspaceRequest{Name: request.GetWorkspace().GetName()}
-	existing, err := s.GetWorkspace(ctx, getWorkspaceRequest)
-	if err != nil {
-		return nil, err
-	}
-	mounts := request.GetWorkspace().GetMounts()
-	if err := s.attachMounts(ctx, existing.GetName(), mounts); err != nil {
+	if err := s.attachMounts(ctx, request.GetWorkspace().GetName(), request.GetWorkspace().GetMounts()); err != nil {
 		return nil, err
 	}
 	workspace, err := s.WorkspaceManagerServiceServer.UpdateWorkspace(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.detachMounts(ctx, workspace.GetName(), droppedMounts(existing.GetMounts(), workspace.GetMounts())); err != nil {
+	if err := s.detachUnmounted(ctx, workspace.GetName(), workspace.GetMounts()); err != nil {
 		return nil, err
-	}
-	if proto.Equal(&pb.Workspace{Mounts: existing.GetMounts()}, &pb.Workspace{Mounts: workspace.GetMounts()}) {
-		return workspace, nil
 	}
 	switch workspace.GetState() {
 	case pb.Workspace_STATE_STARTING, pb.Workspace_STATE_RUNNING:
 	default:
 		return workspace, nil
 	}
-	// STARTING before the pod goes: the reconciler restarts a RUNNING workspace without one.
+	workspacePod, err := s.pods.Get(ctx, pod.Name(workspace.GetName()))
+	if err != nil {
+		// A STARTING workspace creates its pod from the stored mounts; the reconciler restarts a
+		// RUNNING one without a pod.
+		if apierrors.IsNotFound(err) {
+			return workspace, nil
+		}
+		return nil, status.Errorf(codes.Internal, "getting pod: %v", err).Err()
+	}
+	if isTerminating(workspacePod) || pod.HasMounts(workspacePod, workspace.GetMounts()) {
+		return workspace, nil
+	}
+	return s.restartWorkspace(ctx, workspace.GetName())
+}
+
+// restartWorkspace replaces a workspace's pod with one built from its stored mounts. It goes
+// STARTING before the pod goes, so the reconciler never sees it RUNNING without one.
+func (s *Service) restartWorkspace(ctx context.Context, name string) (*pb.Workspace, error) {
+	restartable := []pb.Workspace_State{pb.Workspace_STATE_STARTING, pb.Workspace_STATE_RUNNING}
 	restarting := &pb.Workspace{State: pb.Workspace_STATE_STARTING}
-	if workspace, err = s.updateWorkspace(ctx, workspace.GetName(), nil, restarting, "state", "node", "start_time"); err != nil {
+	workspace, err := s.updateWorkspace(ctx, name, restartable, restarting, "state", "node", "start_time")
+	if err != nil {
 		return nil, err
 	}
-	if err := s.pods.Delete(ctx, pod.Name(workspace.GetName())); err != nil {
+	if err := s.pods.Delete(ctx, pod.Name(name)); err != nil {
 		return nil, status.Errorf(codes.Internal, "deleting pod: %v", err).Err()
 	}
-	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{Name: workspace.GetName()}
+	// Derived from the etag going STARTING changed: a retry starts the same operation.
+	startWorkspaceRequest := &workspacemanagerservicepb.StartWorkspaceRequest{
+		Name:      name,
+		RequestId: uuid.NewV5(workspaceNamespace, name+"/"+workspace.GetEtag()).String(),
+	}
 	if _, err := s.StartWorkspace(ctx, startWorkspaceRequest); err != nil {
 		return nil, status.FromError(err, "starting workspace again").Err()
 	}
 	return workspace, nil
 }
 
-// DeleteWorkspace implements the interface: its pod goes, then its attachments, then the
-// workspace, so a failed delete is retried with nothing left mounted.
+// DeleteWorkspace implements the interface: it goes STOPPING, then its pod goes, then its
+// attachments, then the workspace, so a failed delete is retried with nothing left mounted.
 func (s *Service) DeleteWorkspace(ctx context.Context, request *workspacemanagerservicepb.DeleteWorkspaceRequest) (*emptypb.Empty, error) {
 	getWorkspaceRequest := &workspacemanagerservicepb.GetWorkspaceRequest{Name: request.GetName()}
 	workspace, err := s.GetWorkspace(ctx, getWorkspaceRequest)
@@ -104,13 +121,22 @@ func (s *Service) DeleteWorkspace(ctx context.Context, request *workspacemanager
 	if request.GetEtag() != "" && request.GetEtag() != workspace.GetEtag() {
 		return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
 	}
+	// STOPPING first: the reconciler would start a RUNNING workspace whose pod is gone.
+	if workspace.GetState() == pb.Workspace_STATE_STARTING || workspace.GetState() == pb.Workspace_STATE_RUNNING {
+		stopping := &pb.Workspace{State: pb.Workspace_STATE_STOPPING}
+		if _, err := s.updateWorkspace(ctx, workspace.GetName(), nil, stopping, "state"); err != nil {
+			return nil, err
+		}
+	}
 	if err := s.pods.Delete(ctx, pod.Name(workspace.GetName())); err != nil {
 		return nil, status.Errorf(codes.Internal, "deleting pod: %v", err).Err()
 	}
-	if err := s.detachMounts(ctx, workspace.GetName(), workspace.GetMounts()); err != nil {
+	if err := s.detachUnmounted(ctx, workspace.GetName(), nil); err != nil {
 		return nil, err
 	}
-	return s.WorkspaceManagerServiceServer.DeleteWorkspace(ctx, request)
+	// The etag was checked above; going STOPPING changed it.
+	deleteWorkspaceRequest := &workspacemanagerservicepb.DeleteWorkspaceRequest{Name: request.GetName(), AllowMissing: request.GetAllowMissing()}
+	return s.WorkspaceManagerServiceServer.DeleteWorkspace(ctx, deleteWorkspaceRequest)
 }
 
 // attachMounts attaches each mount's filesystem to a workspace, in its mode.
@@ -124,30 +150,46 @@ func (s *Service) attachMounts(ctx context.Context, workspace string, mounts []*
 	return nil
 }
 
-// detachMounts detaches each mount's filesystem from a workspace; one already gone is not an error.
-func (s *Service) detachMounts(ctx context.Context, workspace string, mounts []*pb.Mount) error {
+// detachUnmounted detaches a workspace from every filesystem it is attached to that its mounts no
+// longer hold, found from the filesystems' attachments rather than from what it mounted before.
+// Workspaces mount only their user's filesystems; a filesystem already gone is not an error.
+func (s *Service) detachUnmounted(ctx context.Context, workspace string, mounts []*pb.Mount) error {
+	workspaceRn, err := pb.ParseWorkspaceRn(workspace)
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "parsing workspace: %v", err).Err()
+	}
+	mounted := map[string]bool{}
 	for _, mount := range mounts {
-		detachFilesystemRequest := &filesystemservicepb.DetachFilesystemRequest{Name: mount.GetFilesystem(), Workspace: workspace}
+		mounted[mount.GetFilesystem()] = true
+	}
+	// Listed in full first: each detach drops a filesystem from the filter's results.
+	var unmounted []string
+	listFilesystemsRequest := &filesystemservicepb.ListFilesystemsRequest{
+		Parent: workspaceRn.UserRn().String(),
+		Filter: fmt.Sprintf("attachments.workspace:%q", workspace),
+	}
+	for {
+		listFilesystemsResponse, err := s.filesystemServiceClient.ListFilesystems(ctx, listFilesystemsRequest)
+		if err != nil {
+			return status.FromError(err, "listing attached filesystems").Err()
+		}
+		for _, filesystem := range listFilesystemsResponse.GetFilesystems() {
+			if !mounted[filesystem.GetName()] {
+				unmounted = append(unmounted, filesystem.GetName())
+			}
+		}
+		if listFilesystemsResponse.GetNextPageToken() == "" {
+			break
+		}
+		listFilesystemsRequest.PageToken = listFilesystemsResponse.GetNextPageToken()
+	}
+	for _, filesystem := range unmounted {
+		detachFilesystemRequest := &filesystemservicepb.DetachFilesystemRequest{Name: filesystem, Workspace: workspace}
 		if _, err := s.filesystemServiceClient.DetachFilesystem(ctx, detachFilesystemRequest); err != nil && !status.HasCode(err, codes.NotFound) {
-			return status.FromError(err, "detaching filesystem %s", mount.GetFilesystem()).Err()
+			return status.FromError(err, "detaching filesystem %s", filesystem).Err()
 		}
 	}
 	return nil
-}
-
-// droppedMounts returns the mounts whose filesystem the new mounts no longer hold.
-func droppedMounts(oldMounts, newMounts []*pb.Mount) []*pb.Mount {
-	kept := map[string]bool{}
-	for _, newMount := range newMounts {
-		kept[newMount.GetFilesystem()] = true
-	}
-	var dropped []*pb.Mount
-	for _, oldMount := range oldMounts {
-		if !kept[oldMount.GetFilesystem()] {
-			dropped = append(dropped, oldMount)
-		}
-	}
-	return dropped
 }
 
 // updateWorkspace sets a workspace's columns to patch's values, retrying when a concurrent write

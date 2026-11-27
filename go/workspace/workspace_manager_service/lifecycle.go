@@ -18,6 +18,7 @@ import (
 	"github.com/malonaz/core/go/aip"
 	"github.com/malonaz/core/go/grpc/status"
 	"github.com/malonaz/core/go/scheduler"
+	"github.com/malonaz/core/go/scheduler/longrunning"
 	"github.com/malonaz/core/go/uuid"
 	"github.com/malonaz/core/go/workspace/pod"
 )
@@ -87,6 +88,27 @@ func (s *Service) RunStartWorkspace(ctx context.Context, request *workspacemanag
 	return s.updateWorkspace(ctx, workspace.GetName(), []pb.Workspace_State{pb.Workspace_STATE_STARTING}, running, "state", "node", "start_time", "last_active_time")
 }
 
+// StopWorkspace implements the interface: a stale etag is refused before the operation starts,
+// while the workspace still runs. Once STOPPING or STOPPED the stop is under way or done, so a
+// retried call reaches the same operation.
+func (s *Service) StopWorkspace(ctx context.Context, request *workspacemanagerservicepb.StopWorkspaceRequest) (*longrunningpb.Operation, error) {
+	if !longrunning.IsRun(ctx) && request.GetEtag() != "" {
+		getWorkspaceRequest := &workspacemanagerservicepb.GetWorkspaceRequest{Name: request.GetName()}
+		workspace, err := s.GetWorkspace(ctx, getWorkspaceRequest)
+		if err != nil {
+			return nil, err
+		}
+		switch workspace.GetState() {
+		case pb.Workspace_STATE_STOPPING, pb.Workspace_STATE_STOPPED:
+		default:
+			if request.GetEtag() != workspace.GetEtag() {
+				return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
+			}
+		}
+	}
+	return s.WorkspaceManagerServiceServer.StopWorkspace(ctx, request)
+}
+
 // RunStopWorkspace implements the interface: it snapshots the LOCAL read-write mounts, then
 // deletes the pod, keeping when the pod was last used.
 func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanagerservicepb.StopWorkspaceRequest) (*pb.Workspace, error) {
@@ -99,9 +121,7 @@ func (s *Service) RunStopWorkspace(ctx context.Context, request *workspacemanage
 	if err != nil {
 		return nil, err
 	}
-	if request.GetEtag() != "" && request.GetEtag() != workspace.GetEtag() {
-		return nil, status.Errorf(codes.Aborted, "ETag changed").Err()
-	}
+	// The etag was checked when the operation started: a retried job finishes the stop.
 	if workspace.GetState() == pb.Workspace_STATE_STOPPED {
 		return workspace, nil
 	}
