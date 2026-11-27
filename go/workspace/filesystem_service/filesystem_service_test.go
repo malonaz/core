@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -24,6 +25,7 @@ import (
 	grpcrequire "github.com/malonaz/core/go/grpc/require"
 	"github.com/malonaz/core/go/postgres"
 	testserver "github.com/malonaz/core/go/postgres/test_server"
+	"github.com/malonaz/core/go/scheduler"
 	"github.com/malonaz/core/go/uuid"
 )
 
@@ -246,7 +248,7 @@ func TestRunDeleteFilesystem(t *testing.T) {
 
 	detach(t, service, filesystem, workspace)
 	createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{Parent: filesystem, Snapshot: &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_IDLE}}
-	_, err = service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+	_, err = service.RunCreateSnapshot(jobContext(newJob()), createSnapshotRequest)
 	require.NoError(t, err)
 
 	_, err = service.RunDeleteFilesystem(context.Background(), deleteFilesystemRequest)
@@ -273,11 +275,11 @@ func TestRunCreateSnapshot(t *testing.T) {
 		require.NoError(t, err)
 
 		createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{
-			Parent:    filesystem,
-			Snapshot:  &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_TURN, Turn: "turn-1"},
-			RequestId: uuid.MustNewV7().String(),
+			Parent:   filesystem,
+			Snapshot: &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_TURN, Turn: "turn-1"},
 		}
-		snapshot, err := service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+		job := newJob()
+		snapshot, err := service.RunCreateSnapshot(jobContext(job), createSnapshotRequest)
 		require.NoError(t, err)
 		expected := &pb.Snapshot{
 			Name:       snapshot.GetName(),
@@ -291,7 +293,7 @@ func TestRunCreateSnapshot(t *testing.T) {
 		require.Equal(t, []string{"node-a"}, nodes.nodes)
 		requireProtosEqual(t, []*nodeservicepb.SnapshotFilesystemRequest{{
 			Snapshot:  &pb.Snapshot{Name: snapshot.GetName(), Trigger: pb.Snapshot_TRIGGER_TURN, Turn: "turn-1"},
-			RequestId: createSnapshotRequest.GetRequestId(),
+			RequestId: uuid.NewV5(snapshotNamespace, job).String(),
 		}}, nodes.snapshots)
 
 		getFilesystemRequest := &filesystemservicepb.GetFilesystemRequest{Name: filesystem}
@@ -299,8 +301,8 @@ func TestRunCreateSnapshot(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, snapshot.GetName(), stored.GetLatestSnapshot())
 
-		// A retry returns the first attempt's snapshot.
-		retried, err := service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+		// A retry of the job returns its first attempt's snapshot.
+		retried, err := service.RunCreateSnapshot(jobContext(job), createSnapshotRequest)
 		require.NoError(t, err)
 		grpcrequire.Equal(t, snapshot, retried)
 	})
@@ -313,7 +315,7 @@ func TestRunCreateSnapshot(t *testing.T) {
 		require.NoError(t, err)
 
 		createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{Parent: filesystem, Snapshot: &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_IDLE}}
-		snapshot, err := service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+		snapshot, err := service.RunCreateSnapshot(jobContext(newJob()), createSnapshotRequest)
 		require.NoError(t, err)
 		grpcrequire.Equal(t, &pb.Snapshot{Name: snapshot.GetName(), CreateTime: snapshot.GetCreateTime(), Trigger: pb.Snapshot_TRIGGER_IDLE}, snapshot)
 		require.Empty(t, nodes.nodes)
@@ -323,7 +325,25 @@ func TestRunCreateSnapshot(t *testing.T) {
 		service, _, user := newTestService(t)
 		filesystem := createFilesystem(t, service, user, "shared", pb.Filesystem_KIND_SHARED).GetName()
 		createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{Parent: filesystem, Snapshot: &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_IDLE}}
-		_, err := service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+		_, err := service.RunCreateSnapshot(jobContext(newJob()), createSnapshotRequest)
 		grpcrequire.Error(t, codes.FailedPrecondition, err)
 	})
+}
+
+func TestRunCreateSnapshotOutsideJob(t *testing.T) {
+	service, _, user := newTestService(t)
+	filesystem := createFilesystem(t, service, user, "repo", pb.Filesystem_KIND_LOCAL).GetName()
+	createSnapshotRequest := &filesystemservicepb.CreateSnapshotRequest{Parent: filesystem, Snapshot: &pb.Snapshot{Trigger: pb.Snapshot_TRIGGER_IDLE}}
+	_, err := service.RunCreateSnapshot(context.Background(), createSnapshotRequest)
+	grpcrequire.Error(t, codes.FailedPrecondition, err)
+}
+
+// newJob names a job of its own.
+func newJob() string {
+	return "jobs/" + uuid.MustNewV7().String()
+}
+
+// jobContext is the context the scheduler runs a job in.
+func jobContext(job string) context.Context {
+	return metadata.NewIncomingContext(context.Background(), metadata.Pairs(scheduler.JobMetadataKey, job))
 }

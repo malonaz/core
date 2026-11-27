@@ -18,13 +18,18 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-// jobRequestIDNamespace derives a request id from the job running an operation started without one.
-var jobRequestIDNamespace = uuid.MustParse("0b6f5f4e-3d0a-4a5c-9f63-7c1e2d8a4b90")
+// snapshotNamespace derives a snapshot's request id from the job creating it: a retried job reaches
+// the agent and the store with the same one.
+var snapshotNamespace = uuid.MustParse("0b6f5f4e-3d0a-4a5c-9f63-7c1e2d8a4b90")
 
 // RunCreateSnapshot implements the interface. The agent on the node of the workspace writing the
 // filesystem uploads what changed; with no running writer nothing can have changed since the
 // last snapshot, so an empty one is recorded without the agent.
 func (s *Service) RunCreateSnapshot(ctx context.Context, request *filesystemservicepb.CreateSnapshotRequest) (*pb.Snapshot, error) {
+	job, ok := scheduler.JobFromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.FailedPrecondition, "CreateSnapshot runs only as a scheduler job").Err()
+	}
 	filesystemRn, err := pb.ParseFilesystemRn(request.GetParent())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing parent: %v", err).Err()
@@ -38,7 +43,7 @@ func (s *Service) RunCreateSnapshot(ctx context.Context, request *filesystemserv
 		return nil, status.Errorf(codes.FailedPrecondition, "only a LOCAL filesystem has snapshots").Err()
 	}
 
-	requestID := snapshotRequestID(ctx, request)
+	requestID := uuid.NewV5(snapshotNamespace, job).String()
 	snapshot := proto.CloneOf(request.GetSnapshot())
 	snapshot.Name = filesystemRn.SnapshotRn(aip.NewSystemGeneratedBase32ResourceID()).String()
 	node, err := s.writerNode(ctx, filesystem)
@@ -84,18 +89,6 @@ func (s *Service) RunCreateSnapshot(ctx context.Context, request *filesystemserv
 		return nil, err
 	}
 	return snapshot, nil
-}
-
-// snapshotRequestID returns the request's id, or one the job running it derives: every attempt
-// of the operation must reach the agent and the store with the same.
-func snapshotRequestID(ctx context.Context, request *filesystemservicepb.CreateSnapshotRequest) string {
-	if request.GetRequestId() != "" {
-		return request.GetRequestId()
-	}
-	if jobName, ok := scheduler.JobFromIncomingContext(ctx); ok {
-		return uuid.NewV5(jobRequestIDNamespace, jobName).String()
-	}
-	return uuid.MustNewV7().String()
 }
 
 // writerNode returns the node of the running workspace writing a filesystem, or empty if none is.
