@@ -26,7 +26,10 @@ func testConfig() *Config {
 		Namespace:  testNamespace,
 		Image:      "workspace-server:1",
 		DisableTLS: true,
-		Env:        []corev1.EnvVar{{Name: "WORKSPACE_SERVICE_AUTHENTICATION", Value: "none"}},
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("500m")},
+		},
+		Env: []corev1.EnvVar{{Name: "WORKSPACE_SERVICE_AUTHENTICATION", Value: "none"}},
 	}
 }
 
@@ -82,8 +85,7 @@ func TestSpec(t *testing.T) {
 					},
 					Ports: []corev1.ContainerPort{{Name: "grpc", ContainerPort: 9090}},
 					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("250m"), corev1.ResourceMemory: resource.MustParse("512Mi")},
-						Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2"), corev1.ResourceMemory: resource.MustParse("2Gi")},
+						Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("500m")},
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{Name: "tmp", MountPath: "/tmp"},

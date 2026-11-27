@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/longrunning/autogen/longrunningpb"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -30,6 +31,10 @@ type Opts struct {
 	Namespace      string        `long:"namespace" env:"NAMESPACE" required:"true" description:"The namespace workspace pods run in"`
 	Image          string        `long:"image" env:"IMAGE" required:"true" description:"The workspace-server image every pod runs"`
 	DisableTLS     bool          `long:"disable-tls" env:"DISABLE_TLS" description:"Serve and dial the workspace-server in plaintext"`
+	CPURequest     string        `long:"cpu-request" env:"CPU_REQUEST" default:"250m" description:"CPU each workspace requests"`
+	CPULimit       string        `long:"cpu-limit" env:"CPU_LIMIT" default:"2" description:"CPU each workspace may use"`
+	MemoryRequest  string        `long:"memory-request" env:"MEMORY_REQUEST" default:"512Mi" description:"Memory each workspace requests"`
+	MemoryLimit    string        `long:"memory-limit" env:"MEMORY_LIMIT" default:"2Gi" description:"Memory each workspace may use"`
 	Env            []string      `long:"env" env:"ENV" env-delim:"," description:"KEY=VALUE env vars for every workspace-server: its TLS and authentication flags"`
 	IdleTimeout    time.Duration `long:"idle-timeout" env:"IDLE_TIMEOUT" default:"30m" description:"How long a running workspace may go unused before the reaper stops it"`
 	MaxRunDuration time.Duration `long:"max-run-duration" env:"MAX_RUN_DURATION" default:"12h" description:"How long a pod may run, used or not, before the reaper stops it"`
@@ -55,6 +60,23 @@ func newRuntime(opts *Opts) (*runtime, error) {
 	if opts.IdleTimeout <= 0 || opts.MaxRunDuration <= 0 {
 		return nil, fmt.Errorf("idle-timeout and max-run-duration must be positive")
 	}
+	resources := corev1.ResourceRequirements{Requests: corev1.ResourceList{}, Limits: corev1.ResourceList{}}
+	for _, quantity := range []struct {
+		list  corev1.ResourceList
+		name  corev1.ResourceName
+		value string
+	}{
+		{resources.Requests, corev1.ResourceCPU, opts.CPURequest},
+		{resources.Limits, corev1.ResourceCPU, opts.CPULimit},
+		{resources.Requests, corev1.ResourceMemory, opts.MemoryRequest},
+		{resources.Limits, corev1.ResourceMemory, opts.MemoryLimit},
+	} {
+		parsed, err := resource.ParseQuantity(quantity.value)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %s %q: %w", quantity.name, quantity.value, err)
+		}
+		quantity.list[quantity.name] = parsed
+	}
 	var env []corev1.EnvVar
 	for _, keyValue := range opts.Env {
 		key, value, ok := strings.Cut(keyValue, "=")
@@ -67,6 +89,7 @@ func newRuntime(opts *Opts) (*runtime, error) {
 		Namespace:  opts.Namespace,
 		Image:      opts.Image,
 		DisableTLS: opts.DisableTLS,
+		Resources:  resources,
 		Env:        env,
 	}
 	return &runtime{podConfig: podConfig}, nil

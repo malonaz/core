@@ -182,6 +182,10 @@ func newTestEnvironment(t *testing.T) *testEnvironment {
 	opts := &Opts{
 		Namespace:      testNamespace,
 		Image:          "workspace-server:1",
+		CPURequest:     "250m",
+		CPULimit:       "2",
+		MemoryRequest:  "512Mi",
+		MemoryLimit:    "2Gi",
 		IdleTimeout:    30 * time.Minute,
 		MaxRunDuration: 12 * time.Hour,
 	}

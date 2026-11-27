@@ -42,15 +42,8 @@ const (
 	csiDriver = "workspaces.onikisu"
 )
 
-var (
-	// resources of the workspace-server container, which runs the commands.
-	resources = corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("250m"), corev1.ResourceMemory: resource.MustParse("512Mi")},
-		Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2"), corev1.ResourceMemory: resource.MustParse("2Gi")},
-	}
-	// tmpSizeLimit bounds `/tmp`, on the node's disk.
-	tmpSizeLimit = resource.MustParse("4Gi")
-)
+// tmpSizeLimit bounds `/tmp`, on the node's disk.
+var tmpSizeLimit = resource.MustParse("4Gi")
 
 // Config is how every workspace pod runs, the same for all workspaces.
 type Config struct {
@@ -60,6 +53,8 @@ type Config struct {
 	Image string
 	// DisableTLS serves and dials the workspace-server in plaintext.
 	DisableTLS bool
+	// Resources of the workspace-server container, which runs the commands.
+	Resources corev1.ResourceRequirements
 	// Env is passed to the workspace-server: TLS and authentication flags.
 	Env []corev1.EnvVar
 }
@@ -116,7 +111,7 @@ func Spec(config *Config, workspace *pb.Workspace, filesystemNameToKind map[stri
 		Name:         containerName,
 		Image:        config.Image,
 		Env:          append(env, config.Env...),
-		Resources:    *resources.DeepCopy(),
+		Resources:    *config.Resources.DeepCopy(),
 		Ports:        []corev1.ContainerPort{{Name: portName, ContainerPort: port}},
 		VolumeMounts: volumeMounts,
 		ReadinessProbe: &corev1.Probe{

@@ -52,6 +52,7 @@ go_library(
         "//third_party/go:google.golang.org__protobuf__types__known__timestamppb",
         "//third_party/go:k8s.io__api__core__v1",
         "//third_party/go:k8s.io__apimachinery__pkg__api__errors",
+        "//third_party/go:k8s.io__apimachinery__pkg__api__resource",
         "//third_party/go:k8s.io__client-go__kubernetes",
         "//third_party/go:k8s.io__client-go__rest",
         "//third_party/proto:google__longrunning__operations",
