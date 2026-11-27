@@ -28,9 +28,10 @@ func (m *Migrator) WithLogger(logger *slog.Logger) *Migrator {
 	return m
 }
 
-// InitializeDatabase initializes a database.
-func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, password, superUser string) error {
-	m.log = m.log.WithGroup("initializer").With("database", database, "user", user, "super_user", superUser)
+// InitializeDatabase initializes a database. An iam user is created without a password and granted
+// rds_iam, which turns off its password login on RDS.
+func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, password, superUser string, iam bool) error {
+	m.log = m.log.WithGroup("initializer").With("database", database, "user", user, "super_user", superUser, "iam", iam)
 	m.log.InfoContext(ctx, "starting")
 
 	// Check if user exists.
@@ -42,8 +43,20 @@ func (m *Migrator) InitializeDatabase(ctx context.Context, database, user, passw
 	// Create user if it doesn't exist.
 	if userExists == 0 {
 		m.log.InfoContext(ctx, "creating user")
-		if _, err := m.client.Exec(ctx, fmt.Sprintf(`CREATE USER "%s" WITH PASSWORD '%s'`, user, password)); err != nil {
+		query := fmt.Sprintf(`CREATE USER "%s" WITH PASSWORD '%s'`, user, password)
+		if iam {
+			query = fmt.Sprintf(`CREATE USER "%s"`, user)
+		}
+		if _, err := m.client.Exec(ctx, query); err != nil {
 			return fmt.Errorf("creating user: %w", err)
+		}
+	}
+
+	// Granted on every run, so switching an existing user to iam needs no manual step.
+	if iam {
+		m.log.InfoContext(ctx, "granting rds_iam to user")
+		if _, err := m.client.Exec(ctx, fmt.Sprintf(`GRANT rds_iam TO "%s"`, user)); err != nil {
+			return fmt.Errorf("granting rds_iam to user: %w", err)
 		}
 	}
 

@@ -10,6 +10,8 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__config",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__feature__rds__auth",
         "//third_party/go:github.com__jackc__pgerrcode",
         "//third_party/go:github.com__jackc__pgx__v5",
         "//third_party/go:github.com__jackc__pgx__v5__pgconn",
@@ -22,6 +24,7 @@ go_library(
 go_test(
     name = "postgres_test",
     srcs = [
+        "client_test.go",
         "date_test.go",
         "insert_test.go",
         "select_test.go",
