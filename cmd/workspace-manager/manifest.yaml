@@ -1,0 +1,8 @@
+name: workspace-manager
+servers:
+  - name: workspace-manager-service
+    grpc:
+      services:
+        - service: workspace-manager-service
+          proto: //malonaz/workspace/workspace_manager_service/v1
+          manifest: //go/workspace/workspace_manager_service:manifest

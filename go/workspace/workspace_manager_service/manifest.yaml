@@ -1,0 +1,18 @@
+name: workspace-manager-service
+target: //go/workspace/workspace_manager_service
+codegens:
+  - rpc:
+      name: workspace-manager-service
+      store: workspace
+      target: //gengo/workspace/workspace_manager_service/rpc
+      longrunning: true
+dependencies:
+  - postgres_db_client:
+      name: workspace
+      target: //gengo/workspace/store
+  - grpc_client:
+      service: scheduler-service
+      proto: //malonaz/scheduler/scheduler_service/v1
+  - grpc_client:
+      service: filesystem-service
+      proto: //malonaz/workspace/filesystem_service/v1

@@ -160,3 +160,42 @@ func TestTouch(t *testing.T) {
 		AnnotationLastActive: "2026-11-27T10:01:00Z",
 	}, stored.Annotations)
 }
+
+func TestWaitDeleted(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	pods, pod := newTestPods(t)
+	require.NoError(t, pods.WaitDeleted(ctx, pod.Name))
+
+	_, err := pods.GetOrCreate(ctx, pod)
+	require.NoError(t, err)
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		if err := pods.Delete(ctx, pod.Name); err != nil {
+			t.Errorf("deleting pod: %v", err)
+		}
+	}()
+	require.NoError(t, pods.WaitDeleted(ctx, pod.Name))
+
+	_, err = pods.GetOrCreate(ctx, pod)
+	require.NoError(t, err)
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 50*time.Millisecond)
+	defer timeoutCancel()
+	require.ErrorIs(t, pods.WaitDeleted(timeoutCtx, pod.Name), context.DeadlineExceeded)
+}
+
+func TestList(t *testing.T) {
+	ctx := context.Background()
+	pods, pod := newTestPods(t)
+	other := pod.DeepCopy()
+	other.Name = "not-a-workspace"
+	other.Labels = nil
+	for _, created := range []*corev1.Pod{pod, other} {
+		_, err := pods.GetOrCreate(ctx, created)
+		require.NoError(t, err)
+	}
+	listed, err := pods.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, listed, 1)
+	require.Equal(t, pod.Name, listed[0].Name)
+}
