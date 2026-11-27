@@ -1,6 +1,8 @@
 go_library(
     name = "v1",
     srcs = [
+        "secret_service.pb.go",
+        "secret_service_grpc.pb.go",
         "workspace_service.pb.go",
         "workspace_service_grpc.pb.go",
     ],

@@ -28,9 +28,10 @@ from google.api import resource_pb2 as google_dot_api_dot_resource__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2
 from malonaz.codegen.aip.v1 import aip_pb2 as malonaz_dot_codegen_dot_aip_dot_v1_dot_aip__pb2
 from malonaz.workspace.v1 import workspace_pb2 as malonaz_dot_workspace_dot_v1_dot_workspace__pb2
+from malonaz.workspace.workspace_service.v1 import secret_service_pb2 as malonaz_dot_workspace_dot_workspace__service_dot_v1_dot_secret__service__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n>malonaz/workspace/workspace_manager_service/v1/workspace.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/workspace/v1/workspace.proto\"\x91\x01\n\x06Secret\x12\x38\n\x02id\x18\x01 \x01(\tB,\xbaH)r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$\xc8\x01\x01\x12\x30\n\x07\x65nv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x01\x32\x15^([A-Z_][A-Z0-9_]*)?$\x12\x1b\n\x05value\x18\x03 \x01(\x0c\x42\x0c\x80\x01\x01\xbaH\x06z\x04\x18\x80\x80\x04\"\xec\x01\n\x16\x43reateWorkspaceRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12:\n\tworkspace\x18\x02 \x01(\x0b\x32\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xc8\x01\x01\x12;\n\x0cworkspace_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"R\n\x13GetWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\"\xf6\x01\n\x15ListWorkspacesRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1c\n\tpage_size\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:O\x82\xf3-\x02\x08\x64\x8a\xf3->\n\x0b\x63reate_time\n\x0bupdate_time\n\x10last_active_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"f\n\x16ListWorkspacesResponse\x12\x33\n\nworkspaces\x18\x01 \x03(\x0b\x32\x1f.malonaz.workspace.v1.Workspace\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xf8\x01\n\x16UpdateWorkspaceRequest\x12:\n\tworkspace\x18\x01 \x01(\x0b\x32\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:i\xbaHQ\x1aO\n\x17workspace.name_required\x12\x1aworkspace.name must be set\x1a\x18has(this.workspace.name)\xea\x9c\xc1\x03\x10\n\x06labels\n\x06mounts\"z\n\x16\x44\x65leteWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"u\n\x15StartWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x02 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\x82\x01\n\x14StopWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\xaf\x01\n\x1aSetWorkspaceSecretsRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12T\n\x07secrets\x18\x02 \x03(\x0b\x32\x36.malonaz.workspace.workspace_manager_service.v1.SecretB\x0b\xe0\x41\x04\xbaH\x05\x92\x01\x02\x10@\".\n\x1bSetWorkspaceSecretsResponse\x12\x0f\n\x07\x61pplied\x18\x01 \x01(\x08\"\x90\x01\n\x18SnapshotWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x16\n\x04turn\x18\x02 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x02\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"S\n\x19SnapshotWorkspaceResponse\x12\x36\n\tsnapshots\x18\x01 \x03(\tB#\xfa\x41 \n\x1eworkspace.malonaz.com/SnapshotBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n>malonaz/workspace/workspace_manager_service/v1/workspace.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1b\x62uf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/workspace/v1/workspace.proto\x1a;malonaz/workspace/workspace_service/v1/secret_service.proto\"\xec\x01\n\x16\x43reateWorkspaceRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12:\n\tworkspace\x18\x02 \x01(\x0b\x32\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xc8\x01\x01\x12;\n\x0cworkspace_id\x18\x03 \x01(\tB%\xbaH\"r\x1d\x10\x01\x18?2\x17^[a-z0-9](-?[a-z0-9])*$\xd8\x01\x01\x12\x1f\n\nrequest_id\x18\x04 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"R\n\x13GetWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\"\xf6\x01\n\x15ListWorkspacesRequest\x12\x38\n\x06parent\x18\x01 \x01(\tB(\xe0\x41\x02\xfa\x41\x1c\n\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01\x12\x0e\n\x06\x66ilter\x18\x02 \x01(\t\x12\x10\n\x08order_by\x18\x03 \x01(\t\x12\x1c\n\tpage_size\x18\x04 \x01(\x05\x42\t\xbaH\x06\x1a\x04\x18\x64(\x00\x12\x12\n\npage_token\x18\x05 \x01(\t:O\x82\xf3-\x02\x08\x64\x8a\xf3->\n\x0b\x63reate_time\n\x0bupdate_time\n\x10last_active_time\x12\x10\x63reate_time desc\x92\xf3-\x03\n\x01*\"f\n\x16ListWorkspacesResponse\x12\x33\n\nworkspaces\x18\x01 \x03(\x0b\x32\x1f.malonaz.workspace.v1.Workspace\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xf8\x01\n\x16UpdateWorkspaceRequest\x12:\n\tworkspace\x18\x01 \x01(\x0b\x32\x1f.malonaz.workspace.v1.WorkspaceB\x06\xbaH\x03\xd8\x01\x03\x12\x37\n\x0bupdate_mask\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01:i\xbaHQ\x1aO\n\x17workspace.name_required\x12\x1aworkspace.name must be set\x1a\x18has(this.workspace.name)\xea\x9c\xc1\x03\x10\n\x06labels\n\x06mounts\"z\n\x16\x44\x65leteWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x15\n\rallow_missing\x18\x02 \x01(\x08\x12\x0c\n\x04\x65tag\x18\x03 \x01(\t\"u\n\x15StartWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x1f\n\nrequest_id\x18\x02 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\x82\x01\n\x14StopWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x0c\n\x04\x65tag\x18\x02 \x01(\t\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"\xa7\x01\n\x1aSetWorkspaceSecretsRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12L\n\x07secrets\x18\x02 \x03(\x0b\x32..malonaz.workspace.workspace_service.v1.SecretB\x0b\xe0\x41\x04\xbaH\x05\x92\x01\x02\x10@\".\n\x1bSetWorkspaceSecretsResponse\x12\x0f\n\x07\x61pplied\x18\x01 \x01(\x08\"\x90\x01\n\x18SnapshotWorkspaceRequest\x12;\n\x04name\x18\x01 \x01(\tB-\xe0\x41\x02\xfa\x41!\n\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01\x12\x16\n\x04turn\x18\x02 \x01(\tB\x08\xbaH\x05r\x03\x18\x80\x02\x12\x1f\n\nrequest_id\x18\x03 \x01(\tB\x0b\xbaH\x08r\x03\xb0\x01\x01\xd8\x01\x01\"S\n\x19SnapshotWorkspaceResponse\x12\x36\n\tsnapshots\x18\x01 \x03(\tB#\xfa\x41 \n\x1eworkspace.malonaz.com/SnapshotBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -38,12 +39,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'malonaz.workspace.workspace
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'ZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1'
-  _globals['_SECRET'].fields_by_name['id']._loaded_options = None
-  _globals['_SECRET'].fields_by_name['id']._serialized_options = b'\272H)r$\030?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$\310\001\001'
-  _globals['_SECRET'].fields_by_name['env_var']._loaded_options = None
-  _globals['_SECRET'].fields_by_name['env_var']._serialized_options = b'\272H\034r\032\030\200\0012\025^([A-Z_][A-Z0-9_]*)?$'
-  _globals['_SECRET'].fields_by_name['value']._loaded_options = None
-  _globals['_SECRET'].fields_by_name['value']._serialized_options = b'\200\001\001\272H\006z\004\030\200\200\004'
   _globals['_CREATEWORKSPACEREQUEST'].fields_by_name['parent']._loaded_options = None
   _globals['_CREATEWORKSPACEREQUEST'].fields_by_name['parent']._serialized_options = b'\340A\002\372A\034\n\032workspace.malonaz.com/User\272H\003\310\001\001'
   _globals['_CREATEWORKSPACEREQUEST'].fields_by_name['workspace']._loaded_options = None
@@ -88,30 +83,28 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SNAPSHOTWORKSPACEREQUEST'].fields_by_name['request_id']._serialized_options = b'\272H\010r\003\260\001\001\330\001\001'
   _globals['_SNAPSHOTWORKSPACERESPONSE'].fields_by_name['snapshots']._loaded_options = None
   _globals['_SNAPSHOTWORKSPACERESPONSE'].fields_by_name['snapshots']._serialized_options = b'\372A \n\036workspace.malonaz.com/Snapshot'
-  _globals['_SECRET']._serialized_start=310
-  _globals['_SECRET']._serialized_end=455
-  _globals['_CREATEWORKSPACEREQUEST']._serialized_start=458
-  _globals['_CREATEWORKSPACEREQUEST']._serialized_end=694
-  _globals['_GETWORKSPACEREQUEST']._serialized_start=696
-  _globals['_GETWORKSPACEREQUEST']._serialized_end=778
-  _globals['_LISTWORKSPACESREQUEST']._serialized_start=781
-  _globals['_LISTWORKSPACESREQUEST']._serialized_end=1027
-  _globals['_LISTWORKSPACESRESPONSE']._serialized_start=1029
-  _globals['_LISTWORKSPACESRESPONSE']._serialized_end=1131
-  _globals['_UPDATEWORKSPACEREQUEST']._serialized_start=1134
-  _globals['_UPDATEWORKSPACEREQUEST']._serialized_end=1382
-  _globals['_DELETEWORKSPACEREQUEST']._serialized_start=1384
-  _globals['_DELETEWORKSPACEREQUEST']._serialized_end=1506
-  _globals['_STARTWORKSPACEREQUEST']._serialized_start=1508
-  _globals['_STARTWORKSPACEREQUEST']._serialized_end=1625
-  _globals['_STOPWORKSPACEREQUEST']._serialized_start=1628
-  _globals['_STOPWORKSPACEREQUEST']._serialized_end=1758
-  _globals['_SETWORKSPACESECRETSREQUEST']._serialized_start=1761
-  _globals['_SETWORKSPACESECRETSREQUEST']._serialized_end=1936
-  _globals['_SETWORKSPACESECRETSRESPONSE']._serialized_start=1938
-  _globals['_SETWORKSPACESECRETSRESPONSE']._serialized_end=1984
-  _globals['_SNAPSHOTWORKSPACEREQUEST']._serialized_start=1987
-  _globals['_SNAPSHOTWORKSPACEREQUEST']._serialized_end=2131
-  _globals['_SNAPSHOTWORKSPACERESPONSE']._serialized_start=2133
-  _globals['_SNAPSHOTWORKSPACERESPONSE']._serialized_end=2216
+  _globals['_CREATEWORKSPACEREQUEST']._serialized_start=371
+  _globals['_CREATEWORKSPACEREQUEST']._serialized_end=607
+  _globals['_GETWORKSPACEREQUEST']._serialized_start=609
+  _globals['_GETWORKSPACEREQUEST']._serialized_end=691
+  _globals['_LISTWORKSPACESREQUEST']._serialized_start=694
+  _globals['_LISTWORKSPACESREQUEST']._serialized_end=940
+  _globals['_LISTWORKSPACESRESPONSE']._serialized_start=942
+  _globals['_LISTWORKSPACESRESPONSE']._serialized_end=1044
+  _globals['_UPDATEWORKSPACEREQUEST']._serialized_start=1047
+  _globals['_UPDATEWORKSPACEREQUEST']._serialized_end=1295
+  _globals['_DELETEWORKSPACEREQUEST']._serialized_start=1297
+  _globals['_DELETEWORKSPACEREQUEST']._serialized_end=1419
+  _globals['_STARTWORKSPACEREQUEST']._serialized_start=1421
+  _globals['_STARTWORKSPACEREQUEST']._serialized_end=1538
+  _globals['_STOPWORKSPACEREQUEST']._serialized_start=1541
+  _globals['_STOPWORKSPACEREQUEST']._serialized_end=1671
+  _globals['_SETWORKSPACESECRETSREQUEST']._serialized_start=1674
+  _globals['_SETWORKSPACESECRETSREQUEST']._serialized_end=1841
+  _globals['_SETWORKSPACESECRETSRESPONSE']._serialized_start=1843
+  _globals['_SETWORKSPACESECRETSRESPONSE']._serialized_end=1889
+  _globals['_SNAPSHOTWORKSPACEREQUEST']._serialized_start=1892
+  _globals['_SNAPSHOTWORKSPACEREQUEST']._serialized_end=2036
+  _globals['_SNAPSHOTWORKSPACERESPONSE']._serialized_start=2038
+  _globals['_SNAPSHOTWORKSPACERESPONSE']._serialized_end=2121
 # @@protoc_insertion_point(module_scope)

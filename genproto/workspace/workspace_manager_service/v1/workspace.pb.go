@@ -12,6 +12,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/malonaz/core/genproto/codegen/aip/v1"
 	v1 "github.com/malonaz/core/genproto/workspace/v1"
+	v11 "github.com/malonaz/core/genproto/workspace/workspace_service/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -26,101 +27,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-// A Secret is a value a workspace's shells can read, never stored.
-type Secret struct {
-	state protoimpl.MessageState `protogen:"hybrid.v1"`
-	// The secret's file name under `/run/workspace/secrets`.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The env var holding the secret in every shell. Empty for a file only.
-	EnvVar string `protobuf:"bytes,2,opt,name=env_var,json=envVar,proto3" json:"env_var,omitempty"`
-	// The secret's value.
-	Value         []byte `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Secret) Reset() {
-	*x = Secret{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Secret) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Secret) ProtoMessage() {}
-
-func (x *Secret) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Secret) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *Secret) GetEnvVar() string {
-	if x != nil {
-		return x.EnvVar
-	}
-	return ""
-}
-
-func (x *Secret) GetValue() []byte {
-	if x != nil {
-		return x.Value
-	}
-	return nil
-}
-
-func (x *Secret) SetId(v string) {
-	x.Id = v
-}
-
-func (x *Secret) SetEnvVar(v string) {
-	x.EnvVar = v
-}
-
-func (x *Secret) SetValue(v []byte) {
-	if v == nil {
-		v = []byte{}
-	}
-	x.Value = v
-}
-
-type Secret_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The secret's file name under `/run/workspace/secrets`.
-	Id string
-	// The env var holding the secret in every shell. Empty for a file only.
-	EnvVar string
-	// The secret's value.
-	Value []byte
-}
-
-func (b0 Secret_builder) Build() *Secret {
-	m0 := &Secret{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.Id = b.Id
-	x.EnvVar = b.EnvVar
-	x.Value = b.Value
-	return m0
-}
 
 // Request message for WorkspaceManagerService.CreateWorkspace.
 type CreateWorkspaceRequest struct {
@@ -145,7 +51,7 @@ type CreateWorkspaceRequest struct {
 
 func (x *CreateWorkspaceRequest) Reset() {
 	*x = CreateWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[1]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +63,7 @@ func (x *CreateWorkspaceRequest) String() string {
 func (*CreateWorkspaceRequest) ProtoMessage() {}
 
 func (x *CreateWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[1]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -265,7 +171,7 @@ type GetWorkspaceRequest struct {
 
 func (x *GetWorkspaceRequest) Reset() {
 	*x = GetWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[2]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -277,7 +183,7 @@ func (x *GetWorkspaceRequest) String() string {
 func (*GetWorkspaceRequest) ProtoMessage() {}
 
 func (x *GetWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[2]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -336,7 +242,7 @@ type ListWorkspacesRequest struct {
 
 func (x *ListWorkspacesRequest) Reset() {
 	*x = ListWorkspacesRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[3]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +254,7 @@ func (x *ListWorkspacesRequest) String() string {
 func (*ListWorkspacesRequest) ProtoMessage() {}
 
 func (x *ListWorkspacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[3]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +362,7 @@ type ListWorkspacesResponse struct {
 
 func (x *ListWorkspacesResponse) Reset() {
 	*x = ListWorkspacesResponse{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[4]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +374,7 @@ func (x *ListWorkspacesResponse) String() string {
 func (*ListWorkspacesResponse) ProtoMessage() {}
 
 func (x *ListWorkspacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[4]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -532,7 +438,7 @@ type UpdateWorkspaceRequest struct {
 
 func (x *UpdateWorkspaceRequest) Reset() {
 	*x = UpdateWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[5]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +450,7 @@ func (x *UpdateWorkspaceRequest) String() string {
 func (*UpdateWorkspaceRequest) ProtoMessage() {}
 
 func (x *UpdateWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[5]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +539,7 @@ type DeleteWorkspaceRequest struct {
 
 func (x *DeleteWorkspaceRequest) Reset() {
 	*x = DeleteWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[6]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -645,7 +551,7 @@ func (x *DeleteWorkspaceRequest) String() string {
 func (*DeleteWorkspaceRequest) ProtoMessage() {}
 
 func (x *DeleteWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[6]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +632,7 @@ type StartWorkspaceRequest struct {
 
 func (x *StartWorkspaceRequest) Reset() {
 	*x = StartWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[7]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -738,7 +644,7 @@ func (x *StartWorkspaceRequest) String() string {
 func (*StartWorkspaceRequest) ProtoMessage() {}
 
 func (x *StartWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[7]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -808,7 +714,7 @@ type StopWorkspaceRequest struct {
 
 func (x *StopWorkspaceRequest) Reset() {
 	*x = StopWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[8]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +726,7 @@ func (x *StopWorkspaceRequest) String() string {
 func (*StopWorkspaceRequest) ProtoMessage() {}
 
 func (x *StopWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[8]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,14 +800,14 @@ type SetWorkspaceSecretsRequest struct {
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// The secrets, replacing every one the pod holds.
-	Secrets       []*Secret `protobuf:"bytes,2,rep,name=secrets,proto3" json:"secrets,omitempty"`
+	Secrets       []*v11.Secret `protobuf:"bytes,2,rep,name=secrets,proto3" json:"secrets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetWorkspaceSecretsRequest) Reset() {
 	*x = SetWorkspaceSecretsRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[9]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +819,7 @@ func (x *SetWorkspaceSecretsRequest) String() string {
 func (*SetWorkspaceSecretsRequest) ProtoMessage() {}
 
 func (x *SetWorkspaceSecretsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[9]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +837,7 @@ func (x *SetWorkspaceSecretsRequest) GetName() string {
 	return ""
 }
 
-func (x *SetWorkspaceSecretsRequest) GetSecrets() []*Secret {
+func (x *SetWorkspaceSecretsRequest) GetSecrets() []*v11.Secret {
 	if x != nil {
 		return x.Secrets
 	}
@@ -942,7 +848,7 @@ func (x *SetWorkspaceSecretsRequest) SetName(v string) {
 	x.Name = v
 }
 
-func (x *SetWorkspaceSecretsRequest) SetSecrets(v []*Secret) {
+func (x *SetWorkspaceSecretsRequest) SetSecrets(v []*v11.Secret) {
 	x.Secrets = v
 }
 
@@ -953,7 +859,7 @@ type SetWorkspaceSecretsRequest_builder struct {
 	// Format: organizations/{organization}/users/{user}/workspaces/{workspace}
 	Name string
 	// The secrets, replacing every one the pod holds.
-	Secrets []*Secret
+	Secrets []*v11.Secret
 }
 
 func (b0 SetWorkspaceSecretsRequest_builder) Build() *SetWorkspaceSecretsRequest {
@@ -976,7 +882,7 @@ type SetWorkspaceSecretsResponse struct {
 
 func (x *SetWorkspaceSecretsResponse) Reset() {
 	*x = SetWorkspaceSecretsResponse{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[10]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -988,7 +894,7 @@ func (x *SetWorkspaceSecretsResponse) String() string {
 func (*SetWorkspaceSecretsResponse) ProtoMessage() {}
 
 func (x *SetWorkspaceSecretsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[10]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1043,7 +949,7 @@ type SnapshotWorkspaceRequest struct {
 
 func (x *SnapshotWorkspaceRequest) Reset() {
 	*x = SnapshotWorkspaceRequest{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[11]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1055,7 +961,7 @@ func (x *SnapshotWorkspaceRequest) String() string {
 func (*SnapshotWorkspaceRequest) ProtoMessage() {}
 
 func (x *SnapshotWorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[11]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1041,7 @@ type SnapshotWorkspaceResponse struct {
 
 func (x *SnapshotWorkspaceResponse) Reset() {
 	*x = SnapshotWorkspaceResponse{}
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[12]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1147,7 +1053,7 @@ func (x *SnapshotWorkspaceResponse) String() string {
 func (*SnapshotWorkspaceResponse) ProtoMessage() {}
 
 func (x *SnapshotWorkspaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[12]
+	mi := &file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1189,11 +1095,7 @@ var File_malonaz_workspace_workspace_manager_service_v1_workspace_proto protoref
 
 const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDesc = "" +
 	"\n" +
-	">malonaz/workspace/workspace_manager_service/v1/workspace.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/workspace/v1/workspace.proto\"\xa4\x01\n" +
-	"\x06Secret\x12<\n" +
-	"\x02id\x18\x01 \x01(\tB,\xbaH)\xc8\x01\x01r$\x18?2 ^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$R\x02id\x128\n" +
-	"\aenv_var\x18\x02 \x01(\tB\x1f\xbaH\x1cr\x1a\x18\x80\x012\x15^([A-Z_][A-Z0-9_]*)?$R\x06envVar\x12\"\n" +
-	"\x05value\x18\x03 \x01(\fB\f\xbaH\x06z\x04\x18\x80\x80\x04\x80\x01\x01R\x05value\"\x97\x02\n" +
+	">malonaz/workspace/workspace_manager_service/v1/workspace.proto\x12.malonaz.workspace.workspace_manager_service.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a malonaz/codegen/aip/v1/aip.proto\x1a$malonaz/workspace/v1/workspace.proto\x1a;malonaz/workspace/workspace_service/v1/secret_service.proto\"\x97\x02\n" +
 	"\x16CreateWorkspaceRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\x1c\n" +
 	"\x1aworkspace.malonaz.com/User\xbaH\x03\xc8\x01\x01R\x06parent\x12E\n" +
@@ -1243,11 +1145,11 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12\x12\n" +
 	"\x04etag\x18\x02 \x01(\tR\x04etag\x12*\n" +
 	"\n" +
-	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\xbe\x01\n" +
+	"request_id\x18\x03 \x01(\tB\v\xbaH\b\xd8\x01\x01r\x03\xb0\x01\x01R\trequestId\"\xb6\x01\n" +
 	"\x1aSetWorkspaceSecretsRequest\x12A\n" +
 	"\x04name\x18\x01 \x01(\tB-\xe0A\x02\xfaA!\n" +
-	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12]\n" +
-	"\asecrets\x18\x02 \x03(\v26.malonaz.workspace.workspace_manager_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\"7\n" +
+	"\x1fworkspace.malonaz.com/Workspace\xbaH\x03\xc8\x01\x01R\x04name\x12U\n" +
+	"\asecrets\x18\x02 \x03(\v2..malonaz.workspace.workspace_service.v1.SecretB\v\xe0A\x04\xbaH\x05\x92\x01\x02\x10@R\asecrets\"7\n" +
 	"\x1bSetWorkspaceSecretsResponse\x12\x18\n" +
 	"\aapplied\x18\x01 \x01(\bR\aapplied\"\xa7\x01\n" +
 	"\x18SnapshotWorkspaceRequest\x12A\n" +
@@ -1260,30 +1162,30 @@ const file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDes
 	"\tsnapshots\x18\x01 \x03(\tB#\xfaA \n" +
 	"\x1eworkspace.malonaz.com/SnapshotR\tsnapshotsBIZGgithub.com/malonaz/core/genproto/workspace/workspace_manager_service/v1b\x06proto3"
 
-var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_goTypes = []any{
-	(*Secret)(nil),                      // 0: malonaz.workspace.workspace_manager_service.v1.Secret
-	(*CreateWorkspaceRequest)(nil),      // 1: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest
-	(*GetWorkspaceRequest)(nil),         // 2: malonaz.workspace.workspace_manager_service.v1.GetWorkspaceRequest
-	(*ListWorkspacesRequest)(nil),       // 3: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesRequest
-	(*ListWorkspacesResponse)(nil),      // 4: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
-	(*UpdateWorkspaceRequest)(nil),      // 5: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest
-	(*DeleteWorkspaceRequest)(nil),      // 6: malonaz.workspace.workspace_manager_service.v1.DeleteWorkspaceRequest
-	(*StartWorkspaceRequest)(nil),       // 7: malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest
-	(*StopWorkspaceRequest)(nil),        // 8: malonaz.workspace.workspace_manager_service.v1.StopWorkspaceRequest
-	(*SetWorkspaceSecretsRequest)(nil),  // 9: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest
-	(*SetWorkspaceSecretsResponse)(nil), // 10: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
-	(*SnapshotWorkspaceRequest)(nil),    // 11: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest
-	(*SnapshotWorkspaceResponse)(nil),   // 12: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
-	(*v1.Workspace)(nil),                // 13: malonaz.workspace.v1.Workspace
-	(*fieldmaskpb.FieldMask)(nil),       // 14: google.protobuf.FieldMask
+	(*CreateWorkspaceRequest)(nil),      // 0: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest
+	(*GetWorkspaceRequest)(nil),         // 1: malonaz.workspace.workspace_manager_service.v1.GetWorkspaceRequest
+	(*ListWorkspacesRequest)(nil),       // 2: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesRequest
+	(*ListWorkspacesResponse)(nil),      // 3: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse
+	(*UpdateWorkspaceRequest)(nil),      // 4: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest
+	(*DeleteWorkspaceRequest)(nil),      // 5: malonaz.workspace.workspace_manager_service.v1.DeleteWorkspaceRequest
+	(*StartWorkspaceRequest)(nil),       // 6: malonaz.workspace.workspace_manager_service.v1.StartWorkspaceRequest
+	(*StopWorkspaceRequest)(nil),        // 7: malonaz.workspace.workspace_manager_service.v1.StopWorkspaceRequest
+	(*SetWorkspaceSecretsRequest)(nil),  // 8: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest
+	(*SetWorkspaceSecretsResponse)(nil), // 9: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsResponse
+	(*SnapshotWorkspaceRequest)(nil),    // 10: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceRequest
+	(*SnapshotWorkspaceResponse)(nil),   // 11: malonaz.workspace.workspace_manager_service.v1.SnapshotWorkspaceResponse
+	(*v1.Workspace)(nil),                // 12: malonaz.workspace.v1.Workspace
+	(*fieldmaskpb.FieldMask)(nil),       // 13: google.protobuf.FieldMask
+	(*v11.Secret)(nil),                  // 14: malonaz.workspace.workspace_service.v1.Secret
 }
 var file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_depIdxs = []int32{
-	13, // 0: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
-	13, // 1: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.workspaces:type_name -> malonaz.workspace.v1.Workspace
-	13, // 2: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
-	14, // 3: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	0,  // 4: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_manager_service.v1.Secret
+	12, // 0: malonaz.workspace.workspace_manager_service.v1.CreateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
+	12, // 1: malonaz.workspace.workspace_manager_service.v1.ListWorkspacesResponse.workspaces:type_name -> malonaz.workspace.v1.Workspace
+	12, // 2: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.workspace:type_name -> malonaz.workspace.v1.Workspace
+	13, // 3: malonaz.workspace.workspace_manager_service.v1.UpdateWorkspaceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 4: malonaz.workspace.workspace_manager_service.v1.SetWorkspaceSecretsRequest.secrets:type_name -> malonaz.workspace.workspace_service.v1.Secret
 	5,  // [5:5] is the sub-list for method output_type
 	5,  // [5:5] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -1302,7 +1204,7 @@ func file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_init() 
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDesc), len(file_malonaz_workspace_workspace_manager_service_v1_workspace_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

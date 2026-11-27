@@ -160,4 +160,3 @@ func TestTouch(t *testing.T) {
 		AnnotationLastActive: "2026-11-27T10:01:00Z",
 	}, stored.Annotations)
 }
-

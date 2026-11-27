@@ -1,0 +1,8 @@
+name: filesystem-manager
+servers:
+  - name: filesystem-service
+    grpc:
+      services:
+        - service: filesystem-service
+          proto: //malonaz/workspace/filesystem_service/v1
+          manifest: //go/workspace/filesystem_service:manifest
