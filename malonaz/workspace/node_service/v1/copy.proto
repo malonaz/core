@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package malonaz.workspace.node_service.v1;
+
+import "malonaz/workspace/v1/snapshot.proto";
+
+option go_package = "github.com/malonaz/core/genproto/workspace/node_service/v1";
+
+// A Copy is what a node knows of its copy of a LOCAL filesystem, kept on its
+// disk beside the files.
+message Copy {
+  // The snapshot object the copy was last at; 0 before the first.
+  int64 sequence = 1;
+
+  // The size of the last full snapshot.
+  int64 full_bytes = 2;
+
+  // How many incremental snapshots were written since the last full.
+  int32 incrementals = 3;
+
+  // The size of the incremental snapshots written since the last full.
+  int64 incremental_bytes = 4;
+
+  // Every path in the copy at `sequence`, sorted by path.
+  repeated CopyFile files = 5;
+
+  // The latest snapshot requests answered, oldest first, to answer their
+  // retries alike.
+  repeated CopyRequest requests = 6;
+}
+
+// A CopyFile is what tells a path's change apart, as git's index does:
+// `change_time` and `inode` catch an edit that keeps size and mtime, as
+// workspace code can set mtime but never ctime.
+message CopyFile {
+  // The path, relative to the copy's root.
+  string path = 1;
+
+  // The Go `fs.FileMode`, type bits included.
+  uint32 mode = 2;
+
+  // The size of a regular file.
+  int64 size = 3;
+
+  // The mtime of a regular file, in nanoseconds since the epoch.
+  int64 mod_time = 4;
+
+  // The ctime of a regular file or symlink, in nanoseconds since the epoch.
+  int64 change_time = 5;
+
+  // The inode of a regular file or symlink.
+  uint64 inode = 6;
+
+  // The target of a symlink.
+  string link = 7;
+}
+
+// A CopyRequest is a snapshot request a node answered.
+message CopyRequest {
+  // The request's `request_id`.
+  string request_id = 1;
+
+  // The snapshot it returned.
+  malonaz.workspace.v1.Snapshot snapshot = 2;
+}

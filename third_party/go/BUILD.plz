@@ -954,6 +954,15 @@ go_module(
 )
 
 go_module(
+    name = "github.com__aws__aws-sdk-go-v2__aws__arn",
+    download = ":_github.com__aws__aws-sdk-go-v2#download",
+    install = ["aws/arn"],
+    module = "github.com/aws/aws-sdk-go-v2",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
     name = "github.com__aws__aws-sdk-go-v2__aws__defaults",
     download = ":_github.com__aws__aws-sdk-go-v2#download",
     install = ["aws/defaults"],
@@ -1225,6 +1234,35 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream",
+    _tag = "download",
+    module = "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
+    version = "v1.7.28",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream",
+    download = ":_github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream#download",
+    install = ["."],
+    module = "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
+    visibility = ["PUBLIC"],
+    deps = [":github.com__aws__smithy-go__logging"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream__eventstreamapi",
+    download = ":_github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream#download",
+    install = ["eventstreamapi"],
+    module = "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__smithy-go__middleware",
+        ":github.com__aws__smithy-go__transport__http",
+    ],
+)
+
+go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__config",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/config",
@@ -1458,7 +1496,7 @@ go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__internal__configsources",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/internal/configsources",
-    version = "v1.5.7",
+    version = "v1.5.13",
     visibility = ["PUBLIC"],
 )
 
@@ -1475,7 +1513,7 @@ go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__internal__endpoints__v2",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2",
-    version = "v2.8.7",
+    version = "v2.8.13",
     visibility = ["PUBLIC"],
 )
 
@@ -1495,7 +1533,7 @@ go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__internal__v4a",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/internal/v4a",
-    version = "v1.5.7",
+    version = "v1.5.13",
     visibility = ["PUBLIC"],
 )
 
@@ -1545,7 +1583,7 @@ go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__service__internal__accept-encoding",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding",
-    version = "v1.13.22",
+    version = "v1.13.26",
     visibility = ["PUBLIC"],
 )
 
@@ -1563,10 +1601,37 @@ go_module(
 )
 
 go_mod_download(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__checksum",
+    _tag = "download",
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+    version = "v1.11.14",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__checksum",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__internal__checksum#download",
+    install = ["."],
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__aws-sdk-go-v2__service__internal__presigned-url",
+        ":github.com__aws__smithy-go",
+        ":github.com__aws__smithy-go__logging",
+        ":github.com__aws__smithy-go__middleware",
+        ":github.com__aws__smithy-go__transport__http",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__middleware",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__signer__v4",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__context",
+    ],
+)
+
+go_mod_download(
     name = "github.com__aws__aws-sdk-go-v2__service__internal__presigned-url",
     _tag = "download",
     module = "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
-    version = "v1.14.7",
+    version = "v1.14.13",
     visibility = ["PUBLIC"],
 )
 
@@ -1580,6 +1645,181 @@ go_module(
         ":github.com__aws__smithy-go__middleware",
         "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__middleware",
         "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__signer__v4",
+    ],
+)
+
+go_mod_download(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__s3shared",
+    _tag = "download",
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+    version = "v1.20.13",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__s3shared",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__internal__s3shared#download",
+    install = ["."],
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__aws-sdk-go-v2__service__internal__s3shared__arn",
+        ":github.com__aws__smithy-go__middleware",
+        ":github.com__aws__smithy-go__tracing",
+        ":github.com__aws__smithy-go__transport__http",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__arn",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__middleware",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__transport__http",
+    ],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__s3shared__arn",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__internal__s3shared#download",
+    install = ["arn"],
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__aws__aws-sdk-go-v2__aws__arn"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__internal__s3shared__config",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__internal__s3shared#download",
+    install = ["config"],
+    module = "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_mod_download(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3",
+    _tag = "download",
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    version = "v1.116.1",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__s3#download",
+    install = ["."],
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__aws-sdk-go-v2__service__s3__internal__customizations",
+        ":github.com__aws__aws-sdk-go-v2__service__s3__internal__endpoints",
+        ":github.com__aws__aws-sdk-go-v2__service__s3__types",
+        ":github.com__aws__smithy-go",
+        ":github.com__aws__smithy-go__auth",
+        ":github.com__aws__smithy-go__container__private__cache",
+        ":github.com__aws__smithy-go__container__private__cache__lru",
+        ":github.com__aws__smithy-go__document",
+        ":github.com__aws__smithy-go__encoding__httpbinding",
+        ":github.com__aws__smithy-go__encoding__xml",
+        ":github.com__aws__smithy-go__endpoints",
+        ":github.com__aws__smithy-go__endpoints__private__bdd",
+        ":github.com__aws__smithy-go__endpoints__private__rulesfn",
+        ":github.com__aws__smithy-go__io",
+        ":github.com__aws__smithy-go__logging",
+        ":github.com__aws__smithy-go__metrics",
+        ":github.com__aws__smithy-go__middleware",
+        ":github.com__aws__smithy-go__ptr",
+        ":github.com__aws__smithy-go__rand",
+        ":github.com__aws__smithy-go__sync",
+        ":github.com__aws__smithy-go__time",
+        ":github.com__aws__smithy-go__tracing",
+        ":github.com__aws__smithy-go__transport__http",
+        ":github.com__aws__smithy-go__waiter",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__defaults",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__middleware",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__protocol__eventstream__eventstreamapi",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__protocol__xml",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__retry",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__signer__v4",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__transport__http",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__auth",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__auth__smithy",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__configsources",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__context",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__endpoints",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__endpoints__awsrulesfn",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__sdk",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__sync__singleflight",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__timeouts",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__v4a",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__accept-encoding",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__checksum",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__presigned-url",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__s3shared",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__s3shared__config",
+    ],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3__internal__arn",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__s3#download",
+    install = ["internal/arn"],
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__arn",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__s3shared__arn",
+    ],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3__internal__customizations",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__s3#download",
+    install = ["internal/customizations"],
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__aws-sdk-go-v2__service__s3__internal__endpoints",
+        ":github.com__aws__smithy-go",
+        ":github.com__aws__smithy-go__auth",
+        ":github.com__aws__smithy-go__encoding__httpbinding",
+        ":github.com__aws__smithy-go__encoding__xml",
+        ":github.com__aws__smithy-go__logging",
+        ":github.com__aws__smithy-go__middleware",
+        ":github.com__aws__smithy-go__transport__http",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__middleware",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws__signer__v4",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__auth__smithy",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__context",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__sdk",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__v4a",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__checksum",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__s3shared",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__internal__s3shared__arn",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__service__s3__internal__arn",
+    ],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3__internal__endpoints",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__s3#download",
+    install = ["internal/endpoints"],
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__smithy-go__logging",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__aws",
+        "//third_party/go:github.com__aws__aws-sdk-go-v2__internal__endpoints__v2",
+    ],
+)
+
+go_module(
+    name = "github.com__aws__aws-sdk-go-v2__service__s3__types",
+    download = ":_github.com__aws__aws-sdk-go-v2__service__s3#download",
+    install = ["types"],
+    module = "github.com/aws/aws-sdk-go-v2/service/s3",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":github.com__aws__smithy-go",
+        ":github.com__aws__smithy-go__document",
     ],
 )
 
@@ -1921,6 +2161,24 @@ go_module(
 )
 
 go_module(
+    name = "github.com__aws__smithy-go__container__private__cache",
+    download = ":_github.com__aws__smithy-go#download",
+    install = ["container/private/cache"],
+    module = "github.com/aws/smithy-go",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+go_module(
+    name = "github.com__aws__smithy-go__container__private__cache__lru",
+    download = ":_github.com__aws__smithy-go#download",
+    install = ["container/private/cache/lru"],
+    module = "github.com/aws/smithy-go",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/go:github.com__aws__smithy-go__container__private__cache"],
+)
+
+go_module(
     name = "github.com__aws__smithy-go__context",
     download = ":_github.com__aws__smithy-go#download",
     install = ["context"],
@@ -2153,6 +2411,19 @@ go_module(
     module = "github.com/aws/smithy-go",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_module(
+    name = "github.com__aws__smithy-go__waiter",
+    download = ":_github.com__aws__smithy-go#download",
+    install = ["waiter"],
+    module = "github.com/aws/smithy-go",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third_party/go:github.com__aws__smithy-go__logging",
+        "//third_party/go:github.com__aws__smithy-go__middleware",
+        "//third_party/go:github.com__aws__smithy-go__rand",
+    ],
 )
 
 go_mod_download(
@@ -2399,6 +2670,32 @@ go_module(
     module = "github.com/coder/websocket",
     visibility = ["PUBLIC"],
     deps = [],
+)
+
+go_mod_download(
+    name = "github.com__container-storage-interface__spec",
+    _tag = "download",
+    module = "github.com/container-storage-interface/spec",
+    version = "v1.12.0",
+    visibility = ["PUBLIC"],
+)
+
+go_module(
+    name = "github.com__container-storage-interface__spec__lib__go__csi",
+    download = ":_github.com__container-storage-interface__spec#download",
+    install = ["lib/go/csi"],
+    module = "github.com/container-storage-interface/spec",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":google.golang.org__grpc",
+        ":google.golang.org__grpc__codes",
+        ":google.golang.org__grpc__status",
+        ":google.golang.org__protobuf__reflect__protoreflect",
+        ":google.golang.org__protobuf__runtime__protoimpl",
+        ":google.golang.org__protobuf__types__descriptorpb",
+        ":google.golang.org__protobuf__types__known__timestamppb",
+        ":google.golang.org__protobuf__types__known__wrapperspb",
+    ],
 )
 
 go_mod_download(

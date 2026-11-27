@@ -1,6 +1,7 @@
 go_library(
     name = "v1",
     srcs = [
+        "copy.pb.go",
         "node_service.pb.go",
         "node_service_grpc.pb.go",
     ],
