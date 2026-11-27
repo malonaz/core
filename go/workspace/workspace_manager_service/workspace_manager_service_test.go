@@ -345,7 +345,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	grpcrequire.Equal(t, running, environment.startWorkspace(t, name))
 
 	// Secrets reach the running pod.
-	secrets := []*workspaceservicepb.Secret{{Id: "github", EnvVar: "GITHUB_TOKEN", Value: []byte("token")}}
+	secrets := []*workspaceservicepb.Secret{{EnvVar: "GH_TOKEN", Value: []byte("token")}}
 	setWorkspaceSecretsRequest := &workspacemanagerservicepb.SetWorkspaceSecretsRequest{Name: name, Secrets: secrets}
 	setWorkspaceSecretsResponse, err := environment.service.SetWorkspaceSecrets(context.Background(), setWorkspaceSecretsRequest)
 	require.NoError(t, err)
