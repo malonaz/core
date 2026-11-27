@@ -18,9 +18,7 @@ import (
 	"github.com/malonaz/core/go/uuid"
 )
 
-// snapshotNamespace derives a snapshot's request id from the job creating it: a retried job reaches
-// the agent and the store with the same one.
-var snapshotNamespace = uuid.MustParse("0b6f5f4e-3d0a-4a5c-9f63-7c1e2d8a4b90")
+var snapshotNamespace = aip.MustGetUUIDNamespace(&pb.Snapshot{})
 
 // RunCreateSnapshot implements the interface. The agent on the node of the workspace writing the
 // filesystem uploads what changed; with no running writer nothing can have changed since the
@@ -43,6 +41,7 @@ func (s *Service) RunCreateSnapshot(ctx context.Context, request *filesystemserv
 		return nil, status.Errorf(codes.FailedPrecondition, "only a LOCAL filesystem has snapshots").Err()
 	}
 
+	// Derived from the job: a retried job reaches the agent and the store with the same one.
 	requestID := uuid.NewV5(snapshotNamespace, job).String()
 	snapshot := proto.CloneOf(request.GetSnapshot())
 	snapshot.Name = filesystemRn.SnapshotRn(aip.NewSystemGeneratedBase32ResourceID()).String()
